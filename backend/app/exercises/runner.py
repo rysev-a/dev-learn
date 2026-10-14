@@ -9,7 +9,6 @@ CPU и числу процессов, общий таймаут. Итог harnes
 import json
 import subprocess
 import tempfile
-import traceback
 from pathlib import Path
 
 IMAGE = "python:3.13-slim"

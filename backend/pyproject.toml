@@ -5,9 +5,8 @@ description = "Аудиокурс «слушай учебник»: FastAPI + SQL
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.143.0",
-    "gtts>=2.5.4",
     "kokoro>=0.9.4",
-    "kokoro-mlx>=0.1.2",
     "ruaccent>=1.5.8.3",
+    "soundfile>=0.14.0",
     "uvicorn[standard]>=0.54.0",
 ]

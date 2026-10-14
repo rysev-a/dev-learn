@@ -650,18 +650,3 @@ export const SLIDE_TITLES = {
     "Итог",
   ],
 };
-
-// Индекс абзаца, в котором находится предложение sentIdx.
-export function paraIndexFor(items, sentIdx) {
-  let s = -1;
-  let para = 0;
-  for (const it of items) {
-    if (it.type === "br") {
-      para += 1;
-      continue;
-    }
-    s += 1;
-    if (s === sentIdx) return para;
-  }
-  return para;
-}

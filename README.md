@@ -54,7 +54,6 @@ frontend/          — React 19 + Vite
   src/components/  — плеер, квиз, Exercises (ответы), CodeExercises + CodeEditor (код, CodeMirror)
   src/pages/       — книги и главы
 tasks/             — исходные планы курсов (algo, arch_oc, db_learn)
-experiments/       — пробы произношения для TTS
 ```
 
 ## Наполнение (новая книга)

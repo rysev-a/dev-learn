@@ -3,7 +3,6 @@
 import {
   SLIDES as SLIDES_LINUX_1,
   SLIDE_TITLES as TITLES_LINUX_1,
-  paraIndexFor,
 } from "../slides/linux/ch01.jsx";
 import { SLIDES_CH2, SLIDE_TITLES_CH2 } from "../slides/linux/ch02.jsx";
 import { SLIDES_CH3, SLIDE_TITLES_CH3 } from "../slides/linux/ch03.jsx";
@@ -205,5 +204,3 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_P9,
   ...SLIDE_TITLES_P10,
 };
-
-export { paraIndexFor };

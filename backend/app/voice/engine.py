@@ -18,7 +18,6 @@ MODEL_DIR = config.KOKORO_MODEL_DIR
 AUDIO_DIR = config.AUDIO_DIR
 
 SAMPLE_RATE = 24000
-MAX_IPA = 480  # Kokoro style packs are indexed up to 510; stay safe
 MAX_CHARS = 360  # IPA runs ~1.3x the Russian char count
 PARA_PAUSE_S = 0.4  # silence inserted between paragraphs
 
@@ -89,7 +88,7 @@ class _Engine:
         return [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
 
     def _chunks(self, text: str) -> list[str]:
-        """Split into sentence-ish pieces whose IPA won't exceed MAX_IPA."""
+        """Split into sentence-ish pieces whose IPA stays within Kokoro's style-pack limit (see MAX_CHARS)."""
         sentences = [s.strip() for s in _SENTENCE_RE.findall(text) if s.strip()]
         chunks, buf = [], ""
         for s in sentences:

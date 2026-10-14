@@ -113,8 +113,7 @@ def lesson_audio(lesson_id: str):
     path = audio_file_path(lesson_id)
     if path is None:
         raise HTTPException(404, "Audio not found")
-    media = "audio/wav" if path.suffix == ".wav" else "audio/mpeg"
-    return FileResponse(path, media_type=media)
+    return FileResponse(path, media_type="audio/wav")
 
 
 @router.get("/lesson/{lesson_id}/download")
@@ -131,12 +130,11 @@ def lesson_download(lesson_id: str):
     path = audio_file_path(lesson_id)
     if path is None or row is None:
         raise HTTPException(404, "Audio not found")
-    media = "audio/wav" if path.suffix == ".wav" else "audio/mpeg"
     name = (
         f"Урок {row['chapter_num']}. {safe_filename(row['chapter_title'])}"
-        f" — часть {row['ord'] + 1}{path.suffix}"
+        f" — часть {row['ord'] + 1}.wav"
     )
-    return FileResponse(path, media_type=media, filename=name)
+    return FileResponse(path, media_type="audio/wav", filename=name)
 
 
 @router.get("/chapters/{chapter_id}/download")

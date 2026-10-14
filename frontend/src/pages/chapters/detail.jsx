@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useSearchParams } from "react-router-dom";
-import {
-  SLIDES,
-  SLIDE_TITLES,
-  paraIndexFor,
-} from "../../lib/slides.js";
+import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { fmtTime } from "../../lib/time.js";
 import { QUIZZES } from "../../lib/quizzes.js";
@@ -16,8 +12,7 @@ import CodeExercises from "../../components/CodeExercises.jsx";
 
 export default function ChapterDetail() {
   const { bookId, chapterId } = useParams();
-  const { playingId, paused, progress, togglePause, seek, playSequence } =
-    usePlayer();
+  const { playingId, paused, progress, togglePause, playSequence } = usePlayer();
   const [chapter, setChapter] = useState(null);
   const [error, setError] = useState(null);
   // Код-упражнения (Docker-песочница): приходят с бэкенда, если есть.
@@ -63,7 +58,8 @@ export default function ChapterDetail() {
     ? chapter.lessons.findIndex((l) => l.id === playingId)
     : -1;
 
-  // Слайды: следуют за голосом через activeSent, иначе — ручной выбор.
+  // У каждой главы есть слайды; каждая часть — один абзац со своим слайдом и
+  // своим аудио-файлом. Слайд следует за играющей частью, иначе — ручной выбор.
   const slides =
     chapter && bookId != null
       ? SLIDES[`${bookId}:${chapter.num}`] || null
@@ -72,47 +68,17 @@ export default function ChapterDetail() {
     chapter && bookId != null
       ? SLIDE_TITLES[`${bookId}:${chapter.num}`] || null
       : null;
-  // Каждая часть главы — один абзац: свой слайд и свой аудио-файл.
-  const partMode = !!slides && !!chapter && chapter.lessons.length > 1;
-
-  // Текущее предложение играющей части: кумулятивный вес (длина) против доли времени.
-  // В частичном режиме караоке-подсветка выключена.
-  let activeSent = -1;
-  if (!partMode && chapter && activeIdx >= 0 && progress && progress.d > 0) {
-    const weights = splitSentences(chapter.lessons[activeIdx].text)
-      .filter((it) => it.type === "s")
-      .map((it) => it.text.length);
-    const total = weights.reduce((a, b) => a + b, 0) || 1;
-    const target = (progress.t / progress.d) * total;
-    let acc = 0;
-    activeSent = weights.length - 1;
-    for (let i = 0; i < weights.length; i++) {
-      acc += weights[i];
-      if (target < acc) {
-        activeSent = i;
-        break;
-      }
-    }
-  }
 
   let slideIdx = 0;
   if (slides) {
-    if (partMode) {
-      if (activeIdx >= 0) slideIdx = chapter.lessons[activeIdx].ord;
-      else if (manualIdx != null) slideIdx = manualIdx;
-    } else if (activeSent >= 0) {
-      slideIdx = paraIndexFor(
-        splitSentences(chapter.lessons[0].text),
-        activeSent,
-      );
-    } else if (manualIdx != null) {
-      slideIdx = manualIdx;
-    }
+    if (activeIdx >= 0) slideIdx = chapter.lessons[activeIdx].ord;
+    else if (manualIdx != null) slideIdx = manualIdx;
     slideIdx = Math.min(slideIdx, slides.length - 1);
   }
 
   if (error) return <p className="error">{error}</p>;
   if (!chapter) return <p className="empty">Загрузка…</p>;
+  if (!slides) return <p className="error">У этой главы нет слайдов</p>;
 
   const quiz =
     bookId != null ? QUIZZES[`${bookId}:${chapter.num}`] || null : null;
@@ -129,23 +95,13 @@ export default function ChapterDetail() {
     }));
   }
 
-  // Клик по слайду: в частичном режиме — играем с этой части; если глава
-  // играет — перематываем аудио к началу абзаца; иначе просто показываем.
+  // Клик по слайду: если глава играет — начинаем с этой части, иначе просто
+  // показываем слайд.
   function pickSlide(i) {
-    if (partMode) {
-      if (chapterPlaying) {
-        const cur = activeIdx >= 0 ? chapter.lessons[activeIdx] : null;
-        if (cur && cur.ord === i && paused) togglePause();
-        else playSequence(asItems(chapter.lessons.slice(i)));
-        setManualIdx(null);
-      } else {
-        setManualIdx(i);
-      }
-      return;
-    }
-    const first = chapter.lessons[0];
-    if (playingId != null && first && playingId === first.id) {
-      seek(paraStartFraction(first.text, i));
+    if (chapterPlaying) {
+      const cur = activeIdx >= 0 ? chapter.lessons[activeIdx] : null;
+      if (cur && cur.ord === i && paused) togglePause();
+      else playSequence(asItems(chapter.lessons.slice(i)));
       setManualIdx(null);
     } else {
       setManualIdx(i);
@@ -158,7 +114,7 @@ export default function ChapterDetail() {
   function panelPlay() {
     if (chapterPlaying && paused) togglePause();
     else if (!chapterPlaying) {
-      const start = partMode && manualIdx != null ? manualIdx : 0;
+      const start = manualIdx != null ? manualIdx : 0;
       playSequence(asItems(chapter.lessons.slice(start)));
       setManualIdx(null);
     }
@@ -172,48 +128,14 @@ export default function ChapterDetail() {
   // + прогресс внутри него; всего — сумма всех частей.
   const durOf = (l) => (l.dur ? Number(l.dur) : 0);
   const chapterDur = chapter.lessons.reduce((a, l) => a + durOf(l), 0);
-  const slideOrd = partMode ? slideIdx : 0;
   const offsetBefore = chapter.lessons.reduce(
-    (a, l) => a + (l.ord < slideOrd ? durOf(l) : 0),
+    (a, l) => a + (l.ord < slideIdx ? durOf(l) : 0),
     0,
   );
   const playingThisSlide =
-    activeIdx >= 0 && chapter.lessons[activeIdx].ord === slideOrd;
+    activeIdx >= 0 && chapter.lessons[activeIdx].ord === slideIdx;
   const chapterPos =
     offsetBefore + (playingThisSlide && progress ? progress.t : 0);
-
-  if (slides) {
-    return (
-      <div>
-        <p className="crumbs">{chapter.section}</p>
-        <h2>
-          Урок {chapter.num}. {chapter.title}
-        </h2>
-        <SlidePanel
-          slides={slides}
-          titles={slideTitles}
-          idx={slideIdx}
-          onPick={pickSlide}
-          t={chapterPos}
-          d={chapterDur}
-          caption={`Урок ${chapter.num}. ${chapter.title}`}
-          playing={chapterPlaying && !paused}
-          onPlay={panelPlay}
-          onPause={panelPause}
-        />
-        {quiz && <Quiz quiz={quiz} />}
-        {practice && <Exercises quiz={practice} />}
-        {codeTasks.length > 0 && (
-          <CodeExercises
-            key={`${bookId}:${chapter.num}`}
-            tasks={codeTasks}
-            bookId={bookId}
-            chapter={chapter.num}
-          />
-        )}
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -221,54 +143,18 @@ export default function ChapterDetail() {
       <h2>
         Урок {chapter.num}. {chapter.title}
       </h2>
-      {/* Текст урока в интерфейсе не показываем — только слайды и аудио;
-          эта ветка для глав без слайдов даёт просто список частей. */}
-      <ul className="list">
-        {chapter.lessons.map((lesson, i) => {
-          const isActive = playingId === lesson.id;
-          const p = isActive ? progress : null;
-          return (
-            <li
-              key={lesson.id}
-              className={
-                isActive ? (paused ? "now-playing paused" : "now-playing") : ""
-              }
-            >
-              <button
-                className="play"
-                onClick={() =>
-                  isActive
-                    ? togglePause()
-                    : playSequence(asItems(chapter.lessons.slice(i)))
-                }
-                title={isActive && !paused ? "Пауза" : "Плей"}
-              >
-                {isActive && !paused ? "▮▮" : "▶"}
-              </button>
-              <div className="body">
-                <p className="text">
-                  Часть {lesson.ord + 1}
-                  {p && p.d > 0 ? ` · ${fmtTime(p.t)} / ${fmtTime(p.d)}` : ""}
-                </p>
-              </div>
-              {p && (
-                <div
-                  className="track"
-                  onClick={(e) => {
-                    const r = e.currentTarget.getBoundingClientRect();
-                    seek((e.clientX - r.left) / r.width);
-                  }}
-                >
-                  <div
-                    className="track-fill"
-                    style={{ width: `${p.d > 0 ? (p.t / p.d) * 100 : 0}%` }}
-                  />
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <SlidePanel
+        slides={slides}
+        titles={slideTitles}
+        idx={slideIdx}
+        onPick={pickSlide}
+        t={chapterPos}
+        d={chapterDur}
+        caption={`Урок ${chapter.num}. ${chapter.title}`}
+        playing={chapterPlaying && !paused}
+        onPlay={panelPlay}
+        onPause={panelPause}
+      />
       {quiz && <Quiz quiz={quiz} />}
       {practice && <Exercises quiz={practice} />}
       {codeTasks.length > 0 && (
@@ -281,49 +167,6 @@ export default function ChapterDetail() {
       )}
     </div>
   );
-}
-
-// Разбивает текст урока на элементы: предложения (type "s") и границы абзацев (type "br").
-// Предложение, начинающееся со строчной, — продолжение предыдущего (сокращения «т. д.» и т. п.).
-function splitSentences(text) {
-  const items = [];
-  const paras = text.split("\n\n");
-  paras.forEach((para, pi) => {
-    const pieces = para.match(/[^.!?…]+[.!?…]+["»)]*\s*|[^.!?…]+$/g) || [];
-    const sents = [];
-    for (const piece of pieces) {
-      const prev = sents[sents.length - 1];
-      if (prev && /^\s*[а-яё]/.test(piece)) {
-        sents[sents.length - 1] = prev + piece;
-      } else {
-        sents.push(piece);
-      }
-    }
-    sents.forEach((s) => items.push({ type: "s", text: s }));
-    if (pi < paras.length - 1) items.push({ type: "br" });
-  });
-  return items;
-}
-
-// Доля длительности, где начинается абзац paraIdx — та же оценка, что в караоке:
-// время пропорционально суммарной длине предложений.
-function paraStartFraction(text, paraIdx) {
-  const items = splitSentences(text);
-  const total =
-    items
-      .filter((it) => it.type === "s")
-      .reduce((a, it) => a + it.text.length, 0) || 1;
-  let para = 0;
-  let off = 0;
-  for (const it of items) {
-    if (it.type === "br") {
-      para += 1;
-      continue;
-    }
-    if (para === paraIdx) break;
-    off += it.text.length;
-  }
-  return Math.min(1, (off + 0.5) / total);
 }
 
 function SlidePanel({

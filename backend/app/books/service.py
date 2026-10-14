@@ -71,11 +71,8 @@ def table_exists(conn: sqlite3.Connection, name: str) -> bool:
 
 
 def audio_file_path(item_id: str) -> Path | None:
-    for ext in ("wav", "mp3"):
-        p = config.AUDIO_DIR / f"{item_id}.{ext}"
-        if p.is_file():
-            return p
-    return None
+    p = config.AUDIO_DIR / f"{item_id}.wav"
+    return p if p.is_file() else None
 
 
 _audio_dur_cache: dict[str, float] = {}
@@ -87,7 +84,7 @@ def audio_duration(item_id: str) -> float:
         return _audio_dur_cache[item_id]
     dur = 0.0
     path = audio_file_path(item_id)
-    if path is not None and path.suffix == ".wav":
+    if path is not None:
         try:
             with wave.open(str(path), "rb") as w:
                 dur = w.getnframes() / w.getframerate()
