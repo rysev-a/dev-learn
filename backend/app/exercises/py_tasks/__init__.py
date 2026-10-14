@@ -8,7 +8,7 @@
 Клиенту отдаются только statement/starter/hint — тесты остаются на бэкенде.
 """
 
-from app.exercises.py_tasks import basics, data, files, functional, iterators, oop, stdlib
+from app.exercises.py_tasks import asyncs, basics, data, files, functional, iterators, oop, stdlib
 
 PY_TASKS: dict[int, list[dict]] = {
     **basics.TASKS,
@@ -18,4 +18,5 @@ PY_TASKS: dict[int, list[dict]] = {
     **iterators.TASKS,
     **functional.TASKS,
     **stdlib.TASKS,
+    **asyncs.TASKS,
 }

@@ -88,6 +88,9 @@ import { SLIDES_P27, SLIDE_TITLES_P27 } from "../slides/py/ch27.jsx";
 import { SLIDES_P28, SLIDE_TITLES_P28 } from "../slides/py/ch28.jsx";
 import { SLIDES_P29, SLIDE_TITLES_P29 } from "../slides/py/ch29.jsx";
 import { SLIDES_P30, SLIDE_TITLES_P30 } from "../slides/py/ch30.jsx";
+import { SLIDES_P31, SLIDE_TITLES_P31 } from "../slides/py/ch31.jsx";
+import { SLIDES_P32, SLIDE_TITLES_P32 } from "../slides/py/ch32.jsx";
+import { SLIDES_P33, SLIDE_TITLES_P33 } from "../slides/py/ch33.jsx";
 
 export const SLIDES = {
   ...SLIDES_LINUX_1,
@@ -175,6 +178,9 @@ export const SLIDES = {
   ...SLIDES_P28,
   ...SLIDES_P29,
   ...SLIDES_P30,
+  ...SLIDES_P31,
+  ...SLIDES_P32,
+  ...SLIDES_P33,
 };
 
 export const SLIDE_TITLES = {
@@ -263,4 +269,7 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_P28,
   ...SLIDE_TITLES_P29,
   ...SLIDE_TITLES_P30,
+  ...SLIDE_TITLES_P31,
+  ...SLIDE_TITLES_P32,
+  ...SLIDE_TITLES_P33,
 };
