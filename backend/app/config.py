@@ -1,0 +1,15 @@
+"""Центральные пути приложения — всё считается от файлов пакета, не от CWD."""
+
+from pathlib import Path
+
+APP_DIR = Path(__file__).resolve().parent
+
+# backend/app/data — книги, аудио, база
+DATA_DIR = APP_DIR / "data"
+TEXTBOOK_DIR = DATA_DIR / "textbook"
+AUDIO_DIR = DATA_DIR / "audio"
+DB_PATH = DATA_DIR / "say.db"
+
+# backend/app/voice/models — чекпоинты kokoro-ru
+VOICE_MODELS_DIR = APP_DIR / "voice" / "models"
+KOKORO_MODEL_DIR = VOICE_MODELS_DIR / "kokoro-ru"
