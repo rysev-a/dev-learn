@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
   SLIDES,
-  SLIDE_PART_MODE,
   SLIDE_TITLES,
   paraIndexFor,
 } from "../../lib/slides.js";
@@ -73,8 +72,8 @@ export default function ChapterDetail() {
     chapter && bookId != null
       ? SLIDE_TITLES[`${bookId}:${chapter.num}`] || null
       : null;
-  const partMode =
-    !!slides && chapter && SLIDE_PART_MODE.has(`${bookId}:${chapter.num}`);
+  // Каждая часть главы — один абзац: свой слайд и свой аудио-файл.
+  const partMode = !!slides && !!chapter && chapter.lessons.length > 1;
 
   // Текущее предложение играющей части: кумулятивный вес (длина) против доли времени.
   // В частичном режиме караоке-подсветка выключена.

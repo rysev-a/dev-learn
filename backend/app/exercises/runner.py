@@ -30,6 +30,15 @@ import json
 import sys
 import traceback
 
+def _dec(x):
+    if isinstance(x, dict):
+        if set(x) == {{"__tuple__"}}:
+            return tuple(_dec(i) for i in x["__tuple__"])
+        return {{k: _dec(v) for k, v in x.items()}}
+    if isinstance(x, list):
+        return [_dec(i) for i in x]
+    return x
+
 results = []
 load_error = None
 spec = importlib.util.spec_from_file_location("solution", "/sandbox/solution.py")
@@ -51,7 +60,7 @@ else:
             {{"ok": False, "error": "Функция {func} не найдена. Проверьте имя и регистр."}}
         ] * {n}
     else:
-        tests = json.loads({tests!r})
+        tests = _dec(json.loads({tests!r}))
         for args, expected in tests:
             try:
                 got = fn(*args)
@@ -101,12 +110,26 @@ print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
 """
 
 
+def _enc(x):
+    """Кортежи в тестах (аргументы и ожидаемое) едут через JSON с меткой —
+    harness вернёт их кортежами, поэтому [1, 2] и (1, 2) различаются."""
+    if isinstance(x, tuple):
+        return {"__tuple__": [_enc(i) for i in x]}
+    if isinstance(x, list):
+        return [_enc(i) for i in x]
+    if isinstance(x, dict):
+        return {k: _enc(v) for k, v in x.items()}
+    return x
+
+
 def _harness(task: dict) -> str:
     if task["mode"] == "func":
         return HARNESS_FUNC.format(
             n=len(task["tests"]),
             func=task["func"],
-            tests=json.dumps([[t["args"], t["expected"]] for t in task["tests"]]),
+            tests=json.dumps(
+                [_enc([t["args"], t["expected"]]) for t in task["tests"]]
+            ),
         )
     expected = "\n".join(task["expected"]) + "\n"
     return HARNESS_STDOUT.format(expected=expected)

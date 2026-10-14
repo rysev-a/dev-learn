@@ -1,8 +1,9 @@
 import { useState } from "react";
+import CodeEditor from "./CodeEditor.jsx";
 
 /* Упражнения с проверкой кода в Docker-песочнице (бэкенд /api/exercises).
-   Редактор — простая моноширинная textarea (Tab вставляет 4 пробела);
-   проверка всегда на сервере. Решения отмечаются в localStorage. */
+   Редактор — CodeMirror с подсветкой Python (Tab — отступ, Ctrl/Cmd+Enter —
+   проверить); проверка всегда на сервере. Решения отмечаются в localStorage. */
 
 function solvedKey(bookId, chapter, taskId) {
   return `say-cex-${bookId}:${chapter}:${taskId}`;
@@ -35,24 +36,6 @@ export default function CodeExercises({ tasks, bookId, chapter }) {
     }
     if (results[i])
       setResults((prev) => prev.map((p, k) => (k === i ? null : p)));
-  }
-
-  function editorKeyDown(e, i) {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const el = e.currentTarget;
-      const { selectionStart: s, selectionEnd: en } = el;
-      const next = code[i].slice(0, s) + "    " + code[i].slice(en);
-      setCodeAt(i, next);
-      requestAnimationFrame(() => {
-        el.selectionStart = el.selectionEnd = s + 4;
-      });
-    }
-    // Ctrl/Cmd+Enter — проверить
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      run(i);
-    }
   }
 
   async function run(i) {
@@ -111,13 +94,11 @@ export default function CodeExercises({ tasks, bookId, chapter }) {
             <p className="quiz-q-text">
               {i + 1}. {t.title}. {t.statement}
             </p>
-            <textarea
-              className={`cx-editor ${ok ? "right" : ""}`}
+            <CodeEditor
+              className={ok ? "right" : ""}
               value={code[i]}
-              rows={Math.max(4, code[i].split("\n").length + 1)}
-              spellCheck={false}
-              onChange={(e) => setCodeAt(i, e.target.value)}
-              onKeyDown={(e) => editorKeyDown(e, i)}
+              onChange={(v) => setCodeAt(i, v)}
+              onRun={() => run(i)}
             />
             <div className="ex-row">
               <button

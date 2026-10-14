@@ -1804,30 +1804,25 @@ h2 {
 
 /* Упражнения с проверкой кода в Docker */
 
-.cx-editor {
+.cx-cm {
   box-sizing: border-box;
   width: 100%;
-  resize: vertical;
   background: var(--s-bg);
-  color: var(--s-text);
   border: 1px solid var(--s-border);
   border-radius: 8px;
-  padding: 10px 12px;
-  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  font-size: 12.5px;
-  line-height: 1.55;
-  tab-size: 4;
-  white-space: pre;
-  overflow-x: auto;
+  overflow: hidden;
 }
 
-.cx-editor:focus {
-  outline: none;
+.cx-cm:focus-within {
   border-color: var(--s-accent-a45);
 }
 
-.cx-editor.right {
+.cx-cm.right {
   border-color: var(--s-accent);
+}
+
+.cx-cm .cm-editor {
+  min-height: 6.5em;
 }
 
 .cx-tests {

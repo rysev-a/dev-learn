@@ -64,6 +64,11 @@ import { SLIDES_P2, SLIDE_TITLES_P2 } from "../slides/py/ch02.jsx";
 import { SLIDES_P3, SLIDE_TITLES_P3 } from "../slides/py/ch03.jsx";
 import { SLIDES_P4, SLIDE_TITLES_P4 } from "../slides/py/ch04.jsx";
 import { SLIDES_P5, SLIDE_TITLES_P5 } from "../slides/py/ch05.jsx";
+import { SLIDES_P6, SLIDE_TITLES_P6 } from "../slides/py/ch06.jsx";
+import { SLIDES_P7, SLIDE_TITLES_P7 } from "../slides/py/ch07.jsx";
+import { SLIDES_P8, SLIDE_TITLES_P8 } from "../slides/py/ch08.jsx";
+import { SLIDES_P9, SLIDE_TITLES_P9 } from "../slides/py/ch09.jsx";
+import { SLIDES_P10, SLIDE_TITLES_P10 } from "../slides/py/ch10.jsx";
 
 export const SLIDES = {
   ...SLIDES_LINUX_1,
@@ -126,6 +131,11 @@ export const SLIDES = {
   ...SLIDES_P3,
   ...SLIDES_P4,
   ...SLIDES_P5,
+  ...SLIDES_P6,
+  ...SLIDES_P7,
+  ...SLIDES_P8,
+  ...SLIDES_P9,
+  ...SLIDES_P10,
 };
 
 export const SLIDE_TITLES = {
@@ -189,26 +199,11 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_P3,
   ...SLIDE_TITLES_P4,
   ...SLIDE_TITLES_P5,
+  ...SLIDE_TITLES_P6,
+  ...SLIDE_TITLES_P7,
+  ...SLIDE_TITLES_P8,
+  ...SLIDE_TITLES_P9,
+  ...SLIDE_TITLES_P10,
 };
-
-// Главы в «частичном» режиме: текст разбит на части-абзацы, слайд = текущая
-// часть, караоке-подсветка выключена.
-export const SLIDE_PART_MODE = new Set([
-  "8:1",
-  "8:2",
-  "8:3",
-  "8:4",
-  "8:5",
-  "8:6",
-  "8:7",
-  "8:8",
-  "8:9",
-  "8:10",
-  "10:1",
-  "10:2",
-  "10:3",
-  "10:4",
-  "10:5",
-]);
 
 export { paraIndexFor };
