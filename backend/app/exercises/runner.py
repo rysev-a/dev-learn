@@ -1,5 +1,9 @@
 """Docker-песочница: запуск пользовательского кода с тестами.
 
+Режимы: func (вызов функции с аргументами), stdout (сравнение вывода) и
+stdout с необязательным скрытым "driver" — код, который выполняется после
+решения ученика в том же пространстве имён (для классов, файлов, генераторов).
+
 Код ученика и сгенерированный harness пишутся во временную директорию,
 она монтируется в контейнер read-only. Сеть выключена, лимиты по памяти,
 CPU и числу процессов, общий таймаут. Итог harness печатает одной строкой
@@ -90,14 +94,27 @@ import json
 import traceback
 
 buf = io.StringIO()
+pre = io.StringIO()
 error = None
+driver = {driver!r}
 try:
     code = open("/sandbox/solution.py", encoding="utf-8").read()
-    with contextlib.redirect_stdout(buf):
-        exec(compile(code, "solution.py", "exec"), {{"__name__": "__main__"}})
+    ns = {{"__name__": "__main__"}}
+    if driver:
+        # режим «драйвер»: код ученика только описывает классы/функции, а
+        # скрытый драйвер печатает то, что сравнивается с ожидаемым
+        with contextlib.redirect_stdout(pre):
+            exec(compile(code, "solution.py", "exec"), ns)
+        with contextlib.redirect_stdout(buf):
+            exec(compile(driver, "driver.py", "exec"), ns)
+    else:
+        with contextlib.redirect_stdout(buf):
+            exec(compile(code, "solution.py", "exec"), ns)
 except Exception:
     error = traceback.format_exc(limit=3).strip()
 
+if pre.getvalue():
+    print(pre.getvalue(), end="")
 got = buf.getvalue()
 expected = {expected!r}
 def norm(s):
@@ -131,7 +148,7 @@ def _harness(task: dict) -> str:
             ),
         )
     expected = "\n".join(task["expected"]) + "\n"
-    return HARNESS_STDOUT.format(expected=expected)
+    return HARNESS_STDOUT.format(expected=expected, driver=task.get("driver", ""))
 
 
 def run_task(task: dict, code: str) -> dict:

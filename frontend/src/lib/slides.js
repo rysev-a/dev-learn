@@ -68,6 +68,26 @@ import { SLIDES_P7, SLIDE_TITLES_P7 } from "../slides/py/ch07.jsx";
 import { SLIDES_P8, SLIDE_TITLES_P8 } from "../slides/py/ch08.jsx";
 import { SLIDES_P9, SLIDE_TITLES_P9 } from "../slides/py/ch09.jsx";
 import { SLIDES_P10, SLIDE_TITLES_P10 } from "../slides/py/ch10.jsx";
+import { SLIDES_P11, SLIDE_TITLES_P11 } from "../slides/py/ch11.jsx";
+import { SLIDES_P12, SLIDE_TITLES_P12 } from "../slides/py/ch12.jsx";
+import { SLIDES_P13, SLIDE_TITLES_P13 } from "../slides/py/ch13.jsx";
+import { SLIDES_P14, SLIDE_TITLES_P14 } from "../slides/py/ch14.jsx";
+import { SLIDES_P15, SLIDE_TITLES_P15 } from "../slides/py/ch15.jsx";
+import { SLIDES_P16, SLIDE_TITLES_P16 } from "../slides/py/ch16.jsx";
+import { SLIDES_P17, SLIDE_TITLES_P17 } from "../slides/py/ch17.jsx";
+import { SLIDES_P18, SLIDE_TITLES_P18 } from "../slides/py/ch18.jsx";
+import { SLIDES_P19, SLIDE_TITLES_P19 } from "../slides/py/ch19.jsx";
+import { SLIDES_P20, SLIDE_TITLES_P20 } from "../slides/py/ch20.jsx";
+import { SLIDES_P21, SLIDE_TITLES_P21 } from "../slides/py/ch21.jsx";
+import { SLIDES_P22, SLIDE_TITLES_P22 } from "../slides/py/ch22.jsx";
+import { SLIDES_P23, SLIDE_TITLES_P23 } from "../slides/py/ch23.jsx";
+import { SLIDES_P24, SLIDE_TITLES_P24 } from "../slides/py/ch24.jsx";
+import { SLIDES_P25, SLIDE_TITLES_P25 } from "../slides/py/ch25.jsx";
+import { SLIDES_P26, SLIDE_TITLES_P26 } from "../slides/py/ch26.jsx";
+import { SLIDES_P27, SLIDE_TITLES_P27 } from "../slides/py/ch27.jsx";
+import { SLIDES_P28, SLIDE_TITLES_P28 } from "../slides/py/ch28.jsx";
+import { SLIDES_P29, SLIDE_TITLES_P29 } from "../slides/py/ch29.jsx";
+import { SLIDES_P30, SLIDE_TITLES_P30 } from "../slides/py/ch30.jsx";
 
 export const SLIDES = {
   ...SLIDES_LINUX_1,
@@ -135,6 +155,26 @@ export const SLIDES = {
   ...SLIDES_P8,
   ...SLIDES_P9,
   ...SLIDES_P10,
+  ...SLIDES_P11,
+  ...SLIDES_P12,
+  ...SLIDES_P13,
+  ...SLIDES_P14,
+  ...SLIDES_P15,
+  ...SLIDES_P16,
+  ...SLIDES_P17,
+  ...SLIDES_P18,
+  ...SLIDES_P19,
+  ...SLIDES_P20,
+  ...SLIDES_P21,
+  ...SLIDES_P22,
+  ...SLIDES_P23,
+  ...SLIDES_P24,
+  ...SLIDES_P25,
+  ...SLIDES_P26,
+  ...SLIDES_P27,
+  ...SLIDES_P28,
+  ...SLIDES_P29,
+  ...SLIDES_P30,
 };
 
 export const SLIDE_TITLES = {
@@ -203,4 +243,24 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_P8,
   ...SLIDE_TITLES_P9,
   ...SLIDE_TITLES_P10,
+  ...SLIDE_TITLES_P11,
+  ...SLIDE_TITLES_P12,
+  ...SLIDE_TITLES_P13,
+  ...SLIDE_TITLES_P14,
+  ...SLIDE_TITLES_P15,
+  ...SLIDE_TITLES_P16,
+  ...SLIDE_TITLES_P17,
+  ...SLIDE_TITLES_P18,
+  ...SLIDE_TITLES_P19,
+  ...SLIDE_TITLES_P20,
+  ...SLIDE_TITLES_P21,
+  ...SLIDE_TITLES_P22,
+  ...SLIDE_TITLES_P23,
+  ...SLIDE_TITLES_P24,
+  ...SLIDE_TITLES_P25,
+  ...SLIDE_TITLES_P26,
+  ...SLIDE_TITLES_P27,
+  ...SLIDE_TITLES_P28,
+  ...SLIDE_TITLES_P29,
+  ...SLIDE_TITLES_P30,
 };

@@ -32,14 +32,17 @@ CHAPTER_RE = re.compile(r"^#CHAPTER\s+(\d+)\s*\|\s*(.+)$")
 # фиксированное пространство имён для стабильных id уроков
 NS = uuid.UUID("d3a7c0de-0000-4000-8000-4b6f6b6f726f")
 
+# Порядок книг в левом меню — по плану курса (course.MD): дискретная математика,
+# Python, алгоритмы, операционные системы, базы данных, Rust, JavaScript.
+# Книги «Архитектура компьютера» и «Системный дизайн» из плана ещё не написаны.
 BOOKS = [
-    (7, "Алгоритмы: продвинутый уровень", 7),
-    (8, "Linux: от шелла до ядра", 8),
-    (9, "Базы данных: под капотом", 9),
-    (10, "Изучаем Rust", 1),
-    (11, "Изучаем JavaScript", 2),
     (12, "Дискретная математика", 0),
-    (13, "Изучаем Python", 3),
+    (13, "Изучаем Python", 1),
+    (7, "Алгоритмы: продвинутый уровень", 2),
+    (8, "Linux: от шелла до ядра", 3),
+    (9, "Базы данных: под капотом", 4),
+    (10, "Изучаем Rust", 5),
+    (11, "Изучаем JavaScript", 6),
 ]
 # uuid5 source prefix per book
 AUDIO_PREFIX = {
@@ -124,7 +127,8 @@ def seed_db(books: list[dict]) -> list[dict]:
         init_db(conn)
         for bid, title, ord_ in BOOKS:
             conn.execute(
-                "INSERT OR IGNORE INTO books (id, title, ord) VALUES (?, ?, ?)",
+                "INSERT INTO books (id, title, ord) VALUES (?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET title = excluded.title, ord = excluded.ord",
                 (bid, title, ord_),
             )
         conn.execute("DELETE FROM lessons")
