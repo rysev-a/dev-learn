@@ -1,4 +1,4 @@
-// Слайды для «Изучаем Python», глава 32 — «asyncio: корутины и async/await».
+// Слайды для «Python как первый язык», глава 32 — «asyncio: корутины и async/await».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>ИЗУЧАЕМ ПИТОН / АСИНХРОННОСТЬ / ГЛАВА 32</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / АСИНХРОННОСТЬ / ГЛАВА 32</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );

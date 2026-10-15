@@ -1,4 +1,4 @@
-// Квизы книги «Изучаем JavaScript» (book id 11) — главы 1–10.
+// Квизы книги «Современный Frontend» (book id 11) — главы 1–10.
 // Формат записи тот же, что в src/lib/quizzes.js и quizzes/rust.js: kind, title, questions[].
 // Каждый вопрос: q — формулировка, options — 4 варианта, answer — индекс верного, expl — объяснение.
 export const JS_QUIZZES = {

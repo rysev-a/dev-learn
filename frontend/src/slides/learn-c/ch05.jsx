@@ -1,0 +1,241 @@
+// Слайды для «От assembler к языку C», глава 5 — «Динамическая память и структуры данных на C».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Cl05.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Cl05.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>ОТ ASSEMBLER К ЯЗЫКУ C / ПАМЯТЬ И ДАННЫЕ / ГЛАВА 5</span>
+      <span>{String(n).padStart(2, "0")} / 13</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"Зачем куча"}
+      sub={"Глава 5 · malloc и free"}
+      main={
+        "Куча — для данных неизвестного размера и времени жизни; управляете вы."
+      }
+    >
+      <V01 cues={[13.8, 32.4]} />
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"malloc, realloc, free"}
+      sub={"Четыре функции"}
+      main={"Проверяйте результат; realloc — через временную переменную."}
+    >
+      <V02 cues={[15.9, 26.2]} />
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"Внутри аллокатора"}
+      sub={"Блоки и списки"}
+      main={"Заголовки, списки свободных блоков, фрагментация."}
+    >
+      <V03 cues={[14.1, 27.5]} />
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Динамический массив"}
+      sub={"ptr, len, cap"}
+      main={"Рост вдвое даёт амортизированное O(1) для push."}
+    >
+      <V04 cues={[18.0, 28.6]} />
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Владение в C"}
+      sub={"Соглашения"}
+      main={"Один владелец; утечки, double free и use-after-free."}
+    >
+      <V05 cues={[12.4, 30.4]} />
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"Односвязный список"}
+      sub={"Узлы и указатели"}
+      main={"Вставка — три действия; удаление — через указатель на указатель."}
+    >
+      <V06 cues={[10.9, 36.7]} />
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"Стек и очередь"}
+      sub={"Кольцевой буфер"}
+      main={"Индексы по модулю ёмкости; счётчик отличает пустую от полной."}
+    >
+      <V07 cues={[11.9, 25.1]} />
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"Дерево поиска"}
+      sub={"Левые меньше, правые больше"}
+      main={"Вставка и поиск — вниз; in-order — по возрастанию."}
+    >
+      <V08 cues={[17.5, 30.2]} />
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"Хеш-таблица"}
+      sub={"Корзины и цепочки"}
+      main={"Перестройка при высокой загрузке сохраняет O(1) в среднем."}
+    >
+      <V09 cues={[15.0, 24.9]} />
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Санитайзеры"}
+      sub={"ASan и LSan"}
+      main={"Тесты — всегда под -fsanitize=address,undefined."}
+    >
+      <V10 cues={[19.4, 30.9]} />
+    </Slide>
+  );
+}
+
+function S11() {
+  return (
+    <Slide
+      n={11}
+      title={"Арена и пул"}
+      sub={"Свои аллокаторы"}
+      main={"Арена освобождается целиком; пул держит блоки одного размера."}
+    >
+      <V11 cues={[16.5, 24.3]} />
+    </Slide>
+  );
+}
+
+function S12() {
+  return (
+    <Slide
+      n={12}
+      title={"Универсальный вектор"}
+      sub={"void * и элемент"}
+      main={"Универсальность стоит типобезопасности."}
+    >
+      <V12 cues={[12.6, 32.1]} />
+    </Slide>
+  );
+}
+
+function S13() {
+  return (
+    <Slide
+      n={13}
+      title={"Итоги"}
+      sub={"Что дальше"}
+      main={"Дальше — указатели на функции и обобщённый код."}
+    >
+      <V13 cues={[18.5, 28.1]} />
+    </Slide>
+  );
+}
+
+export const SLIDES_C5 = {
+  "16:5": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_C5).
+export const SLIDE_TITLES_C5 = {
+  "16:5": [
+    "Введение",
+    "malloc",
+    "Аллокатор",
+    "Вектор",
+    "Владение",
+    "Список",
+    "Очередь",
+    "Дерево",
+    "Хеш",
+    "Санитайзеры",
+    "Арена",
+    "void *",
+    "Итоги",
+  ],
+};

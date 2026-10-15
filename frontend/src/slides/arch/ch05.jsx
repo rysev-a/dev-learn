@@ -1,50 +1,26 @@
-// Слайды для «Архитектура компьютера», глава 5 — «Команды, стек и ассемблер».
-// Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
-// рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
-// Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
+// Слайды для «Архитектура компьютера», глава 5 — «Текст и защита данных».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Arc05.jsx).
 
-const PY_KW = new Set([
-  "print", "for", "in", "not", "and", "or", "if", "else", "while", "is",
-  "True", "False", "None", "def", "return", "class", "import", "from", "elif",
-  "lambda", "with", "assert", "raise", "break", "continue", "pass", "yield",
-]);
-
-// Крошечный токенизатор Python: комментарии, строки, числа, ключевые слова,
-// вызовы функций. Достаточно для слайдов.
-function pySpan(src) {
-  const out = [];
-  const re =
-    /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+|.)/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const [tok, com, str, num, word] = m;
-    if (com) out.push(<span key={out.length} className="rs-com">{tok}</span>);
-    else if (str) out.push(<span key={out.length} className="rs-str">{tok}</span>);
-    else if (num) out.push(<span key={out.length} className="rs-num">{tok}</span>);
-    else if (word) {
-      let cls = "";
-      if (PY_KW.has(word)) cls = "rs-kw";
-      else if (src[re.lastIndex] === "(") cls = "rs-fn";
-      out.push(
-        cls ? (
-          <span key={out.length} className={cls}>{word}</span>
-        ) : (
-          <span key={out.length}>{word}</span>
-        ),
-      );
-    } else out.push(<span key={out.length}>{tok}</span>);
-  }
-  return out;
-}
-
-function PyCode({ children }) {
-  return <pre className="rs-code">{pySpan(children)}</pre>;
-}
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Arc05.jsx";
 
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>АРХИТЕКТУРА КОМПЬЮТЕРА / ПРОЦЕССОР / ГЛАВА 5</span>
+      <span>ОСНОВЫ / ГЛАВА 5</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -68,43 +44,19 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
   return (
     <Slide
       n={1}
-      title={"Язык процессора"}
-      sub={"Глава 5 · Процессор"}
-      main={"Набор команд — договор между железом и программой; ассемблер — его читаемая запись."}
+      title={"Текст и ошибки"}
+      sub={"Глава 5 · Номера символов и защита"}
+      main={
+        "Текст — тоже числа; вопрос в том, как договориться о номерах и сберечь их."
+      }
     >
-      <div className="s-grid2">
-        {[["ISA", "Набор команд", "Что умеет процессор"], ["[R1 + 4]", "Адресация", "Откуда брать операнды"], ["CALL · RET", "Стек", "Функции и рекурсия"], ["loop:", "Ассемблер", "Имена и метки вместо чисел"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V01 cues={[14.6, 30.8]} />
     </Slide>
   );
 }
@@ -113,14 +65,11 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Что входит в ISA"}
-      sub={"Регистры, команды, память"}
-      main={"Число бит кода операции ограничивает число команд: n бит — 2ⁿ команд."}
+      title={"ASCII"}
+      sub={"Семь бит"}
+      main={"Заглавную букву от строчной отделяет один бит."}
     >
-      <PyCode>{`for bits in (4, 6, 8):
-    print(bits, "бит кода операции →", 2 ** bits, "команд")`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"4 бит кода операции → 16 команд\n6 бит кода операции → 64 команд\n8 бит кода операции → 256 команд"}</Cmd>
+      <V02 cues={[13.5, 18.8]} />
     </Slide>
   );
 }
@@ -129,18 +78,11 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Классы команд"}
-      sub={"Данные, арифметика, управление"}
-      main={"В реальных программах много пересылок и переходов — их и ускоряют в первую очередь."}
+      title={"Кодовые страницы"}
+      sub={"Один байт — разные буквы"}
+      main={"Запись в одной кодировке и чтение в другой дают «крякозябры»."}
     >
-      <PyCode>{`from collections import Counter
-
-CLASS = {"LDI": "данные", "MOV": "данные", "ADD": "арифметика",
-         "SUB": "арифметика", "JNZ": "управление", "HLT": "управление"}
-prog = ["LDI", "LDI", "ADD", "SUB", "JNZ", "HLT"]
-print(Counter(CLASS[op] for op in prog))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"Counter({'данные': 2, 'арифметика': 2, 'управление': 2})"}</Cmd>
+      <V03 cues={[12.6, 23.9]} />
     </Slide>
   );
 }
@@ -149,20 +91,13 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Режимы адресации"}
-      sub={"Откуда берётся операнд"}
-      main={"Число, регистр, адрес, адрес в регистре, база + смещение — так работают указатели и массивы."}
+      title={"Юникод"}
+      sub={"Номер для каждого символа"}
+      main={
+        "Юникод определяет номер, а не байты; один символ бывает из нескольких точек."
+      }
     >
-      <PyCode>{`mem = [10, 20, 30, 40]
-regs = {"R1": 2}
-
-print(5)                          # непосредственная: число в команде
-print(regs["R1"])                 # регистровая
-print(mem[1])                     # прямая: адрес в команде
-print(mem[regs["R1"]])            # косвенная через регистр
-print(mem[1 + regs["R1"]])        # индексная: база + смещение`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"5\n2\n20\n30\n40"}</Cmd>
+      <V04 cues={[15.9, 32.0]} />
     </Slide>
   );
 }
@@ -171,35 +106,11 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Ассемблер"}
-      sub={"Метки и два прохода"}
-      main={"Первый проход запоминает адреса меток, второй подставляет их вместо имён."}
+      title={"UTF-8"}
+      sub={"Переменная длина"}
+      main={"По первому байту видна длина, а продолжения начинаются с 10."}
     >
-      <PyCode>{`source = """
-    LDI R0 0
-    LDI R1 3
-    LDI R2 1
-loop:
-    ADD R0 R1
-    SUB R1 R2
-    JNZ loop
-    HLT
-"""
-
-def assemble(text):
-    lines = [l.split(";")[0].strip() for l in text.splitlines()]
-    labels, code = {}, []
-    for l in filter(None, lines):
-        if l.endswith(":"):
-            labels[l[:-1]] = len(code)
-        else:
-            code.append(l.split())
-    return [(op, *[labels[a] if a in labels else int(a) if a.isdigit() else a for a in args])
-            for op, *args in code]
-
-print(assemble(source))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[('LDI', 'R0', 0), ('LDI', 'R1', 3), ('LDI', 'R2', 1), ('ADD', 'R0', 'R1'), ('SUB', 'R1', 'R2'), ('JNZ', 3), ('HLT',)]"}</Cmd>
+      <V05 cues={[15.9, 24.4]} />
     </Slide>
   );
 }
@@ -208,26 +119,11 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Машинный код"}
-      sub={"Мнемоники становятся числами"}
-      main={"Команда — слово из полей; дизассемблер делает обратное преобразование."}
+      title={"Пример: «Ж»"}
+      sub={"Раскладываем биты по шаблону"}
+      main={"«Ж» занимает два байта: D0 96."}
     >
-      <PyCode>{`OPS = {"HLT": 0, "LDI": 1, "ADD": 3, "SUB": 4, "JNZ": 13}
-REG = {"R0": 0, "R1": 1, "R2": 2, "R3": 3}
-
-def encode(op, *a):
-    if op == "LDI":
-        return OPS[op] << 12 | REG[a[0]] << 10 | a[1]
-    if op in ("ADD", "SUB"):
-        return OPS[op] << 12 | REG[a[0]] << 10 | REG[a[1]] << 8
-    if op == "JNZ":
-        return OPS[op] << 12 | a[0]
-    return OPS[op] << 12
-
-ws = [encode("LDI", "R1", 5), encode("ADD", "R0", "R1"), encode("SUB", "R1", "R2"), encode("JNZ", 3), encode("HLT")]
-print([format(w, "04x") for w in ws])`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['1405', '3100', '4600', 'd003', '0000']"}</Cmd>
+      <V06 cues={[9.9, 22.6]} />
     </Slide>
   );
 }
@@ -236,28 +132,11 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Стек"}
-      sub={"Последним пришёл — первым вышел"}
-      main={"Указатель стека хранит вершину; положить — уменьшить указатель и записать; взять — прочитать и увеличить."}
+      title={"Символы и байты"}
+      sub={"Длина строки — не размер"}
+      main={"Всегда явно указывайте кодировку при чтении и записи файлов."}
     >
-      <PyCode>{`mem = [0] * 8
-sp = len(mem)
-
-def push(x):
-    global sp
-    sp -= 1
-    mem[sp] = x
-
-def pop():
-    global sp
-    x = mem[sp]
-    sp += 1
-    return x
-
-push(1); push(2); push(3)
-print(pop(), pop(), mem, sp)`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"3 2 [0, 0, 0, 0, 0, 3, 2, 1] 7"}</Cmd>
+      <V07 cues={[11.7, 22.3]} />
     </Slide>
   );
 }
@@ -266,26 +145,11 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"CALL и RET"}
-      sub={"Вызов и возврат"}
-      main={"CALL кладёт адрес возврата и прыгает; RET берёт адрес со стека — вложенность любой глубины."}
+      title={"Бит чётности"}
+      sub={"Дёшево, но слабо"}
+      main={"Один бит ошибку замечает, а два — нет."}
     >
-      <PyCode>{`stack = []
-
-def call(pc, target):
-    stack.append(pc + 1)
-    return target
-
-def ret():
-    return stack.pop()
-
-pc = 10
-pc = call(pc, 50); print(pc, stack)
-pc = call(pc, 90); print(pc, stack)
-pc = ret(); print(pc)
-pc = ret(); print(pc)`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"50 [11]\n90 [11, 51]\n51\n11"}</Cmd>
+      <V08 cues={[15.2, 23.3]} />
     </Slide>
   );
 }
@@ -294,22 +158,13 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"Кадр вызова и рекурсия"}
-      sub={"Стек конечен"}
-      main={"Каждый вызов занимает место на стеке; слишком глубокая рекурсия переполняет его."}
+      title={"Контрольная сумма"}
+      sub={"Сумма байтов по модулю 256"}
+      main={
+        "Суммы не учитывают порядок байтов — для надёжности нужны циклические коды."
+      }
     >
-      <PyCode>{`import sys
-
-def depth(n):
-    return 0 if n == 0 else 1 + depth(n - 1)
-
-print(depth(500), sys.getrecursionlimit())
-try:
-    depth(10 ** 6)
-except RecursionError:
-    print("стек переполнен")`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"500 1000\nстек переполнен"}</Cmd>
+      <V09 cues={[13.4, 24.2]} />
     </Slide>
   );
 }
@@ -318,16 +173,13 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"RISC и CISC"}
-      sub={"Два подхода к набору команд"}
-      main={"RISC — мало простых команд одной длины; CISC — богатые команды разной длины."}
+      title={"CRC"}
+      sub={"Остаток от деления на многочлен"}
+      main={
+        "CRC считается простой схемой и находит почти любые случайные ошибки."
+      }
     >
-      <PyCode>{`risc = ["lw t0, b", "lw t1, c", "add t2, t0, t1", "sw t2, a"]   # a = b + c
-cisc = ["mov eax, [b]", "add eax, [c]", "mov [a], eax"]
-print(len(risc), len(cisc))
-print("RISC: 4 байта на команду →", len(risc) * 4, "байт")`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"4 3\nRISC: 4 байта на команду → 16 байт"}</Cmd>
+      <V10 cues={[13.4, 28.0]} />
     </Slide>
   );
 }
@@ -336,19 +188,13 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Системные вызовы"}
-      sub={"Граница между программой и ядром"}
-      main={"Специальная команда переводит процессор в режим ядра и передаёт управление обработчику."}
+      title={"Код Хэмминга"}
+      sub={"Исправляем одну ошибку"}
+      main={
+        "Синдром равен номеру неверного бита — достаточно его инвертировать."
+      }
     >
-      <PyCode>{`SYSCALLS = {1: "write", 2: "exit"}
-
-def syscall(num, arg):
-    return f"ядро выполняет {SYSCALLS[num]}({arg!r})"
-
-print(syscall(1, "привет"))
-print(syscall(2, 0))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"ядро выполняет write('привет')\nядро выполняет exit(0)"}</Cmd>
+      <V11 cues={[14.1, 29.0]} />
     </Slide>
   );
 }
@@ -357,32 +203,11 @@ function S12() {
   return (
     <Slide
       n={12}
-      title={"От выражения к командам"}
-      sub={"Стековая машина"}
-      main={"Обход дерева выражения снизу вверх даёт последовательность команд для стековой машины."}
+      title={"Криптографический хэш"}
+      sub={"Против намеренной подмены"}
+      main={"Лавинный эффект: изменение одного бита меняет отпечаток целиком."}
     >
-      <PyCode>{`import ast
-
-OPS = {ast.Add: "ADD", ast.Sub: "SUB", ast.Mult: "MUL"}
-
-def compile_expr(node):
-    if isinstance(node, ast.Constant):
-        return [("PUSH", node.value)]
-    return compile_expr(node.left) + compile_expr(node.right) + [(OPS[type(node.op)],)]
-
-code = compile_expr(ast.parse("(1 + 2) * 3", mode="eval").body)
-print(code)
-
-stack = []
-for op, *a in code:
-    if op == "PUSH":
-        stack.append(a[0])
-    else:
-        y, x = stack.pop(), stack.pop()
-        stack.append(x + y if op == "ADD" else x - y if op == "SUB" else x * y)
-print(stack[-1])`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[('PUSH', 1), ('PUSH', 2), ('ADD',), ('PUSH', 3), ('MUL',)]\n9"}</Cmd>
+      <V12 cues={[17.9, 31.7]} />
     </Slide>
   );
 }
@@ -391,58 +216,36 @@ function S13() {
   return (
     <Slide
       n={13}
-      title={"Итоги главы"}
-      sub={"Что мы узнали"}
-      main={"Ассемблер, стек и вызовы — мост между языками высокого уровня и железом."}
+      title={"Итоги"}
+      sub={"Текст и защита"}
+      main={
+        "Дальше — цифровая логика: вентили, мультиплексоры, защёлки и сумматоры."
+      }
     >
-      <div className="s-grid2">
-        {[["ISA", "Договор", "Регистры, команды, адресация"], ["asm → hex", "Ассемблер", "Метки и мнемоники → числа"], ["push · pop", "Стек", "Адреса возврата и кадры"], ["syscall", "Ядро", "Граница приложения и ОС"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V13 cues={[13.7, 29.1]} />
     </Slide>
   );
 }
 
-// Реестр: «book:chapter» → список слайдов, по одному на абзац урока.
 export const SLIDES_AR5 = {
-  "14:5": [
-    S01,
-    S02,
-    S03,
-    S04,
-    S05,
-    S06,
-    S07,
-    S08,
-    S09,
-    S10,
-    S11,
-    S12,
-    S13,
-  ],
+  "14:5": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
 };
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_AR5).
 export const SLIDE_TITLES_AR5 = {
-  "14:5": [
-    "Язык процессора",
-    "ISA",
-    "Классы команд",
-    "Режимы адресации",
-    "Ассемблер",
-    "Машинный код",
-    "Стек",
-    "CALL и RET",
-    "Кадры и рекурсия",
-    "RISC и CISC",
-    "Системные вызовы",
-    "Компиляция выражения",
+  "7:5": [
+    "Введение",
+    "ASCII",
+    "Кодовые страницы",
+    "Юникод",
+    "UTF-8",
+    "Пример Ж",
+    "Символы и байты",
+    "Чётность",
+    "Контрольная сумма",
+    "CRC",
+    "Код Хэмминга",
+    "Хэш",
     "Итоги",
   ],
 };

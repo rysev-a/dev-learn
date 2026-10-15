@@ -1,4 +1,4 @@
-// Слайды для «Изучаем Python», глава 28 — «Программы и среда: sys, argparse, logging, subprocess».
+// Слайды для «Python как первый язык», глава 28 — «Программы и среда: sys, argparse, logging, subprocess».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>ИЗУЧАЕМ ПИТОН / СТАНДАРТНАЯ БИБЛИОТЕКА / ГЛАВА 28</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / СТАНДАРТНАЯ БИБЛИОТЕКА / ГЛАВА 28</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );

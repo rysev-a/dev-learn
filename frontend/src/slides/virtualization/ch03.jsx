@@ -1,0 +1,194 @@
+// Слайды для «Виртуализации», глава 3 — «Аппаратная поддержка: VT-x, AMD-V, ARM, RISC-V».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Vm03.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+} from "../anim/Vm03.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>ОСНОВЫ ВИРТУАЛИЗАЦИИ / ГЛАВА 3</span>
+      <span>{String(n).padStart(2, "0")} / 10</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"Процессор помогает"}
+      sub={"Глава 3 · Аппаратная поддержка"}
+      main={"Для гостя в процессоре появился отдельный режим."}
+    >
+      <V01 cues={[11.0, 16.6, 31.1]} />
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"Root и non-root"}
+      sub={"Два режима по четыре кольца"}
+      main={"Гостевое ядро работает в кольце 0, но с «поводком»."}
+    >
+      <V02 cues={[9.1, 24.5, 32.9]} />
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"VMCS"}
+      sub={"Управляющая структура ВМ"}
+      main={"Состояние гостя, хозяина, управляющие биты и причина выхода."}
+    >
+      <V03 cues={[7.3, 21.4, 31.8]} />
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Вход и выход"}
+      sub={"VM entry и VM exit"}
+      main={"Переключение целиком делает железо: монитор лишь разбирает причину."}
+    >
+      <V04 cues={[12.0, 26.8, 35.9]} />
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Что вызывает выход"}
+      sub={"Всегда и по настройке"}
+      main={"Перехватывайте только необходимое: лишний бит — лишние выходы."}
+    >
+      <V05 cues={[11.8, 24.1, 35.1]} />
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"Сколько стоит выход"}
+      sub={"Тысячи тактов"}
+      main={"Редкие выходы — пустяк, горячие — заметная доля процессора."}
+    >
+      <V06 cues={[12.1, 21.8, 22.8]} />
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"AMD-V"}
+      sub={"VMCB, VMRUN и ASID"}
+      main={"Слова другие, идея та же: блок управления и перехваты."}
+    >
+      <V07 cues={[11.9, 17.8, 32.0]} />
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"ARM: уровни EL0–EL3"}
+      sub={"Гипервизор на EL2"}
+      main={"Гость на EL1, гипервизор на EL2, вызов — командой HVC."}
+    >
+      <V08 cues={[13.5, 26.8, 30.9]} />
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"RISC-V: расширение H"}
+      sub={"Бит V и режимы VS, VU"}
+      main={"Гостю подставляются виртуальные копии регистров."}
+    >
+      <V09 cues={[9.1, 24.8, 33.7]} />
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Как это использует KVM"}
+      sub={"ioctl KVM_RUN"}
+      main={"Поток Linux входит в гостя, а наружу — только за устройствами."}
+    >
+      <V10 cues={[13.8, 17.6, 31.4]} />
+    </Slide>
+  );
+}
+
+export const SLIDES_VM3 = {
+  "17:3": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_VM3).
+export const SLIDE_TITLES_VM3 = {
+  "17:3": [
+    "Идея",
+    "Два режима",
+    "VMCS",
+    "Entry и exit",
+    "Причины",
+    "Цена выхода",
+    "AMD-V",
+    "ARM",
+    "RISC-V",
+    "KVM_RUN",
+  ],
+};

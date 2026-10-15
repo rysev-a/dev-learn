@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from app import config
 from app.accounts import practice
 from app.books.service import db
+from app.exercises import router
 
 
 class AccountsTest(unittest.TestCase):
@@ -174,8 +175,28 @@ class AccountsTest(unittest.TestCase):
         tid = tasks[0]["id"]
         self.assertEqual(c.put(f"/api/exercises/13/5/{tid}/draft", json={"code": "word = 1"}).status_code, 204)
         self.assertEqual(c.get("/api/exercises/13/5/state").json()["drafts"][tid], "word = 1")
-        too_big = {"code": "x" * 20_001}
+        too_big = {"code": "x" * (router.MAX_DRAFT + 1)}
         self.assertEqual(c.put(f"/api/exercises/13/5/{tid}/draft", json=too_big).status_code, 422)
+
+    def test_lab_tasks_are_solved_in_browser_and_recorded(self):
+        """Книга 14: упражнения лаборатории проверяются в браузере; сервер принимает итог."""
+        c = self.client
+        tasks = c.get("/api/exercises/14/6").json()["tasks"]
+        self.assertTrue(tasks and all(t["mode"] == "lab" for t in tasks))
+        tid = tasks[0]["id"]
+        self.assertEqual(c.put(f"/api/exercises/14/6/{tid}/solved", json={"solution": "{}"}).status_code, 401)
+        self.login()
+        self.assertEqual(c.put(f"/api/exercises/14/6/{tid}/solved", json={"solution": '{"gates":[]}'}).status_code, 204)
+        state = c.get("/api/exercises/14/6/state").json()
+        self.assertEqual(state["status"][tid], "ok")
+        self.assertEqual(state["drafts"][tid], '{"gates":[]}')  # решение возвращается на доску при входе
+        self.assertEqual(c.get(f"/api/exercises/14/6/{tid}/attempts").json()["attempts"][0]["status"], "ok")
+        # решённым можно отметить только лабораторную задачу: у кода в песочнице проверка на сервере
+        py = c.get("/api/exercises/13/5").json()["tasks"][0]["id"]
+        self.assertEqual(c.put(f"/api/exercises/13/5/{py}/solved", json={"solution": "x"}).status_code, 404)
+        # запуск в песочнице для лабораторной задачи не предусмотрен
+        r = c.post("/api/exercises/run", json={"book": 14, "chapter": 6, "task": tid, "code": "x"})
+        self.assertEqual(r.status_code, 422)
 
 
 if __name__ == "__main__":

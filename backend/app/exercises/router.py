@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/exercises", tags=["exercises"])
 
 User = Annotated[dict, Depends(current_user)]
 MAX_CODE = 20_000  # символов в одном решении
+MAX_DRAFT = 200_000  # черновик: у схем из вентилей решение — JSON и бывает крупным
 
 
 @router.get("")
@@ -42,7 +43,7 @@ def chapter_state(book_id: int, chapter: int, user: User):
 
 
 class DraftIn(BaseModel):
-    code: str = Field(max_length=MAX_CODE)
+    code: str = Field(max_length=MAX_DRAFT)
 
 
 @router.put("/{book_id}/{chapter}/{task_id}/draft", status_code=204)
@@ -60,6 +61,25 @@ def task_attempts(book_id: int, chapter: int, task_id: str, user: User):
         raise HTTPException(404, "Задача не найдена")
     with db() as conn:
         return {"attempts": practice.attempts(conn, user["id"], book_id, chapter, task_id)}
+
+
+class SolvedIn(BaseModel):
+    solution: str = Field(default="", max_length=MAX_DRAFT)
+
+
+@router.put("/{book_id}/{chapter}/{task_id}/solved", status_code=204)
+def mark_lab_solved(book_id: int, chapter: int, task_id: str, body: SolvedIn, user: User):
+    """Интерактивное упражнение (схема, ассемблер) решено — проверка прошла в браузере.
+    Принимается только для задач режима lab; решение записывается как попытка."""
+    task = tasks.find_task(book_id, chapter, task_id)
+    if task is None or task.get("mode") != "lab":
+        raise HTTPException(404, "Задача не найдена")
+    with db() as conn:
+        practice.record_attempt(
+            conn, user["id"], book_id, chapter, task_id, body.solution, 1, 1, True
+        )
+        if body.solution:  # решение же и есть «черновик»: оно вернётся на доску при входе
+            practice.save_draft(conn, user["id"], book_id, chapter, task_id, body.solution)
 
 
 class RunIn(BaseModel):
@@ -80,6 +100,8 @@ def run_code(body: RunIn, user: User):
     task = tasks.find_task(body.book, body.chapter, body.task)
     if task is None:
         raise HTTPException(404, "Задача не найдена")
+    if task.get("mode") == "lab":
+        raise HTTPException(422, "Это упражнение проверяется в браузере, а не в песочнице")
     if not body.code.strip():
         raise HTTPException(422, "Пустой код — нечего проверять")
 

@@ -1,15 +1,19 @@
-"""Код-задачи книги «Архитектура компьютера» (book 14), ключ — номер главы.
+"""Упражнения книги «Архитектура компьютера» (book 14), ключ — номер главы.
 
-Железо моделируется на Python: логические вентили, сумматоры, регистры,
-простой процессор, кэш, страничная память. Проверка — как в других книгах:
-func (возвращаемое значение) или stdout (вывод, в том числе со скрытым драйвером).
+Это не код на Python: упражнения интерактивные — сборка схем из вентилей, ассемблер,
+RISC-V (лаборатория `frontend/src/lab`), и проверяются в браузере. Здесь — только
+манифест `lab_manifest.json` (id, название и условие каждого упражнения): по нему
+считается прогресс и принимаются статусы решённых упражнений. Манифест строится
+скриптом `frontend/scripts/lab-manifest.mjs` из данных лаборатории.
 """
 
-from app.exercises.arch_tasks import ch01_03, ch04_05, ch06_08, ch09_10
+import json
+from pathlib import Path
 
-ARCH_TASKS: dict[int, list[dict]] = {
-    **ch01_03.TASKS,
-    **ch04_05.TASKS,
-    **ch06_08.TASKS,
-    **ch09_10.TASKS,
-}
+_MANIFEST = Path(__file__).with_name("lab_manifest.json")
+
+ARCH_TASKS: dict[int, list[dict]] = (
+    {int(ch): items for ch, items in json.loads(_MANIFEST.read_text(encoding="utf-8")).items()}
+    if _MANIFEST.exists()
+    else {}
+)

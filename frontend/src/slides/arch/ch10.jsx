@@ -1,51 +1,24 @@
-// Слайды для «Архитектура компьютера», глава 10 — «Параллелизм: многоядерность, когерентность, SIMD и GPU».
-// Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
-// рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
-// Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
+// Слайды для «Архитектура компьютера», глава 10 — «Регистры и такт».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Arc10.jsx).
 
-const PY_KW = new Set([
-  "print", "for", "in", "not", "and", "or", "if", "else", "while", "is",
-  "True", "False", "None", "def", "return", "class", "import", "from", "elif",
-  "lambda", "with", "assert", "raise", "break", "continue", "pass", "yield",
-]);
-
-// Крошечный токенизатор Python: комментарии, строки, числа, ключевые слова,
-// вызовы функций. Достаточно для слайдов.
-function pySpan(src) {
-  const out = [];
-  const re =
-    /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+|.)/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const [tok, com, str, num, word] = m;
-    if (com) out.push(<span key={out.length} className="rs-com">{tok}</span>);
-    else if (str) out.push(<span key={out.length} className="rs-str">{tok}</span>);
-    else if (num) out.push(<span key={out.length} className="rs-num">{tok}</span>);
-    else if (word) {
-      let cls = "";
-      if (PY_KW.has(word)) cls = "rs-kw";
-      else if (src[re.lastIndex] === "(") cls = "rs-fn";
-      out.push(
-        cls ? (
-          <span key={out.length} className={cls}>{word}</span>
-        ) : (
-          <span key={out.length}>{word}</span>
-        ),
-      );
-    } else out.push(<span key={out.length}>{tok}</span>);
-  }
-  return out;
-}
-
-function PyCode({ children }) {
-  return <pre className="rs-code">{pySpan(children)}</pre>;
-}
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+} from "../anim/Arc10.jsx";
 
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>АРХИТЕКТУРА КОМПЬЮТЕРА / ВВОД-ВЫВОД И ПАРАЛЛЕЛИЗМ / ГЛАВА 10</span>
-      <span>{String(n).padStart(2, "0")} / 13</span>
+      <span>УЗЛЫ ПРОЦЕССОРА / ГЛАВА 10</span>
+      <span>{String(n).padStart(2, "0")} / 10</span>
     </div>
   );
 }
@@ -68,43 +41,17 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
   return (
     <Slide
       n={1}
-      title={"Параллельные процессоры"}
-      sub={"Глава 10 · Ввод-вывод и параллелизм"}
-      main={"Частота упёрлась в тепло — скорость растёт за счёт параллелизма."}
+      title={"Зачем такт"}
+      sub={"Глава 10 · Синхронные схемы"}
+      main={"Общий такт заставляет все регистры менять состояние одновременно."}
     >
-      <div className="s-grid2">
-        {[["N cores", "Многоядерность", "Несколько ядер на кристалле"], ["MESI", "Когерентность", "Согласованные кэши"], ["CAS", "Атомарность", "Гонки и блокировки"], ["SIMD · GPU", "Данные", "Одна команда — много значений"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V01 cues={[15.3]} />
     </Slide>
   );
 }
@@ -113,14 +60,11 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Стена мощности"}
-      sub={"Почему частота перестала расти"}
-      main={"Мощность растёт почти как куб частоты: два ядра вдвое медленнее — та же работа за четверть энергии."}
+      title={"Такт, период, частота"}
+      sub={"Фронт — главный момент"}
+      main={"Частота — единица, делённая на период; важен фронт 0 → 1."}
     >
-      <PyCode>{`power = lambda f: f ** 3          # напряжение растёт вместе с частотой
-print(power(1), 2 * power(0.5))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"1 0.25"}</Cmd>
+      <V02 cues={[15.1, 22.9]} />
     </Slide>
   );
 }
@@ -129,16 +73,11 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Виды параллелизма"}
-      sub={"Команды, данные, потоки, машины"}
-      main={"Закон Амдала ограничивает масштабирование: 95% параллельной работы дают на 64 ядрах всего ~15×."}
+      title={"Защёлка под тактом"}
+      sub={"Прозрачна при одном уровне"}
+      main={"Тактируемая защёлка всё ещё прозрачна, пока открыта."}
     >
-      <PyCode>{`def amdahl(p, n):
-    return 1 / ((1 - p) + p / n)
-
-print(round(amdahl(0.95, 8), 2), round(amdahl(0.95, 64), 2))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"5.93 15.42"}</Cmd>
+      <V03 cues={[16.9]} />
     </Slide>
   );
 }
@@ -147,16 +86,13 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Проблема когерентности"}
-      sub={"У каждого ядра свой кэш"}
-      main={"Одна переменная — несколько копий: без протокола ядра увидят разные значения."}
+      title={"D-триггер по фронту"}
+      sub={"Две защёлки: ведущая и ведомая"}
+      main={
+        "Ведущая принимает, ведомая выдаёт — получается срабатывание ровно по фронту."
+      }
     >
-      <PyCode>{`memory = {"x": 1}
-cache0, cache1 = {"x": 1}, {"x": 1}
-cache0["x"] = 5               # ядро 0 записало только в свой кэш
-print(cache1["x"], memory["x"])   # ядро 1 видит старое`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"1 1"}</Cmd>
+      <V04 cues={[12.4, 21.6]} />
     </Slide>
   );
 }
@@ -165,32 +101,11 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Протокол MESI"}
-      sub={"Modified · Exclusive · Shared · Invalid"}
-      main={"Запись делает остальные копии недействительными — изменённая копия всегда единственная."}
+      title={"Делитель на два"}
+      sub={"Инверсный выход — на вход"}
+      main={"Триггер, замкнутый на себя, делит частоту такта пополам."}
     >
-      <PyCode>{`def access(states, core, op):
-    others = [i for i in range(len(states)) if i != core]
-    if op == "R":
-        if states[core] == "I":
-            if any(states[i] != "I" for i in others):
-                for i in others:
-                    if states[i] in "ME":
-                        states[i] = "S"
-                states[core] = "S"
-            else:
-                states[core] = "E"
-    else:
-        for i in others:
-            states[i] = "I"
-        states[core] = "M"
-    return "".join(states)
-
-s = ["I", "I"]
-for core, op in [(0, "R"), (1, "R"), (0, "W"), (1, "R")]:
-    print(core, op, access(s, core, op))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"0 R EI\n1 R SS\n0 W MI\n1 R SS"}</Cmd>
+      <V05 cues={[11.6, 24.5]} />
     </Slide>
   );
 }
@@ -199,24 +114,11 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Ложное разделение"}
-      sub={"Разные переменные в одной кэш-строке"}
-      main={"Потоки не пересекаются логически, но строка «пинг-понгом» летает между ядрами."}
+      title={"Регистр с записью"}
+      sub={"Мультиплексор и синхронный сброс"}
+      main={"Сигнал записи решает: хранить старое или принять новое по фронту."}
     >
-      <PyCode>{`def ping_pong(writes, line=64):
-    last, moves = {}, 0
-    for core, addr in writes:
-        block = addr // line
-        if last.get(block, core) != core:
-            moves += 1
-        last[block] = core
-    return moves
-
-same_line = [(0, 0), (1, 8)] * 5       # разные переменные, одна строка
-diff_lines = [(0, 0), (1, 64)] * 5
-print(ping_pong(same_line), ping_pong(diff_lines))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"9 0"}</Cmd>
+      <V06 cues={[8.9, 24.5]} />
     </Slide>
   );
 }
@@ -225,23 +127,11 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Гонка данных"}
-      sub={"Увеличение счётчика не атомарно"}
-      main={"load → add → store: если два потока прочитали одно значение, одно прибавление теряется."}
+      title={"Регистр и сдвиг"}
+      sub={"Слово из триггеров"}
+      main={"Сдвиг влево — умножение на два, вправо — деление."}
     >
-      <PyCode>{`def run(order):
-    counter, regs = 0, {}
-    for t, step in order:
-        if step == "load":
-            regs[t] = counter
-        else:
-            counter = regs[t] + 1
-    return counter
-
-print(run([(0, "load"), (0, "store"), (1, "load"), (1, "store")]))
-print(run([(0, "load"), (1, "load"), (0, "store"), (1, "store")]))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2\n1"}</Cmd>
+      <V07 cues={[8.7, 19.1, 26.4]} />
     </Slide>
   );
 }
@@ -250,24 +140,13 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Атомарные операции"}
-      sub={"Compare-and-swap"}
-      main={"CAS записывает новое значение только если старое совпало — повторяйте цикл до успеха."}
+      title={"Счётчики"}
+      sub={"Двоичный и Джонсона"}
+      main={
+        "Счётчик — регистр плюс инкрементер: основа счётчика команд процессора."
+      }
     >
-      <PyCode>{`class Cell:
-    def __init__(self, v):
-        self.v = v
-
-    def cas(self, expected, new):       # в железе — одна неделимая команда
-        if self.v == expected:
-            self.v = new
-            return True
-        return False
-
-c = Cell(5)
-print(c.cas(5, 6), c.cas(5, 7), c.v)`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True False 6"}</Cmd>
+      <V08 cues={[11.9, 24.9]} />
     </Slide>
   );
 }
@@ -276,33 +155,13 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"Модель памяти"}
-      sub={"Перестановки и барьеры"}
-      main={"Если разрешить переставлять запись и чтение, появляется результат (0, 0), невозможный при последовательном порядке."}
+      title={"Аккумулятор"}
+      sub={"Регистр и сумматор в кольце"}
+      main={
+        "Acc ← Acc + X: так устроено арифметическое устройство первого процессора."
+      }
     >
-      <PyCode>{`from itertools import permutations
-
-ops = [(0, "W", "x"), (0, "R", "y"), (1, "W", "y"), (1, "R", "x")]
-
-def outcomes(allow_reorder):
-    res = set()
-    for perm in permutations(range(4)):
-        if not allow_reorder and (perm.index(0) > perm.index(1) or perm.index(2) > perm.index(3)):
-            continue
-        mem, r = {"x": 0, "y": 0}, {}
-        for i in perm:
-            t, kind, var = ops[i]
-            if kind == "W":
-                mem[var] = 1
-            else:
-                r[t] = mem[var]
-        res.add((r[0], r[1]))
-    return sorted(res)
-
-print(outcomes(False))
-print(outcomes(True))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[(0, 1), (1, 0), (1, 1)]\n[(0, 0), (0, 1), (1, 0), (1, 1)]"}</Cmd>
+      <V09 cues={[11.6, 18.5]} />
     </Slide>
   );
 }
@@ -311,117 +170,31 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"SIMD"}
-      sub={"Одна команда — много значений"}
-      main={"Вектор в 256 бит — 8 чисел float32: в 8 раз меньше команд на массив."}
+      title={"Предел тактовой частоты"}
+      sub={"Три задержки"}
+      main={"Самый длинный путь задаёт максимальную частоту — отсюда конвейер."}
     >
-      <PyCode>{`n, width = 1024, 8
-print(n, -(-n // width))              # скалярных и векторных команд
-a = [1, 2, 3, 4, 5, 6, 7, 8]
-b = [10] * 8
-print([x + y for x, y in zip(a, b)])    # одна векторная команда на 8 пар`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"1024 128\n[11, 12, 13, 14, 15, 16, 17, 18]"}</Cmd>
+      <V10 cues={[11.1, 24.1]} />
     </Slide>
   );
 }
 
-function S11() {
-  return (
-    <Slide
-      n={11}
-      title={"GPU"}
-      sub={"SIMT и расхождение потоков"}
-      main={"Потоки варпа выполняют одну команду: при разных ветвях условия выполняются обе — время суммируется."}
-    >
-      <PyCode>{`def warp_steps(conditions, then_cost, else_cost):
-    steps = 0
-    if any(conditions):
-        steps += then_cost
-    if not all(conditions):
-        steps += else_cost
-    return steps
-
-print(warp_steps([True] * 32, 10, 10), warp_steps([True] * 31 + [False], 10, 10))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"10 20"}</Cmd>
-    </Slide>
-  );
-}
-
-function S12() {
-  return (
-    <Slide
-      n={12}
-      title={"Энергоэффективность и ускорители"}
-      sub={"Операций на ватт"}
-      main={"Специализированные блоки в десятки раз эффективнее универсальных ядер на ватт."}
-    >
-      <PyCode>{`chips = {"CPU": (200, 100), "GPU": (10000, 300), "NPU": (4000, 15)}   # (GFLOPS, ватт)
-for name, (gflops, watt) in chips.items():
-    print(name, round(gflops / watt, 1))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"CPU 2.0\nGPU 33.3\nNPU 266.7"}</Cmd>
-    </Slide>
-  );
-}
-
-function S13() {
-  return (
-    <Slide
-      n={13}
-      title={"Итоги главы"}
-      sub={"Что мы узнали"}
-      main={"Параллелизм даёт скорость, но требует согласования: кэшей, доступа к данным и порядка записей."}
-    >
-      <div className="s-grid2">
-        {[["f³", "Мощность", "Почему ядер много"], ["MESI", "Кэши", "Один владелец изменений"], ["CAS", "Данные", "Атомарные операции"], ["SIMT", "GPU", "Много однородных потоков"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
-    </Slide>
-  );
-}
-
-// Реестр: «book:chapter» → список слайдов, по одному на абзац урока.
 export const SLIDES_AR10 = {
-  "14:10": [
-    S01,
-    S02,
-    S03,
-    S04,
-    S05,
-    S06,
-    S07,
-    S08,
-    S09,
-    S10,
-    S11,
-    S12,
-    S13,
-  ],
+  "14:10": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10],
 };
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_AR10).
 export const SLIDE_TITLES_AR10 = {
-  "14:10": [
-    "Параллельные процессоры",
-    "Стена мощности",
-    "Виды параллелизма",
-    "Когерентность",
-    "MESI",
-    "False sharing",
-    "Гонка данных",
-    "CAS",
-    "Модель памяти",
-    "SIMD",
-    "GPU",
-    "Ускорители",
-    "Итоги",
+  "7:10": [
+    "Введение",
+    "Такт",
+    "Защёлка под тактом",
+    "D-триггер",
+    "Делитель на два",
+    "Регистр с записью",
+    "Регистр и сдвиг",
+    "Счётчики",
+    "Аккумулятор",
+    "Предел частоты",
   ],
 };

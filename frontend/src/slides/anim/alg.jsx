@@ -54,7 +54,12 @@ function tone(c = "m") {
       text: "var(--s-text)",
     };
   if (c === "W")
-    return { fill: "var(--s-border)", fo: 1, stroke: "var(--s-border)", text: "var(--s-text)" };
+    return {
+      fill: "var(--s-border)",
+      fo: 1,
+      stroke: "var(--s-border)",
+      text: "var(--s-text)",
+    };
   if (c === "n")
     return {
       fill: "none",
@@ -63,6 +68,253 @@ function tone(c = "m") {
       text: "var(--s-text)",
     };
   return { fill: COL[c], fo: 0.28, stroke: COL[c], text: "var(--s-text)" };
+}
+
+const GATE_BODY = {
+  and: "M-14 -11 H2 A12 11 0 0 1 2 11 H-14 Z",
+  nand: "M-14 -11 H2 A12 11 0 0 1 2 11 H-14 Z",
+  or: "M-14 -11 Q4 -11 14 0 Q4 11 -14 11 Q-8 0 -14 -11 Z",
+  nor: "M-14 -11 Q4 -11 14 0 Q4 11 -14 11 Q-8 0 -14 -11 Z",
+  xor: "M-14 -11 Q4 -11 14 0 Q4 11 -14 11 Q-8 0 -14 -11 Z",
+  xnor: "M-14 -11 Q4 -11 14 0 Q4 11 -14 11 Q-8 0 -14 -11 Z",
+  not: "M-12 -10 L8 0 L-12 10 Z",
+  buf: "M-12 -10 L12 0 L-12 10 Z",
+};
+
+/* Контакты элемента для проводов: a, b — входы (у НЕ один — a), y — выход.
+   g — {x, y, s} элемента `gate`. */
+export function gp(g, pin) {
+  const s = g.s ?? 1;
+  const one = g.g === "not" || g.g === "buf";
+  if (pin === "y") return { x: g.x + 22 * s, y: g.y };
+  if (one) return { x: g.x - 22 * s, y: g.y };
+  return { x: g.x - 22 * s, y: g.y + (pin === "a" ? -6 : 6) * s };
+}
+
+// Провод с изломом: ломаная (x1,y1) → (xm,y1) → (xm,y2) → (x2,y2); c — цвет, o — прозрачность.
+export function wire(id, a, b, { c = "m", xm, w = 1.8, o = 1, dash } = {}) {
+  const mid = xm ?? (a.x + b.x) / 2;
+  const d =
+    a.y === b.y
+      ? `M${a.x} ${a.y} H${b.x}`
+      : `M${a.x} ${a.y} H${mid} V${b.y} H${b.x}`;
+  return { t: "path", id, d, c, w, o, dash };
+}
+
+/* Подсветка Rust в элементе code (lang: "rs"): цвета только из --s-*. */
+const RS_KW = new Set([
+  "fn",
+  "let",
+  "mut",
+  "pub",
+  "struct",
+  "enum",
+  "impl",
+  "match",
+  "if",
+  "else",
+  "for",
+  "while",
+  "loop",
+  "return",
+  "use",
+  "mod",
+  "self",
+  "Self",
+  "move",
+  "const",
+  "static",
+  "type",
+  "where",
+  "async",
+  "await",
+  "unsafe",
+  "trait",
+  "dyn",
+  "in",
+  "as",
+  "break",
+  "continue",
+  "ref",
+]);
+const RS_TY = new Set([
+  "i8",
+  "i16",
+  "i32",
+  "i64",
+  "i128",
+  "isize",
+  "u8",
+  "u16",
+  "u32",
+  "u64",
+  "u128",
+  "usize",
+  "f32",
+  "f64",
+  "bool",
+  "char",
+  "str",
+  "String",
+  "Vec",
+  "Option",
+  "Result",
+  "Box",
+  "Rc",
+  "Arc",
+  "RefCell",
+  "HashMap",
+  "Some",
+  "None",
+  "Ok",
+  "Err",
+]);
+function rsTokens(src) {
+  const out = [];
+  const re =
+    /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|('\w+\b)|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_]\w*!)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, str, life, num, mac, word] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (str) fill = "var(--s-amber)";
+    else if (life) fill = "var(--s-violet)";
+    else if (num) fill = "var(--s-red)";
+    else if (mac) fill = "var(--s-accent)";
+    else if (word)
+      fill = RS_KW.has(word)
+        ? "var(--s-blue)"
+        : RS_TY.has(word) || /^[A-Z]/.test(word)
+          ? "var(--s-violet)"
+          : undefined;
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
+}
+
+/* Подсветка C (lang: "c") и ассемблера RISC-V (lang: "asm"). */
+const C_KW = new Set(
+  "if else for while do switch case default break continue return goto sizeof typedef struct union enum static const volatile extern register inline restrict".split(
+    " ",
+  ),
+);
+const C_TY = new Set(
+  "int char short long float double void unsigned signed size_t ssize_t ptrdiff_t bool FILE NULL true false uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t uintptr_t".split(
+    " ",
+  ),
+);
+function cTokens(src) {
+  const out = [];
+  const re =
+    /(\/\/[^\n]*|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)')|(^\s*#\s*\w+)|(\b(?:0x[0-9a-fA-F]+|\d+)[uUlL]*\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, str, pre, num, word] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (str) fill = "var(--s-amber)";
+    else if (pre) fill = "var(--s-accent)";
+    else if (num) fill = "var(--s-red)";
+    else if (word)
+      fill = C_KW.has(word)
+        ? "var(--s-blue)"
+        : C_TY.has(word) || /_t$/.test(word)
+          ? "var(--s-violet)"
+          : undefined;
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
+}
+const ASM_REG = /^(zero|ra|sp|gp|tp|fp|[xfa]\d+|t[0-6]|s(?:\d|1[01])|pc)$/;
+function asmTokens(src) {
+  const out = [];
+  const re =
+    /(#[^\n]*)|(^\s*[.\w$]+:)|(-?\b(?:0x[0-9a-fA-F]+|\d+)\b)|([A-Za-z_.][\w.]*)|(\s+|.)/g;
+  let m;
+  let first = true;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, label, num, word] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (label) fill = "var(--s-accent)";
+    else if (num) fill = "var(--s-red)";
+    else if (word) {
+      if (ASM_REG.test(word)) fill = "var(--s-violet)";
+      else if (first && !label) fill = "var(--s-blue)";
+      else if (word.startsWith(".")) fill = "var(--s-accent)";
+    }
+    if (word || label) first = false;
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
+}
+
+/* Подсветка Python (lang: "py"). */
+const PY_KW = new Set(
+  "def class if elif else for while in not and or return import from as with try except finally raise lambda yield pass break continue None True False is del global async await".split(
+    " ",
+  ),
+);
+const PY_BI = new Set(
+  "print len range int str float bool list dict set tuple type input sum max min sorted enumerate zip open abs round self isinstance".split(
+    " ",
+  ),
+);
+function pyTokens(src) {
+  const out = [];
+  const re =
+    /(#[^\n]*)|([fFrRbB]?"(?:[^"\\]|\\.)*"|[fFrRbB]?'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, str, num, word] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (str) fill = "var(--s-amber)";
+    else if (num) fill = "var(--s-red)";
+    else if (word)
+      fill = PY_KW.has(word)
+        ? "var(--s-blue)"
+        : PY_BI.has(word)
+          ? "var(--s-violet)"
+          : src[re.lastIndex] === "("
+            ? "var(--s-accent)"
+            : undefined;
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
 }
 
 const ARROW_OK = new Set(["m", "g", "y", "r", "b"]);
@@ -400,9 +652,9 @@ function Item({ it }) {
     const lh = it.lh ?? 13;
     const size = it.size ?? 9.5;
     const w = it.w ?? 150;
-    const hl = new Set(
-      Array.isArray(it.hl) ? it.hl : it.hl == null ? [] : [it.hl],
-    );
+    const set = (v) => new Set(Array.isArray(v) ? v : v == null ? [] : [v]);
+    const hl = set(it.hl);
+    const bad = set(it.bad);
     return (
       <G x={it.x} y={it.y} o={o}>
         {it.lines.map((l, i) => (
@@ -415,8 +667,8 @@ function Item({ it }) {
               height={lh}
               rx="3"
               style={{
-                fill: "var(--s-accent)",
-                fillOpacity: hl.has(i) ? 0.2 : 0,
+                fill: bad.has(i) ? "var(--s-red)" : "var(--s-accent)",
+                fillOpacity: bad.has(i) ? 0.22 : hl.has(i) ? 0.2 : 0,
               }}
             />
             <text
@@ -425,31 +677,244 @@ function Item({ it }) {
               style={{
                 fontSize: size,
                 whiteSpace: "pre",
-                fill: hl.has(i) ? "var(--s-text)" : "var(--s-muted)",
+                fill:
+                  hl.has(i) || bad.has(i) ? "var(--s-text)" : "var(--s-muted)",
               }}
               xmlSpace="preserve"
             >
-              {l}
+              {it.lang === "rs"
+                ? rsTokens(l)
+                : it.lang === "c"
+                  ? cTokens(l)
+                  : it.lang === "asm"
+                    ? asmTokens(l)
+                    : it.lang === "py"
+                      ? pyTokens(l)
+                      : l}
             </text>
           </g>
         ))}
       </G>
     );
   }
+  if (t === "gate") {
+    const k = tone(it.c);
+    const type = it.g ?? "and";
+    const one = type === "not" || type === "buf";
+    const bubble = type === "nand" || type === "nor" || type === "xnor";
+    const bodyX = type === "not" ? 11 : 17;
+    const stroke = { stroke: k.stroke, strokeWidth: 1.7, fill: "none" };
+    return (
+      <G x={it.x} y={it.y} o={o} s={s}>
+        <path
+          d={GATE_BODY[type]}
+          style={{ ...stroke, fill: k.fill, fillOpacity: k.fo }}
+        />
+        {(type === "xor" || type === "xnor") && (
+          <path d="M-19 -11 Q-13 0 -19 11" style={stroke} />
+        )}
+        {(bubble || type === "not") && (
+          <circle
+            cx={bodyX}
+            cy="0"
+            r="3"
+            style={{ ...stroke, fill: "var(--s-bg)" }}
+          />
+        )}
+        {one ? (
+          <path d="M-22 0 H-12" style={stroke} />
+        ) : (
+          <path d="M-22 -6 H-15 M-22 6 H-15" style={stroke} />
+        )}
+        <path
+          d={`M${bubble || type === "not" ? bodyX + 3 : 14} 0 H22`}
+          style={stroke}
+        />
+        {it.text != null && (
+          <text
+            y="3.5"
+            x={
+              type === "or" ||
+              type === "nor" ||
+              type === "xor" ||
+              type === "xnor"
+                ? -2
+                : -4
+            }
+            textAnchor="middle"
+            className="a-mono"
+            style={{ fill: k.text, fontSize: it.size ?? 8.5 }}
+          >
+            {it.text}
+          </text>
+        )}
+        {it.sub != null && (
+          <text
+            y="23"
+            textAnchor="middle"
+            className="a-cap"
+            style={{ fontSize: 8.5 }}
+          >
+            {it.sub}
+          </text>
+        )}
+      </G>
+    );
+  }
+  if (t === "tr") {
+    const k = tone(it.c);
+    const stroke = { stroke: k.stroke, strokeWidth: 1.7, fill: "none" };
+    const p = it.kind === "p";
+    return (
+      <G x={it.x} y={it.y} o={o} s={s}>
+        <path d="M-5 -8 V8" style={stroke} />
+        <path
+          d="M0 -9 V9"
+          style={{
+            ...stroke,
+            strokeWidth: it.on ? 2.8 : 1.7,
+            strokeDasharray: it.on ? undefined : "3 2.5",
+          }}
+        />
+        <path d="M0 -8 H10 V-16 M0 8 H10 V16" style={stroke} />
+        {p ? (
+          <circle
+            cx="-8"
+            cy="0"
+            r="2.5"
+            style={{ ...stroke, fill: "var(--s-bg)" }}
+          />
+        ) : null}
+        <path d={p ? "M-16 0 H-10.5" : "M-16 0 H-5"} style={stroke} />
+        {it.sub != null && (
+          <text
+            y="27"
+            textAnchor="middle"
+            className="a-cap"
+            style={{ fontSize: 8.5 }}
+          >
+            {it.sub}
+          </text>
+        )}
+      </G>
+    );
+  }
+  if (t === "sw") {
+    const k = tone(it.c);
+    const stroke = { stroke: k.stroke, strokeWidth: 1.7, fill: "none" };
+    return (
+      <G x={it.x} y={it.y} o={o} s={s}>
+        <circle
+          cx="-14"
+          cy="0"
+          r="2.4"
+          style={{ ...stroke, fill: "var(--s-bg)" }}
+        />
+        <circle
+          cx="14"
+          cy="0"
+          r="2.4"
+          style={{ ...stroke, fill: "var(--s-bg)" }}
+        />
+        <path
+          className="a-t"
+          d={it.on ? "M-14 0 L14 0" : "M-14 0 L11 -11"}
+          style={{ ...stroke, strokeWidth: 2.2 }}
+        />
+        {it.sub != null && (
+          <text
+            y="16"
+            textAnchor="middle"
+            className="a-cap"
+            style={{ fontSize: 8.5 }}
+          >
+            {it.sub}
+          </text>
+        )}
+      </G>
+    );
+  }
+  if (t === "lamp") {
+    const k = tone(it.c);
+    const r = it.r ?? 9;
+    return (
+      <G x={it.x} y={it.y} o={o} s={s}>
+        <circle
+          r={r}
+          className="a-t"
+          style={{
+            fill: it.on ? "var(--s-accent)" : "var(--s-panel2)",
+            fillOpacity: it.on ? 0.55 : 1,
+            stroke: it.on ? "var(--s-accent)" : k.stroke,
+            strokeWidth: 1.7,
+          }}
+        />
+        <path
+          d={`M${-r * 0.65} ${-r * 0.65} L${r * 0.65} ${r * 0.65} M${r * 0.65} ${-r * 0.65} L${-r * 0.65} ${r * 0.65}`}
+          style={{
+            stroke: it.on ? "var(--s-text)" : k.stroke,
+            strokeWidth: 1.3,
+          }}
+        />
+        {it.sub != null && (
+          <text
+            y={r + 10}
+            textAnchor="middle"
+            className="a-cap"
+            style={{ fontSize: 8.5 }}
+          >
+            {it.sub}
+          </text>
+        )}
+      </G>
+    );
+  }
   return null;
 }
 
-const KNOWN = new Set(["cell", "dot", "lnode", "text", "ptr", "line", "box", "path", "bar", "code"]);
-const NUMERIC = ["x", "y", "x1", "y1", "x2", "y2", "w", "h", "r", "o", "s", "hh"];
+const KNOWN = new Set([
+  "cell",
+  "dot",
+  "lnode",
+  "text",
+  "ptr",
+  "line",
+  "box",
+  "path",
+  "bar",
+  "code",
+  "gate",
+  "tr",
+  "sw",
+  "lamp",
+]);
+const NUMERIC = [
+  "x",
+  "y",
+  "x1",
+  "y1",
+  "x2",
+  "y2",
+  "w",
+  "h",
+  "r",
+  "o",
+  "s",
+  "hh",
+];
 
 // Проверка при создании сцены: неизвестный тип или нечисловая координата — ошибка автора, а не «тихая» пустота.
 function validate(frames, base, labels) {
   frames.forEach((f, k) => {
     for (const it of [...base, ...f]) {
       const where = `сцена «${labels[0]}…», кадр ${k}, элемент ${it?.id}`;
-      if (!it || !KNOWN.has(it.t) || it.id == null) throw new Error(`${where}: неизвестный элемент`);
-      for (const key of NUMERIC) if (it[key] !== undefined && !Number.isFinite(it[key])) throw new Error(`${where}: ${key} = ${it[key]}`);
-      if (it.t === "path" && typeof it.d !== "string") throw new Error(`${where}: нет d`);
+      if (!it || !KNOWN.has(it.t) || it.id == null)
+        throw new Error(`${where}: неизвестный элемент`);
+      for (const key of NUMERIC)
+        if (it[key] !== undefined && !Number.isFinite(it[key]))
+          throw new Error(`${where}: ${key} = ${it[key]}`);
+      if (it.t === "path" && typeof it.d !== "string")
+        throw new Error(`${where}: нет d`);
     }
   });
 }
@@ -491,9 +956,13 @@ export function scene({
     m.forEach((it, id) => !(id in firstOf) && (firstOf[id] = it)),
   );
   if (labels.length !== frames.length)
-    throw new Error(`scene «${labels[0]}…»: labels ${labels.length}, кадров ${frames.length}`);
+    throw new Error(
+      `scene «${labels[0]}…»: labels ${labels.length}, кадров ${frames.length}`,
+    );
   if (caption.length !== frames.length)
-    throw new Error(`scene «${labels[0]}…»: подписей ${caption.length}, кадров ${frames.length}`);
+    throw new Error(
+      `scene «${labels[0]}…»: подписей ${caption.length}, кадров ${frames.length}`,
+    );
   validate(frames, base, labels);
   return function Scene({ cues: given }) {
     const ctl = useSteps(given || cues || defaultCues(frames.length), ms);

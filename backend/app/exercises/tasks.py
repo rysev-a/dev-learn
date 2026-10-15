@@ -1,17 +1,20 @@
 """Упражнения с проверкой в Docker: доступ к определениям задач.
 
-Задачи лежат в пакетах по книгам: py_tasks/ («Изучаем Python», book 13),
+Задачи лежат в пакетах по книгам: py_tasks/ («Python как первый язык», book 13),
 algo_tasks/ («Алгоритмы», book 7), arch_tasks/ («Архитектура компьютера»,
 book 14), linux_tasks/ («Linux», book 8), db_tasks/ («Базы данных», book 9) и
-rust_tasks/ («Изучаем Rust», book 10); ключ — номер главы.
+rust_tasks/ («Изучаем Rust», book 10), c_tasks/ («От assembler к языку C», book 16) и
+virt_tasks/ («Виртуализация», book 17); ключ — номер главы.
 """
 
 from app.exercises.algo_tasks import ALGO_TASKS
 from app.exercises.arch_tasks import ARCH_TASKS
+from app.exercises.c_tasks import C_TASKS
 from app.exercises.db_tasks import DB_TASKS
 from app.exercises.linux_tasks import LINUX_TASKS
 from app.exercises.py_tasks import PY_TASKS
 from app.exercises.rust_tasks import RUST_TASKS
+from app.exercises.virt_tasks import VIRT_TASKS
 
 BOOK_TASKS: dict[int, dict[int, list[dict]]] = {
     13: PY_TASKS,
@@ -20,6 +23,8 @@ BOOK_TASKS: dict[int, dict[int, list[dict]]] = {
     9: DB_TASKS,
     10: RUST_TASKS,
     14: ARCH_TASKS,
+    16: C_TASKS,
+    17: VIRT_TASKS,
 }
 
 
@@ -29,7 +34,10 @@ def chapter_tasks(book_id: int, chapter: int) -> list[dict] | None:
     if not tasks:
         return None
     return [
-        {k: t[k] for k in ("id", "mode", "title", "statement", "starter", "hint")}
+        {
+            k: t.get(k, "")
+            for k in ("id", "mode", "title", "statement", "starter", "hint")
+        }
         for t in tasks
     ]
 

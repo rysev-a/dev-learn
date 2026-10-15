@@ -24,6 +24,7 @@ export default function SettingsPage({ theme, setTheme }) {
   async function reset(scope, question) {
     if (!window.confirm(question)) return;
     await progress.reset(scope);
+    (await import("../../lab/hydrate.js")).forgetLab(user.id); // слепок решений лаборатории
     setDone(scope);
   }
 
@@ -41,8 +42,8 @@ export default function SettingsPage({ theme, setTheme }) {
           <div className="set-row-text">
             <span className="set-row-title">{user.login}</span>
             <span className="set-row-desc">
-              {user.email}. Прогресс, ответы и история попыток хранятся в кабинете
-              и доступны с любого браузера.
+              {user.email}. Прогресс, ответы и история попыток хранятся в
+              кабинете и доступны с любого браузера.
             </span>
           </div>
           <button className="quiz-btn ghost" onClick={logout}>
@@ -106,7 +107,10 @@ export default function SettingsPage({ theme, setTheme }) {
           <button
             className="quiz-btn ghost"
             onClick={() =>
-              reset("all", "Обнулить весь прогресс: слайды, вопросы и упражнения?")
+              reset(
+                "all",
+                "Обнулить весь прогресс: слайды, вопросы и упражнения?",
+              )
             }
           >
             Сбросить всё

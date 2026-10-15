@@ -1,18 +1,52 @@
 // Реестр слайдов: «book:chapter» → компоненты сцен и их названия.
 // Файлы слайдов лежат по книгам: slides/<book>/chNN.jsx.
+import { SLIDES_LX1, SLIDE_TITLES_LX1 } from "../slides/linux/ch01.jsx";
+import { SLIDES_LX2, SLIDE_TITLES_LX2 } from "../slides/linux/ch02.jsx";
+import { SLIDES_LX3, SLIDE_TITLES_LX3 } from "../slides/linux/ch03.jsx";
+import { SLIDES_LX4, SLIDE_TITLES_LX4 } from "../slides/linux/ch04.jsx";
+import { SLIDES_LX5, SLIDE_TITLES_LX5 } from "../slides/linux/ch05.jsx";
+import { SLIDES_LX6, SLIDE_TITLES_LX6 } from "../slides/linux/ch06.jsx";
+import { SLIDES_LX7, SLIDE_TITLES_LX7 } from "../slides/linux/ch07.jsx";
+import { SLIDES_LX8, SLIDE_TITLES_LX8 } from "../slides/linux/ch08.jsx";
+import { SLIDES_LX9, SLIDE_TITLES_LX9 } from "../slides/linux/ch09.jsx";
+import { SLIDES_LX10, SLIDE_TITLES_LX10 } from "../slides/linux/ch10.jsx";
+import { SLIDES_LX11, SLIDE_TITLES_LX11 } from "../slides/linux/ch11.jsx";
+import { SLIDES_LX12, SLIDE_TITLES_LX12 } from "../slides/linux/ch12.jsx";
+import { SLIDES_LX13, SLIDE_TITLES_LX13 } from "../slides/linux/ch13.jsx";
+import { SLIDES_LX14, SLIDE_TITLES_LX14 } from "../slides/linux/ch14.jsx";
 import {
-  SLIDES as SLIDES_LINUX_1,
-  SLIDE_TITLES as TITLES_LINUX_1,
-} from "../slides/linux/ch01.jsx";
-import { SLIDES_CH2, SLIDE_TITLES_CH2 } from "../slides/linux/ch02.jsx";
-import { SLIDES_CH3, SLIDE_TITLES_CH3 } from "../slides/linux/ch03.jsx";
-import { SLIDES_CH7, SLIDE_TITLES_CH7 } from "../slides/linux/ch07.jsx";
-import { SLIDES_CH9, SLIDE_TITLES_CH9 } from "../slides/linux/ch09.jsx";
-import { SLIDES_L4, SLIDE_TITLES_L4 } from "../slides/linux/ch04.jsx";
-import { SLIDES_L5, SLIDE_TITLES_L5 } from "../slides/linux/ch05.jsx";
-import { SLIDES_L6, SLIDE_TITLES_L6 } from "../slides/linux/ch06.jsx";
-import { SLIDES_L8, SLIDE_TITLES_L8 } from "../slides/linux/ch08.jsx";
-import { SLIDES_L10, SLIDE_TITLES_L10 } from "../slides/linux/ch10.jsx";
+  SLIDES_VM1,
+  SLIDE_TITLES_VM1,
+} from "../slides/virtualization/ch01.jsx";
+import {
+  SLIDES_VM2,
+  SLIDE_TITLES_VM2,
+} from "../slides/virtualization/ch02.jsx";
+import {
+  SLIDES_VM3,
+  SLIDE_TITLES_VM3,
+} from "../slides/virtualization/ch03.jsx";
+import {
+  SLIDES_VM4,
+  SLIDE_TITLES_VM4,
+} from "../slides/virtualization/ch04.jsx";
+import {
+  SLIDES_VM5,
+  SLIDE_TITLES_VM5,
+} from "../slides/virtualization/ch05.jsx";
+import {
+  SLIDES_VM6,
+  SLIDE_TITLES_VM6,
+} from "../slides/virtualization/ch06.jsx";
+import {
+  SLIDES_VM7,
+  SLIDE_TITLES_VM7,
+} from "../slides/virtualization/ch07.jsx";
+import { SLIDES_C1, SLIDE_TITLES_C1 } from "../slides/learn-c/ch01.jsx";
+import { SLIDES_C2, SLIDE_TITLES_C2 } from "../slides/learn-c/ch02.jsx";
+import { SLIDES_C3, SLIDE_TITLES_C3 } from "../slides/learn-c/ch03.jsx";
+import { SLIDES_C4, SLIDE_TITLES_C4 } from "../slides/learn-c/ch04.jsx";
+import { SLIDES_C5, SLIDE_TITLES_C5 } from "../slides/learn-c/ch05.jsx";
 import { SLIDES_R1, SLIDE_TITLES_R1 } from "../slides/learn-rust/ch01.jsx";
 import { SLIDES_R2, SLIDE_TITLES_R2 } from "../slides/learn-rust/ch02.jsx";
 import { SLIDES_R3, SLIDE_TITLES_R3 } from "../slides/learn-rust/ch03.jsx";
@@ -54,6 +88,18 @@ import { SLIDES_AR7, SLIDE_TITLES_AR7 } from "../slides/arch/ch07.jsx";
 import { SLIDES_AR8, SLIDE_TITLES_AR8 } from "../slides/arch/ch08.jsx";
 import { SLIDES_AR9, SLIDE_TITLES_AR9 } from "../slides/arch/ch09.jsx";
 import { SLIDES_AR10, SLIDE_TITLES_AR10 } from "../slides/arch/ch10.jsx";
+import { SLIDES_AR11, SLIDE_TITLES_AR11 } from "../slides/arch/ch11.jsx";
+import { SLIDES_AR12, SLIDE_TITLES_AR12 } from "../slides/arch/ch12.jsx";
+import { SLIDES_AR13, SLIDE_TITLES_AR13 } from "../slides/arch/ch13.jsx";
+import { SLIDES_AR14, SLIDE_TITLES_AR14 } from "../slides/arch/ch14.jsx";
+import { SLIDES_AR15, SLIDE_TITLES_AR15 } from "../slides/arch/ch15.jsx";
+import { SLIDES_AR16, SLIDE_TITLES_AR16 } from "../slides/arch/ch16.jsx";
+import { SLIDES_AR17, SLIDE_TITLES_AR17 } from "../slides/arch/ch17.jsx";
+import { SLIDES_AR18, SLIDE_TITLES_AR18 } from "../slides/arch/ch18.jsx";
+import { SLIDES_AR19, SLIDE_TITLES_AR19 } from "../slides/arch/ch19.jsx";
+import { SLIDES_AR20, SLIDE_TITLES_AR20 } from "../slides/arch/ch20.jsx";
+import { SLIDES_AR21, SLIDE_TITLES_AR21 } from "../slides/arch/ch21.jsx";
+import { SLIDES_AR22, SLIDE_TITLES_AR22 } from "../slides/arch/ch22.jsx";
 import { SLIDES_D1, SLIDE_TITLES_D1 } from "../slides/db/ch01.jsx";
 import { SLIDES_D2, SLIDE_TITLES_D2 } from "../slides/db/ch02.jsx";
 import { SLIDES_D3, SLIDE_TITLES_D3 } from "../slides/db/ch03.jsx";
@@ -84,6 +130,7 @@ import { SLIDES_M7, SLIDE_TITLES_M7 } from "../slides/dm/ch07.jsx";
 import { SLIDES_M8, SLIDE_TITLES_M8 } from "../slides/dm/ch08.jsx";
 import { SLIDES_M9, SLIDE_TITLES_M9 } from "../slides/dm/ch09.jsx";
 import { SLIDES_M10, SLIDE_TITLES_M10 } from "../slides/dm/ch10.jsx";
+import { SLIDES_P0, SLIDE_TITLES_P0 } from "../slides/py/ch00.jsx";
 import { SLIDES_P1, SLIDE_TITLES_P1 } from "../slides/py/ch01.jsx";
 import { SLIDES_P2, SLIDE_TITLES_P2 } from "../slides/py/ch02.jsx";
 import { SLIDES_P3, SLIDE_TITLES_P3 } from "../slides/py/ch03.jsx";
@@ -119,16 +166,32 @@ import { SLIDES_P32, SLIDE_TITLES_P32 } from "../slides/py/ch32.jsx";
 import { SLIDES_P33, SLIDE_TITLES_P33 } from "../slides/py/ch33.jsx";
 
 export const SLIDES = {
-  ...SLIDES_LINUX_1,
-  ...SLIDES_CH2,
-  ...SLIDES_CH3,
-  ...SLIDES_CH7,
-  ...SLIDES_CH9,
-  ...SLIDES_L4,
-  ...SLIDES_L5,
-  ...SLIDES_L6,
-  ...SLIDES_L8,
-  ...SLIDES_L10,
+  ...SLIDES_LX1,
+  ...SLIDES_LX2,
+  ...SLIDES_LX3,
+  ...SLIDES_LX4,
+  ...SLIDES_LX5,
+  ...SLIDES_LX6,
+  ...SLIDES_LX7,
+  ...SLIDES_LX8,
+  ...SLIDES_LX9,
+  ...SLIDES_LX10,
+  ...SLIDES_LX11,
+  ...SLIDES_LX12,
+  ...SLIDES_LX13,
+  ...SLIDES_LX14,
+  ...SLIDES_VM1,
+  ...SLIDES_VM2,
+  ...SLIDES_VM3,
+  ...SLIDES_VM4,
+  ...SLIDES_VM5,
+  ...SLIDES_VM6,
+  ...SLIDES_VM7,
+  ...SLIDES_C1,
+  ...SLIDES_C2,
+  ...SLIDES_C3,
+  ...SLIDES_C4,
+  ...SLIDES_C5,
   ...SLIDES_R1,
   ...SLIDES_R2,
   ...SLIDES_R3,
@@ -170,6 +233,18 @@ export const SLIDES = {
   ...SLIDES_AR8,
   ...SLIDES_AR9,
   ...SLIDES_AR10,
+  ...SLIDES_AR11,
+  ...SLIDES_AR12,
+  ...SLIDES_AR13,
+  ...SLIDES_AR14,
+  ...SLIDES_AR15,
+  ...SLIDES_AR16,
+  ...SLIDES_AR17,
+  ...SLIDES_AR18,
+  ...SLIDES_AR19,
+  ...SLIDES_AR20,
+  ...SLIDES_AR21,
+  ...SLIDES_AR22,
   ...SLIDES_D1,
   ...SLIDES_D2,
   ...SLIDES_D3,
@@ -200,6 +275,7 @@ export const SLIDES = {
   ...SLIDES_M8,
   ...SLIDES_M9,
   ...SLIDES_M10,
+  ...SLIDES_P0,
   ...SLIDES_P1,
   ...SLIDES_P2,
   ...SLIDES_P3,
@@ -236,16 +312,32 @@ export const SLIDES = {
 };
 
 export const SLIDE_TITLES = {
-  ...TITLES_LINUX_1,
-  ...SLIDE_TITLES_CH2,
-  ...SLIDE_TITLES_CH3,
-  ...SLIDE_TITLES_CH7,
-  ...SLIDE_TITLES_CH9,
-  ...SLIDE_TITLES_L4,
-  ...SLIDE_TITLES_L5,
-  ...SLIDE_TITLES_L6,
-  ...SLIDE_TITLES_L8,
-  ...SLIDE_TITLES_L10,
+  ...SLIDE_TITLES_LX1,
+  ...SLIDE_TITLES_LX2,
+  ...SLIDE_TITLES_LX3,
+  ...SLIDE_TITLES_LX4,
+  ...SLIDE_TITLES_LX5,
+  ...SLIDE_TITLES_LX6,
+  ...SLIDE_TITLES_LX7,
+  ...SLIDE_TITLES_LX8,
+  ...SLIDE_TITLES_LX9,
+  ...SLIDE_TITLES_LX10,
+  ...SLIDE_TITLES_LX11,
+  ...SLIDE_TITLES_LX12,
+  ...SLIDE_TITLES_LX13,
+  ...SLIDE_TITLES_LX14,
+  ...SLIDE_TITLES_VM1,
+  ...SLIDE_TITLES_VM2,
+  ...SLIDE_TITLES_VM3,
+  ...SLIDE_TITLES_VM4,
+  ...SLIDE_TITLES_VM5,
+  ...SLIDE_TITLES_VM6,
+  ...SLIDE_TITLES_VM7,
+  ...SLIDE_TITLES_C1,
+  ...SLIDE_TITLES_C2,
+  ...SLIDE_TITLES_C3,
+  ...SLIDE_TITLES_C4,
+  ...SLIDE_TITLES_C5,
   ...SLIDE_TITLES_R1,
   ...SLIDE_TITLES_R2,
   ...SLIDE_TITLES_R3,
@@ -287,6 +379,18 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_AR8,
   ...SLIDE_TITLES_AR9,
   ...SLIDE_TITLES_AR10,
+  ...SLIDE_TITLES_AR11,
+  ...SLIDE_TITLES_AR12,
+  ...SLIDE_TITLES_AR13,
+  ...SLIDE_TITLES_AR14,
+  ...SLIDE_TITLES_AR15,
+  ...SLIDE_TITLES_AR16,
+  ...SLIDE_TITLES_AR17,
+  ...SLIDE_TITLES_AR18,
+  ...SLIDE_TITLES_AR19,
+  ...SLIDE_TITLES_AR20,
+  ...SLIDE_TITLES_AR21,
+  ...SLIDE_TITLES_AR22,
   ...SLIDE_TITLES_D1,
   ...SLIDE_TITLES_D2,
   ...SLIDE_TITLES_D3,
@@ -317,6 +421,7 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_M8,
   ...SLIDE_TITLES_M9,
   ...SLIDE_TITLES_M10,
+  ...SLIDE_TITLES_P0,
   ...SLIDE_TITLES_P1,
   ...SLIDE_TITLES_P2,
   ...SLIDE_TITLES_P3,

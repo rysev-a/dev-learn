@@ -1,4 +1,4 @@
-"""Определения код-задач книги «Изучаем Python» (book 13) по разделам.
+"""Определения код-задач книги «Python как первый язык» (book 13) по разделам.
 
 Ключ — номер главы. Режимы проверки:
 - stdout: программа запускается, сравнивается построчный вывод;
@@ -8,9 +8,10 @@
 Клиенту отдаются только statement/starter/hint — тесты остаются на бэкенде.
 """
 
-from app.exercises.py_tasks import asyncs, basics, data, files, functional, iterators, oop, stdlib
+from app.exercises.py_tasks import asyncs, basics, data, files, functional, intro, iterators, oop, stdlib
 
 PY_TASKS: dict[int, list[dict]] = {
+    **intro.TASKS,
     **basics.TASKS,
     **data.TASKS,
     **oop.TASKS,

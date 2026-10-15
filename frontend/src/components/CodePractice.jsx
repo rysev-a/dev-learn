@@ -16,7 +16,8 @@ import { FsItem } from "./FsTree.jsx";
    попыток — клик по попытке возвращает её код в редактор. Выбранное упражнение —
    в адресе (?task=id), логи последнего запуска — в памяти на время сессии. */
 
-const langOf = (t) => (t.mode === "sql" || t.mode === "rust" ? t.mode : "python");
+const langOf = (t) =>
+  t.mode === "sql" || t.mode === "rust" || t.mode === "c" ? t.mode : "python";
 const SAVE_DELAY = 700;
 
 // логи последнего запуска каждой задачи переживают переключение вкладок
@@ -57,11 +58,16 @@ export default function CodePractice({
       .then((s) => {
         if (!live) return;
         setCode(
-          Object.fromEntries(tasks.map((t) => [t.id, s.drafts[t.id] ?? (t.starter || "")])),
+          Object.fromEntries(
+            tasks.map((t) => [t.id, s.drafts[t.id] ?? (t.starter || "")]),
+          ),
         );
       })
       .catch(() => {
-        if (live) setCode(Object.fromEntries(tasks.map((t) => [t.id, t.starter || ""])));
+        if (live)
+          setCode(
+            Object.fromEntries(tasks.map((t) => [t.id, t.starter || ""])),
+          );
       });
     return () => {
       live = false;
@@ -78,7 +84,9 @@ export default function CodePractice({
   useEffect(() => {
     let live = true;
     api(`${base}/${task.id}/attempts`)
-      .then((d) => live && setAttempts((p) => ({ ...p, [task.id]: d.attempts })))
+      .then(
+        (d) => live && setAttempts((p) => ({ ...p, [task.id]: d.attempts })),
+      )
       .catch(() => {});
     return () => {
       live = false;
@@ -91,9 +99,11 @@ export default function CodePractice({
   const flush = useCallback(() => {
     clearTimeout(timer.current);
     for (const [id, value] of Object.entries(pending.current))
-      api(`${base}/${id}/draft`, { method: "PUT", body: { code: value }, keepalive: true }).catch(
-        () => {},
-      );
+      api(`${base}/${id}/draft`, {
+        method: "PUT",
+        body: { code: value },
+        keepalive: true,
+      }).catch(() => {});
     pending.current = {};
   }, [base]);
   useEffect(() => flush, [flush]);
@@ -128,7 +138,12 @@ export default function CodePractice({
     try {
       const data = await api("/api/exercises/run", {
         method: "POST",
-        body: { book: Number(bookId), chapter: Number(chapter), task: id, code: source },
+        body: {
+          book: Number(bookId),
+          chapter: Number(chapter),
+          task: id,
+          code: source,
+        },
       });
       resultCache.set(key, { ...data, okAll: data.solved });
       progress.setCodeStatus(bookId, chapter, id, data.solved ? "ok" : "bad");
@@ -161,7 +176,9 @@ export default function CodePractice({
   const running = busy === task.id;
   const history = attempts[task.id] || [];
   // «Дальше» вместо «Проверить», пока код совпадает с принятым решением
-  const accepted = history.some((a) => a.status === "ok" && a.code === code[task.id]);
+  const accepted = history.some(
+    (a) => a.status === "ok" && a.code === code[task.id],
+  );
   const hasNext = idx < tasks.length - 1 || !!nextChapter;
   const goMode = solved && accepted && hasNext;
 
@@ -173,7 +190,8 @@ export default function CodePractice({
   const primary = () => (goMode ? goNext() : run());
 
   const marks = (t, i) => ({
-    mark: status[t.id] === "ok" ? "✓" : status[t.id] === "bad" ? "✗" : undefined,
+    mark:
+      status[t.id] === "ok" ? "✓" : status[t.id] === "bad" ? "✗" : undefined,
     status: status[t.id] || "",
     key: t.id,
     num: i + 1,
@@ -199,7 +217,11 @@ export default function CodePractice({
             ? "sql · sqlite"
             : tasks.every((t) => t.mode === "rust")
               ? "rust"
-              : "python"}{" "}
+              : tasks.every((t) => t.mode === "c")
+                ? "c · gcc"
+                : tasks.some((t) => t.mode === "c")
+                  ? "python + c"
+                  : "python"}{" "}
           · docker
         </span>
       </div>
@@ -210,7 +232,13 @@ export default function CodePractice({
             tasks.map((t, i) => {
               const { key, num, ...m } = marks(t, i);
               return (
-                <FsItem key={key} on={i === idx} num={num} onClick={() => select(i)} {...m}>
+                <FsItem
+                  key={key}
+                  on={i === idx}
+                  num={num}
+                  onClick={() => select(i)}
+                  {...m}
+                >
                   {t.title}
                 </FsItem>
               );
@@ -243,7 +271,11 @@ export default function CodePractice({
               {idx + 1}. {task.title}
             </h3>
             <span className={`pr-badge ${status[task.id] || ""}`}>
-              {solved ? "выполнено" : status[task.id] === "bad" ? "не пройдено" : "не решено"}
+              {solved
+                ? "выполнено"
+                : status[task.id] === "bad"
+                  ? "не пройдено"
+                  : "не решено"}
             </span>
           </div>
           <p className="pr-statement">{task.statement}</p>
@@ -258,7 +290,11 @@ export default function CodePractice({
 
           <div className="ex-row">
             {goMode ? (
-              <button className="quiz-btn" onClick={goNext} title="Дальше (Ctrl+Enter)">
+              <button
+                className="quiz-btn"
+                onClick={goNext}
+                title="Дальше (Ctrl+Enter)"
+              >
                 {idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →"}
               </button>
             ) : (
@@ -284,7 +320,9 @@ export default function CodePractice({
             {task.hint && (
               <button
                 className="quiz-btn ghost"
-                onClick={() => setHint((p) => ({ ...p, [task.id]: !p[task.id] }))}
+                onClick={() =>
+                  setHint((p) => ({ ...p, [task.id]: !p[task.id] }))
+                }
               >
                 {hint[task.id] ? "Скрыть подсказку" : "Подсказка"}
               </button>
@@ -329,11 +367,15 @@ function History({ items, current, onPick }) {
               title="Вернуть этот код в редактор"
             >
               <span className="pr-hist-n">#{items.length - i}</span>
-              <span className="pr-hist-mark">{a.status === "ok" ? "✓" : "✗"}</span>
+              <span className="pr-hist-mark">
+                {a.status === "ok" ? "✓" : "✗"}
+              </span>
               <span className="pr-hist-score">
                 {a.passed}/{a.total}
               </span>
-              <span className="pr-hist-code">{a.code.split("\n").find((l) => l.trim()) || ""}</span>
+              <span className="pr-hist-code">
+                {a.code.split("\n").find((l) => l.trim()) || ""}
+              </span>
               <span className="pr-hist-time">{fmtDate(a.created_at)}</span>
             </button>
           </li>
@@ -354,8 +396,9 @@ function Results({ res, running }) {
     return (
       <div className="pr-res">
         <p className="pr-empty">
-          Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи выполнения. Когда
-          решение принято, Ctrl/Cmd+Enter ведёт к следующему упражнению.
+          Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи
+          выполнения. Когда решение принято, Ctrl/Cmd+Enter ведёт к следующему
+          упражнению.
         </p>
       </div>
     );
@@ -365,7 +408,9 @@ function Results({ res, running }) {
   const one = total === 1 ? res.results[0] : null;
   const program =
     res.stdout ||
-    (one && !one.args && !one.error && typeof one.got === "string" ? one.got : "");
+    (one && !one.args && !one.error && typeof one.got === "string"
+      ? one.got
+      : "");
   return (
     <div className="pr-res">
       <div className="pr-res-block">
@@ -379,7 +424,8 @@ function Results({ res, running }) {
         </div>
         {res.status === "timeout" && (
           <p className="ex-note">
-            Проверка не уложилась в лимит времени — возможно, в коде бесконечный цикл.
+            Проверка не уложилась в лимит времени — возможно, в коде бесконечный
+            цикл.
           </p>
         )}
         {total === 0 && res.status !== "timeout" && (
@@ -404,7 +450,11 @@ function Results({ res, running }) {
                     </div>
                     <div>
                       <span className="s-label">получено</span>
-                      <pre>{r.got === "" || r.got == null ? "(пусто)" : String(r.got)}</pre>
+                      <pre>
+                        {r.got === "" || r.got == null
+                          ? "(пусто)"
+                          : String(r.got)}
+                      </pre>
                     </div>
                   </div>
                 ))}
@@ -422,7 +472,9 @@ function Results({ res, running }) {
         ) : (
           <p className="pr-empty">программа ничего не вывела</p>
         )}
-        {res.stderr && res.status !== "timeout" && <pre className="cx-error">{res.stderr}</pre>}
+        {res.stderr && res.status !== "timeout" && (
+          <pre className="cx-error">{res.stderr}</pre>
+        )}
       </div>
     </div>
   );

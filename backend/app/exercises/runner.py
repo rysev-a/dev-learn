@@ -21,6 +21,8 @@ RUST_TIMEOUT_SEC = 60
 RUST_MEMORY = "1g"
 RUST_CPUS = "2.0"
 RUST_COMPILE_ERR_LIMIT = 3000
+C_IMAGE = RUST_IMAGE  # в образе rust:slim есть gcc 14, libc и санитайзеры
+C_DEFAULT_FLAGS = "-std=gnu11 -O1 -g0 -Wall"
 TIMEOUT_SEC = 25
 MEMORY = "256m"
 CPUS = "1.0"
@@ -273,7 +275,62 @@ def run_rust(task: dict, code: str) -> dict:
         ]
         try:
             proc = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=RUST_TIMEOUT_SEC
+                cmd, capture_output=True, text=True, errors="replace", timeout=RUST_TIMEOUT_SEC
+            )
+        except subprocess.TimeoutExpired:
+            return {
+                "status": "timeout", "results": [], "stdout": "",
+                "stderr": f"Превышен лимит времени ({RUST_TIMEOUT_SEC} с).",
+            }
+        except FileNotFoundError:
+            return _docker_failed(
+                "Docker недоступен. Запустите Docker/OrbStack и попробуйте снова."
+            )
+    out = proc.stdout
+    if proc.returncode != 0 and not out:
+        return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
+    expected = task["expected"]
+    if out.startswith("COMPILE_ERROR"):
+        err = out[len("COMPILE_ERROR"):].strip()[:RUST_COMPILE_ERR_LIMIT]
+        res = [{"ok": False, "got": "", "expected": "\n".join(expected), "error": "Ошибка компиляции:\n" + err}]
+    elif "__EXIT__" in out:
+        body, _, rest = out.partition("__EXIT__")
+        code_, _, msg = rest.partition("\n")
+        res = [{"ok": False, "got": body, "expected": "\n".join(expected),
+                "error": f"Программа завершилась с кодом {code_}.\n{msg.strip()}"}]
+    else:
+        got = [line.rstrip() for line in out.strip("\n").split("\n")] if out.strip() else []
+        want = [line.rstrip() for line in expected]
+        res = [{"ok": got == want, "got": "\n".join(got), "expected": "\n".join(want), "error": None}]
+    return {"status": "ok", "results": res, "stdout": "", "stderr": ""}
+
+
+def run_c(task: dict, code: str) -> dict:
+    """Режим «c»: код ученика + скрытый драйвер (int main) собираются в один файл
+    и компилируются gcc в песочнице без сети; сравнивается построчный вывод программы.
+    Ошибка компиляции показывается ученику как результат проверки."""
+    source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
+    flags = task.get("flags", C_DEFAULT_FLAGS)
+    script = (
+        f"gcc {flags} -o /tmp/prog /sandbox/main.c -lm -lpthread 2>/tmp/err "
+        "|| { echo COMPILE_ERROR; cat /tmp/err; exit 0; }; "
+        "timeout 10 /tmp/prog 2>/tmp/run_err; code=$?; "
+        'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
+    )
+    with tempfile.TemporaryDirectory(prefix="say-c-") as td:
+        sandbox = Path(td)
+        (sandbox / "main.c").write_text(source, encoding="utf-8")
+        cmd = [
+            "docker", "run", "--rm", "--network", "none",
+            "--memory", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
+            "--read-only", "--tmpfs", "/tmp:rw,exec,size=256m",
+            "-e", "HOME=/tmp",
+            "-v", f"{sandbox}:/sandbox:ro", "-w", "/tmp",
+            C_IMAGE, "sh", "-c", script,
+        ]
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, errors="replace", timeout=RUST_TIMEOUT_SEC
             )
         except subprocess.TimeoutExpired:
             return {
@@ -307,6 +364,8 @@ def run_task(task: dict, code: str) -> dict:
     """Возвращает {status, results, stdout, stderr}."""
     if task["mode"] == "rust":
         return run_rust(task, code)
+    if task["mode"] == "c":
+        return run_c(task, code)
     with tempfile.TemporaryDirectory(prefix="say-ex-") as td:
         sandbox = Path(td)
         (sandbox / "solution.py").write_text(code, encoding="utf-8")

@@ -22,6 +22,7 @@ import {
 } from "@codemirror/language";
 import { python } from "@codemirror/lang-python";
 import { rust } from "@codemirror/lang-rust";
+import { cpp } from "@codemirror/lang-cpp";
 import { SQLite, sql } from "@codemirror/lang-sql";
 import { tags as t } from "@lezer/highlight";
 
@@ -107,7 +108,13 @@ export default function CodeEditor({
         bracketMatching(),
         indentUnit.of("    "),
         EditorState.tabSize.of(4),
-        lang === "sql" ? sql({ dialect: SQLite }) : lang === "rust" ? rust() : python(),
+        lang === "sql"
+          ? sql({ dialect: SQLite })
+          : lang === "rust"
+            ? rust()
+            : lang === "c"
+              ? cpp()
+              : python(),
         syntaxHighlighting(highlight),
         theme,
         keymap.of([

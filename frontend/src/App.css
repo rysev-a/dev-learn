@@ -3105,3 +3105,7 @@ h2 {
     animation: none !important;
   }
 }
+
+html {
+  scrollbar-gutter: stable;
+}
