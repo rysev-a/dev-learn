@@ -332,3 +332,51 @@ export function Table({ x, y, head, rows, cw = 30, rh = 20, hl, rowOn, o = 1, de
     </G>
   );
 }
+
+// Граф: nodes — [{x, y, l}], edges — [{a, b, w?}]; directed — со стрелками.
+// nc(i) → цвет вершины m/g/y/r/b; ec(e, i) → цвет ребра или null (скрыто); r — радиус вершины.
+export function GraphView({ nodes, edges, directed, nc, ec, r = 13, o = 1, lsize = 10.5, ow }) {
+  return (
+    <G o={o}>
+      {edges.map((e, i) => {
+        const A = nodes[e.a];
+        const B = nodes[e.b];
+        const dx = B.x - A.x;
+        const dy = B.y - A.y;
+        const d = Math.hypot(dx, dy) || 1;
+        const pad = r + (directed ? 3 : 0);
+        const c = ec ? ec(e, i) : "m";
+        return (
+          <g key={i}>
+            <line
+              className="a-t"
+              x1={A.x + (dx / d) * (directed ? r + 1 : 0)}
+              y1={A.y + (dy / d) * (directed ? r + 1 : 0)}
+              x2={B.x - (dx / d) * (directed ? pad : 0)}
+              y2={B.y - (dy / d) * (directed ? pad : 0)}
+              markerEnd={directed && c ? `url(#a-hd-${c})` : undefined}
+              style={{ stroke: c ? STROKE[c] : "var(--s-border)", strokeWidth: c && c !== "m" ? 2 : 1.4, opacity: c ? 1 : 0 }}
+            />
+            {e.w != null && (
+              <text x={(A.x + B.x) / 2} y={(A.y + B.y) / 2 - 4} textAnchor="middle" className="a-mono" style={{ fontSize: 9.5, fill: "var(--s-amber)" }}>
+                {e.w}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      {nodes.map((n, i) => {
+        const c = nc ? nc(i) : "m";
+        const on = ow ? ow(i) : 1;
+        return (
+          <g key={i} className="a-t" style={{ transform: `translate(${n.x}px, ${n.y}px)`, opacity: on }}>
+            <circle r={r} style={{ fill: c && c !== "m" ? STROKE[c] : "var(--s-panel2)", fillOpacity: c && c !== "m" ? 0.3 : 1, stroke: c ? STROKE[c] : "var(--s-border)", strokeWidth: 1.8 }} />
+            <text y="3.8" textAnchor="middle" className="a-mono" style={{ fontSize: lsize }}>
+              {n.l}
+            </text>
+          </g>
+        );
+      })}
+    </G>
+  );
+}

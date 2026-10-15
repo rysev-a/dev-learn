@@ -2,6 +2,20 @@
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 
+import C8Intro from "../anim/C8Intro.jsx";
+import C8Definition from "../anim/C8Definition.jsx";
+import C8Directed from "../anim/C8Directed.jsx";
+import C8Degree from "../anim/C8Degree.jsx";
+import C8Path from "../anim/C8Path.jsx";
+import C8Components from "../anim/C8Components.jsx";
+import C8Examples from "../anim/C8Examples.jsx";
+import C8Matrix from "../anim/C8Matrix.jsx";
+import C8Lists from "../anim/C8Lists.jsx";
+import C8Choice from "../anim/C8Choice.jsx";
+import C8InOut from "../anim/C8InOut.jsx";
+import C8Cycles from "../anim/C8Cycles.jsx";
+import C8Recap from "../anim/C8Recap.jsx";
+
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
@@ -29,36 +43,11 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
-const Arr = () => <span className="s-arr">→</span>;
-const Down = () => <span className="s-arr">↓</span>;
 const Edge = () => <span className="s-arr">—</span>;
 
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
-  const topics = [
-    ["V·E", "Вершины и рёбра", "Самая экономная модель всего, где важны связи"],
-    ["Σdeg", "Степени и рукопожатия", "Сумма степеней всегда равна двум числам рёбер"],
-    ["→", "Пути и связность", "Компоненты — острова достижимости"],
-    ["[·]", "Матрица или списки", "Два способа уложить граф в память"],
-  ];
   return (
     <Slide
       n={1}
@@ -66,16 +55,7 @@ function S01() {
       sub="Глава 8 · Графы и вероятность"
       main="Дерево элементов, зависимости и соцсеть — это графы, даже когда так не называются."
     >
-      <div className="s-grid2">
-        {topics.map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <C8Intro />
       <p className="s-hint">
         Сегодня учимся говорить о связях строго, а в двух следующих главах —
         ходить по графам.
@@ -92,19 +72,7 @@ function S02() {
       sub="Множество вершин и множество рёбер"
       main="Ни координат, ни масштаба — только объекты и связи между ними."
     >
-      <Cmd>{"G = (V, E)\nV = {A, B, C, D} · E = {A—B, B—C, A—C, C—D}"}</Cmd>
-      <div className="s-grid2">
-        <div className="s-card">
-          <div className="s-label">КАРТА ДРУЗЕЙ</div>
-          <span className="s-node-title">Вершины — люди</span>
-          <span className="s-node-sub">Рёбра — дружба: связь работает в обе стороны</span>
-        </div>
-        <div className="s-card">
-          <div className="s-label">СХЕМА МЕТРО</div>
-          <span className="s-node-title">Вершины — станции</span>
-          <span className="s-node-sub">Рёбра — перегоны: дуга или ломаная не важны</span>
-        </div>
-      </div>
+      <C8Definition />
       <div className="s-note">
         Для графа важна лишь связка «эта станция соединена с той»: карта метро
         и список перегонов — один и тот же граф.
@@ -121,28 +89,7 @@ function S03() {
       sub="Первое проектное решение: стрелки или нет"
       main="Перепутаете тип графа — алгоритм будет отвечать не на те вопросы."
     >
-      <div className="s-grid2">
-        <div className="s-card">
-          <div className="s-label">НЕОРИЕНТИРОВАННЫЙ</div>
-          <div className="s-cols">
-            <Node mono title="я" />
-            <Edge />
-            <Node mono title="друг" />
-          </div>
-          <span className="s-node-title">Дружба взаимна</span>
-          <span className="s-node-sub">Если я вам друг, то и вы мне друг</span>
-        </div>
-        <div className="s-card">
-          <div className="s-label">ОРИЕНТИРОВАННЫЙ</div>
-          <div className="s-cols">
-            <Node mono title="я" />
-            <Arr />
-            <Node mono title="блогер" />
-          </div>
-          <span className="s-node-title">Подписка — стрелка</span>
-          <span className="s-node-sub">Блогер может меня не замечать: обратного ребра нет</span>
-        </div>
-      </div>
+      <C8Directed />
       <div className="s-note">
         Ссылки между страницами, потоки данных, переходы по сайту — всё это
         стрелки.
@@ -159,20 +106,7 @@ function S04() {
       sub="deg(v) — сколько рёбер касается вершины"
       main="Каждое рукопожатие прибавляет единицу обоим участникам — в сумме степеней каждое ребро считается дважды."
     >
-      <div className="s-cols">
-        <Node mono title="A · deg 2" />
-        <Node mono title="B · deg 2" />
-        <Node mono kind="amber" title="C · deg 3" sub="нечётная" />
-        <Node mono kind="amber" title="D · deg 1" sub="нечётная" />
-      </div>
-      <div className="s-opts">
-        <span className="s-path accent">A—B</span>
-        <span className="s-path accent">B—C</span>
-        <span className="s-path accent">A—C</span>
-        <span className="s-path accent">C—D</span>
-        <span>4 ребра — 8 рукопожатий</span>
-      </div>
-      <Cmd>{"deg(A) + deg(B) + deg(C) + deg(D) = 2 + 2 + 3 + 1 = 8 = 2 · |E|"}</Cmd>
+      <C8Degree />
       <div className="s-note">
         Следствие неочевидное: вершин с нечётной степенью в любом графе чётное
         число — здесь они две. Такие выводы из простого подсчёта — фирменный
@@ -190,18 +124,7 @@ function S05() {
       sub="Движение по рёбрам"
       main="«Достижима ли база данных с этого сервиса?» — это вопрос о существовании пути."
     >
-      <div className="s-cols">
-        <Node mono title="дом" />
-        <Arr />
-        <Node mono title="магазин" />
-        <Arr />
-        <Node mono title="работа" />
-      </div>
-      <div className="s-opts">
-        <span className="s-path accent">путь</span>
-        <span>соседние вершины соединены ребром · длина = число рёбер</span>
-      </div>
-      <Cmd>{"цикл: A → B → C → A · вернулся в старт, рёбра не повторял"}</Cmd>
+      <C8Path />
       <div className="s-note">
         Понятия выглядят очевидными, но на них держится половина практических
         задач — от навигации до достижимости сервисов.
@@ -218,28 +141,7 @@ function S06() {
       sub="Когда граф распадается на острова"
       main="Связный граф — из любой вершины можно дойти до любой другой."
     >
-      <div className="s-grid2">
-        <div className="s-card">
-          <div className="s-label">КОМПОНЕНТА 1</div>
-          <div className="s-cols">
-            <Node mono title="A" />
-            <Edge />
-            <Node mono title="B" />
-            <Edge />
-            <Node mono title="C" />
-          </div>
-          <span className="s-node-sub">Все достижимы друг для друга</span>
-        </div>
-        <div className="s-card">
-          <div className="s-label">КОМПОНЕНТА 2</div>
-          <div className="s-cols">
-            <Node mono title="X" />
-            <Edge />
-            <Node mono title="Y" />
-          </div>
-          <span className="s-node-sub">Мостов между островами нет</span>
-        </div>
-      </div>
+      <C8Components />
       <div className="s-note">
         В соцсети компоненты — сообщества без общих знакомых; в зависимостях —
         пакеты, которые ставятся и удаляются только вместе. Поиск этих островов
@@ -257,25 +159,7 @@ function S07() {
       sub="Дом-дерево, зависимости, маршруты"
       main="Веса не меняют устройство графа — к вопросу «как добраться» добавляется «почём»."
     >
-      <div className="s-grid2">
-        <Node
-          mono
-          title="DOM-дерево"
-          sub="ориентированный, почти дерево: один родитель, сколько угодно детей"
-        />
-        <Node
-          mono
-          kind="amber"
-          title="Зависимости пакетов"
-          sub="ориентированный: цикл менеджер честно покажет ошибкой"
-        />
-        <Node
-          mono
-          kind="green"
-          title="Карта маршрутов"
-          sub="взвешенный: рёбра несут минуты или рубли"
-        />
-      </div>
+      <C8Examples />
       <div className="s-note">
         Навигатор ищет путь с минимальной суммой весов — так взвешенный граф
         превращает «как добраться» в «как добраться дешевле».
@@ -285,13 +169,6 @@ function S07() {
 }
 
 function S08() {
-  const rows = [
-    ["ребро?", "A B C D"],
-    ["A", "0 1 1 0"],
-    ["B", "1 0 1 0"],
-    ["C", "1 1 0 1"],
-    ["D", "0 0 1 0"],
-  ];
   return (
     <Slide
       n={8}
@@ -299,18 +176,7 @@ function S08() {
       sub="Таблица n × n: единица на пересечении — ребро есть"
       main="Проверка конкретного ребра — константа: заглянули в ячейку и узнали."
     >
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
-      <div className="s-cols">
-        <Node mono kind="green" title="O(1)" sub="«есть ли ребро u—v?» — одна ячейка" />
-        <Node mono title="n²" sub="память — квадрат от числа вершин, при любом числе рёбер" />
-      </div>
+      <C8Matrix />
       <div className="s-note">
         Плюс предельная простота: двумерный массив без всяких структур. Для
         плотных графов, где рёбер много, это честный выбор.
@@ -320,12 +186,6 @@ function S08() {
 }
 
 function S09() {
-  const rows = [
-    ["A", "B, C"],
-    ["B", "A, C"],
-    ["C", "A, B, D"],
-    ["D", "C"],
-  ];
   return (
     <Slide
       n={9}
@@ -333,28 +193,7 @@ function S09() {
       sub="Для каждой вершины — список её соседей"
       main="Для разреженных графов списки — радикальная экономия памяти."
     >
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
-      <div className="s-cols">
-        <Node
-          mono
-          kind="green"
-          title="n + 2|E|"
-          sub="память пропорциональна рёбрам: соцсеть с миллиардом помещается"
-        />
-        <Node
-          mono
-          kind="amber"
-          title="n²"
-          sub="матрица потребовала бы квадриллион ячеек"
-        />
-      </div>
+      <C8Lists />
       <div className="s-note">
         Цена: «дружат ли эти двое?» — придётся просматривать список. Зато
         главная операция обхода — «перечисли соседей» — делается без возни с
@@ -372,28 +211,7 @@ function S10() {
       sub="Выбор сводится к двум вопросам"
       main="Реальные графы разрежены, а ходить по ним приходится непрерывно — практика почти всегда на стороне списков."
     >
-      <div className="s-grid2">
-        <div className="s-card">
-          <div className="s-label">МАТРИЦА</div>
-          <span className="s-node-title">Плотные графы</span>
-          <span className="s-node-sub">
-            Квадрат от n окупается частыми точечными проверками за O(1)
-          </span>
-        </div>
-        <div className="s-card">
-          <div className="s-label">СПИСКИ</div>
-          <span className="s-node-title">Разреженные графы</span>
-          <span className="s-node-sub">
-            Память по числу рёбер, соседи перечисляются без возни
-          </span>
-        </div>
-      </div>
-      <div className="s-opts">
-        <span className="s-path accent">граф плотный?</span>
-        <span>склон к матрице</span>
-        <span className="s-path accent">горячая операция?</span>
-        <span>проверки ребра — матрица, перебор соседей — списки</span>
-      </div>
+      <C8Choice />
       <div className="s-note">
         Матрица выигрывает в нишах: маленькие плотные графы и точечные
         проверки.
@@ -403,11 +221,6 @@ function S10() {
 }
 
 function S11() {
-  const rows = [
-    ["deg⁺ A = 2 · deg⁻ A = 0", "источник: только стрелки наружу"],
-    ["deg⁺ B = 1 · deg⁻ B = 1", "транзит: входит и выходит"],
-    ["deg⁺ C = 0 · deg⁻ C = 2", "сток: популярная страница, на неё ссылаются"],
-  ];
   return (
     <Slide
       n={11}
@@ -415,22 +228,7 @@ function S11() {
       sub="Исходящая и входящая"
       main="Каждая стрелка выходит один раз и входит один раз — поэтому обе суммы равны числу рёбер."
     >
-      <div className="s-cols">
-        <Node mono title="A" />
-        <Arr />
-        <Node mono title="B" />
-        <Arr />
-        <Node mono title="C" />
-      </div>
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
-      <Cmd>{"Σ deg⁺ = Σ deg⁻ = |E| = 3"}</Cmd>
+      <C8InOut />
       <div className="s-note">
         Когда-то именно подсчёт входящих стрелок — кто на какое число ссылок
         заслуживает — породил целые поисковые системы.
@@ -447,32 +245,7 @@ function S12() {
       sub="В зависимостях цикл — синоним беды"
       main="Граф без циклов выстраивается так, что каждая стрелка ведёт от более ранней вершины к более поздней."
     >
-      <div className="s-grid2">
-        <div className="s-card">
-          <div className="s-label">ЦИКЛ</div>
-          <div className="s-cols">
-            <Node mono kind="amber" title="a" />
-            <Arr />
-            <Node mono kind="amber" title="b" />
-            <Arr />
-            <Node mono kind="amber" title="c" />
-            <Arr />
-            <Node mono kind="amber" title="a" />
-          </div>
-          <span className="s-node-sub">Ни один из трёх нельзя установить первым</span>
-        </div>
-        <div className="s-card">
-          <div className="s-label">БЕЗ ЦИКЛОВ</div>
-          <div className="s-cols">
-            <Node mono kind="green" title="a" />
-            <Arr />
-            <Node mono title="b" />
-            <Arr />
-            <Node mono title="c" />
-          </div>
-          <span className="s-node-sub">a → b → c — топологический порядок</span>
-        </div>
-      </div>
+      <C8Cycles />
       <div className="s-note">
         Именно этот порядок строит менеджер пакетов перед установкой. Проверка
         на циклы и построение порядка — задачи главы про обходы.
@@ -482,12 +255,6 @@ function S12() {
 }
 
 function S13() {
-  const topics = [
-    ["V·E", "Вершины и рёбра", "Экономная модель дом-деревьев, зависимостей и маршрутов"],
-    ["Σdeg", "Рукопожатия", "Сумма степеней = 2 · число рёбер; нечётных вершин чётно"],
-    ["→", "Путь, цикл, связность", "Цикл в зависимостях — порядка установки нет"],
-    ["[·]", "Хранение", "Списки для разреженного мира, матрица для плотного"],
-  ];
   return (
     <Slide
       n={13}
@@ -495,16 +262,7 @@ function S13() {
       sub="Глава 8 · Графы и вероятность"
       main="Граф — вершины и рёбра; всё остальное — производные вопросы о связях."
     >
-      <div className="s-grid2">
-        {topics.map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <C8Recap />
       <div className="s-note">
         Следующая глава — ходьба по графам: глубина, ширина, деревья и
         кёнигсбергские мосты.
