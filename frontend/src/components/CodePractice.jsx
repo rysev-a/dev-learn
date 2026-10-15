@@ -45,7 +45,14 @@ const resultCache = new Map();
 
 const langOf = (t) => (t.mode === "sql" || t.mode === "rust" ? t.mode : "python");
 
-export default function CodePractice({ tasks, bookId, chapter, onSolved, itemsSlot }) {
+export default function CodePractice({
+  tasks,
+  bookId,
+  chapter,
+  onSolved,
+  itemsSlot,
+  nextChapter,
+}) {
   const [params, setParams] = useSearchParams();
   const [status, setStatus] = useState(() =>
     Object.fromEntries(tasks.map((t) => [t.id, statusOf(bookId, chapter, t.id)])),
@@ -135,6 +142,16 @@ export default function CodePractice({ tasks, bookId, chapter, onSolved, itemsSl
   }
 
   const running = busy === task.id;
+  const solved = status[task.id] === "ok";
+  const hasNext = idx < tasks.length - 1 || !!nextChapter;
+
+  // решено → дальше: следующее упражнение или первое упражнение следующей главы
+  function goNext() {
+    if (idx < tasks.length - 1) select(idx + 1);
+    else if (nextChapter) nextChapter.open();
+  }
+  // Ctrl/Cmd+Enter: проверить; если уже решено — перейти дальше
+  const primary = () => (solved && hasNext ? goNext() : run());
 
   return (
     <section className="pr">
@@ -218,18 +235,28 @@ export default function CodePractice({ tasks, bookId, chapter, onSolved, itemsSl
             lang={langOf(task)}
             value={code[task.id]}
             onChange={edit}
-            onRun={run}
+            onRun={primary}
           />
 
           <div className="ex-row">
-            <button
-              className="quiz-btn"
-              onClick={run}
-              disabled={busy != null}
-              title="Проверить (Ctrl+Enter)"
-            >
-              {running ? "Запускаю…" : status[task.id] === "ok" ? "✓ Решено — ещё раз" : "Проверить"}
-            </button>
+            {solved && hasNext ? (
+              <button
+                className="quiz-btn"
+                onClick={goNext}
+                title="Дальше (Ctrl+Enter)"
+              >
+                {idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →"}
+              </button>
+            ) : (
+              <button
+                className="quiz-btn"
+                onClick={run}
+                disabled={busy != null}
+                title="Проверить (Ctrl+Enter)"
+              >
+                {running ? "Запускаю…" : solved ? "✓ Решено — ещё раз" : "Проверить"}
+              </button>
+            )}
             {task.hint && (
               <button
                 className="quiz-btn ghost"
@@ -238,14 +265,19 @@ export default function CodePractice({ tasks, bookId, chapter, onSolved, itemsSl
                 {hint[task.id] ? "Скрыть подсказку" : "Подсказка"}
               </button>
             )}
+            {solved && hasNext && (
+              <button
+                className="quiz-btn ghost"
+                onClick={run}
+                disabled={busy != null}
+                title="Запустить проверку ещё раз"
+              >
+                {running ? "Запускаю…" : "Проверить ещё раз"}
+              </button>
+            )}
             <button className="quiz-btn ghost" onClick={reset} title="Вернуть исходный шаблон">
               Сбросить
             </button>
-            {status[task.id] === "ok" && idx < tasks.length - 1 && (
-              <button className="quiz-btn" onClick={() => select(idx + 1)}>
-                Следующее →
-              </button>
-            )}
           </div>
           {hint[task.id] && task.hint && <p className="ex-hint">{task.hint}</p>}
 
@@ -267,7 +299,7 @@ function Results({ res, running }) {
     return (
       <div className="pr-res">
         <p className="pr-empty">
-          Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи выполнения.
+          Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи выполнения. Когда упражнение решено, Ctrl/Cmd+Enter ведёт к следующему.
         </p>
       </div>
     );

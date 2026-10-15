@@ -112,8 +112,15 @@ export default function CodeEditor({
         theme,
         keymap.of([
           {
-            // Ctrl/Cmd+Enter — проверить
+            // Ctrl+Enter и Cmd+Enter — проверить (на Mac Mod — это Cmd, поэтому Ctrl указан отдельно)
             key: "Mod-Enter",
+            run: () => {
+              cb.current.onRun?.();
+              return true;
+            },
+          },
+          {
+            key: "Ctrl-Enter",
             run: () => {
               cb.current.onRun?.();
               return true;

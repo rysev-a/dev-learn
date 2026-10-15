@@ -48,6 +48,7 @@ export default function ChapterDetail() {
   // Код-упражнения (Docker-песочница): приходят с бэкенда, если есть.
   const [codeTasks, setCodeTasks] = useState([]);
   const [tasksReady, setTasksReady] = useState(false);
+  const [codeCounts, setCodeCounts] = useState(null); // {книга: {глава: число}} — куда идти по Ctrl+Enter
   const [tick, setTick] = useState(0); // перерисовать бейдж после решённой задачи
 
   useEffect(() => {
@@ -64,6 +65,13 @@ export default function ChapterDetail() {
       .then(setChapter)
       .catch((e) => setError(e.message));
   }, [chapterId]);
+
+  useEffect(() => {
+    fetch("/api/exercises")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setCodeCounts)
+      .catch(() => {});
+  }, []);
 
   // Код-упражнения ключуются номером главы, 404 — просто нет.
   useEffect(() => {
@@ -166,6 +174,17 @@ export default function ChapterDetail() {
     </nav>
   );
 
+  // следующая глава этой книги, где есть код-упражнения (если число упражнений
+  // неизвестно — просто следующая)
+  const flat = (parent?.course || []).flatMap((sec) => sec.chapters);
+  const at = flat.findIndex((c) => String(c.id) === String(chapterId));
+  const nextPractice =
+    at < 0
+      ? null
+      : flat
+          .slice(at + 1)
+          .find((c) => (codeCounts ? codeCounts[bookId]?.[c.num] > 0 : true)) || null;
+
   const content =
     inner ||
     (
@@ -179,6 +198,7 @@ export default function ChapterDetail() {
           practice,
           codeTasks,
           tasksReady,
+          nextPractice,
           onSolved: () => setTick((n) => n + 1),
           tick,
           fs,
