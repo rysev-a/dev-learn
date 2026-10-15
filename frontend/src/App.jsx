@@ -5,6 +5,9 @@ import { PlayerProvider, usePlayer } from "./lib/player.jsx";
 import BookDetail from "./pages/books/detail.jsx";
 import BooksIndex from "./pages/books/index.jsx";
 import ChapterDetail from "./pages/chapters/detail.jsx";
+import ChapterExercises from "./pages/chapters/exercises.jsx";
+import ChapterQuestions from "./pages/chapters/questions.jsx";
+import ChapterTheory from "./pages/chapters/theory.jsx";
 import ChaptersIndex from "./pages/chapters/index.jsx";
 
 export default function App() {
@@ -40,7 +43,7 @@ function Shell() {
     navigate("/");
   }
 
-  // Навигация живёт в URL: /, /book/:bookId, /book/:bookId/chapter/:chapterId?slide=N
+  // Навигация живёт в URL: /, /book/:bookId, /book/:bookId/chapter/:chapterId[/questions|/exercises]
   return (
     <div className="app">
       <header className="topbar">
@@ -62,7 +65,11 @@ function Shell() {
         <Route path="/" element={<BooksIndex books={books} />} />
         <Route path="/book/:bookId" element={<BookDetail books={books} />}>
           <Route index element={<ChaptersIndex />} />
-          <Route path="chapter/:chapterId" element={<ChapterDetail />} />
+          <Route path="chapter/:chapterId" element={<ChapterDetail />}>
+            <Route index element={<ChapterTheory />} />
+            <Route path="questions" element={<ChapterQuestions />} />
+            <Route path="exercises" element={<ChapterExercises />} />
+          </Route>
         </Route>
       </Routes>
 

@@ -54,7 +54,7 @@ frontend/          — React 19 + Vite
   src/slides/      — слайды по книгам: <book>/chNN.jsx (реестр — lib/slides.js)
   src/quizzes/     — квизы на теорию (реестр — lib/quizzes.js)
   src/exercises/   — упражнения с вводом ответа (дискретная математика)
-  src/components/  — плеер, квиз, Exercises (ответы), CodeExercises + CodeEditor (код, CodeMirror)
+  src/components/  — плеер, квиз, Exercises (ответы), CodePractice + CodeEditor (код, CodeMirror)
   src/pages/       — книги и главы
 tasks/             — исходные планы курсов (algo, arch_oc, db_learn)
 ```
