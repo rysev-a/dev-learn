@@ -1,146 +1,7 @@
-"""Задачи книги «Алгоритмы»: ch01_05."""
+"""Задачи старых глав 2, 4, 5, переехавшие в новые главы (массивы, списки, хеш-таблицы, два указателя)."""
 
-TASKS: dict[int, list[dict]] = {
-    1: [
-        {
-            "id": "has-duplicates",
-            "mode": "stdout",
-            "title": "Есть ли повторы за O(n)",
-            "statement": (
-                "Напишите функцию has_duplicates(nums): True, если в списке "
-                "есть повторяющиеся числа. Решение должно работать за O(n) "
-                "или O(n log n): проверка подаёт списки из 300 000 элементов, "
-                "с вложенными циклами O(n²) вы в лимит времени не уложитесь."
-            ),
-            "starter": "def has_duplicates(nums):\n    pass\n",
-            "driver": (
-                "print(has_duplicates([1, 2, 3, 1]), has_duplicates([]), has_duplicates([5]), has_duplicates([1, 2, 3]))\n"
-                "big = list(range(300000))\nprint(has_duplicates(big), has_duplicates(big + [7]))\n"
-            ),
-            "expected": ["True False False False", "False True"],
-            "hint": "Заведите словарь или множество увиденных чисел: проверка «уже было» — O(1).",
-        },
-        {
-            "id": "fast-power",
-            "mode": "stdout",
-            "title": "Быстрое возведение в степень",
-            "statement": (
-                "Напишите функцию fast_power(base, exp): base в степени exp "
-                "(exp — целое, 0 и больше), используя только умножение *. "
-                "Алгоритм должен делать O(log exp) умножений: проверка "
-                "считает, сколько раз вы умножали, и для exp = 1000 допускает "
-                "не более 30. Для exp = 0 результат — 1."
-            ),
-            "starter": "def fast_power(base, exp):\n    pass\n",
-            "driver": (
-                "class M:\n    count = 0\n    def __init__(self, v):\n        self.v = v\n"
-                "    def __mul__(self, o):\n        M.count += 1\n        return M(self.v * (o.v if isinstance(o, M) else o))\n"
-                "    __rmul__ = __mul__\n"
-                "r = fast_power(M(3), 20)\nprint(r.v == 3 ** 20, M.count <= 10)\n"
-                "M.count = 0\nr = fast_power(M(2), 1000)\nprint(r.v == 2 ** 1000, M.count <= 30)\n"
-                "print(fast_power(5, 0), fast_power(2, 10), fast_power(7, 1))\n"
-            ),
-            "expected": ["True True", "True True", "1 1024 7"],
-            "hint": "Двоичная запись показателя: на каждом шаге возводите base в квадрат, а если очередной бит единица — домножайте результат (или рекурсия: x^n = (x^(n/2))² и ещё один множитель при нечётном n).",
-        },
-        {
-            "id": "count-pairs-hash",
-            "mode": "stdout",
-            "title": "Пары с заданной суммой",
-            "statement": (
-                "Напишите функцию count_pairs(nums, target): сколько пар "
-                "индексов i < j даёт nums[i] + nums[j] == target. Числа могут "
-                "повторяться. Нужен линейный алгоритм: проверка подаёт "
-                "100 000 чисел."
-            ),
-            "starter": "def count_pairs(nums, target):\n    pass\n",
-            "driver": (
-                "print(count_pairs([1, 2, 3, 4], 5), count_pairs([2, 2, 2], 4), count_pairs([], 1), count_pairs([5], 10))\n"
-                "print(count_pairs([1, 5, 1, 5], 6))\n"
-                "big = list(range(100000))\nprint(count_pairs(big, 100000), count_pairs(big, 1000000))\n"
-            ),
-            "expected": ["2 3 0 0", "4", "49999 0"],
-            "hint": "Идите слева направо и храните в словаре, сколько раз уже встретилось каждое число; для x прибавляйте count[target - x].",
-        },
-        {
-            "id": "max-subarray-kadane",
-            "mode": "stdout",
-            "title": "Лучший подотрезок",
-            "statement": (
-                "Напишите функцию max_subarray(nums): наибольшая сумма "
-                "непрерывного непустого подотрезка списка. Список не пустой. "
-                "Решение за один проход (алгоритм Кадане): проверка подаёт "
-                "миллион чисел."
-            ),
-            "starter": "def max_subarray(nums):\n    pass\n",
-            "driver": (
-                "print(max_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]), max_subarray([-3, -1, -2]), max_subarray([5]))\n"
-                "print(max_subarray([1] * 1000000), max_subarray([3, -1] * 500000))\n"
-            ),
-            "expected": ["6 -1 5", "1000000 1000001"],
-            "hint": "current = max(x, current + x); best = max(best, current) — «обрываем» отрезок, если хвост только мешает.",
-        },
-        {
-            "id": "power-of-two",
-            "mode": "func",
-            "func": "is_power_of_two",
-            "title": "Степень двойки за O(1)",
-            "statement": (
-                "Напишите функцию is_power_of_two(n): True, если n — степень "
-                "двойки (1, 2, 4, 8, …). Для n <= 0 — False. Без циклов: "
-                "достаточно одной побитовой проверки."
-            ),
-            "starter": "def is_power_of_two(n):\n    pass\n",
-            "tests": [
-                {"args": [1], "expected": True},
-                {"args": [64], "expected": True},
-                {"args": [6], "expected": False},
-                {"args": [0], "expected": False},
-                {"args": [-8], "expected": False},
-                {"args": [2 ** 100], "expected": True},
-            ],
-            "hint": "У степени двойки ровно один единичный бит: n & (n - 1) == 0.",
-        },
-        {
-            "id": "fib-linear",
-            "mode": "stdout",
-            "title": "Фибоначчи без экспоненты",
-            "statement": (
-                "Напишите функцию fib(n): n-е число Фибоначчи (fib(0) = 0, "
-                "fib(1) = 1). Наивная рекурсия делает экспоненциально много "
-                "вызовов, а проверка просит fib(300): нужен линейный "
-                "алгоритм (цикл или запоминание)."
-            ),
-            "starter": "def fib(n):\n    pass\n",
-            "driver": "print(fib(0), fib(1), fib(10))\nprint(fib(90))\nprint(fib(300))\n",
-            "expected": ["0 1 55", "2880067194370816120", "222232244629420445529739893461909967206666939096499764990979600"],
-            "hint": "Держите две последние величины: a, b = b, a + b — и n шагов.",
-        },
-        {
-            "id": "binary-search-steps",
-            "mode": "func",
-            "func": "worst_case_steps",
-            "title": "Сколько шагов у двоичного поиска",
-            "statement": (
-                "Напишите функцию worst_case_steps(n): сколько сравнений "
-                "понадобится двоичному поиску в худшем случае на "
-                "отсортированном списке из n элементов (n >= 1). Делите n "
-                "пополам (с отбрасыванием остатка), пока не останется 0, и "
-                "считайте шаги: для 1 → 1, для 7 → 3, для 8 → 4."
-            ),
-            "starter": "def worst_case_steps(n):\n    pass\n",
-            "tests": [
-                {"args": [1], "expected": 1},
-                {"args": [7], "expected": 3},
-                {"args": [8], "expected": 4},
-                {"args": [1000000], "expected": 20},
-                {"args": [10 ** 18], "expected": 60},
-            ],
-            "hint": "steps = 0; while n > 0: n //= 2; steps += 1 — это ровно длина двоичной записи числа.",
-        },
-    ],
-    2: [
-        {
+KEPT: dict[str, dict] = {
+    "reverse-in-place": {
             "id": "reverse-in-place",
             "mode": "stdout",
             "title": "Развернуть на месте",
@@ -159,7 +20,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["[5, 4, 3, 2, 1] None", "[]", "['б', 'а']", "999999 0"],
             "hint": "i, j = 0, len(arr) - 1; while i < j: arr[i], arr[j] = arr[j], arr[i]; i += 1; j -= 1.",
         },
-        {
+    "rotate-right": {
             "id": "rotate-right",
             "mode": "stdout",
             "title": "Циклический сдвиг",
@@ -177,7 +38,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["[5, 6, 7, 1, 2, 3, 4]", "[3, 1, 2]", "[]", "900000 0 899999"],
             "hint": "k %= n; затем три разворота: весь список, первые k, остальные — либо срез arr[:] = arr[-k:] + arr[:-k].",
         },
-        {
+    "reverse-linked-list": {
             "id": "reverse-linked-list",
             "mode": "stdout",
             "title": "Развернуть связный список",
@@ -198,7 +59,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["[4, 3, 2, 1] [7] []", "99999 0"],
             "hint": "prev = None; пока head: nxt = head.next; head.next = prev; prev = head; head = nxt; вернуть prev.",
         },
-        {
+    "middle-node": {
             "id": "middle-node",
             "mode": "stdout",
             "title": "Середина списка",
@@ -216,7 +77,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["3 3 9", "500000"],
             "hint": "slow = fast = head; while fast and fast.next: slow = slow.next; fast = fast.next.next.",
         },
-        {
+    "has-cycle": {
             "id": "has-cycle",
             "mode": "stdout",
             "title": "Есть ли цикл",
@@ -237,7 +98,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["False False", "False", "True", "True", "False", "True"],
             "hint": "slow сдвигайте на 1, fast на 2; если они встретились — цикл есть, если fast упёрся в None — нет.",
         },
-        {
+    "merge-sorted-lists": {
             "id": "merge-sorted-lists",
             "mode": "stdout",
             "title": "Слить два отсортированных списка",
@@ -259,7 +120,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["[1, 2, 3, 4, 5, 6]", "[1, 2] [1]", "[1, 1, 1, 2, 3]", "True"],
             "hint": "Фиктивный узел dummy и указатель tail: на каждом шаге присоединяйте меньший из двух текущих узлов.",
         },
-        {
+    "is-palindrome-two-pointers": {
             "id": "is-palindrome-two-pointers",
             "mode": "func",
             "func": "is_palindrome",
@@ -281,7 +142,7 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "i, j = 0, len(s) - 1; пропускайте символы, у которых not ch.isalnum(); сравнивайте через lower().",
         },
-        {
+    "longest-common-prefix": {
             "id": "longest-common-prefix",
             "mode": "func",
             "func": "common_prefix",
@@ -301,171 +162,7 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "Берите первое слово как кандидата и укорачивайте, пока каждое слово не начнётся с него (startswith).",
         },
-    ],
-    3: [
-        {
-            "id": "binary-search-count",
-            "mode": "stdout",
-            "title": "Двоичный поиск",
-            "statement": (
-                "Напишите функцию binary_search(arr, target): индекс target в "
-                "отсортированном по возрастанию списке или -1. Проверка "
-                "считает обращения к элементам: на списке из миллиона "
-                "элементов вы вправе сделать не больше 25 обращений — "
-                "линейный перебор не пройдёт."
-            ),
-            "starter": "def binary_search(arr, target):\n    pass\n",
-            "driver": (
-                "class CL(list):\n    reads = 0\n    def __getitem__(self, i):\n        CL.reads += 1\n        return list.__getitem__(self, i)\n"
-                "print(binary_search([1, 3, 5, 7, 9], 7), binary_search([1, 3, 5], 4), binary_search([], 1), binary_search([2], 2))\n"
-                "arr = CL(range(0, 2000000, 2))\nCL.reads = 0\nx = binary_search(arr, 1234568)\nr1 = CL.reads\nCL.reads = 0\ny = binary_search(arr, 7)\nr2 = CL.reads\nprint(x, y, r1 <= 25 and r2 <= 25)\n"
-            ),
-            "expected": ["3 -1 -1 0", "617284 -1 True"],
-            "hint": "lo, hi = 0, len(arr) - 1; mid = (lo + hi) // 2; сравните arr[mid] один раз за шаг (положите в переменную!) и отбросьте половину.",
-        },
-        {
-            "id": "lower-bound",
-            "mode": "stdout",
-            "title": "Первая позиция не меньше x",
-            "statement": (
-                "Напишите функцию lower_bound(arr, x): индекс первого "
-                "элемента отсортированного списка, который больше или равен "
-                "x (len(arr), если такого нет). За O(log n): проверка "
-                "считает обращения (не больше 25 на миллионе)."
-            ),
-            "starter": "def lower_bound(arr, x):\n    pass\n",
-            "driver": (
-                "class CL(list):\n    reads = 0\n    def __getitem__(self, i):\n        CL.reads += 1\n        return list.__getitem__(self, i)\n"
-                "print(lower_bound([1, 2, 2, 2, 5], 2), lower_bound([1, 2, 5], 3), lower_bound([1, 2, 5], 9), lower_bound([1, 2, 5], 0), lower_bound([], 1))\n"
-                "arr = CL(range(1000000))\nprint(lower_bound(arr, 777777), CL.reads <= 25)\n"
-            ),
-            "expected": ["1 2 3 0 0", "777777 True"],
-            "hint": "lo, hi = 0, len(arr); пока lo < hi: mid = (lo + hi) // 2; если arr[mid] < x: lo = mid + 1, иначе hi = mid.",
-        },
-        {
-            "id": "search-rotated",
-            "mode": "stdout",
-            "title": "Поиск в повёрнутом массиве",
-            "statement": (
-                "Отсортированный список без повторов циклически сдвинули: "
-                "[4, 5, 6, 7, 0, 1, 2]. Напишите функцию search_rotated(arr, "
-                "target): индекс target или -1 за O(log n) (проверка допускает "
-                "не более 60 обращений на миллионе элементов)."
-            ),
-            "starter": "def search_rotated(arr, target):\n    pass\n",
-            "driver": (
-                "class CL(list):\n    reads = 0\n    def __getitem__(self, i):\n        CL.reads += 1\n        return list.__getitem__(self, i)\n"
-                "a = [4, 5, 6, 7, 0, 1, 2]\nprint([search_rotated(a, x) for x in (0, 4, 7, 2, 3)], search_rotated([], 1), search_rotated([1], 1))\n"
-                "n = 1000000\nbig = CL(list(range(300000, n)) + list(range(300000)))\nCL.reads = 0\nx = search_rotated(big, 5)\nr1 = CL.reads\nCL.reads = 0\ny = search_rotated(big, 999999)\nr2 = CL.reads\nprint(x, y, r1 <= 60 and r2 <= 60)\n"
-            ),
-            "expected": ["[4, 0, 3, 6, -1] -1 0", "700005 699999 True"],
-            "hint": "На каждом шаге одна из половин [lo, mid] или [mid, hi] обязательно отсортирована: определите её и решите, лежит ли target внутри.",
-        },
-        {
-            "id": "merge-sort-impl",
-            "mode": "stdout",
-            "title": "Сортировка слиянием",
-            "statement": (
-                "Напишите функцию merge_sort(arr): возвращает НОВЫЙ "
-                "отсортированный список (исходный не меняйте), сортировка "
-                "слиянием за O(n log n), устойчивая. Встроенные sorted и "
-                "sort использовать нельзя: проверка подаёт 100 000 чисел и "
-                "пары (число, метка) для проверки устойчивости."
-            ),
-            "starter": "def merge_sort(arr):\n    pass\n",
-            "driver": (
-                "import random\nrandom.seed(3)\n"
-                "print(merge_sort([5, 2, 9, 1, 5, 6]), merge_sort([]), merge_sort([1]))\n"
-                "a = [(2, 'а'), (1, 'б'), (2, 'в'), (1, 'г')]\nprint(merge_sort(a))\nprint(a)\n"
-                "big = [random.randint(0, 10 ** 6) for _ in range(100000)]\nr = merge_sort(big)\nprint(r == sorted(big), len(r))\n"
-            ),
-            "expected": ["[1, 2, 5, 5, 6, 9] [] [1]", "[(1, 'б'), (1, 'г'), (2, 'а'), (2, 'в')]", "[(2, 'а'), (1, 'б'), (2, 'в'), (1, 'г')]", "True 100000"],
-            "hint": "Разделите пополам, отсортируйте половины рекурсивно, слейте двумя указателями (при равных берите из ЛЕВОЙ половины — так сортировка устойчива).",
-        },
-        {
-            "id": "quick-sort-impl",
-            "mode": "stdout",
-            "title": "Быстрая сортировка",
-            "statement": (
-                "Напишите функцию quick_sort(arr): сортирует список НА МЕСТЕ "
-                "быстрой сортировкой. Проверка подаёт случайные данные, уже "
-                "отсортированный список и 100 000 одинаковых элементов — "
-                "наивный выбор опорного (первый/последний) и деление без "
-                "учёта равных дадут O(n²) и не уложатся по времени."
-            ),
-            "starter": "def quick_sort(arr):\n    pass\n",
-            "driver": (
-                "import random, sys\nsys.setrecursionlimit(10000)\nrandom.seed(5)\n"
-                "a = [3, 6, 1, 8, 2, 9, 2]\nquick_sort(a)\nprint(a)\nb = []\nquick_sort(b)\nprint(b)\n"
-                "r = [random.randint(0, 10 ** 6) for _ in range(100000)]\nexp = sorted(r)\nquick_sort(r)\nprint(r == exp)\n"
-                "s = list(range(100000))\nquick_sort(s)\nprint(s == list(range(100000)))\n"
-                "e = [7] * 100000\nquick_sort(e)\nprint(e == [7] * 100000)\n"
-            ),
-            "expected": ["[1, 2, 2, 3, 6, 8, 9]", "[]", "True", "True", "True"],
-            "hint": "Случайный опорный; разделение на три части: меньше, равные, больше (трёхстороннее) — тогда одинаковые элементы не вызывают деградации.",
-        },
-        {
-            "id": "counting-sort-impl",
-            "mode": "stdout",
-            "title": "Сортировка подсчётом",
-            "statement": (
-                "Напишите функцию counting_sort(nums, max_value): сортирует "
-                "целые числа от 0 до max_value за O(n + k), где k = "
-                "max_value + 1. Возвращает новый список. Проверка подаёт "
-                "миллион чисел с max_value = 100."
-            ),
-            "starter": "def counting_sort(nums, max_value):\n    pass\n",
-            "driver": (
-                "import random\nrandom.seed(1)\n"
-                "print(counting_sort([3, 0, 2, 3, 1, 0], 3), counting_sort([], 5), counting_sort([4], 4))\n"
-                "big = [random.randint(0, 100) for _ in range(1000000)]\nr = counting_sort(big, 100)\nprint(r == sorted(big), len(r))\n"
-            ),
-            "expected": ["[0, 0, 1, 2, 3, 3] [] [4]", "True 1000000"],
-            "hint": "counts = [0] * (max_value + 1); посчитайте вхождения; затем выпишите каждое значение v ровно counts[v] раз.",
-        },
-        {
-            "id": "kth-largest",
-            "mode": "func",
-            "func": "kth_largest",
-            "title": "k-й по величине",
-            "statement": (
-                "Напишите функцию kth_largest(nums, k): k-й по величине "
-                "элемент списка (k = 1 — наибольший); одинаковые значения "
-                "считаются отдельными элементами. 1 <= k <= len(nums). "
-                "Подойдёт куча (heapq) или быстрый выбор."
-            ),
-            "starter": "import heapq\n\n\ndef kth_largest(nums, k):\n    pass\n",
-            "tests": [
-                {"args": [[3, 2, 1, 5, 6, 4], 2], "expected": 5},
-                {"args": [[3, 2, 3, 1, 2, 4, 5, 5, 6], 4], "expected": 4},
-                {"args": [[7], 1], "expected": 7},
-                {"args": [[1, 1, 1], 3], "expected": 1},
-            ],
-            "hint": "heapq.nlargest(k, nums)[-1], либо куча размера k: храните k наибольших, наименьший из них — ответ.",
-        },
-        {
-            "id": "sort-stable-two-keys",
-            "mode": "func",
-            "func": "sort_students",
-            "title": "Устойчивая сортировка по двум ключам",
-            "statement": (
-                "Напишите функцию sort_students(students): students — список "
-                "пар [имя, оценка]. Верните их по убыванию оценки; у равных "
-                "оценок порядок остаётся таким, как во входном списке "
-                "(устойчивость). Важно: ключ ровно один — оценка."
-            ),
-            "starter": "def sort_students(students):\n    pass\n",
-            "tests": [
-                {"args": [[["Аня", 4], ["Боря", 5], ["Вера", 4], ["Гоша", 5]]], "expected": [["Боря", 5], ["Гоша", 5], ["Аня", 4], ["Вера", 4]]},
-                {"args": [[]], "expected": []},
-                {"args": [[["Я", 3]]], "expected": [["Я", 3]]},
-                {"args": [[["б", 1], ["а", 1]]], "expected": [["б", 1], ["а", 1]]},
-            ],
-            "hint": "sorted(students, key=lambda s: s[1], reverse=True) — устойчивость сохраняется и с reverse.",
-        },
-    ],
-    4: [
-        {
+    "two-sum-hash": {
             "id": "two-sum-hash",
             "mode": "stdout",
             "title": "Два числа с суммой",
@@ -483,7 +180,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["(0, 1) (1, 2) (0, 1)", "(199998, 199999)"],
             "hint": "Идите слева направо, храните в словаре «значение → индекс»; для x ищите target - x среди уже просмотренных.",
         },
-        {
+    "group-anagrams-hash": {
             "id": "group-anagrams-hash",
             "mode": "func",
             "func": "group_anagrams",
@@ -502,7 +199,7 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "groups[''.join(sorted(w))].append(w); в конце отсортируйте слова в группах и сами группы.",
         },
-        {
+    "first-unique-char": {
             "id": "first-unique-char",
             "mode": "func",
             "func": "first_unique",
@@ -521,7 +218,7 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "Первый проход — посчитать символы (Counter), второй — найти первый со счётом 1.",
         },
-        {
+    "longest-consecutive": {
             "id": "longest-consecutive",
             "mode": "stdout",
             "title": "Самая длинная цепочка подряд",
@@ -540,7 +237,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["4 0 1 1", "300000"],
             "hint": "Положите числа в множество/словарь; цепочку начинайте только с числа, у которого нет x - 1, и растите вправо.",
         },
-        {
+    "subarray-sum-k": {
             "id": "subarray-sum-k",
             "mode": "stdout",
             "title": "Подотрезки с суммой k",
@@ -558,7 +255,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["2 2 3 0", "True", "100001"],
             "hint": "seen = {0: 1}; на каждом шаге prefix += x; ответ += seen.get(prefix - k, 0); seen[prefix] += 1.",
         },
-        {
+    "top-k-frequent": {
             "id": "top-k-frequent",
             "mode": "func",
             "func": "top_k",
@@ -577,7 +274,7 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "sorted(counter, key=lambda x: (-counter[x], x))[:k].",
         },
-        {
+    "lru-cache-class": {
             "id": "lru-cache-class",
             "mode": "stdout",
             "title": "LRU-кеш",
@@ -597,7 +294,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["1", "-1", "-1 3 4", "20", "999999 -1"],
             "hint": "OrderedDict: move_to_end(key) при чтении и записи; popitem(last=False) удаляет самый старый.",
         },
-        {
+    "word-pattern-bijection": {
             "id": "word-pattern-bijection",
             "mode": "func",
             "func": "word_pattern",
@@ -619,9 +316,7 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "Два словаря: буква → слово и слово → буква; любое несовпадение — False; длины должны совпадать.",
         },
-    ],
-    5: [
-        {
+    "two-sum-sorted-pointers": {
             "id": "two-sum-sorted-pointers",
             "mode": "stdout",
             "title": "Два указателя в отсортированном",
@@ -640,7 +335,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["(1, 3) None None None", "(999998, 999999) None"],
             "hint": "i = 0, j = len - 1; сумма мала — i += 1, велика — j -= 1; пока i < j.",
         },
-        {
+    "remove-duplicates-sorted": {
             "id": "remove-duplicates-sorted",
             "mode": "stdout",
             "title": "Убрать повторы на месте",
@@ -659,7 +354,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["4 [1, 2, 3, 4]", "0", "1 [5]", "300000 [0, 1, 2] 299999"],
             "hint": "w = 1; для r в 1..n-1: если arr[r] != arr[w - 1]: arr[w] = arr[r]; w += 1. Вернуть w (для пустого — 0).",
         },
-        {
+    "longest-unique-window": {
             "id": "longest-unique-window",
             "mode": "stdout",
             "title": "Самая длинная подстрока без повторов",
@@ -676,7 +371,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["3 1 3 0 6", "26", "1"],
             "hint": "Словарь «символ → последний индекс» и левая граница окна: при повторе сдвиньте её на last[ch] + 1.",
         },
-        {
+    "max-sum-window": {
             "id": "max-sum-window",
             "mode": "stdout",
             "title": "Окно фиксированной длины",
@@ -694,7 +389,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["39 5 -3", "94999950000"],
             "hint": "Сумма первого окна, затем window += nums[i] - nums[i - k] и обновление максимума.",
         },
-        {
+    "container-most-water": {
             "id": "container-most-water",
             "mode": "stdout",
             "title": "Больше всего воды",
@@ -713,7 +408,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["49 1 16 0", "5000000000"],
             "hint": "Идите с обоих концов; всегда сдвигайте указатель у МЕНЬШЕЙ линии — большая её ширину не улучшит.",
         },
-        {
+    "count-inversions": {
             "id": "count-inversions",
             "mode": "stdout",
             "title": "Число инверсий",
@@ -731,7 +426,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["3 0 3 0", "True"],
             "hint": "При слиянии, если берём элемент ПРАВОЙ половины, он «перепрыгивает» все оставшиеся в левой: прибавляйте len(left) - i.",
         },
-        {
+    "max-subarray-divide": {
             "id": "max-subarray-divide",
             "mode": "stdout",
             "title": "Лучший подотрезок: разделяй и властвуй",
@@ -751,7 +446,7 @@ TASKS: dict[int, list[dict]] = {
             "expected": ["6 -5 9 -1", "5"],
             "hint": "Разделите пополам; ответ = max(лучший слева, лучший справа, лучший суффикс слева + лучший префикс справа).",
         },
-        {
+    "min-window-substring": {
             "id": "min-window-substring",
             "mode": "func",
             "func": "min_window_len",
@@ -772,5 +467,4 @@ TASKS: dict[int, list[dict]] = {
             ],
             "hint": "need = Counter(t); расширяйте правую границу, пока окно не покрывает need, затем сжимайте левую, обновляя минимум.",
         },
-    ],
 }

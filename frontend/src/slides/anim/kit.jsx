@@ -67,7 +67,7 @@ const STROKE = {
 };
 
 // Оболочка: кнопки шагов, сцена, подпись шага. labels[i] — название шага i.
-export function Steps({ ctl, labels, caption, children }) {
+export function Steps({ ctl, labels, caption, h = 170, children }) {
   return (
     <div className="a-stage">
       <div className="a-chips" role="tablist">
@@ -81,7 +81,7 @@ export function Steps({ ctl, labels, caption, children }) {
           </button>
         ))}
       </div>
-      <svg viewBox="0 0 360 170" className="a-svg" aria-hidden="true">
+      <svg viewBox={`0 0 360 ${h}`} className="a-svg" aria-hidden="true">
         <defs>
           {Object.entries(HEAD_COLORS).map(([k, c]) => (
             <marker

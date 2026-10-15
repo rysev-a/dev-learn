@@ -39,6 +39,9 @@
   --s-blue: #82b8e8;
   --s-violet: #c9a7f0;
   --s-red: #ee8d86;
+  /* «чёрные» узлы схем (красно-чёрные деревья) и текст на них */
+  --s-ink: #05090c;
+  --s-onink: #f0f5f3;
 }
 
 :root[data-theme="light"] {
@@ -80,6 +83,8 @@
   --s-blue: #2f6bb0;
   --s-violet: #7d4fc9;
   --s-red: #c24842;
+  --s-ink: #17232b;
+  --s-onink: #f6f8f7;
 }
 
 * {
@@ -3040,7 +3045,9 @@ h2 {
     width 0.7s,
     height 0.7s,
     x 0.7s,
-    y 0.7s;
+    y 0.7s,
+    d 0.9s cubic-bezier(0.3, 0.9, 0.3, 1),
+    stroke-dashoffset 1.2s ease;
 }
 
 .a-t {

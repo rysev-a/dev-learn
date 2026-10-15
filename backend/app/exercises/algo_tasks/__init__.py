@@ -2,13 +2,14 @@
 
 Решения пишутся на Python. Эффективность проверяется не «на глаз»: скрытый
 драйвер считает обращения к данным или подаёт такие большие входы, что
-квадратичное решение не укладывается в лимит песочницы.
+квадратичное решение не укладывается в лимит песочницы. Каждая глава —
+модуль chNN.py с таблицей TASKS; _kept.py хранит задачи, переехавшие из
+старых глав.
 """
 
-from app.exercises.algo_tasks import ch01_05, ch06_08, ch09_10
+import importlib
+import pkgutil
 
-ALGO_TASKS: dict[int, list[dict]] = {
-    **ch01_05.TASKS,
-    **ch06_08.TASKS,
-    **ch09_10.TASKS,
-}
+ALGO_TASKS: dict[int, list[dict]] = {}
+for _m in sorted(m.name for m in pkgutil.iter_modules(__path__) if m.name.startswith("ch")):
+    ALGO_TASKS.update(importlib.import_module(f"{__name__}.{_m}").TASKS)
