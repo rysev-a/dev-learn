@@ -1658,6 +1658,13 @@ h2 {
   width: 100%;
   max-width: 520px;
   height: auto;
+  /* схема проявляется чуть позже и медленнее остальной сцены */
+  opacity: 0;
+  transition: opacity 0.8s ease 0.15s;
+}
+
+.a-stage.in .a-svg {
+  opacity: 1;
 }
 
 .a-ring {
@@ -1819,6 +1826,7 @@ h2 {
 
 @media (prefers-reduced-motion: reduce) {
   .a-stage,
+  .a-svg,
   .a-circle,
   .a-fills,
   .a-fill,
