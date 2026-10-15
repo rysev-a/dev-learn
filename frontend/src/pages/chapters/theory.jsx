@@ -165,20 +165,18 @@ function SlidePanel({
   onPause,
 }) {
   const fsRef = useRef(null);
-  const openedAt = useRef(0);
   const Comp = slides[Math.min(idx, slides.length - 1)];
   const count = String(slides.length).padStart(2, "0");
 
   useEffect(() => {
     if (!fs) return;
-    const el = fsRef.current;
-    // Fullscreen API, если доступен; оверлей и так закрывает весь экран.
-    if (el && el.requestFullscreen) el.requestFullscreen().catch(() => {});
-    openedAt.current = Date.now();
+    // Полный экран берём у корня документа, а не у оверлея: оверлей пересоздаётся
+    // при переходе в другую главу, и браузер выходил бы из полноэкранного режима,
+    // когда его элемент исчезает из DOM. Корень не исчезает. Оверлей и так закрывает окно.
+    const root = document.documentElement;
+    if (!document.fullscreenElement && root.requestFullscreen)
+      root.requestFullscreen().catch(() => {});
     const onFsChange = () => {
-      // при переходе между главами старый оверлей снимается и браузер на миг
-      // выходит из полноэкранного режима — это не «закрыть»
-      if (Date.now() - openedAt.current < 1200) return;
       if (!document.fullscreenElement) setFs(false);
     };
     const onKey = (e) => {
