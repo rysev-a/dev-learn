@@ -82,7 +82,8 @@ export default function CodeExercises({ tasks, bookId, chapter }) {
       <div className="quiz-head">
         <h3>Практика в песочнице</h3>
         <span className="quiz-lang">
-          python · docker{done > 0 ? ` · решено ${done}/${total}` : ""}
+          {tasks.every((t) => t.mode === "sql") ? "sql · sqlite" : "python"} ·
+          docker{done > 0 ? ` · решено ${done}/${total}` : ""}
         </span>
       </div>
 
@@ -96,6 +97,7 @@ export default function CodeExercises({ tasks, bookId, chapter }) {
             </p>
             <CodeEditor
               className={ok ? "right" : ""}
+              lang={t.mode === "sql" ? "sql" : "python"}
               value={code[i]}
               onChange={(v) => setCodeAt(i, v)}
               onRun={() => run(i)}

@@ -126,6 +126,70 @@ print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
 """
 
 
+# Harness для режима «sql»: запрос ученика выполняется в SQLite на подготовленной
+# базе (setup). Сравнивается результат последнего SELECT ученика либо контрольного
+# запроса check (если задан) — как множество строк или по порядку (ordered).
+# contains — подстроки, которые должны встретиться в результате (для планов запросов),
+# forbid — подстроки, которых быть не должно.
+HARNESS_SQL = r"""\
+import json
+import sqlite3
+
+def cell(v):
+    return round(v, 4) if isinstance(v, float) else v
+
+def fmt(rows):
+    return "\\n".join(" | ".join("NULL" if v is None else str(v) for v in r) for r in rows)
+
+def statements(sql):
+    buf, out = "", []
+    for line in sql.splitlines(keepends=True):
+        buf += line
+        if sqlite3.complete_statement(buf):
+            out.append(buf.strip())
+            buf = ""
+    if buf.strip():
+        out.append(buf.strip())
+    return out
+
+error = None
+got = []
+try:
+    con = sqlite3.connect(":memory:", isolation_level=None)
+    con.executescript(SETUP)
+    code = open("/sandbox/solution.py", encoding="utf-8").read()
+    last = None
+    for st in statements(code):
+        cur = con.execute(st)
+        if cur.description is not None:
+            last = [tuple(cell(v) for v in r) for r in cur.fetchall()]
+    if CHECK:
+        got = [tuple(cell(v) for v in r) for r in con.execute(CHECK).fetchall()]
+    elif last is None:
+        raise ValueError("Запрос ничего не вернул: нужен SELECT")
+    else:
+        got = last
+except Exception as e:
+    error = type(e).__name__ + ": " + str(e)
+
+exp = [tuple(cell(v) for v in r) for r in EXPECTED]
+if CONTAINS:
+    text = fmt(got)
+    ok = error is None and all(c in text for c in CONTAINS) and not any(f in text for f in FORBID)
+    shown_expected = "в результате должно встретиться: " + ", ".join(CONTAINS)
+    if FORBID:
+        shown_expected += "; не должно быть: " + ", ".join(FORBID)
+else:
+    if ORDERED:
+        ok = error is None and got == exp
+    else:
+        ok = error is None and sorted(got, key=repr) == sorted(exp, key=repr)
+    shown_expected = fmt(exp)
+result = [{"ok": ok, "got": fmt(got), "expected": shown_expected, "error": error}]
+print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
+"""
+
+
 def _enc(x):
     """Кортежи в тестах (аргументы и ожидаемое) едут через JSON с меткой —
     harness вернёт их кортежами, поэтому [1, 2] и (1, 2) различаются."""
@@ -147,6 +211,16 @@ def _harness(task: dict) -> str:
                 [_enc([t["args"], t["expected"]]) for t in task["tests"]]
             ),
         )
+    if task["mode"] == "sql":
+        header = (
+            f"SETUP = {task['setup']!r}\n"
+            f"CHECK = {task.get('check', '')!r}\n"
+            f"EXPECTED = {task.get('expected', [])!r}\n"
+            f"ORDERED = {bool(task.get('ordered', False))!r}\n"
+            f"CONTAINS = {task.get('contains', [])!r}\n"
+            f"FORBID = {task.get('forbid', [])!r}\n"
+        )
+        return header + HARNESS_SQL
     expected = "\n".join(task["expected"]) + "\n"
     return HARNESS_STDOUT.format(expected=expected, driver=task.get("driver", ""))
 

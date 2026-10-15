@@ -21,9 +21,10 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { python } from "@codemirror/lang-python";
+import { SQLite, sql } from "@codemirror/lang-sql";
 import { tags as t } from "@lezer/highlight";
 
-/* Редактор кода на CodeMirror 6 с подсветкой Python. Цвета берутся из тех же
+/* Редактор кода на CodeMirror 6 с подсветкой Python или SQL (prop lang). Цвета берутся из тех же
    CSS-переменных, что и подсветка на слайдах (--s-*), поэтому обе темы
    работают без отдельных настроек. Редактор неуправляемый: значение из
    props подмешивается в документ только когда оно изменилось снаружи
@@ -74,7 +75,13 @@ const theme = EditorView.theme({
   },
 });
 
-export default function CodeEditor({ value, onChange, onRun, className = "" }) {
+export default function CodeEditor({
+  value,
+  onChange,
+  onRun,
+  lang = "python",
+  className = "",
+}) {
   const host = useRef(null);
   const view = useRef(null);
   const cb = useRef({ onChange, onRun });
@@ -92,7 +99,7 @@ export default function CodeEditor({ value, onChange, onRun, className = "" }) {
         bracketMatching(),
         indentUnit.of("    "),
         EditorState.tabSize.of(4),
-        python(),
+        lang === "sql" ? sql({ dialect: SQLite }) : python(),
         syntaxHighlighting(highlight),
         theme,
         keymap.of([
