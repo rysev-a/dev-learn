@@ -10,8 +10,20 @@ import { useSlideAudioTime } from "../../lib/slideAudio.js";
    последнем. Кнопка шага отдаёт управление руке до нового запуска
    звука. При prefers-reduced-motion сцена сразу показывает последний шаг. */
 
-// Сцена всплывает ~0,65 с (см. .a-stage в App.css); движение внутри стартует после.
-export const REVEAL_MS = 650;
+// Сцена скрыта первые REVEAL_DELAY мс (пока устаканится состояние: время
+// голоса приходит не сразу) и затем всплывает (.a-stage.in в App.css);
+// движение внутри сцены стартует после REVEAL_MS.
+const REVEAL_DELAY = 350;
+export const REVEAL_MS = 800;
+
+export function useReveal() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setOn(true), REVEAL_DELAY);
+    return () => clearTimeout(t);
+  }, []);
+  return on;
+}
 
 const reduced = () =>
   typeof window !== "undefined" &&
@@ -55,8 +67,9 @@ export function useSteps(cues, ms = 2800) {
 
 // Оболочка: кнопки шагов, сцена, подпись шага. labels[i] — название шага i.
 export function Steps({ ctl, labels, caption, children }) {
+  const on = useReveal();
   return (
-    <div className="a-stage">
+    <div className={`a-stage ${on ? "in" : ""}`}>
       <div className="a-chips" role="tablist">
         {labels.map((l, i) => (
           <button

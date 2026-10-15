@@ -151,7 +151,13 @@ export default function ChapterDetail() {
         onPick={pickSlide}
         t={chapterPos}
         d={chapterDur}
-        audioT={playingThisSlide && progress?.id === playingId ? progress.t : null}
+        audioT={
+          playingThisSlide
+            ? progress?.id === playingId
+              ? progress.t
+              : 0
+            : null
+        }
         caption={`Урок ${chapter.num}. ${chapter.title}`}
         playing={chapterPlaying && !paused}
         onPlay={panelPlay}

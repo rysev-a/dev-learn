@@ -1594,19 +1594,17 @@ h2 {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  /* сцена всплывает из прозрачности: начальная расстановка не видна */
-  animation: a-reveal 0.5s ease 0.15s both;
+  /* сцена скрыта, пока не устаканится состояние, потом всплывает (.in) */
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
 }
 
-@keyframes a-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.a-stage.in {
+  opacity: 1;
+  transform: none;
 }
 
 .a-chips {
