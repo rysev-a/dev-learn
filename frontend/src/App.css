@@ -38,6 +38,7 @@
   /* Подсветка синтаксиса Rust на слайдах */
   --s-blue: #82b8e8;
   --s-violet: #c9a7f0;
+  --s-red: #ee8d86;
 }
 
 :root[data-theme="light"] {
@@ -78,6 +79,7 @@
   /* Подсветка синтаксиса Rust на слайдах */
   --s-blue: #2f6bb0;
   --s-violet: #7d4fc9;
+  --s-red: #c24842;
 }
 
 * {
@@ -1631,11 +1633,6 @@ h2 {
   transform: translateY(-1px);
 }
 
-.a-chip.ghost {
-  justify-content: center;
-  font-size: 15px;
-}
-
 .a-chip-big {
   font-family: "IBM Plex Mono", monospace;
   font-size: 14px;
@@ -1818,6 +1815,83 @@ h2 {
   .a-set-label,
   .a-chip,
   .a-result {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.a-chip-lbl {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* узлы пошаговых схем: всё, что меняется, меняется плавно */
+.a-t,
+.a-t * {
+  transition:
+    transform 0.9s cubic-bezier(0.3, 0.9, 0.3, 1),
+    opacity 0.6s,
+    fill 0.5s,
+    stroke 0.5s,
+    fill-opacity 0.5s,
+    stroke-opacity 0.5s,
+    width 0.7s,
+    height 0.7s,
+    x 0.7s,
+    y 0.7s;
+}
+
+.a-t {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.a-mono {
+  font-family: "IBM Plex Mono", monospace;
+  fill: var(--s-text);
+  font-size: 11px;
+}
+
+.a-cap {
+  font-size: 9.5px;
+  fill: var(--s-muted);
+}
+
+.a-hull {
+  fill: none;
+  stroke: var(--s-accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  animation: a-march 1.6s linear infinite;
+}
+
+@keyframes a-flash {
+  0% {
+    fill-opacity: 0.08;
+  }
+  30% {
+    fill-opacity: 0.9;
+  }
+  100% {
+    fill-opacity: 0.25;
+  }
+}
+
+.a-scan {
+  fill-opacity: 0.08;
+  animation: a-flash 0.6s ease both;
+  animation-play-state: paused;
+}
+
+@keyframes a-march {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a-t,
+  .a-t * {
     transition: none !important;
     animation: none !important;
   }

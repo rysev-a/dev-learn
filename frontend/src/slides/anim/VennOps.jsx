@@ -113,13 +113,6 @@ export default function VennOps({ cues }) {
     setMode(i);
   };
 
-  const restart = () => {
-    setManual(true);
-    setStage("apart");
-    setMode(-1);
-    setAuto(true);
-  };
-
   let caption;
   if (cur) {
     caption = (
@@ -166,9 +159,6 @@ export default function VennOps({ cues }) {
             <span className="a-chip-name">{m.name}</span>
           </button>
         ))}
-        <button className="a-chip ghost" title="Показать заново" onClick={restart}>
-          ↻
-        </button>
       </div>
 
       <svg viewBox="0 0 360 170" className="a-svg" aria-hidden="true">

@@ -3,6 +3,18 @@
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 
 import VennOps from "../anim/VennOps.jsx";
+import ShapesIntro from "../anim/ShapesIntro.jsx";
+import ListVsSet from "../anim/ListVsSet.jsx";
+import Equality from "../anim/Equality.jsx";
+import Complement from "../anim/Complement.jsx";
+import DeMorgan from "../anim/DeMorgan.jsx";
+import Overlap from "../anim/Overlap.jsx";
+import Subset from "../anim/Subset.jsx";
+import Powerset from "../anim/Powerset.jsx";
+import Explosion from "../anim/Explosion.jsx";
+import SetsInUse from "../anim/SetsInUse.jsx";
+import Contracts from "../anim/Contracts.jsx";
+import Recap from "../anim/Recap.jsx";
 
 function Rubric({ n }) {
   return (
@@ -31,35 +43,9 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
-const Arr = () => <span className="s-arr">→</span>;
-const Down = () => <span className="s-arr">↓</span>;
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
-  const topics = [
-    ["∈", "Принадлежность", "Без порядка и повторов — только факт присутствия"],
-    ["∪ ∩", "Операции", "Объединение, пересечение, разность и дополнение"],
-    ["|A|", "Мощность", "Сколько элементов — и почему нельзя просто сложить"],
-    ["2ⁿ", "Булеан", "Все подмножества разом — и цена их перебора"],
-  ];
   return (
     <Slide
       n={1}
@@ -67,16 +53,7 @@ function S01() {
       sub="Глава 1 · Множества"
       main="Множество — фундамент всего курса: без него не понять ни отношения, ни счёт, ни логику."
     >
-      <div className="s-grid2">
-        {topics.map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <ShapesIntro />
       <p className="s-hint">
         Уникальные значения в коде, объединение и пересечение в запросах к базе,
         наборы прав у пользователя — вы пользуетесь множествами каждый день.
@@ -93,19 +70,7 @@ function S02() {
       sub="Ровно две вещи: кто внутри — и что больше никого нет"
       main="Элемент либо принадлежит множеству, либо нет — третьего не дано."
     >
-      <div className="s-cols">
-        <Node
-          kind="amber"
-          title="Список гостей"
-          sub="Порядок имеет значение, один человек может встретиться дважды"
-        />
-        <Arr />
-        <Node
-          kind="green"
-          title="Множество гостей"
-          sub="Только факт присутствия: ни порядка, ни повторов"
-        />
-      </div>
+      <ListVsSet />
       <div className="s-note">
         В коде это разница между массивом и сетом: список помнит порядок и
         повторы, множество — только принадлежность.
@@ -122,14 +87,7 @@ function S03() {
       sub="Одинаковые элементы — значит, равны"
       main="Множество помнит только состав: порядок записи и повторы ничего не меняют."
     >
-      <Cmd>{"{1, 2} = {2, 1, 1} = {2, 2, 1, 1}"}</Cmd>
-      <div className="s-cols">
-        <Node mono title="∅" sub="Пустое множество — у всех одно и то же" />
-        <Node
-          title="Точка отсчёта"
-          sub="Сумма по пустоте равна нулю, поиск в пустоте ничего не находит"
-        />
-      </div>
+      <Equality />
       <div className="s-note">
         Как пустой сет только что созданного объекта: удобно, когда пустота у
         всех выглядит одинаково.
@@ -163,18 +121,7 @@ function S05() {
       sub="Дополнение всегда относительно"
       main="Дополнение — это «всё, что не попало в фильтр», но только внутри выбранного универсума."
     >
-      <div className="s-node">
-        <span className="s-label">УНИВЕРСУМ U · ВСЕ ПОЛЬЗОВАТЕЛИ СИСТЕМЫ</span>
-        <div className="s-cols">
-          <Node title="A · администраторы" sub="Тот, кого отфильтровали" />
-          <Node
-            kind="amber"
-            mono
-            title="¬A · все остальные"
-            sub="Дополнение: не администраторы"
-          />
-        </div>
-      </div>
+      <Complement />
       <div className="s-note">
         Смените универсум с пользователей на людей на планете — дополнение
         станет другим, хотя само множество A не изменилось.
@@ -191,11 +138,7 @@ function S06() {
       sub="Отрицание переворачивает «или» в «и» и обратно"
       main="Неверно, что выполняется хотя бы одно из двух, — значит, не выполняются оба."
     >
-      <Cmd>
-        {
-          "¬(A ∪ B) = ¬A ∩ ¬B      !(a || b) === !a && !b\n¬(A ∩ B) = ¬A ∪ ¬B      !(a && b) === !a || !b"
-        }
-      </Cmd>
+      <DeMorgan />
       <div className="s-note">
         Эти законы не нужно запоминать как заклинание — достаточно один раз
         почувствовать, что отрицание переворачивает «или» в «и» и обратно.
@@ -212,27 +155,7 @@ function S07() {
       sub="Размер сета, длина массива, число записей"
       main="Мощность объединения редко равна сумме мощностей: множества перекрываются."
     >
-      <div className="s-cols">
-        <Node
-          mono
-          title="|A|"
-          sub="Мощность · количество элементов множества"
-        />
-        <Node
-          title="Наивное сложение"
-          sub="Классическая ошибка двойного счёта по перекрывающимся множествам"
-        />
-      </div>
-      <div className="s-cols">
-        <Node title="EN · 20" sub="Знают английский" />
-        <Node title="DE · 20" sub="Знают немецкий" />
-        <Arr />
-        <Node
-          kind="amber"
-          title="EN ∪ DE ≤ 40"
-          sub="Знающие оба языка попали в оба списка"
-        />
-      </div>
+      <Overlap />
       <div className="s-note">
         Как честно считать по перекрывающимся множествам — разберём в главе про
         включения и исключения.
@@ -249,26 +172,7 @@ function S08() {
       sub="Каждый элемент меньшего принадлежит и большему"
       main="Проверка подмножества сводится к пересечению: A ⊆ B, если A ∩ B = A."
     >
-      <div className="s-grid2">
-        <div className="s-node">
-          <span className="s-label">МНОЖЕСТВА ЧИСЕЛ</span>
-          <Node
-            kind="green"
-            mono
-            title="Чётные ⊆ ℤ"
-            sub="Каждый чётный — целое число"
-          />
-        </div>
-        <div className="s-node">
-          <span className="s-label">ПРАВА РОЛЕЙ</span>
-          <Node
-            kind="green"
-            mono
-            title="Редактор ⊆ Администратор"
-            sub="Умеет всё то же, но без настройки системы"
-          />
-        </div>
-      </div>
+      <Subset />
       <div className="s-note">
         Если пересечение меньшего множества с большим совпало с меньшим — оно
         вложено: A ⊆ B, когда A ∩ B = A.
@@ -278,11 +182,6 @@ function S08() {
 }
 
 function S09() {
-  const rows = [
-    ["n = 3", "2³ = 8 подмножеств"],
-    ["n = 10", "2¹⁰ = 1024 подмножества"],
-    ["Битовая маска", "один бит на элемент — каждое число уже готовое подмножество"],
-  ];
   return (
     <Slide
       n={9}
@@ -290,14 +189,7 @@ function S09() {
       sub="Множество всех подмножеств исходного"
       main="Для каждого элемента два выбора — брать или нет, поэтому подмножеств ровно 2ⁿ."
     >
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
+      <Powerset />
       <div className="s-note">
         Составляя подмножество, вы для каждого элемента решаете: взять его или
         нет, — два выбора на каждый из n элементов.
@@ -314,27 +206,7 @@ function S10() {
       sub="Экспонента — самая дорогая операция курса"
       main="Увидели 2ⁿ в решении — остановитесь и подумайте: это бюджет вашего времени."
     >
-      <div className="s-bar-wrap">
-        <span>
-          <span className="s-path accent">2¹⁰</span> · 1 024 варианта
-        </span>
-        <div className="s-bar">
-          <div style={{ width: "3%" }} />
-        </div>
-        <span>
-          <span className="s-path accent">2²⁰</span> · около миллиона
-        </span>
-        <div className="s-bar">
-          <div style={{ width: "12%" }} />
-        </div>
-        <span className="amber-text">
-          <span className="s-path accent">2³⁰</span> · больше миллиарда — уже при
-          тридцати элементах
-        </span>
-        <div className="s-bar amber">
-          <div style={{ width: "100%" }} />
-        </div>
-      </div>
+      <Explosion />
       <p className="s-hint">
         «Разбить нагрузку на две группы как можно ровнее» честнее всего решается
         перебором подмножеств — поэтому дискретная математика дорожит каждой
@@ -352,20 +224,7 @@ function S11() {
       sub="От хеш-сетов до SQL"
       main="Когда вы думаете множествами, код становится короче: вместо цикла с флагом — одна операция пересечения."
     >
-      <div className="s-grid2">
-        <Node
-          title="Дедупликация"
-          sub="Проверка принадлежности в хеш-сете стоит константу — переводим список в множество"
-        />
-        <Node
-          title="SQL"
-          sub="Объединение, пересечение и разность база выполняет на миллионах строк"
-        />
-        <Node
-          title="Продукт"
-          sub="Фильтры аналитики, сегменты пользователей, теги статей — множества под капотом"
-        />
-      </div>
+      <SetsInUse />
       <div className="s-note">
         Всё это — одни и те же операции под разными именами в разных
         инструментах.
@@ -382,18 +241,7 @@ function S12() {
       sub="Разные контракты под одним синтаксисом"
       main="Плохой признак — список, по которому вы внутри цикла что-то ищете: почти всегда это множество, замаскированное под список."
     >
-      <div className="s-cols">
-        <Node
-          kind="amber"
-          title="Список"
-          sub="Хранит порядок и допускает повторы: очередь задач, история действий, постраничная выдача"
-        />
-        <Node
-          kind="green"
-          title="Множество"
-          sub="Хранит факт принадлежности и мгновенно отвечает на вопрос «есть ли здесь такой»"
-        />
-      </div>
+      <Contracts />
       <div className="s-note">
         Правильный выбор структуры — половина алгоритма, и множества дают её
         бесплатно.
@@ -403,12 +251,6 @@ function S12() {
 }
 
 function S13() {
-  const topics = [
-    ["∈", "Принадлежность", "Без порядка и повторов; ∅ — общая точка отсчёта"],
-    ["∪ ∩", "Операции", "Объединение, пересечение, разность, дополнение и де Морган"],
-    ["|A|", "Мощность", "Считаем бережно: перекрытия ломают наивную сумму"],
-    ["2ⁿ", "Булеан", "Все подмножества — и экспоненциальная цена перебора"],
-  ];
   return (
     <Slide
       n={13}
@@ -416,16 +258,7 @@ function S13() {
       sub="Глава 1 · Множества"
       main="У сетов и запросов к базам теперь есть точный язык."
     >
-      <div className="s-grid2">
-        {topics.map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <Recap />
       <div className="s-note">
         Следующая глава — отношения и функции: внешние ключи, связи таблиц и
         чистые функции, которые вы пишете каждый день.
