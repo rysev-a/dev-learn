@@ -1,17 +1,19 @@
 """Упражнения с проверкой в Docker: доступ к определениям задач.
 
-Задачи лежат в пакетах по книгам: py_tasks/ («Изучаем Python», book 13) и
-algo_tasks/ («Алгоритмы: продвинутый уровень», book 7) и arch_tasks/
-(«Архитектура компьютера», book 14); ключ — номер главы.
+Задачи лежат в пакетах по книгам: py_tasks/ («Изучаем Python», book 13),
+algo_tasks/ («Алгоритмы», book 7), arch_tasks/ («Архитектура компьютера»,
+book 14) и linux_tasks/ («Linux», book 8); ключ — номер главы.
 """
 
 from app.exercises.algo_tasks import ALGO_TASKS
 from app.exercises.arch_tasks import ARCH_TASKS
+from app.exercises.linux_tasks import LINUX_TASKS
 from app.exercises.py_tasks import PY_TASKS
 
 BOOK_TASKS: dict[int, dict[int, list[dict]]] = {
     13: PY_TASKS,
     7: ALGO_TASKS,
+    8: LINUX_TASKS,
     14: ARCH_TASKS,
 }
 

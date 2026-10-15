@@ -51,7 +51,8 @@
 - Код-задачи лежат по книгам: `exercises/py_tasks/<раздел>.py` («Изучаем
   Python», book 13), `exercises/algo_tasks/ch*.py` («Алгоритмы», book 7) и
   `exercises/arch_tasks/ch*.py` («Архитектура компьютера», book 14; общий
-  эталонный симулятор процессора для драйверов — `arch_tasks/_sim.py`);
+  эталонный симулятор процессора для драйверов — `arch_tasks/_sim.py`) и
+  `exercises/linux_tasks/ch*.py` («Linux», book 8);
   ключ — номер главы, реестр книг — `BOOK_TASKS` в `exercises/tasks.py`.
   Решения всегда на Python (песочница умеет только его). Новая книга с
   упражнениями — новый пакет и запись в `BOOK_TASKS`.
