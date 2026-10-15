@@ -439,6 +439,21 @@ function Item({ it }) {
   return null;
 }
 
+const KNOWN = new Set(["cell", "dot", "lnode", "text", "ptr", "line", "box", "path", "bar", "code"]);
+const NUMERIC = ["x", "y", "x1", "y1", "x2", "y2", "w", "h", "r", "o", "s", "hh"];
+
+// Проверка при создании сцены: неизвестный тип или нечисловая координата — ошибка автора, а не «тихая» пустота.
+function validate(frames, base, labels) {
+  frames.forEach((f, k) => {
+    for (const it of [...base, ...f]) {
+      const where = `сцена «${labels[0]}…», кадр ${k}, элемент ${it?.id}`;
+      if (!it || !KNOWN.has(it.t) || it.id == null) throw new Error(`${where}: неизвестный элемент`);
+      for (const key of NUMERIC) if (it[key] !== undefined && !Number.isFinite(it[key])) throw new Error(`${where}: ${key} = ${it[key]}`);
+      if (it.t === "path" && typeof it.d !== "string") throw new Error(`${where}: нет d`);
+    }
+  });
+}
+
 // Фабрика сцены. base — элементы, которые есть в каждом кадре (если кадр не
 // переопределил их по id). cues — секунды начала шагов 1, 2, …
 export function scene({
@@ -476,7 +491,10 @@ export function scene({
     m.forEach((it, id) => !(id in firstOf) && (firstOf[id] = it)),
   );
   if (labels.length !== frames.length)
-    throw new Error("scene: labels и frames разной длины");
+    throw new Error(`scene «${labels[0]}…»: labels ${labels.length}, кадров ${frames.length}`);
+  if (caption.length !== frames.length)
+    throw new Error(`scene «${labels[0]}…»: подписей ${caption.length}, кадров ${frames.length}`);
+  validate(frames, base, labels);
   return function Scene({ cues: given }) {
     const ctl = useSteps(given || cues || defaultCues(frames.length), ms);
     const k = Math.min(ctl.step, frames.length - 1);
