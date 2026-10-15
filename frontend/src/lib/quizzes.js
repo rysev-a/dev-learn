@@ -1,6 +1,7 @@
 // Реестр квизов: ключ «bookId:номер_главы» → квиз на теорию
 // (вопросы с вариантами, проверка сразу при выборе).
 import { ALGO_QUIZZES } from "../quizzes/algo.js";
+import { ARCH_QUIZZES } from "../quizzes/arch.js";
 import { DB_QUIZZES } from "../quizzes/db.js";
 import { DM_QUIZZES } from "../quizzes/dm.js";
 import { JS_QUIZZES } from "../quizzes/js.js";
@@ -79,6 +80,7 @@ export const QUIZZES = {
 
   ...LINUX_QUIZZES,
   ...ALGO_QUIZZES,
+  ...ARCH_QUIZZES,
   ...DB_QUIZZES,
   ...RUST_QUIZZES,
   ...JS_QUIZZES,

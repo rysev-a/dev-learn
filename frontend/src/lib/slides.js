@@ -28,6 +28,11 @@ import { SLIDES_A7, SLIDE_TITLES_A7 } from "../slides/algo/ch07.jsx";
 import { SLIDES_A8, SLIDE_TITLES_A8 } from "../slides/algo/ch08.jsx";
 import { SLIDES_A9, SLIDE_TITLES_A9 } from "../slides/algo/ch09.jsx";
 import { SLIDES_A10, SLIDE_TITLES_A10 } from "../slides/algo/ch10.jsx";
+import { SLIDES_AR1, SLIDE_TITLES_AR1 } from "../slides/arch/ch01.jsx";
+import { SLIDES_AR2, SLIDE_TITLES_AR2 } from "../slides/arch/ch02.jsx";
+import { SLIDES_AR3, SLIDE_TITLES_AR3 } from "../slides/arch/ch03.jsx";
+import { SLIDES_AR4, SLIDE_TITLES_AR4 } from "../slides/arch/ch04.jsx";
+import { SLIDES_AR5, SLIDE_TITLES_AR5 } from "../slides/arch/ch05.jsx";
 import { SLIDES_D1, SLIDE_TITLES_D1 } from "../slides/db/ch01.jsx";
 import { SLIDES_D2, SLIDE_TITLES_D2 } from "../slides/db/ch02.jsx";
 import { SLIDES_D3, SLIDE_TITLES_D3 } from "../slides/db/ch03.jsx";
@@ -118,6 +123,11 @@ export const SLIDES = {
   ...SLIDES_A8,
   ...SLIDES_A9,
   ...SLIDES_A10,
+  ...SLIDES_AR1,
+  ...SLIDES_AR2,
+  ...SLIDES_AR3,
+  ...SLIDES_AR4,
+  ...SLIDES_AR5,
   ...SLIDES_D1,
   ...SLIDES_D2,
   ...SLIDES_D3,
@@ -209,6 +219,11 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_A8,
   ...SLIDE_TITLES_A9,
   ...SLIDE_TITLES_A10,
+  ...SLIDE_TITLES_AR1,
+  ...SLIDE_TITLES_AR2,
+  ...SLIDE_TITLES_AR3,
+  ...SLIDE_TITLES_AR4,
+  ...SLIDE_TITLES_AR5,
   ...SLIDE_TITLES_D1,
   ...SLIDE_TITLES_D2,
   ...SLIDE_TITLES_D3,
