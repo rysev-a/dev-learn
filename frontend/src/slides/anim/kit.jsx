@@ -286,3 +286,49 @@ export function Matrix({ x, y, rows, cols, mark, cell = 24, o = 1, rowTitle, col
     </G>
   );
 }
+
+// Таблица истинности: head — заголовки столбцов, rows — строки значений (0/1 или текст);
+// hl(r, c) → цвет m/g/y/r/b или null; rowOn(r) → показывать ли строку (для поочерёдного появления).
+export function Table({ x, y, head, rows, cw = 30, rh = 20, hl, rowOn, o = 1, delay = 0 }) {
+  return (
+    <G x={x} y={y} o={o}>
+      {head.map((h, c) => (
+        <text key={c} x={c * cw + cw / 2} y="-5" textAnchor="middle" className="a-mono" style={{ fontSize: 10.5, fill: "var(--s-accent)" }}>
+          {h}
+        </text>
+      ))}
+      <line x1="0" y1="0" x2={head.length * cw} y2="0" style={{ stroke: "var(--s-border)", strokeWidth: 1.2 }} />
+      {rows.map((row, r) => {
+        const on = rowOn ? rowOn(r) : true;
+        return (
+          <g key={r} className="a-t" style={{ opacity: on ? 1 : 0, transitionDelay: on ? `${delay * r}ms` : "0ms" }}>
+            {row.map((v, c) => {
+              const m = hl ? hl(r, c) : null;
+              return (
+                <g key={c}>
+                  <rect
+                    x={c * cw + 1.5}
+                    y={r * rh + 2}
+                    width={cw - 3}
+                    height={rh - 3}
+                    rx="4"
+                    style={{ fill: m ? STROKE[m] : "none", fillOpacity: m ? 0.35 : 0, stroke: m ? STROKE[m] : "none", strokeWidth: 1.2 }}
+                  />
+                  <text
+                    x={c * cw + cw / 2}
+                    y={r * rh + rh / 2 + 4}
+                    textAnchor="middle"
+                    className="a-mono"
+                    style={{ fontSize: 10.5, fill: v === 1 ? "var(--s-accent)" : v === 0 ? "var(--s-red)" : "var(--s-text)" }}
+                  >
+                    {v}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        );
+      })}
+    </G>
+  );
+}
