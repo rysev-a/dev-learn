@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Steps, useSteps } from "./kit.jsx";
+import { REVEAL_MS, Steps, useSteps } from "./kit.jsx";
 
 /* Слайд 1 главы «Множества»: пять кружков и пять квадратов появляются,
    их обводят пунктиром (две группы), затем фигуры получают цвета и
@@ -47,7 +47,7 @@ export default function ShapesIntro({ cues }) {
   const { step } = ctl;
   const [shown, setShown] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setShown(true), 80);
+    const t = setTimeout(() => setShown(true), REVEAL_MS);
     return () => clearTimeout(t);
   }, []);
 

@@ -10,6 +10,9 @@ import { useSlideAudioTime } from "../../lib/slideAudio.js";
    последнем. Кнопка шага отдаёт управление руке до нового запуска
    звука. При prefers-reduced-motion сцена сразу показывает последний шаг. */
 
+// Сцена всплывает ~0,65 с (см. .a-stage в App.css); движение внутри стартует после.
+export const REVEAL_MS = 650;
+
 const reduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia &&
@@ -32,7 +35,7 @@ export function useSteps(cues, ms = 2800) {
   const synced = audioT != null && !manual;
   useEffect(() => {
     if (synced || !auto || step >= last) return;
-    const t = setTimeout(() => setStep((s) => s + 1), step === 0 ? 1200 : ms);
+    const t = setTimeout(() => setStep((s) => s + 1), step === 0 ? REVEAL_MS + 900 : ms);
     return () => clearTimeout(t);
   }, [synced, auto, step, last, ms]);
 

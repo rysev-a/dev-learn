@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Steps, Txt, useSteps } from "./kit.jsx";
+import { REVEAL_MS, Steps, Txt, useSteps } from "./kit.jsx";
 
 /* Слайд 10: цена перебора. Кривая 2ⁿ рисуется слева направо: почти плоская
    до самого конца, а потом взлетает; метка n = 30 и «бюджет времени». */
@@ -23,7 +23,7 @@ export default function Explosion({ cues }) {
   const { step } = ctl;
   const [draw, setDraw] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setDraw(true), 80);
+    const t = setTimeout(() => setDraw(true), REVEAL_MS);
     return () => clearTimeout(t);
   }, []);
   return (

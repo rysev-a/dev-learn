@@ -51,7 +51,7 @@ const MODES = [
   },
 ];
 
-const HOLD_APART_MS = 1900;
+const HOLD_APART_MS = 2500;
 const MOVE_MS = 1000;
 const MERGE_MS = 1700;
 const STEP_MS = 3200;
