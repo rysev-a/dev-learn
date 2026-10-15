@@ -5,9 +5,11 @@
 func (возвращаемое значение) или stdout (вывод, в том числе со скрытым драйвером).
 """
 
-from app.exercises.arch_tasks import ch01_03, ch04_05
+from app.exercises.arch_tasks import ch01_03, ch04_05, ch06_08, ch09_10
 
 ARCH_TASKS: dict[int, list[dict]] = {
     **ch01_03.TASKS,
     **ch04_05.TASKS,
+    **ch06_08.TASKS,
+    **ch09_10.TASKS,
 }
