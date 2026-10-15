@@ -296,6 +296,21 @@ button {
   gap: 0.2rem;
 }
 
+/* пункты меню разделов — по левому краю, номера в один столбец */
+.sidebar:not(.collapsed) .menu .slide-fs-toc-item {
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar:not(.collapsed) .menu .slide-fs-toc-num {
+  width: 18px;
+}
+
+.sidebar:not(.collapsed) .menu .slide-fs-toc-name {
+  text-align: left;
+}
+
 /* ---------- home — стилистика слайдов ---------- */
 
 .home h2 {
