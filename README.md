@@ -85,11 +85,17 @@ uv run seed_textbook.py --audio-only   # только догенерироват
 ## API
 
 - `GET /api/books` — список книг со счётчиками (разделы / уроки / части)
+- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` — вход
+  (cookie-сессия); временные пользователи: `student`/`student`, `programmer`/`programmer`
+- `GET /api/progress` — весь прогресс пользователя; `POST /api/progress/slides`,
+  `PUT /api/progress/quiz`, `PUT /api/progress/answers`, `DELETE /api/progress?scope=practice|all`
 - `GET /api/exercises` — число код-упражнений по книгам и главам (для дашборда)
+- `GET /api/exercises/{book}/{chapter}/state` — статусы и черновики; `PUT .../{task}/draft`,
+  `GET .../{task}/attempts` — черновик и история попыток
 - `GET /api/books/{id}/course` — дерево разделов и глав книги
 - `GET /api/chapters/{id}` — глава с частями, текстами и длительностями
 - `GET /api/lesson/{id}/audio` — аудио части
 - `GET /api/lesson/{id}/download` — скачать часть
 - `GET /api/chapters/{id}/download` — скачать главу целиком (части склеиваются в один wav)
 - `GET /api/exercises/{book}/{chapter}` — код-упражнения главы (без тестов)
-- `POST /api/exercises/run` — проверить код в Docker-песочнице (python:3.13-slim, без сети, с лимитами)
+- `POST /api/exercises/run` — проверить код в Docker-песочнице (python:3.13-slim, без сети, с лимитами); нужен вход, пишет попытку

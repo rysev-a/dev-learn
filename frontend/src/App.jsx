@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import AsideMenu from "./components/AsideMenu.jsx";
 import AudioPlayer from "./components/AudioPlayer.jsx";
+import { useAuth } from "./lib/auth.jsx";
 import { PlayerProvider, usePlayer } from "./lib/player.jsx";
+import { useProgress } from "./lib/progress.jsx";
+import AuthPage from "./pages/auth/index.jsx";
 import BookDetail from "./pages/books/detail.jsx";
 import BooksIndex from "./pages/books/index.jsx";
 import ChapterDetail from "./pages/chapters/detail.jsx";
@@ -24,6 +27,8 @@ function Shell() {
   const [books, setBooks] = useState([]);
   const navigate = useNavigate();
   const { stop } = usePlayer();
+  const { user, logout } = useAuth();
+  const { ready } = useProgress();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("say-theme") || "dark",
   );
@@ -45,6 +50,31 @@ function Shell() {
     navigate("/");
   }
 
+  const themeButton = (
+      <button
+        type="button"
+        className="btn-icon"
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+        aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {theme === "dark" ? (
+            <>
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            </>
+          ) : (
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          )}
+        </svg>
+      </button>
+  );
+
+  // пока узнаём, кто вошёл, и пока грузится кабинет — пустой экран; без входа — форма входа
+  if (user === undefined || (user && !ready)) return <div className="boot">Загрузка…</div>;
+  if (user === null) return <AuthPage themeButton={themeButton} />;
+
   // Навигация живёт в URL: /, /book/:bookId, /book/:bookId/chapter/:chapterId[/questions|/exercises]
   return (
     <div className="app">
@@ -65,22 +95,23 @@ function Shell() {
               <circle cx="12" cy="12" r="3" />
             </svg>
           </NavLink>
+          {themeButton}
+          <span className="user-chip" title={user.email}>
+            <span className="user-ava">{user.login[0].toUpperCase()}</span>
+            {user.login}
+          </span>
           <button
             type="button"
             className="btn-icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
-            aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+            onClick={() => {
+              stop();
+              logout();
+            }}
+            title="Выйти"
+            aria-label="Выйти из аккаунта"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              {theme === "dark" ? (
-                <>
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-                </>
-              ) : (
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-              )}
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
           </button>
         </div>

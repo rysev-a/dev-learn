@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { answerSolved, saveAnswerSolved } from "../lib/progress.js";
+import { useProgress } from "../lib/progress.jsx";
 
 /* Нормализация ввода: пробелы, регистр, запятая как десятичный разделитель. */
 function normalize(s) {
@@ -29,8 +29,9 @@ function isCorrect(input, answers) {
 /* Упражнения: задачи с вводом ответа. Ответ показать нельзя (по замыслу
    курса), только подсказку; сложность внутри главы растёт постепенно. */
 export default function Exercises({ quiz, bookId, chapter }) {
-  // решённые задачи (с ответами) помнит браузер — по ним считается прогресс
-  const saved = bookId != null ? answerSolved(bookId, chapter) : {};
+  // решённые задачи (с ответами) хранятся в кабинете — по ним считается прогресс
+  const progress = useProgress();
+  const saved = bookId != null ? progress.answerSolved(bookId, chapter) : {};
   const [vals, setVals] = useState(() =>
     quiz.tasks.map((_, i) => saved[i] ?? ""),
   );
@@ -43,7 +44,7 @@ export default function Exercises({ quiz, bookId, chapter }) {
     nextSt.forEach((s, i) => {
       if (s === "right") map[i] = nextVals[i];
     });
-    saveAnswerSolved(bookId, chapter, map);
+    progress.saveAnswers(bookId, chapter, map);
   };
   const [hints, setHints] = useState(() =>
     Array(quiz.tasks.length).fill(false),

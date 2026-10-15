@@ -3,15 +3,24 @@
 import re
 import sqlite3
 import wave
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from app import config
 
 
-def db() -> sqlite3.Connection:
-    conn = sqlite3.connect(config.DB_PATH)
+@contextmanager
+def db() -> Iterator[sqlite3.Connection]:
+    """Соединение с БД на время блока: коммит при успехе, откат при ошибке, закрытие в конце."""
+    conn = sqlite3.connect(config.DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
-    return conn
+    conn.execute("PRAGMA foreign_keys = ON")
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 
 def init_db(conn: sqlite3.Connection) -> None:

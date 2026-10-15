@@ -5,7 +5,7 @@ import Exercises from "../../components/Exercises.jsx";
 // Вкладка «Практика»: код-задачи в Docker (по одной, со списком слева);
 // у книги без кода — задачи с вводом ответа.
 export default function ChapterExercises() {
-  const { bookId, chapter, codeTasks, tasksReady, practice, onSolved, fs, itemsSlot, nextPractice } =
+  const { bookId, chapter, codeTasks, tasksReady, practice, fs, itemsSlot, nextPractice } =
     useOutletContext();
   const navigate = useNavigate();
   if (codeTasks.length > 0)
@@ -15,7 +15,6 @@ export default function ChapterExercises() {
         tasks={codeTasks}
         bookId={bookId}
         chapter={chapter.num}
-        onSolved={onSolved}
         itemsSlot={fs ? itemsSlot : null}
         nextChapter={
           nextPractice

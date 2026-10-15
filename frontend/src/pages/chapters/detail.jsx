@@ -14,7 +14,7 @@ import { usePlayer } from "../../lib/player.jsx";
 import { SLIDES } from "../../lib/slides.js";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
-import { solvedCount } from "../../components/CodePractice.jsx";
+import { useProgress } from "../../lib/progress.jsx";
 
 /* Страница главы: заголовок и три вкладки, каждая со своим адресом —
      /book/:bookId/chapter/:chapterId             Теория  (слайды)
@@ -49,7 +49,6 @@ export default function ChapterDetail() {
   const [codeTasks, setCodeTasks] = useState([]);
   const [tasksReady, setTasksReady] = useState(false);
   const [codeCounts, setCodeCounts] = useState(null); // {книга: {глава: число}} — куда идти по Ctrl+Enter
-  const [tick, setTick] = useState(0); // перерисовать бейдж после решённой задачи
 
   useEffect(() => {
     if (chapterId == null) return;
@@ -128,7 +127,9 @@ export default function ChapterDetail() {
   const practice = (key && EXERCISES[key]) || null;
   const hasSlides = !!(key && SLIDES[key]);
   const hasPractice = codeTasks.length > 0 || !!practice;
-  const solved = chapter && codeTasks.length ? solvedCount(bookId, chapter.num, codeTasks) : 0;
+  const progress = useProgress();
+  const doneCodes = chapter ? progress.codeStatus(bookId, chapter.num) : {};
+  const solved = codeTasks.filter((t) => doneCodes[t.id] === "ok").length;
 
   const tabs = chapter
     ? [
@@ -199,8 +200,6 @@ export default function ChapterDetail() {
           codeTasks,
           tasksReady,
           nextPractice,
-          onSolved: () => setTick((n) => n + 1),
-          tick,
           fs,
           itemsSlot,
           headSlot,

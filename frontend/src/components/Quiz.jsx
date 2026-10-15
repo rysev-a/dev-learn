@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { FsItem } from "./FsTree.jsx";
-import { quizPicks, saveQuizPicks } from "../lib/progress.js";
+import { useProgress } from "../lib/progress.jsx";
 
 /* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе. */
 export default function Quiz({ quiz, bookId, chapter, itemsSlot }) {
@@ -9,15 +9,17 @@ export default function Quiz({ quiz, bookId, chapter, itemsSlot }) {
 }
 
 function TheoryQuiz({ quiz, bookId, chapter, itemsSlot }) {
-  // ответы сохраняются в браузере: по ним считается прогресс на главной
+  // ответы хранятся в кабинете: по ним считается прогресс на главной
+  const progress = useProgress();
   const [picked, setPicked] = useState(() => {
-    const saved = bookId != null ? quizPicks(bookId, chapter) : null;
+    const saved = bookId != null ? progress.quizPicks(bookId, chapter) : null;
     return saved && saved.length === quiz.questions.length
       ? saved
       : Array(quiz.questions.length).fill(null);
   });
   const persist = (next) => {
-    if (bookId != null) saveQuizPicks(bookId, chapter, next.some((p) => p != null) ? next : null);
+    if (bookId != null)
+      progress.saveQuizPicks(bookId, chapter, next.some((p) => p != null) ? next : null);
     return next;
   };
 
@@ -31,7 +33,7 @@ function TheoryQuiz({ quiz, bookId, chapter, itemsSlot }) {
 
   function pick(qi, oi) {
     if (picked[qi] != null) return; // на вопрос уже ответили
-    setPicked((prev) => persist(prev.map((p, i) => (i === qi ? oi : p))));
+    setPicked(persist(picked.map((p, i) => (i === qi ? oi : p))));
   }
 
   function reset() {

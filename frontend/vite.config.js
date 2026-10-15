@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": "http://localhost:8000",
+      // API_URL — другой адрес бэкенда (например, для проверки на копии базы)
+      "/api": process.env.API_URL || "http://localhost:8000",
     },
   },
 });

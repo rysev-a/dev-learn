@@ -1,84 +1,103 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
-import { FsItem } from "./FsTree.jsx";
+import { api } from "../lib/api.js";
+import { useAuth } from "../lib/auth.jsx";
+import { useProgress } from "../lib/progress.jsx";
 import CodeEditor from "./CodeEditor.jsx";
+import { FsItem } from "./FsTree.jsx";
 
 /* Вкладка «Практика»: упражнения с проверкой кода в Docker-песочнице
    (бэкенд /api/exercises). Слева — список со статусами и прогресс, справа —
-   одно упражнение: условие, редактор, тесты и логи выполнения. Выбранное
-   упражнение живёт в адресе (?task=id), черновик кода и статус — в
-   localStorage; логи последнего запуска — в памяти на время сессии. */
+   одно упражнение: условие, редактор, тесты, логи и история попыток.
 
-const key = (kind, bookId, chapter, taskId) =>
-  `say-${kind}-${bookId}:${chapter}:${taskId}`;
-
-const read = (k) => {
-  try {
-    return localStorage.getItem(k);
-  } catch {
-    return null;
-  }
-};
-const write = (k, v) => {
-  try {
-    if (v == null) localStorage.removeItem(k);
-    else localStorage.setItem(k, v);
-  } catch {
-    /* хранилище недоступно — работаем без сохранения */
-  }
-};
-
-// статус задачи: "ok" — решена, "bad" — последняя проверка не прошла, null — не пробовали
-function statusOf(bookId, chapter, taskId) {
-  if (read(key("cex", bookId, chapter, taskId)) === "1") return "ok";
-  if (read(key("cfail", bookId, chapter, taskId)) === "1") return "bad";
-  return null;
-}
-
-export function solvedCount(bookId, chapter, tasks) {
-  return tasks.filter((t) => statusOf(bookId, chapter, t.id) === "ok").length;
-}
-
-// логи последнего запуска каждой задачи: переживают переключение вкладок
-const resultCache = new Map();
+   Всё, что набрал пользователь, живёт в кабинете на сервере: статусы задач
+   (решённая остаётся решённой), черновик кода (сохраняется сам) и история
+   попыток — клик по попытке возвращает её код в редактор. Выбранное упражнение —
+   в адресе (?task=id), логи последнего запуска — в памяти на время сессии. */
 
 const langOf = (t) => (t.mode === "sql" || t.mode === "rust" ? t.mode : "python");
+const SAVE_DELAY = 700;
+
+// логи последнего запуска каждой задачи переживают переключение вкладок
+const resultCache = new Map();
+
+const fmtDate = (iso) =>
+  new Date(iso).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function CodePractice({
   tasks,
   bookId,
   chapter,
-  onSolved,
   itemsSlot,
   nextChapter,
 }) {
+  const { user } = useAuth();
+  const progress = useProgress();
   const [params, setParams] = useSearchParams();
-  const [status, setStatus] = useState(() =>
-    Object.fromEntries(tasks.map((t) => [t.id, statusOf(bookId, chapter, t.id)])),
-  );
-  const [code, setCode] = useState(() =>
-    Object.fromEntries(
-      tasks.map((t) => [
-        t.id,
-        read(key("code", bookId, chapter, t.id)) ?? (t.starter || ""),
-      ]),
-    ),
-  );
+  const status = progress.codeStatus(bookId, chapter);
+
+  // черновики приходят с сервера; null — ещё грузятся
+  const [code, setCode] = useState(null);
+  const [attempts, setAttempts] = useState({}); // id задачи → попытки, новые первыми
   const [busy, setBusy] = useState(null);
   const [hint, setHint] = useState({});
   const [, redraw] = useState(0);
+
+  const base = `/api/exercises/${bookId}/${chapter}`;
+
+  useEffect(() => {
+    let live = true;
+    api(`${base}/state`)
+      .then((s) => {
+        if (!live) return;
+        setCode(
+          Object.fromEntries(tasks.map((t) => [t.id, s.drafts[t.id] ?? (t.starter || "")])),
+        );
+      })
+      .catch(() => {
+        if (live) setCode(Object.fromEntries(tasks.map((t) => [t.id, t.starter || ""])));
+      });
+    return () => {
+      live = false;
+    };
+  }, [base, tasks]);
 
   const idx = Math.max(
     0,
     tasks.findIndex((t) => String(t.id) === params.get("task")),
   );
   const task = tasks[idx];
-  const ck = key("res", bookId, chapter, task.id);
-  const res = resultCache.get(ck) || null;
-  const done = tasks.filter((t) => status[t.id] === "ok").length;
 
-  // остальные параметры адреса (fs) сохраняются
+  // история попыток выбранной задачи
+  useEffect(() => {
+    let live = true;
+    api(`${base}/${task.id}/attempts`)
+      .then((d) => live && setAttempts((p) => ({ ...p, [task.id]: d.attempts })))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [base, task.id]);
+
+  // автосохранение черновика: через паузу после правки и при уходе со страницы
+  const pending = useRef({});
+  const timer = useRef(null);
+  const flush = useCallback(() => {
+    clearTimeout(timer.current);
+    for (const [id, value] of Object.entries(pending.current))
+      api(`${base}/${id}/draft`, { method: "PUT", body: { code: value }, keepalive: true }).catch(
+        () => {},
+      );
+    pending.current = {};
+  }, [base]);
+  useEffect(() => flush, [flush]);
+
   const select = (i) =>
     setParams(
       (prev) => {
@@ -89,69 +108,76 @@ export default function CodePractice({
       { replace: true },
     );
 
-  function setStatusFor(id, st) {
-    setStatus((p) => ({ ...p, [id]: st }));
-    write(key("cex", bookId, chapter, id), st === "ok" ? "1" : null);
-    write(key("cfail", bookId, chapter, id), st === "bad" ? "1" : null);
-    if (onSolved) onSolved();
-  }
-
   function edit(value) {
     setCode((p) => ({ ...p, [task.id]: value }));
-    write(key("code", bookId, chapter, task.id), value);
-    // правка после успеха снимает «решено»
-    if (status[task.id] === "ok") setStatusFor(task.id, null);
+    pending.current[task.id] = value;
+    clearTimeout(timer.current);
+    timer.current = setTimeout(flush, SAVE_DELAY);
   }
 
-  function reset() {
-    edit(task.starter || "");
-    write(key("code", bookId, chapter, task.id), null);
-    resultCache.delete(ck);
-    setStatusFor(task.id, null);
-  }
+  const rk = `${user.id}:${bookId}:${chapter}:${task.id}`;
+  const res = resultCache.get(rk) || null;
 
   async function run() {
-    if (busy != null) return;
+    if (busy != null || code == null) return;
     const id = task.id;
-    const rk = ck;
+    const key = rk;
+    const source = code[id];
+    flush();
     setBusy(id);
     try {
-      const r = await fetch("/api/exercises/run", {
+      const data = await api("/api/exercises/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          book: Number(bookId),
-          chapter: Number(chapter),
-          task: id,
-          code: code[id],
-        }),
+        body: { book: Number(bookId), chapter: Number(chapter), task: id, code: source },
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.detail || "Не удалось запустить проверку");
-      const passed = data.results.filter((x) => x.ok).length;
-      const okAll = data.status === "ok" && passed === data.results.length;
-      resultCache.set(rk, { ...data, passed, okAll, at: new Date() });
-      setStatusFor(id, okAll ? "ok" : "bad");
+      resultCache.set(key, { ...data, okAll: data.solved });
+      progress.setCodeStatus(bookId, chapter, id, data.solved ? "ok" : "bad");
+      setAttempts((p) => ({
+        ...p,
+        [id]: [
+          {
+            id: data.attempt.id,
+            code: source,
+            status: data.attempt.status,
+            passed: data.passed,
+            total: data.total,
+            created_at: data.attempt.created_at,
+          },
+          ...(p[id] || []),
+        ],
+      }));
     } catch (e) {
-      resultCache.set(rk, { status: "error", stderr: e.message, results: [], at: new Date() });
-      setStatusFor(id, "bad");
+      resultCache.set(key, { status: "error", stderr: e.message, results: [] });
     } finally {
       setBusy(null);
       redraw((n) => n + 1);
     }
   }
 
-  const running = busy === task.id;
-  const solved = status[task.id] === "ok";
-  const hasNext = idx < tasks.length - 1 || !!nextChapter;
+  if (code == null) return <p className="empty">Загрузка…</p>;
 
-  // решено → дальше: следующее упражнение или первое упражнение следующей главы
+  const done = tasks.filter((t) => status[t.id] === "ok").length;
+  const solved = status[task.id] === "ok";
+  const running = busy === task.id;
+  const history = attempts[task.id] || [];
+  // «Дальше» вместо «Проверить», пока код совпадает с принятым решением
+  const accepted = history.some((a) => a.status === "ok" && a.code === code[task.id]);
+  const hasNext = idx < tasks.length - 1 || !!nextChapter;
+  const goMode = solved && accepted && hasNext;
+
   function goNext() {
     if (idx < tasks.length - 1) select(idx + 1);
     else if (nextChapter) nextChapter.open();
   }
-  // Ctrl/Cmd+Enter: проверить; если уже решено — перейти дальше
-  const primary = () => (solved && hasNext ? goNext() : run());
+  // Ctrl/Cmd+Enter: проверить; если принятое решение не менялось — перейти дальше
+  const primary = () => (goMode ? goNext() : run());
+
+  const marks = (t, i) => ({
+    mark: status[t.id] === "ok" ? "✓" : status[t.id] === "bad" ? "✗" : undefined,
+    status: status[t.id] || "",
+    key: t.id,
+    num: i + 1,
+  });
 
   return (
     <section className="pr">
@@ -181,38 +207,34 @@ export default function CodePractice({
       <div className={`pr-body ${itemsSlot ? "single" : ""}`}>
         {itemsSlot ? (
           createPortal(
-            tasks.map((t, i) => (
-              <FsItem
-                key={t.id}
-                on={i === idx}
-                num={i + 1}
-                mark={status[t.id] === "ok" ? "✓" : status[t.id] === "bad" ? "✗" : undefined}
-                status={status[t.id] || ""}
-                onClick={() => select(i)}
-              >
-                {t.title}
-              </FsItem>
-            )),
+            tasks.map((t, i) => {
+              const { key, num, ...m } = marks(t, i);
+              return (
+                <FsItem key={key} on={i === idx} num={num} onClick={() => select(i)} {...m}>
+                  {t.title}
+                </FsItem>
+              );
+            }),
             itemsSlot,
           )
         ) : (
-        <aside className="pr-list" aria-label="Упражнения">
-          {tasks.map((t, i) => {
-            const st = status[t.id];
-            return (
-              <button
-                key={t.id}
-                className={`pr-item ${i === idx ? "on" : ""} ${st || ""}`}
-                onClick={() => select(i)}
-              >
-                <span className="pr-mark">
-                  {st === "ok" ? "✓" : st === "bad" ? "✗" : i + 1}
-                </span>
-                <span className="pr-name">{t.title}</span>
-              </button>
-            );
-          })}
-        </aside>
+          <aside className="pr-list" aria-label="Упражнения">
+            {tasks.map((t, i) => {
+              const st = status[t.id];
+              return (
+                <button
+                  key={t.id}
+                  className={`pr-item ${i === idx ? "on" : ""} ${st || ""}`}
+                  onClick={() => select(i)}
+                >
+                  <span className="pr-mark">
+                    {st === "ok" ? "✓" : st === "bad" ? "✗" : i + 1}
+                  </span>
+                  <span className="pr-name">{t.title}</span>
+                </button>
+              );
+            })}
+          </aside>
         )}
 
         <div className="pr-main" key={task.id}>
@@ -221,17 +243,13 @@ export default function CodePractice({
               {idx + 1}. {task.title}
             </h3>
             <span className={`pr-badge ${status[task.id] || ""}`}>
-              {status[task.id] === "ok"
-                ? "выполнено"
-                : status[task.id] === "bad"
-                  ? "не пройдено"
-                  : "не решено"}
+              {solved ? "выполнено" : status[task.id] === "bad" ? "не пройдено" : "не решено"}
             </span>
           </div>
           <p className="pr-statement">{task.statement}</p>
 
           <CodeEditor
-            className={status[task.id] === "ok" ? "right" : ""}
+            className={solved && accepted ? "right" : ""}
             lang={langOf(task)}
             value={code[task.id]}
             onChange={edit}
@@ -239,12 +257,8 @@ export default function CodePractice({
           />
 
           <div className="ex-row">
-            {solved && hasNext ? (
-              <button
-                className="quiz-btn"
-                onClick={goNext}
-                title="Дальше (Ctrl+Enter)"
-              >
+            {goMode ? (
+              <button className="quiz-btn" onClick={goNext} title="Дальше (Ctrl+Enter)">
                 {idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →"}
               </button>
             ) : (
@@ -254,7 +268,17 @@ export default function CodePractice({
                 disabled={busy != null}
                 title="Проверить (Ctrl+Enter)"
               >
-                {running ? "Запускаю…" : solved ? "✓ Решено — ещё раз" : "Проверить"}
+                {running ? "Запускаю…" : "Проверить"}
+              </button>
+            )}
+            {goMode && (
+              <button
+                className="quiz-btn ghost"
+                onClick={run}
+                disabled={busy != null}
+                title="Запустить проверку ещё раз"
+              >
+                {running ? "Запускаю…" : "Проверить ещё раз"}
               </button>
             )}
             {task.hint && (
@@ -265,26 +289,57 @@ export default function CodePractice({
                 {hint[task.id] ? "Скрыть подсказку" : "Подсказка"}
               </button>
             )}
-            {solved && hasNext && (
-              <button
-                className="quiz-btn ghost"
-                onClick={run}
-                disabled={busy != null}
-                title="Запустить проверку ещё раз"
-              >
-                {running ? "Запускаю…" : "Проверить ещё раз"}
-              </button>
-            )}
-            <button className="quiz-btn ghost" onClick={reset} title="Вернуть исходный шаблон">
+            <button
+              className="quiz-btn ghost"
+              onClick={() => edit(task.starter || "")}
+              title="Вернуть исходный шаблон"
+            >
               Сбросить
             </button>
           </div>
           {hint[task.id] && task.hint && <p className="ex-hint">{task.hint}</p>}
 
           <Results res={res} running={running} />
+
+          <History
+            items={history}
+            current={code[task.id]}
+            onPick={(a) => edit(a.code)}
+          />
         </div>
       </div>
     </section>
+  );
+}
+
+function History({ items, current, onPick }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="pr-hist">
+      <div className="pr-res-head">
+        <span className="s-label">история попыток</span>
+        <span className="pr-res-time">{items.length}</span>
+      </div>
+      <ul className="pr-hist-list">
+        {items.map((a, i) => (
+          <li key={a.id}>
+            <button
+              className={`pr-hist-item ${a.status} ${a.code === current ? "on" : ""}`}
+              onClick={() => onPick(a)}
+              title="Вернуть этот код в редактор"
+            >
+              <span className="pr-hist-n">#{items.length - i}</span>
+              <span className="pr-hist-mark">{a.status === "ok" ? "✓" : "✗"}</span>
+              <span className="pr-hist-score">
+                {a.passed}/{a.total}
+              </span>
+              <span className="pr-hist-code">{a.code.split("\n").find((l) => l.trim()) || ""}</span>
+              <span className="pr-hist-time">{fmtDate(a.created_at)}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -299,15 +354,18 @@ function Results({ res, running }) {
     return (
       <div className="pr-res">
         <p className="pr-empty">
-          Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи выполнения. Когда упражнение решено, Ctrl/Cmd+Enter ведёт к следующему.
+          Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи выполнения. Когда
+          решение принято, Ctrl/Cmd+Enter ведёт к следующему упражнению.
         </p>
       </div>
     );
   const total = res.results.length;
+  const passed = res.passed ?? res.results.filter((r) => r.ok).length;
   // в режиме «вывод» программа печатает в перехваченный поток: её вывод лежит в got
   const one = total === 1 ? res.results[0] : null;
   const program =
-    res.stdout || (one && !one.args && !one.error && typeof one.got === "string" ? one.got : "");
+    res.stdout ||
+    (one && !one.args && !one.error && typeof one.got === "string" ? one.got : "");
   return (
     <div className="pr-res">
       <div className="pr-res-block">
@@ -315,10 +373,9 @@ function Results({ res, running }) {
           <span className="s-label">тесты</span>
           {total > 0 && (
             <span className={`pr-res-sum ${res.okAll ? "ok" : "bad"}`}>
-              {res.passed} из {total}
+              {passed} из {total}
             </span>
           )}
-          {res.at && <span className="pr-res-time">{res.at.toLocaleTimeString("ru-RU")}</span>}
         </div>
         {res.status === "timeout" && (
           <p className="ex-note">

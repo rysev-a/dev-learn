@@ -6,10 +6,11 @@ import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { SlideAudioContext } from "../../lib/slideAudio.js";
 import { fmtTime } from "../../lib/time.js";
-import { markSlide } from "../../lib/progress.js";
+import { useProgress } from "../../lib/progress.jsx";
 
 export default function ChapterTheory() {
   const { chapter, bookId, fs, itemsSlot, headSlot } = useOutletContext();
+  const { markSlide } = useProgress();
   const { playingId, paused, progress, togglePause, playSequence } = usePlayer();
   const [searchParams, setSearchParams] = useSearchParams();
   // Ручной выбор слайда живёт в URL (?slide=N) — перезагрузка возвращает на тот же слайд.
@@ -54,7 +55,7 @@ export default function ChapterTheory() {
   // просмотренный слайд идёт в прогресс (дашборд на главной)
   useEffect(() => {
     if (slides) markSlide(bookId, chapter.num, slideIdx);
-  }, [slides, bookId, chapter.num, slideIdx]);
+  }, [slides, bookId, chapter.num, slideIdx, markSlide]);
 
   if (!slides) return <p className="error">У этой главы нет слайдов</p>;
 

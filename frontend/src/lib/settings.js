@@ -33,24 +33,3 @@ export function motionOff() {
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return system || readSetting(KEYS.anim) === "0";
 }
-
-function clearKeys(re) {
-  try {
-    const drop = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (re.test(k)) drop.push(k);
-    }
-    drop.forEach((k) => localStorage.removeItem(k));
-    return drop.length;
-  } catch {
-    return 0;
-  }
-}
-
-// Удалить решения, статусы и черновики кода упражнений.
-export const clearPractice = () => clearKeys(/^say-(cex|cfail|code|dex)-/);
-
-// Удалить весь прогресс: слайды, вопросы, упражнения.
-export const clearAllProgress = () =>
-  clearKeys(/^say-(cex|cfail|code|dex|sv|qz)-/);

@@ -5,26 +5,21 @@ import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
 import { SLIDES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
-import {
-  answerSolved,
-  codeSolved,
-  quizPicks,
-  slidesSeen,
-} from "../../lib/progress.js";
+import { useProgress } from "../../lib/progress.jsx";
 
 /* Главная — дашборд: прогресс по слайдам, вопросам и упражнениям во всех
    разделах. Данные о составе курса приходят с бэкенда (главы разделов и число
-   код-упражнений), прогресс читается из localStorage этого браузера. */
+   код-упражнений), прогресс берётся из кабинета пользователя (сервер). */
 
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 
 // прогресс одной главы: слайды, вопросы, упражнения (сделано / всего)
-function chapterStats(bookId, ch, codeCounts) {
+function chapterStats(progress, bookId, ch, codeCounts) {
   const key = `${bookId}:${ch.num}`;
   const slidesTotal = (SLIDES[key] || []).length;
   const quiz = QUIZZES[key];
   const quizTotal = quiz ? quiz.questions.length : 0;
-  const picks = quizTotal ? quizPicks(bookId, ch.num) : null;
+  const picks = quizTotal ? progress.quizPicks(bookId, ch.num) : null;
   const quizDone = picks ? picks.filter((p) => p != null).length : 0;
   const quizRight = picks
     ? picks.filter((p, i) => p != null && p === quiz.questions[i].answer).length
@@ -33,12 +28,12 @@ function chapterStats(bookId, ch, codeCounts) {
   const dm = EXERCISES[key] ? EXERCISES[key].tasks.length : 0;
   const exTotal = code || dm;
   const exDone = code
-    ? codeSolved(bookId, ch.num)
+    ? Object.values(progress.codeStatus(bookId, ch.num)).filter((v) => v === "ok").length
     : dm
-      ? Object.keys(answerSolved(bookId, ch.num)).length
+      ? Object.keys(progress.answerSolved(bookId, ch.num)).length
       : 0;
   return {
-    slides: [Math.min(slidesSeen(bookId, ch.num).length, slidesTotal), slidesTotal],
+    slides: [Math.min(progress.slidesSeen(bookId, ch.num).length, slidesTotal), slidesTotal],
     quiz: [quizDone, quizTotal],
     quizRight,
     ex: [exDone, exTotal],
@@ -50,6 +45,7 @@ const sum = (list, f) => list.reduce((a, x) => a + f(x), 0);
 export default function BooksIndex({ books }) {
   const navigate = useNavigate();
   const { stop } = usePlayer();
+  const progress = useProgress();
   const [courses, setCourses] = useState({}); // bookId → разделы с главами
   const [codeCounts, setCodeCounts] = useState(null);
 
@@ -76,7 +72,7 @@ export default function BooksIndex({ books }) {
         const chapters = (courses[b.id] || []).flatMap((s) => s.chapters);
         const stats = chapters.map((ch) => ({
           ch,
-          ...chapterStats(b.id, ch, codeCounts),
+          ...chapterStats(progress, b.id, ch, codeCounts),
         }));
         return {
           book: b,
@@ -87,7 +83,7 @@ export default function BooksIndex({ books }) {
           ex: [sum(stats, (s) => s.ex[0]), sum(stats, (s) => s.ex[1])],
         };
       }),
-    [books, courses, codeCounts],
+    [books, courses, codeCounts, progress],
   );
 
   const total = {

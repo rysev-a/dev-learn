@@ -1,17 +1,15 @@
 import { useState } from "react";
-import {
-  KEYS,
-  clearAllProgress,
-  clearPractice,
-  readSetting,
-  writeSetting,
-} from "../../lib/settings.js";
+import { useAuth } from "../../lib/auth.jsx";
+import { useProgress } from "../../lib/progress.jsx";
+import { KEYS, readSetting, writeSetting } from "../../lib/settings.js";
 
-// Страница настроек: всё хранится в этом браузере и применяется сразу.
+// Страница настроек: внешний вид хранится в браузере, прогресс и аккаунт — в кабинете.
 export default function SettingsPage({ theme, setTheme }) {
+  const { user, logout } = useAuth();
+  const progress = useProgress();
   const [aside, setAside] = useState(() => readSetting(KEYS.aside) === "1");
   const [anim, setAnim] = useState(() => readSetting(KEYS.anim) !== "0");
-  const [cleared, setCleared] = useState(null);
+  const [done, setDone] = useState(null); // какой сброс только что выполнен
 
   function toggleAside() {
     writeSetting(KEYS.aside, aside ? "0" : "1");
@@ -23,18 +21,10 @@ export default function SettingsPage({ theme, setTheme }) {
     setAnim(!anim);
   }
 
-  function reset() {
-    if (
-      window.confirm(
-        "Удалить решения, статусы и черновики кода во всех упражнениях?",
-      )
-    )
-      setCleared(clearPractice());
-  }
-
-  function resetAll() {
-    if (window.confirm("Обнулить весь прогресс: слайды, вопросы и упражнения?"))
-      setCleared(clearAllProgress());
+  async function reset(scope, question) {
+    if (!window.confirm(question)) return;
+    await progress.reset(scope);
+    setDone(scope);
   }
 
   return (
@@ -42,9 +32,23 @@ export default function SettingsPage({ theme, setTheme }) {
       <section className="set-card">
         <h2>Настройки</h2>
         <p className="set-sub">
-          Хранятся в этом браузере и применяются сразу. К прогрессу курса не
-          относятся.
+          Внешний вид хранится в этом браузере и применяется сразу; прогресс — в
+          вашем кабинете на сервере.
         </p>
+
+        <h3 className="set-group">Аккаунт</h3>
+        <div className="set-row">
+          <div className="set-row-text">
+            <span className="set-row-title">{user.login}</span>
+            <span className="set-row-desc">
+              {user.email}. Прогресс, ответы и история попыток хранятся в кабинете
+              и доступны с любого браузера.
+            </span>
+          </div>
+          <button className="quiz-btn ghost" onClick={logout}>
+            Выйти
+          </button>
+        </div>
 
         <h3 className="set-group">Внешний вид</h3>
         <Row
@@ -68,19 +72,25 @@ export default function SettingsPage({ theme, setTheme }) {
           onChange={toggleAnim}
         />
 
-        <h3 className="set-group">Практика</h3>
+        <h3 className="set-group">Прогресс</h3>
         <div className="set-row">
           <div className="set-row-text">
             <span className="set-row-title">Сбросить прогресс упражнений</span>
             <span className="set-row-desc">
-              Удаляет решённые задачи, статусы и черновики кода из этого
-              браузера. Вопросы и слайды не затрагиваются.
-              {cleared != null && (
-                <b className="set-done"> Удалено записей: {cleared}.</b>
-              )}
+              Удаляет статусы задач, черновики кода и историю попыток. Вопросы и
+              слайды не затрагиваются.
+              {done === "practice" && <b className="set-done"> Готово.</b>}
             </span>
           </div>
-          <button className="quiz-btn ghost" onClick={reset}>
+          <button
+            className="quiz-btn ghost"
+            onClick={() =>
+              reset(
+                "practice",
+                "Удалить решения, черновики и историю попыток во всех упражнениях?",
+              )
+            }
+          >
             Сбросить
           </button>
         </div>
@@ -90,9 +100,15 @@ export default function SettingsPage({ theme, setTheme }) {
             <span className="set-row-desc">
               Обнуляет дашборд на главной: просмотренные слайды, ответы на
               вопросы и упражнения.
+              {done === "all" && <b className="set-done"> Готово.</b>}
             </span>
           </div>
-          <button className="quiz-btn ghost" onClick={resetAll}>
+          <button
+            className="quiz-btn ghost"
+            onClick={() =>
+              reset("all", "Обнулить весь прогресс: слайды, вопросы и упражнения?")
+            }
+          >
             Сбросить всё
           </button>
         </div>
