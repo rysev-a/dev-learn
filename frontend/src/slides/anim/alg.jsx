@@ -53,6 +53,8 @@ function tone(c = "m") {
       stroke: "var(--s-border)",
       text: "var(--s-text)",
     };
+  if (c === "W")
+    return { fill: "var(--s-border)", fo: 1, stroke: "var(--s-border)", text: "var(--s-text)" };
   if (c === "n")
     return {
       fill: "none",

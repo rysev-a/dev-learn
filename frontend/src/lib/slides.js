@@ -39,6 +39,7 @@ import { SLIDES_A7, SLIDE_TITLES_A7 } from "../slides/algo/ch07.jsx";
 import { SLIDES_A8, SLIDE_TITLES_A8 } from "../slides/algo/ch08.jsx";
 import { SLIDES_A9, SLIDE_TITLES_A9 } from "../slides/algo/ch09.jsx";
 import { SLIDES_A10, SLIDE_TITLES_A10 } from "../slides/algo/ch10.jsx";
+import { SLIDES_A11, SLIDE_TITLES_A11 } from "../slides/algo/ch11.jsx";
 import { SLIDES_A12, SLIDE_TITLES_A12 } from "../slides/algo/ch12.jsx";
 import { SLIDES_A13, SLIDE_TITLES_A13 } from "../slides/algo/ch13.jsx";
 import { SLIDES_A14, SLIDE_TITLES_A14 } from "../slides/algo/ch14.jsx";
@@ -154,6 +155,7 @@ export const SLIDES = {
   ...SLIDES_A8,
   ...SLIDES_A9,
   ...SLIDES_A10,
+  ...SLIDES_A11,
   ...SLIDES_A12,
   ...SLIDES_A13,
   ...SLIDES_A14,
@@ -270,6 +272,7 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_A8,
   ...SLIDE_TITLES_A9,
   ...SLIDE_TITLES_A10,
+  ...SLIDE_TITLES_A11,
   ...SLIDE_TITLES_A12,
   ...SLIDE_TITLES_A13,
   ...SLIDE_TITLES_A14,
