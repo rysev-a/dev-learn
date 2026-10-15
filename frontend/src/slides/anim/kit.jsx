@@ -55,6 +55,21 @@ export function useSteps(cues, ms = 2800) {
   };
 }
 
+const HEAD_COLORS = {
+  m: "var(--s-muted)",
+  g: "var(--s-accent)",
+  y: "var(--s-amber)",
+  r: "var(--s-red)",
+  b: "var(--s-blue)",
+};
+const STROKE = {
+  m: "var(--s-muted)",
+  g: "var(--s-accent)",
+  y: "var(--s-amber)",
+  r: "var(--s-red)",
+  b: "var(--s-blue)",
+};
+
 // Оболочка: кнопки шагов, сцена, подпись шага. labels[i] — название шага i.
 export function Steps({ ctl, labels, caption, children }) {
   return (
@@ -71,6 +86,22 @@ export function Steps({ ctl, labels, caption, children }) {
         ))}
       </div>
       <svg viewBox="0 0 360 170" className="a-svg" aria-hidden="true">
+        <defs>
+          {Object.entries(HEAD_COLORS).map(([k, c]) => (
+            <marker
+              key={k}
+              id={`a-hd-${k}`}
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0 1 L10 5 L0 9 z" style={{ fill: c }} />
+            </marker>
+          ))}
+        </defs>
         {children}
       </svg>
       <div className="a-result" key={ctl.step}>
@@ -175,5 +206,83 @@ export function Txt({ x, y, o = 1, anchor = "middle", children, mono, color, siz
     >
       {children}
     </text>
+  );
+}
+
+// Стрелка (x1,y1)→(x2,y2); c — цвет: m/g/y/r/b; both — наконечники с обеих сторон.
+export function Arrow({ x1, y1, x2, y2, c = "m", o = 1, dash, both, w = 1.6 }) {
+  return (
+    <line
+      className="a-t"
+      x1={x1}
+      y1={y1}
+      x2={x2}
+      y2={y2}
+      markerEnd={`url(#a-hd-${c})`}
+      markerStart={both ? `url(#a-hd-${c})` : undefined}
+      style={{ stroke: STROKE[c], strokeWidth: w, strokeDasharray: dash, opacity: o }}
+    />
+  );
+}
+
+// Петля у узла (x, y): стрелка от узла к самому себе, вверх.
+export function Loop({ x, y, r = 11, c = "g", o = 1 }) {
+  return (
+    <path
+      className="a-t"
+      d={`M${x - 6} ${y - r + 1} C${x - 22} ${y - r - 24} ${x + 22} ${y - r - 24} ${x + 6} ${y - r + 1}`}
+      markerEnd={`url(#a-hd-${c})`}
+      style={{ fill: "none", stroke: STROKE[c], strokeWidth: 1.6, opacity: o }}
+    />
+  );
+}
+
+// Таблица-матрица отношения: rows × cols клеток; mark(r, c) → цвет m/g/y/r/b или null.
+export function Matrix({ x, y, rows, cols, mark, cell = 24, o = 1, rowTitle, colTitle }) {
+  return (
+    <G x={x} y={y} o={o}>
+      {cols.map((l, c) => (
+        <text key={`c${c}`} x={c * cell + cell / 2} y="-5" textAnchor="middle" className="a-mono" style={{ fontSize: 10 }}>
+          {l}
+        </text>
+      ))}
+      {rows.map((l, r) => (
+        <text key={`r${r}`} x="-7" y={r * cell + cell / 2 + 3.5} textAnchor="end" className="a-mono" style={{ fontSize: 10 }}>
+          {l}
+        </text>
+      ))}
+      {rows.map((_, r) =>
+        cols.map((__, c) => {
+          const m = mark(r, c);
+          return (
+            <rect
+              key={`${r}-${c}`}
+              className="a-t"
+              x={c * cell + 1.5}
+              y={r * cell + 1.5}
+              width={cell - 3}
+              height={cell - 3}
+              rx="4"
+              style={{
+                fill: m ? STROKE[m] : "var(--s-panel2)",
+                fillOpacity: m ? 0.45 : 1,
+                stroke: m ? STROKE[m] : "var(--s-border)",
+                strokeWidth: 1.2,
+              }}
+            />
+          );
+        }),
+      )}
+      {rowTitle && (
+        <text x="-7" y="-5" textAnchor="end" className="a-cap">
+          {rowTitle}
+        </text>
+      )}
+      {colTitle && (
+        <text x={(cols.length * cell) / 2} y={rows.length * cell + 13} textAnchor="middle" className="a-cap">
+          {colTitle}
+        </text>
+      )}
+    </G>
   );
 }
