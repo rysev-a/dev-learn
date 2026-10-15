@@ -34,7 +34,7 @@ export default function C6Recap({ cues }) {
           </g>
         );
       })}
-      <Pill x={180} y={140} w={280} h={26} text="Глава 7 · индукция и рекурсия →" o={step >= 5 ? 1 : 0} stroke="var(--s-accent)" fill="var(--s-green)" color="var(--s-accent)" size={11} />
+      <Pill x={180} y={140} w={280} h={26} text="Глава 7 · индукция и рекуррентности →" o={step >= 5 ? 1 : 0} stroke="var(--s-accent)" fill="var(--s-green)" color="var(--s-accent)" size={11} />
     </Steps>
   );
 }
