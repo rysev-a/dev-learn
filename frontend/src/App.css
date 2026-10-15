@@ -237,6 +237,43 @@ button {
   gap: 8px;
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+  background: var(--s-bg);
+  color: var(--s-text);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.btn-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-icon:hover {
+  background: var(--s-panel2);
+}
+
+.btn-icon.on {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+
+.menu {
+  align-items: center;
+  gap: 8px;
+}
+
 .theme-toggle {
   border: 1px solid var(--border);
   background: var(--panel);
@@ -1655,6 +1692,124 @@ h2 {
   color: var(--s-text);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ---------- страница настроек ---------- */
+
+.set-page {
+  flex: 1;
+  padding: 1.6rem 2rem 4rem;
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.set-card {
+  background: var(--s-panel);
+  border: 1px solid var(--s-border);
+  border-radius: 12px;
+  padding: 22px 26px 8px;
+}
+
+.set-card h2 {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  color: var(--s-text);
+}
+
+.set-sub {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: var(--s-muted);
+}
+
+.set-group {
+  margin: 20px 0 0;
+  padding-bottom: 8px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--s-muted);
+  border-bottom: 1px solid var(--s-border);
+}
+
+.set-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--s-border);
+}
+
+.set-row:last-child {
+  border-bottom: none;
+}
+
+.set-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 560px;
+}
+
+.set-row-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--s-text);
+}
+
+.set-row-desc {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--s-muted);
+}
+
+.set-done {
+  color: var(--s-accent);
+  font-weight: 600;
+}
+
+.set-switch {
+  flex-shrink: 0;
+  position: relative;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  margin-top: 2px;
+  border: 1px solid var(--s-border);
+  border-radius: 999px;
+  background: var(--s-panel2);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.set-switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--s-muted);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.set-switch.on {
+  background: var(--s-green);
+  border-color: var(--s-accent);
+}
+
+.set-switch.on i {
+  transform: translateX(18px);
+  background: var(--s-accent);
 }
 
 /* ---------- вкладки главы и вкладка «Практика» ---------- */

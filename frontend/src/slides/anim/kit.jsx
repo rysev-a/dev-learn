@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSlideAudioTime } from "../../lib/slideAudio.js";
+import { motionOff } from "../../lib/settings.js";
 
 /* Общий набор для пошаговых анимаций на слайдах.
 
@@ -15,17 +16,12 @@ import { useSlideAudioTime } from "../../lib/slideAudio.js";
 // движение внутри сцены стартует после REVEAL_MS.
 export const REVEAL_MS = 800;
 
-const reduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 export function useSteps(cues, ms = 2800) {
   const last = cues.length;
   const audioT = useSlideAudioTime();
-  const [step, setStep] = useState(reduced() ? last : 0);
+  const [step, setStep] = useState(motionOff() ? last : 0);
   const [manual, setManual] = useState(false);
-  const [auto, setAuto] = useState(!reduced());
+  const [auto, setAuto] = useState(!motionOff());
   const had = useRef(false);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSlideAudioTime } from "../../lib/slideAudio.js";
+import { motionOff } from "../../lib/settings.js";
 
 /* Анимированная диаграмма Венна для слайда «Три операции».
 
@@ -58,10 +59,7 @@ const STEP_MS = 3200;
 
 export default function VennOps({ cues }) {
   const audioT = useSlideAudioTime();
-  const reduce =
-    typeof window !== "undefined" &&
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduce = motionOff();
   // stage: apart → moving → merged; потом mode 0..2
   const [stage, setStage] = useState(reduce ? "merged" : "apart");
   const [mode, setMode] = useState(reduce ? 0 : -1);
