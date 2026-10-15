@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useSlideAudioTime } from "../../lib/slideAudio.js";
-import { useReveal } from "./kit.jsx";
 
 /* Анимированная диаграмма Венна для слайда «Три операции».
 
@@ -59,7 +58,6 @@ const STEP_MS = 3200;
 
 export default function VennOps({ cues }) {
   const audioT = useSlideAudioTime();
-  const shown = useReveal();
   const reduce =
     typeof window !== "undefined" &&
     window.matchMedia &&
@@ -149,7 +147,7 @@ export default function VennOps({ cues }) {
   }
 
   return (
-    <div className={`a-stage ${shown ? "in" : ""}`}>
+    <div className="a-stage">
       <div className="a-chips" role="tablist">
         {MODES.map((m, i) => (
           <button

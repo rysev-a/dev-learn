@@ -1594,17 +1594,28 @@ h2 {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  /* сцена скрыта, пока не устаканится состояние, потом всплывает (.in) */
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.5s ease;
+  /* сцена невидима первые кадры и всплывает: прозрачность с задержкой */
+  animation: a-rise 0.5s ease 0.35s both;
 }
 
-.a-stage.in {
-  opacity: 1;
-  transform: none;
+@keyframes a-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes a-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .a-chips {
@@ -1659,12 +1670,7 @@ h2 {
   max-width: 520px;
   height: auto;
   /* схема проявляется чуть позже и медленнее остальной сцены */
-  opacity: 0;
-  transition: opacity 0.8s ease 0.15s;
-}
-
-.a-stage.in .a-svg {
-  opacity: 1;
+  animation: a-fade 0.8s ease 0.5s both;
 }
 
 .a-ring {
@@ -1825,8 +1831,10 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .a-stage,
-  .a-svg,
+  .a-stage {
+    animation-name: a-fade;
+  }
+
   .a-circle,
   .a-fills,
   .a-fill,
