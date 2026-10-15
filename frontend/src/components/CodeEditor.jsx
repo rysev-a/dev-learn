@@ -62,14 +62,21 @@ const theme = EditorView.theme({
     color: "var(--s-muted)",
     border: "none",
   },
-  ".cm-activeLine": { backgroundColor: "var(--s-panel)" },
+  // подсветка строки полупрозрачная: слой выделения лежит под строками,
+  // непрозрачный фон закрывал бы выделенное слово
+  ".cm-activeLine": {
+    backgroundColor: "color-mix(in srgb, var(--s-panel) 45%, transparent)",
+  },
   ".cm-activeLineGutter": {
     backgroundColor: "var(--s-panel)",
     color: "var(--s-text)",
   },
-  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": {
-    backgroundColor: "var(--s-accent-a35)",
+  // селекторы той же специфичности, что у базовой темы CodeMirror, иначе
+  // выделение остаётся светло-сиреневым
+  "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, & > .cm-scroller > .cm-selectionLayer .cm-selectionBackground": {
+    backgroundColor: "var(--s-accent-a45)",
   },
+  ".cm-content ::selection": { backgroundColor: "var(--s-accent-a45)" },
   ".cm-matchingBracket": {
     backgroundColor: "var(--s-accent-a35)",
     outline: "none",
