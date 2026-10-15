@@ -21,10 +21,11 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { python } from "@codemirror/lang-python";
+import { rust } from "@codemirror/lang-rust";
 import { SQLite, sql } from "@codemirror/lang-sql";
 import { tags as t } from "@lezer/highlight";
 
-/* Редактор кода на CodeMirror 6 с подсветкой Python или SQL (prop lang). Цвета берутся из тех же
+/* Редактор кода на CodeMirror 6 с подсветкой Python, SQL или Rust (prop lang). Цвета берутся из тех же
    CSS-переменных, что и подсветка на слайдах (--s-*), поэтому обе темы
    работают без отдельных настроек. Редактор неуправляемый: значение из
    props подмешивается в документ только когда оно изменилось снаружи
@@ -99,7 +100,7 @@ export default function CodeEditor({
         bracketMatching(),
         indentUnit.of("    "),
         EditorState.tabSize.of(4),
-        lang === "sql" ? sql({ dialect: SQLite }) : python(),
+        lang === "sql" ? sql({ dialect: SQLite }) : lang === "rust" ? rust() : python(),
         syntaxHighlighting(highlight),
         theme,
         keymap.of([
