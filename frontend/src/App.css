@@ -297,7 +297,91 @@ button {
 }
 
 /* пункты меню разделов — по левому краю, номера в один столбец */
-.sidebar:not(.collapsed) .menu .slide-fs-toc-item {
+.sidebar:not(.collapsed) .menu /* дерево слева в полноэкранном режиме: разделы → главы → слайды */
+
+.fst-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.fst-sec-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  color: var(--s-accent);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fst-chev {
+  display: inline-block;
+  width: 10px;
+  transition: transform 0.15s;
+}
+
+.fst-chev.open {
+  transform: rotate(90deg);
+}
+
+.fst-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 2px 0 6px 14px;
+  padding-left: 8px;
+  border-left: 1px solid var(--s-border);
+}
+
+.fst-slide {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--s-muted);
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.fst-slide:hover {
+  color: var(--s-text);
+  background: var(--s-panel2);
+}
+
+.fst-slide.on {
+  color: var(--s-accent);
+  background: var(--s-green);
+}
+
+.fst-slide-num {
+  flex-shrink: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  opacity: 0.7;
+}
+
+/* плеер остаётся виден и поверх полноэкранных слайдов (см. .np-card) */
+body:has(.np-card) .slide-fs {
+  padding-bottom: 112px;
+}
+
+.slide-fs-toc-item {
   justify-content: flex-start;
   width: 100%;
   text-align: left;
@@ -423,7 +507,7 @@ h2 {
   border-radius: 14px;
   box-shadow: var(--shadow);
   padding: 0.9rem 1.1rem 0.8rem;
-  z-index: 50;
+  z-index: 1100;
 }
 
 .np-main {
@@ -1377,13 +1461,7 @@ h2 {
 
   .slide-fs-toc {
     width: 100%;
-    max-height: 150px;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .slide-fs-toc-item {
-    flex: 1 1 40%;
+    max-height: 200px;
   }
 }
 

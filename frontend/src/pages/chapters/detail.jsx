@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useParams } from "react-router-dom";
+import { NavLink, Outlet, useOutletContext, useParams } from "react-router-dom";
 import { SLIDES } from "../../lib/slides.js";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
@@ -12,6 +12,7 @@ import { solvedCount } from "../../components/CodePractice.jsx";
    Данные главы грузятся один раз и отдаются вкладкам через контекст. */
 export default function ChapterDetail() {
   const { bookId, chapterId } = useParams();
+  const parent = useOutletContext();
   const [chapter, setChapter] = useState(null);
   const [error, setError] = useState(null);
   // Код-упражнения (Docker-песочница): приходят с бэкенда, если есть.
@@ -98,6 +99,8 @@ export default function ChapterDetail() {
       <Outlet
         context={{
           bookId,
+          chapterId,
+          course: parent?.course || [],
           chapter,
           quiz,
           practice,

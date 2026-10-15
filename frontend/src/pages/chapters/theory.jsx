@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useOutletContext, useSearchParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router-dom";
 import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { SlideAudioContext } from "../../lib/slideAudio.js";
@@ -8,15 +8,29 @@ import { fmtTime } from "../../lib/time.js";
 import { markSlide } from "../../lib/progress.js";
 
 export default function ChapterTheory() {
-  const { chapter, bookId } = useOutletContext();
-  const { playingId, paused, progress, togglePause, playSequence } = usePlayer();
+  const { chapter, bookId, chapterId, course } = useOutletContext();
+  const navigate = useNavigate();
+  const { playingId, paused, progress, togglePause, playSequence, stop } = usePlayer();
   const [searchParams, setSearchParams] = useSearchParams();
   // Ручной выбор слайда живёт в URL (?slide=N) — перезагрузка возвращает на тот же слайд.
   const slideParam = searchParams.get("slide");
   const manualIdx =
     slideParam == null ? null : Math.max(0, parseInt(slideParam, 10) || 0);
+  // остальные параметры адреса (например, fs) сохраняются
+  const patchParams = (fn) =>
+    setSearchParams(
+      (prev) => {
+        const n = new URLSearchParams(prev);
+        fn(n);
+        return n;
+      },
+      { replace: true },
+    );
   const setManualIdx = (i) =>
-    setSearchParams(i == null ? {} : { slide: String(i) }, { replace: true });
+    patchParams((n) => (i == null ? n.delete("slide") : n.set("slide", String(i))));
+  // полноэкранный режим живёт в адресе (?fs=1) и переживает переход между главами
+  const fs = searchParams.get("fs") === "1";
+  const setFs = (on) => patchParams((n) => (on ? n.set("fs", "1") : n.delete("fs")));
 
   const activeIdx = chapter
     ? chapter.lessons.findIndex((l) => l.id === playingId)
@@ -116,6 +130,16 @@ export default function ChapterTheory() {
             : null
         }
         caption={`Урок ${chapter.num}. ${chapter.title}`}
+        fs={fs}
+        setFs={setFs}
+        tree={{
+          sections: course,
+          chapterId,
+          onOpenChapter: (id) => {
+            stop();
+            navigate(`/book/${bookId}/chapter/${id}?fs=1`);
+          },
+        }}
         playing={chapterPlaying && !paused}
         onPlay={panelPlay}
         onPause={panelPause}
@@ -133,12 +157,15 @@ function SlidePanel({
   d,
   audioT,
   caption,
+  fs,
+  setFs,
+  tree,
   playing,
   onPlay,
   onPause,
 }) {
-  const [fs, setFs] = useState(false);
   const fsRef = useRef(null);
+  const openedAt = useRef(0);
   const Comp = slides[Math.min(idx, slides.length - 1)];
   const count = String(slides.length).padStart(2, "0");
 
@@ -147,7 +174,11 @@ function SlidePanel({
     const el = fsRef.current;
     // Fullscreen API, если доступен; оверлей и так закрывает весь экран.
     if (el && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    openedAt.current = Date.now();
     const onFsChange = () => {
+      // при переходе между главами старый оверлей снимается и браузер на миг
+      // выходит из полноэкранного режима — это не «закрыть»
+      if (Date.now() - openedAt.current < 1200) return;
       if (!document.fullscreenElement) setFs(false);
     };
     const onKey = (e) => {
@@ -175,7 +206,7 @@ function SlidePanel({
   // Список названий следует за активным слайдом.
   useEffect(() => {
     if (!fs || !fsRef.current) return;
-    const el = fsRef.current.querySelector(".slide-fs-toc-item.on");
+    const el = fsRef.current.querySelector(".fst-slide.on");
     if (el) el.scrollIntoView({ block: "nearest" });
   }, [idx, fs]);
 
@@ -229,6 +260,15 @@ function SlidePanel({
       {fs &&
         createPortal(
           <div className="slide-fs" ref={fsRef}>
+            <FsTree
+              sections={tree.sections}
+              chapterId={tree.chapterId}
+              onOpenChapter={tree.onOpenChapter}
+              titles={titles}
+              count={slides.length}
+              idx={idx}
+              onPick={onPick}
+            />
             <div className="slide-fs-main">
               <div className="slide-fs-head">
                 <span className="slide-fs-caption">{caption}</span>
@@ -261,26 +301,84 @@ function SlidePanel({
                 </SlideAudioContext.Provider>
               </div>
             </div>
-            <aside className="slide-fs-toc">
-              {slides.map((_, i) => (
-                <button
-                  key={i}
-                  className={`slide-fs-toc-item ${i === idx ? "on" : ""}`}
-                  onClick={() => onPick(i)}
-                >
-                  <span className="slide-fs-toc-num">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="slide-fs-toc-name">
-                    {titles ? titles[i] : `Слайд ${i + 1}`}
-                  </span>
-                </button>
-              ))}
-            </aside>
           </div>,
           document.body,
         )}
     </>
+  );
+}
+
+// Левое дерево полноэкранного режима: разделы книги, у открытой главы — слайды.
+function FsTree({ sections, chapterId, onOpenChapter, titles, count, idx, onPick }) {
+  const curSec = sections.find((sec) =>
+    sec.chapters.some((c) => String(c.id) === String(chapterId)),
+  )?.id;
+  const [open, setOpen] = useState(() => new Set(curSec != null ? [curSec] : []));
+  // раздел с текущей главой раскрыт всегда, остальные — по клику
+  useEffect(() => {
+    if (curSec != null) setOpen((prev) => new Set(prev).add(curSec));
+  }, [curSec]);
+  const toggle = (id) =>
+    setOpen((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+
+  const slideList = (
+    <div className="fst-slides">
+      {Array.from({ length: count }, (_, i) => (
+        <button
+          key={i}
+          className={`fst-slide ${i === idx ? "on" : ""}`}
+          onClick={() => onPick(i)}
+        >
+          <span className="fst-slide-num">{String(i + 1).padStart(2, "0")}</span>
+          <span className="fst-slide-name">{titles ? titles[i] : `Слайд ${i + 1}`}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <aside className="slide-fs-toc" aria-label="Содержание">
+      {sections.length === 0
+        ? slideList
+        : sections.map((sec) => {
+            const isOpen = open.has(sec.id);
+            return (
+              <div key={sec.id} className="fst-sec">
+                <button
+                  className="fst-sec-head"
+                  onClick={() => toggle(sec.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span className={`fst-chev ${isOpen ? "open" : ""}`}>›</span>
+                  {sec.title}
+                </button>
+                {isOpen &&
+                  sec.chapters.map((ch) => {
+                    const cur = String(ch.id) === String(chapterId);
+                    return (
+                      <div key={ch.id}>
+                        <button
+                          className={`slide-fs-toc-item ${cur ? "on" : ""}`}
+                          onClick={() => !cur && onOpenChapter(ch.id)}
+                        >
+                          <span className="slide-fs-toc-num">
+                            {String(ch.num).padStart(2, "0")}
+                          </span>
+                          <span className="slide-fs-toc-name">{ch.title}</span>
+                        </button>
+                        {cur && slideList}
+                      </div>
+                    );
+                  })}
+              </div>
+            );
+          })}
+    </aside>
   );
 }
 

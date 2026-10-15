@@ -58,7 +58,7 @@ export default function BookDetail({ books }) {
       )}
 
       <main className="content">
-        <Outlet />
+        <Outlet context={{ course }} />
       </main>
     </>
   );
