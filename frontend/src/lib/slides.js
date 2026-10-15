@@ -26,6 +26,9 @@ import { SLIDES_R10, SLIDE_TITLES_R10 } from "../slides/learn-rust/ch10.jsx";
 import { SLIDES_R11, SLIDE_TITLES_R11 } from "../slides/learn-rust/ch11.jsx";
 import { SLIDES_R12, SLIDE_TITLES_R12 } from "../slides/learn-rust/ch12.jsx";
 import { SLIDES_R13, SLIDE_TITLES_R13 } from "../slides/learn-rust/ch13.jsx";
+import { SLIDES_R14, SLIDE_TITLES_R14 } from "../slides/learn-rust/ch14.jsx";
+import { SLIDES_R15, SLIDE_TITLES_R15 } from "../slides/learn-rust/ch15.jsx";
+import { SLIDES_R16, SLIDE_TITLES_R16 } from "../slides/learn-rust/ch16.jsx";
 import { SLIDES_A1, SLIDE_TITLES_A1 } from "../slides/algo/ch01.jsx";
 import { SLIDES_A2, SLIDE_TITLES_A2 } from "../slides/algo/ch02.jsx";
 import { SLIDES_A3, SLIDE_TITLES_A3 } from "../slides/algo/ch03.jsx";
@@ -134,6 +137,9 @@ export const SLIDES = {
   ...SLIDES_R11,
   ...SLIDES_R12,
   ...SLIDES_R13,
+  ...SLIDES_R14,
+  ...SLIDES_R15,
+  ...SLIDES_R16,
   ...SLIDES_A1,
   ...SLIDES_A2,
   ...SLIDES_A3,
@@ -243,6 +249,9 @@ export const SLIDE_TITLES = {
   ...SLIDE_TITLES_R11,
   ...SLIDE_TITLES_R12,
   ...SLIDE_TITLES_R13,
+  ...SLIDE_TITLES_R14,
+  ...SLIDE_TITLES_R15,
+  ...SLIDE_TITLES_R16,
   ...SLIDE_TITLES_A1,
   ...SLIDE_TITLES_A2,
   ...SLIDE_TITLES_A3,
