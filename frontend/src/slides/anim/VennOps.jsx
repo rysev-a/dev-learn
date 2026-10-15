@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSlideAudioTime } from "../../lib/slideAudio.js";
 
 /* Анимированная диаграмма Венна для слайда «Три операции».
 
@@ -7,6 +8,8 @@ import { useEffect, useState } from "react";
    сближаются и сливаются в один элемент — так «получается» множество без
    повторов. После этого по очереди подсвечиваются объединение, пересечение
    и разность. Режим можно выбрать вручную — тогда автосмена останавливается.
+   Если слайд сейчас озвучивается, стадии берутся из времени голоса (cues —
+   секунды от начала абзаца), иначе всё идёт по таймерам.
    Цвета — из переменных --s-*; при prefers-reduced-motion движение и
    автосмена отключены. */
 
@@ -53,7 +56,8 @@ const MOVE_MS = 1000;
 const MERGE_MS = 1700;
 const STEP_MS = 3200;
 
-export default function VennOps() {
+export default function VennOps({ cues }) {
+  const audioT = useSlideAudioTime();
   const reduce =
     typeof window !== "undefined" &&
     window.matchMedia &&
@@ -63,12 +67,22 @@ export default function VennOps() {
   const [mode, setMode] = useState(reduce ? 0 : -1);
   const [auto, setAuto] = useState(!reduce);
 
+  // Ручной выбор перекрывает озвучку до следующего запуска звука.
+  const [manual, setManual] = useState(false);
+  const hadAudio = useRef(false);
   useEffect(() => {
-    if (!auto) return;
+    const has = audioT != null;
+    if (has && !hadAudio.current) setManual(false);
+    hadAudio.current = has;
+  }, [audioT]);
+  const synced = !!cues && audioT != null && !manual;
+
+  useEffect(() => {
+    if (!auto || synced) return;
     let t;
     if (stage === "apart") {
       t = setTimeout(() => setStage("moving"), HOLD_APART_MS);
-    } else if (stage === "moving") {
+    } else if (st === "moving") {
       t = setTimeout(() => setStage("merged"), MOVE_MS);
     } else if (mode === -1) {
       t = setTimeout(() => setMode(0), MERGE_MS);
@@ -76,22 +90,31 @@ export default function VennOps() {
       t = setTimeout(() => setMode((m) => (m + 1) % MODES.length), STEP_MS);
     }
     return () => clearTimeout(t);
-  }, [auto, stage, mode]);
+  }, [auto, synced, stage, mode]);
 
-  const joined = stage !== "apart";
-  const merged = stage === "merged";
-  const cur = merged && mode >= 0 ? MODES[mode] : null;
+  let st = stage;
+  let md = mode;
+  if (synced) {
+    st =
+      audioT < cues.move ? "apart" : audioT < cues.merge ? "moving" : "merged";
+    md = audioT >= cues.diff ? 2 : audioT >= cues.inter ? 1 : audioT >= cues.union ? 0 : -1;
+  }
+  const joined = st !== "apart";
+  const merged = st === "merged";
+  const cur = merged && md >= 0 ? MODES[md] : null;
   const result = cur
     ? DOTS.filter((d) => !d.dup && cur.hit(d)).map((d) => d.n)
     : [];
 
   const pick = (i) => {
+    setManual(true);
     setAuto(false);
     setStage("merged");
     setMode(i);
   };
 
   const restart = () => {
+    setManual(true);
     setStage("apart");
     setMode(-1);
     setAuto(true);
@@ -111,7 +134,7 @@ export default function VennOps() {
         <span className="a-result-note">{cur.note}</span>
       </>
     );
-  } else if (stage === "apart") {
+  } else if (st === "apart") {
     caption = (
       <span className="a-result-note">
         A = {"{1, 2, 3, 4}"} и B = {"{3, 4, 5, 6}"}: общие элементы 3 и 4
@@ -136,7 +159,7 @@ export default function VennOps() {
         {MODES.map((m, i) => (
           <button
             key={m.key}
-            className={`a-chip ${cur && i === mode ? "on" : ""}`}
+            className={`a-chip ${cur && i === md ? "on" : ""}`}
             onClick={() => pick(i)}
           >
             <span className="a-chip-big">{m.label}</span>
@@ -223,7 +246,7 @@ export default function VennOps() {
         })}
       </svg>
 
-      <div className="a-result" key={cur ? cur.key : stage}>
+      <div className="a-result" key={cur ? cur.key : st}>
         {caption}
       </div>
     </div>

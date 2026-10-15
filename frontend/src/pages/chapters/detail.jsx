@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
+import { SlideAudioContext } from "../../lib/slideAudio.js";
 import { fmtTime } from "../../lib/time.js";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
@@ -150,6 +151,7 @@ export default function ChapterDetail() {
         onPick={pickSlide}
         t={chapterPos}
         d={chapterDur}
+        audioT={playingThisSlide && progress?.id === playingId ? progress.t : null}
         caption={`Урок ${chapter.num}. ${chapter.title}`}
         playing={chapterPlaying && !paused}
         onPlay={panelPlay}
@@ -176,6 +178,7 @@ function SlidePanel({
   onPick,
   t,
   d,
+  audioT,
   caption,
   playing,
   onPlay,
@@ -263,7 +266,9 @@ function SlidePanel({
           </button>
         </div>
         <div className="slide-stage" key={idx}>
-          <Comp />
+          <SlideAudioContext.Provider value={audioT}>
+            <Comp />
+          </SlideAudioContext.Provider>
         </div>
         {dots("slide-dots")}
       </aside>
@@ -298,7 +303,9 @@ function SlidePanel({
                 </button>
               </div>
               <div className="slide-fs-stage" key={idx}>
-                <Comp />
+                <SlideAudioContext.Provider value={audioT}>
+                  <Comp />
+                </SlideAudioContext.Provider>
               </div>
             </div>
             <aside className="slide-fs-toc">
