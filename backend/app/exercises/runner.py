@@ -234,11 +234,26 @@ def _docker_failed(msg: str, status: str = "docker_error") -> dict:
     return {"status": status, "results": [], "stdout": "", "stderr": msg}
 
 
+def wrap_rust_driver(driver: str) -> str:
+    """Драйвер кладётся в собственный модуль: его `use` не конфликтуют с
+    импортами ученика (явные импорты модуля важнее глобального `use super::*`),
+    а имена из решения ученика доступны через `super`."""
+    body = driver.strip("\n").replace("fn main(", "pub fn main(", 1)
+    return (
+        "mod __say_driver {\n"
+        "    #[allow(unused_imports)]\n"
+        "    use super::*;\n\n"
+        f"{body}\n"
+        "}\n\n"
+        "fn main() {\n    __say_driver::main();\n}\n"
+    )
+
+
 def run_rust(task: dict, code: str) -> dict:
     """Режим «rust»: код ученика + скрытый драйвер (fn main) компилируются
     rustc в песочнице без сети; сравнивается построчный вывод программы.
     Ошибка компиляции показывается ученику как результат проверки."""
-    source = code.rstrip() + "\n\n" + task["driver"].lstrip("\n")
+    source = code.rstrip() + "\n\n" + wrap_rust_driver(task["driver"])
     script = (
         "rustc --edition 2021 -O -C debuginfo=0 -o /tmp/prog /sandbox/main.rs 2>/tmp/err "
         "|| { echo COMPILE_ERROR; cat /tmp/err; exit 0; }; "

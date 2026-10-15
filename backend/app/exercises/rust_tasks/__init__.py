@@ -6,9 +6,10 @@
 только стандартная библиотека; сеть возможна лишь через loopback.
 """
 
-from app.exercises.rust_tasks import ch01_05, ch06_10
+from app.exercises.rust_tasks import ch01_05, ch06_10, ch11_16
 
 RUST_TASKS: dict[int, list[dict]] = {
     **ch01_05.TASKS,
     **ch06_10.TASKS,
+    **ch11_16.TASKS,
 }
