@@ -2,6 +2,20 @@
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 
+import C3Intro from "../anim/C3Intro.jsx";
+import C3Sum from "../anim/C3Sum.jsx";
+import C3Product from "../anim/C3Product.jsx";
+import C3Password from "../anim/C3Password.jsx";
+import C3Factorial from "../anim/C3Factorial.jsx";
+import C3Perm from "../anim/C3Perm.jsx";
+import C3Arrange from "../anim/C3Arrange.jsx";
+import C3Combine from "../anim/C3Combine.jsx";
+import C3Poker from "../anim/C3Poker.jsx";
+import C3Pairs from "../anim/C3Pairs.jsx";
+import C3Classify from "../anim/C3Classify.jsx";
+import C3Links from "../anim/C3Links.jsx";
+import C3Recap from "../anim/C3Recap.jsx";
+
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
@@ -29,35 +43,9 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
-const Arr = () => <span className="s-arr">→</span>;
-const Down = () => <span className="s-arr">↓</span>;
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
-  const topics = [
-    ["+", "Правило суммы", "Взаимоисключающие группы — складываем"],
-    ["×", "Правило произведения", "Независимые выборы — перемножаем"],
-    ["n!", "Перестановки", "Порядки растут факториально"],
-    ["C(n,k)", "Размещения и сочетания", "Выбор части: важен порядок или нет"],
-  ];
   return (
     <Slide
       n={1}
@@ -65,16 +53,7 @@ function S01() {
       sub="Глава 3 · Комбинаторика"
       main="Два правила и три счётчика держат почти все инженерные оценки."
     >
-      <div className="s-grid2">
-        {topics.map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <C3Intro />
       <p className="s-hint">
         Каждая оценка «этот перебор отработает через сто лет» и каждый
         взломостойкий пароль начинаются с умения посчитать варианты, не
@@ -92,18 +71,7 @@ function S02() {
       sub="Ровно один выбор из непересекающихся групп"
       main="Число путей исполнения складывается по веткам — как варианты в меню."
     >
-      <div className="s-cols">
-        <Node title="Супы · 3" sub="Первая группа" />
-        <Node mono title="или" />
-        <Node title="Салаты · 4" sub="Вторая группа" />
-        <Arr />
-        <Node
-          kind="green"
-          mono
-          title="3 + 4 = 7"
-          sub="Возможностей выбрать первое блюдо"
-        />
-      </div>
+      <C3Sum />
       <div className="s-note">
         В коде это ветвление: каждая ветка условия — своя группа вариантов, и
         полное число путей исполнения складывается по веткам.
@@ -120,13 +88,7 @@ function S03() {
       sub="Несколько независимых выборов подряд"
       main="Как только видите цепочку независимых выборов — умножайте."
     >
-      <div className="s-cols">
-        <Node title="4 позиции" sub="Пин-код" />
-        <Node mono title="×" />
-        <Node title="10 цифр" sub="На каждой позиции" />
-        <Arr />
-        <Node kind="green" mono title="10⁴ = 10 000" sub="Комбинаций всего" />
-      </div>
+      <C3Product />
       <div className="s-note">
         Вложенные циклы — прямое воплощение правила: внешний цикл по одному
         списку, внутренний по другому, и число итераций тела — произведение
@@ -144,21 +106,7 @@ function S04() {
       sub="Длина множит, алфавит повышает основание"
       main="Переборщик упирается не в талант взломщика, а в размер пространства вариантов."
     >
-      <Cmd>
-        {"8 символов · 95 печатных знаков   →   95⁸ ≈ 6,5 · 10¹⁵ вариантов"}
-      </Cmd>
-      <div className="s-cols">
-        <Node
-          kind="green"
-          title="Длинный из простых слов"
-          sub="Каждый новый символ умножает пространство в 95 раз"
-        />
-        <Node
-          kind="amber"
-          title="Короткий из символов"
-          sub="Основание то же — длины не хватает"
-        />
-      </div>
+      <C3Password />
       <div className="s-note">
         Простой вывод безопасности: от длины пространство растёт быстрее, чем от
         любых спецсимволов в коротком пароле.
@@ -168,11 +116,6 @@ function S04() {
 }
 
 function S05() {
-  const rows = [
-    ["4!", "24"],
-    ["10!", "3 628 800 — больше трёх с половиной миллионов"],
-    ["20!", "≈ 2,4 · 10¹⁸ — переваливает за квинтиллион"],
-  ];
   return (
     <Slide
       n={5}
@@ -180,14 +123,7 @@ function S05() {
       sub="Произведение всех чисел от единицы до n"
       main="Факториал догоняет экспоненту уже на скромных числах — и никакое железо не спасёт."
     >
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
+      <C3Factorial />
       <div className="s-note">
         Именно поэтому задачи полного перебора всех порядков так быстро
         становятся невозможными.
@@ -204,19 +140,7 @@ function S06() {
       sub="Расставить n предметов по местам — n! способов"
       main="Полный перебор всех порядков упирается в факториал: при больших n нужны приближённые алгоритмы."
     >
-      <div className="s-cols">
-        <Node
-          title="10 докладов"
-          sub="Очередность выступлений на конференции"
-        />
-        <Arr />
-        <Node mono title="10! ≈ 3,6 млн" sub="Возможных расписаний" />
-      </div>
-      <Node
-        kind="amber"
-        title="Задача коммивояжёра"
-        sub="Посетить все города и вернуться: вариантов маршрутов — факториал от числа городов, при пятидесяти перебор не закончится"
-      />
+      <C3Perm />
       <div className="s-note">
         Именно поэтому для таких задач придумывают приближённые алгоритмы вместо
         честного перебора.
@@ -233,31 +157,12 @@ function S07() {
       sub="Выбор k из n, когда порядок важен"
       main="Если поменять двух выбранных местами и получится другая комбинация — считайте размещение."
     >
-      <Cmd>{"A(n, k) = n! / (n − k)!"}</Cmd>
-      <div className="s-cols">
-        <Node title="20 спортсменов" sub="Полный список финалистов" />
-        <Arr />
-        <Node
-          kind="green"
-          mono
-          title="A(20, 3)"
-          sub="Золото, серебро, бронза — три разные награды"
-        />
-      </div>
-      <Node
-        mono
-        title="10! / 6! = 5 040"
-        sub="Пин-код без повторяющихся цифр: расставляем всех и отрезаем хвост"
-      />
+      <C3Arrange />
     </Slide>
   );
 }
 
 function S08() {
-  const rows = [
-    ["C(52, 5)", "≈ 2,6 млн покерных рук из колоды"],
-    ["C(6, 2)", "15 способов выбрать двух ревьюеров из пула"],
-  ];
   return (
     <Slide
       n={8}
@@ -265,17 +170,7 @@ function S08() {
       sub="Порядок не важен — делим на k!"
       main="C(n, k) — самое ходовое число прикладной комбинаторики."
     >
-      <Cmd>
-        {"C(n, k) = A(n, k) / k!   ·   делим на все перестановки внутри группы"}
-      </Cmd>
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
+      <C3Combine />
       <div className="s-note">
         Одна и та же выборка с учётом порядка и без отличается в k! раз.
       </div>
@@ -291,19 +186,7 @@ function S09() {
       sub="Много рук — около десятка старшинств"
       main="Сначала посчитайте все исходы, затем сгруппируйте по свойству: редкость категории делает её старше."
     >
-      <div className="s-blocks">
-        <div className="s-block">
-          Всего рук: C(52, 5) ≈ 2,6 млн — а категорий старшинства всего десяток:
-          пара, две пары, стрит и дальше
-        </div>
-        <div className="s-block">
-          Все миллионы рук раскладываются по категориям очень неравномерно
-        </div>
-        <div className="s-block changed">
-          Общий приём анализа: общее число исходов → группа по свойству →
-          отношение размера группы к целому
-        </div>
-      </div>
+      <C3Poker />
       <div className="s-note">
         Это отношение — уже вероятность, но сегодня не будем забегать вперёд.
       </div>
@@ -312,10 +195,6 @@ function S09() {
 }
 
 function S10() {
-  const rows = [
-    ["10 человек", "45 рукопожатий: C(10, 2)"],
-    ["100 серверов", "4 950 каналов, чтобы каждый мог связаться с каждым"],
-  ];
   return (
     <Slide
       n={10}
@@ -323,15 +202,7 @@ function S10() {
       sub="Рукопожатия, циклы и рёбра графа"
       main="C(n, 2) живёт всюду, где надо сравнить все пары без повторов и зеркальных дублей."
     >
-      <Cmd>{"C(n, 2) = n(n − 1) / 2"}</Cmd>
-      <div className="s-table">
-        {rows.map(([sym, d]) => (
-          <div key={sym}>
-            <span className="s-path accent">{sym}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-      </div>
+      <C3Pairs />
       <div className="s-note">
         В коде это число итераций цикла, где второй индекс всегда больше
         первого.
@@ -348,31 +219,7 @@ function S11() {
       sub="Лекарство от двойного счёта"
       main="Возьмите крошечный пример и посчитайте руками — тогда формуле можно верить на больших числах."
     >
-      <div className="s-cols">
-        <Node
-          title="Руками: АБ, АВ, БВ"
-          sub="Три друга, выбрать двоих — три пары"
-        />
-        <Arr />
-        <Node
-          kind="green"
-          mono
-          title="C(3, 2) = 3"
-          sub="Сходится — формуле можно верить"
-        />
-      </div>
-      <div className="s-blocks">
-        <div className="s-block">
-          Сумма — группы не пересекаются, выбираем ровно одну
-        </div>
-        <div className="s-block">
-          Произведение — несколько независимых выборов подряд
-        </div>
-        <div className="s-block changed">
-          Перестановка, размещение или сочетание — главный вопрос: важен ли
-          порядок?
-        </div>
-      </div>
+      <C3Classify />
     </Slide>
   );
 }
@@ -385,20 +232,7 @@ function S12() {
       sub="Комбинаторика выросла из прошлого"
       main="Каждый новый инструмент переиспользует старые — в этом сила дискретной математики."
     >
-      <div className="s-grid2">
-        <Node
-          title="Глава 1 · Множества"
-          sub="Сочетание — просто подмножество размера k из множества размера n"
-        />
-        <Node
-          title="Глава 2 · Произведение"
-          sub="Правило произведения — прямое произведение, посчитанное по числу элементов"
-        />
-        <Node
-          title="Глава 4 · Паскаль"
-          sub="Перестановки и сочетания сложатся в треугольник Паскаля и бином Ньютона"
-        />
-      </div>
+      <C3Links />
       <div className="s-note">
         Дискретная математика ценна именно этими сцепками.
       </div>
@@ -407,12 +241,6 @@ function S12() {
 }
 
 function S13() {
-  const topics = [
-    ["+", "Сумма", "Взаимоисключающие группы складываем"],
-    ["×", "Произведение", "Независимые выборы перемножаем"],
-    ["n!", "Порядки", "Перестановки — факториал; размещения — порядок важен"],
-    ["C(n,k)", "Без порядка", "Сочетания и число пар C(n, 2)"],
-  ];
   return (
     <Slide
       n={13}
@@ -420,16 +248,7 @@ function S13() {
       sub="Глава 3 · Комбинаторика"
       main="Применяйте счётчики к паролям, пин-кодам и рукам в покере — и оценивайте перебор до запуска."
     >
-      <div className="s-grid2">
-        {topics.map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <C3Recap />
       <div className="s-note">
         Следующая глава — треугольник Паскаля, бином Ньютона и принцип Дирихле:
         три инструмента, которые научат видеть структуру там, где раньше была
