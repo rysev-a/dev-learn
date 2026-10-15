@@ -1584,3 +1584,207 @@ h2 {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ---------- анимированные схемы на слайдах (slides/anim/*) ---------- */
+
+.a-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.a-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.a-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 12px;
+  background: var(--s-panel2);
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  color: var(--s-muted);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    color 0.25s,
+    transform 0.25s;
+}
+
+.a-chip:hover {
+  border-color: var(--s-accent-a45);
+}
+
+.a-chip.on {
+  background: var(--s-green);
+  border-color: var(--s-accent);
+  color: var(--s-text);
+  transform: translateY(-1px);
+}
+
+.a-chip.ghost {
+  justify-content: center;
+  font-size: 15px;
+}
+
+.a-chip-big {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 14px;
+  color: var(--s-accent);
+}
+
+.a-chip-name {
+  font-size: 10.5px;
+}
+
+.a-svg {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+}
+
+.a-ring {
+  fill: none;
+  stroke-width: 2;
+}
+
+.a-ring.a {
+  stroke: var(--s-accent);
+}
+
+.a-ring.b {
+  stroke: var(--s-blue);
+}
+
+.a-circle {
+  transition: transform 0.9s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+.a-circle.a-left {
+  transform: translateX(-70px);
+}
+
+.a-circle.a-right {
+  transform: translateX(70px);
+}
+
+.a-circle.joined {
+  transform: none;
+}
+
+.a-fills {
+  opacity: 0;
+  transition: opacity 0.4s 0.7s;
+}
+
+.a-fills.on {
+  opacity: 1;
+}
+
+.a-fill {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.a-fill.on {
+  opacity: 0.42;
+}
+
+.a-fill.acc {
+  fill: var(--s-accent);
+}
+
+.a-fill.amb {
+  fill: var(--s-amber);
+}
+
+.a-fill.blu {
+  fill: var(--s-blue);
+}
+
+.a-set-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 15px;
+  fill: var(--s-muted);
+}
+
+.a-dot {
+  opacity: 0;
+  transition:
+    transform 0.9s cubic-bezier(0.3, 0.9, 0.3, 1),
+    opacity 0.5s;
+}
+
+.a-dot.show {
+  opacity: 1;
+}
+
+.a-dot circle {
+  fill: var(--s-panel);
+  stroke: var(--s-border);
+  stroke-width: 1.5;
+  transition:
+    stroke 0.4s,
+    fill 0.4s,
+    r 0.4s;
+}
+
+.a-dot text {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  fill: var(--s-text);
+}
+
+.a-dot.show.hit circle {
+  stroke: var(--s-accent);
+  r: 12.5px;
+}
+
+.a-dot.show.dim {
+  opacity: 0.28;
+}
+
+.a-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px 10px;
+  min-height: 22px;
+  font-size: 12px;
+  color: var(--s-muted);
+  animation: slide-in 0.35s ease both;
+}
+
+.a-result-expr,
+.a-result-set {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 14px;
+  color: var(--s-accent);
+}
+
+.a-result-eq {
+  color: var(--s-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a-circle,
+  .a-fills,
+  .a-fill,
+  .a-dot,
+  .a-dot circle,
+  .a-chip,
+  .a-result {
+    transition: none !important;
+    animation: none !important;
+  }
+}
