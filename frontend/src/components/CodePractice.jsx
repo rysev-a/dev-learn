@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
+import { FsItem } from "./FsTree.jsx";
 import CodeEditor from "./CodeEditor.jsx";
 
 /* Вкладка «Практика»: упражнения с проверкой кода в Docker-песочнице
@@ -43,7 +45,7 @@ const resultCache = new Map();
 
 const langOf = (t) => (t.mode === "sql" || t.mode === "rust" ? t.mode : "python");
 
-export default function CodePractice({ tasks, bookId, chapter, onSolved }) {
+export default function CodePractice({ tasks, bookId, chapter, onSolved, itemsSlot }) {
   const [params, setParams] = useSearchParams();
   const [status, setStatus] = useState(() =>
     Object.fromEntries(tasks.map((t) => [t.id, statusOf(bookId, chapter, t.id)])),
@@ -69,7 +71,16 @@ export default function CodePractice({ tasks, bookId, chapter, onSolved }) {
   const res = resultCache.get(ck) || null;
   const done = tasks.filter((t) => status[t.id] === "ok").length;
 
-  const select = (i) => setParams({ task: String(tasks[i].id) }, { replace: true });
+  // остальные параметры адреса (fs) сохраняются
+  const select = (i) =>
+    setParams(
+      (prev) => {
+        const n = new URLSearchParams(prev);
+        n.set("task", String(tasks[i].id));
+        return n;
+      },
+      { replace: true },
+    );
 
   function setStatusFor(id, st) {
     setStatus((p) => ({ ...p, [id]: st }));
@@ -150,7 +161,24 @@ export default function CodePractice({ tasks, bookId, chapter, onSolved }) {
         </span>
       </div>
 
-      <div className="pr-body">
+      <div className={`pr-body ${itemsSlot ? "single" : ""}`}>
+        {itemsSlot ? (
+          createPortal(
+            tasks.map((t, i) => (
+              <FsItem
+                key={t.id}
+                on={i === idx}
+                num={i + 1}
+                mark={status[t.id] === "ok" ? "✓" : status[t.id] === "bad" ? "✗" : undefined}
+                status={status[t.id] || ""}
+                onClick={() => select(i)}
+              >
+                {t.title}
+              </FsItem>
+            )),
+            itemsSlot,
+          )
+        ) : (
         <aside className="pr-list" aria-label="Упражнения">
           {tasks.map((t, i) => {
             const st = status[t.id];
@@ -168,6 +196,7 @@ export default function CodePractice({ tasks, bookId, chapter, onSolved }) {
             );
           })}
         </aside>
+        )}
 
         <div className="pr-main" key={task.id}>
           <div className="pr-head">
