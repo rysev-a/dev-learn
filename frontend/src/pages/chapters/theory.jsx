@@ -5,6 +5,7 @@ import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { SlideAudioContext } from "../../lib/slideAudio.js";
 import { fmtTime } from "../../lib/time.js";
+import { markSlide } from "../../lib/progress.js";
 
 export default function ChapterTheory() {
   const { chapter, bookId } = useOutletContext();
@@ -38,6 +39,11 @@ export default function ChapterTheory() {
     else if (manualIdx != null) slideIdx = manualIdx;
     slideIdx = Math.min(slideIdx, slides.length - 1);
   }
+
+  // просмотренный слайд идёт в прогресс (дашборд на главной)
+  useEffect(() => {
+    if (slides) markSlide(bookId, chapter.num, slideIdx);
+  }, [slides, bookId, chapter.num, slideIdx]);
 
   if (!slides) return <p className="error">У этой главы нет слайдов</p>;
 

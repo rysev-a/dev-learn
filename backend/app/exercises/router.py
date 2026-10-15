@@ -8,6 +8,15 @@ from app.exercises import runner, tasks
 router = APIRouter(prefix="/api/exercises", tags=["exercises"])
 
 
+@router.get("")
+def summary():
+    """Сколько код-упражнений в каждой главе: {книга: {глава: число}} — для дашборда."""
+    return {
+        str(book): {str(ch): len(items) for ch, items in chapters.items()}
+        for book, chapters in tasks.BOOK_TASKS.items()
+    }
+
+
 @router.get("/{book_id}/{chapter}")
 def list_tasks(book_id: int, chapter: int):
     items = tasks.chapter_tasks(book_id, chapter)

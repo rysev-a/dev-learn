@@ -85,6 +85,7 @@ uv run seed_textbook.py --audio-only   # только догенерироват
 ## API
 
 - `GET /api/books` — список книг со счётчиками (разделы / уроки / части)
+- `GET /api/exercises` — число код-упражнений по книгам и главам (для дашборда)
 - `GET /api/books/{id}/course` — дерево разделов и глав книги
 - `GET /api/chapters/{id}` — глава с частями, текстами и длительностями
 - `GET /api/lesson/{id}/audio` — аудио части

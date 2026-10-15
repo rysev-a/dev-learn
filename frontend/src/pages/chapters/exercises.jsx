@@ -17,7 +17,7 @@ export default function ChapterExercises() {
         onSolved={onSolved}
       />
     );
-  if (practice) return <Exercises quiz={practice} />;
+  if (practice) return <Exercises quiz={practice} bookId={bookId} chapter={chapter.num} />;
   if (!tasksReady) return <p className="empty">Загрузка…</p>;
   return <p className="empty">Для этой главы нет упражнений</p>;
 }

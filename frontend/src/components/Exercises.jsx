@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { answerSolved, saveAnswerSolved } from "../lib/progress.js";
 
 /* Нормализация ввода: пробелы, регистр, запятая как десятичный разделитель. */
 function normalize(s) {
@@ -27,9 +28,23 @@ function isCorrect(input, answers) {
 
 /* Упражнения: задачи с вводом ответа. Ответ показать нельзя (по замыслу
    курса), только подсказку; сложность внутри главы растёт постепенно. */
-export default function Exercises({ quiz }) {
-  const [vals, setVals] = useState(() => Array(quiz.tasks.length).fill(""));
-  const [st, setSt] = useState(() => Array(quiz.tasks.length).fill(""));
+export default function Exercises({ quiz, bookId, chapter }) {
+  // решённые задачи (с ответами) помнит браузер — по ним считается прогресс
+  const saved = bookId != null ? answerSolved(bookId, chapter) : {};
+  const [vals, setVals] = useState(() =>
+    quiz.tasks.map((_, i) => saved[i] ?? ""),
+  );
+  const [st, setSt] = useState(() =>
+    quiz.tasks.map((_, i) => (saved[i] != null ? "right" : "")),
+  );
+  const persist = (nextVals, nextSt) => {
+    if (bookId == null) return;
+    const map = {};
+    nextSt.forEach((s, i) => {
+      if (s === "right") map[i] = nextVals[i];
+    });
+    saveAnswerSolved(bookId, chapter, map);
+  };
   const [hints, setHints] = useState(() =>
     Array(quiz.tasks.length).fill(false),
   );
@@ -47,15 +62,11 @@ export default function Exercises({ quiz }) {
 
   function check(i) {
     if (st[i] === "right") return;
-    setSt((prev) =>
-      prev.map((p, k) =>
-        k === i
-          ? isCorrect(vals[i], quiz.tasks[i].answers)
-            ? "right"
-            : "wrong"
-          : p,
-      ),
+    const next = st.map((p, k) =>
+      k === i ? (isCorrect(vals[i], quiz.tasks[i].answers) ? "right" : "wrong") : p,
     );
+    setSt(next);
+    persist(vals, next);
   }
 
   function toggleHint(i) {
@@ -65,6 +76,7 @@ export default function Exercises({ quiz }) {
   function reset() {
     setVals(Array(quiz.tasks.length).fill(""));
     setSt(Array(quiz.tasks.length).fill(""));
+    persist([], []);
     setHints(Array(quiz.tasks.length).fill(false));
   }
 

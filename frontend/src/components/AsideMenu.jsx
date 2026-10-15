@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMatch, useNavigate } from "react-router-dom";
 import { usePlayer } from "../lib/player.jsx";
 import BookIcon from "./BookIcon.jsx";
 
 const STORE = "say-aside-collapsed";
 
-// Меню книг: список с названиями или, если свёрнуто, колонка квадратных иконок.
-export default function AsideMenu({ books, activeBookId }) {
+// Меню разделов (книг курса): список с названиями или, если свёрнуто, колонка квадратных иконок.
+export default function AsideMenu({ books }) {
   const navigate = useNavigate();
+  const activeBookId = useMatch("/book/:bookId/*")?.params.bookId;
   const { stop } = usePlayer();
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -36,12 +37,12 @@ export default function AsideMenu({ books, activeBookId }) {
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="aside-head">
-        {!collapsed && <div className="s-label">Книги</div>}
+        {!collapsed && <div className="s-label">Разделы</div>}
         <button
           className="aside-toggle"
           onClick={toggle}
           title={collapsed ? "Развернуть меню" : "Свернуть меню"}
-          aria-label={collapsed ? "Развернуть меню книг" : "Свернуть меню книг"}
+          aria-label={collapsed ? "Развернуть меню разделов" : "Свернуть меню разделов"}
           aria-expanded={!collapsed}
         >
           <svg

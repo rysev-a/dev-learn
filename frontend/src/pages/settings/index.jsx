@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   KEYS,
+  clearAllProgress,
   clearPractice,
   readSetting,
   writeSetting,
@@ -31,6 +32,11 @@ export default function SettingsPage({ theme, setTheme }) {
       setCleared(clearPractice());
   }
 
+  function resetAll() {
+    if (window.confirm("Обнулить весь прогресс: слайды, вопросы и упражнения?"))
+      setCleared(clearAllProgress());
+  }
+
   return (
     <main className="set-page">
       <section className="set-card">
@@ -48,7 +54,7 @@ export default function SettingsPage({ theme, setTheme }) {
           onChange={() => setTheme(theme === "dark" ? "light" : "dark")}
         />
         <Row
-          title="Свёрнутое меню книг"
+          title="Свёрнутое меню разделов"
           text="Вместо названий в левом меню — колонка иконок. Можно переключать и кнопкой над меню."
           on={aside}
           onChange={toggleAside}
@@ -76,6 +82,18 @@ export default function SettingsPage({ theme, setTheme }) {
           </div>
           <button className="quiz-btn ghost" onClick={reset}>
             Сбросить
+          </button>
+        </div>
+        <div className="set-row">
+          <div className="set-row-text">
+            <span className="set-row-title">Сбросить весь прогресс</span>
+            <span className="set-row-desc">
+              Обнуляет дашборд на главной: просмотренные слайды, ответы на
+              вопросы и упражнения.
+            </span>
+          </div>
+          <button className="quiz-btn ghost" onClick={resetAll}>
+            Сбросить всё
           </button>
         </div>
       </section>

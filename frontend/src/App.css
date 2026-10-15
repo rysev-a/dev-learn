@@ -186,7 +186,8 @@ button {
 }
 
 .sidebar.collapsed .aside-head {
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: 16px;
   margin-bottom: 8px;
 }
 
@@ -233,8 +234,9 @@ button {
 }
 
 .sidebar.collapsed .menu {
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
+  padding-left: 13px;
 }
 
 .btn-icon {
@@ -607,6 +609,7 @@ h2 {
 }
 
 .lessons-menu .slide-fs-toc-item {
+  text-align: left;
   font-size: 12.5px;
   padding: 7px 10px;
 }
@@ -1692,6 +1695,202 @@ h2 {
   color: var(--s-text);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ---------- дашборд на главной ---------- */
+
+.content.home {
+  max-width: 1100px;
+}
+
+.dash-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dash-head h2,
+.home h2.dash-sub {
+  margin-bottom: 0;
+}
+
+.dash-all {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--s-accent);
+}
+
+.dash-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  background: var(--s-panel);
+  border: 1px solid var(--s-border);
+  border-radius: 12px;
+}
+
+.dash-stat-title {
+  font-size: 12px;
+  color: var(--s-muted);
+}
+
+.dash-stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--s-text);
+}
+
+.dash-stat-num small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--s-muted);
+}
+
+.dash-stat-hint {
+  font-size: 11.5px;
+  color: var(--s-muted);
+}
+
+.home h2.dash-sub {
+  margin: 0 0 12px;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  background: var(--s-panel);
+  border: 1px solid var(--s-border);
+  border-radius: 12px;
+}
+
+.dash-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  margin-bottom: 4px;
+  background: transparent;
+  border: none;
+  color: var(--s-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-card-head:hover .dash-title {
+  color: var(--s-accent);
+}
+
+.dash-ico {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+  color: var(--s-accent);
+  background: var(--s-bg);
+}
+
+.dash-title {
+  flex: 1;
+  font-size: 14.5px;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.dash-meta {
+  font-size: 11px;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.dash-bar {
+  display: grid;
+  grid-template-columns: 82px 1fr 54px;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--s-muted);
+}
+
+.dash-bar-num {
+  font-family: "IBM Plex Mono", monospace;
+  text-align: right;
+  color: var(--s-text);
+}
+
+.dash-chapters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.dash-ch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--s-border);
+  background: var(--s-panel2);
+  color: var(--s-muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.dash-ch:hover {
+  border-color: var(--s-accent);
+  transform: translateY(-1px);
+}
+
+.dash-ch.l1 {
+  background: var(--s-amber-bg);
+  border-color: var(--s-amber-a45);
+  color: var(--s-amber);
+}
+
+.dash-ch.l2 {
+  background: var(--s-green);
+  border-color: var(--s-accent-a45);
+  color: var(--s-accent);
+}
+
+.dash-ch.l3 {
+  background: var(--s-accent);
+  border-color: var(--s-accent);
+  color: var(--s-bg);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .dash-totals {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- страница настроек ---------- */

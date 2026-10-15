@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import AsideMenu from "./components/AsideMenu.jsx";
 import AudioPlayer from "./components/AudioPlayer.jsx";
 import { PlayerProvider, usePlayer } from "./lib/player.jsx";
 import BookDetail from "./pages/books/detail.jsx";
@@ -49,7 +50,7 @@ function Shell() {
     <div className="app">
       <header className="topbar">
         <button className="logo" onClick={goHome} title="На главную">
-          Аудитория
+          CS.Core
         </button>
         <div className="topbar-right">
           <NavLink
@@ -85,21 +86,24 @@ function Shell() {
         </div>
       </header>
 
-      <Routes>
-        <Route path="/" element={<BooksIndex books={books} />} />
-        <Route
-          path="/settings"
-          element={<SettingsPage theme={theme} setTheme={setTheme} />}
-        />
-        <Route path="/book/:bookId" element={<BookDetail books={books} />}>
-          <Route index element={<ChaptersIndex />} />
-          <Route path="chapter/:chapterId" element={<ChapterDetail />}>
-            <Route index element={<ChapterTheory />} />
-            <Route path="questions" element={<ChapterQuestions />} />
-            <Route path="exercises" element={<ChapterExercises />} />
+      <div className="layout">
+        <AsideMenu books={books} />
+        <Routes>
+          <Route path="/" element={<BooksIndex books={books} />} />
+          <Route
+            path="/settings"
+            element={<SettingsPage theme={theme} setTheme={setTheme} />}
+          />
+          <Route path="/book/:bookId" element={<BookDetail books={books} />}>
+            <Route index element={<ChaptersIndex />} />
+            <Route path="chapter/:chapterId" element={<ChapterDetail />}>
+              <Route index element={<ChapterTheory />} />
+              <Route path="questions" element={<ChapterQuestions />} />
+              <Route path="exercises" element={<ChapterExercises />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </div>
 
       <AudioPlayer />
     </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import AsideMenu from "../../components/AsideMenu.jsx";
 import { usePlayer } from "../../lib/player.jsx";
 
 export default function BookDetail({ books }) {
@@ -32,9 +31,7 @@ export default function BookDetail({ books }) {
   }
 
   return (
-    <div className="layout">
-      <AsideMenu books={books} activeBookId={bookId} />
-
+    <>
       {course.length > 0 && (
         <aside className="lessons-menu">
           <div className="s-label">{book ? book.title : ""}</div>
@@ -63,6 +60,6 @@ export default function BookDetail({ books }) {
       <main className="content">
         <Outlet />
       </main>
-    </div>
+    </>
   );
 }

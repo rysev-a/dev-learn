@@ -1,14 +1,23 @@
 import { useState } from "react";
+import { quizPicks, saveQuizPicks } from "../lib/progress.js";
 
 /* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе. */
-export default function Quiz({ quiz }) {
-  return <TheoryQuiz quiz={quiz} />;
+export default function Quiz({ quiz, bookId, chapter }) {
+  return <TheoryQuiz quiz={quiz} bookId={bookId} chapter={chapter} />;
 }
 
-function TheoryQuiz({ quiz }) {
-  const [picked, setPicked] = useState(() =>
-    Array(quiz.questions.length).fill(null),
-  );
+function TheoryQuiz({ quiz, bookId, chapter }) {
+  // ответы сохраняются в браузере: по ним считается прогресс на главной
+  const [picked, setPicked] = useState(() => {
+    const saved = bookId != null ? quizPicks(bookId, chapter) : null;
+    return saved && saved.length === quiz.questions.length
+      ? saved
+      : Array(quiz.questions.length).fill(null);
+  });
+  const persist = (next) => {
+    if (bookId != null) saveQuizPicks(bookId, chapter, next.some((p) => p != null) ? next : null);
+    return next;
+  };
 
   const total = quiz.questions.length;
   const answered = picked.filter((p) => p != null).length;
@@ -20,11 +29,11 @@ function TheoryQuiz({ quiz }) {
 
   function pick(qi, oi) {
     if (picked[qi] != null) return; // на вопрос уже ответили
-    setPicked((prev) => prev.map((p, i) => (i === qi ? oi : p)));
+    setPicked((prev) => persist(prev.map((p, i) => (i === qi ? oi : p))));
   }
 
   function reset() {
-    setPicked(Array(quiz.questions.length).fill(null));
+    setPicked(persist(Array(quiz.questions.length).fill(null)));
   }
 
   return (
