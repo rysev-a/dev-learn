@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const COVERED = ["src/App.tsx", "src/main.tsx", "src/types.ts", "src/components", "src/lib", "src/pages", "src/netlab", "src/virtlab"];
+const COVERED = ["src/App.tsx", "src/main.tsx", "src/types.ts", "src/components", "src/lib", "src/pages", "src/netlab", "src/virtlab", "src/lab"];
 
 let out = "";
 try {

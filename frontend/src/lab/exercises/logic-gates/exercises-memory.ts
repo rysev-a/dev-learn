@@ -27,7 +27,7 @@ export const MEMORY_EXERCISES: readonly Exercise[] = [
     labels: ['A1', 'A0'],
     outputs: ['D1', 'D0'],
     target: tableOf(2, ([a1, a0]) => {
-      const w = ROM_2BIT[a1 * 2 + a0];
+      const w = ROM_2BIT[a1 * 2 + a0]!;
       return [(w >> 1) as Bit, (w & 1) as Bit];
     }),
     allowed: ['AND', 'OR', 'NOT', 'NOR', 'XOR'],
@@ -49,7 +49,7 @@ export const MEMORY_EXERCISES: readonly Exercise[] = [
     labels: ['A1', 'A0'],
     outputs: ['W3', 'W2', 'W1', 'W0'],
     target: tableOf(2, ([a1, a0]) => {
-      const w = PROGRAM[a1 * 2 + a0];
+      const w = PROGRAM[a1 * 2 + a0]!;
       return [((w >> 3) & 1) as Bit, ((w >> 2) & 1) as Bit, ((w >> 1) & 1) as Bit, (w & 1) as Bit];
     }),
     allowed: ['AND', 'OR', 'NOT', 'NOR'],

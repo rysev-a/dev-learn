@@ -165,7 +165,7 @@ function adapter(
     },
     solution: {
       gates: [],
-      wires: inNodes.map((n, i) => wire(`w${i}`, n, outNodes[i])),
+      wires: inNodes.map((n, i) => wire(`w${i}`, n, outNodes[i]!)),
     },
   };
 }
@@ -361,7 +361,7 @@ export function expand(solution: Solution, iface: BlockInterface, lookup: BlockL
     return {
       circuit: {
         gates: [],
-        wires: solution.dout.map((n, i) => wire(`w${i}`, dout[i], n)),
+        wires: solution.dout.map((n, i) => wire(`w${i}`, dout[i]!, n)),
         natives: [
           {
             id,
@@ -410,7 +410,7 @@ export function expand(solution: Solution, iface: BlockInterface, lookup: BlockL
     const src = endNodes(endInfo(w.from, portsOf)!);
     const dst = endNodes(endInfo(w.to, portsOf)!);
     if (src.length !== dst.length) continue;
-    dst.forEach((d, i) => driver.set(`${w.to.node}|${d}`, { node: w.from.node, leaf: src[i] }));
+    dst.forEach((d, i) => driver.set(`${w.to.node}|${d}`, { node: w.from.node, leaf: src[i]! }));
   }
 
   /** «внутренние источники» блока: его вентили и выходы встроенной памяти (а не входные узлы) */

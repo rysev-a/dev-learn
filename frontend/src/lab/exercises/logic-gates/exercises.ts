@@ -68,9 +68,13 @@ export interface Exercise {
  * Целевая таблица по функции: на вход — биты входов упражнения (первый вход — старший),
  * на выходе — значения выходов. Нужна для больших таблиц (до 64 строк), чтобы не писать их вручную.
  */
-export function tableOf(inputCount: number, fn: (bits: Bit[]) => Bit[]): Bit[][] {
+/** Биты одной строки таблицы. Длина на деле равна числу входов, а тип — максимальной (8), чтобы
+    `([a, b, c]) => …` не давал «возможно undefined»: функция читает только свои входы. */
+export type RowBits = [Bit, Bit, Bit, Bit, Bit, Bit, Bit, Bit];
+
+export function tableOf(inputCount: number, fn: (bits: RowBits) => Bit[]): Bit[][] {
   return Array.from({ length: 2 ** inputCount }, (_, row) =>
-    fn(Array.from({ length: inputCount }, (_, i) => ((row >> (inputCount - 1 - i)) & 1) as Bit)),
+    fn(Array.from({ length: inputCount }, (_, i) => ((row >> (inputCount - 1 - i)) & 1) as Bit) as RowBits),
   );
 }
 

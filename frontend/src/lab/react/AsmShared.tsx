@@ -209,7 +209,7 @@ export function MemoryGrid({ rows, addrWidth, className = "" }: { rows: { addr: 
     <div className={`lab-disk ${className} mono`}>
       <div className="lab-disk-head">
         <span />
-        {rows[0].cells.map((_, i) => (
+        {rows[0]?.cells.map((_, i) => (
           <span key={i}>{i.toString(16).toUpperCase()}</span>
         ))}
         <span className="lab-ascii-head">текст</span>

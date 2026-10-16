@@ -176,7 +176,7 @@ export const MUX_EXERCISES: readonly Exercise[] = [
     inputs: ['A', 'B', 'C', 'D', 'E', 'F'],
     labels: ['D0', 'D1', 'D2', 'D3', 'S1', 'S0'],
     outputs: ['Y'],
-    target: tableOf(6, ([d0, d1, d2, d3, s1, s0]) => [[d0, d1, d2, d3][s1 * 2 + s0]]),
+    target: tableOf(6, ([d0, d1, d2, d3, s1, s0]) => [[d0, d1, d2, d3][s1 * 2 + s0]!]),
     allowed: ['AND', 'OR', 'NOT'],
     hint: 'Соберите дерево из трёх мультиплексоров 2→1: два первых выбирают по S0 из пар (D0, D1) и (D2, D3), третий — по S1 между результатами. Инверторы нужны только на S0 и S1.',
     formula: 'Y = D[S1 S0]',

@@ -186,7 +186,7 @@ export default function AsmLab({
                       <span className="lab-reg-name">{name}</span>
                       <span className="lab-reg-val mono">{view.regs[i]}</span>
                       <span className="lab-reg-hex mono">
-                        0x{hexByte(view.regs[i])}
+                        0x{hexByte(view.regs[i] ?? 0)}
                       </span>
                     </div>
                   ))}

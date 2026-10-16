@@ -106,7 +106,7 @@ export default function RvLab({
       changed: view?.lastReg === i,
     };
   });
-  const base = (WINDOWS.find((w) => w.id === windowId) ?? WINDOWS[0]).from;
+  const base = (WINDOWS.find((w) => w.id === windowId) ?? WINDOWS[0]!).from;
   const mem = view?.mem ?? asm.image;
   const grid = memRows(mem, base, 16, (addr) => ({
     read: view?.lastRead === addr,
@@ -114,7 +114,7 @@ export default function RvLab({
   }));
   const switches = task.switches ?? 0;
   const files = useMemo(() => projectFiles(source), [source]);
-  const shown = files.find((f) => f.name === openFile) ?? files[0];
+  const shown = files.find((f) => f.name === openFile) ?? files[0]!;
 
   return (
     <div className="lab lab-asm lab-rv">

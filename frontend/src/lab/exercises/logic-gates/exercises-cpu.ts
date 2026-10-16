@@ -77,7 +77,7 @@ export const CPU_EXERCISES: readonly Exercise[] = [
     labels: ['A1', 'A0', 'Z', 'Wb'],
     outputs: ['AccLoad', 'UseAdd', 'Take', 'PcLoad', 'Stop'],
     target: tableOf(4, ([a1, a0, z, wb]) => {
-      const op = PROGRAM[a1 * 2 + a0] >> 2;
+      const op = PROGRAM[a1 * 2 + a0]! >> 2;
       return [
         (wb && op < 2 ? 1 : 0) as Bit,
         (op === 1 ? 1 : 0) as Bit,

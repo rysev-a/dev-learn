@@ -63,7 +63,7 @@ export default function CpuInspector({ machine, version }: { machine: GateMachin
       },
     ];
     for (const id of path) {
-      const cur = out[out.length - 1];
+      const cur = out[out.length - 1]!;
       const sub = cur.expansion.subs.get(id);
       if (!sub) break;
       out.push({

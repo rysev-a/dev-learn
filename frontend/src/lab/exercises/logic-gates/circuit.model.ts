@@ -112,7 +112,7 @@ const LEGACY_INPUT_Y: Record<string, number> = { A: 80, B: 200, C: 320 };
 export function inputYs(ids: readonly InputId[]): Record<string, number> {
   if (ids.length <= 3) {
     const res: Record<string, number> = {};
-    ids.forEach((id, i) => (res[id] = Object.values(LEGACY_INPUT_Y)[i]));
+    ids.forEach((id, i) => (res[id] = Object.values(LEGACY_INPUT_Y)[i]!));
     return res;
   }
   return spread(ids, 50, 390);
@@ -120,7 +120,7 @@ export function inputYs(ids: readonly InputId[]): Record<string, number> {
 
 /** Y-координаты выходов на правом краю доски: 1 выход — по центру, до 4 — как раньше, больше — по всей высоте */
 export function outputYs(outputs: readonly string[]): Record<string, number> {
-  if (outputs.length === 1) return { [outputs[0]]: 200 };
+  if (outputs.length === 1) return { [outputs[0]!]: 200 };
   return outputs.length <= 4 ? spread(outputs, 80, 320) : spread(outputs, 40, 400);
 }
 

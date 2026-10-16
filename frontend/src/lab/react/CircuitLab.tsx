@@ -378,7 +378,7 @@ export default function CircuitLab({
       },
     ];
     for (const id of inspectPath) {
-      const cur = out[out.length - 1];
+      const cur = out[out.length - 1]!;
       const sub = cur.expansion.subs.get(id);
       if (!sub) break;
       out.push({
