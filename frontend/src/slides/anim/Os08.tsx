@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Cd, If } from "./lx.tsx";
+import { Tx, Bx, Ar, Cd, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 8 книги «Погружаемся в Unix»: гонки, блокировки, RCU, взаимные блокировки, Rust. */

@@ -154,7 +154,7 @@ export const V03 = scene({
     "Новое окно лучше: лучший ответ обновился",
     "Пересчёт состояния при сдвиге — константа; лучшая сумма 9",
   ],
-  frames: FW.map(([l, r, t, best], k): SceneItem[] => [
+  frames: FW.map(([l, r, t, best]): SceneItem[] => [
     ...row("a", F6, {
       x0: 70,
       y: 66,
@@ -306,7 +306,7 @@ export const V07 = scene({
     "Голова — максимум; вышедшие из окна индексы убираем с головы",
     "Каждый элемент входит и выходит один раз — O(n)",
   ],
-  frames: MQ.map((s, k): SceneItem[] => [
+  frames: MQ.map((s): SceneItem[] => [
     ...row("a", DQ, {
       x0: 50,
       y: 40,
@@ -581,7 +581,7 @@ export const V11 = scene({
       cw: 42,
       w: 38,
       h: 26,
-      c: (i) => "g",
+      c: () => "g",
       o: (i) => (i < s.res.length ? 1 : 0.12),
     }),
     Tx("n", 320, 76, `инверсий: ${s.inv}`, { mono: true, size: 10, c: "y" }),

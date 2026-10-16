@@ -1,5 +1,5 @@
-import { gp, scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.tsx";
+import { scene } from "./alg.tsx";
+import { GT, Tx, bit, lv, mux, pl } from "./hw.tsx";
 import { Box } from "./dsl.ts";
 
 /* Глава 7 книги «Архитектура компьютера»: мультиплексоры, демультиплексоры, дешифраторы, шифраторы и шины. */

@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
+import { Tx, Bx, Ar, Ln, Zn, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 20 книги «Компьютерные сети»: облачные сети (VPC), группы безопасности, контейнеры, Docker, оверлей, Kubernetes. */

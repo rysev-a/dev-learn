@@ -1,6 +1,5 @@
 import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 import { binom } from "./tri.ts";
-import type { SceneItem } from "./dsl.ts";
 
 /* Глава 4, слайд 5: бином Ньютона. (a+b)ⁿ — перебор способов выбрать a или b
    в каждой скобке; коэффициенты — строка Паскаля. */

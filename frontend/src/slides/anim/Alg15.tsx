@@ -1,4 +1,4 @@
-import { edge, row, scene } from "./alg.tsx";
+import { edge, scene } from "./alg.tsx";
 import { Tx, type SceneItem } from "./dsl.ts";
 
 /* Глава 15 книги «Алгоритмы и структуры данных»: графы — обходы и связность. */

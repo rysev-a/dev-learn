@@ -27,7 +27,7 @@ export default function C2Intro({ cues }: { cues?: number[] }) {
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <G o={rel * dim}>
         <Txt x={76} y={16}>заказы → клиенты</Txt>
-        {ORDERS.map(([t, y], i) => (
+        {ORDERS.map(([t, y]) => (
           <Pill key={t} x={36} y={y} w={40} text={t} stroke="var(--s-amber)" />
         ))}
         {["Аня", "Борис"].map((n, i) => (

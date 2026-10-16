@@ -600,10 +600,6 @@ const xorScene = (type: string, a: number, b: number) => {
     ),
   ];
 };
-const maj: [number, number, number][] = [
-  [1, 0, 1],
-  [0, 0, 1],
-];
 const majority = (v: number[]) => {
   const cnt = v.reduce((s, x) => s + x, 0);
   const y = cnt >= 2 ? 1 : 0;

@@ -1,6 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx } from "./hw.tsx";
-import { Box, arrow, rs, slot } from "./rs.tsx";
+import { Box, arrow, rs } from "./rs.tsx";
 
 /* Глава 11 книги «Изучаем Rust»: строки — str из Python и String из Rust. */
 

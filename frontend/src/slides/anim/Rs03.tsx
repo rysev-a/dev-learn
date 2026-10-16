@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, rs, slot } from "./rs.tsx";
+import { Box, rs, slot } from "./rs.tsx";
 
 /* Глава 3 книги «Изучаем Rust»: скалярные типы — целые, дробные, bool, char. */
 

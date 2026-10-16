@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Pt, Cd, If, at, Rw } from "./lx.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Cd, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 1 книги «Погружаемся в Unix»: файловая система. */

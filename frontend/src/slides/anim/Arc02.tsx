@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, pl } from "./hw.tsx";
+import { GT, Tx, bit, lv, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 2 книги «Архитектура компьютера»: физика транзистора, КМОП, логические уровни и мощность. */

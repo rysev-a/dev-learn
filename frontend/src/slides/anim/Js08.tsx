@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Box, Tx, arrow, jc, slot } from "./jv.tsx";
+import { Box, Tx, arrow, jc } from "./jv.tsx";
 
 /* Глава 8 книги «Современный Frontend»: классы, прототипы и итераторы. */
 

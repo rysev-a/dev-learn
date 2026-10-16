@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
+import { Tx, Bx, Ar, Ln, Zn, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 17 книги «Компьютерные сети»: балансировка нагрузки, обратный прокси, кэш и CDN, высокая доступность. */

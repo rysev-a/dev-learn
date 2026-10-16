@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, mux, pl, wave } from "./hw.tsx";
-import { Box, arrow, type SceneItem } from "./dsl.ts";
+import { GT, Tx, bit, lv, mux, pl, wave } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 13 книги «Архитектура компьютера»: декодер команд, управляющие сигналы, фазы такта, остановка. */
 
@@ -414,9 +414,6 @@ export const V08 = scene({
 });
 
 // 9. Остановка процессора
-const R = [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-const H = [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0];
-const RUN = [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0];
 export const V09 = scene({
   labels: ["Сброс", "Hlt", "Остановка навсегда"],
   caption: [

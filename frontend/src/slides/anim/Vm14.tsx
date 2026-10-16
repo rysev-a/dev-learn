@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Zn } from "./lx.tsx";
+import { Tx, Bx, Ar } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 14 книги «Виртуализация»: безопасность — побеги, побочные каналы, confidential computing. */

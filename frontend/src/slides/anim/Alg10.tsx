@@ -747,7 +747,7 @@ const TE: [string, string][] = [
   ["o", "g"],
 ];
 const TR = (shown: string|string[], hot: Record<string | number, string> = {}): SceneItem[] => [
-  ...TE.filter(([a, b]) => shown.includes(b)).map(([a, b]) =>
+  ...TE.filter(([, b]) => shown.includes(b)).map(([a, b]) =>
     edge(
       `te${a}${b}`,
       { x: TRIE[a][0], y: TRIE[a][1] },

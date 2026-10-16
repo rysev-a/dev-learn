@@ -1,24 +1,9 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
-import { Box, arrow, type Extra, type SceneItem } from "./dsl.ts";
+import { Tx, pl } from "./hw.tsx";
+import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 18 книги «Архитектура компьютера»: иерархия памяти и кэш. */
 
-const bits = (id: string, s: string, x0: number, y: number, cw = 26, c: string | ((i: number) => string) = "m", extra: Extra = {}): SceneItem[] =>
-  s
-    .split("")
-    .map((b, i) =>
-      Box(
-        `${id}${i}`,
-        x0 + i * cw,
-        y,
-        cw - 3,
-        24,
-        b,
-        typeof c === "function" ? c(i) : c,
-        { size: 12, ...extra },
-      ),
-    );
 
 // 1. Процессор ждёт память
 export const V01 = scene({

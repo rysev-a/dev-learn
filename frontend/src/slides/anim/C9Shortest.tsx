@@ -41,7 +41,7 @@ export default function C9Shortest({ cues }: { cues?: number[] }) {
           [1, 112, "друг", "var(--s-blue)"],
           [2, 184, "друг друга", "var(--s-amber)"],
           [3, 262, "кто знает?", "var(--s-red)"],
-        ] as const).map(([r, x, t, c], i) => (
+        ] as const).map(([, x, t, c], i) => (
           <g key={i}>
             <circle cx={x} cy="80" r="18" style={{ fill: "var(--s-panel2)", stroke: c, strokeWidth: 1.8 }} />
             <text x={x} y="84" textAnchor="middle" className="a-mono" style={{ fontSize: 8 }}>{t.slice(0, 5)}</text>

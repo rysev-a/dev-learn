@@ -1,4 +1,4 @@
-import { Pill, Steps, Txt, useSteps } from "./kit.tsx";
+import { Pill, Steps, useSteps } from "./kit.tsx";
 
 /* Слайд 13: итог главы. Карточки тем по очереди загораются под голос,
    затем — где это применялось и что дальше. */

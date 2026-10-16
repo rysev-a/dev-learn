@@ -138,10 +138,6 @@ export const V07 = scene({
 });
 
 // 8. libvirt
-const LS = (n: number) =>
-  [["o", "оркестратор (OpenStack)", "m"], ["l", "libvirt: XML, libvirtd, virsh", "g"], ["q", "QEMU (через QMP)", "y"], ["k", "ядро: KVM", "b"]]
-    .slice(0, n + 1)
-    .flatMap(([id, t, c], i) => [Bx(id, 180, 30 + i * 36, 230, 26, t, c, { size: 9 }), ...(i > 0 ? [Ar(`a${i}`, 180, 17 + i * 36, 180, 21 + i * 36, "m")] : [])]);
 export const V08 = scene({
   labels: ["Руками", "libvirt", "QEMU", "Облако"],
   caption: [

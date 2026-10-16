@@ -495,7 +495,7 @@ export const V11 = scene({
     Tx("ly", 48, 18, "время", { size: 8.5, anchor: "start" }),
   ],
   frames: [0, 1, 2, 3].map((k): SceneItem[] => [
-    ...TRD.flatMap(([name, mx, ty, label, c], i): SceneItem[] => [
+    ...TRD.flatMap(([name, mx, ty,, c], i): SceneItem[] => [
       {
         t: "dot",
         id: `d${i}`,

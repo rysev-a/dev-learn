@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
+import { Tx, Bx, Ar, Ln, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 13 книги «Компьютерные сети»: TLS и HTTPS — гарантии, ключи, рукопожатие, сертификаты, проверки, ошибки. */

@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl, bit } from "./hw.tsx";
+import { Tx, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 21 книги «Архитектура компьютера»: шины, ввод-вывод, прерывания, DMA, диски, RAID. */

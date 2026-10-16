@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem, type Extra } from "./dsl.ts";
 
 /* Глава 15 книги «Архитектура компьютера»: ассемблер процессора Мини-8. */
@@ -143,7 +143,7 @@ export const V03 = scene({
 });
 
 // 4. Память: lb / sb
-const disk = (mid: boolean, hl?: number): SceneItem[] =>
+const disk = (mid: boolean): SceneItem[] =>
   ["H", "e", "l", "l", "o"].map((ch, i) =>
     Box(
       `d${i}`,

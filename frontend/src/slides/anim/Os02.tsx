@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Zn, Cd, If, at, Rw } from "./lx.tsx";
+import { Tx, Bx, Ar, Zn, Cd, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 2 книги «Погружаемся в Unix»: шелл, конвейеры, дескрипторы, скрипты. */
@@ -187,8 +187,6 @@ export const V04 = scene({
 
 // 5. Перенаправления
 const rd = (n: number): SceneItem[] => {
-  const t1 = n === 0 ? [240, 60] : [240, 130];
-  const t2 = n === 0 || n === 3 ? [240, 60] : [240, 130];
   return [
     Tx(
       "cmd",

@@ -14,7 +14,6 @@ const PyCode = makePyCode(PY_KW);
 
 const Slide = makeSlide("PYTHON КАК ПЕРВЫЙ ЯЗЫК / ОСНОВЫ / ГЛАВА 1", 13);
 
-const Down = () => <span className="s-arr">↓</span>;
 
 // --- сцены ---------------------------------------------------------------
 

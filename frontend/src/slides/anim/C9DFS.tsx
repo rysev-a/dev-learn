@@ -37,7 +37,7 @@ export default function C9DFS({ cues }: { cues?: number[] }) {
   const vis = step >= 1;
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
-      <GraphView nodes={N} edges={E} nc={(i) => (vis ? "g" : "m")} ec={() => (vis ? "g" : "m")} r={13} />
+      <GraphView nodes={N} edges={E} nc={() => (vis ? "g" : "m")} ec={() => (vis ? "g" : "m")} r={13} />
       {ORDER.map((v, k) => (
         <g key={k} className="a-t" style={{ opacity: vis ? 1 : 0, transitionDelay: step === 1 ? `${k * 380}ms` : "0ms" }}>
           <text x={N[v].x + 18} y={N[v].y - 12} className="a-mono" style={{ fontSize: 10.5, fill: "var(--s-amber)" }}>{k + 1}</text>

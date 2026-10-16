@@ -9,7 +9,6 @@ import {
   setUp,
 } from "../term.ts";
 import { routeTable } from "../sim.ts";
-import { fqdn } from "../dns.ts";
 import { ipStr, netStr, parseIp } from "../ip.ts";
 import Terminal from "./Terminal.tsx";
 import type { TermLine } from "./Terminal.tsx";
@@ -809,7 +808,7 @@ function SshBox({ d, apply, readOnly, exec }: ExecFormProps) {
   );
 }
 
-function VpnBox({ d, apply, readOnly, exec }: ExecFormProps) {
+function VpnBox({ d, readOnly, exec }: ExecFormProps) {
   const [name, setName] = useState("wg0");
   const [peer, setPeer] = useState("");
   const [addr, setAddr] = useState("");

@@ -19,7 +19,6 @@ import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ГРАФЫ И ВЕРОЯТНОСТЬ / ГЛАВА 8", 13);
 
-const Edge = () => <span className="s-arr">—</span>;
 
 // --- сцены ---------------------------------------------------------------
 

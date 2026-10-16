@@ -4,17 +4,6 @@ import { Pt as P } from "./lx.tsx";
 
 /* Глава 6 книги «Алгоритмы и структуры данных»: два указателя. */
 
-const Cl = (id: string, x: number, y: number, text: string | number, c = "m", extra: Extra = {}): SceneItem => ({
-  t: "cell",
-  id,
-  x,
-  y,
-  w: 36,
-  h: 26,
-  text,
-  c,
-  ...extra,
-});
 
 // 1. Три формы приёма
 const R3 = (k: number) => {
@@ -133,7 +122,6 @@ export const V02 = scene({
 });
 
 // 3. Почему можно отбросить
-const PR = SA.map((v, i) => i);
 export const V03 = scene({
   labels: [
     "Слишком много",
@@ -675,7 +663,7 @@ export const V11 = scene({
     "Правый слишком велик — сдвигаем его; так считаем остальные",
     "Девять пар за один проход вместо квадрата; цена — сортировка",
   ],
-  frames: CP.map((s, k): SceneItem[] => [
+  frames: CP.map((s): SceneItem[] => [
     ...row("a", [1, 2, 3, 4, 5, 6], {
       x0: 60,
       y: 76,
@@ -743,7 +731,7 @@ export const V12 = scene({
       Tx("t", 180, 142, "1 + 9 = 10 ✓", { mono: true, size: 11, c: "g" }),
     ],
     [
-      ...UP(SRT, (v, i) => ({ c: "m", o: 0.45 })),
+      ...UP(SRT, (v) => ({ c: "m", o: 0.45 })),
       Tx("t", 180, 60, "индексы пропали при сортировке →", { size: 9.5 }),
       Tx("t2", 180, 130, "пары (значение, индекс)  или  хеш-таблица", {
         mono: true,

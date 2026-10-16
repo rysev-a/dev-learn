@@ -44,7 +44,7 @@ export const V01 = scene({
       cw: 34,
       w: 30,
       sub: (i) => i,
-      c: (i) => "n",
+      c: () => "n",
     }),
     { t: "cell", id: "key", x: 44, y: 34, w: 56, h: 26, text: "кот", c: "y" },
   ],
@@ -1080,7 +1080,7 @@ export const V14 = scene({
       ...CNT(0, 0, 0),
     ],
     [
-      ...row("w", WORDS, { x0: 70, y: 32, cw: 44, w: 38, c: (i) => "m" }),
+      ...row("w", WORDS, { x0: 70, y: 32, cw: 44, w: 38, c: () => "m" }),
       ...CNT(3, 2, 1, "a"),
     ],
     [

@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, rs, slot } from "./rs.tsx";
+import { Box, rs } from "./rs.tsx";
 
 /* Глава 30 книги «Изучаем Rust»: асинхронность в Python и в Rust. */
 

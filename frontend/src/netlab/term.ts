@@ -20,7 +20,7 @@ import { fmtPage, pageload } from "./pageload.ts";
 import { DEFAULT_PKI, DEFAULT_TRUST, NOW, addDays, newTls, sClient } from "./tls.ts";
 import { answerIp, fmtDns, fqdn, localLookup, newDns } from "./dns.ts";
 import { captureLines } from "./capture.ts";
-import { keyOf, makeKey, newSsh, sshConnect } from "./ssh.ts";
+import { makeKey, newSsh, sshConnect } from "./ssh.ts";
 import { backgroundTraffic } from "./attacks.ts";
 import { fmtMs, lookup, ping1, routeTable, tcp1, traceroute, rtOf, udp1, dns1 } from "./sim.ts";
 import type { RouteEntry } from "./sim.ts";

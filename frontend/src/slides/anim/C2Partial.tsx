@@ -63,7 +63,7 @@ export default function C2Partial({ cues }: { cues?: number[] }) {
           o={step === 2 ? 1 : 0}
         />
       ))}
-      {PK.map(([t, x, y, lx], i) => (
+      {PK.map(([t, x, y, lx]) => (
         <Pill
           key={t}
           x={line ? lx : x}

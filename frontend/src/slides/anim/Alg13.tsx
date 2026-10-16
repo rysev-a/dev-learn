@@ -200,7 +200,6 @@ export const V04 = scene({
 });
 
 // 5. Почему высота логарифмическая
-const SHORT = () => ({ k: "1", r: { k: "2" } });
 export const V05 = scene({
   labels: ["Короткий путь", "Длинный путь", "Вывод"],
   caption: [

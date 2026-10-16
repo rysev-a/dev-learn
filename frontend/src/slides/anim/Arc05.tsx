@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem, type Extra } from "./dsl.ts";
 
 /* Глава 5 книги «Архитектура компьютера»: кодировки текста и защита данных от ошибок. */

@@ -220,7 +220,6 @@ function SlidePanel({
   t,
   d,
   audioT,
-  caption,
   fs,
   itemsSlot,
   headSlot,

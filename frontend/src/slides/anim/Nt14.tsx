@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.tsx";
+import { Tx, Bx, Ar, Ln, Dt, Cd, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 import type { Extra } from "./dsl.ts";
 

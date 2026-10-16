@@ -1,11 +1,9 @@
 import { scene } from "./alg.tsx";
-import { Tx, bit, cell, lv, mux, pl, wave } from "./hw.tsx";
+import { Tx, bit, lv, mux, pl, wave } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 10 книги «Архитектура компьютера»: такт, триггеры, регистры, счётчики и аккумулятор. */
 
-const label = (id: string, x: number, y: number, t: string|number) =>
-  Tx(id, x, y, t, { size: 8.5, mono: true, anchor: "start" });
 
 // 1. Зачем такт
 const sync = (clocked: boolean) => [
@@ -215,7 +213,6 @@ export const V04 = scene({
 });
 
 // 5. Делитель на два
-const dq = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1];
 const CK2 = Array.from({ length: 12 }, (_, i) => (i % 2 ? 0 : 1)).map((_, i) =>
   i % 2 === 0 ? 1 : 0,
 );
@@ -526,7 +523,7 @@ export const V08 = scene({
 });
 
 // 9. Аккумулятор
-const acc = (x: number, a0: number, a1: number, tick?: number): SceneItem[] => [
+const acc = (x: number, a0: number, a1: number): SceneItem[] => [
   Box("add", 140, 76, 76, 50, "сумматор", "b"),
   Box("ac", 270, 76, 74, 50, `Acc\n${a1}`, "g", { size: 12 }),
   bit("x", 40, 60, x, { w: 30, text: String(x) }),

@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, asm, cc, slot } from "./cl.tsx";
+import { Box, arrow, asm, cc } from "./cl.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 1 книги «От assembler к языку C»: первая программа, типы и компиляция. */

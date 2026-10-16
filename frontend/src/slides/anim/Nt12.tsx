@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
+import { Tx, Bx, Ar, Ln, Zn, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 12 книги «Компьютерные сети»: HTTP/2 и HTTP/3 — мультиплексирование, HPACK, HOL, QUIC, Alt-Svc. */

@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, asm, cc } from "./cl.tsx";
+import { Box, arrow, cc } from "./cl.tsx";
 
 /* Глава 9 книги «От assembler к языку C»: представление данных. */
 

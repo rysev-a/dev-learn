@@ -235,7 +235,7 @@ export const V06 = scene({
       x0: 60,
       y: 44,
       cw: 30,
-      c: (i) => (k === 2 ? "g" : "m"),
+      c: () => (k === 2 ? "g" : "m"),
     }),
     ...row("pi", PIP, {
       x0: 60,

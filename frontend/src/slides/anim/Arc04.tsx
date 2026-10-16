@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem, type Extra } from "./dsl.ts";
 
 /* Глава 4 книги «Архитектура компьютера»: числа в компьютере. */

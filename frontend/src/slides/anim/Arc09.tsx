@@ -1,5 +1,5 @@
 import { gp, scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, pl } from "./hw.tsx";
+import { GT, Tx, bit, lv, pl } from "./hw.tsx";
 import { Box, arrow } from "./dsl.ts";
 
 /* Глава 9 книги «Архитектура компьютера»: сумматоры, вычитание, сравнение, быстрый перенос. */
@@ -454,7 +454,6 @@ export const V05 = scene({
 // 6. Сумматор-вычитатель
 const addsub = (sub: number) => {
   const A = "0101";
-  const B = "0011";
   const Bx = sub ? "1100" : "0011";
   const sum = sub ? "0010" : "1000";
   return [

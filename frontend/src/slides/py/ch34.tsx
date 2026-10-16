@@ -1,5 +1,5 @@
 import { makeSlide } from "../SlideFrame.tsx";
-import { Cmd, Node, PyCode } from "../widgets.tsx";
+import { Cmd, PyCode } from "../widgets.tsx";
 // Слайды для «Python как первый язык», глава 34 — «Числа и случайность».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.

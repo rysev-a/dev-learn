@@ -737,7 +737,6 @@ function encodeInsn(
         : [encI(def, rd, rs, off)];
     }
   }
-  return undefined;
 }
 
 const IDENT_RE = /^[A-Za-zА-Яа-яЁё_.$][\wА-Яа-яЁё.$]*$/;

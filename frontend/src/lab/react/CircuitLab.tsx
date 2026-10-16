@@ -16,7 +16,6 @@ import {
   type GateInstance,
   type GateType,
   type InputId,
-  type InputState,
   type NodeValue,
   type Wire,
 } from "../exercises/logic-gates/circuit.model.ts";

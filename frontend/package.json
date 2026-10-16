@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "typecheck": "tsc -p .",
     "lab:manifest": "node scripts/lab-manifest.mjs",
     "lab:check": "node scripts/lab-selfcheck.mjs",
     "net:manifest": "node scripts/net-manifest.mjs",
-    "net:check": "node scripts/net-selfcheck.mjs"
+    "net:check": "node scripts/net-selfcheck.mjs",
+    "slides:check": "node scripts/slides-smoke.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

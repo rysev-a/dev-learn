@@ -1,4 +1,4 @@
-import { G, GraphView, Steps, Txt, useSteps, type GraphEdge } from "./kit.tsx";
+import { G, GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 4: степень вершины; лемма о рукопожатиях: Σ deg = 2|E|;
    число вершин нечётной степени чётно. */
@@ -38,7 +38,7 @@ export default function C8Degree({ cues }: { cues?: number[] }) {
     if (step === 4) return DEG[i] % 2 ? "y" : "m";
     return "m";
   };
-  const ec = (e: GraphEdge) => (step === 3 ? "g" : "m");
+  const ec = () => (step === 3 ? "g" : "m");
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <GraphView nodes={N} edges={E} nc={nc} ec={ec} />

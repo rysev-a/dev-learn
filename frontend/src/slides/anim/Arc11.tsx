@@ -1,5 +1,5 @@
 import { gp, scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.tsx";
+import { GT, Tx, bit, lv, mux, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 11 книги «Архитектура компьютера»: арифметико-логическое устройство и флаги. */

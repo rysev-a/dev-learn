@@ -13,7 +13,7 @@ const ST: [string, string][] = [
   ["сетевая карта", "кадры на провод"],
 ];
 const lay = (n: number) => [
-  ...ST.map(([a, b], i) =>
+  ...ST.map(([a], i) =>
     Bx(
       `l${i}`,
       112,

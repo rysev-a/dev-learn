@@ -1,13 +1,8 @@
 import { scene } from "./alg.tsx";
-import { Tx } from "./hw.tsx";
-import { Box, arrow, rs, slot } from "./rs.tsx";
+import { Box, rs } from "./rs.tsx";
 
 /* Глава 24 книги «Изучаем Rust»: стандартная библиотека — core, alloc, std и прелюдия. */
 
-const pair = (a: string|number, b: string|number, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
 const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
   items.map((t: string|number, i: number) =>
     Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),

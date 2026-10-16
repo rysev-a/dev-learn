@@ -49,7 +49,7 @@ export default function C10Engineering({ cues }: { cues?: number[] }) {
           ["1 реплика", 0.01, "var(--s-red)"],
           ["2 реплики", 0.0001, "var(--s-amber)"],
           ["3 реплики", 0.000001, "var(--s-accent)"],
-        ] as const).map(([t, v, c], i) => (
+        ] as const).map(([t,, c], i) => (
           <g key={t}>
             <text x="30" y={52 + i * 32} className="a-mono" style={{ fontSize: 11 }}>{t}</text>
             <rect className="a-t" x="120" y={38 + i * 32} width={step >= 4 ? 190 - i * 70 : 0} height="20" rx="4" style={{ fill: c, fillOpacity: 0.35, stroke: c, transitionDelay: `${i * 250}ms` }} />

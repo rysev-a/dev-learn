@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, asm, cc, slot } from "./cl.tsx";
+import { Box, arrow, cc } from "./cl.tsx";
 
 /* Глава 4 книги «От assembler к языку C»: строки, структуры и union. */
 

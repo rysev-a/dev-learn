@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 1 книги «Архитектура компьютера»: уровни абстракции и управление сложностью. */

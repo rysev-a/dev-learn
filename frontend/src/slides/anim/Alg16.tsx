@@ -219,13 +219,12 @@ export const V02 = scene({
 });
 
 // 3. Прогон по шагам
-const names = Object.keys(NODES);
 export const V03 = scene({
   labels: ["Старт", "S", "A", "B", "C", "D", "T"],
   caption: [
     "Все расстояния бесконечны, кроме старта",
     ...DJ.slice(1).map(
-      (s, i) =>
+      (s) =>
         `Закрываем ${s.cur} (расстояние ${s.dist[s.cur ?? ""]}); соседям — релаксация`,
     ),
   ],
@@ -388,12 +387,6 @@ const GW = 11;
 const GH = 7;
 const START: Pos = [1, 3];
 const GOAL: Pos = [9, 3];
-const cellsOf = (pred: (cell: { r: number; c: number }) => boolean) =>
-  Array.from({ length: GH }, (_, r) =>
-    Array.from({ length: GW }, (_, c) => ({ r, c })),
-  )
-    .flat()
-    .filter(pred);
 const man = (a: Pos, b: Pos) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 const GRIDV = (set: (r: number, c: number) => boolean, col?: string): SceneItem[] =>
   Array.from({ length: GH }, (_, r): SceneItem[] =>
@@ -666,7 +659,6 @@ function kruskalSteps() {
   return steps;
 }
 const KR = kruskalSteps();
-const KSEL = [0, 2, 4, 5, 8];
 export const V12 = scene({
   labels: ["Сортировка", "Три ребра", "Соединили", "Остов", "Цикл — пропуск"],
   caption: [

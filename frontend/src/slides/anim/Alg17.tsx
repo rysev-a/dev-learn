@@ -693,7 +693,7 @@ const CT_E: [string, string, string][] = [
 const comb = (show: string[], colors: Tint, note: string): SceneItem[] => [
   ...CT_E.filter(
     ([p, q]) => show.includes(q) || (p === "r" && show.includes(q)),
-  ).map(([p, q, w]) =>
+  ).map(([p, q]) =>
     edge(
       `e${q}`,
       { x: CT[p][0], y: CT[p][1] },

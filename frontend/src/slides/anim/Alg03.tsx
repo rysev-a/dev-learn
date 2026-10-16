@@ -874,10 +874,6 @@ const qchain = (ids: string[], texts: Record<string, string | number>, c: Tint =
         ]
       : []),
   ]);
-const NODEX = (ids: string[], texts: Record<string, string | number>, c?: Tint): SceneItem[] =>
-  ids.map((id, i): SceneItem =>
-    N(id, QX(i), QY, texts[id], c?.[id] ?? (id[0] === "s" ? "v" : "m")),
-  );
 export const V10 = scene({
   labels: ["Дозорные", "В конец", "С начала", "Дек"],
   caption: [

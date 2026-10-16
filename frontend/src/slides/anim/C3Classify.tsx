@@ -46,7 +46,7 @@ export default function C3Classify({ cues }: { cues?: number[] }) {
           [60, "группы не пересекаются → сумма +", "y"],
           [180, "независимые шаги → произведение ×", "g"],
           [300, "выбор с порядком / без?", "b"],
-        ] as const).map(([x, t, c]) => (
+        ] as const).map(([x,, c]) => (
           <Arrow key={x} x1={180} y1={34} x2={x} y2={62} c={c} />
         ))}
         <Pill x={60} y={76} w={96} h={30} text="сумма" stroke="var(--s-amber)" size={10} />

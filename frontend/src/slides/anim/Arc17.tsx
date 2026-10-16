@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx } from "./hw.tsx";
 import { Box, arrow, type SceneItem, type Extra } from "./dsl.ts";
 
 /* Глава 17 книги «Архитектура компьютера»: настоящие программы на RISC-V. */
@@ -49,7 +49,7 @@ const sc = (n: number) => [
     ["a1", "buf", "адрес"],
     ["a2", "15", "длина"],
   ]
-    .map(([r, v, d], i) =>
+    .map(([r, v], i) =>
       Box(`r${i}`, 70, 24 + i * 30, 90, 24, `${r} = ${v}`, n >= 1 ? "g" : "m", {
         size: 10,
       }),

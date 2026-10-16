@@ -1,6 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx } from "./hw.tsx";
-import { Box, arrow, rs, slot } from "./rs.tsx";
+import { Box, rs } from "./rs.tsx";
 
 /* Глава 26 книги «Изучаем Rust»: текст и форматирование. */
 

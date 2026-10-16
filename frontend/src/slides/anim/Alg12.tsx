@@ -623,11 +623,6 @@ export const V12 = scene({
 });
 
 // 13. Ленивое удаление
-const ENT: [string, string][] = [
-  ["(7, B)", "m"],
-  ["(2, B)", "g"],
-  ["(5, C)", "m"],
-];
 export const V13 = scene({
   labels: ["Очередь событий", "Новая запись", "Устаревшая", "Ленивое удаление"],
   caption: [

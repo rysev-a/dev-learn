@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Zn, Cd } from "./lx.tsx";
+import { Tx, Bx, Ar, Cd } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 16 книги «Виртуализация»: практика с QEMU/KVM и наблюдаемость. */

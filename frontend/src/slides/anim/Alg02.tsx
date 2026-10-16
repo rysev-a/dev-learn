@@ -74,7 +74,7 @@ export const V02 = scene({
       cw: 36,
       sub: (i) => 1000 + i * 8,
       subSize: 8,
-      c: (i) => "m",
+      c: () => "m",
     }),
   ],
   frames: [
@@ -194,7 +194,7 @@ export const V03 = scene({
   ],
   frames: [
     [
-      ...A10((i) => "g"),
+      ...A10(() => "g"),
       {
         t: "text",
         id: "t",
@@ -453,14 +453,6 @@ export const V04 = scene({
 });
 
 // 5. Динамический массив: ёмкость и длина
-const OLD = (n: number, c = "m") =>
-  row("o", ["a", "b", "c", "d"], {
-    x0: 60,
-    y: 52,
-    cw: 34,
-    w: 30,
-    c: (i) => (i < n ? c : "n"),
-  });
 export const V05 = scene({
   labels: ["Ёмкость 4", "Заполнено", "Выросли", "Копия", "Свободно"],
   caption: [

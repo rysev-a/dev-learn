@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, Bx, Ar, Zn, Cd, If, at } from "./lx.tsx";
+import { Tx, Bx, Ar, Zn, Cd, If } from "./lx.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 3 книги «Погружаемся в Unix»: пользователи, права, привилегии. */

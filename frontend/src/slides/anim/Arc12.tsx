@@ -1,5 +1,5 @@
 import { gp, scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, pl, wave } from "./hw.tsx";
+import { GT, Tx, bit, lv, pl, wave } from "./hw.tsx";
 import { Box, arrow } from "./dsl.ts";
 
 /* Глава 12 книги «Архитектура компьютера»: ПЗУ, карта памяти, ячейки и ОЗУ. */

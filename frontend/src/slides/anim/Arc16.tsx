@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem, type Extra } from "./dsl.ts";
 
 /* Глава 16 книги «Архитектура компьютера»: ассемблер RISC-V (RV32IM). */

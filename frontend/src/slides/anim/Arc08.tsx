@@ -1,5 +1,5 @@
 import { gp, scene } from "./alg.tsx";
-import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.tsx";
+import { GT, Tx, bit, lv, mux, pl } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 8 книги «Архитектура компьютера»: обратная связь, SR- и D-защёлки, ячейка памяти. */

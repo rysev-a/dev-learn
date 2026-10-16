@@ -1,5 +1,5 @@
 import { scene } from "./alg.tsx";
-import { Tx, cell, pl } from "./hw.tsx";
+import { Tx } from "./hw.tsx";
 import { Box, arrow, type SceneItem } from "./dsl.ts";
 
 /* Глава 20 книги «Архитектура компьютера»: виртуальная память. */
@@ -76,21 +76,6 @@ export const V02 = scene({
 });
 
 // 3. Страницы и кадры
-const bitsRow = (s: string, x0: number, y: number, cw: number, c: string|((arg0: number) => string|undefined)|undefined) =>
-  s
-    .split("")
-    .map((b, i) =>
-      Box(
-        `b${i}${y}`,
-        x0 + i * cw,
-        y,
-        cw - 2,
-        22,
-        b,
-        typeof c === "function" ? c(i) : c,
-        { size: 10 },
-      ),
-    );
 export const V03 = scene({
   labels: ["Адрес", "Перевод", "Размер 4 КБ"],
   caption: [

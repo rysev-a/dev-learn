@@ -1,6 +1,6 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql } from "./db.tsx";
+import { Box, arrow } from "./db.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 20 книги «Базы данных»: хранилища. */

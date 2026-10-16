@@ -47,7 +47,7 @@ export const V01 = scene({
 const BUF = (k: number, c: string) =>
   Rw(
     "b",
-    Array.from({ length: 8 }, (_, i) => ""),
+    Array.from({ length: 8 }, (_) => ""),
     98,
     82,
     20,

@@ -67,7 +67,6 @@ export default function DeMorgan({ cues }: { cues?: number[] }) {
   const { step } = ctl;
   const venn = step <= 7 ? 1 : 0.06;
   const showDots = step >= 4 && step <= 7;
-  const nm = NAMES[nameKey(step)];
   const outOp = step === 1 ? 0.35 : step === 4 || step === 7 ? 0.3 : 0;
   const lensColor = step === 6 ? RED : AMB;
   const lensOp = step === 2 ? 0.35 : step === 5 || step === 6 ? 0.3 : 0;

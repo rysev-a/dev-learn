@@ -539,11 +539,6 @@ export default function GateBoard({
     }
   };
   // пока провод «прилип» к мыши, нажатие мимо контакта его отменяет
-  const boardDownCapture = () => {
-    if (live().sticky && !live().hover) {
-      // обработка в pinDown / здесь — отмена, если нажали не на контакт
-    }
-  };
 
   const gateDown = (e: ReactPointerEvent<SVGGElement>, g: GateInstance) => {
     if (e.button !== 0) return;
