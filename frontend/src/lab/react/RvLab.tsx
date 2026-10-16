@@ -1,17 +1,16 @@
-import ResultAlert from "./ResultAlert.tsx";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useMemo, useState } from "react";
 import { ABI_NAMES, OPS, PSEUDO, fieldsOf, type BitField } from "../riscv/rv-isa.ts";
 import { STACK_TOP, assemble } from "../riscv/rv-asm.ts";
 import { MMIO_MAP, RvMachine } from "../riscv/rv-machine.ts";
 import { fullSource, type RvTask } from "../riscv/rv-tasks.ts";
 import { projectFiles, projectZip } from "../riscv/rv-project.ts";
 import { makeZip } from "../riscv/zip.ts";
+import { MemoryGrid, ProgramCard, PseudoTable, RunButtons, TaskResult, memRows, useAsmSession } from "./AsmShared.tsx";
 
 /* Настоящие 32-битные команды RISC-V на «мягком» процессоре с памятью и периферией. В режиме real —
    целые настоящие программы, которые можно собрать на своём компьютере (проект скачивается архивом). */
 
 const RUN_LIMIT = 200_000;
-const hex8 = (n: number) => n.toString(16).toUpperCase().padStart(2, "0");
 const hexAddr = (n: number) => n.toString(16).toUpperCase().padStart(4, "0");
 const LEDS = [7, 6, 5, 4, 3, 2, 1, 0];
 const WINDOWS = [
@@ -52,13 +51,9 @@ export default function RvLab({
   nextLabel,
   real,
 }: RvLabProps) {
-  const [resets, setResets] = useState(0);
-  const [, bump] = useState(0);
-  const [hintOpen, setHintOpen] = useState(false);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [resetKey, setResetKey] = useState(0);
   const [windowId, setWindowId] = useState("text");
   const [openFile, setOpenFile] = useState("program.s");
-  const reported = useRef(false);
   const source = code ?? task.starter;
   const asm = useMemo(() => assemble(fullSource(source, task)), [source, task]);
   const machine = useMemo(
@@ -69,8 +64,7 @@ export default function RvLab({
             switches: task.switches,
             entry: asm.entry,
           }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [asm, resets, task],
+    [asm, resetKey, task],
   );
   const view = machine?.view() ?? null;
   const result = view
@@ -81,20 +75,7 @@ export default function RvLab({
         : null
     : null;
   const canStep = !!view && !view.halted && !view.error;
-
-  useEffect(() => {
-    reported.current = !!solvedBefore;
-    setHintOpen(false);
-    setSelected(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.id]);
-  useEffect(() => {
-    if (result?.ok && !reported.current) {
-      reported.current = true;
-      onSolved?.(source);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result?.ok]);
+  const session = useAsmSession({ task, source, solvedBefore, ok: result?.ok, onCode, onSolved });
 
   /* окно памяти перескакивает туда, где команда только что читала или писала */
   const follow = () => {
@@ -104,25 +85,8 @@ export default function RvLab({
     const w = WINDOWS.find((x) => addr >= x.from && addr < x.from + 0x100);
     if (w) setWindowId(w.id);
   };
-  const step = () => (machine?.step(), follow(), bump((n) => n + 1));
-  const run = () => (machine?.run(RUN_LIMIT), follow(), bump((n) => n + 1));
-
-  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key !== "Tab") return;
-    e.preventDefault();
-    const el = e.currentTarget;
-    const { selectionStart: s, selectionEnd: en, value } = el;
-    onCode(`${value.slice(0, s)}  ${value.slice(en)}`);
-    requestAnimationFrame(() => (el.selectionStart = el.selectionEnd = s + 2));
-  };
-  const showSolution = () => {
-    if (
-      window.confirm(
-        "Показать эталонное решение? Ваш текущий код в этом задании будет заменён решением.",
-      )
-    )
-      onCode(task.solution);
-  };
+  const step = () => (machine?.step(), follow(), session.rerender());
+  const run = () => (machine?.run(RUN_LIMIT), follow(), session.rerender());
 
   const pc = view?.pc ?? -1;
   const listing = asm.lines.map((l) => ({
@@ -144,19 +108,9 @@ export default function RvLab({
   });
   const base = (WINDOWS.find((w) => w.id === windowId) ?? WINDOWS[0]).from;
   const mem = view?.mem ?? asm.image;
-  const grid = Array.from({ length: 16 }, (_, row) => ({
-    addr: base + row * 16,
-    cells: Array.from({ length: 16 }, (_, col) => {
-      const addr = base + row * 16 + col;
-      const b = mem[addr] ?? 0;
-      return {
-        addr,
-        hex: hex8(b),
-        char: b >= 32 && b < 127 ? String.fromCharCode(b) : "·",
-        read: view?.lastRead === addr,
-        written: view?.lastWrite === addr,
-      };
-    }),
+  const grid = memRows(mem, base, 16, (addr) => ({
+    read: view?.lastRead === addr,
+    written: view?.lastWrite === addr,
   }));
   const switches = task.switches ?? 0;
   const files = useMemo(() => projectFiles(source), [source]);
@@ -174,53 +128,14 @@ export default function RvLab({
       )}
       <div className="lab-asm-grid">
         <section className="lab-col">
-          <div className="lab-card">
-            <div className="lab-card-head">
-              <h3>Программа</h3>
-              <div className="lab-actions">
-                <button
-                  type="button"
-                  className="quiz-btn ghost"
-                  onClick={() => setHintOpen((v) => !v)}
-                >
-                  {hintOpen ? "Скрыть подсказку" : "Подсказка"}
-                </button>
-                <button
-                  type="button"
-                  className="quiz-btn ghost"
-                  onClick={showSolution}
-                >
-                  Показать решение
-                </button>
-                <button
-                  type="button"
-                  className="quiz-btn ghost"
-                  onClick={() => onCode(task.starter)}
-                >
-                  Начать заново
-                </button>
-              </div>
-            </div>
-            {hintOpen && <p className="ex-hint">{task.hint}</p>}
-            <textarea
-              className="lab-editor"
-              spellCheck={false}
-              rows={16}
-              value={source}
-              onChange={(e) => (onCode(e.target.value), setSelected(null))}
-              onKeyDown={onKey}
-              aria-label="Текст программы на ассемблере RISC-V"
-            />
-            {asm.errors.length > 0 && (
-              <ul className="lab-errors" role="alert">
-                {asm.errors.map((e, i) => (
-                  <li key={i}>
-                    <strong>Строка {e.line}:</strong> {e.message}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <ProgramCard
+            session={session}
+            hint={task.hint}
+            source={source}
+            errors={asm.errors}
+            ariaLabel="Текст программы на ассемблере RISC-V"
+            onChange={onCode}
+          />
 
           <div className="lab-card">
             <div className="lab-card-head">
@@ -251,10 +166,8 @@ export default function RvLab({
                       <RowFragment
                         key={l.addr}
                         l={l}
-                        selected={selected === l.addr}
-                        onClick={() =>
-                          setSelected(selected === l.addr ? null : l.addr)
-                        }
+                        selected={session.selected === l.addr}
+                        onClick={() => session.select(l.addr)}
                       />
                     ))}
                   </tbody>
@@ -268,31 +181,7 @@ export default function RvLab({
           <div className="lab-card">
             <div className="lab-card-head">
               <h3>Процессор RV32IM</h3>
-              <div className="lab-actions">
-                <button
-                  type="button"
-                  className="quiz-btn"
-                  onClick={step}
-                  disabled={!canStep}
-                >
-                  Шаг ▸
-                </button>
-                <button
-                  type="button"
-                  className="quiz-btn ghost"
-                  onClick={run}
-                  disabled={!canStep}
-                >
-                  Выполнить
-                </button>
-                <button
-                  type="button"
-                  className="quiz-btn ghost"
-                  onClick={() => setResets((n) => n + 1)}
-                >
-                  Сбросить
-                </button>
-              </div>
+              <RunButtons canStep={canStep} step={step} run={run} reset={() => setResetKey((n) => n + 1)} />
             </div>
             {view ? (
               <>
@@ -331,16 +220,7 @@ export default function RvLab({
             )}
           </div>
 
-          {result && (
-            <ResultAlert
-              ok={result.ok}
-              title={result.ok ? "Задание выполнено!" : "Пока не то"}
-              onNext={result.ok && hasNext ? onNext : undefined}
-              nextLabel={nextLabel}
-            >
-              {result.message}
-            </ResultAlert>
-          )}
+          <TaskResult result={result} hasNext={hasNext} onNext={onNext} nextLabel={nextLabel} />
 
           {real ? (
             <div className="lab-card">
@@ -448,39 +328,7 @@ export default function RvLab({
               Окно в 256 байт. Зелёным — записанный последним байт, синим —
               прочитанный. Слова лежат «младшим байтом вперёд» (little-endian).
             </p>
-            <div className="lab-disk lab-mem mono">
-              <div className="lab-disk-head">
-                <span />
-                {grid[0].cells.map((c, i) => (
-                  <span key={c.addr}>{i.toString(16).toUpperCase()}</span>
-                ))}
-                <span className="lab-ascii-head">текст</span>
-              </div>
-              {grid.map((row) => (
-                <div key={row.addr} className="lab-disk-row">
-                  <span className="lab-addr">{hexAddr(row.addr)}</span>
-                  {row.cells.map((c) => (
-                    <span
-                      key={c.addr}
-                      className={`lab-cell ${c.read ? "read" : ""} ${c.written ? "written" : ""}`}
-                      title={`адрес 0x${hexAddr(c.addr)}`}
-                    >
-                      {c.hex}
-                    </span>
-                  ))}
-                  <span className="lab-ascii">
-                    {row.cells.map((c) => (
-                      <span
-                        key={c.addr}
-                        className={c.char === "·" ? "dot" : ""}
-                      >
-                        {c.char}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <MemoryGrid rows={grid} addrWidth={4} className="lab-mem" />
           </div>
         </section>
       </div>
@@ -585,21 +433,7 @@ export default function RvLab({
               ))}
             </tbody>
           </table>
-          <h4 className="lab-ref-sub">
-            Псевдокоманды — сокращения, которые ассемблер разворачивает сам
-          </h4>
-          <table className="lab-table ref">
-            <tbody>
-              {PSEUDO.map((p) => (
-                <tr key={p.example}>
-                  <td className="left mono">
-                    <strong>{p.example}</strong>
-                  </td>
-                  <td className="left mono">= {p.becomes}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <PseudoTable items={PSEUDO} />
         </div>
       </div>
     </div>
