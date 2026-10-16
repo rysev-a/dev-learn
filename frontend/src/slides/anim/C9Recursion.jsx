@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 4: рекурсия — готовый стек; DOM, каталоги, любая
    рекурсивная прогулка по вложенному — это DFS. */

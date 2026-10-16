@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 8: рекуррентные соотношения — Фибоначчи, сравнение
    с рекурсивной функцией, запись алгоритма, время работы. */

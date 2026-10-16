@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 12: чистая функция — функция по построению: зависит
    только от аргументов, проверяется простыми тестами, мемоизация строит

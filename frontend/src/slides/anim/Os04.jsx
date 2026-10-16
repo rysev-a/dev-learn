@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Pl, Zn, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Pl, Zn, If } from "./lx.tsx";
 
 /* Глава 4 книги «Погружаемся в Unix»: процессы и сигналы. */
 

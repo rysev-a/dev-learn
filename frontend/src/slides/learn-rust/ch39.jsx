@@ -1,4 +1,4 @@
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 // Слайды для «Изучаем Rust», глава 39 — «Биты, байты и эмулятор процессора».
 // Тот же дизайн-код, что и в главах 1–5: палитра, IBM Plex Mono / Inter,
 // рубрика + номер, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.

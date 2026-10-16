@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Js15.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("СОВРЕМЕННЫЙ FRONTEND / JAVASCRIPT В БРАУЗЕРЕ / ГЛАВА 15", 13);
 

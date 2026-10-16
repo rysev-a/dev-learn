@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Vm04.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПАМЯТЬ И ВВОД-ВЫВОД / ГЛАВА 4", 10);
 

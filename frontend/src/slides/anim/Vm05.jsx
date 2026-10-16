@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn, Pt } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn, Pt } from "./lx.tsx";
 
 /* Глава 5 книги «Виртуализация»: экономия памяти — overcommit, баллонинг, KSM. */
 

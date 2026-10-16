@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 12: практические выводы — база и приближение к ней,
    что остаётся верным на каждом шаге, рекуррентность для времени. */

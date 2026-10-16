@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 10: функция — отношение с контрактом «ровно один образ».
    Нарушения: два ответа и ни одного; сигнатура; детерминизм. */

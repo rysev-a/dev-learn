@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Arc01.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("КОМПЬЮТЕР И ТРАНЗИСТОР / ГЛАВА 1", 10);
 

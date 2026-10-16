@@ -1,5 +1,5 @@
-import { scene, tree } from "./alg.jsx";
-import { Tx } from "./dsl.js";
+import { scene, tree } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
 
 /* Глава 11 книги «Алгоритмы и структуры данных»: двоичные деревья поиска. */
 

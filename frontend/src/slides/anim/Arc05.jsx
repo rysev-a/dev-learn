@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx, cell, pl } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { scene } from "./alg.tsx";
+import { Tx, cell, pl } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 5 книги «Архитектура компьютера»: кодировки текста и защита данных от ошибок. */
 

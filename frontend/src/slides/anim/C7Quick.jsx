@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 10: быстрая сортировка — лучший случай n log n, худший
    n², случайный опорный элемент. */

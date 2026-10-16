@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Nt20.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ЭКСПЛУАТАЦИЯ И БЕЗОПАСНОСТЬ / ГЛАВА 20", 10);
 

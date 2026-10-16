@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 6: при ложной посылке импликация истинна. Балерина,
    контракт проверки входа, all() на пустом массиве. */

@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Rs18.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ИЗУЧАЕМ RUST / ДАННЫЕ И АБСТРАКЦИИ / ГЛАВА 18", 13);
 

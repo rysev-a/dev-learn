@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 2: классическая вероятность — доля благоприятных исходов
    среди равновозможных; кость и монета. */

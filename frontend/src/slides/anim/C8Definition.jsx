@@ -1,4 +1,4 @@
-import { GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 2: граф — вершины и рёбра; форма рисунка не важна;
    друзья и метро. */

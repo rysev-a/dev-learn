@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 8: тавтология и противоречие — классы формул. */
 

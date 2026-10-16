@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 5: независимость — два кубика, произведение; независимость
    не то же, что несовместность. */

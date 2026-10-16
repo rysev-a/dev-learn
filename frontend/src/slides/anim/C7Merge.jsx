@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 9: сортировка слиянием — T(n) = 2T(n/2) + n, уровни
    дерева, n работы на уровень, log n уровней ⇒ n log n. */

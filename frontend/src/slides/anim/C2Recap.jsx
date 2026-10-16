@@ -1,4 +1,4 @@
-import { Pill, Steps, useSteps } from "./kit.jsx";
+import { Pill, Steps, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 13: итог. Карточки понятий главы загораются по очереди,
    затем — где это живёт в коде, и что дальше. */

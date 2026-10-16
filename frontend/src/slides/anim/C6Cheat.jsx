@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 12: карманный справочник — как доказывать и опровергать
    «для всех» и «найдётся»; стратегия отладки. */

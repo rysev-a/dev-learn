@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
 
 /* Глава 16 книги «Компьютерные сети»: файрволы, netfilter, NAT, зоны и DMZ, hairpin, прокси. */
 

@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt } from "./lx.tsx";
 
 /* Глава 1 книги «Виртуализация»: зачем виртуализация, условия Попека и Голдберга. */
 

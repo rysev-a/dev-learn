@@ -1,4 +1,6 @@
-import { G, Steps, useSteps } from "./kit.jsx";
+import type { ReactNode } from "react";
+import type { SceneItem, ItemKind } from "./dsl.ts";
+import { G, Steps, useSteps, type StepsCtl } from "./kit.tsx";
 
 /* Покадровые схемы для книги «Алгоритмы и структуры данных».
 
@@ -22,7 +24,7 @@ import { G, Steps, useSteps } from "./kit.jsx";
      code  {x,y,lines,hl,size,lh,w}      строки кода, hl — подсвеченные номера
    Любой элемент: o — прозрачность, s — масштаб. */
 
-const COL = {
+const COL: Record<string, string> = {
   m: "var(--s-muted)",
   g: "var(--s-accent)",
   y: "var(--s-amber)",
@@ -31,7 +33,14 @@ const COL = {
   v: "var(--s-violet)",
 };
 
-function tone(c = "m") {
+interface ToneStyle {
+  fill: string;
+  fo: number;
+  stroke: string;
+  text: string;
+}
+
+function tone(c: string = "m"): ToneStyle {
   if (c === "K")
     return {
       fill: "var(--s-ink)",
@@ -70,7 +79,7 @@ function tone(c = "m") {
   return { fill: COL[c], fo: 0.28, stroke: COL[c], text: "var(--s-text)" };
 }
 
-const GATE_BODY = {
+const GATE_BODY: Record<string, string> = {
   and: "M-14 -11 H2 A12 11 0 0 1 2 11 H-14 Z",
   nand: "M-14 -11 H2 A12 11 0 0 1 2 11 H-14 Z",
   or: "M-14 -11 Q4 -11 14 0 Q4 11 -14 11 Q-8 0 -14 -11 Z",
@@ -83,7 +92,12 @@ const GATE_BODY = {
 
 /* Контакты элемента для проводов: a, b — входы (у НЕ один — a), y — выход.
    g — {x, y, s} элемента `gate`. */
-export function gp(g, pin) {
+export interface Pt {
+  x: number;
+  y: number;
+}
+
+export function gp(g: { x: number; y: number; s?: number; g?: string }, pin: string): Pt {
   const s = g.s ?? 1;
   const one = g.g === "not" || g.g === "buf";
   if (pin === "y") return { x: g.x + 22 * s, y: g.y };
@@ -92,7 +106,12 @@ export function gp(g, pin) {
 }
 
 // Провод с изломом: ломаная (x1,y1) → (xm,y1) → (xm,y2) → (x2,y2); c — цвет, o — прозрачность.
-export function wire(id, a, b, { c = "m", xm, w = 1.8, o = 1, dash } = {}) {
+export function wire(
+  id: string,
+  a: Pt,
+  b: Pt,
+  { c = "m", xm, w = 1.8, o = 1, dash }: { c?: string; xm?: number; w?: number; o?: number; dash?: string | number } = {},
+): SceneItem {
   const mid = xm ?? (a.x + b.x) / 2;
   const d =
     a.y === b.y
@@ -169,14 +188,14 @@ const RS_TY = new Set([
   "Ok",
   "Err",
 ]);
-function rsTokens(src) {
-  const out = [];
+function rsTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|('\w+\b)|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_]\w*!)|([A-Za-z_]\w*)|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, str, life, num, mac, word] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (str) fill = "var(--s-amber)";
     else if (life) fill = "var(--s-violet)";
@@ -212,14 +231,14 @@ const C_TY = new Set(
     " ",
   ),
 );
-function cTokens(src) {
-  const out = [];
+function cTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(\/\/[^\n]*|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)')|(^\s*#\s*\w+)|(\b(?:0x[0-9a-fA-F]+|\d+)[uUlL]*\b)|([A-Za-z_]\w*)|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, str, pre, num, word] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (str) fill = "var(--s-amber)";
     else if (pre) fill = "var(--s-accent)";
@@ -243,15 +262,15 @@ function cTokens(src) {
   return out;
 }
 const ASM_REG = /^(zero|ra|sp|gp|tp|fp|[xfa]\d+|t[0-6]|s(?:\d|1[01])|pc)$/;
-function asmTokens(src) {
-  const out = [];
+function asmTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(#[^\n]*)|(^\s*[.\w$]+:)|(-?\b(?:0x[0-9a-fA-F]+|\d+)\b)|([A-Za-z_.][\w.]*)|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   let first = true;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, label, num, word] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (label) fill = "var(--s-accent)";
     else if (num) fill = "var(--s-red)";
@@ -285,14 +304,14 @@ const PY_BI = new Set(
     " ",
   ),
 );
-function pyTokens(src) {
-  const out = [];
+function pyTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(#[^\n]*)|([fFrRbB]?"(?:[^"\\]|\\.)*"|[fFrRbB]?'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_]\w*)|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, str, num, word] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (str) fill = "var(--s-amber)";
     else if (num) fill = "var(--s-red)";
@@ -328,14 +347,14 @@ const SQL_FN = new Set(
     " ",
   ),
 );
-function sqlTokens(src) {
-  const out = [];
+function sqlTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(--[^\n]*)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, str, num, word] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (str) fill = "var(--s-amber)";
     else if (num) fill = "var(--s-red)";
@@ -374,14 +393,14 @@ const JS_LIT = new Set([
   "NaN",
   "Infinity",
 ]);
-function jsTokens(src) {
-  const out = [];
+function jsTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(\/\/[^\n]*)|(`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?n?\b)|([A-Za-z_$][\w$]*)|(=>)|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, str, num, word, arrow] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (str) fill = "var(--s-amber)";
     else if (num) fill = "var(--s-red)";
@@ -408,14 +427,14 @@ function jsTokens(src) {
 }
 
 // Подсветка CSS: комментарии, строки, числа с единицами, #цвета, --переменные, @правила, имена свойств
-function cssTokens(src) {
-  const out = [];
+function cssTokens(src: string): ReactNode[] {
+  const out: ReactNode[] = [];
   const re =
     /(\/\*.*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(#[0-9a-fA-F]{3,8}\b|-?\d*\.?\d+(?:px|rem|em|%|vh|vw|dvh|fr|s|ms|deg|ch)?)|(--[\w-]+)|(@[\w-]+)|([A-Za-z_-][\w-]*)(?=\s*:(?!:))|(\s+|.)/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const [tok, com, str, num, cv, at, prop] = m;
-    let fill;
+    let fill: string | undefined;
     if (com) fill = "var(--s-muted)";
     else if (str) fill = "var(--s-amber)";
     else if (num) fill = "var(--s-red)";
@@ -436,9 +455,9 @@ function cssTokens(src) {
 }
 
 const ARROW_OK = new Set(["m", "g", "y", "r", "b"]);
-const arrowId = (c) => `url(#a-hd-${ARROW_OK.has(c) ? c : "m"})`;
+const arrowId = (c: string) => `url(#a-hd-${ARROW_OK.has(c) ? c : "m"})`;
 
-function Lines({ text, size, anchor = "middle", lh = 1.25 }) {
+function Lines({ text, anchor = "middle", lh = 1.25 }: { text: string | number; anchor?: "start" | "middle" | "end"; lh?: number }) {
   const parts = String(text).split("\n");
   if (parts.length === 1) return <>{text}</>;
   return parts.map((p, i) => (
@@ -453,7 +472,7 @@ function Lines({ text, size, anchor = "middle", lh = 1.25 }) {
   ));
 }
 
-function Item({ it }) {
+function Item({ it }: { it: SceneItem }) {
   const { t, o = 1, s = 1 } = it;
   if (t === "cell") {
     const w = it.w ?? 30;
@@ -482,7 +501,7 @@ function Item({ it }) {
           className="a-mono"
           style={{ fill: it.tc ?? k.text, fontSize: size }}
         >
-          <Lines text={it.text ?? ""} size={size} />
+          <Lines text={it.text ?? ""} />
         </text>
         {it.sub != null && (
           <text
@@ -612,7 +631,7 @@ function Item({ it }) {
             fontWeight: it.bold ? 600 : undefined,
           }}
         >
-          <Lines text={it.text} size={size} anchor={it.anchor ?? "middle"} />
+          <Lines text={it.text ?? ""} anchor={it.anchor ?? "middle"} />
         </text>
       </G>
     );
@@ -643,7 +662,7 @@ function Item({ it }) {
     );
   }
   if (t === "line") {
-    const { x1, y1, x2, y2 } = it;
+    const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = it;
     const bend = it.bend ?? 0;
     let d = `M${x1} ${y1} L${x2} ${y2}`;
     if (bend) {
@@ -718,7 +737,7 @@ function Item({ it }) {
           stroke: COL[c] ?? c,
           strokeWidth: it.w ?? 2,
           strokeDasharray: drawn ? "1 1" : it.dash,
-          strokeDashoffset: drawn ? 1 - it.draw : 0,
+          strokeDashoffset: drawn ? 1 - (it.draw ?? 0) : 0,
           opacity: o,
         }}
       />
@@ -770,12 +789,12 @@ function Item({ it }) {
     const lh = it.lh ?? 13;
     const size = it.size ?? 9.5;
     const w = it.w ?? 150;
-    const set = (v) => new Set(Array.isArray(v) ? v : v == null ? [] : [v]);
+    const set = (v: number | number[] | undefined) => new Set(Array.isArray(v) ? v : v == null ? [] : [v]);
     const hl = set(it.hl);
     const bad = set(it.bad);
     return (
       <G x={it.x} y={it.y} o={o}>
-        {it.lines.map((l, i) => (
+        {(it.lines ?? []).map((l, i) => (
           <g key={i}>
             <rect
               className="a-t"
@@ -996,7 +1015,7 @@ function Item({ it }) {
   return null;
 }
 
-const KNOWN = new Set([
+const KNOWN = new Set<ItemKind>([
   "cell",
   "dot",
   "lnode",
@@ -1025,57 +1044,64 @@ const NUMERIC = [
   "o",
   "s",
   "hh",
-];
+] as const;
 
 // Проверка при создании сцены: неизвестный тип или нечисловая координата — ошибка автора, а не «тихая» пустота.
-function validate(frames, base, labels) {
+function validate(frames: Frame[], base: Frame, labels: string[]) {
   frames.forEach((f, k) => {
     for (const it of [...base, ...f]) {
       const where = `сцена «${labels[0]}…», кадр ${k}, элемент ${it?.id}`;
       if (!it || !KNOWN.has(it.t) || it.id == null)
         throw new Error(`${where}: неизвестный элемент`);
-      for (const key of NUMERIC)
-        if (it[key] !== undefined && !Number.isFinite(it[key]))
-          throw new Error(`${where}: ${key} = ${it[key]}`);
+      for (const key of NUMERIC) {
+        const v = it[key];
+        if (v !== undefined && !Number.isFinite(v)) throw new Error(`${where}: ${key} = ${v}`);
+      }
       if (it.t === "path" && typeof it.d !== "string")
         throw new Error(`${where}: нет d`);
     }
   });
 }
 
+/** Кадр — список элементов, видимых на шаге. */
+export type Frame = SceneItem[];
+
+export interface SceneSpec {
+  labels: string[];
+  caption: string[];
+  frames: Frame[];
+  base?: Frame;
+  cues?: number[];
+  ms?: number;
+  h?: number;
+}
+
 // Фабрика сцены. base — элементы, которые есть в каждом кадре (если кадр не
 // переопределил их по id). cues — секунды начала шагов 1, 2, …
-export function scene({
-  labels,
-  caption,
-  frames,
-  base = [],
-  cues,
-  ms = 2800,
-  h = 170,
-}) {
+export function scene({ labels, caption, frames, base = [], cues, ms = 2800, h = 170 }: SceneSpec) {
   const full = frames.map((f) => {
-    const m = new Map();
+    const m = new Map<string, SceneItem>();
     for (const it of [...base, ...f]) m.set(it.id, it);
     return m;
   });
-  const order = [];
-  const seen = new Set();
+  const order: string[] = [];
+  const seen = new Set<string>();
   full.forEach((m) =>
     m.forEach((_, id) => !seen.has(id) && (seen.add(id), order.push(id))),
   );
   // что рисовать, если в кадре элемента нет: его последнее показанное состояние, но невидимое
-  const lastSeen = {};
+  const lastSeen: Record<string, SceneItem> = {};
   const ghost = full.map((m) => {
-    const g = {};
+    const g: Record<string, SceneItem> = {};
     for (const id of order) {
-      if (m.has(id)) lastSeen[id] = m.get(id);
+      const cur = m.get(id);
+      if (cur) lastSeen[id] = cur;
       else if (lastSeen[id]) g[id] = { ...lastSeen[id], o: 0 };
     }
     return g;
   });
   // элементы, впервые появляющиеся позже: до появления тоже невидимы на своём месте
-  const firstOf = {};
+  const firstOf: Record<string, SceneItem> = {};
   full.forEach((m) =>
     m.forEach((it, id) => !(id in firstOf) && (firstOf[id] = it)),
   );
@@ -1088,31 +1114,35 @@ export function scene({
       `scene «${labels[0]}…»: подписей ${caption.length}, кадров ${frames.length}`,
     );
   validate(frames, base, labels);
-  return function Scene({ cues: given }) {
-    const ctl = useSteps(given || cues || defaultCues(frames.length), ms);
+  return function Scene({ cues: given }: { cues?: number[] }) {
+    const ctl: StepsCtl = useSteps(given || cues || defaultCues(frames.length), ms);
     const k = Math.min(ctl.step, frames.length - 1);
     return (
       <Steps ctl={ctl} labels={labels} caption={caption} h={h}>
         {order.map((id) => {
-          const it = full[k].get(id) ??
-            ghost[k][id] ?? { ...firstOf[id], o: 0 };
+          const it = full[k].get(id) ?? ghost[k][id] ?? { ...firstOf[id], o: 0 };
           return <Item key={id} it={it} />;
         })}
       </Steps>
     );
-  }
+  };
 }
 
-function defaultCues(n) {
+function defaultCues(n: number) {
   return Array.from({ length: n - 1 }, (_, i) => 5 + i * 8);
 }
 
 /* ---------- помощники для авторов сцен ---------- */
 
+/** Параметр «по индексу»: таблица {i: значение}, массив или функция i => значение. */
+type ByIndex<T> = Partial<Record<number, T>> | T[] | ((i: number) => T | undefined);
+const pick = <T,>(v: ByIndex<T> | undefined, i: number): T | undefined =>
+  typeof v === "function" ? v(i) : (v as Partial<Record<number, T>> | undefined)?.[i];
+
 // Ряд клеток: id0, id1, …; c — {i: цвет} или i => цвет; sub — i => подпись под клеткой.
 export function row(
-  id,
-  vals,
+  id: string,
+  vals: (string | number)[],
   {
     x0 = 40,
     y = 60,
@@ -1125,8 +1155,20 @@ export function row(
     sub,
     o = 1,
     dash,
+  }: {
+    x0?: number;
+    y?: number;
+    cw?: number;
+    h?: number;
+    w?: number;
+    c?: ByIndex<string>;
+    tc?: string;
+    size?: number;
+    sub?: ByIndex<string | number>;
+    o?: number | ((i: number) => number);
+    dash?: SceneItem["dash"];
   } = {},
-) {
+): SceneItem[] {
   return vals.map((v, i) => ({
     t: "cell",
     id: `${id}${i}`,
@@ -1135,24 +1177,33 @@ export function row(
     w: w ?? cw - 3,
     h,
     text: v,
-    c: typeof c === "function" ? (c(i) ?? "m") : (c[i] ?? "m"),
+    c: pick(c, i) ?? "m",
     tc,
     size,
-    sub: typeof sub === "function" ? sub(i) : sub?.[i],
+    sub: pick(sub, i),
     o: typeof o === "function" ? o(i) : o,
     dash,
   }));
 }
 
-export const X = (x0, cw, i) => x0 + cw * i;
+export const X = (x0: number, cw: number, i: number) => x0 + cw * i;
 
 // Линия между центрами двух узлов, укороченная на радиус r с обоих концов.
 export function edge(
-  id,
-  a,
-  b,
-  { r = 12, r2, c = "m", arrow = false, o = 1, dash, w, bend } = {},
-) {
+  id: string,
+  a: Pt,
+  b: Pt,
+  {
+    r = 12,
+    r2,
+    c = "m",
+    arrow = false,
+    o = 1,
+    dash,
+    w,
+    bend,
+  }: { r?: number; r2?: number; c?: string; arrow?: boolean; o?: number; dash?: SceneItem["dash"]; w?: number; bend?: number } = {},
+): SceneItem {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const n = Math.hypot(dx, dy) || 1;
@@ -1173,12 +1224,20 @@ export function edge(
   };
 }
 
+/** Узел бинарного дерева для tree(): k — ключ, l и r — потомки, c — цвет. */
+export interface TreeNode {
+  k: string | number;
+  l?: TreeNode | null;
+  r?: TreeNode | null;
+  c?: string;
+}
+
 /* Бинарное дерево: node = {k, l, r, c}. Позиция x — по порядку обхода слева
    направо (стабильна при вставках), y — по глубине; id узла — `${id}:${k}`.
    Возвращает массив элементов (рёбра и узлы). colors — {k: цвет} поверх node.c. */
 export function tree(
-  id,
-  root,
+  id: string,
+  root: TreeNode | null,
   {
     x0 = 180,
     y0 = 24,
@@ -1190,30 +1249,41 @@ export function tree(
     size,
     o = 1,
     center = true,
+  }: {
+    x0?: number;
+    y0?: number;
+    dx?: number;
+    dy?: number;
+    r?: number;
+    colors?: Record<string, string>;
+    texts?: Record<string, string | number>;
+    size?: number;
+    o?: number;
+    center?: boolean;
   } = {},
-) {
-  const nodes = [];
+): SceneItem[] {
+  // позиция узла: порядковый номер при обходе слева направо и глубина
+  const where = new Map<TreeNode, { x: number; d: number }>();
   let i = 0;
-  (function walk(n, d, parent) {
+  (function walk(n: TreeNode | null | undefined, d: number) {
     if (!n) return;
-    walk(n.l, d + 1, n);
-    n._x = i++;
-    n._d = d;
-    walk(n.r, d + 1, n);
+    walk(n.l, d + 1);
+    where.set(n, { x: i++, d });
+    walk(n.r, d + 1);
   })(root, 0);
   const cnt = i;
-  const pos = (n) => ({
-    x: x0 + (n._x - (center ? (cnt - 1) / 2 : 0)) * dx,
-    y: y0 + n._d * dy,
-  });
-  const items = [];
-  (function emit(n, parent) {
+  const pos = (n: TreeNode): Pt => {
+    const w = where.get(n) ?? { x: 0, d: 0 };
+    return { x: x0 + (w.x - (center ? (cnt - 1) / 2 : 0)) * dx, y: y0 + w.d * dy };
+  };
+  const items: SceneItem[] = [];
+  const nodes: SceneItem[] = [];
+  (function emit(n: TreeNode | null | undefined, parent: TreeNode | null) {
     if (!n) return;
     const p = pos(n);
     if (parent) {
-      const q = pos(parent);
       items.push(
-        edge(`${id}~${parent.k}-${n.k}`, q, p, {
+        edge(`${id}~${parent.k}-${n.k}`, pos(parent), p, {
           r,
           o,
           c: colors[`~${n.k}`] ?? "m",
@@ -1238,7 +1308,10 @@ export function tree(
 }
 
 // Путь-график функции fn на прямоугольнике {x, y, w, h} (y — нижний левый угол), x ∈ [0, xmax], значения обрезаются на ymax.
-export function curveD(fn, { x, y, w, h, xmax = 1, ymax = 1, n = 48 }) {
+export function curveD(
+  fn: (u: number) => number,
+  { x, y, w, h, xmax = 1, ymax = 1, n = 48 }: { x: number; y: number; w: number; h: number; xmax?: number; ymax?: number; n?: number },
+) {
   let d = "";
   for (let i = 0; i <= n; i++) {
     const u = (i / n) * xmax;
@@ -1252,8 +1325,8 @@ export function curveD(fn, { x, y, w, h, xmax = 1, ymax = 1, n = 48 }) {
 // Цепочка узлов списка: узлы `${id}${i}` и стрелки `${id}~${i}` от ссылки узла i к левому краю узла i+1.
 // pos — i => {x, y} (по умолчанию в ряд); last — рисовать ли у последнего узла «пустую» ссылку.
 export function chain(
-  id,
-  vals,
+  id: string,
+  vals: (string | number)[],
   {
     x0 = 48,
     y = 60,
@@ -1267,10 +1340,23 @@ export function chain(
     arrows = true,
     edgeC = "g",
     nilLast = true,
+  }: {
+    x0?: number;
+    y?: number;
+    dx?: number;
+    w?: number;
+    h?: number;
+    c?: ByIndex<string>;
+    o?: number | ((i: number) => number);
+    pos?: (i: number) => Pt;
+    sub?: ByIndex<string | number>;
+    arrows?: boolean;
+    edgeC?: string;
+    nilLast?: boolean;
   } = {},
-) {
-  const at = (i) => (pos ? pos(i) : { x: x0 + dx * i, y });
-  const out = [];
+): SceneItem[] {
+  const at = (i: number): Pt => (pos ? pos(i) : { x: x0 + dx * i, y });
+  const out: SceneItem[] = [];
   vals.forEach((v, i) => {
     const p = at(i);
     out.push({
@@ -1281,9 +1367,9 @@ export function chain(
       w,
       h,
       text: v,
-      c: typeof c === "function" ? (c(i) ?? "m") : (c[i] ?? "m"),
+      c: pick(c, i) ?? "m",
       nil: nilLast && i === vals.length - 1,
-      sub: typeof sub === "function" ? sub(i) : sub?.[i],
+      sub: pick(sub, i),
       o: typeof o === "function" ? o(i) : o,
     });
     if (arrows && i < vals.length - 1) {

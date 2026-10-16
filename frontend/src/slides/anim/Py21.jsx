@@ -1,7 +1,7 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, slot } from "./cl.jsx";
-import { py } from "./cl.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, slot } from "./cl.tsx";
+import { py } from "./cl.tsx";
 
 /* «Python как первый язык», глава 21: дескрипторы, property, __slots__. */
 

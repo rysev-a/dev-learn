@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 3: предикаты в работе — filter, find, условие в if. */
 

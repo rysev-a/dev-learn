@@ -1,5 +1,5 @@
-import { Steps, Txt, useSteps } from "./kit.jsx";
-import { binom, triPos } from "./tri.js";
+import { Steps, Txt, useSteps } from "./kit.tsx";
+import { binom, triPos } from "./tri.ts";
 
 /* Глава 4, слайд 2: треугольник Паскаля строится одним правилом —
    сумма двух чисел над клеткой. */

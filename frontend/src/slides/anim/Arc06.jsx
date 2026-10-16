@@ -1,5 +1,5 @@
-import { gp, scene } from "./alg.jsx";
-import { GT, Tx, bit, box, cell, lv, pl, wr } from "./hw.jsx";
+import { gp, scene } from "./alg.tsx";
+import { GT, Tx, bit, box, cell, lv, pl, wr } from "./hw.tsx";
 
 /* Глава 6 книги «Архитектура компьютера»: логические элементы. Схемы — вентили, ключи и таблицы. */
 

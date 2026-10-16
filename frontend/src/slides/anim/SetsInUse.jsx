@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 11: где множества живут в работе. Список → хеш-сет (дедупликация),
    SQL-операции, теги и сегменты, цикл с флагом против одной операции. */

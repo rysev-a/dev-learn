@@ -1,4 +1,4 @@
-import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 5: обход в ширину — волна, очередь, и «стек против
    очереди» как единственная разница. */

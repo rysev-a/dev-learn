@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.tsx";
 
 /* Глава 14 книги «Компьютерные сети»: веб-API — REST, JSON и коды, пагинация, токены и лимиты, опрос, WebSocket, SSE, gRPC. */
 

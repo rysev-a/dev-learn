@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 7: размещения A(n, k) — выбор k из n, когда порядок важен.
    Подиум 20·19·18, формула n!/(n−k)!, пин-код без повторов, проверка

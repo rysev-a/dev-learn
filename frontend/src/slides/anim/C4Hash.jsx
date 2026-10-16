@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 4, слайд 10: принцип Дирихле в хеш-таблицах. Шесть ключей — четыре
    ячейки, коллизия неизбежна; цепочки, открытая адресация, рехеширование;

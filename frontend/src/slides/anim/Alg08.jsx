@@ -1,5 +1,5 @@
-import { edge, row, scene } from "./alg.jsx";
-import { LIST, Tx, span } from "./ad.jsx";
+import { edge, row, scene } from "./alg.tsx";
+import { LIST, Tx, span } from "./ad.tsx";
 
 /* Глава 8 книги «Алгоритмы и структуры данных»: строковые алгоритмы. */
 

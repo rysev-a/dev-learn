@@ -15,7 +15,7 @@ import C4Hash from "../anim/C4Hash.jsx";
 import C4Birthday from "../anim/C4Birthday.jsx";
 import C4Crypto from "../anim/C4Crypto.jsx";
 import C4Recap from "../anim/C4Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 4", 13);
 

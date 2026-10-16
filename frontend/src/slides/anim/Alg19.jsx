@@ -1,5 +1,5 @@
-import { row, scene } from "./alg.jsx";
-import { Tx } from "./dsl.js";
+import { row, scene } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
 
 /* Глава 19 книги «Алгоритмы и структуры данных»: жадные алгоритмы и эвристики. */
 

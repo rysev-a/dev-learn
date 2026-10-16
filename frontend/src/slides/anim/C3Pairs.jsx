@@ -1,4 +1,4 @@
-import { G, Matrix, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Matrix, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 10: C(n, 2) — число пар. Рукопожатия десяти человек,
    треугольник вложенного цикла, полный граф серверов. */

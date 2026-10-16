@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { REVEAL_MS, Steps, useSteps } from "./kit.jsx";
+import { REVEAL_MS, Steps, useSteps } from "./kit.tsx";
 
 /* Слайд 1 главы «Множества»: пять кружков и пять квадратов появляются,
    их обводят пунктиром (две группы), затем фигуры получают цвета и

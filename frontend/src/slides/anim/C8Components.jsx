@@ -1,4 +1,4 @@
-import { GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 6: связность и компоненты — острова без мостов. */
 

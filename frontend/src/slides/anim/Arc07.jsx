@@ -1,6 +1,6 @@
-import { gp, scene } from "./alg.jsx";
-import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.jsx";
-import { Box } from "./dsl.js";
+import { gp, scene } from "./alg.tsx";
+import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.tsx";
+import { Box } from "./dsl.ts";
 
 /* Глава 7 книги «Архитектура компьютера»: мультиплексоры, демультиплексоры, дешифраторы, шифраторы и шины. */
 

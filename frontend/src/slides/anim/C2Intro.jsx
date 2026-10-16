@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 1: отношения в базе (заказ → клиент), функции в модуле
    (вход → f → выход) и один общий словарь. */

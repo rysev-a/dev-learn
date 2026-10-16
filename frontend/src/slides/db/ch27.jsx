@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Db27.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("БАЗЫ ДАННЫХ / ПРОЕКТИРОВАНИЕ И SQL / ГЛАВА 27", 13);
 

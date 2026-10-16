@@ -15,7 +15,7 @@ import C8Choice from "../anim/C8Choice.jsx";
 import C8InOut from "../anim/C8InOut.jsx";
 import C8Cycles from "../anim/C8Cycles.jsx";
 import C8Recap from "../anim/C8Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ГРАФЫ И ВЕРОЯТНОСТЬ / ГЛАВА 8", 13);
 

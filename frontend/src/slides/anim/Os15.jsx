@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, If, Rw } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, If, Rw } from "./lx.tsx";
 
 /* Глава 15 книги «Погружаемся в Unix»: взаимодействие процессов. */
 

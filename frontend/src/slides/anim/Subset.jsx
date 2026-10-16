@@ -1,4 +1,4 @@
-import { Steps, Txt, useSteps } from "./kit.jsx";
+import { Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 8: подмножества. Внутри большого множества B живёт меньшее A;
    подписи меняются с абстрактных на числа и на права ролей. В конце —

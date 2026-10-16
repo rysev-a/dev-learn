@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, If } from "./lx.tsx";
 
 /* Глава 2 книги «Компьютерные сети»: модели OSI и TCP/IP, инкапсуляция. */
 

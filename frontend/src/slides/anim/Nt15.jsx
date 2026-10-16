@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.tsx";
 
 /* Глава 15 книги «Компьютерные сети»: диагностика — метод, ping, traceroute, ip/ss, dig/curl, tcpdump, Wireshark, MTU. */
 

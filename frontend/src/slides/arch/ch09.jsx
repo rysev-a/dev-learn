@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Arc09.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ЦИФРОВАЯ ЛОГИКА / ГЛАВА 9", 10);
 

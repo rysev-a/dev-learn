@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 8: сочетания C(n, k) — порядок не важен. Шесть порядков
    сливаются в один, формула A/k!, колода, ревьюеры, связь с размещениями. */

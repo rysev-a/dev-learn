@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 10: законы де Моргана для логики — зонтик и ключи,
    инверсия условия в коде, ранний возврат. */

@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 9: деревья вокруг — файловая система, AST, DOM,
    иерархии; рекурсия тренировалась на деревьях. */

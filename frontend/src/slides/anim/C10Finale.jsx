@@ -1,4 +1,4 @@
-import { Pill, Steps, useSteps } from "./kit.jsx";
+import { Pill, Steps, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 13: итог главы и всего курса. */
 

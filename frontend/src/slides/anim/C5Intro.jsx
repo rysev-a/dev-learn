@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 1: логика высказываний — то, что вы делаете в каждом
    if; инверсии, приоритет, «внезапно зелёный тест»; конструктор. */

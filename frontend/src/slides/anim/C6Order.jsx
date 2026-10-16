@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 9: порядок кванторов. ∀∃ — у каждого своя мама,
    ∃∀ — одна мама на всех. */

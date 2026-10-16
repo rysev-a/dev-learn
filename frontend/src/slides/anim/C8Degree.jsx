@@ -1,4 +1,4 @@
-import { G, GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 4: степень вершины; лемма о рукопожатиях: Σ deg = 2|E|;
    число вершин нечётной степени чётно. */

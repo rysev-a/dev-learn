@@ -15,7 +15,7 @@ import C10BaseRate from "../anim/C10BaseRate.jsx";
 import C10Engineering from "../anim/C10Engineering.jsx";
 import C10Diagnostics from "../anim/C10Diagnostics.jsx";
 import C10Finale from "../anim/C10Finale.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ГРАФЫ И ВЕРОЯТНОСТЬ / ГЛАВА 10", 13);
 

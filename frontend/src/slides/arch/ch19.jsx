@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Arc19.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПАМЯТЬ И ПРОИЗВОДИТЕЛЬНОСТЬ / ГЛАВА 19", 13);
 

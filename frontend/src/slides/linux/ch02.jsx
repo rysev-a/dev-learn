@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Os02.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ШЕЛЛ И ФАЙЛЫ / ГЛАВА 2", 10);
 

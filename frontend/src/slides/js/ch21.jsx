@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Js21.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("СОВРЕМЕННЫЙ FRONTEND / JAVASCRIPT В NODE.JS / ГЛАВА 21", 13);
 

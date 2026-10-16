@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 9: списки смежности — экономия для разреженных графов;
    соцсеть на миллиард; цена проверки; перебор соседей. */

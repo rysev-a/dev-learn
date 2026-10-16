@@ -1,10 +1,10 @@
 /* Общие помощники сцен глав 8, 9, 14 и 17 книги «Алгоритмы и структуры данных». Всё поверх alg.jsx. */
 
-import { Tx } from "./dsl.js";
+import { Tx, type SceneItem } from "./dsl.ts";
 export { Tx };
 
 // Список «слева моно — справа пояснение»; on — номер или список подсвеченных строк.
-export const LIST = (items, on, { w = 334, rowH = 34, y0 = 28 } = {}) => {
+export const LIST = (items: string[][]|[any,any][], on: number|Iterable<any>|null|undefined, { w = 334, rowH = 34, y0 = 28 } = {}) => {
   const hot = new Set(Array.isArray(on) ? on : [on]);
   return items.flatMap(([a, b], i) => [
     {
@@ -31,7 +31,7 @@ export const LIST = (items, on, { w = 334, rowH = 34, y0 = 28 } = {}) => {
 };
 
 // Рамка вокруг клеток ряда: от индекса a до b (включительно), центры x0 + cw·i.
-export const span = (id, x0, cw, a, b, y, { c = "g", h = 34, dash } = {}) => ({
+export const span = (id: string, x0: number, cw: number, a: number, b: number, y: number, { c = "g", h = 34, dash }: { c?: string; h?: number; dash?: SceneItem["dash"] } = {}): SceneItem => ({
   t: "box",
   id,
   x: x0 + (cw * (a + b)) / 2,

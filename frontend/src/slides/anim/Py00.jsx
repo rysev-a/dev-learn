@@ -1,7 +1,7 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, asm, cc, slot } from "./cl.jsx";
-import { py } from "./cl.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, asm, cc, slot } from "./cl.tsx";
+import { py } from "./cl.tsx";
 
 /* Введение книги «Python как первый язык»: что такое язык программирования и почему Питон. */
 

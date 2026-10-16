@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Os14.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ИЗОЛЯЦИЯ И ЯДРО / ГЛАВА 14", 10);
 

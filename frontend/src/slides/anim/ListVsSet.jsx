@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 2: что такое множество. Справа — множество гостей (три имени,
    без повторов и порядка), слева — список, где имена повторяются и

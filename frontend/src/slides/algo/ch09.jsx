@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Alg09.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("СТРОКИ И ЧИСЛА / ГЛАВА 9", 13);
 

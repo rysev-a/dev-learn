@@ -1,4 +1,4 @@
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 // Слайды для «Python как первый язык», глава 37 — «Программы и среда: sys, argparse, logging, subprocess».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.

@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Arc21.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ВВОД-ВЫВОД И ПАРАЛЛЕЛИЗМ / ГЛАВА 21", 13);
 

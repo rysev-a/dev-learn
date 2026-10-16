@@ -1,5 +1,5 @@
-import { row, scene, tree } from "./alg.jsx";
-import { Tx } from "./dsl.js";
+import { row, scene, tree } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
 
 /* Глава 18 книги «Алгоритмы и структуры данных»: динамическое программирование. */
 

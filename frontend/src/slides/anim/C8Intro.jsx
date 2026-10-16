@@ -1,4 +1,4 @@
-import { GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 1: графы вокруг нас — дерево DOM, зависимости,
    соцсеть; дальше строгий язык. */

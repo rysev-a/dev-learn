@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn, Cd, Rw } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn, Cd, Rw } from "./lx.tsx";
 
 /* Глава 2 книги «Виртуализация»: trap-and-emulate, проблема x86, трансляция, паравиртуализация. */
 

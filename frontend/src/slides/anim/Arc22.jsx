@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx, cell, pl, bit, wave } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { scene } from "./alg.tsx";
+import { Tx, cell, pl, bit, wave } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 22 книги «Архитектура компьютера»: параллелизм, когерентность кэшей, атомарность, SIMD и GPU. */
 

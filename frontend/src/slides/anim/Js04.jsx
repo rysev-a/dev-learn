@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Box, Tx, arrow, jc, slot } from "./jv.jsx";
+import { scene } from "./alg.tsx";
+import { Box, Tx, arrow, jc, slot } from "./jv.tsx";
 
 /* Глава 4 книги «Современный Frontend»: первая программа — браузер, Node и значения. */
 

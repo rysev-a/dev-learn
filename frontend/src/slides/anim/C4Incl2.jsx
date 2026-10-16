@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 4, слайд 7: включения и исключения для двух множеств:
    40 + 30 − 10 = 60; UNION убирает дубликаты. */

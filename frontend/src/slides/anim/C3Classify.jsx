@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 11: двойной счёт и классификация. Упорядоченные пары
    дают лишние дубли, три друга — ручная проверка формулы, дерево выбора

@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 1: условия в коде — это язык; предикаты и кванторы
    позволяют говорить обо всех случаях сразу. */

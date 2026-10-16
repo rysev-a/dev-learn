@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Os05.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПРОЦЕССЫ И ПЛАНИРОВАНИЕ / ГЛАВА 5", 10);
 

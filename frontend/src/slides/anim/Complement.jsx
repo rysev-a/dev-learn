@@ -1,4 +1,4 @@
-import { Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 5: универсум и дополнение. Пользователи системы, администраторы A,
    дополнение ¬A; затем универсум меняется на «людей на планете» —

@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn, Cd, If, at } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn, Cd, If, at } from "./lx.tsx";
 
 /* Глава 3 книги «Погружаемся в Unix»: пользователи, права, привилегии. */
 

@@ -1,6 +1,6 @@
-import { curveD, row, scene } from "./alg.jsx";
-import { Tx } from "./dsl.js";
-import { Pt as P } from "./lx.jsx";
+import { curveD, row, scene } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
+import { Pt as P } from "./lx.tsx";
 
 /* Глава 5 книги «Алгоритмы и структуры данных»: хеш-таблицы. */
 

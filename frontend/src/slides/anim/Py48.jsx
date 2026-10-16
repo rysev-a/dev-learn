@@ -1,7 +1,7 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow } from "./cl.jsx";
-import { py } from "./cl.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow } from "./cl.tsx";
+import { py } from "./cl.tsx";
 
 /* «Python как первый язык», глава 48: байт-код, интерпретатор, GIL, потоки без GIL. */
 

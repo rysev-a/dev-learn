@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { GT, Tx, bit, cell, lv, mux, pl, wave } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { scene } from "./alg.tsx";
+import { GT, Tx, bit, cell, lv, mux, pl, wave } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 13 книги «Архитектура компьютера»: декодер команд, управляющие сигналы, фазы такта, остановка. */
 

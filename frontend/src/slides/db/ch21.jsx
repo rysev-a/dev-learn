@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Db21.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("БАЗЫ ДАННЫХ / МАСШТАБ И СОГЛАСОВАННОСТЬ / ГЛАВА 21", 13);
 

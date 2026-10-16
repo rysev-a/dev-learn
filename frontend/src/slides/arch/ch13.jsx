@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Arc13.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПРОЦЕССОР / ГЛАВА 13", 10);
 

@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 12: диагностика — Байес на дежурстве: алерты,
    причины по правдоподобию, интуиция дежурного, таблица частот. */

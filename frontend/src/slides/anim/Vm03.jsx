@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn } from "./lx.tsx";
 
 /* Глава 3 книги «Виртуализация»: аппаратная поддержка — VT-x, AMD-V, ARM EL2, RISC-V H. */
 

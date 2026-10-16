@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Db19.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("БАЗЫ ДАННЫХ / СКОРОСТЬ И ХРАНИЛИЩА / ГЛАВА 19", 13);
 

@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 7: индукция и рекурсия — близнецы; база, вызов как
    переход, корректность «по построению», потеря базы и stack overflow. */

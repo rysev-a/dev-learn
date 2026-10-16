@@ -15,7 +15,7 @@ import C7Quick from "../anim/C7Quick.jsx";
 import C7Invariant from "../anim/C7Invariant.jsx";
 import C7Practice from "../anim/C7Practice.jsx";
 import C7Recap from "../anim/C7Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 7", 13);
 

@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, asm, cc, slot } from "./cl.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, asm, cc, slot } from "./cl.tsx";
 
 /* Глава 6 книги «От assembler к языку C»: указатели на функции и обобщённый код. */
 

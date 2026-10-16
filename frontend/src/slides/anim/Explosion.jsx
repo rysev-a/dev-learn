@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { REVEAL_MS, Steps, Txt, useSteps } from "./kit.jsx";
+import { REVEAL_MS, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 10: цена перебора. Кривая 2ⁿ рисуется слева направо: почти плоская
    до самого конца, а потом взлетает; метка n = 30 и «бюджет времени». */

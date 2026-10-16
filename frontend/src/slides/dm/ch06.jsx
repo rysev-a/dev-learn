@@ -15,7 +15,7 @@ import C6Requirements from "../anim/C6Requirements.jsx";
 import C6Domain from "../anim/C6Domain.jsx";
 import C6Cheat from "../anim/C6Cheat.jsx";
 import C6Recap from "../anim/C6Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 6", 13);
 

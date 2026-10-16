@@ -1,4 +1,4 @@
-import { Dot, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 6: законы де Моргана. Заливка на диаграмме Венна показывает
    ¬(A ∪ B) и ¬(A ∩ B); затем доказательство на одном элементе, примеры

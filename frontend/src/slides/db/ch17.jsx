@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Db17.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("БАЗЫ ДАННЫХ / МОДЕЛЬ И НАДЁЖНОСТЬ / ГЛАВА 17", 13);
 

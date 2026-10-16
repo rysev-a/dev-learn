@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx, cell, pl, bit } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { scene } from "./alg.tsx";
+import { Tx, cell, pl, bit } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 21 книги «Архитектура компьютера»: шины, ввод-вывод, прерывания, DMA, диски, RAID. */
 

@@ -19,7 +19,7 @@ import {
   V15,
   V16,
 } from "../anim/Alg12.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДЕРЕВЬЯ И КУЧИ / ГЛАВА 12", 16);
 

@@ -1,4 +1,4 @@
-import { G, Steps, Table, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Table, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 4: таблицы истинности — 2ⁿ строк, полный перебор. */
 

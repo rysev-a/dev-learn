@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Box, Tx, arrow, jc } from "./jv.jsx";
+import { scene } from "./alg.tsx";
+import { Box, Tx, arrow, jc } from "./jv.tsx";
 
 /* Глава 5 книги «Современный Frontend»: операторы, приведение типов и сравнение. */
 

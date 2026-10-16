@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Cd, If, Rw } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Cd, If, Rw } from "./lx.tsx";
 
 /* Введение к книге «Погружаемся в Unix»: что такое операционная система и откуда взялся Unix. */
 

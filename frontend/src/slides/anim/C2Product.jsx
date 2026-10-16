@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 3: прямое произведение. Три футболки × двое брюк = шесть
    нарядов; правило произведения; перекрёстное соединение в SQL. */

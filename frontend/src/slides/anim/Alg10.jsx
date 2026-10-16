@@ -1,5 +1,5 @@
-import { edge, row, scene, tree } from "./alg.jsx";
-import { Tx } from "./dsl.js";
+import { edge, row, scene, tree } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
 
 /* Глава 10 книги «Алгоритмы и структуры данных»: деревья и обходы. */
 

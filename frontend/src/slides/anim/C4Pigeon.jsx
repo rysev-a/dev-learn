@@ -1,4 +1,4 @@
-import { Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 4, слайд 9: принцип Дирихле. Пять кроликов, четыре клетки: при любой
    рассадке в какой-то клетке минимум двое; существование без адреса. */

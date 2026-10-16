@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 4: пространство паролей. 95⁸, удлинение умножает на 95,
    фраза из слов против коротких символов, время перебора. */

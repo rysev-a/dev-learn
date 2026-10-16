@@ -19,7 +19,7 @@ import {
   V15,
   V16,
 } from "../anim/Alg16.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ГРАФЫ И СТРАТЕГИИ / ГЛАВА 16", 16);
 

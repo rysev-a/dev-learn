@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 4, слайд 12: криптографические хеши живут под тем же законом:
    пространство выходов конечно, коллизия обязана случиться, но пространство

@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, If, Rw } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, If, Rw } from "./lx.tsx";
 
 /* Глава 16 книги «Погружаемся в Unix»: ввод-вывод, терминалы, epoll, io_uring. */
 

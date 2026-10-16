@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 7: формула Байеса — оборачивание условия; априорная
    уверенность → свидетельство → апостериорная. */

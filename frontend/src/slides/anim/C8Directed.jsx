@@ -1,4 +1,4 @@
-import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 3: ориентированные и неориентированные рёбра. */
 

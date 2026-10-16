@@ -17,7 +17,7 @@ import {
   V13,
   V14,
 } from "../anim/Alg02.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ФУНДАМЕНТ / ГЛАВА 2", 14);
 

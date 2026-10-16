@@ -1,4 +1,4 @@
-import { G, Matrix, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Matrix, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 8: матрица смежности — таблица единиц и нулей;
    проверка ребра за O(1); простота; плотные графы. */

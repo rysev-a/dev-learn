@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Alg11.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДЕРЕВЬЯ И КУЧИ / ГЛАВА 11", 13);
 

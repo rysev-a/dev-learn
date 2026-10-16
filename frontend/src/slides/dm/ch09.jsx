@@ -15,7 +15,7 @@ import C9Spanning from "../anim/C9Spanning.jsx";
 import C9Koenigsberg from "../anim/C9Koenigsberg.jsx";
 import C9Production from "../anim/C9Production.jsx";
 import C9Recap from "../anim/C9Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ГРАФЫ И ВЕРОЯТНОСТЬ / ГЛАВА 9", 13);
 

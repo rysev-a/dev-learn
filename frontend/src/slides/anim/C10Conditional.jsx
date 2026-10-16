@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 6: условная вероятность — сжатие мира до случаев, где B
    произошло; пасмурно и дождь. */

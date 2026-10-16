@@ -15,7 +15,7 @@ import C2Function from "../anim/C2Function.jsx";
 import C2Mapping from "../anim/C2Mapping.jsx";
 import C2Pure from "../anim/C2Pure.jsx";
 import C2Recap from "../anim/C2Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ЯЗЫК МАТЕМАТИКИ / ГЛАВА 2", 13);
 

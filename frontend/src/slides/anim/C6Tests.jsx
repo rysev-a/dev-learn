@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 6: кванторы в тестах. Юнит-тест — ∃ (три входа),
    property-based — ∀ (много случайных входов), контрпример побеждает. */

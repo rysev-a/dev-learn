@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx, bit, cell, lv, mux, pl } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { scene } from "./alg.tsx";
+import { Tx, bit, cell, lv, mux, pl } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 14 книги «Архитектура компьютера»: процессор, собранный из блоков. */
 

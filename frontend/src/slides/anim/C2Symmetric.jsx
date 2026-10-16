@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 6: симметричность. Дружба — стрелки в обе стороны,
    подписка — в одну; что это значит для хранения в таблицах. */

@@ -1,7 +1,8 @@
 /* Общая рамка слайда: рубрика с номером, заголовок, подзаголовок, тело и блок «ГЛАВНОЕ».
    Раньше эти компоненты копировались в каждый файл главы. */
+import type { ReactNode } from "react";
 
-function Rubric({ text, n, total }) {
+function Rubric({ text, n, total }: { text: string; n: number; total: number }) {
   return (
     <div className="s-rubric">
       <span>{text}</span>
@@ -13,8 +14,16 @@ function Rubric({ text, n, total }) {
 }
 
 // makeSlide(рубрика, число слайдов главы) → компонент <Slide n title sub main>
-export function makeSlide(rubric, total) {
-  return function Slide({ n, title, sub, main, children }) {
+export interface SlideProps {
+  n: number;
+  title: string;
+  sub?: string;
+  main?: ReactNode;
+  children?: ReactNode;
+}
+
+export function makeSlide(rubric: string, total: number) {
+  return function Slide({ n, title, sub, main, children }: SlideProps) {
     return (
       <div className="slide">
         <Rubric text={rubric} n={n} total={total} />

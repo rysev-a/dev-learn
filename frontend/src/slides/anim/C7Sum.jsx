@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 4: классическое доказательство по индукции:
    1 + 2 + … + n = n(n+1)/2. */

@@ -1,5 +1,5 @@
-import { chain, row, scene } from "./alg.jsx";
-import { Pt as P } from "./lx.jsx";
+import { chain, row, scene } from "./alg.tsx";
+import { Pt as P } from "./lx.tsx";
 
 /* Глава 3 книги «Алгоритмы и структуры данных»: связные списки. */
 

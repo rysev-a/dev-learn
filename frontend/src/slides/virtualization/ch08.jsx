@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Vm08.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ГИПЕРВИЗОРЫ И ЭКСПЛУАТАЦИЯ / ГЛАВА 8", 10);
 

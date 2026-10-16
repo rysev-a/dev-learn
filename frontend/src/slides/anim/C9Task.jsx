@@ -1,4 +1,4 @@
-import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 2: постановка задачи обхода — посетить достижимое один
    раз, цикл-ловушка, множество посещённых. */

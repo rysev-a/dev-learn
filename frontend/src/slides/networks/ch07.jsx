@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Nt07.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ТРАНСПОРТНЫЙ УРОВЕНЬ / ГЛАВА 7", 10);
 

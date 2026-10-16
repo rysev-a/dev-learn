@@ -1,5 +1,5 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
-import { binom, triPos } from "./tri.js";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
+import { binom, triPos } from "./tri.ts";
 
 /* Глава 4, слайд 4: свойства, видимые в треугольнике: сумма строки 2ⁿ,
    симметрия, правило Паскаля. */

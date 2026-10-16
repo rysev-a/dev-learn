@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 11: вероятность в инженерии — кэш, фильтр Блума,
    A/B-тест, ретраи и реплики. */

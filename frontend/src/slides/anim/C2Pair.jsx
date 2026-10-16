@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 2: упорядоченная пара. В множестве порядок не важен,
    в паре — суть; широта/долгота на карте; кортеж в коде. */

@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 4: квантор всеобщности — «для каждого». x + 0 = x,
    пассажиры, нельзя доказать парой примеров. */

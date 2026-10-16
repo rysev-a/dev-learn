@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 4, слайд 11: дни рождения и волосы на голове. 23 человека — 253 пары;
    город-миллионник и меньше 400 000 возможных значений. */

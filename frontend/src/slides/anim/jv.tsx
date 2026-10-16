@@ -1,6 +1,6 @@
-import { codeIn } from "./dsl.js";
-export { Tx, Box, arrow } from "./dsl.js";
-export { slot } from "./rs.jsx";
+import { codeIn } from "./dsl.ts";
+export { Tx, Box, arrow } from "./dsl.ts";
+export { slot } from "./rs.tsx";
 
 /* Помощники для сцен книги «Современный Frontend»: код JavaScript и CSS с подсветкой. */
 

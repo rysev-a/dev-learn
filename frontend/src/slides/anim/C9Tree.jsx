@@ -1,4 +1,4 @@
-import { GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 8: дерево — связный граф без циклов, n вершин и n−1 ребро;
    добавили ребро — цикл, убрали — распад. */

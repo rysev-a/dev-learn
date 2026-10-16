@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn, Cd, If, at, Rw } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn, Cd, If, at, Rw } from "./lx.tsx";
 
 /* Глава 2 книги «Погружаемся в Unix»: шелл, конвейеры, дескрипторы, скрипты. */
 

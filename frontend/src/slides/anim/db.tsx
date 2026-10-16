@@ -1,5 +1,5 @@
-import { cell, codeIn } from "./dsl.js";
-export { Box, arrow, slot } from "./rs.jsx";
+import { cell, codeIn, type SceneItem } from "./dsl.ts";
+export { Box, arrow, slot } from "./rs.tsx";
 
 /* Помощники для сцен книги «Базы данных»: SQL с подсветкой и таблицы из ячеек. */
 
@@ -12,15 +12,21 @@ export const sql = codeIn("sql");
  * colors — цвет строки по номеру. Возвращает список элементов сцены с устойчивыми id.
  */
 export const tbl = (
-  id,
-  x,
-  y,
-  head,
-  rows,
-  widths,
-  { hot = [], c = "b", cell: ch = 18, size = 8.5, dim = [] } = {},
-) => {
-  const items = [];
+  id: string,
+  x: number,
+  y: number,
+  head: (string | number)[],
+  rows: (string | number)[][],
+  widths: number[],
+  {
+    hot = [],
+    c = "b",
+    cell: ch = 18,
+    size = 8.5,
+    dim = [],
+  }: { hot?: number[]; c?: string; cell?: number; size?: number; dim?: number[] } = {},
+): SceneItem[] => {
+  const items: SceneItem[] = [];
   let cx = x;
   head.forEach((h, j) => {
     const w = widths[j];

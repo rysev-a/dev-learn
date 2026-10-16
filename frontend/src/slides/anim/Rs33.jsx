@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, rs, slot } from "./rs.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, rs, slot } from "./rs.tsx";
 
 /* Глава 33 книги «Изучаем Rust»: Tokio — рантайм, #[tokio::main] и spawn. */
 

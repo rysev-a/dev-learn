@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 3: правило произведения. Независимые выборы перемножаются:
    дерево 2×3, пин-код 10⁴, вложенные циклы. */

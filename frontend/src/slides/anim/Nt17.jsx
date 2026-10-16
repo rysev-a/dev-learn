@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
 
 /* Глава 17 книги «Компьютерные сети»: балансировка нагрузки, обратный прокси, кэш и CDN, высокая доступность. */
 

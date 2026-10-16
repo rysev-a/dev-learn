@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Nt03.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ОСНОВЫ СЕТЕЙ / ГЛАВА 3", 10);
 

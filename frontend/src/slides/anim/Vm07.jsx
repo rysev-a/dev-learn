@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn } from "./lx.tsx";
 
 /* Глава 7 книги «Виртуализация»: проброс устройств — IOMMU, VFIO, SR-IOV. */
 

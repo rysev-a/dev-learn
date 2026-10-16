@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 9: частичный порядок. Делимость на {1, 2, 3, 6}: 2 и 3
    несравнимы; дерево зависимостей; топологическая сортировка. */

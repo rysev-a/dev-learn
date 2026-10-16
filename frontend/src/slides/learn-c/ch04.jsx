@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Cl04.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ОТ ASSEMBLER К ЯЗЫКУ C / ПАМЯТЬ И ДАННЫЕ / ГЛАВА 4", 13);
 

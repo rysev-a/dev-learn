@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Vm01.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ОСНОВЫ ВИРТУАЛИЗАЦИИ / ГЛАВА 1", 10);
 

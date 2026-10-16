@@ -1,6 +1,6 @@
-import { gp, scene } from "./alg.jsx";
-import { GT, Tx, bit, cell, lv, pl, wave } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { gp, scene } from "./alg.tsx";
+import { GT, Tx, bit, cell, lv, pl, wave } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 12 книги «Архитектура компьютера»: ПЗУ, карта памяти, ячейки и ОЗУ. */
 

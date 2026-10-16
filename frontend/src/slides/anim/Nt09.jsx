@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.tsx";
 
 /* Глава 9 книги «Компьютерные сети»: сокеты в программе (Python): клиент, сервер, поток байтов, таймауты, потоки, select, async. */
 

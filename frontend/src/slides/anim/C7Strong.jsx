@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 6: сильная индукция — опора на все предыдущие значения;
    пример: разложение на простые множители. */

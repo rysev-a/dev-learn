@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, cc } from "./cl.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, cc } from "./cl.tsx";
 
 /* Глава 8 книги «От assembler к языку C»: stdio, форматирование и буферизация. */
 

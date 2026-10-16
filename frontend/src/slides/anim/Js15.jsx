@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Box, Tx, arrow, cs } from "./jv.jsx";
+import { scene } from "./alg.tsx";
+import { Box, Tx, arrow, cs } from "./jv.tsx";
 
 /* Глава 15 книги «Современный Frontend»: CSS для программиста. */
 

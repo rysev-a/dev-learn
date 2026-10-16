@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
 
 /* Глава 7 книги «Компьютерные сети»: TCP — рукопожатие, нумерация, потери, закрытие, состояния. */
 

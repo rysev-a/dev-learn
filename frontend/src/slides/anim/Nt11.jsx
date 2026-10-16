@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, If } from "./lx.tsx";
 
 /* Глава 11 книги «Компьютерные сети»: HTTP/1.1 — запрос и ответ, методы, коды, заголовки, соединения, кэш, cookie. */
 

@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { GT, Tx, bit, cell, lv, pl } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { scene } from "./alg.tsx";
+import { GT, Tx, bit, cell, lv, pl } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 2 книги «Архитектура компьютера»: физика транзистора, КМОП, логические уровни и мощность. */
 

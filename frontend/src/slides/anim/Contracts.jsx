@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 12: список или множество. Список помнит порядок и повторы,
    множество отвечает «есть ли такой» мгновенно; поиск в цикле по списку —

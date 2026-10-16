@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Js03.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("СОВРЕМЕННЫЙ FRONTEND / ИСТОРИЯ / ГЛАВА 3", 13);
 

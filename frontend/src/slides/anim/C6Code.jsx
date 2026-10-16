@@ -1,4 +1,4 @@
-import { Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 8: отрицание кванторов в коде — every/some, читаемость,
    распутывание двойных отрицаний. */

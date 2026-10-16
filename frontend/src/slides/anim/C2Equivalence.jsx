@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 8: отношение эквивалентности — три свойства, классы
    «одинаковый остаток при делении на 3» и группировка по ключу. */

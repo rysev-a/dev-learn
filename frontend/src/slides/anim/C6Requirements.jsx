@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 10: порядок кванторов в требованиях к системе —
    «для каждого запроса найдётся обработчик» и «найдётся обработчик

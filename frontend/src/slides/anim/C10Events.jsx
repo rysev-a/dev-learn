@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 4: события и арифметика: P(A∪B) = P(A)+P(B)−P(A∩B);
    запись событий словами. */

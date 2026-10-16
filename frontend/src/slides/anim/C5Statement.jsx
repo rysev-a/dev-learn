@@ -1,4 +1,4 @@
-import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 2: высказывание — истинно или ложно, третьего не дано;
    не высказывания; булево выражение в коде. */

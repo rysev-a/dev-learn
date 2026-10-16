@@ -1,4 +1,4 @@
-import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 1: обходы вокруг нас — сборщик мусора, краулер,
    менеджер пакетов; что такое обход. */

@@ -1,4 +1,4 @@
-import { Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 5: квантор существования — «найдётся». Один пример
    доказывает, опровергнуть труднее; баг и «багов нет». */

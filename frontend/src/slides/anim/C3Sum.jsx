@@ -1,4 +1,4 @@
-import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 2: правило суммы. Две непересекающиеся группы 3 и 4
    складываются; меню обеда; ветви кода. */

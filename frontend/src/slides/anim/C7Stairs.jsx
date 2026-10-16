@@ -1,4 +1,4 @@
-import { Arrow, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 2: лестница — база и переход покрывают все ступени. */
 

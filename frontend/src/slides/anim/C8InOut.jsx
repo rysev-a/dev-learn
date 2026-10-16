@@ -1,4 +1,4 @@
-import { G, GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 8, слайд 11: исходящая и входящая степень в ориентированном графе. */
 

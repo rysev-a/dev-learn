@@ -1,4 +1,4 @@
-import { G, GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 7: поиск компонент связности обходами — число запусков
    равно числу островов. */

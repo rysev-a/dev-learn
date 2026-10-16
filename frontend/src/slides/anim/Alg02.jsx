@@ -1,4 +1,4 @@
-import { curveD, row, scene } from "./alg.jsx";
+import { curveD, row, scene } from "./alg.tsx";
 
 /* Глава 2 книги «Алгоритмы и структуры данных»: массивы и строки. */
 

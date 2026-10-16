@@ -1,5 +1,5 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
-import { binom } from "./tri.js";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
+import { binom } from "./tri.ts";
 
 /* Глава 4, слайд 6: быстрые прикидки по биному: (1 + x)ⁿ — доминируют
    первые члены; сложный процент, нагрузка; отбросить хвост. */

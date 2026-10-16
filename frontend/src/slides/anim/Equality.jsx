@@ -1,4 +1,4 @@
-import { Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
+import { Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Слайд 3: равенство множеств и пустое множество. {1, 2} и {2, 1, 1}:
    повтор сливается, множества оказываются равны; затем появляется ∅. */

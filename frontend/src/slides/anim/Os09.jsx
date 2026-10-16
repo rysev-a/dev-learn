@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Cd, Dt, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Cd, Dt, If } from "./lx.tsx";
 
 /* Глава 9 книги «Погружаемся в Unix»: память. */
 

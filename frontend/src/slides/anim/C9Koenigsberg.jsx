@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 11: кёнигсбергские мосты — степени вершин; правило Эйлера:
    нечётных вершин ноль или две. */

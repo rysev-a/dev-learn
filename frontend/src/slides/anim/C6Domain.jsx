@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 6, слайд 11: кванторы ограничены областью — filter перед проверкой,
    генераторы в property-based тестах, область проверки уже, чем «весь мир». */

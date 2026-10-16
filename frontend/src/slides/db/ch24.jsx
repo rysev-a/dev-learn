@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Db24.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("БАЗЫ ДАННЫХ / МАСШТАБ И СОГЛАСОВАННОСТЬ / ГЛАВА 24", 13);
 

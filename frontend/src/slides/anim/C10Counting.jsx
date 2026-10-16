@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 10, слайд 3: комбинаторика — хозяйка: пять монет, пятёрка из
    двадцати, парадокс дней рождения. */

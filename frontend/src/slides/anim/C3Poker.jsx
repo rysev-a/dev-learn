@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 9: числа покера — как комбинации сжимают пространство:
    2 598 960 рук → категории; неравномерность; общий приём; вероятность. */

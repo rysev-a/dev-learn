@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 1: умение посчитать варианты, не перечисляя их.
    Пин-код, три решения «да/нет», два правила и три счётчика. */

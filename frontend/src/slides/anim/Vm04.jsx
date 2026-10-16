@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn } from "./lx.tsx";
 
 /* Глава 4 книги «Виртуализация»: память гостя — теневые таблицы, EPT/NPT, огромные страницы. */
 

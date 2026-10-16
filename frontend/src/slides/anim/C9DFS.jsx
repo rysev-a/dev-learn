@@ -1,4 +1,4 @@
-import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 3: обход в глубину — иди вперёд до упора, потом назад;
    нитка Ариадны; стек. */

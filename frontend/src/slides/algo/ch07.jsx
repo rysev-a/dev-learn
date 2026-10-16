@@ -18,7 +18,7 @@ import {
   V14,
   V15,
 } from "../anim/Alg07.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("СТРУКТУРЫ И ПАТТЕРНЫ / ГЛАВА 7", 15);
 

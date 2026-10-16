@@ -20,7 +20,7 @@ import {
   V16,
   V17,
 } from "../anim/Alg01.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ФУНДАМЕНТ / ГЛАВА 1", 17);
 

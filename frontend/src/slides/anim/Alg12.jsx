@@ -1,5 +1,5 @@
-import { edge, row, scene } from "./alg.jsx";
-import { Tx } from "./dsl.js";
+import { edge, row, scene } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
 
 /* Глава 12 книги «Алгоритмы и структуры данных»: куча и heapq. */
 

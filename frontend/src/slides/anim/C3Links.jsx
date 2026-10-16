@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 12: сцепки глав. Сочетание — подмножество (глава 1),
    правило произведения — прямое произведение (глава 2), дальше — Паскаль. */

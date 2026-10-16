@@ -1,5 +1,5 @@
-import { curveD, row, scene } from "./alg.jsx";
-import { Tx } from "./dsl.js";
+import { curveD, row, scene } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
 
 /* Глава 1 книги «Алгоритмы и структуры данных»: анализ сложности. Графики — примерной формы. */
 

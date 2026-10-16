@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Rs01.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ИЗУЧАЕМ RUST / ЗНАКОМСТВО С RUST / ГЛАВА 1", 13);
 

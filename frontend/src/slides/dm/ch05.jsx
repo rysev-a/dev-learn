@@ -15,7 +15,7 @@ import C5DeMorgan from "../anim/C5DeMorgan.jsx";
 import C5Short from "../anim/C5Short.jsx";
 import C5Daily from "../anim/C5Daily.jsx";
 import C5Recap from "../anim/C5Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 5", 13);
 

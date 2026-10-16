@@ -1,4 +1,4 @@
-import { GraphView, Steps, Txt, useSteps } from "./kit.jsx";
+import { GraphView, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 10: остовное дерево — скелет сети; минимальное остовное
    дерево по весам. */

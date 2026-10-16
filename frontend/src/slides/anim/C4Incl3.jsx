@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 4, слайд 8: включения и исключения для трёх множеств — задача про
    языки: 55 + 45 + 25 − 18 − 12 − 8 + 5 = 92, вне всех — 8. */

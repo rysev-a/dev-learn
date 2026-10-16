@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSlideAudioTime } from "../../lib/slideAudio.ts";
 import { motionOff } from "../../lib/settings.ts";
 
@@ -16,7 +16,17 @@ import { motionOff } from "../../lib/settings.ts";
 // движение внутри сцены стартует после REVEAL_MS.
 export const REVEAL_MS = 800;
 
-export function useSteps(cues, ms = 2800) {
+/** управление шагами сцены (результат useSteps) */
+export interface StepsCtl {
+  step: number;
+  last: number;
+  pick: (i: number) => void;
+}
+
+/** Цвет стрелки и фигуры в старых сценах: m g y r b */
+export type Hue = "m" | "g" | "y" | "r" | "b";
+
+export function useSteps(cues: number[], ms = 2800): StepsCtl {
   const last = cues.length;
   const audioT = useSlideAudioTime();
   const [step, setStep] = useState(motionOff() ? last : 0);
@@ -33,17 +43,17 @@ export function useSteps(cues, ms = 2800) {
   const synced = audioT != null && !manual;
   useEffect(() => {
     if (synced || !auto || step >= last) return;
-    const t = setTimeout(() => setStep((s) => s + 1), step === 0 ? REVEAL_MS + 900 : ms);
+    const t = setTimeout(() => setStep((s: number) => s + 1), step === 0 ? REVEAL_MS + 900 : ms);
     return () => clearTimeout(t);
   }, [synced, auto, step, last, ms]);
 
   let cur = step;
-  if (synced) cur = cues.filter((c) => audioT >= c).length;
+  if (synced && audioT != null) cur = cues.filter((c) => audioT >= c).length;
 
   return {
     step: cur,
     last,
-    pick: (i) => {
+    pick: (i: number) => {
       setManual(true);
       setAuto(false);
       setStep(i);
@@ -51,14 +61,14 @@ export function useSteps(cues, ms = 2800) {
   };
 }
 
-const HEAD_COLORS = {
+const HEAD_COLORS: Record<Hue, string> = {
   m: "var(--s-muted)",
   g: "var(--s-accent)",
   y: "var(--s-amber)",
   r: "var(--s-red)",
   b: "var(--s-blue)",
 };
-const STROKE = {
+const STROKE: Record<Hue, string> = {
   m: "var(--s-muted)",
   g: "var(--s-accent)",
   y: "var(--s-amber)",
@@ -67,13 +77,19 @@ const STROKE = {
 };
 
 // Оболочка: кнопки шагов, сцена, подпись шага. labels[i] — название шага i.
-export function Steps({ ctl, labels, caption, h = 170, children }) {
+export function Steps({ ctl, labels, caption, h = 170, children }: {
+  ctl: StepsCtl;
+  labels: string[];
+  caption: string[];
+  h?: number;
+  children?: ReactNode;
+}) {
   return (
     <div className="a-stage">
       <div className="a-chips" role="tablist">
         {labels.map((l, i) => (
           <button
-            key={l}
+            key={i}
             className={`a-chip ${i === ctl.step ? "on" : ""}`}
             onClick={() => ctl.pick(i)}
           >
@@ -108,7 +124,14 @@ export function Steps({ ctl, labels, caption, h = 170, children }) {
 }
 
 // Плавно движущийся узел SVG: позиция, прозрачность, масштаб.
-export function G({ x = 0, y = 0, o = 1, s = 1, children, className = "" }) {
+export function G({ x = 0, y = 0, o = 1, s = 1, children, className = "" }: {
+  x?: number;
+  y?: number;
+  o?: number;
+  s?: number;
+  children?: ReactNode;
+  className?: string;
+}) {
   return (
     <g
       className={`a-t ${className}`}
@@ -123,6 +146,19 @@ export function G({ x = 0, y = 0, o = 1, s = 1, children, className = "" }) {
 }
 
 // Плашка с текстом по центру, (x, y) — центр.
+interface ShapeProps {
+  x: number;
+  y: number;
+  o?: number;
+  s?: number;
+  stroke?: string;
+  fill?: string;
+  fillOpacity?: number;
+  color?: string;
+  size?: number;
+  text?: ReactNode;
+}
+
 export function Pill({
   x,
   y,
@@ -136,7 +172,7 @@ export function Pill({
   fillOpacity = 1,
   color = "var(--s-text)",
   size = 10.5,
-}) {
+}: ShapeProps & { w?: number; h?: number }) {
   return (
     <G x={x} y={y} o={o} s={s}>
       <rect
@@ -172,7 +208,7 @@ export function Dot({
   fillOpacity = 1,
   color = "var(--s-text)",
   size = 10.5,
-}) {
+}: ShapeProps & { r?: number }) {
   return (
     <G x={x} y={y} o={o} s={s}>
       <circle r={r} style={{ stroke, fill, fillOpacity, strokeWidth: 1.6 }} />
@@ -191,7 +227,16 @@ export function Dot({
 }
 
 // Подпись; o — прозрачность (плавное появление).
-export function Txt({ x, y, o = 1, anchor = "middle", children, mono, color, size }) {
+export function Txt({ x, y, o = 1, anchor = "middle", children, mono, color, size }: {
+  x: number;
+  y: number;
+  o?: number;
+  anchor?: "start" | "middle" | "end";
+  children?: ReactNode;
+  mono?: boolean;
+  color?: string;
+  size?: number;
+}) {
   return (
     <text
       x={x}
@@ -206,7 +251,17 @@ export function Txt({ x, y, o = 1, anchor = "middle", children, mono, color, siz
 }
 
 // Стрелка (x1,y1)→(x2,y2); c — цвет: m/g/y/r/b; both — наконечники с обеих сторон.
-export function Arrow({ x1, y1, x2, y2, c = "m", o = 1, dash, both, w = 1.6 }) {
+export function Arrow({ x1, y1, x2, y2, c = "m", o = 1, dash, both, w = 1.6 }: {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  c?: Hue;
+  o?: number;
+  dash?: string;
+  both?: boolean;
+  w?: number;
+}) {
   return (
     <line
       className="a-t"
@@ -222,7 +277,7 @@ export function Arrow({ x1, y1, x2, y2, c = "m", o = 1, dash, both, w = 1.6 }) {
 }
 
 // Петля у узла (x, y): стрелка от узла к самому себе, вверх.
-export function Loop({ x, y, r = 11, c = "g", o = 1 }) {
+export function Loop({ x, y, r = 11, c = "g", o = 1 }: { x: number; y: number; r?: number; c?: Hue; o?: number }) {
   return (
     <path
       className="a-t"
@@ -234,7 +289,17 @@ export function Loop({ x, y, r = 11, c = "g", o = 1 }) {
 }
 
 // Таблица-матрица отношения: rows × cols клеток; mark(r, c) → цвет m/g/y/r/b или null.
-export function Matrix({ x, y, rows, cols, mark, cell = 24, o = 1, rowTitle, colTitle }) {
+export function Matrix({ x, y, rows, cols, mark, cell = 24, o = 1, rowTitle, colTitle }: {
+  x: number;
+  y: number;
+  rows: ReactNode[];
+  cols: ReactNode[];
+  mark: (r: number, c: number) => Hue | null | undefined | false | "";
+  cell?: number;
+  o?: number;
+  rowTitle?: ReactNode;
+  colTitle?: ReactNode;
+}) {
   return (
     <G x={x} y={y} o={o}>
       {cols.map((l, c) => (
@@ -285,7 +350,18 @@ export function Matrix({ x, y, rows, cols, mark, cell = 24, o = 1, rowTitle, col
 
 // Таблица истинности: head — заголовки столбцов, rows — строки значений (0/1 или текст);
 // hl(r, c) → цвет m/g/y/r/b или null; rowOn(r) → показывать ли строку (для поочерёдного появления).
-export function Table({ x, y, head, rows, cw = 30, rh = 20, hl, rowOn, o = 1, delay = 0 }) {
+export function Table({ x, y, head, rows, cw = 30, rh = 20, hl, rowOn, o = 1, delay = 0 }: {
+  x: number;
+  y: number;
+  head: ReactNode[];
+  rows: (string | number)[][];
+  cw?: number;
+  rh?: number;
+  hl?: (r: number, c: number) => Hue | null | undefined | false | "";
+  rowOn?: (r: number) => boolean;
+  o?: number;
+  delay?: number;
+}) {
   return (
     <G x={x} y={y} o={o}>
       {head.map((h, c) => (
@@ -331,7 +407,28 @@ export function Table({ x, y, head, rows, cw = 30, rh = 20, hl, rowOn, o = 1, de
 
 // Граф: nodes — [{x, y, l}], edges — [{a, b, w?}]; directed — со стрелками.
 // nc(i) → цвет вершины m/g/y/r/b; ec(e, i) → цвет ребра или null (скрыто); r — радиус вершины.
-export function GraphView({ nodes, edges, directed, nc, ec, r = 13, o = 1, lsize = 10.5, ow }) {
+export interface GraphNode {
+  x: number;
+  y: number;
+  l: ReactNode;
+}
+export interface GraphEdge {
+  a: number;
+  b: number;
+  w?: ReactNode;
+}
+
+export function GraphView({ nodes, edges, directed, nc, ec, r = 13, o = 1, lsize = 10.5, ow }: {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  directed?: boolean;
+  nc?: (i: number) => Hue | null | undefined | false | "";
+  ec?: (e: GraphEdge, i: number) => Hue | null | undefined | false | "";
+  r?: number;
+  o?: number;
+  lsize?: number;
+  ow?: (i: number) => number;
+}) {
   return (
     <G o={o}>
       {edges.map((e, i) => {

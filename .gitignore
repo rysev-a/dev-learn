@@ -21,3 +21,4 @@ audio/
 *.log
 .DS_Store
 experiments/*.wav
+.claude/worktrees/

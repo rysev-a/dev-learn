@@ -1,4 +1,4 @@
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 // Слайды для «Изучаем Rust», глава 41 — «HTTP по байтам».
 // Тот же дизайн-код, что и в главах 1–5: палитра, IBM Plex Mono / Inter,
 // рубрика + номер, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.

@@ -15,7 +15,7 @@ import C3Pairs from "../anim/C3Pairs.jsx";
 import C3Classify from "../anim/C3Classify.jsx";
 import C3Links from "../anim/C3Links.jsx";
 import C3Recap from "../anim/C3Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 3", 13);
 

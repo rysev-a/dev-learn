@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Vm14.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("КОНТЕЙНЕРЫ, ОБЛАКО И БЕЗОПАСНОСТЬ / ГЛАВА 14", 10);
 

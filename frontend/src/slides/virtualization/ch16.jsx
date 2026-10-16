@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Vm16.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПРАКТИКА И ДОПОЛНЕНИЯ / ГЛАВА 16", 10);
 

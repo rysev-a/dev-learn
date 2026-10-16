@@ -1,4 +1,4 @@
-import { G, Matrix, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Matrix, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 4: отношение — подмножество прямого произведения.
    Заказ → клиент (внешний ключ), «дружит», таблица как отношение. */

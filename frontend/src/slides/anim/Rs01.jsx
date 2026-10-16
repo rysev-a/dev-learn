@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, rs } from "./rs.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, rs } from "./rs.tsx";
 
 /* Глава 1 книги «Изучаем Rust»: что такое Rust и зачем он нужен. */
 

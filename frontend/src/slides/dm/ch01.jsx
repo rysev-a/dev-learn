@@ -15,7 +15,7 @@ import Explosion from "../anim/Explosion.jsx";
 import SetsInUse from "../anim/SetsInUse.jsx";
 import Contracts from "../anim/Contracts.jsx";
 import Recap from "../anim/Recap.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ЯЗЫК МАТЕМАТИКИ / ГЛАВА 1", 13);
 

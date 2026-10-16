@@ -1,4 +1,4 @@
-import { Arrow, G, Loop, Matrix, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Loop, Matrix, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 5: рефлексивность. Диагональ матрицы: «равно» заполняет
    её целиком, «меньше» оставляет пустой; самоссылка в таблице сотрудников. */

@@ -1,5 +1,5 @@
-import { Dot, G, Steps, Txt, useSteps } from "./kit.jsx";
-import { triPos } from "./tri.js";
+import { Dot, G, Steps, Txt, useSteps } from "./kit.tsx";
+import { triPos } from "./tri.ts";
 
 /* Глава 4, слайд 1: три разные вещи — треугольник, бином, принцип Дирихле —
    отвечают на один вопрос «как считать, не перебирая»; коллизии в хеш-таблице. */

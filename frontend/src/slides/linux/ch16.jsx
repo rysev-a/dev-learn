@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Os16.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПРОГРАММЫ ВМЕСТЕ / ГЛАВА 16", 10);
 

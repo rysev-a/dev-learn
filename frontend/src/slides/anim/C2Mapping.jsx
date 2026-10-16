@@ -1,4 +1,4 @@
-import { Arrow, Dot, Steps, Txt, useSteps } from "./kit.jsx";
+import { Arrow, Dot, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 2, слайд 11: инъекция, сюръекция, биекция. Три раскладки стрелок
    между двумя столбцами; в конце стрелки биекции разворачиваются. */

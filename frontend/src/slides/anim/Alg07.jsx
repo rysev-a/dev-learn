@@ -1,6 +1,6 @@
-import { edge, row, scene } from "./alg.jsx";
-import { Tx } from "./dsl.js";
-import { Pt as P } from "./lx.jsx";
+import { edge, row, scene } from "./alg.tsx";
+import { Tx } from "./dsl.ts";
+import { Pt as P } from "./lx.tsx";
 
 /* Глава 7 книги «Алгоритмы и структуры данных»: скользящее окно и разделяй и властвуй. */
 

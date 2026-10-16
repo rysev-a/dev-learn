@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Nt11.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПРИКЛАДНОЙ УРОВЕНЬ / ГЛАВА 11", 10);
 

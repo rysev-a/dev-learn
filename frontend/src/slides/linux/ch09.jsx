@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Os09.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ПАМЯТЬ И ДИСКИ / ГЛАВА 9", 10);
 

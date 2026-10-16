@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 5: интуиция через Гаусса — суммы по столбикам
    парами дают 101; догадка против доказательства. */

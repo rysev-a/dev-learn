@@ -1,4 +1,4 @@
-import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, GraphView, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 9, слайд 12: обходы в продакшне — сборщик мусора, резолвер
    зависимостей (серый цвет ловит цикл), краулер; та же пара алгоритмов. */

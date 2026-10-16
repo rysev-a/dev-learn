@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Db32.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("БАЗЫ ДАННЫХ / БЕЗОПАСНОСТЬ И ПРИЛОЖЕНИЕ / ГЛАВА 32", 13);
 

@@ -13,7 +13,7 @@ import {
   V09,
   V10,
 } from "../anim/Os08.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ЯДРО ИЗНУТРИ / ГЛАВА 8", 10);
 

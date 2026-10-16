@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar } from "./lx.tsx";
 
 /* Глава 9 книги «Виртуализация»: диски и образы — raw, qcow2, слои и снимки. */
 

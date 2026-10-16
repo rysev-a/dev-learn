@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Zn, Cd } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Zn, Cd } from "./lx.tsx";
 
 /* Глава 16 книги «Виртуализация»: практика с QEMU/KVM и наблюдаемость. */
 

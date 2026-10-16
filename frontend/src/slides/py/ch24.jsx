@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Py24.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("PYTHON КАК ПЕРВЫЙ ЯЗЫК / ИТЕРАТОРЫ И ГЕНЕРАТОРЫ / ГЛАВА 24", 13);
 

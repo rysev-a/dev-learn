@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, Cd, If } from "./lx.tsx";
 
 /* Глава 18 книги «Компьютерные сети»: SSH — ключи, known_hosts, бастион; VPN — туннели, маршруты, MTU, split tunnel. */
 

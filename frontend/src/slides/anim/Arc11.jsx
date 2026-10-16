@@ -1,6 +1,6 @@
-import { gp, scene } from "./alg.jsx";
-import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.jsx";
-import { Box, arrow } from "./dsl.js";
+import { gp, scene } from "./alg.tsx";
+import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.tsx";
+import { Box, arrow } from "./dsl.ts";
 
 /* Глава 11 книги «Архитектура компьютера»: арифметико-логическое устройство и флаги. */
 

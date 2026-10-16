@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Arc05.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("ОСНОВЫ / ГЛАВА 5", 13);
 

@@ -1,4 +1,4 @@
-import { Arrow, G, Pill, Steps, Table, Txt, useSteps } from "./kit.jsx";
+import { Arrow, G, Pill, Steps, Table, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 5: импликация «если, то»: посылка и следствие, дождь и
    асфальт, поливалка не нарушает обещание, ранний возврат в коде. */

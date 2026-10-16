@@ -1,5 +1,5 @@
-import { G, Matrix, Pill, Steps, Txt, useSteps } from "./kit.jsx";
-import { binom, triPos } from "./tri.js";
+import { G, Matrix, Pill, Steps, Txt, useSteps } from "./kit.tsx";
+import { binom, triPos } from "./tri.ts";
 
 /* Глава 4, слайд 3: строка n — это C(n, k); число маршрутов вниз по
    треугольнику; выбор шагов «влево»; сетка с препятствиями. */

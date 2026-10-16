@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 3, слайд 5: факториал. 4! по шагам, рост 5!…20!, n! обгоняет 2ⁿ. */
 

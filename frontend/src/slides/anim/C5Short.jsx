@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 11: короткое замыкание — ленивое вычисление «и» и «или»
    следует из таблиц истинности. */

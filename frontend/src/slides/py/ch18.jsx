@@ -16,7 +16,7 @@ import {
   V12,
   V13,
 } from "../anim/Py18.jsx";
-import { makeSlide } from "../SlideFrame.jsx";
+import { makeSlide } from "../SlideFrame.tsx";
 
 const Slide = makeSlide("PYTHON КАК ПЕРВЫЙ ЯЗЫК / МОДЕЛЬ ДАННЫХ / ГЛАВА 18", 13);
 

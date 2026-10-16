@@ -1,6 +1,6 @@
-import { scene } from "./alg.jsx";
-import { Tx } from "./hw.jsx";
-import { Box, arrow, sql, tbl } from "./db.jsx";
+import { scene } from "./alg.tsx";
+import { Tx } from "./hw.tsx";
+import { Box, arrow, sql, tbl } from "./db.tsx";
 
 /* Глава 29 книги «Базы данных»: оптимизатор. */
 

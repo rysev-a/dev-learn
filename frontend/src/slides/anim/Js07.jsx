@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Box, Tx, arrow, jc, slot } from "./jv.jsx";
+import { scene } from "./alg.tsx";
+import { Box, Tx, arrow, jc, slot } from "./jv.tsx";
 
 /* Глава 7 книги «Современный Frontend»: объекты, массивы и коллекции. */
 

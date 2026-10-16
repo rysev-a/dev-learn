@@ -1,4 +1,4 @@
-import { G, Steps, Txt, useSteps } from "./kit.jsx";
+import { G, Steps, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 7, слайд 3: математическая индукция формально — база P(1),
    переход P(k) ⇒ P(k+1), падающие «домино». */

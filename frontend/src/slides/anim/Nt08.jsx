@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Dt, Pl, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Dt, Pl, If } from "./lx.tsx";
 
 /* Глава 8 книги «Компьютерные сети»: окна, медленный старт, пила, алгоритмы, буферы. */
 

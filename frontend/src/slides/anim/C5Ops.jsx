@@ -1,4 +1,4 @@
-import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.jsx";
+import { G, Pill, Steps, Table, Txt, useSteps } from "./kit.tsx";
 
 /* Глава 5, слайд 3: три основные операции — «не», «и», «или» (включающее),
    приоритет. */

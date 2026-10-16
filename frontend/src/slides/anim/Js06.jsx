@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Box, Tx, arrow, jc, slot } from "./jv.jsx";
+import { scene } from "./alg.tsx";
+import { Box, Tx, arrow, jc, slot } from "./jv.tsx";
 
 /* Глава 6 книги «Современный Frontend»: функции, область видимости и замыкания. */
 

@@ -1,5 +1,5 @@
-import { edge, row, scene } from "./alg.jsx";
-import { LIST, Tx } from "./ad.jsx";
+import { edge, row, scene } from "./alg.tsx";
+import { LIST, Tx } from "./ad.tsx";
 
 /* Глава 9 книги «Алгоритмы и структуры данных»: числовые алгоритмы и биты. */
 

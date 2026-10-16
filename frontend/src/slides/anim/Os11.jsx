@@ -1,5 +1,5 @@
-import { scene } from "./alg.jsx";
-import { Tx, Bx, Ar, Ln, Zn, Cd, If } from "./lx.jsx";
+import { scene } from "./alg.tsx";
+import { Tx, Bx, Ar, Ln, Zn, Cd, If } from "./lx.tsx";
 
 /* Глава 11 книги «Погружаемся в Unix»: сеть. */
 
