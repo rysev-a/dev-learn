@@ -46,13 +46,16 @@ backend/
     books/         — курс: router.py (API), service.py (БД, аудио), seed.py (сид)
     voice/         — озвучка: engine.py (kokoro-ru), download_model.py,
                      models/ (чекпоинты)
-    exercises/     — проверка кода в Docker-песочнице: tasks.py (задачи),
-                     runner.py (запуск), router.py (API)
+    exercises/     — проверка кода в Docker-песочнице: tasks.py (чтение задач
+                     из БД), store.py (таблица tasks, SQL), runner.py (запуск),
+                     router.py (API); исходники задач — *_tasks, SQL для
+                     инициализации БД — data/sql/tasks
     data/
       textbook/    — исходники уроков, по директории на книгу
       audio/       — сгенерированные wav
       say.db       — SQLite
-  seed_textbook.py — CLI-утилита сида
+  seed_textbook.py — CLI-утилита сида (курс и задачи)
+  export_tasks.py  — выгрузка задач из модулей в SQL-файлы
 frontend/          — React 19 + Vite
   src/slides/      — слайды по книгам: <book>/chNN.jsx (реестр — lib/slides.js)
   src/quizzes/     — квизы на теорию (реестр — lib/quizzes.js)

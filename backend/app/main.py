@@ -9,6 +9,7 @@ from app.accounts.service import ensure_default_users
 from app.books.router import router as books_router
 from app.books.service import db, init_db
 from app.exercises.router import router as exercises_router
+from app.exercises.store import ensure_tasks
 
 
 @asynccontextmanager
@@ -16,6 +17,7 @@ async def lifespan(app: FastAPI):
     with db() as conn:
         init_db(conn)
         init_accounts(conn)
+        ensure_tasks(conn)
         ensure_default_users(conn)
     yield
 

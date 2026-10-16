@@ -33,7 +33,7 @@
 - `backend/app/voice/` — всё по озвучке: `engine.py` (kokoro-ru),
   `download_model.py`, `models/` (чекпоинты).
 - `backend/app/exercises/` — проверка кода в Docker-песочнице: `tasks.py`
-  (определения задач, пока только «Python как первый язык», book 13), `runner.py`
+  (чтение определений задач из таблицы `tasks` БД, см. «Упражнения в БД»), `runner.py`
   (запуск в `python:3.13-slim`: без сети, лимиты памяти/CPU/процессов,
   таймаут), `router.py` (`GET /api/exercises/{book}/{chapter}`,
   `POST /api/exercises/run`). Тесты остаются на бэкенде, клиенту отдаются
@@ -90,7 +90,7 @@
   `exercises/db_tasks/ch*.py` («Базы данных», book 9) и
   `exercises/rust_tasks/ch*.py` («Изучаем Rust», book 10),
   `exercises/virt_tasks/ch*.py` («Виртуализация», book 17);
-  ключ — номер главы, реестр книг — `BOOK_TASKS` в `exercises/tasks.py`.
+  ключ — номер главы, реестр книг — `BOOK_TASKS` в `exercises/sources.py`.
   Решения — на Python (песочница умеет только его), в книге БД есть ещё режим
   `sql`: запрос ученика выполняется в SQLite на готовой базе `setup`; сравнивается
   результат последнего SELECT (или контрольного запроса `check`) — как множество
@@ -99,7 +99,7 @@
   собираются в один файл и компилируются `rustc` в образе `rust:1.97-slim` (без сети,
   только std; loopback-сокеты работают); драйвер оборачивается в `mod __say_driver`
   (`runner.wrap_rust_driver`), поэтому его `use` не конфликтуют с импортами ученика.
-  Новая книга с упражнениями — новый пакет и запись в `BOOK_TASKS`.
+  Новая книга с упражнениями — новый пакет, запись в `BOOK_TASKS` (`sources.py`) и имя в `BOOK_NAMES` (`export_tasks.py`).
 - Эффективность в задачах на алгоритмы проверяйте не словами: драйвер
   считает обращения к данным (подкласс списка со счётчиком `__getitem__`)
   или подаёт вход, на котором O(n²) не успевает за лимит песочницы (25 с);
@@ -114,6 +114,24 @@
   `lab_manifest.json` (id, название и условие упражнений).
 - Каждый эталон задачи проверяйте в песочнице: решение проходит, пустая
   заготовка — нет.
+
+## Упражнения в БД: SQL-файлы для инициализации
+
+Во время работы приложение читает задачи **только из таблицы `tasks`** (`book_id, chapter, id, ord, mode, title,
+statement, starter, hint, spec`; всё остальное — тесты, эталонный вывод, драйвер, `setup`, `flags` — лежит в `spec`
+как JSON, кортежи Python хранятся как `{"__tuple__": [...]}` и возвращаются кортежами; код — `app/exercises/store.py`).
+Если база потеряна, задачи возвращают SQL-файлы `backend/app/data/sql/tasks`: `00-schema.sql` создаёт таблицу и
+очищает её, `NN-<книга>.sql` — по одному `INSERT` на задачу. Восстановление любым из способов:
+
+- запустить сервер (пустая таблица `tasks` заполняется сама) или `cd backend && uv run seed_textbook.py --no-audio`
+  (перезагружает задачи из SQL одновременно с пересидом курса);
+- вручную: `sqlite3 backend/app/data/say.db < backend/app/data/sql/tasks/*.sql`.
+
+Авторский формат прежний — Python-модули `exercises/*_tasks` (и `lab_manifest.json` у книг 14 и 15). После любой
+правки задач: `cd backend && uv run export_tasks.py` (или `cd frontend && npm run tasks:export`), SQL-файлы
+коммитятся вместе с правкой, затем `uv run seed_textbook.py --no-audio` или перезапуск пустой БД. Тест
+`tests/test_tasks.py` падает, если SQL отстал от модулей, и проверяет, что загрузка из SQL возвращает каждую задачу
+без потерь. После `npm run lab:manifest` и `npm run net:manifest` тоже запускайте `tasks:export`.
 
 ## Книга 9 «Базы данных»: устройство
 
@@ -278,7 +296,7 @@ employees), школа и фильмы; задачи пишутся в `exercise
   решения, черновики и историю попыток хранит кабинет пользователя.
   Нужен запущенный Docker и образ `python:3.13-slim`.
   Задачи функций (`mode: "func"`) могут возвращать и принимать кортежи:
-  в `tasks.py` пишите их кортежами Python (`"expected": (1, 9)`) — раннер
+  в модуле задач пишите их кортежами Python (`"expected": (1, 9)`) — раннер
   передаёт кортежи в песочницу с меткой, так что `[1, 9]` и `(1, 9)` в тестах
   различаются. Ключи словарей в JSON-тестах — только строки.
 
@@ -444,8 +462,8 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
   - Сценарий: `netlab/scenarios/chNN.ts` → `{id, title, statement, hint, tools, build(), goals, solution}`; `solution` — шаги эталона
     (`{cable}`, `{unlink}`, `{drop}`, `{cmd: [устройство, "строка"]}`) или функция от состояния. После правок:
     `cd frontend && npm run net:check` (заготовка не проходит цели, эталон проходит) и `npm run net:manifest`
-    (пишет `net_tasks/lab_manifest.json`). Новый `.json` не перезапускает `uvicorn --reload`: после манифеста `touch`
-    любой `.py` в `backend/app` (например `net_tasks/__init__.py`).
+    (пишет `net_tasks/lab_manifest.json`), затем `npm run tasks:export` (SQL для БД) и перезагрузка задач:
+    `cd backend && uv run seed_textbook.py --no-audio`.
   - Раскладку сцен проверяйте эвристикой «текст влезает в ячейки, ничего не за холстом и не налезает» (линтер лежит вне
     репозитория); цвета только `--s-*`.
 

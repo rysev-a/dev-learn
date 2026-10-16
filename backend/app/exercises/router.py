@@ -22,8 +22,8 @@ MAX_DRAFT = 200_000  # черновик: у схем из вентилей ре�
 def summary():
     """Сколько код-упражнений в каждой главе: {книга: {глава: число}} — для дашборда."""
     return {
-        str(book): {str(ch): len(items) for ch, items in chapters.items()}
-        for book, chapters in tasks.BOOK_TASKS.items()
+        str(book): {str(ch): n for ch, n in chapters.items()}
+        for book, chapters in tasks.summary().items()
     }
 
 
