@@ -24,7 +24,7 @@ export default function SettingsPage({ theme, setTheme }) {
   async function reset(scope, question) {
     if (!window.confirm(question)) return;
     await progress.reset(scope);
-    (await import("../../lab/hydrate.js")).forgetLab(user.id); // слепок решений лаборатории
+    (await import("../../lab/hydrate.ts")).forgetLab(user.id); // слепок решений лаборатории
     setDone(scope);
   }
 

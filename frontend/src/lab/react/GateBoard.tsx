@@ -1,0 +1,885 @@
+import { SetStateAction, PointerEvent, useCallback, useEffect, useMemo, useRef, useState, Key, ReactPortal, ReactNode, ReactElement, JSXElementConstructor } from "react";
+import {
+  BOARD_H,
+  BOARD_W,
+  GATE_H,
+  GATE_W,
+  INPUT_X,
+  OUT_PIN_X,
+  OUT_X,
+  PinRef,
+  createsCycle,
+  inputYs,
+  outputYs,
+  pinPos,
+  samePin,
+  uid,
+  wirePath,
+} from "../exercises/logic-gates/circuit.model.ts";
+import {
+  gateBodyPath,
+  gateBubbleCx,
+  gateExtraArc,
+  gatePinY,
+  gatePinsOf,
+} from "../exercises/logic-gates/gate-shapes.ts";
+import {
+  ZOOM,
+  clampWorld,
+  isClick,
+  viewBoxOf,
+  wheelFactor,
+  zoomAround,
+} from "../exercises/logic-gates/board-pan.ts";
+import {
+  AUTO_WIRE_RADIUS_DEFAULT,
+  AUTO_WIRE_RADIUS_FACTOR,
+  suggestWires,
+} from "../exercises/logic-gates/auto-wire.ts";
+
+/* Доска со схемой из вентилей: элементы, провода, входы и выходы упражнения.
+   Всё, что касается мыши и холста: перенос элементов, провода (клик по контакту, затем по другому или
+   протянуть), автоподстановка, сдвиг и масштаб. Схему (gates, wires) хозяйничает упражнение; доска меняет
+   её через setGates / setWires и сообщает onEdited. */
+
+const DROP_ID = "auto-new";
+// высота доски, которую выбрал пользователь (px); хранится в браузере, как в исходном тренажёре
+const HEIGHT_KEY = "say-lab-board-height";
+const HEIGHT_MIN = 220;
+const HEIGHT_MAX = 1400;
+const clampHeight = (h: number) =>
+  Math.round(Math.min(HEIGHT_MAX, Math.max(HEIGHT_MIN, h)));
+const loadHeight = () => {
+  try {
+    const v = Number(localStorage.getItem(HEIGHT_KEY));
+    return Number.isFinite(v) && v > 0 ? clampHeight(v) : null;
+  } catch {
+    return null;
+  }
+};
+const saveHeight = (h: number|null) => {
+  try {
+    if (h === null) localStorage.removeItem(HEIGHT_KEY);
+    else localStorage.setItem(HEIGHT_KEY, String(h));
+  } catch {
+    /* без хранилища высота просто не запоминается */
+  }
+};
+const cls = (v: number) => (v === 1 ? "v1" : v === 0 ? "v0" : "vx");
+const txt = (v: undefined) => (v === undefined ? "?" : String(v));
+
+export default function GateBoard({
+  gates,
+  setGates,
+  wires,
+  setWires,
+  circuit,
+  inputs,
+  labels,
+  outputs,
+  inputState,
+  clockId,
+  stepsMode,
+  valueFn,
+  palette,
+  guideFocus,
+  fullscreen,
+  onToggleInput,
+  onEdited,
+  onMessage,
+  onLockedPick,
+  boardRef,
+}) {
+  const svgRef = useRef(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [boardH, setBoardH] = useState(loadHeight); // px или null — высота по умолчанию (по пропорциям доски)
+  const [pxW, setPxW] = useState(0); // ширина доски на экране
+  const [placing, setPlacing] = useState(null); // тип переносимого из палитры элемента
+  const [cursor, setCursor] = useState(null); // экранные координаты (для «призрака»)
+  const [movingId, setMovingId] = useState(null);
+  const [movedFar, setMovedFar] = useState(false);
+  const [pending, setPending] = useState(null); // PinRef, откуда тянется провод
+  const [sticky, setSticky] = useState(false);
+  const [hover, setHover] = useState(null);
+  const [cursorBoard, setCursorBoard] = useState(null);
+  const [panning, setPanning] = useState(false);
+  const drag = useRef({}); // изменяемые данные перетаскивания
+  const memo = useRef([]);
+
+  const inputYMap = useMemo(() => inputYs(inputs), [inputs]);
+  const outputYMap = useMemo(() => outputYs(outputs), [outputs]);
+
+  // Высота доски меняется без смены масштаба: видимое «окно» мира растёт вместе с высотой
+  const manualH = !fullscreen && boardH !== null && pxW > 0;
+  const worldH = manualH ? (boardH * BOARD_W) / pxW : BOARD_H;
+
+  const st = useRef({});
+  st.current = {
+    gates,
+    wires,
+    pending,
+    sticky,
+    hover,
+    placing,
+    movingId,
+    movedFar,
+    zoom,
+    pan,
+    worldH,
+    circuit,
+    stepsMode,
+    palette,
+  };
+
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() =>
+      setPxW(el.getBoundingClientRect().width),
+    );
+    ro.observe(el);
+    setPxW(el.getBoundingClientRect().width);
+    return () => ro.disconnect();
+  }, []);
+
+  const changeHeight = (h: number|null, persist = true) => {
+    const next = h === null ? null : clampHeight(h);
+    setBoardH(next);
+    if (persist) saveHeight(next);
+  };
+  const resizeDown = (e: { preventDefault: () => void; clientY: any; }) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = svg.getBoundingClientRect().height;
+    let last = startH;
+    const move = (ev: { clientY: any; }) => {
+      last = clampHeight(startH + ev.clientY - startY);
+      setBoardH(last);
+    };
+    const up = () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      saveHeight(clampHeight(last));
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  };
+  const resizeKey = (e: { key: string; preventDefault: () => void; }) => {
+    const step = e.key === "ArrowDown" ? 24 : e.key === "ArrowUp" ? -24 : 0;
+    if (!step || !svgRef.current) return;
+    e.preventDefault();
+    changeHeight(svgRef.current.getBoundingClientRect().height + step);
+  };
+
+  /** точка экрана → координаты доски */
+  const toBoard = useCallback((cx: any, cy: any) => {
+    const svg = svgRef.current;
+    const m = svg.getScreenCTM();
+    if (!m) return { x: 0, y: 0 };
+    const pt = svg.createSVGPoint();
+    pt.x = cx;
+    pt.y = cy;
+    const r = pt.matrixTransform(m.inverse());
+    return { x: r.x, y: r.y };
+  }, []);
+
+  /* ---------- автоподстановка ---------- */
+  const dropGate = useMemo(() => {
+    if (!placing || !cursor || !svgRef.current) return null;
+    const r = svgRef.current.getBoundingClientRect();
+    if (
+      cursor.x < r.left ||
+      cursor.x > r.right ||
+      cursor.y < r.top ||
+      cursor.y > r.bottom
+    )
+      return null;
+    const at = toBoard(cursor.x, cursor.y);
+    const { x, y } = clampWorld(
+      { x: at.x - GATE_W / 2, y: at.y - GATE_H / 2 },
+      GATE_W,
+      GATE_H,
+    );
+    return { id: DROP_ID, type: placing, x, y };
+  }, [placing, cursor, toBoard]);
+
+  const autoFor = useCallback(
+    (gate: any, keep = []) =>
+      suggestWires({
+        keep,
+        gate,
+        gates: st.current.gates,
+        wires: st.current.wires,
+        inputYMap,
+        outputYMap,
+        stepsMode,
+        radius: AUTO_WIRE_RADIUS_DEFAULT * AUTO_WIRE_RADIUS_FACTOR,
+      }),
+    [inputYMap, outputYMap, stepsMode],
+  );
+
+  const autoWires = useMemo(() => {
+    const moving = movingId
+      ? movedFar
+        ? gates.find((g: { id: any; }) => g.id === movingId)
+        : null
+      : dropGate;
+    const list = moving ? autoFor(moving, memo.current) : [];
+    memo.current = list;
+    return list;
+  }, [movingId, movedFar, gates, dropGate, autoFor]);
+  const autoRef = useRef([]);
+  autoRef.current = autoWires;
+
+  /* ---------- операции над схемой ---------- */
+  const addWires = (list: any[]) => {
+    setWires((all: any) => [
+      ...all,
+      ...list.map((w) => ({ id: uid("w"), from: w.from, to: w.to })),
+    ]);
+    onEdited();
+  };
+
+  const place = (type: any, at: { x: any; y: any; }, held: never[]|null) => {
+    const { x, y } = clampWorld(
+      { x: at.x - GATE_W / 2, y: at.y - GATE_H / 2 },
+      GATE_W,
+      GATE_H,
+    );
+    const gate = { id: uid("g"), type, x, y };
+    const remap = (r: { node: string; }) => (r.node === DROP_ID ? { ...r, node: gate.id } : r);
+    const keep = (held ?? []).map((w) => ({
+      ...w,
+      from: remap(w.from),
+      to: remap(w.to),
+    }));
+    const auto = held
+      ? suggestWires({
+          keep,
+          gate,
+          gates: st.current.gates,
+          wires: st.current.wires,
+          inputYMap,
+          outputYMap,
+          stepsMode,
+          radius: AUTO_WIRE_RADIUS_DEFAULT * AUTO_WIRE_RADIUS_FACTOR,
+        })
+      : [];
+    setGates((list: any) => [...list, gate]);
+    if (auto.length > 0) addWires(auto);
+    else onEdited();
+  };
+
+  const tryConnect = (a: never, b: { node: any; pin: any; }) => {
+    const from = a.pin === "out" ? a : b;
+    const to = a.pin === "out" ? b : a;
+    if (from.pin !== "out" || to.pin === "out" || from.node === to.node) {
+      onMessage("Соединять нужно выход элемента со входом другого");
+      return;
+    }
+    const { wires: ws, circuit: c, stepsMode: sm } = st.current;
+    const rest = ws.filter((w: { to: PinRef; }) => !samePin(w.to, to));
+    if (!sm && createsCycle({ ...c, wires: rest }, from, to)) {
+      onMessage("Так схема замкнётся в цикл — сигнал будет бежать по кругу");
+      setWires(rest);
+      onEdited();
+      return;
+    }
+    setWires([...rest, { id: uid("w"), from, to }]);
+    onEdited();
+  };
+
+  const cancelWire = useCallback(() => {
+    const had = st.current.pending !== null;
+    setPending(null);
+    setSticky(false);
+    setHover(null);
+    setCursorBoard(null);
+    return had;
+  }, []);
+  if (boardRef)
+    boardRef.current = {
+      cancelWire,
+      resetView: () => (setPan({ x: 0, y: 0 }), setZoom(1)),
+    };
+
+  const removeWire = (id: any) => {
+    setWires((l: any[]) => l.filter((w) => w.id !== id));
+    onEdited();
+  };
+  const removeGate = (id: any) => {
+    setGates((l: any[]) => l.filter((g) => g.id !== id));
+    setWires((l: any[]) => l.filter((w) => w.from.node !== id && w.to.node !== id));
+    onEdited();
+  };
+
+  /* ---------- глобальные обработчики ---------- */
+  useEffect(() => {
+    const move = (e: { clientX: number; clientY: number; }) => {
+      const s = st.current;
+      if (drag.current.pan) {
+        const d = drag.current.pan;
+        setPan({
+          x: Math.round(d.ox - (e.clientX - d.cx) / d.scale),
+          y: Math.round(d.oy - (e.clientY - d.cy) / d.scale),
+        });
+        return;
+      }
+      if (s.placing) {
+        setCursor({ x: e.clientX, y: e.clientY });
+        return;
+      }
+      if (s.movingId) {
+        const p = toBoard(e.clientX, e.clientY);
+        const { x, y } = clampWorld(
+          { x: p.x - drag.current.off.x, y: p.y - drag.current.off.y },
+          GATE_W,
+          GATE_H,
+        );
+        setGates((list: any[]) =>
+          list.map((g) => (g.id === s.movingId ? { ...g, x, y } : g)),
+        );
+        if (
+          !s.movedFar &&
+          Math.hypot(x - drag.current.from.x, y - drag.current.from.y) > 6
+        )
+          setMovedFar(true);
+        return;
+      }
+      if (s.pending) setCursorBoard(toBoard(e.clientX, e.clientY));
+    };
+    const up = (e: PointerEvent) => {
+      const s = st.current;
+      if (drag.current.pan) {
+        drag.current.pan = null;
+        setPanning(false);
+        return;
+      }
+      if (s.placing) {
+        const held = autoRef.current;
+        const type = s.placing;
+        setPlacing(null);
+        setCursor(null);
+        const el = e.target;
+        if (el && typeof el.closest === "function") {
+          if (el.closest(".lab-board-svg"))
+            place(type, toBoard(e.clientX, e.clientY), held);
+          else if (el.closest(".lab-palette"))
+            place(type, { x: 400, y: 100 + (s.gates.length % 4) * 70 }, null);
+        }
+        return;
+      }
+      if (s.movingId) {
+        const auto = autoRef.current;
+        setMovingId(null);
+        setMovedFar(false);
+        if (auto.length > 0) addWires(auto);
+        return;
+      }
+      if (s.pending && !s.sticky) {
+        const target = s.hover;
+        if (target && !samePin(s.pending, target)) {
+          tryConnect(s.pending, target);
+          cancelWire();
+        } else if (isClick(drag.current.pinDown, e)) setSticky(true);
+        else cancelWire();
+      }
+    };
+    const key = (e: { key: string; }) => {
+      if (e.key === "Escape") cancelWire();
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("keydown", key);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toBoard]);
+
+  // колесо: Ctrl/⌘ — масштаб, средняя кнопка — сдвиг
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const wheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const wh = st.current.worldH;
+      const base = Math.min(rect.width / BOARD_W, rect.height / wh);
+      const s = st.current;
+      const next = zoomAround(
+        { pan: s.pan, zoom: s.zoom },
+        wheelFactor(e),
+        {
+          x: e.clientX - rect.left - (rect.width - BOARD_W * base) / 2,
+          y: e.clientY - rect.top - (rect.height - wh * base) / 2,
+        },
+        base,
+      );
+      setPan(next.pan);
+      setZoom(next.zoom);
+    };
+    el.addEventListener("wheel", wheel, { passive: false });
+    return () => el.removeEventListener("wheel", wheel);
+  }, []);
+
+  const beginPan = (e: { clientX: any; clientY: any; }) => {
+    const rect = svgRef.current.getBoundingClientRect();
+    const base = Math.min(rect.width / BOARD_W, rect.height / worldH);
+    drag.current.pan = {
+      cx: e.clientX,
+      cy: e.clientY,
+      ox: pan.x,
+      oy: pan.y,
+      scale: base * zoom,
+    };
+    setPanning(true);
+  };
+  const boardDown = (e: { button?: any; preventDefault?: any; target?: any; clientX?: any; clientY?: any; }) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      beginPan(e);
+      return;
+    }
+    if (e.button !== 0 || placing || pending) return;
+    if (
+      e.target === svgRef.current ||
+      e.target.classList?.contains("lab-board-bg")
+    ) {
+      e.preventDefault();
+      beginPan(e);
+    }
+  };
+  // пока провод «прилип» к мыши, нажатие мимо контакта его отменяет
+  const boardDownCapture = () => {
+    if (st.current.sticky && !st.current.hover) {
+      // обработка в pinDown / здесь — отмена, если нажали не на контакт
+    }
+  };
+
+  const gateDown = (e: PointerEvent<SVGGElement>, g: { x: number; y: number; id: SetStateAction<null>; }) => {
+    if (e.button !== 0) return;
+    if (sticky) {
+      cancelWire();
+      return;
+    }
+    e.preventDefault();
+    const p = toBoard(e.clientX, e.clientY);
+    drag.current.off = { x: p.x - g.x, y: p.y - g.y };
+    drag.current.from = { x: g.x, y: g.y };
+    setMovedFar(false);
+    setMovingId(g.id);
+  };
+
+  const pinDown = (e: PointerEvent<SVGCircleElement>, node: any, pin: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (pending && sticky) {
+      const from = pending;
+      cancelWire();
+      if (!samePin(from, { node, pin })) tryConnect(from, { node, pin });
+      return;
+    }
+    setPending({ node, pin });
+    setSticky(false);
+    drag.current.pinDown = { x: e.clientX, y: e.clientY };
+    setHover(null);
+    setCursorBoard(toBoard(e.clientX, e.clientY));
+  };
+  const pinEnter = (node: any, pin: string) => pending && setHover({ node, pin });
+  const pinLeave = (node: any, pin: string) =>
+    hover && samePin(hover, { node, pin }) && setHover(null);
+
+  const startPlace = (e: PointerEvent<HTMLButtonElement>, type: SetStateAction<null>) => {
+    const item = palette.find((p: { type: SetStateAction<null>; }) => p.type === type);
+    if (item?.locked) {
+      onLockedPick(type);
+      return;
+    }
+    e.preventDefault();
+    setPlacing(type);
+    setCursor({ x: e.clientX, y: e.clientY });
+  };
+
+  /* ---------- вид ---------- */
+  const pos = (ref: PinRef) => pinPos(ref, gates, outputYMap, inputYMap);
+  const pinValue = (node: any, pin: string) => {
+    if (pin === "out") return valueFn(node);
+    const w = wires.find((x: { to: PinRef; }) => samePin(x.to, { node, pin }));
+    return w ? valueFn(w.from.node) : undefined;
+  };
+  const labelOf = (id: any) => labels[inputs.indexOf(id)] ?? id;
+
+  const preview = (() => {
+    if (!pending) return null;
+    const end = hover ? pos(hover) : cursorBoard;
+    return end ? wirePath(pos(pending), end) : null;
+  })();
+  const dropOk =
+    pending &&
+    hover &&
+    (pending.pin === "out") !== (hover.pin === "out") &&
+    pending.node !== hover.node;
+  const viewBox = viewBoxOf(pan, zoom, BOARD_W, worldH);
+  const changed = pan.x !== 0 || pan.y !== 0 || zoom !== 1;
+
+  return (
+    <div className={`lab-board ${fullscreen ? "fill" : ""}`}>
+      {palette.length > 0 && (
+        <div
+          className="lab-palette"
+          role="toolbar"
+          aria-label="Элементы: перетащите на доску или кликните"
+        >
+          {palette.map((g: { type: SetStateAction<null>|Key|undefined; locked: any; title: string|undefined; label: string|undefined; }) => (
+            <button
+              key={g.type}
+              type="button"
+              className={`lab-pal-sq ${g.locked ? "locked" : ""}`}
+              title={g.title}
+              aria-label={g.label}
+              onPointerDown={(e) => startPlace(e, g.type)}
+            >
+              <svg viewBox="-12 0 96 48" aria-hidden="true" overflow="visible">
+                {gateExtraArc(g.type) && (
+                  <path className="gate-extra" d={gateExtraArc(g.type)} />
+                )}
+                <path className="gate-body" d={gateBodyPath(g.type)} />
+                {gateBubbleCx(g.type) !== null && (
+                  <circle
+                    className="gate-bubble"
+                    cx={gateBubbleCx(g.type)}
+                    cy="24"
+                    r="5"
+                  />
+                )}
+              </svg>
+              {g.locked && <span className="lab-pal-lock">🔒</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="lab-zoom" role="group" aria-label="Масштаб доски">
+        <button
+          type="button"
+          title="Уменьшить (Ctrl + колесо)"
+          onClick={() => setZoom((z) => Math.max(ZOOM.min, z / ZOOM.step))}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className="pct"
+          title="Масштаб 100 %"
+          onClick={() => setZoom(1)}
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <button
+          type="button"
+          title="Увеличить (Ctrl + колесо)"
+          onClick={() => setZoom((z) => Math.min(ZOOM.max, z * ZOOM.step))}
+        >
+          +
+        </button>
+        {changed && (
+          <button
+            type="button"
+            title="Вернуть доску на место и масштаб 100 %"
+            onClick={() => (setPan({ x: 0, y: 0 }), setZoom(1))}
+          >
+            ⌖
+          </button>
+        )}
+      </div>
+      <svg
+        ref={svgRef}
+        className={`lab-board-svg ${panning ? "panning" : ""}`}
+        viewBox={viewBox}
+        style={manualH ? { height: boardH } : undefined}
+        onPointerDown={boardDown}
+        role="img"
+        aria-label="Интерактивная доска с логическими элементами"
+      >
+        <defs>
+          <pattern
+            id="lab-dots"
+            width="22"
+            height="22"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="1.5" cy="1.5" r="1.5" className="grid-dot" />
+          </pattern>
+        </defs>
+        <rect
+          className="lab-board-bg"
+          x={pan.x}
+          y={pan.y}
+          width={BOARD_W / zoom}
+          height={worldH / zoom}
+          fill="url(#lab-dots)"
+        />
+
+        {wires.map((w: { from: PinRef; to: PinRef; id: Key|null|undefined; }) => {
+          const d = wirePath(pos(w.from), pos(w.to));
+          return (
+            <g
+              key={w.id}
+              className={`wire ${guideFocus?.has(w.id) ? "guide-focus" : ""}`}
+              onPointerDown={() => removeWire(w.id)}
+            >
+              <title>Клик — удалить провод</title>
+              <path className="wire-hit" d={d} />
+              <path
+                className={`wire-line ${cls(valueFn(w.from.node))}`}
+                d={d}
+              />
+            </g>
+          );
+        })}
+
+        {inputs.map((id: Key|null|undefined) => {
+          const y = inputYMap[id] ?? 200;
+          const v = inputState[id];
+          return (
+            <g
+              key={id}
+              className={`input-node ${clockId === id ? "is-clock" : ""}`}
+            >
+              <g className="node-click" onPointerDown={() => onToggleInput(id)}>
+                <title>
+                  Клик — переключить {labelOf(id)} ({v} → {1 - v})
+                </title>
+                <rect
+                  className="node-box"
+                  x="10"
+                  y={y - 22}
+                  width="86"
+                  height="44"
+                  rx="10"
+                />
+                <text className="node-label" x="30" y={y + 5}>
+                  {labelOf(id)}
+                </text>
+                <rect
+                  className={`node-chip ${cls(v)}`}
+                  x="56"
+                  y={y - 12}
+                  width="26"
+                  height="24"
+                  rx="7"
+                />
+                <text className="node-chip-text" x="69" y={y + 5}>
+                  {v}
+                </text>
+              </g>
+              <g
+                className="pin"
+                onPointerEnter={() => pinEnter(id, "out")}
+                onPointerLeave={() => pinLeave(id, "out")}
+              >
+                <circle
+                  className="pin-hit"
+                  cx={INPUT_X}
+                  cy={y}
+                  r="13"
+                  onPointerDown={(e) => pinDown(e, id, "out")}
+                />
+                <circle
+                  className={`pin-dot ${cls(valueFn(id))}`}
+                  cx={INPUT_X}
+                  cy={y}
+                  r="5.5"
+                />
+              </g>
+            </g>
+          );
+        })}
+
+        {outputs.map((o: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => {
+          const y = outputYMap[o] ?? 200;
+          return (
+            <g key={o} className="out-node">
+              <rect
+                className="node-box out-box"
+                x="788"
+                y={y - 22}
+                width="86"
+                height="44"
+                rx="10"
+              />
+              <text className="node-label" x="812" y={y + 5}>
+                {o}
+              </text>
+              <rect
+                className={`node-chip ${cls(valueFn(o))}`}
+                x="834"
+                y={y - 12}
+                width="26"
+                height="24"
+                rx="7"
+              />
+              <text className="node-chip-text" x="847" y={y + 5}>
+                {txt(valueFn(o))}
+              </text>
+              <g
+                className="pin"
+                onPointerEnter={() => pinEnter(o, "in0")}
+                onPointerLeave={() => pinLeave(o, "in0")}
+              >
+                <circle
+                  className="pin-hit"
+                  cx={OUT_X}
+                  cy={y}
+                  r="13"
+                  onPointerDown={(e) => pinDown(e, o, "in0")}
+                />
+                <circle
+                  className={`pin-dot ${cls(pinValue(o, "in0"))}`}
+                  cx={OUT_X}
+                  cy={y}
+                  r="5.5"
+                />
+              </g>
+            </g>
+          );
+        })}
+
+        {gates.map((g: { id: any; x: any; y: any; type?: any; }) => (
+          <g
+            key={g.id}
+            className={`gate ${guideFocus?.has(g.id) ? "guide-focus" : ""} ${movingId === g.id ? "dragging" : ""}`}
+            transform={`translate(${g.x} ${g.y})`}
+            onPointerDown={(e) => gateDown(e, g)}
+          >
+            <path className="gate-body" d={gateBodyPath(g.type)} />
+            {gateExtraArc(g.type) && (
+              <path className="gate-extra" d={gateExtraArc(g.type)} />
+            )}
+            {gateBubbleCx(g.type) !== null && (
+              <circle
+                className="gate-bubble"
+                cx={gateBubbleCx(g.type)}
+                cy="24"
+                r="5"
+              />
+            )}
+            <text
+              className={`gate-label ${g.type === "NOT" ? "small" : ""}`}
+              x={g.type === "NOT" ? 13 : GATE_W / 2}
+              y="29"
+            >
+              {g.type}
+            </text>
+            <g
+              className="gate-del"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => removeGate(g.id)}
+            >
+              <title>Удалить элемент</title>
+              <circle cx="76" cy="0" r="8" />
+              <path d="M73 -3 L79 3 M79 -3 L73 3" />
+            </g>
+            {gatePinsOf(g.type).map((p) => (
+              <g
+                key={p}
+                className="pin"
+                transform={`translate(-8 ${gatePinY(g.type, p)})`}
+                onPointerEnter={() => pinEnter(g.id, p)}
+                onPointerLeave={() => pinLeave(g.id, p)}
+              >
+                <circle
+                  className="pin-hit"
+                  r="13"
+                  onPointerDown={(e) => pinDown(e, g.id, p)}
+                />
+                <circle
+                  className={`pin-dot ${cls(pinValue(g.id, p))}`}
+                  r="5.5"
+                />
+              </g>
+            ))}
+            <g
+              className="pin"
+              onPointerEnter={() => pinEnter(g.id, "out")}
+              onPointerLeave={() => pinLeave(g.id, "out")}
+            >
+              <circle
+                className="pin-hit"
+                cx={OUT_PIN_X[g.type]}
+                cy="24"
+                r="13"
+                onPointerDown={(e) => pinDown(e, g.id, "out")}
+              />
+              <circle
+                className={`pin-dot ${cls(pinValue(g.id, "out"))}`}
+                cx={OUT_PIN_X[g.type]}
+                cy="24"
+                r="5.5"
+              />
+            </g>
+            <g
+              className="probe"
+              transform={`translate(${OUT_PIN_X[g.type] + 20} 24)`}
+            >
+              <circle r="9" />
+              <text y="3.5" textAnchor="middle">
+                {txt(pinValue(g.id, "out"))}
+              </text>
+            </g>
+          </g>
+        ))}
+
+        {autoWires.map((w, i) => (
+          <path key={i} className="wire-auto" d={wirePath(w.a, w.b)} />
+        ))}
+        {preview && (
+          <path className={`wire-preview ${dropOk ? "ok" : ""}`} d={preview} />
+        )}
+      </svg>
+      {!fullscreen && (
+        // за эту ручку тянут, чтобы изменить высоту доски (двойной щелчок — по умолчанию)
+        <button
+          type="button"
+          className="lab-resize-grip"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Высота доски: потяните вверх или вниз, либо стрелками"
+          title="Потяните, чтобы изменить высоту доски (двойной щелчок — по умолчанию)"
+          onPointerDown={resizeDown}
+          onDoubleClick={() => changeHeight(null)}
+          onKeyDown={resizeKey}
+        >
+          <svg viewBox="0 0 28 8" aria-hidden="true">
+            <path d="M2 2h24M2 6h24" />
+          </svg>
+        </button>
+      )}
+      {placing && cursor && (
+        <div
+          className="lab-ghost"
+          style={{ left: cursor.x, top: cursor.y }}
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 84 48" width="56" height="32">
+            <path className="gate-body" d={gateBodyPath(placing)} />
+            {gateBubbleCx(placing) !== null && (
+              <circle
+                className="gate-bubble"
+                cx={gateBubbleCx(placing)}
+                cy="24"
+                r="5"
+              />
+            )}
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -106,12 +106,25 @@ export interface Attempt {
   created_at: string;
 }
 
-export interface TestResult {
+// Результат проверки SQL-задачи (поля got_*, exp_*) в том виде, как его отдаёт сервер
+export interface SqlResultView {
+  got_rows?: SqlValue[][];
+  exp_rows?: SqlValue[][];
+  got_cols?: string[];
+  exp_cols?: string[];
+  got_total?: number;
+  exp_total?: number;
+  ordered?: boolean;
+}
+
+// Результат одного теста: для функций — вызов (args), для SQL — таблицы (kind: "rows")
+export interface TestResult extends SqlResultView {
   ok: boolean;
-  got?: string;
-  expected?: string;
+  got?: unknown;
+  expected?: unknown;
   error?: string | null;
-  [key: string]: unknown;
+  args?: string;
+  kind?: string;
 }
 
 export interface RunResult {

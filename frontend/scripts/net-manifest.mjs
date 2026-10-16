@@ -2,7 +2,7 @@
 // (frontend/src/netlab): {глава: [{id, mode: "lab", title, statement, starter, hint}]}.
 // Запуск: cd frontend && npm run net:manifest
 import { writeFileSync } from "node:fs";
-import { NET_CHAPTERS, netTasks } from "../src/netlab/registry.js";
+import { NET_CHAPTERS, netTasks } from "../src/netlab/registry.ts";
 
 const manifest = {};
 for (const n of Object.keys(NET_CHAPTERS))

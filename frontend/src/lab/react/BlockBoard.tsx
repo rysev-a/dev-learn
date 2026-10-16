@@ -1,0 +1,775 @@
+import { SetStateAction, PointerEvent, useCallback, useEffect, useMemo, useRef, useState, MouseEvent, ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor } from "react";
+import { wirePath } from "../exercises/logic-gates/circuit.model.ts";
+import {
+  ZOOM,
+  clampWorld,
+  isClick,
+  viewBoxOf,
+  wheelFactor,
+  zoomAround,
+} from "../exercises/logic-gates/board-pan.ts";
+import {
+BusEnd,
+  BusWire,
+  TOP,
+  addBusWire,
+  connectionError,
+  endInfo,
+  isSourceEnd,
+  portValues,
+} from "../exercises/logic-gates/blocks.ts";
+import {
+  BLOCK_W,
+  SIDE_W,
+  layoutBox,
+  pinCenter,
+  rowKey,
+  sideBoxes,
+} from "../exercises/logic-gates/block-layout.ts";
+import { busText } from "../exercises/logic-gates/interfaces.ts";
+
+/* Доска с блоками: прямоугольники с типизированными портами, соединяемые шинами. Порт можно раскрыть (▸)
+   и тянуть шину от отдельного поля. Типы совместимы только по имени. В режиме readonly (внутренность блока)
+   блоки можно двигать на экране — схема не меняется. */
+
+export const BLOCKS_BOARD_W = 880;
+export const BLOCKS_BOARD_H = 560;
+
+const sameEnd = (a: never, b: { node: any; port: any; path: any; }) =>
+  a.node === b.node && a.port === b.port && a.path === b.path;
+
+export default function BlockBoard({
+  iface,
+  library,
+  instances,
+  setInstances,
+  busWires,
+  setBusWires,
+  expansion,
+  scope,
+  readonly = false,
+  clockNode = null,
+  height = BLOCKS_BOARD_H,
+  onToggle,
+  onInspect,
+  onMessage,
+  boardRef,
+  resetKey,
+  spread = 1,
+  fullscreen = false,
+}) {
+  /* раздвинуть блоки при просмотре тесной схемы: координаты умножаются, доска растёт */
+  const spreadX = (x: number) => Math.round(SIDE_W + 18 + (x - (SIDE_W + 18)) * spread);
+  const spreadY = (y: number) => Math.round(20 + (y - 20) * spread);
+  const W =
+    spread === 1
+      ? BLOCKS_BOARD_W
+      : Math.max(
+          BLOCKS_BOARD_W,
+          Math.round(
+            Math.max(0, ...instances.map((i: { x: number; }) => spreadX(i.x))) +
+              BLOCK_W +
+              30 +
+              SIDE_W +
+              6,
+          ),
+        );
+  const H =
+    spread === 1
+      ? height
+      : Math.max(
+          height,
+          Math.round(Math.max(0, ...instances.map((i: { y: number; }) => spreadY(i.y) + 290))),
+        );
+  const svgRef = useRef(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [panning, setPanning] = useState(false);
+  const [expanded, setExpanded] = useState(() => new Set());
+  const [pending, setPending] = useState(null);
+  const [sticky, setSticky] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [hover, setHover] = useState(null);
+  const [movingId, setMovingId] = useState(null);
+  const [moved, setMoved] = useState({});
+  const drag = useRef({});
+  const st = useRef({});
+
+  /* ---------- раскладка ---------- */
+  const portsOf = useMemo(
+    () => (node: string) =>
+      node === TOP
+        ? iface.ports
+        : library.def(instances.find((i: { id: string; }) => i.id === node)?.blockId ?? "")
+            ?.ports,
+    [iface, library, instances],
+  );
+
+  const boxes = useMemo(() => {
+    const { inBox, outBox } = sideBoxes(iface.ports, expanded, W);
+    const blocks = instances.map((inst: { blockId: any; id: string; x: number; y: number; }) => {
+      const def = library.def(inst.blockId);
+      return layoutBox(
+        inst.id,
+        def?.title ?? "Неизвестный блок",
+        def?.ports ?? [],
+        expanded,
+        {
+          x: moved[inst.id]?.x ?? spreadX(inst.x),
+          y: moved[inst.id]?.y ?? spreadY(inst.y),
+          w: BLOCK_W,
+        },
+        "block",
+      );
+    });
+    return [inBox, outBox, ...blocks];
+  }, [iface, library, instances, expanded, moved, W, spread]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pins = useMemo(() => {
+    const map = new Map();
+    for (const box of boxes)
+      for (const row of box.rows)
+        map.set(row.key, { box, row, pos: pinCenter(box, row) });
+    return map;
+  }, [boxes]);
+
+  const pinFor = (end: BusEnd) => {
+    let path = end.path;
+    for (;;) {
+      const hit = pins.get(rowKey({ ...end, path }));
+      if (hit) return hit;
+      if (path === "") return undefined;
+      const dot = path.lastIndexOf(".");
+      path = dot < 0 ? "" : path.slice(0, dot);
+    }
+  };
+
+  const orient = (a: BusEnd, b: any) => {
+    const ia = endInfo(a, portsOf);
+    return ia && isSourceEnd(a, ia) ? { from: a, to: b } : { from: b, to: a };
+  };
+  const canJoin = (a: BusEnd, b: any) => {
+    const { from, to } = orient(a, b);
+    return connectionError(from, to, portsOf) === undefined;
+  };
+
+  const wiresView = busWires.flatMap((w: { from: BusEnd; to: BusEnd; id: any; }) => {
+    const a = pinFor(w.from);
+    const b = pinFor(w.to);
+    if (!a || !b) return [];
+    const info = endInfo(w.from, portsOf);
+    const values =
+      expansion && info ? portValues(scope, expansion, w.from, portsOf) : [];
+    const width = info?.length ?? 1;
+    const known = values.length > 0 && values.every((v) => v !== undefined);
+    const cls =
+      width === 1
+        ? values[0] === 1
+          ? "v1"
+          : values[0] === 0
+            ? "v0"
+            : "vx"
+        : known
+          ? "bus"
+          : "bus vx";
+    return [
+      {
+        id: w.id,
+        d: wirePath(a.pos, b.pos),
+        mx: (a.pos.x + b.pos.x) / 2,
+        my: (a.pos.y + b.pos.y) / 2,
+        text: busText(values),
+        width,
+        cls,
+      },
+    ];
+  });
+
+  const preview = (() => {
+    if (!pending) return null;
+    const a = pinFor(pending);
+    if (!a) return null;
+    const target = hover ? pins.get(hover) : undefined;
+    const end = target?.pos ?? cursor;
+    if (!end) return null;
+    const d = a.row.side === "in" ? wirePath(end, a.pos) : wirePath(a.pos, end);
+    return { d, ok: !!target && canJoin(pending, target.row.end) };
+  })();
+
+  const compatible = useMemo(() => {
+    const set = new Set();
+    if (!pending) return set;
+    for (const [key, p] of pins) if (canJoin(pending, p.row.end)) set.add(key);
+    return set;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, pins, portsOf]);
+
+  st.current = { pending, sticky, hover, movingId, pan, zoom, pins, readonly };
+
+  /* ---------- координаты ---------- */
+  const toBoard = useCallback((cx: any, cy: any) => {
+    const svg = svgRef.current;
+    const m = svg?.getScreenCTM();
+    if (!m) return { x: 0, y: 0 };
+    const pt = svg.createSVGPoint();
+    pt.x = cx;
+    pt.y = cy;
+    const r = pt.matrixTransform(m.inverse());
+    return { x: r.x, y: r.y };
+  }, []);
+
+  const metrics = () => {
+    const rect = svgRef.current.getBoundingClientRect();
+    const base = Math.min(rect.width / W, rect.height / H);
+    return {
+      rect,
+      base,
+      offX: (rect.width - W * base) / 2,
+      offY: (rect.height - H * base) / 2,
+    };
+  };
+
+  const cancelWire = useCallback(() => {
+    const had = st.current.pending !== null;
+    setPending(null);
+    setSticky(false);
+    setHover(null);
+    setCursor(null);
+    return had;
+  }, []);
+  const resetView = () => {
+    setPan({ x: 0, y: 0 });
+    setZoom(1);
+    setMoved({});
+  };
+  if (boardRef) boardRef.current = { cancelWire, resetView };
+
+  // другая схема внутри просмотра — раскладка начинается заново
+  useEffect(() => {
+    setMoved({});
+    setPan({ x: 0, y: 0 });
+    setZoom(1);
+    setExpanded(new Set());
+    cancelWire();
+  }, [resetKey, cancelWire]);
+
+  const nextWireId = () => {
+    const used = new Set(busWires.map((w: { id: any; }) => w.id));
+    let n = used.size + 1;
+    while (used.has(`b${n}`)) n++;
+    return `b${n}`;
+  };
+  const connect = (a: BusEnd, b: any) => {
+    const { from, to } = orient(a, b);
+    const error = connectionError(from, to, portsOf);
+    if (error) {
+      onMessage?.(error);
+      return;
+    }
+    const id = nextWireId();
+    setBusWires((list: readonly BusWire[]) => addBusWire(list, { id, from, to }, portsOf));
+  };
+
+  /* ---------- глобальные обработчики ---------- */
+  useEffect(() => {
+    const move = (e: { clientX: number; clientY: number; }) => {
+      const s = st.current;
+      if (drag.current.pan) {
+        const d = drag.current.pan;
+        setPan({
+          x: Math.round(d.ox - (e.clientX - d.cx) / d.scale),
+          y: Math.round(d.oy - (e.clientY - d.cy) / d.scale),
+        });
+        return;
+      }
+      if (s.movingId) {
+        const p = toBoard(e.clientX, e.clientY);
+        const { x, y } = clampWorld(
+          { x: p.x - drag.current.off.x, y: p.y - drag.current.off.y },
+          BLOCK_W,
+          drag.current.h ?? 80,
+        );
+        if (s.readonly) setMoved((m) => ({ ...m, [s.movingId]: { x, y } }));
+        else
+          setInstances((list: any[]) =>
+            list.map((i) => (i.id === s.movingId ? { ...i, x, y } : i)),
+          );
+        return;
+      }
+      if (s.pending) setCursor(toBoard(e.clientX, e.clientY));
+    };
+    const up = (e: PointerEvent) => {
+      const s = st.current;
+      if (drag.current.pan) {
+        drag.current.pan = null;
+        setPanning(false);
+        return;
+      }
+      if (s.movingId) {
+        setMovingId(null);
+        return;
+      }
+      if (!s.pending || s.sticky) return;
+      const target = s.hover ? s.pins.get(s.hover) : undefined;
+      if (target && !sameEnd(s.pending, target.row.end)) {
+        drag.current.connect(s.pending, target.row.end);
+        cancelWire();
+      } else if (isClick(drag.current.pinDown, e)) setSticky(true);
+      else cancelWire();
+    };
+    const key = (e: { key: string; }) => {
+      if (e.key === "Escape" && st.current.pending) cancelWire();
+    };
+    // пока шина тянется за мышью, нажатие мимо порта её отменяет
+    const cancelOnDown = (e: { button: number; target: any; preventDefault: () => void; stopPropagation: () => void; }) => {
+      const s = st.current;
+      if (!s.sticky || e.button === 1) return;
+      const t = e.target;
+      if (!t || typeof t.closest !== "function") return;
+      if (t.closest(".bpin-hit") || t.closest(".lab-zoom")) return;
+      cancelWire();
+      if (svgRef.current?.contains(t)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+    document.addEventListener("keydown", key);
+    document.addEventListener("pointerdown", cancelOnDown, true);
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("keydown", key);
+      document.removeEventListener("pointerdown", cancelOnDown, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toBoard, cancelWire]);
+  drag.current.connect = connect;
+
+  // колесо: Ctrl/⌘ — масштаб; средняя кнопка — сдвиг
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const wheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey) && !el.closest(".fill")) return;
+      e.preventDefault();
+      const m = metrics();
+      const s = st.current;
+      const next = zoomAround(
+        { pan: s.pan, zoom: s.zoom },
+        wheelFactor(e),
+        {
+          x: e.clientX - m.rect.left - m.offX,
+          y: e.clientY - m.rect.top - m.offY,
+        },
+        m.base,
+      );
+      setPan(next.pan);
+      setZoom(next.zoom);
+    };
+    const mid = (e: { button: number; preventDefault: () => void; stopPropagation: () => void; }) => {
+      if (e.button !== 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+      beginPan(e);
+    };
+    const swallow = (e: { button: number; preventDefault: () => any; }) => e.button === 1 && e.preventDefault();
+    el.addEventListener("wheel", wheel, { passive: false });
+    el.addEventListener("pointerdown", mid, { capture: true });
+    el.addEventListener("mousedown", swallow, { capture: true });
+    el.addEventListener("auxclick", swallow, { capture: true });
+    return () => {
+      el.removeEventListener("wheel", wheel);
+      el.removeEventListener("pointerdown", mid, { capture: true });
+      el.removeEventListener("mousedown", swallow, { capture: true });
+      el.removeEventListener("auxclick", swallow, { capture: true });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const beginPan = (e: { button?: number; preventDefault?: () => void; stopPropagation?: () => void; clientX?: any; clientY?: any; }) => {
+    const m = metrics();
+    const s = st.current;
+    drag.current.pan = {
+      cx: e.clientX,
+      cy: e.clientY,
+      ox: s.pan.x,
+      oy: s.pan.y,
+      scale: m.base * s.zoom,
+    };
+    setPanning(true);
+  };
+  const boardDown = (e: { button: any; target?: any; preventDefault: any; stopPropagation?: (() => void)|undefined; clientX?: any; clientY?: any; }) => {
+    if (e.button !== 0 || pending) return;
+    if (e.target === svgRef.current || e.target.classList?.contains("bb-bg")) {
+      e.preventDefault();
+      beginPan(e);
+    }
+  };
+  const zoomBy = (factor: number) => {
+    const m = metrics();
+    const next = zoomAround(
+      { pan, zoom },
+      factor,
+      {
+        x: (m.rect.width - 2 * m.offX) / 2,
+        y: (m.rect.height - 2 * m.offY) / 2,
+      },
+      m.base,
+    );
+    setPan(next.pan);
+    setZoom(next.zoom);
+  };
+
+  /* ---------- действия ---------- */
+  const pinDown = (e: PointerEvent<SVGCircleElement>, row: { end: SetStateAction<null>; }) => {
+    if (readonly) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (pending && sticky) {
+      const from = pending;
+      cancelWire();
+      if (!sameEnd(from, row.end)) connect(from, row.end);
+      return;
+    }
+    setPending(row.end);
+    setSticky(false);
+    drag.current.pinDown = { x: e.clientX, y: e.clientY };
+    setHover(null);
+    setCursor(toBoard(e.clientX, e.clientY));
+  };
+  const boxDown = (e: PointerEvent<SVGRectElement>|PointerEvent<SVGTextElement>, box: { kind: string; x: number; y: number; h: any; node: SetStateAction<null>; }) => {
+    if (box.kind !== "block" || e.button !== 0) return;
+    e.preventDefault();
+    const p = toBoard(e.clientX, e.clientY);
+    drag.current.off = { x: p.x - box.x, y: p.y - box.y };
+    drag.current.h = box.h;
+    setMovingId(box.node);
+  };
+  const toggleExpand = (row: { key: unknown; }, e: PointerEvent<SVGGElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setExpanded((set) => {
+      const next = new Set(set);
+      if (next.has(row.key)) {
+        for (const k of next)
+          if (k === row.key || k.startsWith(`${row.key}.`)) next.delete(k);
+      } else next.add(row.key);
+      return next;
+    });
+  };
+  const removeWire = (id: any) =>
+    !readonly && setBusWires((list: any[]) => list.filter((w) => w.id !== id));
+  const removeInstance = (id: any, e: MouseEvent<SVGGElement,MouseEvent>) => {
+    e.stopPropagation();
+    setInstances((list: any[]) => list.filter((i) => i.id !== id));
+    setBusWires((list: any[]) =>
+      list.filter((w) => w.from.node !== id && w.to.node !== id),
+    );
+  };
+
+  const bit = (node: any) => scope(node);
+  const rowText = (row: { nodes: any[]; }) => busText(row.nodes.map((n) => scope(n)));
+  const changed =
+    pan.x !== 0 || pan.y !== 0 || zoom !== 1 || Object.keys(moved).length > 0;
+
+  return (
+    <div className={`lab-board ${fullscreen ? "fill" : ""}`}>
+      <div className="lab-zoom" role="group" aria-label="Масштаб доски">
+        <button
+          type="button"
+          title="Уменьшить (Ctrl + колесо)"
+          onClick={() => zoomBy(1 / ZOOM.step)}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className="pct"
+          title="Масштаб 100 %"
+          onClick={() => setZoom(1)}
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <button
+          type="button"
+          title="Увеличить (Ctrl + колесо)"
+          onClick={() => zoomBy(ZOOM.step)}
+        >
+          +
+        </button>
+        {changed && (
+          <button
+            type="button"
+            title="Вернуть доску на место и масштаб 100 %"
+            onClick={resetView}
+          >
+            ⌖
+          </button>
+        )}
+      </div>
+      <svg
+        ref={svgRef}
+        className={`lab-board-svg bb ${readonly ? "readonly" : ""} ${panning ? "panning" : ""}`}
+        viewBox={viewBoxOf(pan, zoom, W, H)}
+        onPointerDown={boardDown}
+        role="img"
+        aria-label="Доска с блоками и шинами"
+      >
+        <defs>
+          <pattern
+            id="bb-dots"
+            width="22"
+            height="22"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="1.5" cy="1.5" r="1.5" className="grid-dot" />
+          </pattern>
+        </defs>
+        <rect
+          className="bb-bg"
+          x={pan.x}
+          y={pan.y}
+          width={W / zoom}
+          height={H / zoom}
+          fill="url(#bb-dots)"
+        />
+
+        {wiresView.map((w: { id: Key|null|undefined; width: number; d: string|undefined; cls: any; mx: any; my: any; text: string|number|bigint|boolean|any[]|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }) => (
+          <g
+            key={w.id}
+            className={`bwire ${w.width > 1 ? "bus" : ""}`}
+            onPointerDown={() => removeWire(w.id)}
+          >
+            {!readonly && <title>Клик — удалить шину</title>}
+            <path className="bwire-hit" d={w.d} />
+            <path className={`bwire-line ${w.cls}`} d={w.d} />
+            <g className="bwire-tag" transform={`translate(${w.mx} ${w.my})`}>
+              <rect
+                x={-(w.text.length * 3.6 + 5)}
+                y="-8"
+                width={w.text.length * 7.2 + 10}
+                height="16"
+                rx="8"
+              />
+              <text y="3.5" textAnchor="middle">
+                {w.text}
+              </text>
+            </g>
+          </g>
+        ))}
+
+        {boxes.map((box) => (
+          <g
+            key={box.node + box.kind}
+            className={`bbox ${box.kind !== "block" ? "top" : ""}`}
+            transform={`translate(${box.x} ${box.y})`}
+          >
+            <rect className="bbox-rect" width={box.w} height={box.h} rx="10" />
+            {box.kind === "block" ? (
+              <>
+                <rect
+                  className="bbox-head"
+                  width={box.w}
+                  height="28"
+                  rx="10"
+                  onPointerDown={(e) => boxDown(e, box)}
+                />
+                <text
+                  className="bbox-title"
+                  x="10"
+                  y="18"
+                  onPointerDown={(e) => boxDown(e, box)}
+                >
+                  {box.title}
+                </text>
+                <g
+                  className="bbtn inspect"
+                  transform={`translate(${box.w - (readonly ? 14 : 36)} 14)`}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => onInspect?.(box.node)}
+                >
+                  <title>Заглянуть внутрь</title>
+                  <circle r="9" />
+                  <circle className="lens" r="3.2" cx="-0.8" cy="-0.8" />
+                  <path className="lens" d="M1.6 1.6 L4.6 4.6" />
+                </g>
+                {!readonly && (
+                  <g
+                    className="bbtn del"
+                    transform={`translate(${box.w - 14} 14)`}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => removeInstance(box.node, e)}
+                  >
+                    <title>Убрать блок с доски</title>
+                    <circle r="9" />
+                    <path d="M-3 -3 L3 3 M3 -3 L-3 3" />
+                  </g>
+                )}
+              </>
+            ) : (
+              <text className="bbox-title top" x="10" y="18">
+                {box.title}
+              </text>
+            )}
+
+            {box.rows.map((row: { key?: any; nodes?: any; y?: any; side?: any; expandable?: any; expanded?: any; depth?: any; name?: any; type?: any; end?: SetStateAction<null>; }) => {
+              const dim = pending !== null && !compatible.has(row.key);
+              const chipW = Math.max(18, row.nodes.length * 8 + 8);
+              return (
+                <g
+                  key={row.key}
+                  className={`brow ${dim ? "dim" : ""} ${hover === row.key ? "hover" : ""}`}
+                  transform={`translate(0 ${row.y})`}
+                >
+                  {row.side === "in" ? (
+                    <>
+                      {row.expandable && (
+                        <g
+                          className="caret"
+                          onPointerDown={(e) => toggleExpand(row, e)}
+                        >
+                          <title>
+                            {row.expanded ? "Свернуть поля" : "Показать поля"}
+                          </title>
+                          <rect
+                            x={8 + row.depth * 10}
+                            y="-9"
+                            width="14"
+                            height="18"
+                            rx="4"
+                          />
+                          <text
+                            x={15 + row.depth * 10}
+                            y="4"
+                            textAnchor="middle"
+                          >
+                            {row.expanded ? "▾" : "▸"}
+                          </text>
+                        </g>
+                      )}
+                      <text
+                        className="blabel"
+                        x={(row.expandable ? 26 : 12) + row.depth * 10}
+                        y="4"
+                      >
+                        {row.name}
+                        <tspan className="btype">: {row.type}</tspan>
+                      </text>
+                    </>
+                  ) : (
+                    <>
+                      {row.expandable && (
+                        <g
+                          className="caret"
+                          onPointerDown={(e) => toggleExpand(row, e)}
+                        >
+                          <title>
+                            {row.expanded ? "Свернуть поля" : "Показать поля"}
+                          </title>
+                          <rect
+                            x={box.w - 22 - row.depth * 10}
+                            y="-9"
+                            width="14"
+                            height="18"
+                            rx="4"
+                          />
+                          <text
+                            x={box.w - 15 - row.depth * 10}
+                            y="4"
+                            textAnchor="middle"
+                          >
+                            {row.expanded ? "▾" : "▸"}
+                          </text>
+                        </g>
+                      )}
+                      {box.kind !== "top-in" ? (
+                        <text
+                          className="blabel out"
+                          x={
+                            box.w - (row.expandable ? 26 : 12) - row.depth * 10
+                          }
+                          y="4"
+                          textAnchor="end"
+                        >
+                          {row.name}
+                          <tspan className="btype">: {row.type}</tspan>
+                        </text>
+                      ) : (
+                        <text className="blabel" x={10 + row.depth * 8} y="4">
+                          {row.name}
+                        </text>
+                      )}
+                    </>
+                  )}
+
+                  {box.kind === "top-in" &&
+                    row.nodes.map((node: Key|null|undefined, i: number) => (
+                      <g
+                        key={node}
+                        className={`bchip ${bit(node) === 1 ? "v1" : ""} ${node === clockNode ? "clk" : ""} ${readonly ? "static" : ""}`}
+                        transform={`translate(${box.w - 16 - (row.nodes.length - i) * 21 - (row.expandable ? 18 : 0)} 0)`}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={() => !readonly && onToggle?.(node)}
+                      >
+                        {!readonly && <title>Клик — переключить</title>}
+                        <rect x="0" y="-9" width="18" height="18" rx="5" />
+                        <text x="9" y="4" textAnchor="middle">
+                          {bit(node) ?? "?"}
+                        </text>
+                      </g>
+                    ))}
+                  {box.kind === "top-out" && (
+                    <g
+                      className="bchip out"
+                      transform={`translate(${box.w - 8 - chipW} 0)`}
+                    >
+                      <rect x="0" y="-9" width={chipW} height="18" rx="5" />
+                      <text x={chipW / 2} y="4" textAnchor="middle">
+                        {rowText(row)}
+                      </text>
+                    </g>
+                  )}
+
+                  <g
+                    className="bpin"
+                    data-pin={row.key}
+                    onPointerEnter={() => pending && setHover(row.key)}
+                    onPointerLeave={() => hover === row.key && setHover(null)}
+                  >
+                    <title>
+                      {row.name}: {row.type}
+                    </title>
+                    <circle
+                      className="bpin-hit"
+                      cx={row.side === "in" ? 0 : box.w}
+                      cy="0"
+                      r="12"
+                      onPointerDown={(e) => pinDown(e, row)}
+                    />
+                    <circle
+                      className="bpin-dot"
+                      cx={row.side === "in" ? 0 : box.w}
+                      cy="0"
+                      r={row.nodes.length > 1 ? 6.5 : 5}
+                    />
+                  </g>
+                </g>
+              );
+            })}
+          </g>
+        ))}
+
+        {preview && (
+          <path
+            className={`bwire-preview ${preview.ok ? "ok" : ""}`}
+            d={preview.d}
+          />
+        )}
+      </svg>
+    </div>
+  );
+}
+
+export { SIDE_W };

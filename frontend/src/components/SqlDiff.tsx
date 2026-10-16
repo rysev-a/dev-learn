@@ -5,7 +5,7 @@
    Проверка на сервере сравнивает значения по позиции (имена столбцов не важны), поэтому и
    здесь сопоставление идёт по позициям; различие имён показано мягко. */
 
-import type { SqlValue } from "../types.ts";
+import type { SqlResultView, SqlValue } from "../types.ts";
 
 type Row = SqlValue[];
 type Side = "got" | "exp";
@@ -13,17 +13,6 @@ type RowState = "ok" | "diff" | "extra" | "missing";
 interface Aligned {
   st: RowState;
   pair: number | null;
-}
-
-// Результат проверки SQL-задачи (поля got_*, exp_*) в том виде, как его отдаёт сервер
-export interface SqlResultView {
-  got_rows?: Row[];
-  exp_rows?: Row[];
-  got_cols?: string[];
-  exp_cols?: string[];
-  got_total?: number;
-  exp_total?: number;
-  ordered?: boolean;
 }
 
 const key = (row: Row) => JSON.stringify(row);

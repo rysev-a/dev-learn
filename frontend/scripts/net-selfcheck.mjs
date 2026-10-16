@@ -1,7 +1,7 @@
 // Самопроверка лаборатории сетей: на исходной сети хотя бы одна цель не выполнена, а после
 // шагов эталонного решения выполнены все. Запуск: cd frontend && node scripts/net-selfcheck.mjs
-import { NET_CHAPTERS } from "../src/netlab/registry.js";
-import { applyOps, checkGoals } from "../src/netlab/check.js";
+import { NET_CHAPTERS } from "../src/netlab/registry.ts";
+import { applyOps, checkGoals } from "../src/netlab/check.ts";
 
 let bad = 0;
 for (const [ch, list] of Object.entries(NET_CHAPTERS)) {
