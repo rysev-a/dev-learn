@@ -4,7 +4,7 @@ import BookIcon from "../../components/BookIcon.tsx";
 import { pct } from "../../lib/format.ts";
 import { usePlayer } from "../../lib/player.tsx";
 import { useProgress } from "../../lib/progress.tsx";
-import { useCodeCounts, useCourses } from "../../lib/queries.ts";
+import { useCodeCounts, useCourses, useQuizCounts } from "../../lib/queries.ts";
 import { chapterStats, type Pair } from "../../lib/stats.ts";
 import type { Book } from "../../types.ts";
 
@@ -26,6 +26,7 @@ export default function BooksIndex({ books }: { books: Book[] }) {
   const progress = useProgress();
   const courses = useCourses(books); // bookId → разделы с главами
   const codeCounts = useCodeCounts();
+  const quizCounts = useQuizCounts();
 
   const rows = useMemo(
     () =>
@@ -33,7 +34,7 @@ export default function BooksIndex({ books }: { books: Book[] }) {
         const chapters = (courses[b.id] || []).flatMap((s) => s.chapters);
         const stats = chapters.map((ch) => ({
           ch,
-          ...chapterStats(progress, b.id, ch, codeCounts),
+          ...chapterStats(progress, b.id, ch, codeCounts, quizCounts),
         }));
         return {
           book: b,
@@ -44,7 +45,7 @@ export default function BooksIndex({ books }: { books: Book[] }) {
           ex: total(stats, "ex"),
         };
       }),
-    [books, courses, codeCounts, progress],
+    [books, courses, codeCounts, quizCounts, progress],
   );
 
   const sums = { slides: total(rows, "slides"), quiz: total(rows, "quiz"), ex: total(rows, "ex") };

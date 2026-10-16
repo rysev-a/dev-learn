@@ -26,6 +26,7 @@ import uuid
 from app import config
 from app.books.service import db, init_db
 from app.exercises.store import reload_tasks
+from app.quizzes.store import reload_quizzes
 
 BOOK_RE = re.compile(r"^#BOOK\s+(\d+)$")
 CHAPTER_RE = re.compile(r"^#CHAPTER\s+(\d+)\s*\|\s*(.+)$")
@@ -241,6 +242,7 @@ def main() -> None:
     ls = seed_db(all_books)
     with db() as conn:
         print(f"tasks: {reload_tasks(conn)} из SQL-файлов")
+        print(f"quiz questions: {reload_quizzes(conn)} из SQL-файлов")
     if not args.no_audio:
         generate_audio(ls)
     print("done")

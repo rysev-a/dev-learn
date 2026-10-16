@@ -143,6 +143,8 @@ export interface RunResult {
 export interface ProgressData {
   slides: Record<string, number[]>;
   quiz: Record<string, (number | null)[]>;
+  /** сколько ответов верны: {«книга:глава»: число}; считает сервер, ответов клиент не знает */
+  quizRight: Record<string, number>;
   answers: Record<string, Record<string, string>>;
   code: Record<string, Record<string, TaskStatus>>;
 }
@@ -150,14 +152,26 @@ export interface ProgressData {
 export interface QuizQuestion {
   q: string;
   options: string[];
+}
+
+/** Верный ответ и пояснение: сервер отдаёт их только после того, как пользователь выбрал вариант */
+export interface QuizReveal {
   answer: number;
-  expl?: string;
+  expl: string;
 }
 
 export interface Quiz {
   kind: "theory";
   title: string;
   questions: QuizQuestion[];
+  /** по вопросам: раскрытый ответ или null, если на вопрос ещё не отвечали */
+  reveal: (QuizReveal | null)[];
+}
+
+/** Ответ сервера на выбор варианта */
+export interface QuizAnswerResult extends QuizReveal {
+  pick: number;
+  right: number;
 }
 
 export interface PracticeTask {

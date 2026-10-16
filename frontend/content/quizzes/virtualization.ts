@@ -1,6 +1,6 @@
 // Теоретические квизы к книге 17 — Виртуализация (главы 1–16).
 // Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.ts.
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const VIRT_QUIZZES: Record<string, Quiz> = {
   "17:1": {

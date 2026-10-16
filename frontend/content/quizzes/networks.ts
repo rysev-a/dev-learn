@@ -1,6 +1,6 @@
 // Теоретические квизы к книге 15 — Компьютерные сети.
 // Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.ts.
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const NET_QUIZZES: Record<string, Quiz> = {
   "15:1": {

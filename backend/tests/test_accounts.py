@@ -102,15 +102,17 @@ class AccountsTest(unittest.TestCase):
         self.assertEqual(c.post("/api/progress/slides", json={"book": 13, "chapter": 5, "slide": 2}).status_code, 204)
         c.post("/api/progress/slides", json={"book": 13, "chapter": 5, "slide": 2})  # повтор — без дублей
         c.post("/api/progress/slides", json={"book": 13, "chapter": 5, "slide": 0})
-        c.put("/api/progress/quiz", json={"book": 13, "chapter": 5, "picks": [0, 2, None, None, None]})
+        c.post("/api/quizzes/13/5/answer", json={"question": 0, "pick": 0})
+        c.post("/api/quizzes/13/5/answer", json={"question": 1, "pick": 2})
         c.put("/api/progress/answers", json={"book": 12, "chapter": 1, "solved": {"0": "5", "2": "8"}})
         p = c.get("/api/progress").json()
         self.assertEqual(p["slides"]["13:5"], [0, 2])
         self.assertEqual(p["quiz"]["13:5"], [0, 2, None, None, None])
+        self.assertIn("13:5", p["quizRight"])
         self.assertEqual(p["answers"]["12:1"], {"0": "5", "2": "8"})
 
         # пустые ответы удаляют запись
-        c.put("/api/progress/quiz", json={"book": 13, "chapter": 5, "picks": [None, None]})
+        self.assertEqual(c.delete("/api/progress/quiz", params={"book": 13, "chapter": 5}).status_code, 204)
         self.assertNotIn("13:5", c.get("/api/progress").json()["quiz"])
 
         # другой пользователь ничего этого не видит

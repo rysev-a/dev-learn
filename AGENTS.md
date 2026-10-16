@@ -55,8 +55,9 @@
    экспорт `SLIDES_<Xn>: Record<string, SlideComponent[]> = { "<bookId>:<N>": [...] }` + `SLIDE_TITLES_<Xn>`;
    число сцен = числу абзацев урока). Каталог слайдов книги и её id — `BOOK_DIRS` в `frontend/src/lib/slides.ts`
    (главы находятся сами по `import.meta.glob`, вручную их подключать не надо).
-3. Квизы на теорию для каждой главы в `frontend/src/quizzes/<slug>.ts`
-   (`kind: "theory"`, 5 вопросов), подключить в `frontend/src/lib/quizzes.ts`.
+3. Квизы на теорию для каждой главы в `frontend/content/quizzes/<slug>.ts`
+   (`kind: "theory"`, 5 вопросов; поля `answer` и `expl` обязательны), подключить в `frontend/content/quizzes/index.ts`,
+   затем `cd frontend && npm run quizzes:export` (см. «Квизы в БД»).
 4. Регистрация книги в `backend/app/books/seed.py` (BOOKS, AUDIO_PREFIX) и сид:
    `cd backend && uv run seed_textbook.py`
    (флаги: `--no-audio` — только БД, `--audio-only` — только аудио).
@@ -76,7 +77,7 @@
   Главы 0–17 и 22–23, 25–28, 33–39, 43–45 — прежний формат (рукописные `slides/py/chNN.tsx`); новые главы
   **18–21, 24, 29–32, 40–42, 46–51** написаны в анимированном формате: 13 абзацев = 13 сцен (`slides/anim/PyNN.tsx`, DSL `alg.tsx`
   с `lang: "py"`, помощники `anim/cl.tsx`: `cc`, `Box`, `arrow`, `slot`), 9 код-задач (`py_tasks/datamodel.py`, `generators2.py`,
-  `metaprog.py`, `design.py`, `asyncs2.py`, `internals.py`, `projects.py`), квиз на 5 вопросов (`quizzes/py.ts`). Режим всех новых задач —
+  `metaprog.py`, `design.py`, `asyncs2.py`, `internals.py`, `projects.py`), квиз на 5 вопросов (`content/quizzes/py.ts`). Режим всех новых задач —
   `stdout` со скрытым `driver` (ученик пишет класс/функцию, драйвер печатает результат; ban-приёмы — через ast по `/sandbox/solution.py`);
   в главе 49 заготовки — «наивные» верные решения, которые не укладываются в лимит песочницы.
   **Вставка главы в середину допускается** (так сделаны главы 18–21 и др.), но требует сдвига: номер входит в ключи слайдов
@@ -132,6 +133,21 @@ statement, starter, hint, spec`; всё остальное — тесты, эт�
 коммитятся вместе с правкой, затем `uv run seed_textbook.py --no-audio` или перезапуск пустой БД. Тест
 `tests/test_tasks.py` падает, если SQL отстал от модулей, и проверяет, что загрузка из SQL возвращает каждую задачу
 без потерь. После `npm run lab:manifest` и `npm run net:manifest` тоже запускайте `tasks:export`.
+
+## Квизы в БД: ответы только на сервере
+
+Исходники квизов — `frontend/content/quizzes/*.ts` (в приложение не попадают). `npm run quizzes:export` превращает их в
+SQL-файлы `backend/app/data/sql/quizzes` (`00-schema.sql` — таблицы `quizzes` и `quiz_questions` и очистка, `NN-<книга>.sql`
+— по одному `INSERT` на квиз и вопрос), `npm run quizzes:check` проверяет, что файлы не отстали (код возврата 1). В БД квизы
+попадают так же, как задачи: пустую таблицу сервер заполняет при запуске, `uv run seed_textbook.py --no-audio`
+перезагружает, вручную — `sqlite3 backend/app/data/say.db < backend/app/data/sql/quizzes/*.sql`. После правки квиза:
+`npm run quizzes:export`, SQL коммитится вместе с правкой, затем перезагрузка квизов (сид или перезапуск пустой БД).
+
+API (`backend/app/quizzes`): `GET /api/quizzes` — число вопросов по главам; `GET /api/quizzes/{книга}/{глава}` — вопросы и варианты
+**без ответов** и `reveal` с ответом и пояснением для вопросов, на которые пользователь уже отвечал;
+`POST /api/quizzes/{книга}/{глава}/answer` `{question, pick}` — записывает выбор (на вопрос отвечают один раз) и возвращает верный
+ответ, пояснение и число верных; `DELETE /api/progress/quiz?book=&chapter=` — пройти заново. `GET /api/progress` отдаёт `quizRight`
+(число верных по главам), клиент ответов не знает. Выбранные варианты нельзя записать задним числом: `PUT /api/progress/quiz` убран.
 
 ## Книга 9 «Базы данных»: устройство
 
@@ -284,7 +300,7 @@ employees), школа и фильмы; задачи пишутся в `exercise
 
 ## Упражнения: что есть
 
-- Квизы (`frontend/src/quizzes/`) — только теория, `kind: "theory"`.
+- Квизы (`frontend/content/quizzes/`) — только теория, `kind: "theory"`; живут в БД (раздел «Квизы в БД»).
 - Упражнения с вводом ответа — «Дискретная математика»
   (`frontend/src/exercises/dm.ts`, реестр `lib/exercises.tsx`, ключ
   `"<bookId>:<N>"`, компонент `Exercises.tsx`). Проверка в браузере —
@@ -337,7 +353,7 @@ heapq, 13 красно-чёрные деревья, 14 деревья отрез
   приёмов (find/in/срезы, словари и множества, bisect) — ast-разбор `/sandbox/solution.py`;
   данные для больших входов драйвер строит сам (xorshift), ожидаемый вывод посчитан эталоном.
   Новые главы книги пишите по тому же конвейеру: текст → сцены `AlgNN.tsx` (13 абзацев = 13
-  сцен по 3–4 кадра) → слайды (метки `cues` по доле символов) → квиз `quizzes/algo.ts` → задачи.
+  сцен по 3–4 кадра) → слайды (метки `cues` по доле символов) → квиз `content/quizzes/algo.ts` → задачи.
 - Если абзац главы переписан, удалите его wav и дозапустите озвучку; при смене числа
   абзацев — удалите все wav главы (сидер пропускает существующие файлы).
 
@@ -367,7 +383,7 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
   `labels` и `caption` — литеральные массивы одной длины, число кадров = число подписей.
 - Номера глав входят в id аудио (`lin-ch<N>-l<i>`): прежние 10 глав по ~20 абзацев устарели полностью, их wav
   надо удалить перед озвучкой; сидер пропускает существующие файлы.
-- Квизы — `quizzes/linux.ts` (по 8 вопросов на главу, всего 136, `kind: "theory"`, верные ответы на разных позициях).
+- Квизы — `content/quizzes/linux.ts` (по 8 вопросов на главу, всего 136, `kind: "theory"`, верные ответы на разных позициях).
 - Задания — **только на C** (идеологически обязательно: ядро Unix и Linux написано на C; Python-упражнений в этой книге
   нет и добавлять их нельзя). `exercises/linux_tasks/c_tasks.py` — 185 упражнений (8–12 в главе, режим `c`, ключи `u<глава>-…`; в главах 1–14
   по 8 «основных» и 3–4 добавленных, в главах 0, 15, 16 — 8, 11 и 8):
@@ -386,7 +402,7 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 
 Разделы: «Основы» (1 значения, типы, стек), «Ядро языка» (2 владение и Box, 3 заимствование), «Данные и
 абстракции» (4 структуры/enum/match, 5 коллекции и ошибки); главы 6–16 — прежние. Нумерация глав 6+ не менялась.
-В каждой из глав 1–5: 13 абзацев = 13 анимированных сцен, квиз на 5 вопросов (`quizzes/rust.ts`) и **ровно 30
+В каждой из глав 1–5: 13 абзацев = 13 анимированных сцен, квиз на 5 вопросов (`content/quizzes/rust.ts`) и **ровно 30
 упражнений** (`exercises/rust_tasks/ch01_05.py`, id `r<глава>-…`). Каждая глава проводит параллели с книгой
 «Архитектура компьютера» (кадры стека и sp, выравнивание, malloc, ниши, размотка стека, MESI).
 
@@ -415,7 +431,7 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 
 - Сцены — `slides/anim/ClNN.tsx` (помощники `slides/anim/cl.tsx`: `cc` — код C, `asm` — ассемблер RISC-V, плюс
   `Box`/`arrow`/`slot`); DSL `alg.tsx` умеет `lang: "c"` и `lang: "asm"`. Слайды — `slides/learn-c/chNN.tsx`
-  (`SLIDES_C<N>`, ключ `"16:<N>"`), квизы — `quizzes/c.ts`. 13 абзацев = 13 сцен в каждой главе.
+  (`SLIDES_C<N>`, ключ `"16:<N>"`), квизы — `content/quizzes/c.ts`. 13 абзацев = 13 сцен в каждой главе.
 - Код-задачи — режим `c` (`backend/app/exercises/c_tasks/`: `ch01_05.py` и `ch06.py … ch14.py`, по 30 в главе — 420 задач; реестр — `c_tasks/__init__.py`): ученик пишет функции, скрытый
   `driver` — это `int main` (код ученика и драйвер склеиваются в один файл и собираются `gcc 14` в образе
   `rust:1.97-slim`, без сети; флаги по умолчанию `-std=gnu11 -O1 -Wall`, свои — в поле задачи `flags`: для задач про
@@ -433,7 +449,7 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 
 - Глава = текст (10 абзацев по 65–90 слов, латинские имена и термины — по-русски: «эм-ти-ю», «эйч-ти-ти-пи», «ти-эл-эс»),
   сцены `slides/anim/NtNN.tsx` (`V01…V10`, по 4 кадра, помощники `anim/lx.tsx`; в главах 9, 14, 15, 18 есть вставки кода `Cd`),
-  слайды `slides/networks/chNN.tsx` (`SLIDES_NT<N>`/`SLIDE_TITLES_NT<N>`, ключ `"15:N"`), квиз `quizzes/networks.ts`
+  слайды `slides/networks/chNN.tsx` (`SLIDES_NT<N>`/`SLIDE_TITLES_NT<N>`, ключ `"15:N"`), квиз `content/quizzes/networks.ts`
   (5 вопросов) и практика. **Не вставляйте главу в середину** (номер входит в ключи слайдов, квизов, заданий и id аудио
   `net-ch<N>-l<i>`). Озвучки нет: `cues` посчитаны по доле символов.
 - **Практика — симулятор сети в браузере** (`frontend/src/netlab/`, режим `lab`; пакет `exercises/net_tasks/` хранит
@@ -481,7 +497,7 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 - Главы 1–16 готовы целиком: тексты `textbook/17-virtualization/virtualization-0N.md` (10 абзацев по 70–85 слов,
   латинские имена пишутся по-русски: «ви-ти-икс», «кей-ви-эм»), слайды `slides/virtualization/chNN.tsx`
   (`SLIDES_VM<N>` / `SLIDE_TITLES_VM<N>`, ключ `"17:N"`), сцены `slides/anim/VmNN.tsx` (4 кадра на абзац, помощники
-  `slides/anim/lx.tsx`, как в «Linux»), квизы `quizzes/virtualization.ts` (5 вопросов на главу) и по 8 код-задач
+  `slides/anim/lx.tsx`, как в «Linux»), квизы `content/quizzes/virtualization.ts` (5 вопросов на главу) и по 8 код-задач
   в `exercises/virt_tasks/ch0N.py` (режим `func`: модели монитора, ловушек, трансляции, VMCS, ARM и RISC-V, таблиц
   страниц, EPT и TLB, баллонинга и KSM, очередей virtio, IOMMU, VFIO и SR-IOV, вызовов KVM, образов qcow2 и слоёв, живой миграции, NUMA,
   планирования vCPU, контейнеров и cgroups, microVM, побочных каналов, RMP и аттестации, вложенной
@@ -514,7 +530,7 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 
 - Формат — как у остальных анимированных книг: 13 абзацев = 13 слайдов = 13 сцен (3 кадра) в `slides/anim/JsNN.tsx`
   (помощники — `anim/jv.tsx`: `jc` — код JavaScript с подсветкой `lang: "js"`, плюс `Box`/`arrow`/`slot`/`Tx`); слайд-файлы
-  `slides/js/chNN.tsx` экспортируют `SLIDES_J<N>` и `SLIDE_TITLES_J<N>` с ключом `"11:N"`; квизы — `quizzes/js.ts` (по 5 вопросов).
+  `slides/js/chNN.tsx` экспортируют `SLIDES_J<N>` и `SLIDE_TITLES_J<N>` с ключом `"11:N"`; квизы — `content/quizzes/js.ts` (по 5 вопросов).
   Тексты `textbook/11-js/js-NN.md` (разговорный русский: английские слова записаны по-русски — «ноут», «джейсон», «ай-о-джей-эс»).
 - Задания — режим `js`: `exercises/js_tasks/chNN.py` (по 30 на главу, `TASKS = {N: [...]}`; пакет подхватывает файлы сам).
   Код ученика и скрытый драйвер склеиваются в один ES-модуль `main.mjs` и выполняются `node` в образе `node:22-alpine` (без сети,

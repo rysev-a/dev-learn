@@ -72,6 +72,14 @@ export function useCodeCounts(): CodeCounts | null {
   return loading ? null : error ? {} : data;
 }
 
+// число вопросов квиза: {книга: {глава: число}}; null, пока не загружено ({} при ошибке)
+export type QuizCounts = Record<string, Record<string, number>>;
+
+export function useQuizCounts(): QuizCounts | null {
+  const { data, error, loading } = useApi<QuizCounts>("/api/quizzes");
+  return loading ? null : error ? {} : data;
+}
+
 // курсы всех книг сразу: {bookId: разделы}; книга без ответа пока отсутствует
 export function useCourses(books: Book[]): Record<number, Section[]> {
   const [courses, setCourses] = useState<Record<number, Section[]>>({});

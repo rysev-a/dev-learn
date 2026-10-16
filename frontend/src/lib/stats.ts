@@ -2,8 +2,7 @@
 import type { ChapterSummary } from "../types.ts";
 import { EXERCISES } from "./exercises.ts";
 import type { ProgressValue } from "./progress.tsx";
-import type { CodeCounts } from "./queries.ts";
-import { QUIZZES } from "./quizzes.ts";
+import type { CodeCounts, QuizCounts } from "./queries.ts";
 
 /** [сделано, всего] */
 export type Pair = [number, number];
@@ -20,16 +19,14 @@ export function chapterStats(
   bookId: string | number,
   ch: ChapterSummary,
   codeCounts: CodeCounts | null,
+  quizCounts: QuizCounts | null,
 ): ChapterStats {
   const key = `${bookId}:${ch.num}`;
   const slidesTotal = ch.parts_count || 0; // один абзац = один слайд
-  const quiz = QUIZZES[key]!;
-  const quizTotal = quiz ? quiz.questions.length : 0;
+  const quizTotal = quizCounts?.[bookId]?.[ch.num] || 0;
   const picks = quizTotal ? progress.quizPicks(bookId, ch.num) : null;
   const quizDone = picks ? picks.filter((p) => p != null).length : 0;
-  const quizRight = picks
-    ? picks.filter((p, i) => p != null && p === quiz.questions[i]!.answer).length
-    : 0;
+  const quizRight = quizTotal ? progress.quizRight(bookId, ch.num) : 0;
   const code = codeCounts?.[bookId]?.[ch.num] || 0;
   const dm = EXERCISES[key] ? EXERCISES[key].tasks.length : 0;
   const exTotal = code || dm;

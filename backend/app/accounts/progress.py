@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from app.accounts.deps import current_user
 from app.accounts.service import iso, now
 from app.books.service import db
+from app.quizzes import store
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
 
@@ -38,6 +39,12 @@ def get_progress(user: User):
             )
         }
 
+        correct = store.answers_map(conn)
+        quiz_right = {
+            key: sum(1 for p, a in zip(picks, correct.get(tuple(map(int, key.split(":"))), [])) if p == a)
+            for key, picks in quiz.items()
+        }
+
         answers: dict[str, dict[str, str]] = {}
         for r in conn.execute(
             "SELECT book_id, chapter, task_idx, answer FROM answer_solved WHERE user_id = ?",
@@ -53,7 +60,7 @@ def get_progress(user: User):
             (uid,),
         ):
             code.setdefault(f"{r['book_id']}:{r['chapter']}", {})[r["task_id"]] = r["status"]
-    return {"slides": slides, "quiz": quiz, "answers": answers, "code": code}
+    return {"slides": slides, "quiz": quiz, "quizRight": quiz_right, "answers": answers, "code": code}
 
 
 class SlideIn(BaseModel):
@@ -71,30 +78,14 @@ def mark_slide(body: SlideIn, user: User):
         )
 
 
-class QuizIn(BaseModel):
-    book: Book
-    chapter: Chapter
-    # выбранные варианты по порядку вопросов; null — без ответа
-    picks: list[int | None] = Field(max_length=100)
-
-
-@router.put("/quiz", status_code=204)
-def save_quiz(body: QuizIn, user: User):
+@router.delete("/quiz", status_code=204)
+def reset_quiz(book: Annotated[int, Query(ge=1, le=1000)], chapter: Annotated[int, Query(ge=1, le=1000)], user: User):
+    """Пройти квиз заново. Выбранные варианты записывает только POST /api/quizzes/…/answer (иначе ответы
+    можно было бы «выбрать» для всех вопросов и тут же получить верные), здесь их можно лишь стереть."""
     with db() as conn:
-        if all(p is None for p in body.picks):
-            conn.execute(
-                "DELETE FROM quiz_picks WHERE user_id = ? AND book_id = ? AND chapter = ?",
-                (user["id"], body.book, body.chapter),
-            )
-            return
         conn.execute(
-            """
-            INSERT INTO quiz_picks (user_id, book_id, chapter, picks, updated_at)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT (user_id, book_id, chapter)
-            DO UPDATE SET picks = excluded.picks, updated_at = excluded.updated_at
-            """,
-            (user["id"], body.book, body.chapter, json.dumps(body.picks), iso(now())),
+            "DELETE FROM quiz_picks WHERE user_id = ? AND book_id = ? AND chapter = ?",
+            (user["id"], book, chapter),
         )
 
 

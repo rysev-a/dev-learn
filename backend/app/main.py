@@ -10,6 +10,8 @@ from app.books.router import router as books_router
 from app.books.service import db, init_db
 from app.exercises.router import router as exercises_router
 from app.exercises.store import ensure_tasks
+from app.quizzes.router import router as quizzes_router
+from app.quizzes.store import ensure_quizzes
 
 
 @asynccontextmanager
@@ -18,6 +20,7 @@ async def lifespan(app: FastAPI):
         init_db(conn)
         init_accounts(conn)
         ensure_tasks(conn)
+        ensure_quizzes(conn)
         ensure_default_users(conn)
     yield
 
@@ -28,3 +31,4 @@ app.include_router(auth_router)
 app.include_router(progress_router)
 app.include_router(books_router)
 app.include_router(exercises_router)
+app.include_router(quizzes_router)

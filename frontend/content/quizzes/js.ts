@@ -1,6 +1,6 @@
 // Квизы книги «Современный Frontend» (book id 11).
 // Формат записи тот же, что в src/lib/quizzes.ts: kind, title, questions[].
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const JS_QUIZZES: Record<string, Quiz> = {
   "11:1": {

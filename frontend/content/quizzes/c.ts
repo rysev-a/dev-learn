@@ -1,6 +1,6 @@
 // Квизы книги «От assembler к языку C» (book id 16) — главы 1–5.
 // Формат записи тот же, что в src/lib/quizzes.ts: kind, title, questions[].
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const C_QUIZZES: Record<string, Quiz> = {
   "16:1": {

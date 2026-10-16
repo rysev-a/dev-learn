@@ -14,10 +14,9 @@ import type { Chapter, ChapterTasks, Task } from "../../types.ts";
 import FsTree from "../../components/FsTree.tsx";
 import { usePlayer } from "../../lib/player.tsx";
 import { hasSlides as chapterHasSlides } from "../../lib/slides.ts";
-import { QUIZZES } from "../../lib/quizzes.ts";
 import { EXERCISES } from "../../lib/exercises.ts";
 import { useProgress } from "../../lib/progress.tsx";
-import { useApi, useCodeCounts } from "../../lib/queries.ts";
+import { useApi, useCodeCounts, useQuizCounts } from "../../lib/queries.ts";
 
 /* Страница главы: заголовок и три вкладки, каждая со своим адресом —
      /book/:bookId/chapter/:chapterId             Теория  (слайды)
@@ -56,7 +55,8 @@ export default function ChapterDetail() {
     chapterId == null ? null : `/api/chapters/${chapterId}`,
   );
   const error = chapterError ? "Урок не найден" : null;
-  const codeCounts = useCodeCounts(); // {книга: {глава: число}} — куда идти по Ctrl+Enter
+  const codeCounts = useCodeCounts();
+  const quizCounts = useQuizCounts(); // {книга: {глава: число}} — куда идти по Ctrl+Enter
 
   // Код-упражнения (Docker-песочница) ключуются номером главы; ответ 404 — упражнений нет.
   const tasksQuery = useApi<ChapterTasks>(
@@ -103,7 +103,7 @@ export default function ChapterDetail() {
   ) : null;
 
   const key = chapter ? `${bookId}:${chapter.num}` : null;
-  const quiz = (key && QUIZZES[key]) || null;
+  const quizCount = bookId != null && chapter ? (quizCounts?.[bookId]?.[chapter.num] ?? 0) : 0;
   const practice = (key && EXERCISES[key]) || null;
   const hasSlides = !!key && chapterHasSlides(key);
   const hasPractice = codeTasks.length > 0 || !!practice;
@@ -114,7 +114,7 @@ export default function ChapterDetail() {
   const tabs: Tab[] = [];
   if (chapter) {
     if (hasSlides) tabs.push({ to: ".", end: true, label: "Теория" });
-    if (quiz) tabs.push({ to: "questions", label: "Вопросы", badge: String(quiz.questions.length) });
+    if (quizCount) tabs.push({ to: "questions", label: "Вопросы", badge: String(quizCount) });
     if (hasPractice)
       tabs.push({
         to: "exercises",
@@ -172,7 +172,7 @@ export default function ChapterDetail() {
             chapterId: chapterId ?? "",
             course: parent?.course || [],
             chapter,
-            quiz,
+            quizCount,
             practice,
             codeTasks,
             tasksReady,

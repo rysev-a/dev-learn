@@ -21,7 +21,9 @@ export type ResetScope = "practice" | "all";
 
 interface ProgressActions {
   markSlide: (book: BookId, num: number, slide: number) => void;
-  saveQuizPicks: (book: BookId, num: number, picks: (number | null)[] | null) => void;
+  /** ответ на вопрос квиза принят сервером: обновить копию выбранных вариантов и число верных */
+  recordQuizPick: (book: BookId, num: number, question: number, total: number, pick: number, right: number) => void;
+  resetQuiz: (book: BookId, num: number) => void;
   saveAnswers: (book: BookId, num: number, solved: Record<string, string>) => void;
   setCodeStatus: (book: BookId, num: number, task: string, status: TaskStatus) => void;
   reset: (scope: ResetScope) => Promise<void>;
@@ -31,6 +33,7 @@ export interface ProgressValue extends ProgressActions {
   ready: boolean;
   slidesSeen: (book: BookId, num: number) => number[];
   quizPicks: (book: BookId, num: number) => (number | null)[] | null;
+  quizRight: (book: BookId, num: number) => number;
   answerSolved: (book: BookId, num: number) => Record<string, string>;
   codeStatus: (book: BookId, num: number) => Record<string, TaskStatus>;
 }
@@ -43,7 +46,7 @@ export const useProgress = (): ProgressValue => {
   return ctx;
 };
 
-const EMPTY: ProgressData = { slides: {}, quiz: {}, answers: {}, code: {} };
+const EMPTY: ProgressData = { slides: {}, quiz: {}, quizRight: {}, answers: {}, code: {} };
 const k = (book: BookId, num: number) => `${book}:${num}`;
 const fire = (path: string, method: "POST" | "PUT", body: unknown) =>
   api(path, { method, body }).catch(() => {});
@@ -83,16 +86,22 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           slides: { ...d.slides, [key]: [...(d.slides[key] || []), slide] },
         }));
       },
-      saveQuizPicks: (book, num, picks) => {
+      recordQuizPick: (book, num, question, total, pick, right) => {
         const key = k(book, num);
-        const empty = !picks || picks.every((p) => p == null);
         setData((d) => {
-          const quiz = { ...d.quiz };
-          if (empty) delete quiz[key];
-          else quiz[key] = picks;
-          return { ...d, quiz };
+          const picks: (number | null)[] = Array.from({ length: total }, (_, i) => d.quiz[key]?.[i] ?? null);
+          picks[question] = pick;
+          return { ...d, quiz: { ...d.quiz, [key]: picks }, quizRight: { ...d.quizRight, [key]: right } };
         });
-        fire("/api/progress/quiz", "PUT", { book, chapter: num, picks: picks || [] });
+      },
+      resetQuiz: (book, num) => {
+        const key = k(book, num);
+        setData((d) => {
+          const { [key]: _picks, ...quiz } = d.quiz;
+          const { [key]: _right, ...quizRight } = d.quizRight;
+          return { ...d, quiz, quizRight };
+        });
+        api(`/api/progress/quiz?book=${book}&chapter=${num}`, { method: "DELETE" }).catch(() => {});
       },
       saveAnswers: (book, num, solved) => {
         const key = k(book, num);
@@ -126,6 +135,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     ...actions,
     slidesSeen: (book, num) => data.slides[k(book, num)] || [],
     quizPicks: (book, num) => data.quiz[k(book, num)] || null,
+    quizRight: (book, num) => data.quizRight[k(book, num)] ?? 0,
     answerSolved: (book, num) => data.answers[k(book, num)] || {},
     codeStatus: (book, num) => data.code[k(book, num)] || {},
   };

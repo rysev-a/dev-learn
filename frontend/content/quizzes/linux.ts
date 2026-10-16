@@ -1,6 +1,6 @@
 // Теоретические квизы к книге 8 — Погружаемся в Unix (главы 0–16).
 // Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.ts.
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const LINUX_QUIZZES: Record<string, Quiz> = {
   "8:0": {

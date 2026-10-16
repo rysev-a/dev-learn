@@ -54,11 +54,12 @@ backend/
       textbook/    — исходники уроков, по директории на книгу
       audio/       — сгенерированные wav
       say.db       — SQLite
-  seed_textbook.py — CLI-утилита сида (курс и задачи)
+  seed_textbook.py — CLI-утилита сида (курс, задачи, квизы)
   export_tasks.py  — выгрузка задач из модулей в SQL-файлы
 frontend/          — React 19 + Vite
-  src/slides/      — слайды по книгам: <book>/chNN.jsx (реестр — lib/slides.js)
-  src/quizzes/     — квизы на теорию (реестр — lib/quizzes.js)
+  src/slides/      — слайды по книгам: <book>/chNN.tsx (реестр — lib/slides.ts)
+  content/quizzes/ — исходники квизов (в БД их загружают SQL-файлы
+                     backend/app/data/sql/quizzes: npm run quizzes:export)
   src/exercises/   — упражнения с вводом ответа (дискретная математика)
   src/components/  — плеер, квиз, Exercises (ответы), CodePractice + CodeEditor (код, CodeMirror)
   src/pages/       — книги и главы

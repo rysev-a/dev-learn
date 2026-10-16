@@ -1,47 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import type { Quiz as QuizData } from "../types.ts";
+import type { Quiz as QuizData, QuizAnswerResult, QuizReveal } from "../types.ts";
+import { api } from "../lib/api.ts";
 import { FsItem } from "./FsTree.tsx";
 import { useProgress } from "../lib/progress.tsx";
 
 interface QuizProps {
-  quiz: QuizData;
   bookId: string | undefined;
   chapter: number;
   itemsSlot: HTMLElement | null;
 }
 
-/* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе. */
-export default function Quiz({ quiz, bookId, chapter, itemsSlot }: QuizProps) {
-  // ответы хранятся в кабинете: по ним считается прогресс на главной
+/* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе — на сервере. Верный ответ и пояснение
+   сервер отдаёт только после выбора, поэтому в браузере их заранее нет. Выбранные варианты хранятся в кабинете:
+   по ним считается прогресс на главной. */
+export default function Quiz({ bookId, chapter, itemsSlot }: QuizProps) {
   const progress = useProgress();
-  const [picked, setPicked] = useState<(number | null)[]>(() => {
-    const saved = bookId != null ? progress.quizPicks(bookId, chapter) : null;
-    return saved && saved.length === quiz.questions.length
-      ? saved
-      : Array(quiz.questions.length).fill(null);
-  });
-  const persist = (next: (number | null)[]) => {
-    if (bookId != null)
-      progress.saveQuizPicks(bookId, chapter, next.some((p) => p != null) ? next : null);
-    return next;
-  };
+  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const [reveal, setReveal] = useState<(QuizReveal | null)[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (bookId == null) return undefined;
+    let live = true;
+    setQuiz(null);
+    setFailed(null);
+    api<QuizData>(`/api/quizzes/${bookId}/${chapter}`)
+      .then((d) => {
+        if (!live) return;
+        setQuiz(d);
+        setReveal(d.reveal);
+      })
+      .catch((e: Error) => live && setFailed(e.message));
+    return () => {
+      live = false;
+    };
+  }, [bookId, chapter]);
+
+  if (failed) return <p className="error">{failed}</p>;
+  if (!quiz || bookId == null) return <p className="empty">Загрузка…</p>;
 
   const total = quiz.questions.length;
-  const answered = picked.filter((p) => p != null).length;
-  const score = quiz.questions.reduce(
-    (acc, q, i) => acc + (picked[i] === q.answer ? 1 : 0),
-    0,
-  );
+  const picks = progress.quizPicks(bookId, chapter) ?? [];
+  const pickOf = (qi: number) => picks[qi] ?? null;
+  const answered = picks.filter((p) => p != null).length;
+  const score = progress.quizRight(bookId, chapter);
   const done = answered === total;
+  const isRight = (qi: number) => {
+    const r = reveal[qi];
+    return r != null && pickOf(qi) === r.answer;
+  };
 
-  function pick(qi: number, oi: number) {
-    if (picked[qi] != null) return; // на вопрос уже ответили
-    setPicked(persist(picked.map((p, i) => (i === qi ? oi : p))));
+  async function pick(qi: number, oi: number) {
+    if (busy || reveal[qi] != null) return; // на вопрос уже ответили
+    setBusy(true);
+    try {
+      const r = await api<QuizAnswerResult>(`/api/quizzes/${bookId}/${chapter}/answer`, {
+        method: "POST",
+        body: { question: qi, pick: oi },
+      });
+      setReveal((cur) => cur.map((x, i) => (i === qi ? { answer: r.answer, expl: r.expl } : x)));
+      progress.recordQuizPick(bookId!, chapter, qi, total, r.pick, r.right);
+    } finally {
+      setBusy(false);
+    }
   }
 
   function reset() {
-    setPicked(persist(Array(quiz.questions.length).fill(null)));
+    progress.resetQuiz(bookId!, chapter);
+    setReveal(Array(total).fill(null));
   }
 
   // в полноэкранном режиме вопросы — пункты левого дерева с отметками
@@ -52,12 +80,12 @@ export default function Quiz({ quiz, bookId, chapter, itemsSlot }: QuizProps) {
     <section className="quiz">
       {itemsSlot &&
         createPortal(
-          quiz.questions.map((q, qi) => (
+          quiz.questions.map((_, qi) => (
             <FsItem
               key={qi}
               num={qi + 1}
-              mark={picked[qi] == null ? undefined : picked[qi] === q.answer ? "✓" : "✗"}
-              status={picked[qi] == null ? "" : picked[qi] === q.answer ? "ok" : "bad"}
+              mark={reveal[qi] == null ? undefined : isRight(qi) ? "✓" : "✗"}
+              status={reveal[qi] == null ? "" : isRight(qi) ? "ok" : "bad"}
               onClick={() => goTo(qi)}
             >
               Вопрос {qi + 1}
@@ -73,7 +101,7 @@ export default function Quiz({ quiz, bookId, chapter, itemsSlot }: QuizProps) {
       </div>
 
       {quiz.questions.map((q, qi) => {
-        const answeredQ = picked[qi] != null;
+        const r = reveal[qi] ?? null;
         return (
           <div className="quiz-q" key={qi} id={`quiz-q-${qi}`}>
             <p className="quiz-q-text">
@@ -82,23 +110,23 @@ export default function Quiz({ quiz, bookId, chapter, itemsSlot }: QuizProps) {
             <div className="quiz-opts">
               {q.options.map((opt, oi) => {
                 let cls = "";
-                if (answeredQ) {
-                  if (oi === q.answer) cls = "right";
-                  else if (picked[qi] === oi) cls = "wrong";
+                if (r) {
+                  if (oi === r.answer) cls = "right";
+                  else if (pickOf(qi) === oi) cls = "wrong";
                 }
                 return (
                   <button
                     key={oi}
                     className={`quiz-opt ${cls}`}
-                    disabled={answeredQ}
-                    onClick={() => pick(qi, oi)}
+                    disabled={r != null || busy}
+                    onClick={() => void pick(qi, oi)}
                   >
                     {opt}
                   </button>
                 );
               })}
             </div>
-            {answeredQ && q.expl && <p className="quiz-q-expl">{q.expl}</p>}
+            {r && r.expl && <p className="quiz-q-expl">{r.expl}</p>}
           </div>
         );
       })}

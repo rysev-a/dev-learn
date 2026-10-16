@@ -1,7 +1,7 @@
 // Квизы книги «Изучаем Rust» (book id 10) — главы 1–43.
 // Формат записи тот же, что в src/lib/quizzes.ts: kind, title, questions[].
 // Реестр QUIZZES может подключать этот модуль, когда главы появятся в базе.
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const RUST_QUIZZES: Record<string, Quiz> = {
   "10:1": {

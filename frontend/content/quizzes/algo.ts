@@ -1,6 +1,6 @@
 // Теоретические квизы к книге 7 — Алгоритмы и структуры данных (главы 1–19).
 // Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.ts.
-import type { Quiz } from "../types.ts";
+import type { Quiz } from "./types.ts";
 
 export const ALGO_QUIZZES: Record<string, Quiz> = {
   "7:1": {
