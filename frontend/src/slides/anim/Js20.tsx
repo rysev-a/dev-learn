@@ -1,22 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, Tx, arrow, jc } from "./jv.tsx";
-import type { Extra } from "./dsl.ts";
+import { Box, Tx, arrow, jc, grid } from "./jv.tsx";
 
 /* Глава 20 книги «Современный Frontend»: производительность. */
-
-const grid = (pre: string, names: (string|number)[], x0: number, y0: number, dx: number, dy: number, cols: number, w: number, h: number, color: string|((arg0: number) => string|undefined)|undefined, extra: Extra = {}) =>
-  names.map((n: string|number, i: number) =>
-    Box(
-      `${pre}${i}`,
-      x0 + (i % cols) * dx,
-      y0 + Math.floor(i / cols) * dy,
-      w,
-      h,
-      n,
-      typeof color === "function" ? color(i) : color,
-      extra,
-    ),
-  );
 
 // 1. Что значит быстро
 export const V01 = scene({

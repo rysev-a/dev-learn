@@ -1,13 +1,9 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql, tbl } from "./db.tsx";
+import { arrow, sql, tbl, nd, sm } from "./db.tsx";
 
 /* Глава 30 книги «Базы данных»: миграции и резервные копии. */
 
-const nd = (id: string, x: number, y: number, text: string, c = "b", w = 66) =>
-  Box(id, x, y, w, 28, text, c, { size: 9 });
-const sm = (id: string, x: number, y: number, text: string, c = "b", w = 40) =>
-  Box(id, x, y, w, 20, text, c, { size: 8 });
 const steps = (labels: string[], y: number, c: string | ((i: number) => string) = "g", w = 70, x0 = 44, gap = 90) => [
   ...labels.map((t: string, i: number) =>
     nd(`s${i}`, x0 + i * gap, y, t, typeof c === "function" ? c(i) : c, w),

@@ -1,10 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, Tx, arrow, jc } from "./jv.tsx";
+import { Box, Tx, arrow, jc, year } from "./jv.tsx";
 
 /* Глава 1 книги «Современный Frontend»: рождение JavaScript — история до 2008 года. */
-
-const year = (id: string, x: number, y: number, text: string, c = "y") =>
-  Box(id, x, y, 52, 22, text, c, { size: 10, mono: true });
 
 // 1. Карта книги
 export const V01 = scene({

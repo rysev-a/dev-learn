@@ -1,17 +1,8 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, rs } from "./rs.tsx";
+import { Box, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 30 книги «Изучаем Rust»: асинхронность в Python и в Rust. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -26,7 +17,7 @@ export const V01 = scene({
     "Конкурентность — много дел в процессе; параллелизм — несколько выполняются в один момент на разных ядрах",
   ],
   frames: [
-    [...row("a", ["запрос", "ждём…", "ответ"], "b", 66, 11)],
+    [...rsRow("a", ["запрос", "ждём…", "ответ"], "b", 66, 11)],
     [
       Box("t", 180, 40, 100, 26, "поток", "g", { size: 11 }),
       ...[0, 1, 2, 3].map((i) =>
@@ -55,7 +46,7 @@ export const V02 = scene({
     "time.sleep внутри корутины замораживает весь цикл — самая частая ошибка",
   ],
   frames: [
-    [...row("a", ["потоки", "процессы", "asyncio"], "m", 66, 10.5)],
+    [...rsRow("a", ["потоки", "процессы", "asyncio"], "m", 66, 10.5)],
     [
       rs(
         "c",
@@ -172,7 +163,7 @@ export const V05 = scene({
   ],
   frames: [
     [...pair("язык\nFuture, Poll", "библиотека\nрантайм", "b", "y")],
-    [...row("a", ["tokio", "async-std", "smol", "embassy"], "g", 66, 10)],
+    [...rsRow("a", ["tokio", "async-std", "smol", "embassy"], "g", 66, 10)],
     [Box("a", 180, 60, 230, 34, "tokio — по умолчанию", "y", { size: 12 })],
   ],
 });
@@ -230,7 +221,7 @@ export const V07 = scene({
         { w: 340, size: 11.5, lh: 28 },
       ),
     ],
-    [...row("a", ["JoinSet", "blocking", "mpsc", "Mutex"], "g", 66, 10)],
+    [...rsRow("a", ["JoinSet", "blocking", "mpsc", "Mutex"], "g", 66, 10)],
   ],
 });
 
@@ -337,7 +328,7 @@ export const V10 = scene({
         lh: 28,
       }),
     ],
-    [...row("a", ["select!", "timeout", "abort()"], "y", 66, 11)],
+    [...rsRow("a", ["select!", "timeout", "abort()"], "y", 66, 11)],
   ],
 });
 
@@ -353,7 +344,7 @@ export const V11 = scene({
     [Box("a", 180, 66, 220, 40, "≈ килобайты, мкс", "m", { size: 12 })],
     [Box("a", 180, 66, 220, 40, "≈ десятки байтов, нс", "g", { size: 12 })],
     [
-      ...row("a", ["10²", "10⁴", "10⁶"], "g", 66, 14),
+      ...rsRow("a", ["10²", "10⁴", "10⁶"], "g", 66, 14),
       Tx("n", 180, 118, "задач на машину", { size: 10 }),
     ],
   ],
@@ -368,7 +359,7 @@ export const V12 = scene({
     "Из обычного кода в async — block_on запускает фьючер до конца в текущем потоке; «окраска функций»",
   ],
   frames: [
-    [...row("a", ["серверы", "прокси", "чаты", "краулеры"], "g", 66, 10)],
+    [...rsRow("a", ["серверы", "прокси", "чаты", "краулеры"], "g", 66, 10)],
     [...pair("потоки\nrayon", "async-ядро\n+ пул", "b", "g")],
     [
       rs(
@@ -408,7 +399,7 @@ export const V13 = scene({
       ),
     ],
     [
-      ...row(
+      ...rsRow(
         "a",
         ["ленивость", "рантайм", "Send", "не блокировать"],
         "g",

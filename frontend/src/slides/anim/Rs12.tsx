@@ -1,13 +1,9 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, rs, slot } from "./rs.tsx";
+import { Box, arrow, rs, slot, pair } from "./rs.tsx";
 
 /* Глава 12 книги «Изучаем Rust»: списки Python, массивы и векторы Rust. */
 
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
 const cells = (
   pre: string,
   vals: (string | number)[],

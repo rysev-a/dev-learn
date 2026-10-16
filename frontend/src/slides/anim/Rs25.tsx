@@ -1,17 +1,9 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, rs } from "./rs.tsx";
+import { Box, arrow, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 25 книги «Изучаем Rust»: коллекции std. */
 
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 const cells = (
   pre: string,
   vals: (string | number)[],
@@ -36,8 +28,8 @@ export const V01 = scene({
   ],
   frames: [
     [
-      ...row("a", ["Vec", "VecDeque", "HashMap", "BTreeMap"], "b", 50, 9),
-      ...row("b", ["HashSet", "BTreeSet", "Heap", "List"], "g", 96, 9),
+      ...rsRow("a", ["Vec", "VecDeque", "HashMap", "BTreeMap"], "b", 50, 9),
+      ...rsRow("b", ["HashSet", "BTreeSet", "Heap", "List"], "g", 96, 9),
     ],
     [Box("a", 180, 60, 230, 34, "Vec — по умолчанию", "g", { size: 12 })],
     [...pair("Vec + HashMap", "остальное\nпо нужде", "g", "y")],
@@ -382,7 +374,7 @@ export const V11 = scene({
   ],
   frames: [
     [
-      ...row(
+      ...rsRow(
         "a",
         ["Vec O(1)", "Deque O(1)", "Hash O(1)", "BTree log n"],
         "b",
@@ -423,7 +415,7 @@ export const V13 = scene({
     "Следующая глава — текст и форматирование: char, str, fmt и разбор",
   ],
   frames: [
-    [...row("a", ["Vec", "Deque", "Hash", "Heap"], "g")],
+    [...rsRow("a", ["Vec", "Deque", "Hash", "Heap"], "g")],
     [
       rs(
         "c",

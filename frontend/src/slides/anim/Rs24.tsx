@@ -1,12 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, rs } from "./rs.tsx";
+import { Box, rs, rsRow } from "./rs.tsx";
 
 /* Глава 24 книги «Изучаем Rust»: стандартная библиотека — core, alloc, std и прелюдия. */
-
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -17,8 +12,8 @@ export const V01 = scene({
     "Глава — как оглавление: держите документацию открытой",
   ],
   frames: [
-    [...row("a", ["коллекции", "текст", "ввод-вывод", "время"], "b", 66, 9)],
-    [...row("a", ["prelude", "Option", "mem", "iter"], "g")],
+    [...rsRow("a", ["коллекции", "текст", "ввод-вывод", "время"], "b", 66, 9)],
+    [...rsRow("a", ["prelude", "Option", "mem", "iter"], "g")],
     [Box("a", 180, 60, 230, 34, "doc.rust-lang.org/std", "y", { size: 11.5 })],
   ],
 });
@@ -54,8 +49,8 @@ export const V03 = scene({
     "HashMap, файлы, время, потоки подключают через use; «не найден метод» часто = трейт не подключён",
   ],
   frames: [
-    [...row("a", ["Option", "Result", "Vec", "String"], "g")],
-    [...row("a", ["Clone", "Iterator", "From", "Default"], "b")],
+    [...rsRow("a", ["Option", "Result", "Vec", "String"], "g")],
+    [...rsRow("a", ["Clone", "Iterator", "From", "Default"], "b")],
     [
       rs(
         "c",
@@ -82,9 +77,9 @@ export const V04 = scene({
     "std::thread, std::sync, std::time, std::env, std::process, std::mem, std::rc, std::cell",
   ],
   frames: [
-    [...row("a", ["collections", "string", "option", "iter"], "b", 66, 8.5)],
-    [...row("a", ["io", "fs", "path", "net"], "g")],
-    [...row("a", ["thread", "sync", "time", "process"], "y", 66, 9.5)],
+    [...rsRow("a", ["collections", "string", "option", "iter"], "b", 66, 8.5)],
+    [...rsRow("a", ["io", "fs", "path", "net"], "g")],
+    [...rsRow("a", ["thread", "sync", "time", "process"], "y", 66, 9.5)],
   ],
 });
 
@@ -206,8 +201,8 @@ export const V07 = scene({
     "Суффикс _mut — изменяемая версия: iter_mut, get_mut; цена операции видна по имени",
   ],
   frames: [
-    [...row("a", ["as_str", "to_string", "into_iter"], "g", 66, 10)],
-    [...row("a", ["is_empty", "try_from", "is_ok"], "b", 66, 10)],
+    [...rsRow("a", ["as_str", "to_string", "into_iter"], "g", 66, 10)],
+    [...rsRow("a", ["is_empty", "try_from", "is_ok"], "b", 66, 10)],
     [
       rs(
         "c",
@@ -370,7 +365,7 @@ export const V11 = scene({
     "chain, zip, cycle, skip, take, step_by — адаптеры; sum, product, count, last, min, max, fold, collect — потребители",
   ],
   frames: [
-    [...row("a", ["once", "repeat", "empty"], "b", 66, 10)],
+    [...rsRow("a", ["once", "repeat", "empty"], "b", 66, 10)],
     [
       rs(
         "c",
@@ -445,8 +440,8 @@ export const V13 = scene({
     "Следующая глава — коллекции: Vec, VecDeque, HashMap, BTreeMap, BinaryHeap и выбор между ними",
   ],
   frames: [
-    [...row("a", ["core", "alloc", "std", "prelude"], "g")],
-    [...row("a", ["Option", "mem", "cmp", "iter"], "b")],
+    [...rsRow("a", ["core", "alloc", "std", "prelude"], "g")],
+    [...rsRow("a", ["Option", "mem", "cmp", "iter"], "b")],
     [
       Box(
         "a",

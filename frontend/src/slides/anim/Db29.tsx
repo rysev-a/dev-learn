@@ -1,13 +1,8 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql, tbl } from "./db.tsx";
+import { arrow, sql, tbl, nd, sm } from "./db.tsx";
 
 /* Глава 29 книги «Базы данных»: оптимизатор. */
-
-const nd = (id: string, x: number, y: number, text: string, c = "b", w = 66) =>
-  Box(id, x, y, w, 28, text, c, { size: 9 });
-const sm = (id: string, x: number, y: number, text: string, c = "b", w = 40) =>
-  Box(id, x, y, w, 20, text, c, { size: 8 });
 
 // 1. Введение
 export const V01 = scene({

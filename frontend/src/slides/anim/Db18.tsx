@@ -1,16 +1,8 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql } from "./db.tsx";
-import type { SceneItem } from "./dsl.ts";
+import { Box, arrow, sql, lane, ev } from "./db.tsx";
 
 /* Глава 18 книги «Базы данных»: транзакции и уровни изоляции. */
-
-const lane = (id: string, y: number, name: string): SceneItem[] => [
-  { t: "line", id: `${id}l`, x1: 46, y1: y, x2: 346, y2: y, c: "m", w: 1.2 },
-  Tx(`${id}n`, 20, y, name, { size: 9, mono: true }),
-];
-const ev = (id: string, x: number, y: number, text: string, c = "b", w = 56) =>
-  Box(id, x, y, w, 22, text, c, { size: 8 });
 
 // 1. Перевод денег
 export const V01 = scene({

@@ -1,4 +1,4 @@
-import { cell, codeIn, type SceneItem } from "./dsl.ts";
+import { Box, Tx, cell, codeIn, type SceneItem } from "./dsl.ts";
 export { Box, arrow, slot } from "./rs.tsx";
 
 /* Помощники для сцен книги «Базы данных»: SQL с подсветкой и таблицы из ячеек. */
@@ -59,3 +59,14 @@ export const tbl = (
   });
   return items;
 };
+
+// Узел схемы и малая метка
+export const nd = (id: string, x: number, y: number, text: string, c = "b", w = 66): SceneItem => Box(id, x, y, w, 28, text, c, { size: 9 });
+export const sm = (id: string, x: number, y: number, text: string, c = "b", w = 40): SceneItem => Box(id, x, y, w, 20, text, c, { size: 8 });
+
+// Дорожка (временная шкала) с названием слева и событие на ней
+export const lane = (id: string, y: number, name: string): SceneItem[] => [
+  { t: "line", id: `${id}l`, x1: 46, y1: y, x2: 346, y2: y, c: "m", w: 1.2 },
+  Tx(`${id}n`, 20, y, name, { size: 9, mono: true }),
+];
+export const ev = (id: string, x: number, y: number, text: string, c = "b", w = 56): SceneItem => Box(id, x, y, w, 22, text, c, { size: 8 });

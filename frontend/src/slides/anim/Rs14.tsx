@@ -1,13 +1,8 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, rs } from "./rs.tsx";
+import { Box, rs, pair } from "./rs.tsx";
 
 /* Глава 14 книги «Изучаем Rust»: словари Python, HashMap, множества. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
 
 // 1. Введение
 export const V01 = scene({

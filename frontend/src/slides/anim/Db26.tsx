@@ -1,14 +1,10 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql, tbl } from "./db.tsx";
+import { Box, arrow, sql, tbl, nd, sm } from "./db.tsx";
 import type { SceneItem } from "./dsl.ts";
 
 /* Глава 26 книги «Базы данных»: OLTP и OLAP. */
 
-const nd = (id: string, x: number, y: number, text: string, c = "b", w = 66) =>
-  Box(id, x, y, w, 28, text, c, { size: 9 });
-const sm = (id: string, x: number, y: number, text: string, c = "b", w = 40) =>
-  Box(id, x, y, w, 20, text, c, { size: 8 });
 const dots = (prefix: string, x0: number, y: number, n: number, c = "b", gap = 22): SceneItem[] =>
   Array.from({ length: n }, (_, i): SceneItem => ({
     t: "dot",

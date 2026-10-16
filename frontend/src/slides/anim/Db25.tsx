@@ -1,18 +1,9 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql } from "./db.tsx";
-import type { SceneItem } from "./dsl.ts";
+import { Box, arrow, sql, nd, lane, ev } from "./db.tsx";
 
 /* Глава 25 книги «Базы данных»: кэш. */
 
-const nd = (id: string, x: number, y: number, text: string, c = "b", w = 66) =>
-  Box(id, x, y, w, 28, text, c, { size: 9 });
-const lane = (id: string, y: number, name: string): SceneItem[] => [
-  { t: "line", id: `${id}l`, x1: 46, y1: y, x2: 346, y2: y, c: "m", w: 1.2 },
-  Tx(`${id}n`, 20, y, name, { size: 9, mono: true }),
-];
-const ev = (id: string, x: number, y: number, text: string, c = "b", w = 56) =>
-  Box(id, x, y, w, 22, text, c, { size: 8 });
 const slots = (prefix: string, x0: number, y: number, vals: (string | number)[], hot: number[] = [], dim: number[] = []) =>
   vals.map((v, i: number) =>
     Box(

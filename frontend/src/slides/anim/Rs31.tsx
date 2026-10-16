@@ -1,17 +1,8 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, rs } from "./rs.tsx";
+import { Box, arrow, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 31 книги «Изучаем Rust»: Future, Poll и Waker. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -22,7 +13,7 @@ export const V01 = scene({
     "async и await — механика конечных автоматов",
   ],
   frames: [
-    [...row("a", ["Future", "Waker", "block_on", "Timer"], "b")],
+    [...rsRow("a", ["Future", "Waker", "block_on", "Timer"], "b")],
     [...pair("std::future", "std::task", "b", "b")],
     [Box("a", 180, 60, 230, 34, "async = автомат", "g", { size: 12 })],
   ],
@@ -99,7 +90,7 @@ export const V04 = scene({
     "Waker::noop() — вейкер-пустышка для тестов, когда вы сами опрашиваете фьючер в цикле",
   ],
   frames: [
-    [...row("a", ["clone", "wake", "wake_by_ref", "drop"], "b", 66, 9)],
+    [...rsRow("a", ["clone", "wake", "wake_by_ref", "drop"], "b", 66, 9)],
     [
       rs(
         "c",
@@ -168,7 +159,7 @@ export const V05 = scene({
         { w: 340, size: 9.5, lh: 20 },
       ),
     ],
-    [...row("a", ["3", "2", "1", "go"], "b", 66, 12)],
+    [...rsRow("a", ["3", "2", "1", "go"], "b", 66, 12)],
   ],
 });
 
@@ -374,7 +365,7 @@ export const V12 = scene({
   ],
   frames: [
     [...pair("epoll\nготов сокет", "wake()\nзадача", "b", "g")],
-    [...row("a", ["10 мс", "50 мс", "1 с", "5 с"], "b", 66, 10)],
+    [...rsRow("a", ["10 мс", "50 мс", "1 с", "5 с"], "b", 66, 10)],
     [...pair("asyncio\n1 поток", "tokio\nпул потоков", "m", "g")],
   ],
 });
@@ -388,7 +379,7 @@ export const V13 = scene({
     "Следующая глава — async и await подробно: конечные автоматы, Pin, async-блоки и async fn в трейтах",
   ],
   frames: [
-    [...row("a", ["poll", "Pending", "wake", "Waker"], "g")],
+    [...rsRow("a", ["poll", "Pending", "wake", "Waker"], "g")],
     [
       rs(
         "c",

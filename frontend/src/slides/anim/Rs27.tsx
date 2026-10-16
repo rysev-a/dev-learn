@@ -1,16 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, rs } from "./rs.tsx";
+import { Box, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 27 книги «Изучаем Rust»: ввод-вывод и файлы. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -22,7 +13,7 @@ export const V01 = scene({
   ],
   frames: [
     [...pair("Read\nисточник", "Write\nприёмник", "b", "g")],
-    [...row("a", ["File", "TcpStream", "stdin", "&[u8]"], "b", 66, 9.5)],
+    [...rsRow("a", ["File", "TcpStream", "stdin", "&[u8]"], "b", 66, 9.5)],
     [
       rs(
         "c",
@@ -528,7 +519,7 @@ export const V13 = scene({
     "Следующая глава — время, числа и память: Duration, Instant, num, mem",
   ],
   frames: [
-    [...row("a", ["Read", "Write", "BufRead", "Path"], "g")],
+    [...rsRow("a", ["Read", "Write", "BufRead", "Path"], "g")],
     [
       rs(
         "c",

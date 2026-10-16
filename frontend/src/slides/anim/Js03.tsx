@@ -1,10 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, Tx, arrow, jc } from "./jv.tsx";
+import { Box, Tx, arrow, jc, year } from "./jv.tsx";
 
 /* Глава 3 книги «Современный Frontend»: медленная эволюция и быстрый взрыв — ES5, ES6, Babel, сборщики. */
-
-const year = (id: string, x: number, y: number, text: string, c = "y") =>
-  Box(id, x, y, 52, 22, text, c, { size: 10, mono: true });
 
 // 1. Десять лет тишины
 export const V01 = scene({

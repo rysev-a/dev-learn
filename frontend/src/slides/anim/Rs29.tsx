@@ -1,16 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, arrow, rs } from "./rs.tsx";
+import { Box, arrow, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 29 книги «Изучаем Rust»: каталог трейтов стандартной библиотеки. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -28,7 +19,7 @@ export const V01 = scene({
         lh: 28,
       }),
     ],
-    [...row("a", ["Clone", "Eq / Ord", "From", "Iterator"], "b")],
+    [...rsRow("a", ["Clone", "Eq / Ord", "From", "Iterator"], "b")],
     [...pair("#[derive(…)]", "impl … for …", "g", "y")],
   ],
 });
@@ -103,7 +94,7 @@ export const V04 = scene({
     "Config { port: 80, ..Default::default() } — остальные поля стандартные; unwrap_or_default, or_default",
   ],
   frames: [
-    [...row("a", ["0", '""', "vec![]", "false"], "g", 66, 11)],
+    [...rsRow("a", ["0", '""', "vec![]", "false"], "g", 66, 11)],
     [
       rs(
         "c",
@@ -143,7 +134,7 @@ export const V05 = scene({
         { w: 340, size: 10.5, lh: 28 },
       ),
     ],
-    [...row("a", ["TryFrom", "AsRef", "Borrow"], "b", 66, 10)],
+    [...rsRow("a", ["TryFrom", "AsRef", "Borrow"], "b", 66, 10)],
     [
       rs(
         "c",
@@ -181,7 +172,7 @@ export const V06 = scene({
       ),
     ],
     [...pair("Display", "to_string()", "b", "g")],
-    [...row("a", ["{:x}", "{:b}", "{:o}", "{:e}"], "b", 66, 12)],
+    [...rsRow("a", ["{:x}", "{:b}", "{:o}", "{:e}"], "b", 66, 12)],
   ],
 });
 
@@ -241,8 +232,8 @@ export const V08 = scene({
         { w: 340, size: 10, lh: 26 },
       ),
     ],
-    [...row("a", ["for x in c", "collect()", "extend()"], "b", 66, 10)],
-    [...row("a", ["rev", "len", "sum", "product"], "g", 66, 11)],
+    [...rsRow("a", ["for x in c", "collect()", "extend()"], "b", 66, 10)],
+    [...rsRow("a", ["rev", "len", "sum", "product"], "g", 66, 11)],
   ],
 });
 
@@ -362,7 +353,7 @@ export const V13 = scene({
     "Следующий раздел — асинхронность: Python asyncio и async Rust с tokio",
   ],
   frames: [
-    [...row("a", ["Clone", "Ord", "From", "Iterator"], "g")],
+    [...rsRow("a", ["Clone", "Ord", "From", "Iterator"], "g")],
     [...pair("derive", "impl вручную", "g", "y")],
     [Box("a", 180, 60, 250, 34, "async · await · tokio", "b", { size: 12 })],
   ],

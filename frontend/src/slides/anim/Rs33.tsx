@@ -1,16 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, arrow, rs } from "./rs.tsx";
+import { Box, arrow, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 33 книги «Изучаем Rust»: Tokio — рантайм, #[tokio::main] и spawn. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -21,8 +12,8 @@ export const V01 = scene({
     'В учебных примерах — features = ["full"]; в проектах — точнее, чтобы сократить сборку',
   ],
   frames: [
-    [...row("a", ["планировщик", "I/O", "таймеры", "blocking"], "b", 66, 9)],
-    [...row("a", ["rt", "time", "net", "sync"], "g")],
+    [...rsRow("a", ["планировщик", "I/O", "таймеры", "blocking"], "b", 66, 9)],
+    [...rsRow("a", ["rt", "time", "net", "sync"], "g")],
     [
       rs("c", 20, 50, ['tokio = { version = "1", features = ["full"] }'], [0], {
         w: 340,
@@ -268,7 +259,7 @@ export const V08 = scene({
         { w: 340, size: 9, lh: 22 },
       ),
     ],
-    [...row("a", ["GUI", "потоки"], "b", 66, 10.5)],
+    [...rsRow("a", ["GUI", "потоки"], "b", 66, 10.5)],
   ],
 });
 
@@ -416,7 +407,7 @@ export const V13 = scene({
     "Следующая глава — время: sleep, interval, timeout, select!",
   ],
   frames: [
-    [...row("a", ["main", "Builder", "spawn", "JoinSet"], "g")],
+    [...rsRow("a", ["main", "Builder", "spawn", "JoinSet"], "g")],
     [
       rs(
         "c",

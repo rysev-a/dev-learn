@@ -1,13 +1,9 @@
 import { scene } from "./alg.tsx";
 import { Tx } from "./hw.tsx";
-import { Box, arrow, sql, tbl } from "./db.tsx";
+import { arrow, sql, tbl, nd, sm } from "./db.tsx";
 
 /* Глава 32 книги «Базы данных»: база в приложении. */
 
-const nd = (id: string, x: number, y: number, text: string, c = "b", w = 66) =>
-  Box(id, x, y, w, 28, text, c, { size: 9 });
-const sm = (id: string, x: number, y: number, text: string, c = "b", w = 40) =>
-  Box(id, x, y, w, 20, text, c, { size: 8 });
 const row = (labels: string[], c = "g", w = 84) =>
   labels.map((t: string, i: number) => nd(`k${i}`, 70 + i * 110, 76, t, c, w));
 

@@ -1,16 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, rs } from "./rs.tsx";
+import { Box, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 28 книги «Изучаем Rust»: время, числа и память. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -22,8 +13,8 @@ export const V01 = scene({
   ],
   frames: [
     [...pair("Duration", "Instant", "b", "g")],
-    [...row("a", ["i32", "f64", "Wrapping", "NonZero"], "g", 66, 10)],
-    [...row("a", ["size_of", "mem", "chrono", "rand"], "y", 66, 10)],
+    [...rsRow("a", ["i32", "f64", "Wrapping", "NonZero"], "g", 66, 10)],
+    [...rsRow("a", ["size_of", "mem", "chrono", "rand"], "y", 66, 10)],
   ],
 });
 
@@ -278,7 +269,7 @@ export const V07 = scene({
   ],
   frames: [
     [...pair("trait Number ✕", "Add + Mul + Copy", "r", "g")],
-    [...row("a", ["num-traits", "bigint", "rational", "complex"], "b", 66, 9)],
+    [...rsRow("a", ["num-traits", "bigint", "rational", "complex"], "b", 66, 9)],
     [Box("a", 180, 60, 230, 34, "rand — вне std", "y", { size: 12 })],
   ],
 });
@@ -326,7 +317,7 @@ export const V09 = scene({
     "Структуры, помещающиеся в строку кэша (64 байта), обрабатываются в разы быстрее",
   ],
   frames: [
-    [...row("a", ["&T 8", "&str 16", "String 24", "dyn 16"], "b", 66, 10)],
+    [...rsRow("a", ["&T 8", "&str 16", "String 24", "dyn 16"], "b", 66, 10)],
     [
       rs(
         "c",
@@ -459,7 +450,7 @@ export const V13 = scene({
     "Следующая глава — каталог трейтов: Clone, Copy, Default, Eq, Ord, Hash, From, AsRef и другие",
   ],
   frames: [
-    [...row("a", ["Duration", "Instant", "num", "mem"], "g")],
+    [...rsRow("a", ["Duration", "Instant", "num", "mem"], "g")],
     [
       rs(
         "c",

@@ -1,16 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, rs } from "./rs.tsx";
+import { Box, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 26 книги «Изучаем Rust»: текст и форматирование. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -21,8 +12,8 @@ export const V01 = scene({
     "Стандартная библиотека делает много даже без внешних пакетов",
   ],
   frames: [
-    [...row("a", ["char", "str", "fmt", "parse"], "b")],
-    [...row("a", ["логи", "конфиги", "CLI", "таблицы"], "g", 66, 9.5)],
+    [...rsRow("a", ["char", "str", "fmt", "parse"], "b")],
+    [...rsRow("a", ["логи", "конфиги", "CLI", "таблицы"], "g", 66, 9.5)],
     [Box("a", 180, 60, 230, 34, "std — часто достаточно", "y", { size: 12 })],
   ],
 });
@@ -139,7 +130,7 @@ export const V04 = scene({
     "trim_matches, trim_start_matches, trim_end_matches убирают символы по шаблону",
   ],
   frames: [
-    [...row("a", ["char", "&str", "[char]", "|c| …"], "b", 66, 10)],
+    [...rsRow("a", ["char", "&str", "[char]", "|c| …"], "b", 66, 10)],
     [
       rs("c", 20, 50, ["s.split(|c: char| c == ',' || c == ';')"], [0], {
         w: 340,
@@ -231,7 +222,7 @@ export const V06 = scene({
         { w: 340, size: 9.5, lh: 26 },
       ),
     ],
-    [...row("a", ["{}", "{:?}", "{:x}", "{:b}"], "b", 66, 12)],
+    [...rsRow("a", ["{}", "{:?}", "{:x}", "{:b}"], "b", 66, 12)],
   ],
 });
 
@@ -418,7 +409,7 @@ export const V11 = scene({
     "comfy-table, colored — таблицы и цвета в терминале; подключайте, когда std не хватает",
   ],
   frames: [
-    [...row("a", ["regex", "unicode-", "encoding_rs"], "b", 66, 9)],
+    [...rsRow("a", ["regex", "unicode-", "encoding_rs"], "b", 66, 9)],
     [...pair("serde", "nom · pest", "g", "g")],
     [...pair("comfy-table", "colored", "b", "b")],
   ],
@@ -475,7 +466,7 @@ export const V13 = scene({
     "Следующая глава — ввод-вывод: Read, Write, BufRead, файлы и пути",
   ],
   frames: [
-    [...row("a", ["char", "str", "fmt", "parse"], "g")],
+    [...rsRow("a", ["char", "str", "fmt", "parse"], "g")],
     [
       rs(
         "c",

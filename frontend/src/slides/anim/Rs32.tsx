@@ -1,16 +1,7 @@
 import { scene } from "./alg.tsx";
-import { Box, arrow, rs } from "./rs.tsx";
+import { Box, arrow, rs, pair, rsRow } from "./rs.tsx";
 
 /* Глава 32 книги «Изучаем Rust»: async и await — автоматы и Pin. */
-
-const pair = (a: string, b: string, ca = "m", cb = "g", y = 60) => [
-  Box("pa", 90, y, 130, 34, a, ca, { size: 10 }),
-  Box("pb", 270, y, 130, 34, b, cb, { size: 10 }),
-];
-const row = (pre: string, items: (string|number)[], c = "g", y = 66, size = 10.5) =>
-  items.map((t: string|number, i: number) =>
-    Box(`${pre}${i}`, 50 + i * 86, y, 76, 30, t, c, { size }),
-  );
 
 // 1. Введение
 export const V01 = scene({
@@ -22,7 +13,7 @@ export const V01 = scene({
   ],
   frames: [
     [...pair("async fn", "автомат", "b", "g")],
-    [...row("a", ["автомат", "Pin", "Send", "отмена"], "b")],
+    [...rsRow("a", ["автомат", "Pin", "Send", "отмена"], "b")],
     [Box("a", 180, 60, 230, 34, "Pin · Send · 'static", "y", { size: 12 })],
   ],
 });
@@ -76,7 +67,7 @@ export const V03 = scene({
     "poll начинает с текущего состояния, выполняет до следующей точки и возвращает Pending или Ready",
   ],
   frames: [
-    [...row("a", ["начало", "после 1", "после 2", "готово"], "b", 66, 10)],
+    [...rsRow("a", ["начало", "после 1", "после 2", "готово"], "b", 66, 10)],
     [
       rs(
         "c",
@@ -466,8 +457,8 @@ export const V13 = scene({
     "Следующая глава — tokio: рантайм, #[tokio::main], spawn, JoinSet",
   ],
   frames: [
-    [...row("a", ["автомат", "Pin", "Send", "'static"], "g")],
-    [...row("a", ["move", "Arc", "Box::pin", "cancel"], "b")],
+    [...rsRow("a", ["автомат", "Pin", "Send", "'static"], "g")],
+    [...rsRow("a", ["move", "Arc", "Box::pin", "cancel"], "b")],
     [Box("a", 180, 60, 230, 34, "tokio: spawn · JoinSet", "b", { size: 12 })],
   ],
 });
