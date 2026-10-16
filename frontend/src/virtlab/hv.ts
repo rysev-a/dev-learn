@@ -20,7 +20,7 @@ export interface GuestState {
 export interface TrapOption {
   label: string;
   ok: boolean;
-  why?: string;
+  why?: string | undefined;
 }
 
 export type Inspection =

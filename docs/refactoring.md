@@ -46,7 +46,7 @@
 - `dash: true` у линий и путей не включал пунктир (в CSS попадало `true`) — теперь `true` значит «3 3».
 
 **Строгий TypeScript.** Весь `frontend/src` — `.ts`/`.tsx`, JS-файлов нет. `tsconfig.json`: `strict`, `noUnusedLocals`, `noImplicitReturns`,
-`noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `allowUnreachableCode: false`, `allowUnusedLabels: false`. `scripts/ts-guard.mjs`
+`noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `allowUnreachableCode: false`, `allowUnusedLabels: false`. `scripts/ts-guard.mjs`
 запрещает явный `any` и `@ts-ignore`/`@ts-nocheck`/`@ts-expect-error` (сейчас 0 нарушений). Доменные типы: `types.ts` (API),
 `netlab/types.ts`, `lab/…/blocks.ts`, `slides/anim/dsl.ts` (`SceneItem`, `Tone`, `Extra`), `slides/anim/alg.tsx`
 (`SceneSpec`, `RowOpts`, `TreeNode`, `Pt`), `slides/anim/kit.tsx` (`StepsCtl`, `GraphNode`, `GraphEdge`).
@@ -81,7 +81,6 @@
 
 | Флаг | Ошибок сейчас | Комментарий |
 |---|---|---|
-| `exactOptionalPropertyTypes` | 198 | различать «нет поля» и `undefined` |
 | `noUncheckedIndexedAccess` | 1375 | в сценах — тысячи индексов массивов; начать с `lib`, `pages`, `components`, `netlab` |
 | запрет `!` и приведений `as` | ≈210 и ≈230 | заменять сужением типов и защитниками |
 

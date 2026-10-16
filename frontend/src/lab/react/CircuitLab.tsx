@@ -76,7 +76,7 @@ interface CircuitLabProps {
   hasNext: boolean;
   nextLabel: string;
   progressVersion: number;
-  fullscreen?: boolean;
+  fullscreen?: boolean | undefined;
   onOpenSource?: (source: { sectionSlug: string; exerciseId: string }) => void;
 }
 

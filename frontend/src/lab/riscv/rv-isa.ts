@@ -56,8 +56,8 @@ export interface RvOp {
   mnemonic: string;
   fmt: Fmt;
   opcode: number;
-  f3?: number;
-  f7?: number;
+  f3?: number | undefined;
+  f7?: number | undefined;
   /** расширение: I — базовый набор, M — умножение и деление */
   ext: 'I' | 'M';
   meaning: string;

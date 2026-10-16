@@ -1151,7 +1151,7 @@ export interface RowOpts {
   h?: number;
   w?: number;
   c?: ByIndex<string>;
-  tc?: string;
+  tc?: string | undefined;
   size?: number;
   sub?: ByIndex<string | number>;
   subSize?: number;
@@ -1263,11 +1263,11 @@ export function tree(
     y0?: number;
     dx?: number;
     dy?: number;
-    r?: number;
+    r?: number | undefined;
     colors?: Record<string, string>;
     texts?: Record<string, string | number>;
-    size?: number;
-    o?: number;
+    size?: number | undefined;
+    o?: number | undefined;
     center?: boolean;
   } = {},
 ): SceneItem[] {

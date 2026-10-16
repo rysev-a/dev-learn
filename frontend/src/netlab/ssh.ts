@@ -18,8 +18,8 @@ export const makeKey = (d: Device): string => `SHA256:${d.id}Key${(d.name.length
 export interface SshResult {
   ok: boolean;
   error?: string;
-  run?: ProbeRun;
-  srv?: Device;
+  run?: ProbeRun | undefined;
+  srv?: Device | undefined;
   auth?: string;
   lines?: string[];
 }

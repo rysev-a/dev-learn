@@ -524,8 +524,9 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 ## Фронтенд: TypeScript и проверки
 
 Весь `frontend/src` — строгий TypeScript (`.ts`/`.tsx`, JS-файлов нет). `tsconfig.json`: `strict`, `noUnusedLocals`,
-`noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `allowUnreachableCode: false`.
-Дальнейшее ужесточение (см. `docs/refactoring.md`): `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Проверки перед коммитом:
+`noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `allowUnreachableCode: false`.
+Дальнейшее ужесточение (см. `docs/refactoring.md`): `noUncheckedIndexedAccess`. Необязательное свойство, которому
+передают возможное `undefined`, объявляйте как `имя?: T | undefined`. Проверки перед коммитом:
 
 - `cd frontend && npm run typecheck` — типы (`tsc -p .`), должно быть 0 ошибок; явный `any` не добавляем;
 - `npm run slides:check` — серверная отрисовка всех слайдов всех глав (ловит ошибки в сценах: неизвестный тип

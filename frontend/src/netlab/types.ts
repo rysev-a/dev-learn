@@ -49,7 +49,7 @@ export interface FwRule {
   dport?: number;
   in?: string;
   out?: string;
-  state?: string;
+  state?: string | undefined;
 }
 
 export interface Firewall {
@@ -89,7 +89,7 @@ export interface DnsConfig {
 export interface HttpRoute {
   path: string;
   status?: number;
-  body?: string;
+  body?: string | undefined;
   type?: string;
   headers?: Record<string, string>;
   location?: string;
@@ -103,7 +103,7 @@ export interface HttpConfig {
 }
 
 export interface RProxyRule {
-  host?: string;
+  host?: string | undefined;
   path?: string;
   backend: string;
   cache?: boolean;
@@ -188,7 +188,7 @@ export interface Device {
   syncookies?: boolean;
   arpStatic?: Record<string, string>;
   hosts?: Record<string, string>;
-  resolver?: string | null;
+  resolver?: string | null | undefined;
   trust?: string[];
   tlsMin?: string;
   sshKey?: string | null;
@@ -228,8 +228,8 @@ export interface Tuple {
   proto: string;
   src: number | null;
   dst: number;
-  sport?: number;
-  dport?: number;
+  sport?: number | undefined;
+  dport?: number | undefined;
 }
 
 export interface DnsQuestion {
@@ -253,12 +253,12 @@ export interface Packet {
   dst: number;
   ttl: number;
   proto: string;
-  sport?: number;
-  dport?: number;
+  sport?: number | undefined;
+  dport?: number | undefined;
   size?: number;
   noTun?: boolean;
   tunnel?: { inner: Packet; key: string; name: string };
-  icmp?: IcmpInfo;
+  icmp?: IcmpInfo | undefined;
   df?: boolean;
   flags?: string;
   seq?: number;
@@ -280,7 +280,7 @@ interface FrameBase {
   size: number;
   src: string;
   dst: string;
-  vlan?: number;
+  vlan?: number | undefined;
   uid?: number;
 }
 
@@ -360,7 +360,7 @@ export interface Runtime {
 export interface NetState {
   devices: Record<string, Device>;
   links: Link[];
-  rt?: Runtime;
+  rt?: Runtime | undefined;
   pki?: Pki;
   __busy?: boolean;
   [meta: string]: unknown;
@@ -371,9 +371,9 @@ export interface ProbeResult {
   from: number | null;
   at: number;
   ttl?: number;
-  code?: string | null;
-  mtu?: number | null;
-  dns?: DnsMessage;
+  code?: string | null | undefined;
+  mtu?: number | null | undefined;
+  dns?: DnsMessage | undefined;
 }
 
 /** текущая проба симулятора: кто её послал и чем она закончилась */
@@ -401,8 +401,8 @@ export interface HttpResponse {
   headers: Record<string, string>;
   body: string;
   rttUs?: number;
-  ip?: number | null;
-  via?: string;
+  ip?: number | null | undefined;
+  via?: string | undefined;
   url?: string;
 }
 
@@ -418,7 +418,7 @@ export type ToIp = (
   state: NetState,
   d: Device,
   host: string,
-) => { ip: number; from?: string; err?: undefined; run?: ProbeRun } | { err: string; ip?: undefined; run?: ProbeRun };
+) => { ip: number; from?: string | undefined; err?: undefined; run?: ProbeRun | undefined } | { err: string; ip?: undefined; run?: ProbeRun };
 
 /* ---- сценарии и цели упражнений ---- */
 

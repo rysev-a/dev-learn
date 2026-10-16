@@ -135,7 +135,7 @@ export interface RunResult {
   passed?: number;
   total?: number;
   solved?: boolean;
-  okAll?: boolean;
+  okAll?: boolean | undefined;
   attempt?: { id: number; status: string; created_at: string };
 }
 

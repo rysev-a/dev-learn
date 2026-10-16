@@ -59,7 +59,7 @@ interface CircuitViewProps {
   scope: ValueScope;
   resetKey?: unknown;
   spread?: number;
-  fullscreen?: boolean;
+  fullscreen?: boolean | undefined;
 }
 
 interface DragState {

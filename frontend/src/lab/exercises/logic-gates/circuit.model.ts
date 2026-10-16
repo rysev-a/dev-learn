@@ -68,10 +68,10 @@ export interface NativeInstance {
   /** узлы-источники адреса, старший бит первым; undefined — не подключён */
   addr: readonly (string | undefined)[];
   /** узлы данных на запись (только ram), старший бит первым */
-  din?: readonly (string | undefined)[];
+  din?: readonly (string | undefined)[] | undefined;
   /** разрешение записи и такт (только ram) */
-  we?: string;
-  clk?: string;
+  we?: string | undefined;
+  clk?: string | undefined;
   /** имена узлов-выходов, старший бит первым */
   dout: readonly string[];
 }

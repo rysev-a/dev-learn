@@ -175,7 +175,7 @@ export default function CodeEditor({
         }),
       ],
     });
-    view.current = new EditorView({ state, parent: host.current ?? undefined });
+    view.current = new EditorView(host.current ? { state, parent: host.current } : { state });
     return () => {
       view.current?.destroy();
       view.current = null;

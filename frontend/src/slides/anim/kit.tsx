@@ -125,10 +125,10 @@ export function Steps({ ctl, labels, caption, h = 170, children }: {
 
 // Плавно движущийся узел SVG: позиция, прозрачность, масштаб.
 export function G({ x = 0, y = 0, o = 1, s = 1, children, className = "" }: {
-  x?: number;
-  y?: number;
-  o?: number;
-  s?: number;
+  x?: number | undefined;
+  y?: number | undefined;
+  o?: number | undefined;
+  s?: number | undefined;
   children?: ReactNode;
   className?: string;
 }) {

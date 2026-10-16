@@ -21,7 +21,7 @@ export function useAsmSession(opts: {
   /** задание выполнено (результат проверки после остановки машины) */
   ok: boolean | undefined;
   onCode: (code: string) => void;
-  onSolved?: (code: string) => void;
+  onSolved?: ((code: string) => void) | undefined;
 }) {
   const { task, source, solvedBefore, ok, onCode, onSolved } = opts;
   const [, bump] = useState(0);
@@ -151,7 +151,7 @@ export function TaskResult({
 }: {
   result: { ok: boolean; message: string } | null;
   hasNext: boolean;
-  onNext?: () => void;
+  onNext?: (() => void) | undefined;
   nextLabel: string;
 }) {
   if (!result) return null;

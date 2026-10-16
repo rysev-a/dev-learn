@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 /* Итог проверки в стиле приложения: компактная плашка — значок, заголовок, пояснение, кнопка «дальше». */
 interface ResultAlertProps {
-  ok?: boolean;
+  ok?: boolean | undefined;
   title: ReactNode;
   children?: ReactNode;
-  onNext?: () => void;
+  onNext?: (() => void) | undefined;
   nextLabel?: string;
 }
 

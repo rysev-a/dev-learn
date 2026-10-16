@@ -24,7 +24,7 @@ export function resolveTarget(state: NetState, spec: string): number | null {
   return parseIp(spec);
 }
 
-type Resolved = { ip: number; run?: ProbeRun; err?: undefined } | { err: string; ip?: undefined; run?: ProbeRun };
+type Resolved = { ip: number; run?: ProbeRun | undefined; err?: undefined } | { err: string; ip?: undefined; run?: ProbeRun | undefined };
 
 /** цель пробы: IP, «@устройство» или имя (через hosts и DNS-резолвер устройства-источника) */
 export function resolveFrom(state: NetState, spec: string, fromId: string): Resolved {

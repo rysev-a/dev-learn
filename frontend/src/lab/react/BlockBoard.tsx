@@ -71,7 +71,7 @@ interface BlockBoardProps {
   boardRef?: MutableRefObject<BoardHandle | null>;
   resetKey?: unknown;
   spread?: number;
-  fullscreen?: boolean;
+  fullscreen?: boolean | undefined;
 }
 
 interface PinHit {

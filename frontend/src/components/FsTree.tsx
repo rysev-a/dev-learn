@@ -74,7 +74,7 @@ export default function FsTree({ sections, chapterId, onOpenChapter, setItemsSlo
 // Пункт под текущей главой (слайд, вопрос, упражнение).
 interface FsItemProps {
   on?: boolean;
-  mark?: string;
+  mark?: string | undefined;
   num: number;
   children: ReactNode;
   onClick: () => void;

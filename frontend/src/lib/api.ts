@@ -43,12 +43,13 @@ export async function api<T = unknown>(
   path: string,
   { method = "GET", body, keepalive }: ApiOptions = {},
 ): Promise<T> {
-  const res = await fetch(path, {
-    method,
-    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    keepalive,
-  });
+  const init: RequestInit = { method };
+  if (body !== undefined) {
+    init.headers = { "Content-Type": "application/json" };
+    init.body = JSON.stringify(body);
+  }
+  if (keepalive !== undefined) init.keepalive = keepalive;
+  const res = await fetch(path, init);
   if (res.status === 401 && !path.startsWith("/api/auth/")) {
     // сессия истекла: AuthProvider вернёт пользователя на форму входа
     window.dispatchEvent(new Event("say-unauthorized"));

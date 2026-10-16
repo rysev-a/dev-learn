@@ -105,7 +105,7 @@ interface GateBoardProps {
   valueFn: (node: string) => NodeValue;
   palette: PaletteItem[];
   guideFocus?: ReadonlySet<string> | null;
-  fullscreen?: boolean;
+  fullscreen?: boolean | undefined;
   onToggleInput: (id: InputId) => void;
   onEdited: () => void;
   onMessage: (message: string) => void;

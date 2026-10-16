@@ -129,7 +129,7 @@ export default function ChapterDetail() {
         <NavLink
           key={t.label}
           to={{ pathname: t.to, search }}
-          end={t.end}
+          end={t.end ?? false}
           className={({ isActive }) => `ch-tab ${isActive ? "on" : ""}`}
         >
           {t.label}

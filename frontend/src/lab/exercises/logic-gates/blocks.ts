@@ -54,9 +54,9 @@ export interface NativeSolution {
   native: 'rom' | 'ram';
   /** какие узлы блока что значат: адрес, данные на запись, разрешение, такт, данные на чтение */
   addr: readonly string[];
-  din?: readonly string[];
-  we?: string;
-  clk?: string;
+  din?: readonly string[] | undefined;
+  we?: string | undefined;
+  clk?: string | undefined;
   dout: readonly string[];
 }
 
@@ -88,7 +88,7 @@ export interface BlockInterface {
   inputs: readonly string[];
   outputs: readonly string[];
   /** Подписи входов по порядку `inputs` */
-  labels?: readonly string[];
+  labels?: readonly string[] | undefined;
   ports: readonly BlockPort[];
 }
 

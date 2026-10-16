@@ -30,7 +30,7 @@ import type { Device, FwRule, NatRule, NetState, ProbeRun, ToIp } from "./types.
 export interface CmdResult {
   out: string;
   changed?: boolean;
-  probe?: ProbeRun | null;
+  probe?: ProbeRun | null | undefined;
   http?: FetchResult;
   clear?: boolean;
   chart?: TransferChart | null;

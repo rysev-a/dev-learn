@@ -28,51 +28,51 @@ export type CodeLang = "rs" | "c" | "asm" | "py" | "sql" | "js" | "css";
 export interface SceneItem {
   t: ItemKind;
   id: string;
-  x?: number;
-  y?: number;
-  x1?: number;
-  y1?: number;
-  x2?: number;
-  y2?: number;
-  w?: number;
-  h?: number;
-  r?: number;
+  x?: number | undefined;
+  y?: number | undefined;
+  x1?: number | undefined;
+  y1?: number | undefined;
+  x2?: number | undefined;
+  y2?: number | undefined;
+  w?: number | undefined;
+  h?: number | undefined;
+  r?: number | undefined;
   /** высота столбика (bar) */
-  hh?: number;
-  max?: number;
-  c?: Tone | string;
-  text?: string | number;
-  sub?: string | number;
-  lbl?: string;
-  d?: string;
+  hh?: number | undefined;
+  max?: number | undefined;
+  c?: Tone | string | undefined;
+  text?: string | number | undefined;
+  sub?: string | number | undefined;
+  lbl?: string | undefined;
+  d?: string | undefined;
   /** true — пунктир по умолчанию, строка — свой dasharray */
-  dash?: boolean | string | number;
-  size?: number;
-  subSize?: number;
-  mono?: boolean;
-  bold?: boolean;
-  anchor?: "start" | "middle" | "end";
-  dir?: string;
-  nil?: boolean;
-  bend?: number;
-  arrow?: boolean;
-  draw?: number;
-  fill?: string;
-  fillOpacity?: number;
+  dash?: boolean | string | number | undefined;
+  size?: number | undefined;
+  subSize?: number | undefined;
+  mono?: boolean | undefined;
+  bold?: boolean | undefined;
+  anchor?: "start" | "middle" | "end" | undefined;
+  dir?: string | undefined;
+  nil?: boolean | undefined;
+  bend?: number | undefined;
+  arrow?: boolean | undefined;
+  draw?: number | undefined;
+  fill?: string | undefined;
+  fillOpacity?: number | undefined;
   /** code: строки, подсвеченные и ошибочные номера */
-  lines?: string[];
-  hl?: number | number[];
-  bad?: number | number[];
-  lh?: number;
-  lang?: CodeLang;
+  lines?: string[] | undefined;
+  hl?: number | number[] | undefined;
+  bad?: number | number[] | undefined;
+  lh?: number | undefined;
+  lang?: CodeLang | undefined;
   /** прозрачность и масштаб любого элемента */
-  o?: number;
-  s?: number;
+  o?: number | undefined;
+  s?: number | undefined;
   /** gate: тип вентиля; sw/tr/lamp: состояние */
-  g?: string;
-  kind?: string;
-  on?: boolean | number;
-  tc?: string;
+  g?: string | undefined;
+  kind?: string | undefined;
+  on?: boolean | number | undefined;
+  tc?: string | undefined;
 }
 
 /** Необязательные поля поверх обязательных аргументов конструктора. */
