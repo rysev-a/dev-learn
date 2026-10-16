@@ -1,3 +1,4 @@
+import { makeSlide } from "../SlideFrame.jsx";
 // Слайды для «Изучаем Rust», глава 41 — «HTTP по байтам».
 // Тот же дизайн-код, что и в главах 1–5: палитра, IBM Plex Mono / Inter,
 // рубрика + номер, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
@@ -50,32 +51,7 @@ function PyCode({ children }) {
   return <pre className="rs-code">{rsSpan(children)}</pre>;
 }
 
-function Rubric({ n }) {
-  return (
-    <div className="s-rubric">
-      <span>ИЗУЧАЕМ RUST / ВЕБ-СЕРВЕР / ГЛАВА 41</span>
-      <span>{String(n).padStart(2, "0")} / 13</span>
-    </div>
-  );
-}
-
-function Slide({ n, title, sub, main, children }) {
-  return (
-    <div className="slide">
-      <Rubric n={n} />
-      <h3 className="s-title">{title}</h3>
-      {sub && <p className="s-sub">{sub}</p>}
-      <div className="s-divider" />
-      <div className="s-body">{children}</div>
-      {main && (
-        <div className="s-main">
-          <span className="s-main-label">ГЛАВНОЕ</span>
-          <span className="s-main-text">{main}</span>
-        </div>
-      )}
-    </div>
-  );
-}
+const Slide = makeSlide("ИЗУЧАЕМ RUST / ВЕБ-СЕРВЕР / ГЛАВА 41", 13);
 
 function Node({ mono, title, sub, kind }) {
   return (

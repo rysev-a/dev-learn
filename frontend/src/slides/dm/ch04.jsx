@@ -15,33 +15,9 @@ import C4Hash from "../anim/C4Hash.jsx";
 import C4Birthday from "../anim/C4Birthday.jsx";
 import C4Crypto from "../anim/C4Crypto.jsx";
 import C4Recap from "../anim/C4Recap.jsx";
+import { makeSlide } from "../SlideFrame.jsx";
 
-function Rubric({ n }) {
-  return (
-    <div className="s-rubric">
-      <span>ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 4</span>
-      <span>{String(n).padStart(2, "0")} / 13</span>
-    </div>
-  );
-}
-
-function Slide({ n, title, sub, main, children }) {
-  return (
-    <div className="slide">
-      <Rubric n={n} />
-      <h3 className="s-title">{title}</h3>
-      {sub && <p className="s-sub">{sub}</p>}
-      <div className="s-divider" />
-      <div className="s-body">{children}</div>
-      {main && (
-        <div className="s-main">
-          <span className="s-main-label">ГЛАВНОЕ</span>
-          <span className="s-main-text">{main}</span>
-        </div>
-      )}
-    </div>
-  );
-}
+const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / СЧЁТ И ЛОГИКА / ГЛАВА 4", 13);
 
 // --- сцены ---------------------------------------------------------------
 

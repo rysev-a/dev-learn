@@ -15,33 +15,9 @@ import C10BaseRate from "../anim/C10BaseRate.jsx";
 import C10Engineering from "../anim/C10Engineering.jsx";
 import C10Diagnostics from "../anim/C10Diagnostics.jsx";
 import C10Finale from "../anim/C10Finale.jsx";
+import { makeSlide } from "../SlideFrame.jsx";
 
-function Rubric({ n }) {
-  return (
-    <div className="s-rubric">
-      <span>ДИСКРЕТНАЯ МАТЕМАТИКА / ГРАФЫ И ВЕРОЯТНОСТЬ / ГЛАВА 10</span>
-      <span>{String(n).padStart(2, "0")} / 13</span>
-    </div>
-  );
-}
-
-function Slide({ n, title, sub, main, children }) {
-  return (
-    <div className="slide">
-      <Rubric n={n} />
-      <h3 className="s-title">{title}</h3>
-      {sub && <p className="s-sub">{sub}</p>}
-      <div className="s-divider" />
-      <div className="s-body">{children}</div>
-      {main && (
-        <div className="s-main">
-          <span className="s-main-label">ГЛАВНОЕ</span>
-          <span className="s-main-text">{main}</span>
-        </div>
-      )}
-    </div>
-  );
-}
+const Slide = makeSlide("ДИСКРЕТНАЯ МАТЕМАТИКА / ГРАФЫ И ВЕРОЯТНОСТЬ / ГЛАВА 10", 13);
 
 // --- сцены ---------------------------------------------------------------
 

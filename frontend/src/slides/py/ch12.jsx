@@ -1,3 +1,4 @@
+import { makeSlide } from "../SlideFrame.jsx";
 // Слайды для «Python как первый язык», глава 12 — «Классы».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
@@ -40,32 +41,7 @@ function PyCode({ children }) {
   return <pre className="rs-code">{pySpan(children)}</pre>;
 }
 
-function Rubric({ n }) {
-  return (
-    <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / КЛАССЫ / ГЛАВА 12</span>
-      <span>{String(n).padStart(2, "0")} / 13</span>
-    </div>
-  );
-}
-
-function Slide({ n, title, sub, main, children }) {
-  return (
-    <div className="slide">
-      <Rubric n={n} />
-      <h3 className="s-title">{title}</h3>
-      {sub && <p className="s-sub">{sub}</p>}
-      <div className="s-divider" />
-      <div className="s-body">{children}</div>
-      {main && (
-        <div className="s-main">
-          <span className="s-main-label">ГЛАВНОЕ</span>
-          <span className="s-main-text">{main}</span>
-        </div>
-      )}
-    </div>
-  );
-}
+const Slide = makeSlide("PYTHON КАК ПЕРВЫЙ ЯЗЫК / КЛАССЫ / ГЛАВА 12", 13);
 
 function Node({ mono, title, sub, kind }) {
   return (

@@ -20,33 +20,9 @@ import {
   V16,
   V17,
 } from "../anim/Alg15.jsx";
+import { makeSlide } from "../SlideFrame.jsx";
 
-function Rubric({ n }) {
-  return (
-    <div className="s-rubric">
-      <span>ГРАФЫ И СТРАТЕГИИ / ГЛАВА 15</span>
-      <span>{String(n).padStart(2, "0")} / 17</span>
-    </div>
-  );
-}
-
-function Slide({ n, title, sub, main, children }) {
-  return (
-    <div className="slide">
-      <Rubric n={n} />
-      <h3 className="s-title">{title}</h3>
-      {sub && <p className="s-sub">{sub}</p>}
-      <div className="s-divider" />
-      <div className="s-body">{children}</div>
-      {main && (
-        <div className="s-main">
-          <span className="s-main-label">ГЛАВНОЕ</span>
-          <span className="s-main-text">{main}</span>
-        </div>
-      )}
-    </div>
-  );
-}
+const Slide = makeSlide("ГРАФЫ И СТРАТЕГИИ / ГЛАВА 15", 17);
 
 // --- сцены ---------------------------------------------------------------
 
