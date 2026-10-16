@@ -6,6 +6,8 @@ export const KEYS = {
   anim: "say-anim-auto",
 } as const;
 
+export type Theme = "dark" | "light";
+
 export function readSetting(key: string): string | null;
 export function readSetting<F>(key: string, fallback: F): string | F;
 export function readSetting(key: string, fallback: unknown = null): unknown {
@@ -25,6 +27,8 @@ export function writeSetting(key: string, value: string | null): void {
     /* хранилище недоступно — настройка не сохранится */
   }
 }
+
+export const readTheme = (): Theme => (readSetting(KEYS.theme) === "light" ? "light" : "dark");
 
 // Движение сцен выключено: системная настройка «уменьшить движение»
 // или переключатель в настройках приложения.

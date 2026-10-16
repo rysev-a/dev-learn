@@ -1,8 +1,14 @@
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { usePlayer } from "../../lib/player.tsx";
 import { useCourse } from "../../lib/queries.ts";
+import type { Book, Section } from "../../types.ts";
 
-export default function BookDetail({ books }) {
+/** то, что страница книги отдаёт вложенным маршрутам */
+export interface BookContext {
+  course: Section[];
+}
+
+export default function BookDetail({ books }: { books: Book[] }) {
   const { bookId, chapterId } = useParams();
   const navigate = useNavigate();
   const { stop } = usePlayer();
@@ -10,7 +16,7 @@ export default function BookDetail({ books }) {
 
   const book = books.find((b) => String(b.id) === String(bookId));
 
-  function openChapter(id) {
+  function openChapter(id: number) {
     stop();
     navigate(`/book/${bookId}/chapter/${id}`);
   }

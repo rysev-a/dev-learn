@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useAuth } from "../../lib/auth.tsx";
 
 /* Вход и регистрация. Пока идёт разработка, форма входа сразу заполнена данными
@@ -6,11 +6,11 @@ import { useAuth } from "../../lib/auth.tsx";
 
 const QUICK = ["student", "programmer"];
 
-export default function AuthPage({ themeButton }) {
+export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
   const { login, register } = useAuth();
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // вход: логин или email + пароль (по умолчанию student / student)
   const [ident, setIdent] = useState("student");
@@ -20,36 +20,36 @@ export default function AuthPage({ themeButton }) {
   const [loginName, setLoginName] = useState("");
   const [regPassword, setRegPassword] = useState("");
 
-  async function submit(action) {
+  async function submit(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
     setError(null);
     try {
       await action();
     } catch (e) {
-      setError(e.message);
+      setError(e instanceof Error ? e.message : String(e));
       setBusy(false);
     }
   }
 
-  const onLogin = (e) => {
+  const onLogin = (e: FormEvent) => {
     e.preventDefault();
     submit(() => login(ident, password));
   };
 
-  const onRegister = (e) => {
+  const onRegister = (e: FormEvent) => {
     e.preventDefault();
     submit(() => register(email, loginName, regPassword));
   };
 
   // «Войти как …»: подставить значения в форму и отправить её
-  const quick = (name) => {
+  const quick = (name: string) => {
     setIdent(name);
     setPassword(name);
     submit(() => login(name, name));
   };
 
-  const switchMode = (m) => {
+  const switchMode = (m: "login" | "register") => {
     setMode(m);
     setError(null);
   };

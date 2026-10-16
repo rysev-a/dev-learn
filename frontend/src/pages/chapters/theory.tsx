@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useOutletContext, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useChapterContext } from "./context.ts";
+import type { PlayerItem } from "../../lib/player.tsx";
+import type { Lesson } from "../../types.ts";
+import type { SlideComponent } from "../../lib/slides.ts";
 import { FsItem } from "../../components/FsTree.tsx";
 import { useChapterSlides } from "../../lib/slides.ts";
 import { usePlayer } from "../../lib/player.tsx";
@@ -10,7 +14,7 @@ import { estimateSeconds } from "../../lib/voice.ts";
 import { useProgress } from "../../lib/progress.tsx";
 
 export default function ChapterTheory() {
-  const { chapter, bookId, fs, itemsSlot, headSlot } = useOutletContext();
+  const { chapter, bookId, fs, itemsSlot, headSlot } = useChapterContext();
   const { markSlide } = useProgress();
   const { playingId, paused, progress, togglePause, playSequence } = usePlayer();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,7 +23,7 @@ export default function ChapterTheory() {
   const manualIdx =
     slideParam == null ? null : Math.max(0, parseInt(slideParam, 10) || 0);
   // остальные параметры адреса (например, fs) сохраняются
-  const patchParams = (fn) =>
+  const patchParams = (fn: (p: URLSearchParams) => void) =>
     setSearchParams(
       (prev) => {
         const n = new URLSearchParams(prev);
@@ -28,7 +32,7 @@ export default function ChapterTheory() {
       },
       { replace: true },
     );
-  const setManualIdx = (i) =>
+  const setManualIdx = (i: number | null) =>
     patchParams((n) => (i == null ? n.delete("slide") : n.set("slide", String(i))));
 
   const activeIdx = chapter
@@ -56,7 +60,7 @@ export default function ChapterTheory() {
   if (loading) return <p className="empty">Загрузка…</p>;
   if (!slides) return <p className="error">У этой главы нет слайдов</p>;
 
-  function asItems(lessons) {
+  function asItems(lessons: Lesson[]): PlayerItem[] {
     return lessons.map((l) => ({
       id: l.id,
       // файл озвучки есть только когда бэкенд знает его длительность
@@ -71,7 +75,7 @@ export default function ChapterTheory() {
 
   // Клик по слайду: если глава играет — начинаем с этой части, иначе просто
   // показываем слайд.
-  function pickSlide(i) {
+  function pickSlide(i: number) {
     if (chapterPlaying) {
       const cur = activeIdx >= 0 ? chapter.lessons[activeIdx] : null;
       if (cur && cur.ord === i && paused) togglePause();
@@ -100,7 +104,7 @@ export default function ChapterTheory() {
 
   // Время на уровне главы: позиция = сумма частей до показанного слайда
   // + прогресс внутри него; всего — сумма всех частей.
-  const durOf = (l) => (l.dur > 0 ? Number(l.dur) : estimateSeconds(l.text));
+  const durOf = (l: Lesson) => (l.dur > 0 ? Number(l.dur) : estimateSeconds(l.text));
   const chapterDur = chapter.lessons.reduce((a, l) => a + durOf(l), 0);
   const offsetBefore = chapter.lessons.reduce(
     (a, l) => a + (l.ord < slideIdx ? durOf(l) : 0),
@@ -157,10 +161,10 @@ export default function ChapterTheory() {
 // Всплывающее окно снизу: текст абзаца, который звучит за кадром. Слова,
 // которые уже «прочитаны», светлее, текущее подсвечено; без воспроизведения —
 // просто текст.
-function VoiceText({ text, t, d }) {
+function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }) {
   const words = useMemo(() => text.split(/\s+/).filter(Boolean), [text]);
-  const boxRef = useRef(null);
-  const curRef = useRef(null);
+  const boxRef = useRef<HTMLParagraphElement>(null);
+  const curRef = useRef<HTMLSpanElement>(null);
   const cur =
     t == null || !d ? -1 : Math.min(words.length - 1, Math.floor((t / d) * words.length));
 
@@ -191,6 +195,23 @@ function VoiceText({ text, t, d }) {
   );
 }
 
+interface SlidePanelProps {
+  slides: SlideComponent[];
+  titles: string[] | null;
+  idx: number;
+  onPick: (i: number) => void;
+  t: number;
+  d: number;
+  audioT: number | null;
+  caption: string;
+  fs: boolean;
+  itemsSlot: HTMLElement | null;
+  headSlot: HTMLElement | null;
+  playing: boolean;
+  onPlay: () => void;
+  onPause: () => void;
+}
+
 function SlidePanel({
   slides,
   titles,
@@ -206,16 +227,17 @@ function SlidePanel({
   playing,
   onPlay,
   onPause,
-}) {
+}: SlidePanelProps) {
   const Comp = slides[Math.min(idx, slides.length - 1)];
   const count = String(slides.length).padStart(2, "0");
 
   // стрелки листают слайды в полноэкранном режиме
   useEffect(() => {
     if (!fs) return;
-    const onKey = (e) => {
-      const tag = e.target?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if (e.key === "ArrowRight" || e.key === "ArrowDown")
         onPick(Math.min(idx + 1, slides.length - 1));
       else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
@@ -225,7 +247,7 @@ function SlidePanel({
     return () => document.removeEventListener("keydown", onKey);
   }, [fs, idx, slides.length, onPick]);
 
-  const dots = (cls) => (
+  const dots = (cls: string) => (
     <div className={cls}>
       {slides.map((_, i) => (
         <button
@@ -257,7 +279,7 @@ function SlidePanel({
     </>
   );
 
-  const stage = (cls) => (
+  const stage = (cls: string) => (
     <div className={cls} key={idx}>
       <SlideAudioContext.Provider value={audioT}>
         <Comp />

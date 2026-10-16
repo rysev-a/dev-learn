@@ -6,15 +6,16 @@ import { useAuth } from "./lib/auth.tsx";
 import { PlayerProvider, usePlayer } from "./lib/player.tsx";
 import { useProgress } from "./lib/progress.tsx";
 import { useBooks } from "./lib/queries.ts";
-import AuthPage from "./pages/auth/index.jsx";
-import BookDetail from "./pages/books/detail.jsx";
-import BooksIndex from "./pages/books/index.jsx";
-import ChapterDetail from "./pages/chapters/detail.jsx";
-import ChapterExercises from "./pages/chapters/exercises.jsx";
-import ChapterQuestions from "./pages/chapters/questions.jsx";
-import ChapterTheory from "./pages/chapters/theory.jsx";
-import ChaptersIndex from "./pages/chapters/index.jsx";
-import SettingsPage from "./pages/settings/index.jsx";
+import { KEYS, readTheme, writeSetting, type Theme } from "./lib/settings.ts";
+import AuthPage from "./pages/auth/index.tsx";
+import BookDetail from "./pages/books/detail.tsx";
+import BooksIndex from "./pages/books/index.tsx";
+import ChapterDetail from "./pages/chapters/detail.tsx";
+import ChapterExercises from "./pages/chapters/exercises.tsx";
+import ChapterQuestions from "./pages/chapters/questions.tsx";
+import ChapterTheory from "./pages/chapters/theory.tsx";
+import ChaptersIndex from "./pages/chapters/index.tsx";
+import SettingsPage from "./pages/settings/index.tsx";
 
 export default function App() {
   return (
@@ -30,13 +31,11 @@ function Shell() {
   const { stop } = usePlayer();
   const { user, logout } = useAuth();
   const { ready } = useProgress();
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("say-theme") || "dark",
-  );
+  const [theme, setTheme] = useState<Theme>(readTheme);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    localStorage.setItem("say-theme", theme);
+    writeSetting(KEYS.theme, theme);
   }, [theme]);
 
   function goHome() {

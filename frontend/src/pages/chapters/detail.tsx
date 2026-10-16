@@ -3,12 +3,14 @@ import { createPortal } from "react-dom";
 import {
   NavLink,
   Outlet,
-  useLocation,
   useNavigate,
   useOutletContext,
   useParams,
   useSearchParams,
 } from "react-router-dom";
+import type { BookContext } from "../books/detail.tsx";
+import type { ChapterContext } from "./context.ts";
+import type { Chapter, ChapterTasks, Task } from "../../types.ts";
 import FsTree from "../../components/FsTree.tsx";
 import { usePlayer } from "../../lib/player.tsx";
 import { hasSlides as chapterHasSlides } from "../../lib/slides.ts";
@@ -22,16 +24,22 @@ import { useApi, useCodeCounts } from "../../lib/queries.ts";
      /book/:bookId/chapter/:chapterId/questions   Вопросы (квизы)
      /book/:bookId/chapter/:chapterId/exercises   Практика (код в Docker)
    Данные главы грузятся один раз и отдаются вкладкам через контекст. */
+interface Tab {
+  to: string;
+  end?: boolean;
+  label: string;
+  badge?: string | null;
+}
+
 export default function ChapterDetail() {
   const { bookId, chapterId } = useParams();
-  const parent = useOutletContext();
+  const parent = useOutletContext<BookContext | null>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { stop } = usePlayer();
   const [searchParams, setSearchParams] = useSearchParams();
   // полноэкранный режим — в адресе (?fs=1): переживает смену вкладки и главы
   const fs = searchParams.get("fs") === "1";
-  const setFs = (on) =>
+  const setFs = (on: boolean) =>
     setSearchParams(
       (prev) => {
         const n = new URLSearchParams(prev);
@@ -42,23 +50,23 @@ export default function ChapterDetail() {
       { replace: true },
     );
   // слоты левого дерева и шапки: активная вкладка публикует в них пункты и кнопки
-  const [itemsSlot, setItemsSlot] = useState(null);
-  const [headSlot, setHeadSlot] = useState(null);
-  const { data: chapter, error: chapterError } = useApi(
+  const [itemsSlot, setItemsSlot] = useState<HTMLElement | null>(null);
+  const [headSlot, setHeadSlot] = useState<HTMLElement | null>(null);
+  const { data: chapter, error: chapterError } = useApi<Chapter>(
     chapterId == null ? null : `/api/chapters/${chapterId}`,
   );
   const error = chapterError ? "Урок не найден" : null;
   const codeCounts = useCodeCounts(); // {книга: {глава: число}} — куда идти по Ctrl+Enter
 
   // Код-упражнения (Docker-песочница) ключуются номером главы; ответ 404 — упражнений нет.
-  const tasksQuery = useApi(
+  const tasksQuery = useApi<ChapterTasks>(
     chapter == null || bookId == null ? null : `/api/exercises/${bookId}/${chapter.num}`,
   );
   const tasksReady = chapter != null && !tasksQuery.loading;
-  const codeTasks = useMemo(() => {
+  const codeTasks = useMemo((): Task[] => {
     const d = tasksQuery.data;
     return (d?.tasks || []).map((t) =>
-      t.dataset && d.datasets?.[t.dataset] ? { ...t, schema: d.datasets[t.dataset] } : t,
+      d && t.dataset && d.datasets?.[t.dataset] ? { ...t, schema: d.datasets[t.dataset] } : t,
     );
   }, [tasksQuery.data]);
 
@@ -75,7 +83,7 @@ export default function ChapterDetail() {
     const onFsChange = () => {
       if (!document.fullscreenElement) setFs(false);
     };
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setFs(false);
     };
     document.addEventListener("fullscreenchange", onFsChange);
@@ -100,24 +108,20 @@ export default function ChapterDetail() {
   const hasSlides = !!key && chapterHasSlides(key);
   const hasPractice = codeTasks.length > 0 || !!practice;
   const progress = useProgress();
-  const doneCodes = chapter ? progress.codeStatus(bookId, chapter.num) : {};
+  const doneCodes = chapter && bookId != null ? progress.codeStatus(bookId, chapter.num) : {};
   const solved = codeTasks.filter((t) => doneCodes[t.id] === "ok").length;
 
-  const tabs = chapter
-    ? [
-        hasSlides && { to: ".", end: true, label: "Теория" },
-        quiz && {
-          to: "questions",
-          label: "Вопросы",
-          badge: String(quiz.questions.length),
-        },
-        hasPractice && {
-          to: "exercises",
-          label: "Практика",
-          badge: codeTasks.length ? `${solved}/${codeTasks.length}` : null,
-        },
-      ].filter(Boolean)
-    : [];
+  const tabs: Tab[] = [];
+  if (chapter) {
+    if (hasSlides) tabs.push({ to: ".", end: true, label: "Теория" });
+    if (quiz) tabs.push({ to: "questions", label: "Вопросы", badge: String(quiz.questions.length) });
+    if (hasPractice)
+      tabs.push({
+        to: "exercises",
+        label: "Практика",
+        badge: codeTasks.length ? `${solved}/${codeTasks.length}` : null,
+      });
+  }
 
   const tabsNav = (
     <nav className="ch-tabs" aria-label="Разделы урока">
@@ -156,28 +160,30 @@ export default function ChapterDetail() {
       ? null
       : flat
           .slice(at + 1)
-          .find((c) => (codeCounts ? codeCounts[bookId]?.[c.num] > 0 : true)) || null;
+          .find((c) => (codeCounts ? (codeCounts[bookId ?? ""]?.[c.num] ?? 0) > 0 : true)) || null;
 
   const content =
     inner ||
-    (
+    (chapter && (
       <Outlet
-        context={{
-          bookId,
-          chapterId,
-          course: parent?.course || [],
-          chapter,
-          quiz,
-          practice,
-          codeTasks,
-          tasksReady,
-          nextPractice,
-          fs,
-          itemsSlot,
-          headSlot,
-        }}
+        context={
+          {
+            bookId: bookId ?? "",
+            chapterId: chapterId ?? "",
+            course: parent?.course || [],
+            chapter,
+            quiz,
+            practice,
+            codeTasks,
+            tasksReady,
+            nextPractice,
+            fs,
+            itemsSlot,
+            headSlot,
+          } satisfies ChapterContext
+        }
       />
-    );
+    ));
 
   if (fs)
     return createPortal(
@@ -216,7 +222,7 @@ export default function ChapterDetail() {
       document.body,
     );
 
-  if (inner) return inner;
+  if (inner || !chapter) return inner;
   return (
     <div>
       <p className="crumbs">{chapter.section}</p>

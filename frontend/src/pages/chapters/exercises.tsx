@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useChapterContext } from "./context.ts";
 import CodePractice from "../../components/CodePractice.tsx";
 import Exercises from "../../components/Exercises.tsx";
 
@@ -20,7 +21,7 @@ export default function ChapterExercises() {
     fs,
     itemsSlot,
     nextPractice,
-  } = useOutletContext();
+  } = useChapterContext();
   const navigate = useNavigate();
   const Practice =
     codeTasks.length > 0 && codeTasks.every((t) => t.mode === "lab")
@@ -41,7 +42,6 @@ export default function ChapterExercises() {
           nextChapter={
             nextPractice
               ? {
-                  title: nextPractice.title,
                   open: () =>
                     navigate(
                       `/book/${bookId}/chapter/${nextPractice.id}/exercises${fs ? "?fs=1" : ""}`,

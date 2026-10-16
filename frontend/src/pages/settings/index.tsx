@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../../lib/auth.tsx";
-import { useProgress } from "../../lib/progress.tsx";
-import { KEYS, readSetting, writeSetting } from "../../lib/settings.ts";
+import { useProgress, type ResetScope } from "../../lib/progress.tsx";
+import { KEYS, readSetting, writeSetting, type Theme } from "../../lib/settings.ts";
 
 // Страница настроек: внешний вид хранится в браузере, прогресс и аккаунт — в кабинете.
-export default function SettingsPage({ theme, setTheme }) {
+export default function SettingsPage({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
   const { user, logout } = useAuth();
   const progress = useProgress();
   const [aside, setAside] = useState(() => readSetting(KEYS.aside) === "1");
   const [anim, setAnim] = useState(() => readSetting(KEYS.anim) !== "0");
-  const [done, setDone] = useState(null); // какой сброс только что выполнен
+  const [done, setDone] = useState<ResetScope | null>(null); // какой сброс только что выполнен
 
   function toggleAside() {
     writeSetting(KEYS.aside, aside ? "0" : "1");
@@ -21,10 +21,10 @@ export default function SettingsPage({ theme, setTheme }) {
     setAnim(!anim);
   }
 
-  async function reset(scope, question) {
+  async function reset(scope: ResetScope, question: string) {
     if (!window.confirm(question)) return;
     await progress.reset(scope);
-    (await import("../../lab/hydrate.ts")).forgetLab(user.id); // слепок решений лаборатории
+    (await import("../../lab/hydrate.ts")).forgetLab(user?.id ?? 0); // слепок решений лаборатории
     setDone(scope);
   }
 
@@ -40,9 +40,9 @@ export default function SettingsPage({ theme, setTheme }) {
         <h3 className="set-group">Аккаунт</h3>
         <div className="set-row">
           <div className="set-row-text">
-            <span className="set-row-title">{user.login}</span>
+            <span className="set-row-title">{user?.login}</span>
             <span className="set-row-desc">
-              {user.email}. Прогресс, ответы и история попыток хранятся в
+              {user?.email}. Прогресс, ответы и история попыток хранятся в
               кабинете и доступны с любого браузера.
             </span>
           </div>
@@ -121,7 +121,7 @@ export default function SettingsPage({ theme, setTheme }) {
   );
 }
 
-function Row({ title, text, on, onChange }) {
+function Row({ title, text, on, onChange }: { title: string; text: string; on: boolean; onChange: () => void }) {
   return (
     <div className="set-row">
       <div className="set-row-text">

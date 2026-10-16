@@ -27,7 +27,7 @@ interface ProgressActions {
   reset: (scope: ResetScope) => Promise<void>;
 }
 
-interface ProgressValue extends ProgressActions {
+export interface ProgressValue extends ProgressActions {
   ready: boolean;
   slidesSeen: (book: BookId, num: number) => number[];
   quizPicks: (book: BookId, num: number) => (number | null)[] | null;

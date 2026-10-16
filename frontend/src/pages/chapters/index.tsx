@@ -3,19 +3,20 @@ import { pct } from "../../lib/format.ts";
 import { usePlayer } from "../../lib/player.tsx";
 import { useCodeCounts } from "../../lib/queries.ts";
 import { useProgress } from "../../lib/progress.tsx";
-import { chapterStats } from "../books/index.jsx";
+import { chapterStats } from "../../lib/stats.ts";
+import type { BookContext } from "../books/detail.tsx";
 
 /* Корень раздела: карточки всех тем (глав), сгруппированные по подразделам. */
 
 export default function ChaptersIndex() {
-  const { course } = useOutletContext();
+  const { course } = useOutletContext<BookContext>();
   const { bookId } = useParams();
   const navigate = useNavigate();
   const { stop } = usePlayer();
   const progress = useProgress();
   const codeCounts = useCodeCounts();
 
-  function open(id) {
+  function open(id: number) {
     stop();
     navigate(`/book/${bookId}/chapter/${id}`);
   }
@@ -27,7 +28,7 @@ export default function ChaptersIndex() {
           <h2 className="topics-title">{sec.title}</h2>
           <div className="topics-grid">
             {sec.chapters.map((ch) => {
-              const s = chapterStats(progress, bookId, ch, codeCounts);
+              const s = chapterStats(progress, bookId ?? "", ch, codeCounts);
               const done = s.slides[0] + s.quiz[0] + s.ex[0];
               const all = s.slides[1] + s.quiz[1] + s.ex[1];
               const parts = [
