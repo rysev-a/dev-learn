@@ -35,7 +35,7 @@ export const CH19: Scenario[] = [
       { id: "g1", text: "ПК пингует сайт", ping: { from: "pc", to: "@web" } },
       { id: "g2", text: "Трафик ПК не проходит через ПК злоумышленника", ping: { from: "pc", to: "@web", avoid: "evil" } },
     ],
-    solution: (st: NetState) => [{ cmd: ["pc", `arp -s 192.168.0.1 ${st.devices.gw.ifaces[0].mac}`] }],
+    solution: (st: NetState) => [{ cmd: ["pc", `arp -s 192.168.0.1 ${st.devices["gw"].ifaces[0].mac}`] }],
   },
   {
     id: "n19-synflood",

@@ -231,7 +231,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
     const wantOk = (p.expect ?? "ok") === "ok";
     const gotOk = run.status === "reply" || run.status === "connected";
     let ok = wantOk === gotOk;
-    let detail = (run.status === "unreach" && run.code === "port" ? STATUS_TEXT.unreach_port : run.status === "unreach" && run.code === "frag" ? `${STATUS_TEXT.frag} (MTU ${run.mtu})` : run.status === "toolong" ? `${STATUS_TEXT.toolong} (MTU ${run.mtu})` : STATUS_TEXT[run.status]) ?? run.status;
+    let detail = (run.status === "unreach" && run.code === "port" ? STATUS_TEXT["unreach_port"] : run.status === "unreach" && run.code === "frag" ? `${STATUS_TEXT["frag"]} (MTU ${run.mtu})` : run.status === "toolong" ? `${STATUS_TEXT["toolong"]} (MTU ${run.mtu})` : STATUS_TEXT[run.status]) ?? run.status;
     const clash = run.events.find((e) => e.kind === "conflict");
     if (clash && wantOk) return fail(g, clash.text, run);
     if (p.noLoop && run.events.some((e) => e.kind === "loop")) return fail(g, "в сети петля: кадры ходят по кругу", run);

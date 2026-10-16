@@ -262,7 +262,7 @@ export default function NetLab({
       <div className="nl-main">
         <div className="nl-boardcard">
           <div className="nl-toolbar">
-            {tools.cable && (
+            {tools["cable"] && (
               <>
                 <button
                   type="button"
@@ -301,7 +301,7 @@ export default function NetLab({
             marks={marks}
             onDevice={onDevice}
             onLink={(i) => {
-              if (tools.cable) setSelLink(i);
+              if (tools["cable"]) setSelLink(i);
             }}
           />
           {chart && <Chart chart={chart} />}

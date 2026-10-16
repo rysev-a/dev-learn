@@ -524,13 +524,12 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 ## Фронтенд: TypeScript и проверки
 
 Весь `frontend/src` — строгий TypeScript (`.ts`/`.tsx`, JS-файлов нет). `tsconfig.json`: `strict`, `noUnusedLocals`,
-`noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `allowUnreachableCode: false`. Дальнейшее
-ужесточение (см. `docs/refactoring.md`): `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
-`noPropertyAccessFromIndexSignature`. Проверки перед коммитом:
+`noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `allowUnreachableCode: false`.
+Дальнейшее ужесточение (см. `docs/refactoring.md`): `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Проверки перед коммитом:
 
 - `cd frontend && npm run typecheck` — типы (`tsc -p .`), должно быть 0 ошибок; явный `any` не добавляем;
 - `npm run slides:check` — серверная отрисовка всех слайдов всех глав (ловит ошибки в сценах: неизвестный тип
-  элемента, нечисловая координата, падение компонента); `npm run lab:check`, `npm run net:check` — движки лабораторий;
+  элемента, нечисловая координата, падение компонента); `npm run lab:check`, `npm run net:check` — движки лабораторий, `npm run net:render` — отрисовка симулятора сети;
 - `npm run build`.
 
 Устройство слайдов: сцена — `scene({labels, caption, frames, base, cues})` из `slides/anim/alg.tsx`; элемент кадра —

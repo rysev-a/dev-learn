@@ -23,9 +23,9 @@ function farm({ backends, svc = {}, algo = "rr", health = false }: FarmOptions) 
         lb: { vip: "10.0.0.100", port: 80, algo, health, backends },
       }),
       device("sw", "switch", "SW", 390, 180, { ifaces: ports(5) }),
-      back("s1", "Сервер 1", 70, "10.0.1.11", svc.s1 ?? [{ proto: "tcp", port: 80 }]),
-      back("s2", "Сервер 2", 180, "10.0.1.12", svc.s2 ?? [{ proto: "tcp", port: 80 }]),
-      back("s3", "Сервер 3", 290, "10.0.1.13", svc.s3 ?? [{ proto: "tcp", port: 80 }]),
+      back("s1", "Сервер 1", 70, "10.0.1.11", svc["s1"] ?? [{ proto: "tcp", port: 80 }]),
+      back("s2", "Сервер 2", 180, "10.0.1.12", svc["s2"] ?? [{ proto: "tcp", port: 80 }]),
+      back("s3", "Сервер 3", 290, "10.0.1.13", svc["s3"] ?? [{ proto: "tcp", port: 80 }]),
     ],
     [link("pc:eth0", "lb:eth0"), link("lb:eth1", "sw:p1"), link("s1:eth0", "sw:p2"), link("s2:eth0", "sw:p3"), link("s3:eth0", "sw:p4")],
   );

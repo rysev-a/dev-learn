@@ -7,10 +7,10 @@ import { py } from "./cl.tsx";
 
 // ромб: A сверху, B и C ниже, D внизу
 const diamond = (hot: boolean, cols: Record<string | number, string> = {}) => [
-  Box("A", 180, 28, 54, 24, "A", cols.A ?? "b", { size: 12 }),
-  Box("B", 106, 78, 54, 24, "B", cols.B ?? "b", { size: 12 }),
-  Box("C", 254, 78, 54, 24, "C", cols.C ?? "b", { size: 12 }),
-  Box("D", 180, 128, 54, 24, "D", cols.D ?? "g", { size: 12 }),
+  Box("A", 180, 28, 54, 24, "A", cols["A"] ?? "b", { size: 12 }),
+  Box("B", 106, 78, 54, 24, "B", cols["B"] ?? "b", { size: 12 }),
+  Box("C", 254, 78, 54, 24, "C", cols["C"] ?? "b", { size: 12 }),
+  Box("D", 180, 128, 54, 24, "D", cols["D"] ?? "g", { size: 12 }),
   arrow("e1", 140, 66, 160, 42, "m"),
   arrow("e2", 220, 66, 200, 42, "m"),
   arrow("e3", 140, 116, 124, 92, "m"),

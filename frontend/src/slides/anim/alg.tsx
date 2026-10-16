@@ -641,7 +641,7 @@ function Item({ it }: { it: SceneItem }) {
   }
   if (t === "ptr") {
     const down = (it.dir ?? "down") === "down";
-    const col = COL[it.c ?? "g"] ?? COL.g;
+    const col = COL[it.c ?? "g"] ?? COL["g"];
     const c = it.c ?? "g";
     return (
       <G x={it.x} y={it.y} o={o} s={s}>

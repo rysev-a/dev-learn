@@ -7,7 +7,7 @@ import { ProgressProvider } from "./lib/progress.tsx";
 import { readTheme } from "./lib/settings.ts";
 import "./App.css";
 
-document.documentElement.dataset.theme = readTheme();
+document.documentElement.dataset["theme"] = readTheme();
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -39,9 +39,9 @@ export function respond(http: HttpConfig, req: HttpRequest): HttpResponse {
   let status = r.status ?? 200;
   let body = r.body ?? (status >= 300 && status < 400 ? "" : `<h1>${path}</h1>`);
   const headers: Record<string, string> = { server: "nginx", "content-type": r.type ?? "text/html", ...Object.fromEntries(Object.entries(r.headers ?? {}).map(([k, v]) => [k.toLowerCase(), v])) };
-  if (r.location) headers.location = r.location;
+  if (r.location) headers["location"] = r.location;
   if (r.etag) {
-    headers.etag = r.etag;
+    headers["etag"] = r.etag;
     if (req.headers?.["if-none-match"] === r.etag) {
       status = 304;
       body = "";
@@ -115,7 +115,7 @@ export function httpFetch(state: NetState, d: Device, { url, method = "GET", fol
       }
     }
     const last = responses[responses.length - 1];
-    const loc = last.headers.location;
+    const loc = last.headers["location"];
     if (follow && [301, 302, 307, 308].includes(last.status) && loc) {
       cur = /^https?:\/\//i.test(loc) ? loc : `${u.scheme}://${u.host}${u.port !== (u.scheme === "https" ? 443 : 80) ? ":" + u.port : ""}${loc.startsWith("/") ? loc : "/" + loc}`;
       continue;

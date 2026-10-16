@@ -123,7 +123,7 @@ export default function Board({
           <g key={d.id} className={cls} onClick={() => onDevice(d.id)} transform={`translate(${d.x},${d.y})`}>
             <rect x={-W / 2} y={-H / 2} width={W} height={H} rx="9" />
             <g className="nl-ico" transform="translate(-16,-26) scale(1.35)">
-              {ICONS[d.kind] ?? ICONS.host}
+              {ICONS[d.kind] ?? ICONS["host"]}
             </g>
             <text y={H / 2 - 7} className="nl-name">
               {d.name}

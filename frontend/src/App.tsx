@@ -34,7 +34,7 @@ function Shell() {
   const [theme, setTheme] = useState<Theme>(readTheme);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset["theme"] = theme;
     writeSetting(KEYS.theme, theme);
   }, [theme]);
 

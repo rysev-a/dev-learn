@@ -12,7 +12,8 @@
     "lab:check": "node scripts/lab-selfcheck.mjs",
     "net:manifest": "node scripts/net-manifest.mjs",
     "net:check": "node scripts/net-selfcheck.mjs",
-    "slides:check": "node scripts/slides-smoke.mjs"
+    "slides:check": "node scripts/slides-smoke.mjs",
+    "net:render": "node scripts/net-render-smoke.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

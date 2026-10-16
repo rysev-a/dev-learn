@@ -100,7 +100,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }: FormProps & { i: Iface; tool
         />
         вкл
       </label>
-      {tools?.queue && (
+      {tools?.["queue"] && (
         <label className="nl-up">
           очередь
           <input
@@ -408,17 +408,17 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
           {isHost && (
             <GatewayField d={d} apply={apply} readOnly={readOnly} />
           )}
-          {isHost && tools.tcp && <TcpTune d={d} apply={apply} readOnly={readOnly} />}
-          {isHost && tools.dns && <Resolver d={d} apply={apply} readOnly={readOnly} />}
-          {d.tls && tools.tls && <TlsServer d={d} apply={apply} readOnly={readOnly} exec={exec} cas={Object.keys(state.pki?.cas ?? {})} />}
-          {isHost && tools.tls && <TrustStore d={d} apply={apply} readOnly={readOnly} cas={Object.keys(state.pki?.cas ?? {})} />}
-          {tools.ssh && d.kind !== "switch" && (d.ssh || isHost) && <SshBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {tools.vpn && (isRouter || isHost) && <VpnBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {d.lb && tools.lb && <LbBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {d.rproxy && tools.rproxy && <RproxyBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {d.proxy && tools.proxy && <ProxyBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {d.http && tools.http && <WebServer d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {d.dns && tools.dns && <DnsServer d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {isHost && tools["tcp"] && <TcpTune d={d} apply={apply} readOnly={readOnly} />}
+          {isHost && tools["dns"] && <Resolver d={d} apply={apply} readOnly={readOnly} />}
+          {d.tls && tools["tls"] && <TlsServer d={d} apply={apply} readOnly={readOnly} exec={exec} cas={Object.keys(state.pki?.cas ?? {})} />}
+          {isHost && tools["tls"] && <TrustStore d={d} apply={apply} readOnly={readOnly} cas={Object.keys(state.pki?.cas ?? {})} />}
+          {tools["ssh"] && d.kind !== "switch" && (d.ssh || isHost) && <SshBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {tools["vpn"] && (isRouter || isHost) && <VpnBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {d.lb && tools["lb"] && <LbBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {d.rproxy && tools["rproxy"] && <RproxyBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {d.proxy && tools["proxy"] && <ProxyBox d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {d.http && tools["http"] && <WebServer d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {d.dns && tools["dns"] && <DnsServer d={d} apply={apply} readOnly={readOnly} exec={exec} />}
           {isRouter && (
             <div className="nl-sec">
               <label className="nl-up">
@@ -432,9 +432,9 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
               </label>
             </div>
           )}
-          {(isRouter || (isHost && tools.routes)) && <Routes d={d} apply={apply} readOnly={readOnly} />}
-          {isRouter && tools.nat && <Nat d={d} apply={apply} readOnly={readOnly} exec={exec} />}
-          {isRouter && tools.fw && <Firewall d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {(isRouter || (isHost && tools["routes"])) && <Routes d={d} apply={apply} readOnly={readOnly} />}
+          {isRouter && tools["nat"] && <Nat d={d} apply={apply} readOnly={readOnly} exec={exec} />}
+          {isRouter && tools["fw"] && <Firewall d={d} apply={apply} readOnly={readOnly} exec={exec} />}
           {d.kind === "server" && <Services d={d} apply={apply} readOnly={readOnly} />}
           {d.kind === "switch" && (
             <div className="nl-sec">

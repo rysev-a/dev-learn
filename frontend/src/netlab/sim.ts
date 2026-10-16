@@ -283,7 +283,7 @@ export class Sim {
 
   hubIn(d: Device, port: string, frame: Frame, at: number): void {
     if (this.loopSeen(d, frame, at)) return;
-    const t = at + PROC.hub;
+    const t = at + PROC["hub"];
     this.log(t, d.id, "learn", "хаб повторяет кадр на все остальные порты");
     for (const i of d.ifaces) if (i.name !== port) this.xmit(d.id, i.name, frame, t);
   }
@@ -299,7 +299,7 @@ export class Sim {
       mt[key(frame.src)] = port;
       this.log(at, d.id, "learn", `запомнил: ${frame.src} за портом ${port}${vlan === 1 ? "" : ` (VLAN ${vlan})`}`);
     }
-    const t = at + PROC.switch;
+    const t = at + PROC["switch"];
     const out = (name: string) => {
       const e = ifaceOf(d, name);
       if (e.trunk) return this.xmit(d.id, name, { ...frame, vlan }, t);
@@ -336,7 +336,7 @@ export class Sim {
       this.log(at, d.id, "arp", `${ifc.ip} — это я, отвечаю ${ifc.mac}`);
       const rep: ArpFrame = {
         type: "arp",
-        size: SIZE.arp,
+        size: SIZE["arp"],
         src: ifc.mac,
         dst: a.smac,
         arp: { op: "rep", sip: a.tip, smac: ifc.mac, tip: a.sip, tmac: a.smac },
@@ -360,7 +360,7 @@ export class Sim {
     this.log(at, d.id, "arp", `нужен MAC для ${ipStr(nextHop)} — спрашиваю ARP-запросом`);
     const req: ArpFrame = {
       type: "arp",
-      size: SIZE.arp,
+      size: SIZE["arp"],
       src: ifc.mac,
       dst: BCAST_MAC,
       arp: { op: "req", sip: parseIp(ifc.ip) ?? 0, smac: ifc.mac, tip: nextHop, tmac: null },
