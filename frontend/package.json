@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p . && node scripts/ts-guard.mjs",
+    "typecheck": "tsc -p . && node scripts/ts-guard.mjs && node scripts/index-check.mjs",
     "lab:manifest": "node scripts/lab-manifest.mjs",
     "lab:check": "node scripts/lab-selfcheck.mjs",
     "net:manifest": "node scripts/net-manifest.mjs",

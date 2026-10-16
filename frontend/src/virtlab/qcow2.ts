@@ -24,8 +24,8 @@ export function snapshot(chain: Layer[], n: number): Layer[] {
 }
 
 export function write(chain: Layer[], c: number, d: string): { chain: Layer[]; copyUp: boolean } {
-  const below = chain.slice(1).some((l) => c in l.data) || (c in chain[0].data);
-  const top = { ...chain[0], data: { ...chain[0].data, [c]: d } };
+  const below = chain.slice(1).some((l) => c in l.data) || (c in chain[0]!.data);
+  const top = { ...chain[0]!, data: { ...chain[0]!.data, [c]: d } };
   return { chain: [top, ...chain.slice(1)], copyUp: below };
 }
 
@@ -34,15 +34,15 @@ export function read(
   c: number,
 ): { value: string | null; depth: number | null; lookups: number; layer: string | null } {
   for (let i = 0; i < chain.length; i++)
-    if (c in chain[i].data)
-      return { value: chain[i].data[c], depth: i, lookups: i + 1, layer: chain[i].name };
+    if (c in chain[i]!.data)
+      return { value: chain[i]!.data[c]!, depth: i, lookups: i + 1, layer: chain[i]!.name };
   return { value: null, depth: null, lookups: chain.length, layer: null };
 }
 
 export function commit(chain: Layer[]): Layer[] | null {
   if (chain.length < 2) return null;
   const [top, next, ...rest] = chain;
-  return [{ ...next, data: { ...next.data, ...top.data } }, ...rest];
+  return [{ ...next!, data: { ...next!.data, ...top!.data } }, ...rest];
 }
 
 export function revert(chain: Layer[]): Layer[] | null {

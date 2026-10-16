@@ -89,7 +89,7 @@ export function dnsIn(sim: Sim, d: Device, pkt: Packet, at: number, reply: Reply
       finish(sim, d, st, "SERVFAIL", at, "корневые серверы не заданы");
       return true;
     }
-    send(sim, d, st, d.dns.roots[0], at);
+    send(sim, d, st, d.dns.roots[0]!, at);
     return true;
   }
   const a = authAnswer(d.dns, q);

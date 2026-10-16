@@ -70,7 +70,7 @@ export default function EptLab({ solved, onSolved }: LabProps) {
                 <button
                   key={v}
                   className={`vl-segbtn ${mode === v ? "on" : ""}`}
-                  onClick={() => setMode(v)}
+                  onClick={() => setMode(v!)}
                 >
                   {t}
                 </button>
@@ -110,7 +110,7 @@ export default function EptLab({ solved, onSolved }: LabProps) {
             </select>
           </label>
           <p className="vl-hint">
-            {wl.note}. TLB — {TLB_ENTRIES} записей; запись описывает страницу
+            {wl!.note}. TLB — {TLB_ENTRIES} записей; запись описывает страницу
             меньшего из двух размеров.
           </p>
           <div className="vl-actions">

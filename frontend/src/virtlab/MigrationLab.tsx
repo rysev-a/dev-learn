@@ -9,8 +9,8 @@ import { MEM_MIB, SCENARIOS, simulate, type MigrationInput, type Simulation } fr
 const fmt = (n: number) => Math.round(n).toLocaleString("ru-RU");
 
 export default function MigrationLab({ solved, onSolved }: LabProps) {
-  const [sid, setSid] = useState(SCENARIOS[0].id);
-  const sc = SCENARIOS.find((s) => s.id === sid) ?? SCENARIOS[0];
+  const [sid, setSid] = useState(SCENARIOS[0]!.id);
+  const sc = SCENARIOS.find((s) => s.id === sid) ?? SCENARIOS[0]!;
   const [downtimeMs, setDowntimeMs] = useState(300);
   const [autoConverge, setAutoConverge] = useState(false);
   const [compress, setCompress] = useState(false);

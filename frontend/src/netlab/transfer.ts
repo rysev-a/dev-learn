@@ -1,7 +1,7 @@
 /* Модель передачи файла по TCP: окно приёма, окно перегрузки, медленный старт, потери и очередь.
    Это не пакетная симуляция, а пораундовая модель (один шаг — один круговой обход): достаточно,
    чтобы видеть «пилу», влияние окна и алгоритма, потерь и размера буфера. Детерминирована. */
-import { ifaceOf, peerOf } from "./model.ts";
+import { ifaceOf, peerOf, deviceOf } from "./model.ts";
 import { ipStr } from "./ip.ts";
 import { ping1 } from "./sim.ts";
 import type { Link, NetState, ProbeRun } from "./types.ts";
@@ -85,9 +85,9 @@ export function transfer(
   if (!info.ok) return { ok: false, status: info.status, chart: null, text: "нет связи: передавать некуда" };
   const { dstId, rtt0, rate, lossP, bott } = info;
   if (!bott || dstId === undefined) return { ok: false, status: "nopath", chart: null, text: "нет связи: передавать некуда" };
-  const qlen = ifaceOf(state.devices[bott.from], bott.fromPort).txqueuelen ?? 1000; // пакетов
-  const src = state.devices[srcId];
-  const dst = state.devices[dstId];
+  const qlen = ifaceOf(deviceOf(state, bott.from), bott.fromPort).txqueuelen ?? 1000; // пакетов
+  const src = deviceOf(state, srcId);
+  const dst = deviceOf(state, dstId);
   const rwnd = (dst.rwnd ?? 64) * 1024; // байт
   const cc = src.cc ?? "cubic";
 

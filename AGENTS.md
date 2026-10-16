@@ -525,7 +525,10 @@ maple tree (6.1), только SLUB, cgroup v2, io_uring, eBPF/XDP, Rust шта�
 
 Весь `frontend/src` — строгий TypeScript (`.ts`/`.tsx`, JS-файлов нет). `tsconfig.json`: `strict`, `noUnusedLocals`,
 `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `allowUnreachableCode: false`.
-Дальнейшее ужесточение (см. `docs/refactoring.md`): `noUncheckedIndexedAccess`. Необязательное свойство, которому
+`noUncheckedIndexedAccess` включается по каталогам: `scripts/index-check.mjs` (часть `npm run typecheck`) требует строгого
+доступа по индексу в `COVERED` — `components`, `lib`, `pages`, `netlab`, `virtlab`, `App`, `main`, `types`; в `lab` и
+`slides` ошибки пока только считаются. В дочищенных каталогах элемент по индексу либо проверяйте, либо берите через
+`deviceOf`-подобные помощники с понятной ошибкой, `!` — только когда индекс верен по построению. Необязательное свойство, которому
 передают возможное `undefined`, объявляйте как `имя?: T | undefined`. Проверки перед коммитом:
 
 - `cd frontend && npm run typecheck` — типы (`tsc -p .`), должно быть 0 ошибок; явный `any` не добавляем;

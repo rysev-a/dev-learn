@@ -11,7 +11,7 @@ import {
   inNet,
   networkOf,
 } from "./ip.ts";
-import { getIface, ifaceOf } from "./model.ts";
+import { getIface, ifaceOf, deviceOf } from "./model.ts";
 import { transfer } from "./transfer.ts";
 import type { TransferChart, TransferResult } from "./transfer.ts";
 import { fmtCurl, httpFetch, newHttp } from "./http.ts";
@@ -164,7 +164,7 @@ function parseRuleSpec(tokens: string[]): RuleSpec & { error?: string } {
   const r: RuleSpec = {};
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
-    const v = tokens[i + 1];
+    const v = tokens[i + 1]!;
     if (t === "-s") (r.src = v), i++;
     else if (t === "-d") (r.dst = v), i++;
     else if (t === "-i") (r.in = v), i++;
@@ -180,7 +180,7 @@ function parseRuleSpec(tokens: string[]): RuleSpec & { error?: string } {
       r.state = parts.every((p) => p === "ESTABLISHED" || p === "RELATED")
         ? "established"
         : parts.length === 1
-          ? STATE_MAP[parts[0]]
+          ? STATE_MAP[parts[0]!]
           : undefined;
       i++;
     } else return { error: `iptables: неизвестный параметр «${t}»` };
@@ -208,12 +208,12 @@ function iptables(d: Device, tokens: string[]): CmdResult {
   let table = "filter";
   let i = 0;
   if (tokens[0] === "-t") {
-    table = tokens[1];
+    table = tokens[1]!;
     i = 2;
   }
   if (table !== "nat" && table !== "filter") return { out: `iptables: таблица «${table}» не поддерживается` };
   const op = tokens[i];
-  const chain = tokens[i + 1];
+  const chain = tokens[i + 1]!;
   const rest = tokens.slice(i + 2);
   const nat = table === "nat";
 
@@ -247,8 +247,8 @@ function iptables(d: Device, tokens: string[]): CmdResult {
   if (op === "-P") {
     if (nat || chain !== "FORWARD")
       return { out: "iptables: политику можно задать только для FORWARD" };
-    if (!["ACCEPT", "DROP"].includes(rest[0])) return { out: "iptables: политика — ACCEPT или DROP" };
-    d.fw.policy = rest[0];
+    if (!["ACCEPT", "DROP"].includes(rest[0]!)) return { out: "iptables: политика — ACCEPT или DROP" };
+    d.fw.policy = rest[0]!;
     return { out: "", changed: true };
   }
   if (op === "-A" || op === "-I" || op === "-D") {
@@ -359,7 +359,7 @@ function dnsAdmin(d: Device, a: string[]): CmdResult {
   }
   if (sub === "root") {
     if (parseIp(a[1] ?? "") === null) return { out: "dns root <ip корневого сервера>" };
-    d.dns.roots = [a[1]];
+    d.dns.roots = [a[1]!];
     return { out: "корневой сервер задан", changed: true };
   }
   if (sub === "zone") {
@@ -387,8 +387,8 @@ function dnsAdmin(d: Device, a: string[]): CmdResult {
   }
   if (sub === "delegate") {
     if (!a[1] || parseIp(a[2] ?? "") === null) return { out: "dns delegate <зона> <ip сервера имён>" };
-    d.dns.delegations = d.dns.delegations.filter((x) => fqdn(x.zone) !== fqdn(a[1]));
-    d.dns.delegations.push({ zone: fqdn(a[1]), ns: a[2] });
+    d.dns.delegations = d.dns.delegations.filter((x) => fqdn(x.zone) !== fqdn(a[1]!));
+    d.dns.delegations.push({ zone: fqdn(a[1]), ns: a[2]! });
     return { out: `зона ${fqdn(a[1])} делегирована ${a[2]}`, changed: true };
   }
   if (sub === "undelegate") {
@@ -403,8 +403,8 @@ function fileWrite(d: Device, line: string): CmdResult | null {
   if (!m) return null;
   const bad = NO(d);
   if (bad) return { out: bad };
-  const body = m[1].replace(/^["']|["']$/g, "").trim();
-  if (m[3].endsWith("resolv.conf")) {
+  const body = m[1]!.replace(/^["']|["']$/g, "").trim();
+  if (m[3]!.endsWith("resolv.conf")) {
     const ip = /^nameserver\s+(\S+)$/.exec(body)?.[1];
     if (!ip || parseIp(ip) === null) return { out: "в resolv.conf нужна строка вида: nameserver 10.0.0.53" };
     d.resolver = ip;
@@ -413,7 +413,7 @@ function fileWrite(d: Device, line: string): CmdResult | null {
   const h = /^(\S+)\s+(\S+)$/.exec(body);
   if (!h || parseIp(h[1]) === null) return { out: "в hosts нужна строка вида: 10.0.0.5 имя" };
   d.hosts = m[2] === ">" ? {} : { ...(d.hosts ?? {}) };
-  d.hosts[fqdn(h[2])] = h[1];
+  d.hosts[fqdn(h[2]!)] = h[1]!;
   return { out: "", changed: true };
 }
 
@@ -424,12 +424,12 @@ function doCurl(state: NetState, d: Device, a: string[]): CmdResult {
   const flags = new Set<string>();
   let url: string | null = null;
   for (let i = 0; i < a.length; i++) {
-    const x = a[i];
-    if (x === "-x") proxy = a[++i];
+    const x = a[i]!;
+    if (x === "-x") proxy = a[++i]!;
     else if (x === "-X") method = (a[++i] ?? "GET").toUpperCase();
     else if (x === "-H") {
       const [k, ...v] = (a[++i] ?? "").replace(/^["']|["']$/g, "").split(":");
-      headers[k.trim().toLowerCase()] = v.join(":").trim();
+      headers[k!.trim().toLowerCase()] = v.join(":").trim();
     } else if (x.startsWith("-")) {
       for (const ch of x.slice(1)) flags.add(ch);
     } else url = x.replace(/^["']|["']$/g, "");
@@ -482,7 +482,7 @@ function webAdmin(d: Device, a: string[]): CmdResult {
     const proto = a[1];
     if (proto !== "h1" && proto !== "h2" && proto !== "h3") return { out: "web protocol h1|h2|h3" };
     d.http.protocol = proto;
-    return { out: `сервер предлагает ${{ h1: "HTTP/1.1", h2: "HTTP/2", h3: "HTTP/3" }[a[1]]}${a[1] === "h3" ? " (нужен открытый UDP/443)" : ""}`, changed: true };
+    return { out: `сервер предлагает ${{ h1: "HTTP/1.1", h2: "HTTP/2", h3: "HTTP/3" }[a[1]!]}${a[1] === "h3" ? " (нужен открытый UDP/443)" : ""}`, changed: true };
   }
   if (sub === "etag") {
     const r = d.http.routes.find((x) => x.path === path);
@@ -522,7 +522,7 @@ function tlsAdmin(state: NetState, d: Device, a: string[]) {
     const names = rest.filter((x, i) => !x.startsWith("--") && (iss < 0 || (i !== iss + 1)) && (days < 0 || i !== days + 1));
     if (!names.length || !issuer || !(n >= 1)) return { out: "tls cert new <имя> [доп. имена…] --issuer <CA> --days <N>" };
     if (!cas[issuer] || cas[issuer].issuer === null && false) return { out: `неизвестный издатель «${issuer}» (доступны: ${Object.keys(cas).join(", ")})` };
-    d.tls.cert = { cn: names[0], san: names, issuer, notAfter: addDays(n) };
+    d.tls.cert = { cn: names[0]!, san: names, issuer, notAfter: addDays(n) };
     return { out: `выпущен сертификат CN=${names[0]} SAN=${names.join(",")} издатель ${issuer} до ${d.tls.cert.notAfter}`, changed: true };
   }
   if (sub === "chain") {
@@ -531,8 +531,8 @@ function tlsAdmin(state: NetState, d: Device, a: string[]) {
       return { out: "цепочка очищена: сервер присылает только свой сертификат", changed: true };
     }
     if (a[1] === "add") {
-      if (!cas[a[2]]) return { out: `неизвестный CA «${a[2] ?? ""}»` };
-      if (!d.tls.chain.includes(a[2])) d.tls.chain.push(a[2]);
+      if (!cas[a[2]!]) return { out: `неизвестный CA «${a[2] ?? ""}»` };
+      if (!d.tls.chain.includes(a[2]!)) d.tls.chain.push(a[2]!);
       return { out: `в цепочку добавлен ${a[2]}`, changed: true };
     }
   }
@@ -552,8 +552,8 @@ function trustAdmin(state: NetState, d: Device, a: string[]) {
   const bad = NO(d);
   if (bad) return { out: bad };
   if (sub === "add") {
-    if (!cas[a[1]]) return { out: `неизвестный CA «${a[1] ?? ""}» (доступны: ${Object.keys(cas).join(", ")})` };
-    d.trust = [...new Set([...(d.trust ?? DEFAULT_TRUST), a[1]])];
+    if (!cas[a[1]!]) return { out: `неизвестный CA «${a[1] ?? ""}» (доступны: ${Object.keys(cas).join(", ")})` };
+    d.trust = [...new Set([...(d.trust ?? DEFAULT_TRUST), a[1]!])];
     return { out: `корневой CA ${a[1]} добавлен в хранилище доверия`, changed: true };
   }
   if (sub === "del") {
@@ -600,7 +600,7 @@ function lbAdmin(d: Device, a: string[]): CmdResult {
     const [ip, port] = (a[1] ?? "").split(":");
     if (parseIp(ip ?? "") === null) return { out: "lb add <ip>:<порт>" };
     if (lb.backends.some((b) => b.ip === ip && b.port === Number(port ?? lb.port))) return { out: "такой сервер уже в пуле" };
-    lb.backends.push({ ip, port: Number(port ?? lb.port) });
+    lb.backends.push({ ip: ip!, port: Number(port ?? lb.port) });
     return { out: `сервер ${ip}:${port ?? lb.port} добавлен в пул`, changed: true };
   }
   if (sub === "del") {
@@ -609,8 +609,8 @@ function lbAdmin(d: Device, a: string[]): CmdResult {
     return lb.backends.length < n ? { out: "удалён из пула", changed: true } : { out: "такого сервера нет" };
   }
   if (sub === "algo") {
-    if (!["rr", "hash"].includes(a[1])) return { out: "lb algo rr (по кругу) | hash (привязка по адресу клиента)" };
-    lb.algo = a[1];
+    if (!["rr", "hash"].includes(a[1]!)) return { out: "lb algo rr (по кругу) | hash (привязка по адресу клиента)" };
+    lb.algo = a[1]!;
     return { out: `алгоритм: ${a[1]}`, changed: true };
   }
   if (sub === "health") {
@@ -654,7 +654,7 @@ function rproxyAdmin(d: Device, a: string[]): CmdResult {
 function sshClient(state: NetState, d: Device, cmd: string, a: string[]): CmdResult {
   if (cmd === "ssh-keygen") {
     if (a[0] === "-R") {
-      if (d.knownHosts) delete d.knownHosts[a[1]];
+      if (d.knownHosts) delete d.knownHosts[a[1]!];
       return { out: `адрес ${a[1] ?? ""} удалён из known_hosts`, changed: true };
     }
     if (a[0] === "-l") return { out: d.sshKey ? `256 ${d.sshKey} (ED25519)` : "ключа нет: ssh-keygen" };
@@ -666,10 +666,10 @@ function sshClient(state: NetState, d: Device, cmd: string, a: string[]): CmdRes
   const flags: { pass: string | null; jump: string | null; noKey: boolean } = { pass: null, jump: null, noKey: false };
   const rest: string[] = [];
   for (let i = 0; i < a.length; i++) {
-    if (a[i] === "-P" || a[i] === "-p") flags.pass = a[++i];
-    else if (a[i] === "-J") flags.jump = a[++i];
+    if (a[i] === "-P" || a[i] === "-p") flags.pass = a[++i]!;
+    else if (a[i] === "-J") flags.jump = a[++i]!;
     else if (a[i] === "-o" && a[i + 1] === "PubkeyAuthentication=no") (flags.noKey = true), i++;
-    else rest.push(a[i]);
+    else rest.push(a[i]!);
   }
   const target = rest[rest.length - 1] ?? "";
   const [user, host] = target.includes("@") ? target.split("@") : [null, target];
@@ -716,13 +716,13 @@ function sshdAdmin(d: Device, a: string[]): CmdResult {
     return { out: `пользователь ${a[1]} создан`, changed: true };
   }
   if (sub === "authorize") {
-    const u = d.ssh.users[a[1]];
+    const u = d.ssh.users[a[1]!];
     if (!u || !a[2]) return { out: "sshd authorize <пользователь> <отпечаток ключа>" };
     if (!u.keys.includes(a[2])) u.keys.push(a[2]);
     return { out: `ключ ${a[2]} разрешён для ${a[1]}`, changed: true };
   }
   if (sub === "password") {
-    if (!["on", "off"].includes(a[1])) return { out: "sshd password on|off" };
+    if (!["on", "off"].includes(a[1]!)) return { out: "sshd password on|off" };
     d.ssh.passwordAuth = a[1] === "on";
     return { out: `вход по паролю ${d.ssh.passwordAuth ? "разрешён" : "выключен"}`, changed: true };
   }
@@ -750,7 +750,7 @@ function vpnAdmin(d: Device, a: string[]): CmdResult {
     const c = parseCidr(addr ?? "");
     if (!name || parseIp(peer ?? "") === null || !c || !key) return { out: "vpn add wg0 --peer <внешний IP пира> --address 10.9.0.1/30 --key <общий секрет>" };
     if (getIface(d, name)) return { out: `интерфейс ${name} уже есть` };
-    d.ifaces.push({ name, mac: "00:00:00:00:00:00", ip: ipStr(c.ip), prefix: c.prefix, up: true, tun: { peer, port: 51820, key } });
+    d.ifaces.push({ name, mac: "00:00:00:00:00:00", ip: ipStr(c.ip), prefix: c.prefix, up: true, tun: { peer: peer ?? "", port: 51820, key } });
     return { out: `туннель ${name} создан: пир ${peer}, UDP/51820. Теперь добавьте маршруты в чужие сети: ip route add <сеть> dev ${name}`, changed: true };
   }
   if (sub === "del") {
@@ -774,7 +774,7 @@ function doPing(state: NetState, d: Device, args: string[]): CmdResult {
     else if (args[i] === "-t") ttl = Number(args[++i]) || 64;
     else if (args[i] === "-s") size = Math.max(0, Number(args[++i]) || 56);
     else if (args[i] === "-M") df = args[++i] === "do";
-    else rest.push(args[i]);
+    else rest.push(args[i]!);
   }
   if (!rest[0]) return { out: "ping: укажите адрес или имя" };
   const name = rest[0];
@@ -853,7 +853,7 @@ function doUdp(state: NetState, d: Device, host: string, port: number): CmdResul
 /* ---- разбор строки ------------------------------------------------------------------- */
 
 export function exec(state: NetState, devId: string, line: string): CmdResult {
-  const d = state.devices[devId];
+  const d = deviceOf(state, devId);
   const tokens = line.trim().split(/\s+/).filter(Boolean);
   if (!tokens.length) return { out: "" };
   rtOf(state);
@@ -884,7 +884,7 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
     if (cmd === "port" && (a[1] === "vlan" || a[1] === "trunk" || a[1] === "access")) {
       const bad = NO(d);
       if (bad) return { out: bad };
-      const i = getIface(d, a[0]);
+      const i = getIface(d, a[0]!);
       if (!i) return { out: `нет порта «${a[0]}»` };
       if (a[1] === "trunk") i.trunk = true;
       else {
@@ -898,7 +898,7 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
     if (cmd === "port" && a.length === 2 && (a[1] === "up" || a[1] === "down")) {
       const bad = NO(d);
       if (bad) return { out: bad };
-      return done(setUp(d, a[0], a[1] === "up"));
+      return done(setUp(d, a[0]!, a[1] === "up"));
     }
     return {
       out: "Коммутатор: show mac — таблица MAC-адресов, show ports — состояние портов, port <порт> up|down, port <порт> vlan <номер>, port <порт> trunk. IP-адресов у него нет.",
@@ -911,9 +911,9 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
       if (!verb || verb === "show") return { out: showAddr(d) };
       const bad = NO(d);
       if (bad) return { out: bad };
-      const dev = r[r.indexOf("dev") + 1];
-      if (verb === "add") return done(setAddr(d, dev, r[0]));
-      if (verb === "flush") return done(clearAddr(d, r[r.indexOf("dev") + 1] ?? r[0]));
+      const dev = r[r.indexOf("dev") + 1]!;
+      if (verb === "add") return done(setAddr(d, dev, r[0]!));
+      if (verb === "flush") return done(clearAddr(d, (r[r.indexOf("dev") + 1] ?? r[0])!));
       if (verb === "del") return done(clearAddr(d, dev));
     }
     if (obj === "link" || obj === "l") {
@@ -925,7 +925,7 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
         if (mt >= 0) {
           const bad = NO(d);
           if (bad) return { out: bad };
-          const i = getIface(d, r[0]);
+          const i = getIface(d, r[0]!);
           const v = Number(r[mt + 1]);
           if (!i || !(v >= 68 && v <= 9000)) return { out: "Error: ip link set <if> mtu <68..9000>" };
           i.mtu = v;
@@ -933,13 +933,13 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
         }
         const k = r.indexOf("txqueuelen");
         if (k >= 0) {
-          const i = getIface(d, r[0]);
+          const i = getIface(d, r[0]!);
           const v = Number(r[k + 1]);
           if (!i || !(v >= 1 && v <= 10000)) return { out: "Error: ip link set <if> txqueuelen <1..10000>" };
           i.txqueuelen = v;
           return { out: "", changed: true };
         }
-        return done(setUp(d, r[0], r[1] === "up"));
+        return done(setUp(d, r[0]!, r[1] === "up"));
       }
     }
     if (obj === "route" || obj === "r") {
@@ -956,12 +956,12 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
       const bad = NO(d);
       if (bad) return { out: bad };
       if (verb === "add") {
-        const dst = r[0];
+        const dst = r[0]!;
         const via = r[r.indexOf("via") + 1];
         const dev = r[r.indexOf("dev") + 1];
-        return done(addRoute(d, dst, r.includes("via") ? via : null, r.includes("dev") ? dev : null));
+        return done(addRoute(d, dst, (r.includes("via") ? via : null)!, (r.includes("dev") ? dev : null)!));
       }
-      if (verb === "del") return done(delRoute(d, r[0]));
+      if (verb === "del") return done(delRoute(d, r[0]!));
     }
     if (obj === "neigh" || obj === "n") return arp(state, d);
     return { out: "ip: неизвестная команда. Введите «help»." };
@@ -987,11 +987,11 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
     backgroundTraffic(state);
     const i = a.indexOf("-i");
     const iface = i >= 0 ? a[i + 1] : (d.ifaces[0]?.name ?? "");
-    if (iface !== "any" && !getIface(d, iface)) return { out: `tcpdump: нет интерфейса «${iface}» (есть: ${d.ifaces.map((x) => x.name).join(", ")}, any)` };
+    if (iface !== "any" && !getIface(d, iface!)) return { out: `tcpdump: нет интерфейса «${iface}» (есть: ${d.ifaces.map((x) => x.name).join(", ")}, any)` };
     const c = a.indexOf("-c");
     const count = c >= 0 ? Number(a[c + 1]) || 20 : 20;
     const filters = a.filter((x, k) => x !== "-i" && x !== "-c" && k !== i + 1 && k !== c + 1 && !x.startsWith("-") && x !== "and");
-    const lines = captureLines(state, d.id, iface, filters, count);
+    const lines = captureLines(state, d.id, iface!, filters, count);
     return { out: lines.length ? `tcpdump: listening on ${iface}\n${lines.join("\n")}\n${lines.length} packets captured` : `tcpdump: listening on ${iface}\n(перехваченных пакетов нет — сначала пустите трафик: ping, curl)` };
   }
   if (cmd === "listen") {
@@ -1001,7 +1001,7 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
     const s = d.services.find((x) => x.proto === proto && x.port === Number(port));
     if (!s) return { out: `listen <tcp|udp> <порт> <адрес>: на ${proto}/${port} ничего не слушает` };
     if (addr !== "0.0.0.0" && addr !== "127.0.0.1" && parseIp(addr ?? "") === null) return { out: "адрес: 0.0.0.0 (везде), 127.0.0.1 (только локально) или адрес интерфейса" };
-    s.bind = addr;
+    s.bind = addr!;
     return { out: `${proto}/${port} теперь слушает ${addr}`, changed: true };
   }
   if (cmd === "tls") return tlsAdmin(state, d, a);
@@ -1014,15 +1014,15 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
     const sn = a.indexOf("-servername");
     const res = toIp(state, d, host);
     if (res.err !== undefined) return { out: `openssl: ${host}: ${res.err}` };
-    const r = sClient(state, d, sn >= 0 ? a[sn + 1] : host, res.ip, Number(port ?? 443));
+    const r = sClient(state, d, (sn >= 0 ? a[sn + 1] : host)!, res.ip, Number(port ?? 443));
     return { out: r.out, probe: r.run };
   }
   if (cmd === "pageload") {
     const m = /^(https?):\/\/([\w.-]+)/i.exec(a[0] ?? "");
     if (!m) return { out: "pageload https://www.example.org/ — измерить загрузку страницы" };
-    const res = toIp(state, d, m[2]);
+    const res = toIp(state, d, m[2]!);
     if (res.err !== undefined) return { out: `pageload: ${m[2]}: ${res.err}` };
-    return { out: fmtPage(pageload(state, d, { dstIp: res.ip, https: m[1].toLowerCase() === "https" })) };
+    return { out: fmtPage(pageload(state, d, { dstIp: res.ip, https: m[1]!.toLowerCase() === "https" })) };
   }
   if (cmd === "cat") {
     if (a[0] === "/etc/resolv.conf") return { out: d.resolver ? `nameserver ${d.resolver}` : "(файл пуст — DNS-сервер не задан)" };
@@ -1034,13 +1034,13 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
       const bad = NO(d);
       if (bad) return { out: bad };
       if (parseIp(a[1] ?? "") === null || !/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(a[2] ?? "")) return { out: "arp -s <ip> <mac в виде 28:28:00:00:00:01>" };
-      (d.arpStatic ??= {})[a[1]] = a[2].toLowerCase();
+      (d.arpStatic ??= {})[a[1]!] = a[2]!.toLowerCase();
       const arpKey = parseIp(a[1]);
-      if (arpKey !== null && state.rt?.arp?.[d.id]) delete state.rt.arp[d.id][arpKey];
+      if (arpKey !== null && state.rt?.arp?.[d.id]) delete state.rt.arp[d.id]![arpKey];
       return { out: `статическая запись ARP: ${a[1]} = ${a[2]}`, changed: true };
     }
     if (a[0] === "-d") {
-      if (d.arpStatic) delete d.arpStatic[a[1]];
+      if (d.arpStatic) delete d.arpStatic[a[1]!];
       return { out: "статическая запись удалена", changed: true };
     }
     return arp(state, d);
@@ -1084,11 +1084,11 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
     const text = a.join(" ");
     const mem = /tcp_rmem\s*=?\s*"?([\d\s,]+)"?/.exec(text);
     if (mem) {
-      const nums = mem[1].split(/[\s,]+/).filter(Boolean).map(Number);
+      const nums = mem[1]!.split(/[\s,]+/).filter(Boolean).map(Number);
       if (!/=/.test(text)) return { out: `net.ipv4.tcp_rmem = 4096 ${(d.rwnd ?? 64) * 1024} ${(d.rwnd ?? 64) * 1024}` };
       const bad = NO(d);
       if (bad) return { out: bad };
-      const maxB = nums[nums.length - 1];
+      const maxB = nums[nums.length - 1]!;
       if (!(maxB >= 4096)) return { out: "sysctl: максимальный размер буфера должен быть не меньше 4096 байт" };
       d.rwnd = Math.round(maxB / 1024);
       return { out: `net.ipv4.tcp_rmem = 4096 ${nums.length > 2 ? nums[1] : maxB} ${maxB}  (окно приёма до ${d.rwnd} КБ)`, changed: true };
@@ -1106,8 +1106,8 @@ export function exec(state: NetState, devId: string, line: string): CmdResult {
       if (!m) return { out: `net.ipv4.tcp_congestion_control = ${d.cc ?? "cubic"}` };
       const bad = NO(d);
       if (bad) return { out: bad };
-      if (!["reno", "cubic", "bbr"].includes(m[1])) return { out: "sysctl: доступны reno, cubic, bbr" };
-      d.cc = m[1];
+      if (!["reno", "cubic", "bbr"].includes(m[1]!)) return { out: "sysctl: доступны reno, cubic, bbr" };
+      d.cc = m[1]!;
       return { out: `net.ipv4.tcp_congestion_control = ${m[1]}`, changed: true };
     }
     if (!/ip_forward/.test(text)) {

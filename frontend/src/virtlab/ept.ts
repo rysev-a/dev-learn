@@ -68,7 +68,7 @@ export interface SimInput {
 }
 
 export function simulate({ mode, guest, host, workload }: SimInput) {
-  const w = (WORKLOADS.find((x) => x.id === workload) ?? WORKLOADS[0]).make();
+  const w = (WORKLOADS.find((x) => x.id === workload) ?? WORKLOADS[0])!.make();
   const eff = PAGES[smaller(guest, host)];
   const walk = walkCost(mode, guest, host);
   const tlb: number[] = [];

@@ -80,17 +80,17 @@ export function evaluate(vms: Vm[], plan: Plan) {
   let total = 0;
   const per: Record<string, number> = {};
   for (const vm of vms) {
-    const p = plan[vm.name];
+    const p = plan[vm.name]!;
     NODES.forEach((_, i) => {
-      load[i].cores += vm.vcpus * share(p.cpu, i);
-      load[i].mem += vm.mem * share(p.mem, i);
+      load[i]!.cores += vm.vcpus * share(p.cpu, i);
+      load[i]!.mem += vm.mem * share(p.mem, i);
     });
     const r = remote(p.cpu, p.mem, p.vnuma);
     per[vm.name] = r;
     weighted += r * vm.vcpus;
     total += vm.vcpus;
   }
-  const over = load.some((l, i) => l.cores > NODES[i].cores || l.mem > NODES[i].mem);
+  const over = load.some((l, i) => l.cores > NODES[i]!.cores || l.mem > NODES[i]!.mem);
   return { load, over, per, avg: total ? weighted / total : 0 };
 }
 

@@ -12,7 +12,9 @@ const shuffle = <T,>(arr: T[], seed: number): T[] => {
   for (let i = a.length - 1; i > 0; i--) {
     x = (x * 1103515245 + 12345) & 0x7fffffff;
     const j = x % (i + 1);
-    [a[i], a[j]] = [a[j], a[i]];
+    const ai = a[i] as T;
+    a[i] = a[j] as T;
+    a[j] = ai;
   }
   return a;
 };
@@ -23,7 +25,7 @@ export default function HvLab({ solved, onSolved }: LabProps) {
     solved,
     onSolved,
   );
-  const [pid, setPid] = useState(PROGRAMS[0].id);
+  const [pid, setPid] = useState(PROGRAMS[0]!.id);
   const prog = PROGRAMS.find((p) => p.id === pid) ?? PROGRAMS[0];
   const [translate, setTranslate] = useState(false);
   const [s, setS] = useState<GuestState>(initial());
@@ -31,7 +33,7 @@ export default function HvLab({ solved, onSolved }: LabProps) {
   const [finished, setFinished] = useState<{ ok: boolean; state: GuestState; want: GuestState } | null>(null); // итог последнего прогона
 
   const started = s.pc > 0 || s.log.length > 0;
-  const ins = prog.code[s.pc];
+  const ins = prog!.code[s.pc];
   const info = useMemo(
     () => (ins && !s.halted ? inspect(ins, s, translate) : null),
     [ins, s, translate],
@@ -50,7 +52,7 @@ export default function HvLab({ solved, onSolved }: LabProps) {
   }
 
   function finish(state: GuestState) {
-    const want = expected(prog.code);
+    const want = expected(prog!.code);
     const ok =
       !state.silent &&
       state.acc === want.acc &&
@@ -58,7 +60,7 @@ export default function HvLab({ solved, onSolved }: LabProps) {
       state.vcr3 === want.vcr3 &&
       state.delivered.join() === want.delivered.join();
     setFinished({ ok, state, want });
-    if (ok) goals.mark(prog.id, { translate, mistakes: state.mistakes });
+    if (ok) goals.mark(prog!.id, { translate, mistakes: state.mistakes });
   }
 
   function step() {
@@ -110,10 +112,10 @@ export default function HvLab({ solved, onSolved }: LabProps) {
       <div className="vl-grid">
         <div className="vl-card">
           <p className="vl-goal">
-            <span className="s-label">цель</span> {prog.goal}
+            <span className="s-label">цель</span> {prog!.goal}
           </p>
           <ol className="vl-code">
-            {prog.code.map((c, i) => (
+            {prog!.code.map((c, i) => (
               <li key={i} className={i === s.pc && !s.halted ? "cur" : i < s.pc ? "past" : ""}>
                 <span className="vl-ln">{i + 1}</span>
                 <code>{c}</code>

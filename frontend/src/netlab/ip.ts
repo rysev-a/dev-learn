@@ -7,7 +7,7 @@ export function parseIp(s: string | null | undefined): number | null {
   let n = 0;
   for (let i = 1; i <= 4; i++) {
     const o = Number(m[i]);
-    if (o > 255 || (m[i].length > 1 && m[i][0] === "0")) return null;
+    if (o > 255 || (m[i]!.length > 1 && m[i]![0] === "0")) return null;
     n = n * 256 + o;
   }
   return n;

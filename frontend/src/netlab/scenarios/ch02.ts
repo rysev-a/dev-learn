@@ -15,7 +15,7 @@ export const CH02: Scenario[] = [
     tools: {},
     build: () => {
       const sw = device("sw1", "switch", "Коммутатор", 320, 180, { ifaces: ports(8) });
-      sw.ifaces[1].up = false;
+      sw.ifaces[1]!.up = false;
       return makeState(
         [host("pc1", "ПК 1", 110, 100, "192.168.0.1"), host("pc2", "ПК 2", 110, 270, "192.168.0.2"), sw],
         [link("pc1:eth0", "sw1:p1"), link("pc2:eth0", "sw1:p2")],
@@ -111,7 +111,7 @@ export const CH02: Scenario[] = [
     tools: {},
     build: () => {
       const sw = device("sw1", "switch", "Коммутатор", 230, 180, { ifaces: ports(4) });
-      sw.ifaces[0].up = false;
+      sw.ifaces[0]!.up = false;
       return makeState(
         [
           host("pc1", "ПК", 80, 180, "192.168.1.10"),

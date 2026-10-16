@@ -51,11 +51,18 @@ export function makeState(devices: Device[], links: Link[], meta: Record<string,
   return { devices: Object.fromEntries(devices.map((d) => [d.id, d])), links, ...meta };
 }
 
+/** Устройство по id; сценарий и состояние гарантируют, что оно есть, — иначе понятная ошибка вместо undefined */
+export function deviceOf(state: NetState, id: string): Device {
+  const d = state.devices[id];
+  if (d === undefined) throw new Error(`нет устройства «${id}»`);
+  return d;
+}
+
 export const clone = <T>(s: T): T => JSON.parse(JSON.stringify(s));
 
 /** «pc1:eth0» → {dev, port} */
 export function ref(s: string): { dev: string; port: string } {
-  const [dev, port] = s.split(":");
+  const [dev = "", port = ""] = s.split(":");
   return { dev, port };
 }
 
@@ -83,7 +90,7 @@ export function ifaceOf(d: Device, name: string): Iface {
 }
 
 export function freePort(state: NetState, devId: string): Iface | null {
-  const d = state.devices[devId];
+  const d = deviceOf(state, devId);
   return d.ifaces.find((i) => !linkOf(state, devId, i.name)) ?? null;
 }
 
@@ -97,8 +104,8 @@ export function connect(
   if (a === b) return { ok: false, error: "Нельзя соединить устройство с самим собой" };
   const pa = freePort(state, a);
   const pb = freePort(state, b);
-  if (!pa) return { ok: false, error: `У «${state.devices[a].name}» нет свободных портов` };
-  if (!pb) return { ok: false, error: `У «${state.devices[b].name}» нет свободных портов` };
+  if (!pa) return { ok: false, error: `У «${deviceOf(state, a).name}» нет свободных портов` };
+  if (!pb) return { ok: false, error: `У «${deviceOf(state, b).name}» нет свободных портов` };
   state.links.push(link(`${a}:${pa.name}`, `${b}:${pb.name}`, extra));
   return { ok: true };
 }

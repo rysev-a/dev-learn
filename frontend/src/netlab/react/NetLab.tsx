@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ResultAlert from "../../lab/react/ResultAlert.tsx";
 import { checkGoals, resolveTarget, runProbe } from "../check.ts";
 import { transfer, type TransferChart } from "../transfer.ts";
-import { clone, connect, disconnect, strip } from "../model.ts";
+import { clone, connect, disconnect, strip, deviceOf } from "../model.ts";
 import { fmtMs } from "../sim.ts";
 import { exec, toIp } from "../term.ts";
 import Board from "./Board.tsx";
@@ -172,7 +172,7 @@ export default function NetLab({
   // формы NAT/файрвола зовут терминал и показывают его ответ рядом
   const formExec = (line: string) => {
     const n = clone(net);
-    const res = exec(n, sel, line);
+    const res = exec(n, sel!, line);
     setNet(n);
     if (res.changed) {
       save(n);
@@ -235,7 +235,7 @@ export default function NetLab({
     const s = clone(net);
     let r: GoalRun | undefined;
     if (g.dns) {
-      r = toIp(s, s.devices[g.dns.from], g.dns.name).run;
+      r = toIp(s, deviceOf(s, g.dns.from), g.dns.name).run;
       if (!r) return;
     } else r = runProbe(s, g);
     play(r, g.text);
@@ -294,7 +294,7 @@ export default function NetLab({
           {notice && <p className="nl-notice">{notice}</p>}
           <Board
             state={net}
-            selected={sel}
+            selected={sel!}
             cableFrom={cableFrom}
             selectedLink={selLink}
             dots={dots}
@@ -315,12 +315,12 @@ export default function NetLab({
         <DevicePanel
           key={sel}
           state={net}
-          devId={sel}
+          devId={sel!}
           tools={tools}
           apply={apply}
           exec={formExec}
-          lines={terms[sel] ?? []}
-          onRun={(line) => terminalRun(sel, line)}
+          lines={terms[sel!] ?? []}
+          onRun={(line) => terminalRun(sel!, line)}
         />
       </div>
 

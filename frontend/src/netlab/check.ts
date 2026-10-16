@@ -1,6 +1,6 @@
 /* Проверка упражнения: цели сценария прогоняются на чистой копии сети (без кэшей ARP и MAC),
    чтобы результат не зависел от того, что ученик успел «нащупать» пингами. */
-import { clone, connect } from "./model.ts";
+import { clone, connect, deviceOf } from "./model.ts";
 import { ipStr, parseIp } from "./ip.ts";
 import { fmtMs, ping1, tcp1, udp1 } from "./sim.ts";
 import { transfer } from "./transfer.ts";
@@ -16,8 +16,8 @@ const emptyRun = (): GoalRun => ({ hops: [], events: [], delivered: [] });
 /** «10.0.0.5» | «@srv» | «@r1.eth1» → число */
 export function resolveTarget(state: NetState, spec: string): number | null {
   if (spec.startsWith("@")) {
-    const [id, ifn] = spec.slice(1).split(".");
-    const d = state.devices[id];
+    const [id = "", ifn] = spec.slice(1).split(".");
+    const d = deviceOf(state, id);
     const i = ifn ? d.ifaces.find((x) => x.name === ifn) : d.ifaces.find((x) => x.ip);
     return i && i.ip ? parseIp(i.ip) : null;
   }
@@ -34,7 +34,7 @@ export function resolveFrom(state: NetState, spec: string, fromId: string): Reso
   }
   const direct = parseIp(spec);
   if (direct !== null) return { ip: direct };
-  return toIp(state, state.devices[fromId], spec);
+  return toIp(state, deviceOf(state, fromId), spec);
 }
 
 /** итог пробы цели: статус и то, что нужно панели результата */
@@ -47,8 +47,8 @@ export function runProbe(state: NetState, g: Goal): ProbeOutcome {
   const dst = res.ip;
   const popts: { size?: number; df?: boolean } = {};
   if (g.ping && p.sizeFromMtu) {
-    const i = state.devices[p.from].ifaces.find((x) => x.ip) ?? state.devices[p.from].ifaces[0];
-    popts.size = (i.mtu ?? 1500) - 28;
+    const i = deviceOf(state, p.from).ifaces.find((x) => x.ip) ?? deviceOf(state, p.from).ifaces[0];
+    popts.size = (i!.mtu ?? 1500) - 28;
     popts.df = true;
   } else if (g.ping && p.size !== undefined) {
     popts.size = p.size;
@@ -82,7 +82,7 @@ const touches = (run: GoalRun, state: NetState, id: string): boolean =>
     if (h.frame.type !== "ip") return false;
     if (h.from === id) return true;
     if (h.to !== id) return false;
-    const d = state.devices[id];
+    const d = deviceOf(state, id);
     return d.kind === "switch" || d.kind === "hub" ? true : d.ifaces.some((i) => i.name === h.toPort && i.mac === h.frame.dst);
   });
 
@@ -100,7 +100,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
     if (g.dns) {
       const s = fresh(state);
       const x = g.dns;
-      const r = toIp(s, s.devices[x.from], x.name);
+      const r = toIp(s, deviceOf(s, x.from), x.name);
       const got = r.err !== undefined ? (r.err.includes("NXDOMAIN") ? "NXDOMAIN" : "ошибка") : ipStr(r.ip);
       const ok = got === x.expect;
       return {
@@ -113,7 +113,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
     }
     if (g.mtu) {
       const x = g.mtu;
-      const dev = state.devices[x.dev];
+      const dev = deviceOf(state, x.dev);
       const i = dev.ifaces.find((k) => k.name === (x.iface ?? "eth0"));
       const m = i?.mtu ?? 1500;
       const ok = (x.min === undefined || m >= x.min) && (x.max === undefined || m <= x.max);
@@ -139,9 +139,9 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
       if (okN < x.n) bad.push(`успешных соединений ${okN} из ${x.n}`);
       const used = Object.keys(hits);
       if (x.distinct && used.length < x.distinct) bad.push(`задействовано серверов ${used.length}, а нужно ${x.distinct}`);
-      for (const a of x.avoid ?? []) if (hits[a]) bad.push(`запросы попали на неисправный «${s.devices[a].name}»`);
+      for (const a of x.avoid ?? []) if (hits[a]) bad.push(`запросы попали на неисправный «${deviceOf(s, a).name}»`);
       if (x.sticky && used.length > 1) bad.push("один клиент попадает на разные серверы");
-      const spread = used.map((k) => `${s.devices[k].name}: ${hits[k]}`).join(", ");
+      const spread = used.map((k) => `${deviceOf(s, k).name}: ${hits[k]}`).join(", ");
       return { id: g.id, text: g.text, ok: bad.length === 0, detail: bad.length ? bad.join("; ") : spread, run: last ?? emptyRun() };
     }
     if (g.ssh) {
@@ -155,7 +155,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
         if (j.err !== undefined) return fail(g, j.err);
         jump = { ip: j.ip };
       }
-      const r = sshConnect(s, s.devices[x.from], x.user, dst.ip, { jump, pass: x.pass ?? null, noKey: x.auth === "password" });
+      const r = sshConnect(s, deviceOf(s, x.from), x.user, dst.ip, { jump, pass: x.pass ?? null, noKey: x.auth === "password" });
       const wantFail = x.expect === "fail";
       const ok = wantFail ? !r.ok : r.ok && (!x.auth || r.auth === x.auth);
       const detail = r.ok ? `вход выполнен (${r.auth === "key" ? "по ключу" : "по паролю"})${wantFail ? " — а должен быть закрыт" : ""}` : `${(r.error ?? "").split("\n").pop()}${wantFail ? " — так и задумано" : ""}`;
@@ -166,7 +166,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
       const x = g.page;
       const res = resolveFrom(s, x.to, x.from);
       if (res.err !== undefined) return fail(g, res.err);
-      const r = pageload(s, s.devices[x.from], { dstIp: res.ip, https: x.https ?? true });
+      const r = pageload(s, deviceOf(s, x.from), { dstIp: res.ip, https: x.https ?? true });
       if (!r.ok) return fail(g, r.error);
       const sec = r.chosen.total / 1e6;
       const ok = sec <= x.maxS;
@@ -182,7 +182,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
       const s = fresh(state);
       const x = g.http;
       let r: FetchResult = { responses: [], error: null, run: null };
-      for (let i = 0; i < (x.repeat ?? 1); i++) r = httpFetch(s, s.devices[x.from], { url: x.url, method: x.method ?? "GET", follow: !!x.follow, headers: x.headers ?? {}, toIp, proxy: x.proxy ?? null });
+      for (let i = 0; i < (x.repeat ?? 1); i++) r = httpFetch(s, deviceOf(s, x.from), { url: x.url, method: x.method ?? "GET", follow: !!x.follow, headers: x.headers ?? {}, toIp, proxy: x.proxy ?? null });
       const run: GoalRun = r.run ?? emptyRun();
       if (x.fail) return { id: g.id, text: g.text, ok: !!r.error, detail: r.error ? `${r.error} — так и задумано` : "запрос прошёл, а должен быть запрещён", run };
       if (r.error) return fail(g, r.error, run);
@@ -236,7 +236,7 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
     if (clash && wantOk) return fail(g, clash.text, run);
     if (p.noLoop && run.events.some((e) => e.kind === "loop")) return fail(g, "в сети петля: кадры ходят по кругу", run);
     if (p.notSeenBy && run.hops.some((h) => h.to === p.notSeenBy && h.frame.type === "ip")) {
-      return fail(g, `чужой кадр дошёл до «${s.devices[p.notSeenBy].name}» — его можно подслушать`, run);
+      return fail(g, `чужой кадр дошёл до «${deviceOf(s, p.notSeenBy).name}» — его можно подслушать`, run);
     }
     const rttUs = run.rttUs ?? null;
     if (ok && wantOk) {
@@ -245,10 +245,10 @@ export function checkGoals(state: NetState, goals: Goal[]): GoalResult[] {
         detail = `ответ пришёл за ${fmtMs(rttUs)}, а нужно быстрее ${p.maxRttMs} мс`;
       } else if (p.via && !touches(run, s, p.via)) {
         ok = false;
-        detail = `пакет дошёл, но не через «${s.devices[p.via].name}»`;
+        detail = `пакет дошёл, но не через «${deviceOf(s, p.via).name}»`;
       } else if (p.avoid && touches(run, s, p.avoid)) {
         ok = false;
-        detail = `пакет дошёл, но прошёл через «${s.devices[p.avoid].name}»`;
+        detail = `пакет дошёл, но прошёл через «${deviceOf(s, p.avoid).name}»`;
       } else if (p.seenSrc) {
         const want = resolveTarget(s, p.seenSrc);
         const hit = run.delivered.find((x) => x.dev === p.to.replace(/^@/, "").split(".")[0]);

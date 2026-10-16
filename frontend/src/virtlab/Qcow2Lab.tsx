@@ -79,7 +79,7 @@ export default function Qcow2Lab({ solved, onSolved }: LabProps) {
   function doRevert() {
     const c = revert(chain);
     if (!c) return setMsg("Откат невозможен: слой всего один.");
-    const top = chain[0].data;
+    const top = chain[0]!.data;
     dropped.current = Object.keys(top).length ? { ...top } : null;
     setNewChain(c);
     setPath(null);

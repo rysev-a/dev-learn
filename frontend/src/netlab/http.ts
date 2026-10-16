@@ -34,7 +34,7 @@ export function respond(http: HttpConfig, req: HttpRequest): HttpResponse {
   const r = http.routes.find((x) => x.path === path);
   if (!r) {
     const body = "<h1>404 Not Found</h1>";
-    return { status: 404, reason: REASONS[404], headers: { server: "nginx", "content-type": "text/html", "content-length": String(body.length) }, body };
+    return { status: 404, reason: REASONS[404]!, headers: { server: "nginx", "content-type": "text/html", "content-length": String(body.length) }, body };
   }
   let status = r.status ?? 200;
   let body = r.body ?? (status >= 300 && status < 400 ? "" : `<h1>${path}</h1>`);
@@ -57,8 +57,8 @@ const URL_RE = /^(https?):\/\/([^/:?#]+)(?::(\d+))?(\/[^?#]*)?(\?[^#]*)?$/i;
 export function parseUrl(u: string): ParsedUrl | null {
   const m = URL_RE.exec(u);
   if (!m) return null;
-  const scheme = m[1].toLowerCase();
-  return { scheme, host: m[2].toLowerCase(), port: Number(m[3] ?? (scheme === "https" ? 443 : 80)), path: (m[4] ?? "/") + (m[5] ?? "") };
+  const scheme = m[1]!.toLowerCase();
+  return { scheme, host: m[2]!.toLowerCase(), port: Number(m[3] ?? (scheme === "https" ? 443 : 80)), path: (m[4] ?? "/") + (m[5] ?? "") };
 }
 
 /** запрос с редиректами: возвращает {responses, error, run} (run — последняя сетевая проба) */
@@ -114,7 +114,7 @@ export function httpFetch(state: NetState, d: Device, { url, method = "GET", fol
         responses.push({ ...resp, url: cur, ip: res.ip, rttUs: (run.rttUs ?? 0) * 2 });
       }
     }
-    const last = responses[responses.length - 1];
+    const last = responses[responses.length - 1]!;
     const loc = last.headers["location"];
     if (follow && [301, 302, 307, 308].includes(last.status) && loc) {
       cur = /^https?:\/\//i.test(loc) ? loc : `${u.scheme}://${u.host}${u.port !== (u.scheme === "https" ? 443 : 80) ? ":" + u.port : ""}${loc.startsWith("/") ? loc : "/" + loc}`;
@@ -158,7 +158,7 @@ interface ProxyResult {
 
 function viaProxy(state: NetState, d: Device, u: ParsedUrl, proxy: string, { method, headers, toIp }: { method: string; headers: Record<string, string>; toIp: ToIp }): ProxyResult {
   const [pip, pport] = proxy.split(":");
-  const pr = toIp(state, d, pip);
+  const pr = toIp(state, d, pip!);
   if (pr.err !== undefined) return { error: `curl: (5) Could not resolve proxy: ${pip}` };
   const run = tcp1(state, d.id, pr.ip, Number(pport ?? 3128), { session: true });
   if (run.status === "refused") return { error: `curl: (7) Failed to connect to proxy ${proxy}: Connection refused`, run };

@@ -138,7 +138,7 @@ export const CH01: Scenario[] = [
             services: [{ proto: "tcp", port: 80 }],
           }),
         ].map((d) => {
-          if (d.id === "pc2") d.ifaces[0].up = false;
+          if (d.id === "pc2") d.ifaces[0]!.up = false;
           return d;
         }),
         [link("pc1:eth0", "sw1:p1"), link("pc2:eth0", "sw1:p2")],

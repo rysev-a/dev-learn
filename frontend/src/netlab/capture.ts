@@ -3,6 +3,7 @@
 import { ipStr } from "./ip.ts";
 import type { Frame, NetState } from "./types.ts";
 import type { Sim } from "./sim.ts";
+import { deviceOf } from "./model.ts";
 
 const LIMIT = 300;
 const FLAG: Record<string, string> = { SYN: "S", "SYN-ACK": "S.", ACK: ".", "PSH-ACK": "P.", "FIN-ACK": "F.", RST: "R." };
@@ -61,7 +62,7 @@ function matches(row: { frame: Frame }, filters: string[]): boolean {
   const f = row.frame;
   const proto = f.type === "arp" ? "arp" : f.ip.proto;
   for (let i = 0; i < filters.length; i++) {
-    const w = filters[i];
+    const w = filters[i]!;
     if (["icmp", "tcp", "udp", "arp"].includes(w)) {
       if (proto !== w) return false;
     } else if (w === "host") {
@@ -80,7 +81,7 @@ function matches(row: { frame: Frame }, filters: string[]): boolean {
 /** строки перехвата для устройства: iface или «any» */
 export function captureLines(state: NetState, dev: string, iface: string, filters: string[], count: number): string[] {
   const cap = state.rt?.cap ?? {};
-  const keys = iface === "any" ? state.devices[dev].ifaces.map((i) => `${dev}:${i.name}`) : [`${dev}:${iface}`];
+  const keys = iface === "any" ? deviceOf(state, dev).ifaces.map((i) => `${dev}:${i.name}`) : [`${dev}:${iface}`];
   const rows = keys.flatMap((k) => (cap[k] ?? []).map((r) => ({ ...r, k })));
   rows.sort((a, b) => a.t - b.t);
   const out = rows.filter((r) => matches(r, filters)).slice(-count);

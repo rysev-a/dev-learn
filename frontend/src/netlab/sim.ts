@@ -16,7 +16,7 @@ import {
 import { attacksBefore } from "./attacks.ts";
 import { recordCapture } from "./capture.ts";
 import { dnsIn } from "./dns.ts";
-import { ifaceOf, peerOf } from "./model.ts";
+import { ifaceOf, peerOf, deviceOf } from "./model.ts";
 import type {
   ArpFrame,
   Delivered,
@@ -202,7 +202,7 @@ export class Sim {
   }
 
   dev(id: string): Device {
-    return this.s.devices[id];
+    return deviceOf(this.s, id);
   }
 
   log(t: number, dev: string, kind: string, text: string): void {
@@ -283,7 +283,7 @@ export class Sim {
 
   hubIn(d: Device, port: string, frame: Frame, at: number): void {
     if (this.loopSeen(d, frame, at)) return;
-    const t = at + PROC["hub"];
+    const t = at + PROC["hub"]!;
     this.log(t, d.id, "learn", "хаб повторяет кадр на все остальные порты");
     for (const i of d.ifaces) if (i.name !== port) this.xmit(d.id, i.name, frame, t);
   }
@@ -299,7 +299,7 @@ export class Sim {
       mt[key(frame.src)] = port;
       this.log(at, d.id, "learn", `запомнил: ${frame.src} за портом ${port}${vlan === 1 ? "" : ` (VLAN ${vlan})`}`);
     }
-    const t = at + PROC["switch"];
+    const t = at + PROC["switch"]!;
     const out = (name: string) => {
       const e = ifaceOf(d, name);
       if (e.trunk) return this.xmit(d.id, name, { ...frame, vlan }, t);
@@ -336,7 +336,7 @@ export class Sim {
       this.log(at, d.id, "arp", `${ifc.ip} — это я, отвечаю ${ifc.mac}`);
       const rep: ArpFrame = {
         type: "arp",
-        size: SIZE["arp"],
+        size: SIZE["arp"]!,
         src: ifc.mac,
         dst: a.smac,
         arp: { op: "rep", sip: a.tip, smac: ifc.mac, tip: a.sip, tmac: a.smac },
@@ -360,7 +360,7 @@ export class Sim {
     this.log(at, d.id, "arp", `нужен MAC для ${ipStr(nextHop)} — спрашиваю ARP-запросом`);
     const req: ArpFrame = {
       type: "arp",
-      size: SIZE["arp"],
+      size: SIZE["arp"]!,
       src: ifc.mac,
       dst: BCAST_MAC,
       arp: { op: "req", sip: parseIp(ifc.ip) ?? 0, smac: ifc.mac, tip: nextHop, tmac: null },
@@ -550,13 +550,13 @@ export class Sim {
     if (!live.length) return this.log(at, d.id, "drop", "балансировщик: нет живых серверов в пуле — 503");
     const st = ((this.rt.lb ??= {})[d.id] ??= { n: 0 });
     const b = lb.algo === "hash" ? live[(pkt.src ?? 0) % live.length] : live[st.n++ % live.length];
-    const r = lookup(d, parseIp(b.ip));
-    if (!r) return this.log(at, d.id, "drop", `балансировщик: нет маршрута до ${b.ip}`);
+    const r = lookup(d, parseIp(b!.ip));
+    if (!r) return this.log(at, d.id, "drop", `балансировщик: нет маршрута до ${b!.ip}`);
     const out = ifaceOf(d, r.dev);
-    this.log(at, d.id, "nat", `балансировщик (${lb.algo === "hash" ? "хеш по адресу клиента" : "по кругу"}): ${ipStr(pkt.src)} → сервер ${b.ip}:${b.port}`);
+    this.log(at, d.id, "nat", `балансировщик (${lb.algo === "hash" ? "хеш по адресу клиента" : "по кругу"}): ${ipStr(pkt.src)} → сервер ${b!.ip}:${b!.port}`);
     const ct = (this.rt.ct[d.id] ??= []);
-    pkt.dst = parseIp(b.ip) ?? 0;
-    pkt.dport = b.port;
+    pkt.dst = parseIp(b!.ip) ?? 0;
+    pkt.dport = b!.port;
     pkt.src = parseIp(out.ip);
     const used = new Set(ct.map((e) => e.tr.sport));
     let sp = 41000;
@@ -595,7 +595,7 @@ export class Sim {
       return;
     }
     if (!est) {
-      const ct = this.rt.ct[d.id];
+      const ct = this.rt.ct[d.id]!;
       const origT = origTuple;
       const exists = ct.find((e) => same(e.orig, origT));
       if (!exists) {
@@ -816,7 +816,7 @@ export function ping1(
 ): ProbeRun {
   attacksBefore(state);
   const sim = new Sim(state);
-  const d = state.devices[devId];
+  const d = deviceOf(state, devId);
   const p: Probe = { origin: devId, id, result: null, dst: dstIp };
   sim.probe = p;
   const t0 = 0;
@@ -839,7 +839,7 @@ export function tcp1(
 ): ProbeRun {
   attacksBefore(state);
   const sim = new Sim(state);
-  const d = state.devices[devId];
+  const d = deviceOf(state, devId);
   const p: Probe = { origin: devId, id: 0, sport, result: null, session, dst: dstIp };
   sim.probe = p;
   const t0 = 0;
@@ -861,7 +861,7 @@ export function udp1(
   { sport = 50001 }: { sport?: number } = {},
 ): ProbeRun {
   const sim = new Sim(state);
-  const d = state.devices[devId];
+  const d = deviceOf(state, devId);
   const p: Probe = { origin: devId, id: 0, sport, result: null, dst: dstIp };
   sim.probe = p;
   const t0 = 0;
@@ -883,7 +883,7 @@ export function dns1(
   { rd = true }: { rd?: boolean } = {},
 ): ProbeRun {
   const sim = new Sim(state);
-  const d = state.devices[devId];
+  const d = deviceOf(state, devId);
   const sport = 50002;
   const p: Probe = { origin: devId, id: 0, sport, result: null, dst: server };
   sim.probe = p;

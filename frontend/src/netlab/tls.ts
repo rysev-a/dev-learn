@@ -43,7 +43,7 @@ function nameMatches(pattern: string, host: string) {
 /** проверка клиентом: {ok, error, curlCode, lines} */
 export interface TlsVerdict {
   ok: boolean;
-  version?: string;
+  version?: string | undefined;
   curlCode: number;
   error: string | null;
   lines: string[];
@@ -75,7 +75,7 @@ export function validate(state: NetState, client: Device, host: string, tls: Tls
       return { ok: true, version, curlCode: 0, error: null, lines };
     }
     if (!cas[cur]) return { ok: false, version, curlCode: 60, error: `SSL certificate problem: unable to get local issuer certificate (неизвестный издатель ${cur})`, lines };
-    const issuer = cas[cur].issuer;
+    const issuer = cas[cur]!.issuer;
     if (issuer === null)
       return { ok: false, version, curlCode: 60, error: `SSL certificate problem: self-signed certificate in certificate chain (корень ${cur} клиенту не доверен)`, lines };
     if (!sent.has(cur))

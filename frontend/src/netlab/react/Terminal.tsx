@@ -46,12 +46,12 @@ export default function Terminal({
       e.preventDefault();
       const n = Math.min(h + 1, hist.length - 1);
       setH(n);
-      setValue(hist[n]);
+      setValue(hist[n]!);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       const n = h - 1;
       setH(n);
-      setValue(n >= 0 ? hist[n] : "");
+      setValue((n >= 0 ? hist[n] : "")!);
     }
   };
   const prompt = `${device.name.replace(/\s+/g, "-")}# `;

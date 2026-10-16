@@ -86,7 +86,7 @@ export function pageload(state: NetState, d: Device, { dstIp, https = true }: { 
   }
   const env = { rtt: info.rtt0, rate: info.rate, lossP: info.lossP, count: http.page.count, kb: http.page.kb, https };
   const all = ["h1", "h2", "h3"].map((p) => pageModel(env, p));
-  const chosen = all.find((x) => x.proto === used) ?? all[0];
+  const chosen = all.find((x) => x.proto === used) ?? all[0]!;
   return { ok: true, want, used, note, chosen, all, env, ip: ipStr(dstIp) };
 }
 
@@ -99,7 +99,7 @@ export function fmtPage(r: PageloadResult): string {
     `загрузка: ${s(r.chosen.total)} с (рукопожатия ${s(r.chosen.setup)}, ${r.chosen.rounds} кругов запросов, передача ${s(r.chosen.xfer)}, потери ${s(r.chosen.loss)})`,
     "",
     "для сравнения:",
-    ...r.all.map((x) => `  ${PROTOS[x.proto].padEnd(9)} ${s(x.total)} с${x.proto === r.used ? "   ← сейчас" : ""}`),
+    ...r.all.map((x) => `  ${PROTOS[x.proto]!.padEnd(9)} ${s(x.total)} с${x.proto === r.used ? "   ← сейчас" : ""}`),
   ];
   if (r.note) L.push("", r.note);
   return L.join("\n");

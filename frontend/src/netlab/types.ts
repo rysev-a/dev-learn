@@ -137,7 +137,7 @@ export interface Pki {
 
 export interface SshUser {
   keys: string[];
-  password?: string;
+  password?: string | undefined;
 }
 
 export interface SshConfig {

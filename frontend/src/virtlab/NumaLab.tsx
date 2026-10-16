@@ -14,17 +14,17 @@ export default function NumaLab({ solved, onSolved }: LabProps) {
     solved,
     onSolved,
   );
-  const [sid, setSid] = useState(SCENARIOS[0].id);
-  const sc = SCENARIOS.find((s) => s.id === sid) ?? SCENARIOS[0];
+  const [sid, setSid] = useState(SCENARIOS[0]!.id);
+  const sc = SCENARIOS.find((s) => s.id === sid) ?? SCENARIOS[0]!;
   const [plans, setPlans] = useState<Record<string, Plan>>(() =>
     Object.fromEntries(SCENARIOS.map((s) => [s.id, defaultPlan(s.vms)])),
   );
   const [msg, setMsg] = useState<{ bad: boolean; text: string } | null>(null);
-  const plan = plans[sid];
+  const plan = plans[sid]!;
   const ev = evaluate(sc.vms, plan);
 
   const set = (name: string, key: "cpu" | "mem", value: string) => {
-    setPlans((p) => ({ ...p, [sid]: { ...p[sid], [name]: { ...p[sid][name], [key]: value } } }));
+    setPlans((p) => ({ ...p, [sid]: { ...p[sid]!, [name]: { ...p[sid]![name]!, [key]: value } } }));
     setMsg(null);
   };
   function accept() {
@@ -80,7 +80,7 @@ export default function NumaLab({ solved, onSolved }: LabProps) {
                   </td>
                   {(["cpu", "mem"] as const).map((k) => (
                     <td key={k}>
-                      <select value={plan[vm.name][k]} onChange={(e) => set(vm.name, k, e.target.value)}>
+                      <select value={plan[vm.name]![k]} onChange={(e) => set(vm.name, k, e.target.value)}>
                         {PLACES.map(([v, t]) => (
                           <option key={v} value={v}>
                             {t}
@@ -89,7 +89,7 @@ export default function NumaLab({ solved, onSolved }: LabProps) {
                       </select>
                     </td>
                   ))}
-                  <td>{pct(ev.per[vm.name])}</td>
+                  <td>{pct(ev.per[vm.name]!)}</td>
                 </tr>
               ))}
             </tbody>
@@ -97,13 +97,13 @@ export default function NumaLab({ solved, onSolved }: LabProps) {
           <label className="vl-check">
             <input
               type="checkbox"
-              checked={sc.vms.some((v) => plan[v.name].vnuma)}
+              checked={sc.vms.some((v) => plan[v.name]!.vnuma)}
               onChange={(e) => {
                 const on = e.target.checked;
                 setPlans((p) => ({
                   ...p,
                   [sid]: Object.fromEntries(
-                    Object.entries(p[sid]).map(([n, v]) => [n, { ...v, vnuma: on }]),
+                    Object.entries(p[sid]!).map(([n, v]) => [n, { ...v, vnuma: on }]),
                   ),
                 }));
                 setMsg(null);
@@ -120,7 +120,7 @@ export default function NumaLab({ solved, onSolved }: LabProps) {
         <div className="vl-card">
           <span className="s-label">узлы хоста</span>
           {NODES.map((n, i) => {
-            const l = ev.load[i];
+            const l = ev.load[i]!;
             return (
               <div key={i} className="vl-node">
                 <b>узел {i}</b>

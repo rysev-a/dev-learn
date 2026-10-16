@@ -13,6 +13,7 @@ import { ipStr, netStr, parseIp } from "../ip.ts";
 import Terminal from "./Terminal.tsx";
 import type { TermLine } from "./Terminal.tsx";
 import type { Device, Iface, NetState } from "../types.ts";
+import { deviceOf } from "../model.ts";
 
 /* Карточка устройства: вкладка «Настройки» (формы) и «Терминал». Формы и терминал меняют
    сеть через одни и те же функции, так что результат одинаковый. */
@@ -50,11 +51,11 @@ function IfaceRow({ d, i, apply, readOnly, tools }: FormProps & { i: Iface; tool
     if (readOnly) return;
     setErr("");
     if (!ip.trim()) {
-      if (i.ip !== null) apply((n) => clearAddr(n.devices[d.id], i.name));
+      if (i.ip !== null) apply((n) => clearAddr(deviceOf(n, d.id), i.name));
       return;
     }
     const e = apply((n) => {
-      const dev = n.devices[d.id];
+      const dev = deviceOf(n, d.id);
       const cur = dev.ifaces.find((x) => x.name === i.name);
       if (!cur) return `нет интерфейса ${i.name}`;
       const old = { ip: cur.ip, prefix: cur.prefix };
@@ -96,7 +97,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }: FormProps & { i: Iface; tool
           type="checkbox"
           checked={i.up}
           disabled={readOnly}
-          onChange={(e) => apply((n) => setUp(n.devices[d.id], i.name, e.target.checked))}
+          onChange={(e) => apply((n) => setUp(deviceOf(n, d.id), i.name, e.target.checked))}
         />
         вкл
       </label>
@@ -110,7 +111,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }: FormProps & { i: Iface; tool
             aria-label={`Очередь ${i.name}`}
             onBlur={(e) => {
               const v = Number(e.target.value);
-              if (v >= 1 && v <= 10000) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name)!.txqueuelen = v));
+              if (v >= 1 && v <= 10000) apply((n) => void (deviceOf(n, d.id).ifaces.find((x) => x.name === i.name)!.txqueuelen = v));
             }}
           />
           пакетов
@@ -128,7 +129,7 @@ function Routes({ d, apply, readOnly }: FormProps) {
   const rows = routeTable(d);
   const add = () => {
     setErr("");
-    const e = apply((n) => addRoute(n.devices[d.id], dst.trim() || "default", via.trim() || null, null));
+    const e = apply((n) => addRoute(deviceOf(n, d.id), dst.trim() || "default", via.trim() || null, null));
     if (e) setErr(e);
     else (setDst(""), setVia(""));
   };
@@ -148,7 +149,7 @@ function Routes({ d, apply, readOnly }: FormProps) {
                     type="button"
                     className="nl-x"
                     aria-label="Удалить маршрут"
-                    onClick={() => apply((n) => delRoute(n.devices[d.id], r.prefix === 0 ? "default" : netStr(r.net, r.prefix)))}
+                    onClick={() => apply((n) => delRoute(deviceOf(n, d.id), r.prefix === 0 ? "default" : netStr(r.net, r.prefix)))}
                   >
                     ×
                   </button>
@@ -227,7 +228,7 @@ function Nat({ d, apply, readOnly, exec }: ExecFormProps) {
               {n.chain}: {n.action} {n.out ? `-o ${n.out}` : ""} {n.in ? `-i ${n.in}` : ""} {n.dport ? `порт ${n.dport}` : ""} {n.to ? `→ ${n.to}` : ""}
             </code>
             {!readOnly && (
-              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].nat.splice(k, 1))}>
+              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void deviceOf(s, d.id).nat.splice(k, 1))}>
                 ×
               </button>
             )}
@@ -297,7 +298,7 @@ function Firewall({ d, apply, readOnly, exec }: ExecFormProps) {
               {r.action} {r.proto ?? ""} {r.src ? `от ${r.src}` : ""} {r.dst ? `к ${r.dst}` : ""} {r.dport ? `порт ${r.dport}` : ""} {r.state ? (r.state === "established" ? "(установленные)" : "(новые)") : ""}
             </code>
             {!readOnly && (
-              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].fw.rules.splice(k, 1))}>
+              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void deviceOf(s, d.id).fw.rules.splice(k, 1))}>
                 ×
               </button>
             )}
@@ -321,12 +322,12 @@ function Services({ d, apply, readOnly }: FormProps) {
           <li key={k}>
             <code>{s.proto}/{s.port}{s.bind && s.bind !== "0.0.0.0" ? ` (только ${s.bind})` : ""}</code>
             {!readOnly && s.bind && s.bind !== "0.0.0.0" && (
-              <button type="button" className="quiz-btn ghost" onClick={() => apply((n) => void (n.devices[d.id].services[k].bind = "0.0.0.0"))}>
+              <button type="button" className="quiz-btn ghost" onClick={() => apply((n) => void (deviceOf(n, d.id).services[k]!.bind = "0.0.0.0"))}>
                 слушать везде
               </button>
             )}
             {!readOnly && (
-              <button type="button" className="nl-x" aria-label="Закрыть порт" onClick={() => apply((n) => void n.devices[d.id].services.splice(k, 1))}>
+              <button type="button" className="nl-x" aria-label="Закрыть порт" onClick={() => apply((n) => void deviceOf(n, d.id).services.splice(k, 1))}>
                 ×
               </button>
             )}
@@ -346,7 +347,7 @@ function Services({ d, apply, readOnly }: FormProps) {
             className="quiz-btn ghost"
             onClick={() => {
               if (!port) return;
-              apply((n) => void n.devices[d.id].services.push({ proto, port: Number(port) }));
+              apply((n) => void deviceOf(n, d.id).services.push({ proto, port: Number(port) }));
               setPort("");
             }}
           >
@@ -426,7 +427,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                   type="checkbox"
                   checked={d.forward}
                   disabled={readOnly}
-                  onChange={(e) => apply((n) => void (n.devices[d.id].forward = e.target.checked))}
+                  onChange={(e) => apply((n) => void (deviceOf(n, d.id).forward = e.target.checked))}
                 />
                 пересылать пакеты между интерфейсами (ip_forward)
               </label>
@@ -450,7 +451,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             type="checkbox"
                             checked={i.up}
                             disabled={readOnly}
-                            onChange={(e) => apply((n) => setUp(n.devices[d.id], i.name, e.target.checked))}
+                            onChange={(e) => apply((n) => setUp(deviceOf(n, d.id), i.name, e.target.checked))}
                           />
                           вкл
                         </label>
@@ -465,7 +466,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             aria-label={`VLAN ${i.name}`}
                             onChange={(e) => {
                               const v = Number(e.target.value.replace(/\D/g, "").slice(0, 4));
-                              if (v >= 1) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name)!.vlan = v));
+                              if (v >= 1) apply((n) => void (deviceOf(n, d.id).ifaces.find((x) => x.name === i.name)!.vlan = v));
                             }}
                           />
                         </label>
@@ -476,7 +477,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             type="checkbox"
                             checked={!!i.trunk}
                             disabled={readOnly}
-                            onChange={(e) => apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name)!.trunk = e.target.checked))}
+                            onChange={(e) => apply((n) => void (deviceOf(n, d.id).ifaces.find((x) => x.name === i.name)!.trunk = e.target.checked))}
                           />
                           trunk
                         </label>
@@ -527,7 +528,7 @@ function WebServer({ d, apply, readOnly, exec }: ExecFormProps) {
       {http.page && (
         <div className="nl-add">
           <span className="nl-lbl">протокол</span>
-          <select value={http.protocol ?? "h1"} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].http!.protocol = e.target.value as "h1" | "h2" | "h3"))}>
+          <select value={http.protocol ?? "h1"} disabled={readOnly} onChange={(e) => apply((s) => void (deviceOf(s, d.id).http!.protocol = e.target.value as "h1" | "h2" | "h3"))}>
             <option value="h1">HTTP/1.1</option>
             <option value="h2">HTTP/2</option>
             <option value="h3">HTTP/3</option>
@@ -545,7 +546,7 @@ function WebServer({ d, apply, readOnly, exec }: ExecFormProps) {
                 {r.location ? `→ ${r.location}` : ""}
                 {r.headers ? Object.entries(r.headers).map(([n, v]) => ` ${n}: ${v}`).join(";") : ""}
               </td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить маршрут" onClick={() => apply((s) => void s.devices[d.id].http!.routes.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить маршрут" onClick={() => apply((s) => void deviceOf(s, d.id).http!.routes.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -627,7 +628,7 @@ function TlsServer({ d, apply, readOnly, exec, cas }: ExecFormProps & { cas: str
                 <input
                   type="checkbox"
                   checked={t.versions.includes(v)}
-                  onChange={(e) => apply((s) => void (s.devices[d.id].tls!.versions = ["1.0", "1.1", "1.2", "1.3"].filter((x) => (x === v ? e.target.checked : s.devices[d.id].tls!.versions.includes(x)))))}
+                  onChange={(e) => apply((s) => void (deviceOf(s, d.id).tls!.versions = ["1.0", "1.1", "1.2", "1.3"].filter((x) => (x === v ? e.target.checked : deviceOf(s, d.id).tls!.versions.includes(x)))))}
                 />
                 {v}
               </label>
@@ -650,7 +651,7 @@ function TrustStore({ d, apply, readOnly, cas }: FormProps & { cas: string[] }) 
         {trust.map((c) => (
           <li key={c}>
             <code>{c}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать" onClick={() => apply((s) => void (s.devices[d.id].trust = trust.filter((x) => x !== c)))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать" onClick={() => apply((s) => void (deviceOf(s, d.id).trust = trust.filter((x) => x !== c)))}>×</button>}
           </li>
         ))}
       </ul>
@@ -659,7 +660,7 @@ function TrustStore({ d, apply, readOnly, cas }: FormProps & { cas: string[] }) 
           <select value={pick} onChange={(e) => setPick(e.target.value)}>
             {cas.map((c) => <option key={c}>{c}</option>)}
           </select>
-          <button type="button" className="quiz-btn ghost" onClick={() => apply((s) => void (s.devices[d.id].trust = [...new Set([...trust, pick])]))}>
+          <button type="button" className="quiz-btn ghost" onClick={() => apply((s) => void (deviceOf(s, d.id).trust = [...new Set([...trust, ...(pick ? [pick] : [])])]))}>
             + доверять
           </button>
         </div>
@@ -680,7 +681,7 @@ function ProxyBox({ d, apply, readOnly, exec }: ExecFormProps) {
         {proxy.deny.map((h, k) => (
           <li key={h}>
             <code>запрещён: {h}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s) => void s.devices[d.id].proxy!.deny.splice(k, 1))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s) => void deviceOf(s, d.id).proxy!.deny.splice(k, 1))}>×</button>}
           </li>
         ))}
         {proxy.deny.length === 0 && <li className="nl-none">запретов нет</li>}
@@ -708,12 +709,12 @@ function LbBox({ d, apply, readOnly, exec }: ExecFormProps) {
       <h4>Балансировщик {lb.vip}:{lb.port}</h4>
       <div className="nl-add">
         <span className="nl-lbl">алгоритм</span>
-        <select value={lb.algo} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb!.algo = e.target.value))}>
+        <select value={lb.algo} disabled={readOnly} onChange={(e) => apply((s) => void (deviceOf(s, d.id).lb!.algo = e.target.value))}>
           <option value="rr">по кругу</option>
           <option value="hash">привязка по адресу клиента</option>
         </select>
         <label className="nl-up">
-          <input type="checkbox" checked={!!lb.health} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb!.health = e.target.checked))} />
+          <input type="checkbox" checked={!!lb.health} disabled={readOnly} onChange={(e) => apply((s) => void (deviceOf(s, d.id).lb!.health = e.target.checked))} />
           проверка здоровья
         </label>
       </div>
@@ -721,7 +722,7 @@ function LbBox({ d, apply, readOnly, exec }: ExecFormProps) {
         {lb.backends.map((b, k) => (
           <li key={b.ip + b.port}>
             <code>{b.ip}:{b.port}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s) => void s.devices[d.id].lb!.backends.splice(k, 1))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s) => void deviceOf(s, d.id).lb!.backends.splice(k, 1))}>×</button>}
           </li>
         ))}
       </ul>
@@ -754,11 +755,11 @@ function RproxyBox({ d, apply, readOnly, exec }: ExecFormProps) {
               <td>→ {r.backend}</td>
               <td>
                 <label className="nl-up">
-                  <input type="checkbox" checked={!!r.cache} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].rproxy!.rules[k].cache = e.target.checked))} />
+                  <input type="checkbox" checked={!!r.cache} disabled={readOnly} onChange={(e) => apply((s) => void (deviceOf(s, d.id).rproxy!.rules[k]!.cache = e.target.checked))} />
                   кэш
                 </label>
               </td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].rproxy!.rules.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void deviceOf(s, d.id).rproxy!.rules.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -785,7 +786,7 @@ function SshBox({ d, apply, readOnly, exec }: ExecFormProps) {
         <>
           <p className="nl-none">ключ хоста: {d.ssh.hostKey}</p>
           <label className="nl-up">
-            <input type="checkbox" checked={d.ssh.passwordAuth} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].ssh!.passwordAuth = e.target.checked))} />
+            <input type="checkbox" checked={d.ssh.passwordAuth} disabled={readOnly} onChange={(e) => apply((s) => void (deviceOf(s, d.id).ssh!.passwordAuth = e.target.checked))} />
             разрешить вход по паролю
           </label>
           <ul className="nl-rules">
@@ -848,7 +849,7 @@ function Resolver({ d, apply, readOnly }: FormProps) {
     if (readOnly) return;
     setErr("");
     if (v.trim() && parseIp(v.trim()) === null) return setErr("нужен IPv4-адрес DNS-сервера");
-    apply((n) => void (n.devices[d.id].resolver = v.trim() || undefined));
+    apply((n) => void (deviceOf(n, d.id).resolver = v.trim() || undefined));
   };
   return (
     <div className="nl-sec">
@@ -885,7 +886,7 @@ function DnsServer({ d, apply, readOnly, exec }: ExecFormProps) {
               <td>{r.name}</td>
               <td>{r.type}</td>
               <td>{r.value}</td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить запись" onClick={() => apply((s) => void s.devices[d.id].dns!.records.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить запись" onClick={() => apply((s) => void deviceOf(s, d.id).dns!.records.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
           {dns.delegations.map((x, k) => (
@@ -893,7 +894,7 @@ function DnsServer({ d, apply, readOnly, exec }: ExecFormProps) {
               <td>{x.zone}</td>
               <td>NS →</td>
               <td>{x.ns}</td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Убрать делегирование" onClick={() => apply((s) => void s.devices[d.id].dns!.delegations.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Убрать делегирование" onClick={() => apply((s) => void deviceOf(s, d.id).dns!.delegations.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -940,11 +941,11 @@ function TcpTune({ d, apply, readOnly }: FormProps) {
           disabled={readOnly}
           aria-label="Окно приёма"
           onChange={(e) => setW(e.target.value.replace(/\D/g, "").slice(0, 6))}
-          onBlur={() => Number(w) >= 4 && apply((n) => void (n.devices[d.id].rwnd = Number(w)))}
-          onKeyDown={(e) => e.key === "Enter" && Number(w) >= 4 && apply((n) => void (n.devices[d.id].rwnd = Number(w)))}
+          onBlur={() => Number(w) >= 4 && apply((n) => void (deviceOf(n, d.id).rwnd = Number(w)))}
+          onKeyDown={(e) => e.key === "Enter" && Number(w) >= 4 && apply((n) => void (deviceOf(n, d.id).rwnd = Number(w)))}
         />
         <span className="nl-lbl">алгоритм</span>
-        <select value={d.cc ?? "cubic"} disabled={readOnly} onChange={(e) => apply((n) => void (n.devices[d.id].cc = e.target.value))}>
+        <select value={d.cc ?? "cubic"} disabled={readOnly} onChange={(e) => apply((n) => void (deviceOf(n, d.id).cc = e.target.value))}>
           <option>reno</option>
           <option>cubic</option>
           <option>bbr</option>
@@ -960,7 +961,7 @@ function GatewayField({ d, apply, readOnly }: FormProps) {
   const commit = () => {
     if (readOnly) return;
     setErr("");
-    const e = apply((n) => setGateway(n.devices[d.id], gw.trim()));
+    const e = apply((n) => setGateway(deviceOf(n, d.id), gw.trim()));
     if (e) setErr(e);
   };
   return (

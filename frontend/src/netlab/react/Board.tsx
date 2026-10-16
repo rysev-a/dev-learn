@@ -3,6 +3,7 @@
 
 import type { ReactNode } from "react";
 import type { NetState } from "../types.ts";
+import { deviceOf, ref } from "../model.ts";
 
 /** пакет, бегущий по кабелю: доля пути p от 0 до 1 */
 export interface BoardDot {
@@ -69,7 +70,7 @@ const W = 104;
 const H = 58;
 
 function pos(state: NetState, dev: string) {
-  const d = state.devices[dev];
+  const d = deviceOf(state, dev);
   return { x: d.x, y: d.y };
 }
 
@@ -86,8 +87,8 @@ export default function Board({
   return (
     <svg className="nl-board" viewBox="-24 0 704 360" role="img" aria-label="Схема сети">
       {state.links.map((l, i) => {
-        const [da, pa] = l.a.split(":");
-        const [db, pb] = l.b.split(":");
+        const { dev: da, port: pa } = ref(l.a);
+        const { dev: db, port: pb } = ref(l.b);
         const a = pos(state, da);
         const b = pos(state, db);
         const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
@@ -95,8 +96,8 @@ export default function Board({
         const la = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
         const lb = { x: b.x + (a.x - b.x) * t, y: b.y + (a.y - b.y) * t };
         const down =
-          state.devices[da].ifaces.find((x) => x.name === pa)?.up === false ||
-          state.devices[db].ifaces.find((x) => x.name === pb)?.up === false;
+          deviceOf(state, da).ifaces.find((x) => x.name === pa)?.up === false ||
+          deviceOf(state, db).ifaces.find((x) => x.name === pb)?.up === false;
         return (
           <g key={`${l.a}-${l.b}`} className={`nl-link ${selectedLink === i ? "on" : ""} ${down ? "down" : ""}`}>
             <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
@@ -150,7 +151,7 @@ export default function Board({
       })}
 
       {marks.map((m, i) => {
-        const d = state.devices[m.dev];
+        const d = deviceOf(state, m.dev);
         return (
           <g key={i} className={`nl-mark ${m.kind}`} transform={`translate(${d.x},${d.y - H / 2 - 8 - (m.row ?? 0) * 12})`}>
             <text>{m.kind === "drop" || m.kind === "fw" ? "✕ " : m.kind === "nat" ? "⇄ " : ""}{m.text}</text>

@@ -4,6 +4,7 @@
 import { ipStr, parseIp, inNet, networkOf } from "./ip.ts";
 import { lookup, rtOf, tcp1 } from "./sim.ts";
 import type { Device, Iface, NetState } from "./types.ts";
+import { deviceOf } from "./model.ts";
 
 const firstIp = (d: Device): Iface | undefined => d.ifaces.find((i) => i.ip !== null);
 
@@ -27,7 +28,7 @@ export function attacksBefore(state: NetState): void {
         if (!own || !vif || !inNet(parseIp(vif.ip), networkOf(parseIp(own.ip), own.prefix), own.prefix)) continue;
         (rt.arp[victim.id] ??= {})[gwIp] = { mac: own.mac, at: 0, sim: -1 };
       } else if (a.type === "synflood" && a.target && a.port !== undefined) {
-        const tgt = state.devices[a.target];
+        const tgt = deviceOf(state, a.target);
         const tip = parseIp(firstIp(tgt)?.ip);
         if (tip === null || !lookup(dev, tip)) continue;
         const r = tcp1(state, dev.id, tip, a.port, { sport: 60000 });
@@ -47,7 +48,7 @@ export function backgroundTraffic(state: NetState): void {
     for (const dev of Object.values(state.devices)) {
       const a = dev.attack;
       if (a?.type !== "scan" || !a.target) continue;
-      const tgt = state.devices[a.target];
+      const tgt = deviceOf(state, a.target);
       const tip = parseIp(firstIp(tgt)?.ip);
       if (tip === null || !lookup(dev, tip)) continue;
       for (const p of a.ports ?? []) tcp1(state, dev.id, tip, p, { sport: 61000 + p });
