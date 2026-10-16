@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
+
 /* Иконки книг в стиле shadcn/lucide: 24×24, контур 1.8, скруглённые концы.
    Подбираются по id книги (BOOKS в backend/app/books/seed.py). */
 
-const ICONS = {
+const ICONS: Record<number, ReactNode> = {
   // дискретная математика — сигма
   12: (
     <path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2" />
@@ -95,7 +97,7 @@ const FALLBACK = (
   </>
 );
 
-export default function BookIcon({ id, size = 20 }) {
+export default function BookIcon({ id, size = 20 }: { id: number; size?: number }) {
   return (
     <svg
       width={size}

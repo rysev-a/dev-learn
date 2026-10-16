@@ -1,18 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import type { Section } from "../types.ts";
 
 /* Левое дерево полноэкранного режима: разделы книги → главы. Под текущей
    главой — слот (`setItemsSlot`): активная вкладка (слайды, вопросы или
    упражнения) кладёт в него свои пункты через портал. */
-export default function FsTree({ sections, chapterId, onOpenChapter, setItemsSlot }) {
+interface FsTreeProps {
+  sections: Section[];
+  chapterId: string | undefined;
+  onOpenChapter: (id: number) => void;
+  setItemsSlot: (el: HTMLDivElement | null) => void;
+}
+
+export default function FsTree({ sections, chapterId, onOpenChapter, setItemsSlot }: FsTreeProps) {
   const curSec = sections.find((sec) =>
     sec.chapters.some((c) => String(c.id) === String(chapterId)),
   )?.id;
-  const [open, setOpen] = useState(() => new Set(curSec != null ? [curSec] : []));
+  const [open, setOpen] = useState<Set<number>>(() => new Set(curSec != null ? [curSec] : []));
   // раздел с текущей главой раскрыт всегда, остальные — по клику
   useEffect(() => {
     if (curSec != null) setOpen((prev) => new Set(prev).add(curSec));
   }, [curSec]);
-  const toggle = (id) =>
+  const toggle = (id: number) =>
     setOpen((prev) => {
       const n = new Set(prev);
       if (n.has(id)) n.delete(id);
@@ -64,7 +72,16 @@ export default function FsTree({ sections, chapterId, onOpenChapter, setItemsSlo
 }
 
 // Пункт под текущей главой (слайд, вопрос, упражнение).
-export function FsItem({ on, mark, num, children, onClick, status }) {
+interface FsItemProps {
+  on?: boolean;
+  mark?: string;
+  num: number;
+  children: ReactNode;
+  onClick: () => void;
+  status?: string;
+}
+
+export function FsItem({ on, mark, num, children, onClick, status }: FsItemProps) {
   return (
     <button className={`fst-slide ${on ? "on" : ""} ${status || ""}`} onClick={onClick}>
       <span className="fst-slide-num">{mark || String(num).padStart(2, "0")}</span>

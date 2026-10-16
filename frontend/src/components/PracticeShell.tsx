@@ -1,25 +1,34 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api.ts";
-import { FsItem } from "./FsTree.jsx";
+import type { TaskStatus } from "../types.ts";
+import { FsItem } from "./FsTree.tsx";
 
 /* Общая оболочка вкладки «Практика»: полоса «решено N из M», список упражнений (слева или
    порталом в дерево полноэкранного режима), заголовок и условие выбранной задачи.
    Содержимое упражнения (редактор, лаборатория, симулятор) приходит как children. */
 
-const MARKS = { ok: "✓", bad: "✗" };
-const BADGE = { ok: "выполнено", bad: "не пройдено" };
+const MARKS: Record<TaskStatus, string> = { ok: "✓", bad: "✗" };
+const BADGE: Record<TaskStatus, string> = { ok: "выполнено", bad: "не пройдено" };
+
+export interface PracticeTaskInfo {
+  id: string;
+  title: string;
+  statement: string;
+}
+
+export type StatusMap = Record<string, TaskStatus>;
 
 // Выбранная задача хранится в адресе (?task=<id>)
-export function useTaskSelection(tasks) {
+export function useTaskSelection<T extends { id: string }>(tasks: T[]) {
   const [params, setParams] = useSearchParams();
   const idx = Math.max(
     0,
     tasks.findIndex((t) => String(t.id) === params.get("task")),
   );
   const select = useCallback(
-    (i) =>
+    (i: number) =>
       setParams(
         (prev) => {
           const n = new URLSearchParams(prev);
@@ -33,15 +42,21 @@ export function useTaskSelection(tasks) {
   return { idx, task: tasks[idx], select };
 }
 
+interface DraftOptions {
+  enabled?: boolean;
+  echo?: boolean;
+  delay?: number;
+}
+
 // Черновики задач главы (программа или состояние схемы) в кабинете: правка уходит на сервер
 // через паузу и при уходе со страницы. echo — хранить правку и локально (если редактор управляется снаружи).
 export function usePracticeDrafts(
-  base,
-  { enabled = true, echo = false, delay = 700 } = {},
+  base: string,
+  { enabled = true, echo = false, delay = 700 }: DraftOptions = {},
 ) {
-  const [drafts, setDrafts] = useState(null);
-  const pending = useRef({});
-  const timer = useRef(null);
+  const [drafts, setDrafts] = useState<Record<string, string> | null>(null);
+  const pending = useRef<Record<string, string>>({});
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const flush = useCallback(() => {
     clearTimeout(timer.current);
     for (const [id, value] of Object.entries(pending.current))
@@ -56,20 +71,31 @@ export function usePracticeDrafts(
   useEffect(() => {
     if (!enabled) return undefined;
     let live = true;
-    api(`${base}/state`)
+    api<{ drafts?: Record<string, string> }>(`${base}/state`)
       .then((s) => live && setDrafts(s.drafts || {}))
       .catch(() => live && setDrafts({}));
     return () => {
       live = false;
     };
   }, [base, enabled]);
-  const edit = (id, value) => {
+  const edit = (id: string, value: string) => {
     if (echo) setDrafts((d) => ({ ...d, [id]: value }));
     pending.current[id] = value;
     clearTimeout(timer.current);
     timer.current = setTimeout(flush, delay);
   };
   return { drafts, edit, flush };
+}
+
+interface PracticeShellProps {
+  className?: string;
+  tasks: PracticeTaskInfo[];
+  status: StatusMap;
+  idx: number;
+  select: (i: number) => void;
+  itemsSlot: HTMLElement | null;
+  label: string;
+  children?: ReactNode;
 }
 
 export default function PracticeShell({
@@ -81,7 +107,7 @@ export default function PracticeShell({
   itemsSlot,
   label,
   children,
-}) {
+}: PracticeShellProps) {
   const task = tasks[idx];
   const done = tasks.filter((t) => status[t.id] === "ok").length;
   const st = status[task.id];
@@ -141,9 +167,7 @@ export default function PracticeShell({
             <h3>
               {idx + 1}. {task.title}
             </h3>
-            <span className={`pr-badge ${st || ""}`}>
-              {BADGE[st] || "не решено"}
-            </span>
+            <span className={`pr-badge ${st || ""}`}>{BADGE[st] || "не решено"}</span>
           </div>
           <p className="pr-statement">{task.statement}</p>
           {children}

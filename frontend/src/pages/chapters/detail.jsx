@@ -9,7 +9,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import FsTree from "../../components/FsTree.jsx";
+import FsTree from "../../components/FsTree.tsx";
 import { usePlayer } from "../../lib/player.tsx";
 import { hasSlides as chapterHasSlides } from "../../lib/slides.ts";
 import { QUIZZES } from "../../lib/quizzes.ts";

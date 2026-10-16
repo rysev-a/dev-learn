@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useProgress } from "../lib/progress.tsx";
+import type { PracticeSet } from "../types.ts";
 
 /* Нормализация ввода: пробелы, регистр, запятая как десятичный разделитель. */
-function normalize(s) {
+function normalize(s: unknown): string {
   return String(s)
     .trim()
     .toLowerCase()
@@ -10,11 +11,11 @@ function normalize(s) {
     .replace(/,(\d)/, ".$1");
 }
 
-function isNumeric(s) {
+function isNumeric(s: string): boolean {
   return /^-?\d+(\.\d+)?$/.test(s);
 }
 
-function isCorrect(input, answers) {
+function isCorrect(input: string, answers: string[]): boolean {
   const a = normalize(input);
   if (!a) return false;
   return answers.some((ans) => {
@@ -28,32 +29,40 @@ function isCorrect(input, answers) {
 
 /* Упражнения: задачи с вводом ответа. Ответ показать нельзя (по замыслу
    курса), только подсказку; сложность внутри главы растёт постепенно. */
-export default function Exercises({ quiz, bookId, chapter }) {
+type Verdict = "" | "right" | "wrong";
+
+interface ExercisesProps {
+  quiz: PracticeSet;
+  bookId: string | undefined;
+  chapter: number;
+}
+
+export default function Exercises({ quiz, bookId, chapter }: ExercisesProps) {
   // решённые задачи (с ответами) хранятся в кабинете — по ним считается прогресс
   const progress = useProgress();
   const saved = bookId != null ? progress.answerSolved(bookId, chapter) : {};
-  const [vals, setVals] = useState(() =>
+  const [vals, setVals] = useState<string[]>(() =>
     quiz.tasks.map((_, i) => saved[i] ?? ""),
   );
-  const [st, setSt] = useState(() =>
-    quiz.tasks.map((_, i) => (saved[i] != null ? "right" : "")),
+  const [st, setSt] = useState<Verdict[]>(() =>
+    quiz.tasks.map((_, i): Verdict => (saved[i] != null ? "right" : "")),
   );
-  const persist = (nextVals, nextSt) => {
+  const persist = (nextVals: string[], nextSt: Verdict[]) => {
     if (bookId == null) return;
-    const map = {};
+    const map: Record<string, string> = {};
     nextSt.forEach((s, i) => {
       if (s === "right") map[i] = nextVals[i];
     });
     progress.saveAnswers(bookId, chapter, map);
   };
-  const [hints, setHints] = useState(() =>
+  const [hints, setHints] = useState<boolean[]>(() =>
     Array(quiz.tasks.length).fill(false),
   );
 
   const total = quiz.tasks.length;
   const solved = st.filter((s) => s === "right").length;
 
-  function setVal(i, v) {
+  function setVal(i: number, v: string) {
     if (st[i] === "right") return;
     setVals((prev) => prev.map((p, k) => (k === i ? v : p)));
     // снятие «неверно» при новой правке
@@ -61,16 +70,16 @@ export default function Exercises({ quiz, bookId, chapter }) {
       setSt((prev) => prev.map((p, k) => (k === i ? "" : p)));
   }
 
-  function check(i) {
+  function check(i: number) {
     if (st[i] === "right") return;
-    const next = st.map((p, k) =>
+    const next = st.map((p, k): Verdict =>
       k === i ? (isCorrect(vals[i], quiz.tasks[i].answers) ? "right" : "wrong") : p,
     );
     setSt(next);
     persist(vals, next);
   }
 
-  function toggleHint(i) {
+  function toggleHint(i: number) {
     setHints((prev) => prev.map((p, k) => (k === i ? !p : p)));
   }
 

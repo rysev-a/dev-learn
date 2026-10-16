@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type PointerEvent } from "react";
+import { readSetting, writeSetting } from "../lib/settings.ts";
+import type { SqlDataset, SqlTable, SqlValue } from "../types.ts";
 
 /* Виджет «База данных» в SQL-упражнении: ERD-диаграмма (таблицы можно перетаскивать,
    связи подсвечиваются при наведении) и просмотр данных таблиц. Схема приходит с сервера
@@ -14,26 +16,14 @@ const PAD = 16;
 const LS_OPEN = "say-sx-open";
 const LS_VIEW = "say-sx-view";
 
-function read(key, fallback) {
-  try {
-    return localStorage.getItem(key) ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-function write(key, value) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* хранилища может не быть */
-  }
-}
+type Pos = Record<string, { x: number; y: number }>;
+type View = "erd" | "data";
 
-const boxH = (t) => HEAD_H + t.columns.length * ROW_H + 6;
+const boxH = (t: SqlTable) => HEAD_H + t.columns.length * ROW_H + 6;
 
 // Начальная раскладка: родители (на кого ссылаются) слева, дети справа
-function autoLayout(schema) {
-  const level = {};
+function autoLayout(schema: SqlDataset): Pos {
+  const level: Record<string, number> = {};
   const names = schema.tables.map((t) => t.name);
   names.forEach((n) => (level[n] = 0));
   for (let pass = 0; pass < names.length; pass++) {
@@ -42,10 +32,10 @@ function autoLayout(schema) {
       level[r.from] = Math.max(level[r.from], level[r.to] + 1);
     }
   }
-  const byLevel = {};
+  const byLevel: Record<number, SqlTable[]> = {};
   for (const t of schema.tables) (byLevel[level[t.name]] ||= []).push(t);
-  const pos = {};
-  for (const lv of Object.keys(byLevel).sort((a, b) => a - b)) {
+  const pos: Pos = {};
+  for (const lv of Object.keys(byLevel).map(Number).sort((a, b) => a - b)) {
     let y = PAD;
     for (const t of byLevel[lv]) {
       pos[t.name] = { x: PAD + lv * (BOX_W + GAP_X), y };
@@ -55,12 +45,12 @@ function autoLayout(schema) {
   return pos;
 }
 
-function Erd({ schema, onOpenTable }) {
+function Erd({ schema, onOpenTable }: { schema: SqlDataset; onOpenTable: (name: string) => void }) {
   const initial = useMemo(() => autoLayout(schema), [schema]);
-  const [pos, setPos] = useState(initial);
-  const [hover, setHover] = useState(null);
-  const drag = useRef(null);
-  const svgRef = useRef(null);
+  const [pos, setPos] = useState<Pos>(initial);
+  const [hover, setHover] = useState<string | null>(null);
+  const drag = useRef<{ name: string; dx: number; dy: number; moved: boolean } | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const byName = useMemo(
     () => Object.fromEntries(schema.tables.map((t) => [t.name, t])),
     [schema],
@@ -72,8 +62,9 @@ function Erd({ schema, onOpenTable }) {
     PAD;
 
   // координаты указателя в системе viewBox
-  function toSvg(e) {
+  function toSvg(e: PointerEvent): { x: number; y: number } {
     const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
     const pt = svg.createSVGPoint();
     pt.x = e.clientX;
     pt.y = e.clientY;
@@ -81,7 +72,7 @@ function Erd({ schema, onOpenTable }) {
     return m ? pt.matrixTransform(m.inverse()) : { x: 0, y: 0 };
   }
 
-  function down(e, name) {
+  function down(e: PointerEvent<SVGGElement>, name: string) {
     const p = toSvg(e);
     drag.current = {
       name,
@@ -91,7 +82,7 @@ function Erd({ schema, onOpenTable }) {
     };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
-  function move(e) {
+  function move(e: PointerEvent) {
     const d = drag.current;
     if (!d) return;
     const p = toSvg(e);
@@ -107,7 +98,7 @@ function Erd({ schema, onOpenTable }) {
     if (d && !d.moved) onOpenTable(d.name);
   }
 
-  const colY = (t, col) =>
+  const colY = (t: SqlTable, col: string) =>
     pos[t.name].y +
     HEAD_H +
     t.columns.findIndex((c) => c.name === col) * ROW_H +
@@ -122,9 +113,9 @@ function Erd({ schema, onOpenTable }) {
       const pb = pos[b.name];
       const ya = colY(a, r.from_col);
       const yb = colY(b, r.to_col);
-      let d;
-      let fx; // где рисовать «N» (ребёнок)
-      let tx; // где рисовать «1» (родитель)
+      let d: string;
+      let fx: number; // где рисовать «N» (ребёнок)
+      let tx: number; // где рисовать «1» (родитель)
       if (a.name === b.name) {
         const x = pa.x + BOX_W;
         d = `M${x},${ya} C${x + 46},${ya} ${x + 46},${yb} ${x},${yb}`;
@@ -259,13 +250,13 @@ function Erd({ schema, onOpenTable }) {
   );
 }
 
-function Cell({ v, col }) {
+function Cell({ v }: { v: SqlValue | undefined }) {
   if (v === null || v === undefined) return <i className="sx-null">NULL</i>;
   const num = typeof v === "number";
   return <span className={num ? "sx-num" : ""}>{String(v)}</span>;
 }
 
-function Data({ schema, table, setTable }) {
+function Data({ schema, table, setTable }: { schema: SqlDataset; table: string | undefined; setTable: (name: string) => void }) {
   const t = schema.tables.find((x) => x.name === table) || schema.tables[0];
   return (
     <div className="sx-data">
@@ -310,7 +301,7 @@ function Data({ schema, table, setTable }) {
               <tr key={i}>
                 {r.map((v, j) => (
                   <td key={j}>
-                    <Cell v={v} col={t.columns[j]} />
+                    <Cell v={v} />
                   </td>
                 ))}
               </tr>
@@ -327,26 +318,26 @@ function Data({ schema, table, setTable }) {
   );
 }
 
-export default function SqlSchema({ schema }) {
-  const [open, setOpen] = useState(() => read(LS_OPEN, "1") === "1");
-  const [view, setView] = useState(() =>
-    read(LS_VIEW, "erd") === "data" ? "data" : "erd",
+export default function SqlSchema({ schema }: { schema: SqlDataset | null | undefined }) {
+  const [open, setOpen] = useState(() => readSetting(LS_OPEN, "1") === "1");
+  const [view, setView] = useState<View>(() =>
+    readSetting(LS_VIEW, "erd") === "data" ? "data" : "erd",
   );
   const [table, setTable] = useState(schema?.tables?.[0]?.name);
 
   if (!schema || !schema.tables?.length) return null;
 
-  const toggle = (v) => {
+  const toggle = (v: View) => {
     setView(v);
-    write(LS_VIEW, v);
+    writeSetting(LS_VIEW, v);
     if (!open) {
       setOpen(true);
-      write(LS_OPEN, "1");
+      writeSetting(LS_OPEN, "1");
     }
   };
   const fold = () => {
     setOpen(!open);
-    write(LS_OPEN, open ? "0" : "1");
+    writeSetting(LS_OPEN, open ? "0" : "1");
   };
   const tables = schema.tables.filter((t) => t.kind !== "view");
   const views = schema.tables.length - tables.length;

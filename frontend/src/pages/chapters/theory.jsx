@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useOutletContext, useSearchParams } from "react-router-dom";
-import { FsItem } from "../../components/FsTree.jsx";
+import { FsItem } from "../../components/FsTree.tsx";
 import { useChapterSlides } from "../../lib/slides.ts";
 import { usePlayer } from "../../lib/player.tsx";
 import { SlideAudioContext } from "../../lib/slideAudio.ts";

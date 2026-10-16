@@ -5,7 +5,7 @@ import { useProgress } from "../lib/progress.tsx";
 import PracticeShell, {
   usePracticeDrafts,
   useTaskSelection,
-} from "./PracticeShell.jsx";
+} from "./PracticeShell.tsx";
 import { hydrateLab } from "../lab/hydrate.js";
 import { ARCH_BOOK, LAB_CHAPTERS, sectionOf } from "../lab/registry.js";
 import CircuitLab from "../lab/react/CircuitLab.jsx";

@@ -64,20 +64,31 @@ export interface SqlColumn {
   type: string;
   pk: boolean;
   notnull: boolean;
+  fk?: { table: string; column: string } | null;
 }
 
 export interface SqlTable {
   name: string;
   kind: string;
   columns: SqlColumn[];
-  rows: unknown[][];
+  rows: SqlValue[][];
   total: number;
+}
+
+// Связь «внешний ключ → родитель»
+export interface SqlRelation {
+  from: string;
+  from_col: string;
+  to: string;
+  to_col: string;
 }
 
 export interface SqlDataset {
   tables: SqlTable[];
-  relations: unknown[];
+  relations: SqlRelation[];
 }
+
+export type SqlValue = string | number | null;
 
 export interface ChapterTasks {
   tasks: Task[];

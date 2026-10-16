@@ -1,23 +1,27 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { FsItem } from "./FsTree.jsx";
+import type { Quiz as QuizData } from "../types.ts";
+import { FsItem } from "./FsTree.tsx";
 import { useProgress } from "../lib/progress.tsx";
 
-/* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе. */
-export default function Quiz({ quiz, bookId, chapter, itemsSlot }) {
-  return <TheoryQuiz quiz={quiz} bookId={bookId} chapter={chapter} itemsSlot={itemsSlot} />;
+interface QuizProps {
+  quiz: QuizData;
+  bookId: string | undefined;
+  chapter: number;
+  itemsSlot: HTMLElement | null;
 }
 
-function TheoryQuiz({ quiz, bookId, chapter, itemsSlot }) {
+/* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе. */
+export default function Quiz({ quiz, bookId, chapter, itemsSlot }: QuizProps) {
   // ответы хранятся в кабинете: по ним считается прогресс на главной
   const progress = useProgress();
-  const [picked, setPicked] = useState(() => {
+  const [picked, setPicked] = useState<(number | null)[]>(() => {
     const saved = bookId != null ? progress.quizPicks(bookId, chapter) : null;
     return saved && saved.length === quiz.questions.length
       ? saved
       : Array(quiz.questions.length).fill(null);
   });
-  const persist = (next) => {
+  const persist = (next: (number | null)[]) => {
     if (bookId != null)
       progress.saveQuizPicks(bookId, chapter, next.some((p) => p != null) ? next : null);
     return next;
@@ -31,7 +35,7 @@ function TheoryQuiz({ quiz, bookId, chapter, itemsSlot }) {
   );
   const done = answered === total;
 
-  function pick(qi, oi) {
+  function pick(qi: number, oi: number) {
     if (picked[qi] != null) return; // на вопрос уже ответили
     setPicked(persist(picked.map((p, i) => (i === qi ? oi : p))));
   }
@@ -41,7 +45,7 @@ function TheoryQuiz({ quiz, bookId, chapter, itemsSlot }) {
   }
 
   // в полноэкранном режиме вопросы — пункты левого дерева с отметками
-  const goTo = (qi) =>
+  const goTo = (qi: number) =>
     document.getElementById(`quiz-q-${qi}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (

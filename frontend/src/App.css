@@ -1588,6 +1588,19 @@ h2 {
   min-height: 6.5em;
 }
 
+.cx-mark {
+  flex-shrink: 0;
+  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.pr-test.ok .cx-mark {
+  color: var(--s-accent);
+}
+
+.pr-test.bad .cx-mark {
+  color: var(--s-amber);
+}
+
 .cx-args {
   font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   color: var(--s-muted);

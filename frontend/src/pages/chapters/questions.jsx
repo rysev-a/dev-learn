@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import Quiz from "../../components/Quiz.jsx";
+import Quiz from "../../components/Quiz.tsx";
 
 // Вкладка «Вопросы»: квиз на теорию главы.
 export default function ChapterQuestions() {

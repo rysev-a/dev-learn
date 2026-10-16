@@ -10,10 +10,10 @@ import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api.ts";
 import { useAuth } from "../lib/auth.tsx";
 import { useProgress } from "../lib/progress.tsx";
-import CodeEditor from "./CodeEditor.jsx";
-import SqlDiff from "./SqlDiff.jsx";
-import SqlSchema from "./SqlSchema.jsx";
-import PracticeShell from "./PracticeShell.jsx";
+import CodeEditor from "./CodeEditor.tsx";
+import SqlDiff from "./SqlDiff.tsx";
+import SqlSchema from "./SqlSchema.tsx";
+import PracticeShell from "./PracticeShell.tsx";
 
 // Симуляторы книги «Виртуализация» (задачи режима lab среди код-задач) грузятся лениво
 const VirtLab = lazy(() => import("../virtlab/VirtLab.jsx"));

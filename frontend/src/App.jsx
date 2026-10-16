@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
-import AsideMenu from "./components/AsideMenu.jsx";
-import AudioPlayer from "./components/AudioPlayer.jsx";
+import AsideMenu from "./components/AsideMenu.tsx";
+import AudioPlayer from "./components/AudioPlayer.tsx";
 import { useAuth } from "./lib/auth.tsx";
 import { PlayerProvider, usePlayer } from "./lib/player.tsx";
 import { useProgress } from "./lib/progress.tsx";

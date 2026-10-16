@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import CodePractice from "../../components/CodePractice.jsx";
-import Exercises from "../../components/Exercises.jsx";
+import Exercises from "../../components/Exercises.tsx";
 
 // Лаборатория (схемы, ассемблер) тяжёлая: грузится только на вкладке «Практика» нужных глав
 const LabPractice = lazy(() => import("../../components/LabPractice.jsx"));

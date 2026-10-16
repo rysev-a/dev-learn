@@ -33,7 +33,7 @@ import { tags as t } from "@lezer/highlight";
    props подмешивается в документ только когда оно изменилось снаружи
    (например, «Сбросить»). */
 
-const external = Annotation.define();
+const external = Annotation.define<boolean>();
 
 const highlight = HighlightStyle.define([
   {
@@ -100,15 +100,25 @@ const theme = EditorView.theme({
   },
 });
 
+export type EditorLang = "python" | "sql" | "rust" | "c" | "js";
+
+interface CodeEditorProps {
+  value: string;
+  onChange?: (value: string) => void;
+  onRun?: () => void;
+  lang?: EditorLang;
+  className?: string;
+}
+
 export default function CodeEditor({
   value,
   onChange,
   onRun,
   lang = "python",
   className = "",
-}) {
-  const host = useRef(null);
-  const view = useRef(null);
+}: CodeEditorProps) {
+  const host = useRef<HTMLDivElement>(null);
+  const view = useRef<EditorView | null>(null);
   const cb = useRef({ onChange, onRun });
   cb.current = { onChange, onRun };
 
@@ -165,9 +175,9 @@ export default function CodeEditor({
         }),
       ],
     });
-    view.current = new EditorView({ state, parent: host.current });
+    view.current = new EditorView({ state, parent: host.current ?? undefined });
     return () => {
-      view.current.destroy();
+      view.current?.destroy();
       view.current = null;
     };
     // редактор создаётся один раз; значение синхронизирует эффект ниже

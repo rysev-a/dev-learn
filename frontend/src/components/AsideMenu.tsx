@@ -1,35 +1,25 @@
 import { useState } from "react";
 import { useMatch, useNavigate } from "react-router-dom";
 import { usePlayer } from "../lib/player.tsx";
-import BookIcon from "./BookIcon.jsx";
-
-const STORE = "say-aside-collapsed";
+import { KEYS, readSetting, writeSetting } from "../lib/settings.ts";
+import type { Book } from "../types.ts";
+import BookIcon from "./BookIcon.tsx";
 
 // Меню разделов (книг курса): список с названиями или, если свёрнуто, колонка квадратных иконок.
-export default function AsideMenu({ books }) {
+export default function AsideMenu({ books }: { books: Book[] }) {
   const navigate = useNavigate();
   const activeBookId = useMatch("/book/:bookId/*")?.params.bookId;
   const { stop } = usePlayer();
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(STORE) === "1";
-    } catch {
-      return false;
-    }
-  });
+  const [collapsed, setCollapsed] = useState(() => readSetting(KEYS.aside) === "1");
 
   function toggle() {
     setCollapsed((c) => {
-      try {
-        localStorage.setItem(STORE, c ? "0" : "1");
-      } catch {
-        /* без сохранения */
-      }
+      writeSetting(KEYS.aside, c ? "0" : "1");
       return !c;
     });
   }
 
-  function openBook(id) {
+  function openBook(id: number) {
     stop();
     navigate(`/book/${id}`);
   }

@@ -3,7 +3,7 @@ import { useProgress } from "../lib/progress.tsx";
 import PracticeShell, {
   usePracticeDrafts,
   useTaskSelection,
-} from "./PracticeShell.jsx";
+} from "./PracticeShell.tsx";
 import { NET_BY_ID } from "../netlab/registry.js";
 import NetLab from "../netlab/react/NetLab.jsx";
 

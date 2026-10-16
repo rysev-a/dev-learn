@@ -5,13 +5,35 @@
    Проверка на сервере сравнивает значения по позиции (имена столбцов не важны), поэтому и
    здесь сопоставление идёт по позициям; различие имён показано мягко. */
 
-const key = (row) => JSON.stringify(row);
-const same = (a, b) => a === b || (a == null && b == null);
+import type { SqlValue } from "../types.ts";
+
+type Row = SqlValue[];
+type Side = "got" | "exp";
+type RowState = "ok" | "diff" | "extra" | "missing";
+interface Aligned {
+  st: RowState;
+  pair: number | null;
+}
+
+// Результат проверки SQL-задачи (поля got_*, exp_*) в том виде, как его отдаёт сервер
+export interface SqlResultView {
+  got_rows?: Row[];
+  exp_rows?: Row[];
+  got_cols?: string[];
+  exp_cols?: string[];
+  got_total?: number;
+  exp_total?: number;
+  ordered?: boolean;
+}
+
+const key = (row: Row) => JSON.stringify(row);
+const same = (a: SqlValue | undefined, b: SqlValue | undefined) =>
+  a === b || (a == null && b == null);
 
 // Сопоставление строк: для каждой строки результата и эталона — статус и «пара» для поячеечной подсветки
-function align(got, exp, ordered) {
-  const gs = got.map(() => ({ st: "ok", pair: null }));
-  const es = exp.map(() => ({ st: "ok", pair: null }));
+function align(got: Row[], exp: Row[], ordered: boolean) {
+  const gs: Aligned[] = got.map(() => ({ st: "ok", pair: null }));
+  const es: Aligned[] = exp.map(() => ({ st: "ok", pair: null }));
   if (ordered) {
     const n = Math.min(got.length, exp.length);
     for (let i = 0; i < n; i++) {
@@ -25,20 +47,21 @@ function align(got, exp, ordered) {
     return { gs, es };
   }
   // без порядка: сначала убираем совпавшие строки (с учётом повторов), остаток парим по очереди
-  const pool = new Map();
+  const pool = new Map<string, number[]>();
   exp.forEach((r, i) => {
     const k = key(r);
-    if (!pool.has(k)) pool.set(k, []);
-    pool.get(k).push(i);
+    const list = pool.get(k);
+    if (list) list.push(i);
+    else pool.set(k, [i]);
   });
-  const extraIdx = [];
+  const extraIdx: number[] = [];
   got.forEach((r, i) => {
     const k = key(r);
     const list = pool.get(k);
     if (list && list.length) list.shift();
     else extraIdx.push(i);
   });
-  const missingIdx = [];
+  const missingIdx: number[] = [];
   for (const list of pool.values()) missingIdx.push(...list);
   missingIdx.sort((a, b) => a - b);
   const n = Math.min(extraIdx.length, missingIdx.length);
@@ -53,19 +76,21 @@ function align(got, exp, ordered) {
   return { gs, es };
 }
 
-const show = (v) => (v === null || v === undefined ? "NULL" : String(v));
+const show = (v: SqlValue | undefined) => (v === null || v === undefined ? "NULL" : String(v));
 
-function Table({
-  title,
-  total,
-  shown,
-  cols,
-  width,
-  rows,
-  status,
-  other,
-  side,
-}) {
+interface TableProps {
+  title: string;
+  total: number;
+  shown: number;
+  cols: string[];
+  width: number;
+  rows: Row[];
+  status: Aligned[];
+  other: { rows: Row[]; width: number };
+  side: Side;
+}
+
+function Table({ title, total, shown, cols, width, rows, status, other, side }: TableProps) {
   return (
     <div className={`sd-side ${side}`}>
       <div className="sd-title">
@@ -149,12 +174,11 @@ function Table({
   );
 }
 
-export default function SqlDiff({ r }) {
+export default function SqlDiff({ r }: { r: SqlResultView }) {
   const gotRows = r.got_rows || [];
   const expRows = r.exp_rows || [];
   const gotCols = r.got_cols || [];
-  const expCols =
-    r.exp_cols && r.exp_cols.length ? r.exp_cols : gotCols.length ? [] : [];
+  const expCols = r.exp_cols && r.exp_cols.length ? r.exp_cols : [];
   const gw = Math.max(gotCols.length, ...gotRows.map((x) => x.length), 0);
   const ew = Math.max(expCols.length, ...expRows.map((x) => x.length), 0);
   const width = Math.max(gw, ew);

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import BookIcon from "../../components/BookIcon.jsx";
+import BookIcon from "../../components/BookIcon.tsx";
 import { QUIZZES } from "../../lib/quizzes.ts";
 import { EXERCISES } from "../../lib/exercises.ts";
 import { pct } from "../../lib/format.ts";
