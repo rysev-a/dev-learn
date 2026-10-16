@@ -11,7 +11,7 @@ import {
 } from "react-router-dom";
 import FsTree from "../../components/FsTree.jsx";
 import { usePlayer } from "../../lib/player.jsx";
-import { SLIDES } from "../../lib/slides.js";
+import { hasSlides as chapterHasSlides } from "../../lib/slides.js";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
 import { useProgress } from "../../lib/progress.jsx";
@@ -132,7 +132,7 @@ export default function ChapterDetail() {
   const key = chapter ? `${bookId}:${chapter.num}` : null;
   const quiz = (key && QUIZZES[key]) || null;
   const practice = (key && EXERCISES[key]) || null;
-  const hasSlides = !!(key && SLIDES[key]);
+  const hasSlides = !!key && chapterHasSlides(key);
   const hasPractice = codeTasks.length > 0 || !!practice;
   const progress = useProgress();
   const doneCodes = chapter ? progress.codeStatus(bookId, chapter.num) : {};

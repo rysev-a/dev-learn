@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import { FsItem } from "../../components/FsTree.jsx";
-import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
+import { useChapterSlides } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { SlideAudioContext } from "../../lib/slideAudio.js";
 import { fmtTime } from "../../lib/time.js";
@@ -37,14 +37,9 @@ export default function ChapterTheory() {
 
   // У каждой главы есть слайды; каждая часть — один абзац со своим слайдом и
   // своим аудио-файлом. Слайд следует за играющей частью, иначе — ручной выбор.
-  const slides =
-    chapter && bookId != null
-      ? SLIDES[`${bookId}:${chapter.num}`] || null
-      : null;
-  const slideTitles =
-    chapter && bookId != null
-      ? SLIDE_TITLES[`${bookId}:${chapter.num}`] || null
-      : null;
+  const { slides, titles: slideTitles, loading } = useChapterSlides(
+    chapter && bookId != null ? `${bookId}:${chapter.num}` : null,
+  );
 
   let slideIdx = 0;
   if (slides) {
@@ -58,6 +53,7 @@ export default function ChapterTheory() {
     if (slides) markSlide(bookId, chapter.num, slideIdx);
   }, [slides, bookId, chapter.num, slideIdx, markSlide]);
 
+  if (loading) return <p className="empty">Загрузка…</p>;
   if (!slides) return <p className="error">У этой главы нет слайдов</p>;
 
   function asItems(lessons) {

@@ -163,7 +163,7 @@ export const SLIDES_AR17 = {
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_AR17).
 export const SLIDE_TITLES_AR17 = {
-  "7:17": [
+  "14:17": [
     "Введение",
     "write",
     "Данные",

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import BookIcon from "../../components/BookIcon.jsx";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
-import { SLIDES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { useProgress } from "../../lib/progress.jsx";
 
@@ -16,7 +15,7 @@ const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 // прогресс одной главы: слайды, вопросы, упражнения (сделано / всего)
 export function chapterStats(progress, bookId, ch, codeCounts) {
   const key = `${bookId}:${ch.num}`;
-  const slidesTotal = (SLIDES[key] || []).length;
+  const slidesTotal = ch.parts_count || 0; // один абзац = один слайд
   const quiz = QUIZZES[key];
   const quizTotal = quiz ? quiz.questions.length : 0;
   const picks = quizTotal ? progress.quizPicks(bookId, ch.num) : null;
