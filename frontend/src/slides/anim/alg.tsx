@@ -110,7 +110,7 @@ export function wire(
   id: string,
   a: Pt,
   b: Pt,
-  { c = "m", xm, w = 1.8, o = 1, dash }: { c?: string; xm?: number; w?: number; o?: number; dash?: string | number } = {},
+  { c = "m", xm, w = 1.8, o = 1, dash }: { c?: string; xm?: number; w?: number; o?: number; dash?: SceneItem["dash"] } = {},
 ): SceneItem {
   const mid = xm ?? (a.x + b.x) / 2;
   const d =
@@ -454,6 +454,9 @@ function cssTokens(src: string): ReactNode[] {
   return out;
 }
 
+// dash: true — пунктир по умолчанию, строка или число — свой штрих
+const dashOf = (d: SceneItem["dash"]) => (typeof d === "boolean" ? (d ? "3 3" : undefined) : d);
+
 const ARROW_OK = new Set(["m", "g", "y", "r", "b"]);
 const arrowId = (c: string) => `url(#a-hd-${ARROW_OK.has(c) ? c : "m"})`;
 
@@ -684,7 +687,7 @@ function Item({ it }: { it: SceneItem }) {
           fill: "none",
           stroke: COL[c] ?? "var(--s-border)",
           strokeWidth: it.w ?? 1.6,
-          strokeDasharray: it.dash,
+          strokeDasharray: dashOf(it.dash),
           opacity: o,
         }}
       />
@@ -736,7 +739,7 @@ function Item({ it }: { it: SceneItem }) {
           fillOpacity: it.fillOpacity,
           stroke: COL[c] ?? c,
           strokeWidth: it.w ?? 2,
-          strokeDasharray: drawn ? "1 1" : it.dash,
+          strokeDasharray: drawn ? "1 1" : dashOf(it.dash),
           strokeDashoffset: drawn ? 1 - (it.draw ?? 0) : 0,
           opacity: o,
         }}
@@ -1140,6 +1143,22 @@ const pick = <T,>(v: ByIndex<T> | undefined, i: number): T | undefined =>
   typeof v === "function" ? v(i) : (v as Partial<Record<number, T>> | undefined)?.[i];
 
 // Ряд клеток: id0, id1, …; c — {i: цвет} или i => цвет; sub — i => подпись под клеткой.
+/** Параметры ряда клеток row(). */
+export interface RowOpts {
+  x0?: number;
+  y?: number;
+  cw?: number;
+  h?: number;
+  w?: number;
+  c?: ByIndex<string>;
+  tc?: string;
+  size?: number;
+  sub?: ByIndex<string | number>;
+  subSize?: number;
+  o?: number | ((i: number) => number);
+  dash?: SceneItem["dash"];
+}
+
 export function row(
   id: string,
   vals: (string | number)[],
@@ -1153,21 +1172,10 @@ export function row(
     tc,
     size,
     sub,
+    subSize,
     o = 1,
     dash,
-  }: {
-    x0?: number;
-    y?: number;
-    cw?: number;
-    h?: number;
-    w?: number;
-    c?: ByIndex<string>;
-    tc?: string;
-    size?: number;
-    sub?: ByIndex<string | number>;
-    o?: number | ((i: number) => number);
-    dash?: SceneItem["dash"];
-  } = {},
+  }: RowOpts = {},
 ): SceneItem[] {
   return vals.map((v, i) => ({
     t: "cell",
@@ -1181,6 +1189,7 @@ export function row(
     tc,
     size,
     sub: pick(sub, i),
+    subSize,
     o: typeof o === "function" ? o(i) : o,
     dash,
   }));

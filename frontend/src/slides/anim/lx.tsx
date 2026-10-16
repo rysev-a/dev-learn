@@ -28,7 +28,7 @@ export { arrow as Ar, line as Ln } from "./dsl.ts";
 
 
 // Рамка-область с подписью над левым краем.
-export const Zn = (id: string, x: number, y: number, w: number, h: number, lbl: string, c = "n", extra = {}) => ({
+export const Zn = (id: string, x: number, y: number, w: number, h: number, lbl: string, c = "n", extra: Extra = {}): SceneItem => ({
   t: "box",
   id,
   x,
@@ -40,7 +40,7 @@ export const Zn = (id: string, x: number, y: number, w: number, h: number, lbl: 
   ...extra,
 });
 
-export const Dt = (id: string, x: number, y: number, text: string, c = "m", extra = {}) => ({
+export const Dt = (id: string, x: number, y: number, text: string, c = "m", extra: Extra = {}): SceneItem => ({
   t: "dot",
   id,
   x,
@@ -52,7 +52,7 @@ export const Dt = (id: string, x: number, y: number, text: string, c = "m", extr
 });
 
 // Указатель-стрелка с именем: острие в (x, y).
-export const Pt = (id: string, x: number, y: number, text: string, c = "g", dir = "down", extra = {}) => ({
+export const Pt = (id: string, x: number, y: number, text: string, c = "g", dir = "down", extra: Extra = {}): SceneItem => ({
   t: "ptr",
   id,
   x,
@@ -64,7 +64,7 @@ export const Pt = (id: string, x: number, y: number, text: string, c = "g", dir 
 });
 
 // Врезка кода; hl — подсвеченные строки.
-export const Cd = (id: string, x: number, y: number, lines: string[], hl: number|number[]|undefined, extra = {}) => ({
+export const Cd = (id: string, x: number, y: number, lines: string[], hl?: number | number[], extra: Extra = {}): SceneItem => ({
   t: "code",
   id,
   x,
@@ -75,7 +75,7 @@ export const Cd = (id: string, x: number, y: number, lines: string[], hl: number
   ...extra,
 });
 
-export const Pa = (id: any, d: any, c = "g", extra = {}) => ({
+export const Pa = (id: string, d: string, c = "g", extra: Extra = {}): SceneItem => ({
   t: "path",
   id,
   d,
@@ -84,21 +84,21 @@ export const Pa = (id: any, d: any, c = "g", extra = {}) => ({
 });
 
 // Ломаная по точкам [[x, y], …].
-export const Pl = (id: string, pts: number[][]|[any,any][], c = "m", extra = {}) =>
+export const Pl = (id: string, pts: [number, number][], c = "m", extra: Extra = {}): SceneItem =>
   Pa(id, pts.map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`).join(" "), c, {
     w: 1.6,
     ...extra,
   });
 
 // Элементы только при выполненном условии: ...If(n >= 2, a, b).
-export const If = (cond: boolean, ...items: ({ t: string; id: string; x: number; y: number; w: number; h: number; text: string; c: string; size: number; }|{ t: string; id: string; x1: number; y1: number; x2: number; y2: number; c: string; })[]) => (cond ? items.flat() : []);
+export const If = (cond: boolean, ...items: (SceneItem | SceneItem[])[]): SceneItem[] => (cond ? items.flat() : []);
 
 // Цвет «включён с шага k»: on, иначе off.
 export const at = (n: number, k: number, on = "g", off = "m") => (n >= k ? on : off);
 
 // Горизонтальный ряд одинаковых клеток: id0, id1, …; c — i => цвет или массив.
 export const Rw = (id: string, vals: (string | number)[], x0: number, y: number, w: number, h: number, gap = 2, c: CellColor = "m", extra: Extra = {}): SceneItem[] =>
-  vals.map((v, i) => ({
+  vals.map((v, i): SceneItem => ({
     t: "cell",
     id: `${id}${i}`,
     x: x0 + i * (w + gap),
@@ -113,7 +113,7 @@ export const Rw = (id: string, vals: (string | number)[], x0: number, y: number,
 
 // Вертикальный стек клеток сверху вниз.
 export const Sk = (id: string, vals: (string | number)[], x: number, y0: number, w: number, h: number, gap = 2, c: CellColor = "m", extra: Extra = {}): SceneItem[] =>
-  vals.map((v, i) => ({
+  vals.map((v, i): SceneItem => ({
     t: "cell",
     id: `${id}${i}`,
     x,

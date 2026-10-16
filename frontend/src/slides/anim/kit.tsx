@@ -23,8 +23,8 @@ export interface StepsCtl {
   pick: (i: number) => void;
 }
 
-/** Цвет стрелки и фигуры в старых сценах: m g y r b */
-export type Hue = "m" | "g" | "y" | "r" | "b";
+/** Цвет стрелки и фигуры в старых сценах: m g y r b (null или пусто — скрыть) */
+export type Hue = string | null | undefined | false;
 
 export function useSteps(cues: number[], ms = 2800): StepsCtl {
   const last = cues.length;
@@ -61,14 +61,14 @@ export function useSteps(cues: number[], ms = 2800): StepsCtl {
   };
 }
 
-const HEAD_COLORS: Record<Hue, string> = {
+const HEAD_COLORS: Record<string, string> = {
   m: "var(--s-muted)",
   g: "var(--s-accent)",
   y: "var(--s-amber)",
   r: "var(--s-red)",
   b: "var(--s-blue)",
 };
-const STROKE: Record<Hue, string> = {
+const STROKE: Record<string, string> = {
   m: "var(--s-muted)",
   g: "var(--s-accent)",
   y: "var(--s-amber)",
@@ -256,7 +256,7 @@ export function Arrow({ x1, y1, x2, y2, c = "m", o = 1, dash, both, w = 1.6 }: {
   y1: number;
   x2: number;
   y2: number;
-  c?: Hue;
+  c?: string;
   o?: number;
   dash?: string;
   both?: boolean;
@@ -277,7 +277,7 @@ export function Arrow({ x1, y1, x2, y2, c = "m", o = 1, dash, both, w = 1.6 }: {
 }
 
 // Петля у узла (x, y): стрелка от узла к самому себе, вверх.
-export function Loop({ x, y, r = 11, c = "g", o = 1 }: { x: number; y: number; r?: number; c?: Hue; o?: number }) {
+export function Loop({ x, y, r = 11, c = "g", o = 1 }: { x: number; y: number; r?: number; c?: string; o?: number }) {
   return (
     <path
       className="a-t"
@@ -294,7 +294,7 @@ export function Matrix({ x, y, rows, cols, mark, cell = 24, o = 1, rowTitle, col
   y: number;
   rows: ReactNode[];
   cols: ReactNode[];
-  mark: (r: number, c: number) => Hue | null | undefined | false | "";
+  mark: (r: number, c: number) => Hue;
   cell?: number;
   o?: number;
   rowTitle?: ReactNode;
@@ -357,7 +357,7 @@ export function Table({ x, y, head, rows, cw = 30, rh = 20, hl, rowOn, o = 1, de
   rows: (string | number)[][];
   cw?: number;
   rh?: number;
-  hl?: (r: number, c: number) => Hue | null | undefined | false | "";
+  hl?: (r: number, c: number) => Hue;
   rowOn?: (r: number) => boolean;
   o?: number;
   delay?: number;
@@ -416,14 +416,18 @@ export interface GraphEdge {
   a: number;
   b: number;
   w?: ReactNode;
+  // пометки, по которым сцена выбирает цвет ребра
+  bridge?: boolean;
+  cyc?: boolean;
+  extra?: boolean;
 }
 
 export function GraphView({ nodes, edges, directed, nc, ec, r = 13, o = 1, lsize = 10.5, ow }: {
   nodes: GraphNode[];
   edges: GraphEdge[];
   directed?: boolean;
-  nc?: (i: number) => Hue | null | undefined | false | "";
-  ec?: (e: GraphEdge, i: number) => Hue | null | undefined | false | "";
+  nc?: (i: number) => Hue;
+  ec?: (e: GraphEdge, i: number) => Hue;
   r?: number;
   o?: number;
   lsize?: number;

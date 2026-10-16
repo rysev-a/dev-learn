@@ -15,9 +15,9 @@ export const tbl = (
   id: string,
   x: number,
   y: number,
-  head: (string | number)[],
-  rows: (string | number)[][],
-  widths: number[],
+  head: readonly (string | number)[],
+  rows: readonly (readonly (string | number)[])[],
+  widths: readonly number[],
   {
     hot = [],
     c = "b",

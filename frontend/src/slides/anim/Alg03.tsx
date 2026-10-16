@@ -1,0 +1,1316 @@
+import { chain, row, scene } from "./alg.tsx";
+import { Pt as P } from "./lx.tsx";
+import type { Extra, SceneItem } from "./dsl.ts";
+
+type Tint = Record<string | number, string>;
+type Pt = { x: number; y: number };
+
+/* Глава 3 книги «Алгоритмы и структуры данных»: связные списки. */
+
+// узел списка и стрелка между узлами по их координатам
+const N = (id: string, x: number, y: number, text: string|number, c = "m", extra: Extra = {}): SceneItem => ({
+  t: "lnode",
+  id,
+  x,
+  y,
+  w: 44,
+  h: 24,
+  text,
+  c,
+  ...extra,
+});
+const Lk = (
+  id: string,
+  a: Pt,
+  b: Pt,
+  { c = "g", o = 1, down = false, bend, dash }: { c?: string; o?: number; down?: boolean; bend?: number; dash?: Extra["dash"] } = {},
+): SceneItem =>
+  down
+    ? {
+        t: "line",
+        id,
+        x1: a.x,
+        y1: a.y + 13,
+        x2: b.x,
+        y2: b.y - 15,
+        c,
+        arrow: true,
+        o,
+        bend,
+        dash,
+      }
+    : {
+        t: "line",
+        id,
+        x1: a.x + 15,
+        y1: a.y,
+        x2: b.x - 24,
+        y2: b.y,
+        c,
+        arrow: true,
+        o,
+        bend,
+        dash,
+      };
+
+// 1. Введение: массив и список
+const SC = [
+  { x: 46, y: 112 },
+  { x: 128, y: 140 },
+  { x: 204, y: 108 },
+  { x: 268, y: 140 },
+  { x: 322, y: 108 },
+];
+export const V01 = scene({
+  labels: ["Массив", "Список", "Ссылки", "Задачи"],
+  caption: [
+    "Массив: элементы подряд — мгновенное чтение, дорогая перестройка",
+    "Список: узлы разбросаны по памяти — зеркальная картина",
+    "Каждый узел знает только следующего: из этого вытекают все свойства списка",
+    "Разворот, цикл, слияние, кольцевая очередь — двадцать упражнений",
+  ],
+  frames: [
+    [
+      ...row("ar", [4, 8, 1, 6, 3], {
+        x0: 100,
+        y: 38,
+        cw: 40,
+        w: 36,
+        c: () => "b",
+      }),
+      {
+        t: "text",
+        id: "t1",
+        x: 180,
+        y: 76,
+        text: "массив: всё подряд",
+        mono: true,
+        size: 10.5,
+        c: "b",
+      },
+    ],
+    [
+      ...row("ar", [4, 8, 1, 6, 3], {
+        x0: 100,
+        y: 38,
+        cw: 40,
+        w: 36,
+        c: () => "m",
+        o: 0.5,
+      }),
+      ...chain("ln", [4, 8, 1, 6, 3], {
+        pos: (i) => SC[i],
+        arrows: false,
+        w: 40,
+        c: () => "g",
+      }),
+      {
+        t: "text",
+        id: "t2",
+        x: 180,
+        y: 76,
+        text: "список: узлы где попало",
+        mono: true,
+        size: 10.5,
+        c: "g",
+      },
+    ],
+    [
+      ...row("ar", [4, 8, 1, 6, 3], {
+        x0: 100,
+        y: 38,
+        cw: 40,
+        w: 36,
+        c: () => "m",
+        o: 0.5,
+      }),
+      ...chain("ln", [4, 8, 1, 6, 3], {
+        pos: (i) => SC[i],
+        w: 40,
+        c: () => "g",
+      }),
+      {
+        t: "text",
+        id: "t2",
+        x: 180,
+        y: 76,
+        text: "список: узел → следующий",
+        mono: true,
+        size: 10.5,
+        c: "g",
+      },
+    ],
+    [
+      ...chain("ln", [4, 8, 1, 6, 3], {
+        pos: (i) => SC[i],
+        w: 40,
+        c: () => "m",
+        o: 0.35,
+      }),
+      {
+        t: "text",
+        id: "t3",
+        x: 180,
+        y: 50,
+        text: "разворот · цикл · слияние",
+        mono: true,
+        size: 11,
+        c: "g",
+      },
+      {
+        t: "text",
+        id: "t4",
+        x: 180,
+        y: 72,
+        text: "кольцевая очередь · две стопки",
+        mono: true,
+        size: 11,
+        c: "g",
+      },
+    ],
+  ],
+  h: 170,
+  cues: [8, 18, 30],
+});
+
+// 2. Узел, голова, обход
+const Y2 = 62;
+const ROW4 = (c: (i: number) => string) => chain("n", [3, 7, 1, 9], { x0: 60, y: Y2, dx: 82, c });
+export const V02 = scene({
+  labels: ["Узел", "Голова", "Обход", "Нет индекса"],
+  caption: [
+    "Узел — значение и ссылка на следующий; у последнего ссылка пустая",
+    "Весь список задаётся ссылкой на первый узел — голову",
+    "Обход: обработали узел — перешли по ссылке; линейное время",
+    "Элемента номер 3 напрямую не взять: идём по ссылкам. Доступ по номеру — O(n)",
+  ],
+  frames: [
+    [
+      ...ROW4(() => "m"),
+      { t: "text", id: "tv", x: 54, y: Y2 + 28, text: "значение", size: 8.5 },
+      {
+        t: "text",
+        id: "tn",
+        x: 78,
+        y: Y2 + 40,
+        text: "ссылка",
+        size: 8.5,
+        c: "g",
+      },
+    ],
+    [...ROW4((i: number) => (i === 0 ? "g" : "m")), P("head", 60, Y2 - 14, "head")],
+    [
+      ...ROW4((i: number) => (i < 2 ? "g" : i === 2 ? "y" : "m")),
+      P("head", 60, Y2 - 14, "head", "m"),
+      P("cur", 60 + 82 * 2, Y2 - 14, "cur", "y"),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 126,
+        text: "пока cur не пуст: cur = cur.next",
+        mono: true,
+        size: 10.5,
+      },
+    ],
+    [
+      ...ROW4((i: number) => (i === 3 ? "r" : "g")),
+      P("head", 60, Y2 - 14, "head", "m"),
+      P("cur", 60 + 82 * 3, Y2 - 14, "cur", "r"),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 126,
+        text: "3 перехода до элемента с номером 3",
+        mono: true,
+        size: 10.5,
+        c: "r",
+      },
+    ],
+  ],
+  cues: [10, 20, 32],
+});
+
+// 3. Вставка после узла: порядок присваиваний
+const A = { x: 70, y: 50 };
+const B = { x: 180, y: 50 };
+const C = { x: 290, y: 50 };
+const X = { x: 180, y: 118 };
+export const V03 = scene({
+  labels: ["Было", "Неверно", "Верно", "Готово"],
+  caption: [
+    "Вставляем X после B: нужно переприсвоить две ссылки",
+    "Сначала B → X: прежний хвост C больше никто не помнит — потерян",
+    "Сначала X → C (запомнили хвост), затем B → X",
+    "Две-три операции, без сдвигов: константное время",
+  ],
+  frames: [
+    [
+      N("A", A.x, A.y, "A"),
+      N("B", B.x, B.y, "B"),
+      N("C", C.x, C.y, "C", "m", { nil: true }),
+      N("X", X.x, X.y, "X", "y"),
+      Lk("AB", A, B),
+      Lk("BC", B, C),
+    ],
+    [
+      N("A", A.x, A.y, "A"),
+      N("B", B.x, B.y, "B"),
+      N("C", C.x, C.y, "C", "r", { nil: true }),
+      N("X", X.x, X.y, "X", "y"),
+      Lk("AB", A, B),
+      Lk("BX", B, X, { c: "r", down: true }),
+      {
+        t: "text",
+        id: "w",
+        x: 290,
+        y: 100,
+        text: "хвост потерян",
+        c: "r",
+        size: 10,
+      },
+    ],
+    [
+      N("A", A.x, A.y, "A"),
+      N("B", B.x, B.y, "B"),
+      N("C", C.x, C.y, "C", "m", { nil: true }),
+      N("X", X.x, X.y, "X", "y"),
+      Lk("AB", A, B),
+      Lk("XC", X, C, { c: "y" }),
+      Lk("BX", B, X, { c: "g", down: true }),
+      {
+        t: "text",
+        id: "w",
+        x: 290,
+        y: 130,
+        text: "1) x.next = b.next\n2) b.next = x",
+        c: "g",
+        mono: true,
+        size: 9.5,
+      },
+    ],
+    [
+      N("A", 50, 50, "A"),
+      N("B", 140, 50, "B"),
+      N("X", 230, 50, "X", "g"),
+      N("C", 320, 50, "C", "m", { nil: true }),
+      Lk("AB", { x: 50, y: 50 }, { x: 140, y: 50 }),
+      Lk("BX", { x: 140, y: 50 }, { x: 230, y: 50 }),
+      Lk("XC", { x: 230, y: 50 }, { x: 320, y: 50 }),
+      {
+        t: "text",
+        id: "w",
+        x: 180,
+        y: 110,
+        text: "O(1) — если вы уже стоите у B",
+        mono: true,
+        size: 11,
+        c: "g",
+      },
+    ],
+  ],
+  cues: [11, 22, 33],
+});
+
+// 4. Дозорный узел
+const Y4 = 66;
+export const V04 = scene({
+  labels: ["Удалить голову", "Особый случай", "Дозорный", "Единый код"],
+  caption: [
+    "Удалить узел из середины легко; а если это сама голова?",
+    "У головы нет предыдущего — код разветвляется отдельным условием",
+    "Дозорный — пустышка перед настоящей головой: у каждого узла теперь есть предыдущий",
+    "Одна и та же строка для головы, середины и хвоста",
+  ],
+  base: [
+    N("A", 110, Y4, "A"),
+    N("B", 190, Y4, "B"),
+    N("C", 270, Y4, "C", "m", { nil: true }),
+    Lk("AB", { x: 110, y: Y4 }, { x: 190, y: Y4 }),
+    Lk("BC", { x: 190, y: Y4 }, { x: 270, y: Y4 }),
+  ],
+  frames: [
+    [
+      P("hd", 110, Y4 - 16, "head"),
+      {
+        t: "text",
+        id: "tx",
+        x: 180,
+        y: 120,
+        text: "удалить A",
+        mono: true,
+        size: 11,
+        c: "r",
+      },
+    ],
+    [
+      N("A", 110, Y4, "A", "r"),
+      P("hd", 110, Y4 - 16, "head"),
+      {
+        t: "code",
+        id: "cd",
+        x: 40,
+        y: 112,
+        lines: [
+          "if node is head:",
+          "    head = node.next",
+          "else:",
+          "    prev.next = node.next",
+        ],
+        hl: [0, 1],
+        w: 220,
+        size: 9.5,
+        lh: 12.5,
+      },
+    ],
+    [
+      N("D", 30, Y4, "∅", "v"),
+      Lk("DA", { x: 30, y: Y4 }, { x: 110, y: Y4 }, { c: "v" }),
+      P("hd", 30, Y4 - 16, "dummy", "v"),
+      N("A", 110, Y4, "A", "r"),
+    ],
+    [
+      N("D", 30, Y4, "∅", "v"),
+      Lk("DA", { x: 30, y: Y4 }, { x: 110, y: Y4 }, { c: "v" }),
+      P("hd", 30, Y4 - 16, "prev", "v"),
+      N("A", 110, Y4, "A", "r"),
+      {
+        t: "code",
+        id: "cd",
+        x: 90,
+        y: 118,
+        lines: ["prev.next = node.next"],
+        hl: 0,
+        w: 190,
+        size: 10.5,
+        lh: 14,
+      },
+    ],
+  ],
+  cues: [8, 19, 32],
+});
+
+// 5. Разворот списка
+const RX = [90, 180, 270];
+const RY = 74;
+const RN = (flags: boolean[]): SceneItem[] =>
+  RX.map((x, i): SceneItem => N(`r${i}`, x, RY, i + 1, "m", { nil: flags[i] }));
+const fwd = (i: number): SceneItem => ({
+  t: "line",
+  id: `f${i}`,
+  x1: RX[i] + 15,
+  y1: RY,
+  x2: RX[i + 1] - 24,
+  y2: RY,
+  c: "g",
+  arrow: true,
+});
+const back = (i: number): SceneItem => ({
+  t: "line",
+  id: `b${i}`,
+  x1: RX[i + 1] - 22,
+  y1: RY + 8,
+  x2: RX[i] + 20,
+  y2: RY + 8,
+  c: "y",
+  arrow: true,
+  bend: 14,
+});
+export const V05 = scene({
+  labels: ["Старт", "Шаг 1", "Шаг 2", "Шаг 3", "Готово"],
+  caption: [
+    "Три переменные: prev, cur и next — запоминаем остаток, чтобы не потерять",
+    "Первый узел теперь указывает на prev (пусто): он стал хвостом",
+    "Второй узел указывает назад, на первый",
+    "Третий — на второй; cur дошёл до конца, prev — новая голова",
+    "Один проход, O(n) времени и O(1) памяти: переключены только ссылки",
+  ],
+  frames: [
+    [
+      ...RN([false, false, true]),
+      fwd(0),
+      fwd(1),
+      P("cur", RX[0], RY - 16, "cur", "y"),
+      {
+        t: "text",
+        id: "pv",
+        x: 36,
+        y: RY - 12,
+        text: "prev = ∅",
+        mono: true,
+        size: 9.5,
+        c: "m",
+      },
+    ],
+    [
+      ...RN([true, false, true]),
+      fwd(1),
+      P("prev", RX[0], RY - 16, "prev", "g"),
+      P("cur", RX[1], RY - 16, "cur", "y"),
+    ],
+    [
+      ...RN([true, false, true]),
+      back(0),
+      P("prev", RX[1], RY - 16, "prev", "g"),
+      P("cur", RX[2], RY - 16, "cur", "y"),
+    ],
+    [
+      ...RN([true, false, false]),
+      back(0),
+      back(1),
+      P("prev", RX[2], RY - 16, "prev", "g"),
+      {
+        t: "text",
+        id: "cu",
+        x: 328,
+        y: RY - 12,
+        text: "cur = ∅",
+        mono: true,
+        size: 9.5,
+      },
+    ],
+    [
+      ...RN([true, false, false]).map((n): SceneItem => ({ ...n, c: "g" })),
+      back(0),
+      back(1),
+      P("head", RX[2], RY - 16, "head", "g"),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 130,
+        text: "3 → 2 → 1",
+        mono: true,
+        size: 12,
+        c: "g",
+      },
+    ],
+  ],
+  cues: [8, 17, 25, 33],
+});
+
+// 6. Быстрый и медленный: середина
+const MX = (i: number) => 40 + 70 * i;
+const M5 = (c: (i: number) => string) => chain("m", [1, 2, 3, 4, 5], { x0: 40, y: 62, dx: 70, c });
+export const V06 = scene({
+  labels: ["Старт", "Шаг 1", "Шаг 2", "Середина"],
+  caption: [
+    "Два указателя от головы: медленный на шаг, быстрый на два",
+    "Быстрый ушёл на второй узел, медленный — на второй от головы",
+    "Быстрый почти у конца",
+    "Быстрый дошёл до конца — медленный ровно в середине, длину считать не пришлось",
+  ],
+  frames: [
+    [
+      ...M5(() => "m"),
+      P("s", MX(0), 46, "slow", "g"),
+      P("f", MX(0), 78, "fast", "y", "up"),
+    ],
+    [
+      ...M5(() => "m"),
+      P("s", MX(1), 46, "slow", "g"),
+      P("f", MX(2), 78, "fast", "y", "up"),
+    ],
+    [
+      ...M5((i: number) => (i === 2 ? "g" : "m")),
+      P("s", MX(2), 46, "slow", "g"),
+      P("f", MX(4), 78, "fast", "y", "up"),
+    ],
+    [
+      ...M5((i: number) => (i === 2 ? "g" : "m")),
+      P("s", MX(2), 46, "slow", "g"),
+      P("f", MX(4), 78, "fast", "y", "up"),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 140,
+        text: "середина = 3",
+        mono: true,
+        size: 12,
+        c: "g",
+      },
+    ],
+  ],
+  cues: [8, 17, 26],
+});
+
+// 7. Цикл Флойда и его начало
+const CP = {
+  n0: [30, 44],
+  n1: [90, 44],
+  n2: [160, 44],
+  n3: [262, 44],
+  n4: [262, 118],
+  n5: [160, 118],
+};
+const CNODES = (c: Tint = {}): SceneItem[] =>
+  Object.entries(CP).map(([id, [x, y]]): SceneItem =>
+    N(id, x, y, id.slice(1), c[id] ?? "m"),
+  );
+const CEDGES = (): SceneItem[] => [
+  Lk("e01", { x: 30, y: 44 }, { x: 90, y: 44 }),
+  Lk("e12", { x: 90, y: 44 }, { x: 160, y: 44 }),
+  Lk("e23", { x: 160, y: 44 }, { x: 262, y: 44 }),
+  {
+    t: "line",
+    id: "e34",
+    x1: 262,
+    y1: 57,
+    x2: 262,
+    y2: 102,
+    c: "g",
+    arrow: true,
+  },
+  Lk("e45", { x: 262, y: 118 }, { x: 160, y: 118 }),
+  {
+    t: "line",
+    id: "e52",
+    x1: 160,
+    y1: 105,
+    x2: 160,
+    y2: 58,
+    c: "g",
+    arrow: true,
+  },
+];
+export const V07 = scene({
+  labels: ["Цикл", "Встреча", "Сброс", "Начало цикла"],
+  caption: [
+    "Хвост из двух узлов, потом круг: быстрый никогда не дойдёт до пустоты",
+    "Внутри круга быстрый нагоняет медленного на шаг за такт — они встретились",
+    "От точки встречи до начала цикла — столько же шагов, сколько от головы",
+    "Один указатель в голову, оба по одному шагу — сошлись ровно в начале цикла",
+  ],
+  frames: [
+    [
+      ...CEDGES(),
+      ...CNODES(),
+      P("s", 30, 28, "slow", "g"),
+      P("f", 30, 74, "fast", "y", "up"),
+    ],
+    [
+      ...CEDGES(),
+      ...CNODES({ n4: "g" }),
+      P("s", 306, 118, "slow=fast", "g"),
+      {
+        t: "text",
+        id: "tt",
+        x: 90,
+        y: 150,
+        text: "встреча в узле 4",
+        mono: true,
+        size: 10.5,
+        c: "g",
+      },
+    ],
+    [
+      ...CEDGES(),
+      ...CNODES({ n4: "y" }),
+      P("s", 30, 28, "p1", "g"),
+      P("f", 306, 118, "p2", "y"),
+      {
+        t: "text",
+        id: "tt",
+        x: 90,
+        y: 150,
+        text: "p1 = голова, оба по шагу",
+        mono: true,
+        size: 10.5,
+      },
+    ],
+    [
+      ...CEDGES(),
+      ...CNODES({ n2: "g" }),
+      P("s", 160, 26, "p1 = p2", "g"),
+      {
+        t: "text",
+        id: "tt",
+        x: 90,
+        y: 150,
+        text: "начало цикла — узел 2",
+        mono: true,
+        size: 10.5,
+        c: "g",
+      },
+    ],
+  ],
+  cues: [11, 24, 36],
+});
+
+// 8. Слияние двух отсортированных списков (значения переезжают в результат)
+const SLOT = (k: number) => 46 + 54 * k;
+const V = (v: number, x: number, y: number, c = "m"): SceneItem => ({
+  t: "cell",
+  id: `v${v}`,
+  x,
+  y,
+  w: 38,
+  h: 24,
+  text: v,
+  c,
+});
+const AR: [number, number, number][] = [
+  [1, 60, 30],
+  [4, 130, 30],
+  [7, 200, 30],
+];
+const BR: [number, number, number][] = [
+  [2, 60, 68],
+  [3, 130, 68],
+  [8, 200, 68],
+];
+const mergeFrame = (moved: number[], pa: number|null, pb: number|null, note: string): SceneItem[] => {
+  const order = [1, 2, 3, 4, 7, 8];
+  const items: SceneItem[] = [];
+  [...AR, ...BR].forEach(([v, x, y]) => {
+    const k = order.indexOf(v);
+    items.push(
+      moved.includes(v)
+        ? V(v, SLOT(k), 124, "g")
+        : V(v, x, y, v === pa || v === pb ? "y" : "m"),
+    );
+  });
+  if (pa)
+    items.push({
+      t: "ptr",
+      id: "pa",
+      x: AR.find((a) => a[0] === pa)![1],
+      y: 14,
+      text: "a",
+      c: "y",
+    });
+  if (pb)
+    items.push({
+      t: "ptr",
+      id: "pb",
+      x: BR.find((b) => b[0] === pb)![1],
+      y: 84,
+      text: "b",
+      c: "b",
+      dir: "up",
+    });
+  items.push({
+    t: "text",
+    id: "nt",
+    x: 290,
+    y: 52,
+    text: note,
+    mono: true,
+    size: 9.5,
+  });
+  return items;
+};
+export const V08 = scene({
+  labels: ["Два списка", "1", "2 и 3", "4", "Хвост"],
+  caption: [
+    "Два отсортированных списка; результат строим, присоединяя меньшую голову",
+    "1 < 2: первый в результат, двигаем a",
+    "2 и 3 меньше 4: переходят в результат из второго списка",
+    "4 < 8: снова из первого",
+    "Первый список кончился — хвост второго присоединяем целиком; новых узлов нет",
+  ],
+  frames: [
+    mergeFrame([], 1, 2, "1 < 2"),
+    mergeFrame([1], 4, 2, "2 < 4"),
+    mergeFrame([1, 2, 3], 4, 8, "4 < 8"),
+    mergeFrame([1, 2, 3, 4], 7, 8, "7 < 8"),
+    mergeFrame([1, 2, 3, 4, 7, 8], null, null, "готово: O(n + m)"),
+  ],
+  h: 150,
+  cues: [9, 17, 25, 33],
+});
+
+// 9. Двусвязный список: удаление по самому узлу
+const DX = [50, 128, 206, 284];
+const DY = 54;
+const DN = (c: Tint = {}): SceneItem[] =>
+  ["A", "B", "C", "D"].map((t, i): SceneItem =>
+    N(t, DX[i], DY, t, c[t] ?? "m", { nil: false }),
+  );
+const fw = (i: number, o = 1, c = "g"): SceneItem => ({
+  t: "line",
+  id: `fw${i}`,
+  x1: DX[i] + 14,
+  y1: DY - 5,
+  x2: DX[i + 1] - 24,
+  y2: DY - 5,
+  c,
+  arrow: true,
+  o,
+});
+const bw = (i: number, o = 1, c = "b"): SceneItem => ({
+  t: "line",
+  id: `bw${i}`,
+  x1: DX[i + 1] - 24,
+  y1: DY + 6,
+  x2: DX[i] + 20,
+  y2: DY + 6,
+  c,
+  arrow: true,
+  o,
+});
+export const V09 = scene({
+  labels: ["Две ссылки", "Удаление", "Связи", "Цена"],
+  caption: [
+    "В каждом узле две ссылки: на следующий и на предыдущий",
+    "Хотим удалить B, и в руках у нас только он сам",
+    "Соседи слева и справа объявляются соседями друг друга — поиск предыдущего не нужен",
+    "Две операции: O(1). Цена — лишняя ссылка в каждом узле",
+  ],
+  frames: [
+    [...DN(), fw(0), fw(1), fw(2), bw(0), bw(1), bw(2)],
+    [
+      ...DN({ B: "r" }),
+      fw(0),
+      fw(1),
+      fw(2),
+      bw(0),
+      bw(1),
+      bw(2),
+      P("sel", DX[1], DY - 18, "node", "r"),
+    ],
+    [
+      ...DN({ B: "r", A: "g", C: "g" }).map((n): SceneItem =>
+        n.id === "B" ? { ...n, y: 116, o: 0.5 } : n,
+      ),
+      fw(0, 0),
+      fw(1, 0),
+      bw(1, 0),
+      bw(0, 0),
+      fw(2),
+      bw(2),
+      {
+        t: "line",
+        id: "skipf",
+        x1: DX[0] + 14,
+        y1: DY - 7,
+        x2: DX[2] - 24,
+        y2: DY - 7,
+        c: "y",
+        arrow: true,
+        bend: -22,
+      },
+      {
+        t: "line",
+        id: "skipb",
+        x1: DX[2] - 24,
+        y1: DY + 7,
+        x2: DX[0] + 20,
+        y2: DY + 7,
+        c: "y",
+        arrow: true,
+        bend: 22,
+      },
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 150,
+        text: "node.prev.next = node.next; node.next.prev = node.prev",
+        mono: true,
+        size: 8.5,
+      },
+    ],
+    [
+      ...DN({ B: "r", A: "g", C: "g" }).map((n): SceneItem =>
+        n.id === "B" ? { ...n, y: 116, o: 0 } : n,
+      ),
+      fw(2),
+      bw(2),
+      {
+        t: "line",
+        id: "skipf",
+        x1: DX[0] + 14,
+        y1: DY - 7,
+        x2: DX[2] - 24,
+        y2: DY - 7,
+        c: "g",
+        arrow: true,
+        bend: -22,
+      },
+      {
+        t: "line",
+        id: "skipb",
+        x1: DX[2] - 24,
+        y1: DY + 7,
+        x2: DX[0] + 20,
+        y2: DY + 7,
+        c: "g",
+        arrow: true,
+        bend: 22,
+      },
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 120,
+        text: "O(1): без поиска и обхода",
+        mono: true,
+        size: 11,
+        c: "g",
+      },
+    ],
+  ],
+  h: 160,
+  cues: [10, 19, 31],
+});
+
+// 10. Очередь и дек на двусвязном списке с дозорными
+const QX = (i: number) => 30 + 60 * i;
+const QY = 62;
+const qchain = (ids: string[], texts: Record<string, string | number>, c: Tint = {}): SceneItem[] =>
+  ids.flatMap((id, i): SceneItem[] => [
+    N(id, QX(i), QY, texts[id], c[id] ?? (id[0] === "s" ? "v" : "m")),
+    ...(i < ids.length - 1
+      ? [
+          Lk(
+            `${id}>${ids[i + 1]}`,
+            { x: QX(i), y: QY },
+            { x: QX(i + 1), y: QY },
+            { c: "g" },
+          ),
+        ]
+      : []),
+  ]);
+const NODEX = (ids: string[], texts: Record<string, string | number>, c?: Tint): SceneItem[] =>
+  ids.map((id, i): SceneItem =>
+    N(id, QX(i), QY, texts[id], c?.[id] ?? (id[0] === "s" ? "v" : "m")),
+  );
+export const V10 = scene({
+  labels: ["Дозорные", "В конец", "С начала", "Дек"],
+  caption: [
+    "Два дозорных — в начале и в конце: даже пустой список выглядит одинаково",
+    "Добавить в хвост — вставка перед правым дозорным: O(1), без особых случаев",
+    "Снять с головы — удаление узла после левого дозорного: O(1)",
+    "Дек — оба конца дёшевы; на таком же каркасе строят кэши вытеснения",
+  ],
+  frames: [
+    [
+      ...qchain(["sL", "n1", "n2", "n3", "sR"], {
+        sL: "∅",
+        n1: 1,
+        n2: 2,
+        n3: 3,
+        sR: "∅",
+      }),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 120,
+        text: "очередь: 1 2 3",
+        mono: true,
+        size: 11,
+      },
+    ],
+    [
+      ...qchain(
+        ["sL", "n1", "n2", "n3", "n4", "sR"],
+        { sL: "∅", n1: 1, n2: 2, n3: 3, n4: 4, sR: "∅" },
+        { n4: "g" },
+      ),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 120,
+        text: "добавили 4 в хвост",
+        mono: true,
+        size: 11,
+        c: "g",
+      },
+    ],
+    [
+      ...qchain(
+        ["sL", "n2", "n3", "n4", "sR"],
+        { sL: "∅", n2: 2, n3: 3, n4: 4, sR: "∅" },
+        { n2: "y" },
+      ),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 120,
+        text: "сняли 1 с головы",
+        mono: true,
+        size: 11,
+        c: "y",
+      },
+    ],
+    [
+      ...qchain(
+        ["sL", "n2", "n3", "n4", "sR"],
+        { sL: "∅", n2: 2, n3: 3, n4: 4, sR: "∅" },
+        { n2: "g", n3: "g", n4: "g" },
+      ),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 120,
+        text: "оба конца за O(1)",
+        mono: true,
+        size: 11,
+        c: "g",
+      },
+    ],
+  ],
+  cues: [9, 19, 28],
+});
+
+// 11. Кольцевой буфер
+const BX = (i: number) => 60 + 48 * i;
+const BY = 66;
+const ring = (vals: (string | number | null)[], hl: Tint = {}): SceneItem[] =>
+  [0, 1, 2, 3, 4, 5].map((i): SceneItem => ({
+    t: "cell",
+    id: `c${i}`,
+    x: BX(i),
+    y: BY,
+    w: 42,
+    h: 28,
+    text: vals[i] ?? "",
+    c: hl[i] ?? (vals[i] ? "b" : "n"),
+    sub: i,
+  }));
+const hp = (h: number, t: number, extra = ""): SceneItem[] => [
+  P("h", BX(h), BY - 22, "head", "g"),
+  P("t", BX(t), BY + 22, "tail", "y", "up"),
+];
+const wrap = (c = "m", o = 0.5): SceneItem => ({
+  t: "line",
+  id: "wr",
+  x1: BX(5) + 10,
+  y1: BY - 16,
+  x2: BX(0) - 10,
+  y2: BY - 16,
+  c,
+  arrow: true,
+  bend: -34,
+  o,
+});
+export const V11 = scene({
+  labels: ["Пусто", "Заполнение", "Снятие", "Оборот", "Полная"],
+  caption: [
+    "Массив из шести клеток и два индекса: голова и хвост",
+    "Записали три элемента — хвост уехал вперёд",
+    "Сняли два — голова сдвинулась, память не копируется",
+    "Хвост дошёл до края и вернулся в начало: индекс = (индекс + 1) % 6",
+    "Голова равна хвосту — пусто или полно? Нужен счётчик занятых мест",
+  ],
+  frames: [
+    [
+      ...ring([]),
+      ...hp(0, 0),
+      wrap(),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 130,
+        text: "size = 0",
+        mono: true,
+        size: 11,
+      },
+    ],
+    [
+      ...ring(["A", "B", "C"]),
+      ...hp(0, 3),
+      wrap(),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 130,
+        text: "size = 3",
+        mono: true,
+        size: 11,
+      },
+    ],
+    [
+      ...ring(["", "", "C"], { 0: "n", 1: "n", 2: "b" }),
+      ...hp(2, 3),
+      wrap(),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 130,
+        text: "size = 1",
+        mono: true,
+        size: 11,
+      },
+    ],
+    [
+      ...ring(["G", "", "C", "D", "E", "F"], {
+        0: "g",
+        2: "b",
+        3: "b",
+        4: "b",
+        5: "b",
+      }),
+      ...hp(2, 1),
+      wrap("g", 1),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 130,
+        text: "size = 5, tail = 1",
+        mono: true,
+        size: 11,
+      },
+    ],
+    [
+      ...ring(["G", "H", "C", "D", "E", "F"], { 1: "g" }),
+      ...hp(2, 2),
+      wrap(),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 130,
+        text: "size = 6 — полна; head == tail",
+        mono: true,
+        size: 11,
+        c: "y",
+      },
+    ],
+  ],
+  h: 150,
+  cues: [9, 17, 25, 36],
+});
+
+// 12. Очередь из двух стопок
+const SX = { in: 100, out: 260 };
+const SY = (k: number) => 126 - 26 * k;
+const Q = (v: number, x: number, y: number, c = "m", o = 1): SceneItem => ({
+  t: "cell",
+  id: `q${v}`,
+  x,
+  y,
+  w: 40,
+  h: 22,
+  text: v,
+  c,
+  o,
+});
+export const V12 = scene({
+  labels: ["Вход", "Перелив", "Выход", "Амортизация"],
+  caption: [
+    "Новые элементы кладём в первую стопку: 1, 2, 3, 4 — самый старый на дне",
+    "Вторая пуста — переливаем: порядок переворачивается, старый оказывается сверху",
+    "Снимаем из второй стопки: первым выходит самый старый — это очередь",
+    "Каждый элемент переливается не больше одного раза: снятие — амортизированная константа",
+  ],
+  base: [
+    { t: "box", id: "bi", x: SX.in, y: 78, w: 64, h: 112, c: "n", lbl: "вход" },
+    {
+      t: "box",
+      id: "bo",
+      x: SX.out,
+      y: 78,
+      w: 64,
+      h: 112,
+      c: "n",
+      lbl: "выход",
+    },
+  ],
+  frames: [
+    [1, 2, 3, 4].map((v): SceneItem => Q(v, SX.in, SY(v - 1), "b")),
+    [1, 2, 3, 4].map((v): SceneItem => Q(v, SX.out, SY(4 - v), "y")),
+    [
+      Q(1, 330, SY(3), "g"),
+      ...[2, 3, 4].map((v): SceneItem => Q(v, SX.out, SY(4 - v), "y")),
+      {
+        t: "text",
+        id: "tt",
+        x: 330,
+        y: SY(3) + 20,
+        text: "вышло",
+        mono: true,
+        size: 9.5,
+        c: "g",
+      },
+    ],
+    [
+      Q(1, 330, SY(3), "g", 0.4),
+      ...[2, 3, 4].map((v): SceneItem => Q(v, SX.out, SY(4 - v), "y")),
+      {
+        t: "text",
+        id: "tt",
+        x: 180,
+        y: 160,
+        text: "один перенос на элемент → O(1) амортизированно",
+        mono: true,
+        size: 9.5,
+        c: "g",
+      },
+    ],
+  ].map((f): SceneItem[] => (f as (SceneItem | SceneItem[])[]).flat()),
+  h: 170,
+  cues: [10, 22, 33],
+});
+
+// 13. Список против массива на практике
+export const V13 = scene({
+  labels: ["Проход", "Вставка в середину", "Итог"],
+  caption: [
+    "Проход по всем элементам: у массива кэш, у списка прыжки по памяти (условно)",
+    "Вставка в середину: списку сначала нужно дойти, а массиву — быстро сдвинуть",
+    "Списки живут в узких ролях, а не как универсальные коллекции",
+  ],
+  base: [
+    { t: "line", id: "ax", x1: 50, y1: 130, x2: 330, y2: 130, c: "m" },
+    {
+      t: "text",
+      id: "la",
+      x: 120,
+      y: 146,
+      text: "массив",
+      mono: true,
+      size: 10,
+    },
+    {
+      t: "text",
+      id: "ll",
+      x: 250,
+      y: 146,
+      text: "список",
+      mono: true,
+      size: 10,
+    },
+  ],
+  frames: [
+    [
+      { t: "bar", id: "ba", x: 120, y: 130, w: 44, hh: 20, max: 100, c: "g" },
+      { t: "bar", id: "bl", x: 250, y: 130, w: 44, hh: 90, max: 100, c: "r" },
+      {
+        t: "text",
+        id: "n",
+        x: 180,
+        y: 20,
+        text: "время прохода (условно)",
+        size: 9.5,
+      },
+    ],
+    [
+      { t: "bar", id: "ba", x: 120, y: 130, w: 44, hh: 38, max: 100, c: "b" },
+      { t: "bar", id: "bl", x: 250, y: 130, w: 44, hh: 90, max: 100, c: "y" },
+      {
+        t: "text",
+        id: "n",
+        x: 180,
+        y: 20,
+        text: "вставка в середину (условно)",
+        size: 9.5,
+      },
+      { t: "text", id: "n2", x: 120, y: 70, text: "сдвиг", size: 9, c: "b" },
+      {
+        t: "text",
+        id: "n3",
+        x: 250,
+        y: 30,
+        text: "дойти до середины",
+        size: 9,
+        c: "y",
+      },
+    ],
+    [
+      {
+        t: "bar",
+        id: "ba",
+        x: 120,
+        y: 130,
+        w: 44,
+        hh: 20,
+        max: 100,
+        c: "m",
+        o: 0.3,
+      },
+      {
+        t: "bar",
+        id: "bl",
+        x: 250,
+        y: 130,
+        w: 44,
+        hh: 30,
+        max: 100,
+        c: "m",
+        o: 0.3,
+      },
+      {
+        t: "text",
+        id: "n",
+        x: 180,
+        y: 56,
+        text: "очереди и деки · кэши · планировщики",
+        mono: true,
+        size: 10,
+        c: "g",
+      },
+      {
+        t: "text",
+        id: "n2",
+        x: 180,
+        y: 76,
+        text: "аллокаторы · неизменяемые структуры",
+        mono: true,
+        size: 10,
+        c: "g",
+      },
+    ],
+  ],
+  cues: [10, 22],
+});
+
+// 14. Итог: три источника ошибок
+const RB = (k: number): SceneItem[] =>
+  [
+    ["Ссылки", "сохрани — потом меняй"],
+    ["Особые случаи", "пусто · один · голова"],
+    ["Дозорный", "меньше if-ов"],
+    ["Практика", "20 упражнений"],
+  ].flatMap(([t, c], i): SceneItem[] => [
+    {
+      t: "box",
+      id: `b${i}`,
+      x: 48 + i * 88,
+      y: 80,
+      w: 80,
+      h: 66,
+      c: k === i ? "g" : "n",
+    },
+    {
+      t: "text",
+      id: `t${i}`,
+      x: 48 + i * 88,
+      y: 74,
+      text: t,
+      mono: true,
+      size: 9.5,
+      c: k === i ? "g" : undefined,
+    },
+    {
+      t: "text",
+      id: `c${i}`,
+      x: 48 + i * 88,
+      y: 94,
+      text: c,
+      size: 8,
+      o: k === i ? 1 : 0.5,
+    },
+  ]);
+export const V14 = scene({
+  labels: ["Ссылки", "Особые случаи", "Дозорный", "Практика"],
+  caption: [
+    "Потеря ссылки: прежде чем перенаправить указатель, сохраните то, на что он указывал",
+    "Пустой список, один элемент, голова и хвост — проверяйте тестами явно",
+    "Дозорный узел убирает целый класс ошибок",
+    "От длины списка до очереди с минимумом за константу",
+  ],
+  frames: [0, 1, 2, 3].map(RB),
+  cues: [10, 25, 38],
+});

@@ -4,9 +4,13 @@ import { Tx, type SceneItem } from "./dsl.ts";
 export { Tx };
 
 // Список «слева моно — справа пояснение»; on — номер или список подсвеченных строк.
-export const LIST = (items: string[][]|[any,any][], on: number|Iterable<any>|null|undefined, { w = 334, rowH = 34, y0 = 28 } = {}) => {
+export const LIST = (
+  items: readonly (readonly string[])[],
+  on: number | number[] | null | undefined,
+  { w = 334, rowH = 34, y0 = 28 }: { w?: number; rowH?: number; y0?: number } = {},
+): SceneItem[] => {
   const hot = new Set(Array.isArray(on) ? on : [on]);
-  return items.flatMap(([a, b], i) => [
+  return items.flatMap(([a, b], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

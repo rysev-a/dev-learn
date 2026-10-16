@@ -45,7 +45,8 @@ export interface SceneItem {
   sub?: string | number;
   lbl?: string;
   d?: string;
-  dash?: string | number;
+  /** true — пунктир по умолчанию, строка — свой dasharray */
+  dash?: boolean | string | number;
   size?: number;
   subSize?: number;
   mono?: boolean;
