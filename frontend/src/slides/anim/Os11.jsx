@@ -180,7 +180,7 @@ const DST = [
 const rtb = (n) => [
   Cd("tbl", 24, 34, RT, [[], [0], [1], [2]][n], { w: 250, size: 9.3, lh: 22 }),
   Tx("hd", 150, 14, "ip route", { mono: true, size: 9 }),
-  ...If(n >= 1, Tx("dst", 292, 54, DST[n], { size: 8.5, c: "y" })),
+  ...If(n >= 1, Tx("dst", 318, 54, DST[n], { size: 8, c: "y" })),
   ...If(
     n === 2,
     Tx(

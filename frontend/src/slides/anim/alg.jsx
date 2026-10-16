@@ -317,6 +317,124 @@ function pyTokens(src) {
   return out;
 }
 
+/* Подсветка SQL (lang: "sql"). */
+const SQL_KW = new Set(
+  "select from where group by having order limit offset join inner left right full outer cross on using as and or not in is null like between exists case when then else end union all distinct insert into values update set delete create table index primary key foreign references unique check default begin commit rollback with recursive over partition returning asc desc explain analyze view alter add drop column constraint if true false cascade".split(
+    " ",
+  ),
+);
+const SQL_FN = new Set(
+  "count sum avg min max coalesce nullif round length lower upper substr row_number rank dense_rank lag lead now date strftime cast".split(
+    " ",
+  ),
+);
+function sqlTokens(src) {
+  const out = [];
+  const re =
+    /(--[^\n]*)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, str, num, word] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (str) fill = "var(--s-amber)";
+    else if (num) fill = "var(--s-red)";
+    else if (word) {
+      const w = word.toLowerCase();
+      fill = SQL_KW.has(w)
+        ? "var(--s-blue)"
+        : SQL_FN.has(w)
+          ? "var(--s-violet)"
+          : undefined;
+    }
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
+}
+
+/* Подсветка JavaScript (lang: "js"): цвета только из --s-*. */
+const JS_KW = new Set(
+  "const let var function return if else for while do switch case default break continue new class extends super this typeof instanceof in of import export from async await try catch finally throw yield static get set delete void".split(
+    " ",
+  ),
+);
+const JS_LIT = new Set([
+  "true",
+  "false",
+  "null",
+  "undefined",
+  "NaN",
+  "Infinity",
+]);
+function jsTokens(src) {
+  const out = [];
+  const re =
+    /(\/\/[^\n]*)|(`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?n?\b)|([A-Za-z_$][\w$]*)|(=>)|(\s+|.)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, str, num, word, arrow] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (str) fill = "var(--s-amber)";
+    else if (num) fill = "var(--s-red)";
+    else if (arrow) fill = "var(--s-accent)";
+    else if (word)
+      fill = JS_KW.has(word)
+        ? "var(--s-blue)"
+        : JS_LIT.has(word)
+          ? "var(--s-red)"
+          : /^[A-Z]/.test(word)
+            ? "var(--s-violet)"
+            : undefined;
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
+}
+
+// Подсветка CSS: комментарии, строки, числа с единицами, #цвета, --переменные, @правила, имена свойств
+function cssTokens(src) {
+  const out = [];
+  const re =
+    /(\/\*.*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(#[0-9a-fA-F]{3,8}\b|-?\d*\.?\d+(?:px|rem|em|%|vh|vw|dvh|fr|s|ms|deg|ch)?)|(--[\w-]+)|(@[\w-]+)|([A-Za-z_-][\w-]*)(?=\s*:(?!:))|(\s+|.)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const [tok, com, str, num, cv, at, prop] = m;
+    let fill;
+    if (com) fill = "var(--s-muted)";
+    else if (str) fill = "var(--s-amber)";
+    else if (num) fill = "var(--s-red)";
+    else if (cv) fill = "var(--s-violet)";
+    else if (at) fill = "var(--s-accent)";
+    else if (prop) fill = "var(--s-blue)";
+    out.push(
+      fill ? (
+        <tspan key={out.length} style={{ fill }}>
+          {tok}
+        </tspan>
+      ) : (
+        tok
+      ),
+    );
+  }
+  return out;
+}
+
 const ARROW_OK = new Set(["m", "g", "y", "r", "b"]);
 const arrowId = (c) => `url(#a-hd-${ARROW_OK.has(c) ? c : "m"})`;
 
@@ -690,7 +808,13 @@ function Item({ it }) {
                     ? asmTokens(l)
                     : it.lang === "py"
                       ? pyTokens(l)
-                      : l}
+                      : it.lang === "sql"
+                        ? sqlTokens(l)
+                        : it.lang === "js"
+                          ? jsTokens(l)
+                          : it.lang === "css"
+                            ? cssTokens(l)
+                            : l}
             </text>
           </g>
         ))}
@@ -976,7 +1100,7 @@ export function scene({
         })}
       </Steps>
     );
-  };
+  }
 }
 
 function defaultCues(n) {

@@ -1,0 +1,241 @@
+// Слайды для «Современный Frontend», глава 11 — «Функциональное программирование: чистые функции, неизменяемость, композиция».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Js11.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Js11.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>СОВРЕМЕННЫЙ FRONTEND / ЯЗЫК JAVASCRIPT / ГЛАВА 11</span>
+      <span>{String(n).padStart(2, "0")} / 13</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"ФП в JavaScript"}
+      sub={"Глава 11 · Основной способ писать надёжный код"}
+      main={"Функции — значения; вокруг выросли библиотеки."}
+    >
+      <V01 cues={[14.1, 29.1]} />
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"Чистая функция"}
+      sub={"Ссылочная прозрачность"}
+      main={"Один результат для одних аргументов и никаких изменений снаружи."}
+    >
+      <V02 cues={[15.0, 31.1]} />
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"Эффекты на краях"}
+      sub={"Ядро и оболочка"}
+      main={"Время и случайность передают параметром."}
+    >
+      <V03 cues={[12.1, 27.3]} />
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Неизменяемость"}
+      sub={"Новое вместо правки"}
+      main={
+        "const — не неизменяемость; структурное разделение делает её дешёвой."
+      }
+    >
+      <V04 cues={[25.7, 45.5]} />
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Функции высшего порядка"}
+      sub={"map, filter, reduce"}
+      main={"Описывайте преобразование данных, а не обход."}
+    >
+      <V05 cues={[11.6, 27.2]} />
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"Композиция"}
+      sub={"compose, pipe, tap"}
+      main={"pipe читается слева направо."}
+    >
+      <V06 cues={[14.7, 29.5]} />
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"Карринг"}
+      sub={"Частичное применение"}
+      main={"Данные — последним аргументом."}
+    >
+      <V07 cues={[13.1, 33.1]} />
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"Рекурсия"}
+      sub={"Предел стека и батут"}
+      main={"Батут не наращивает стек."}
+    >
+      <V08 cues={[19.6, 29.2]} />
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"Maybe и Either"}
+      sub={"Типы-суммы"}
+      main={"Явные данные вместо null и исключений."}
+    >
+      <V09 cues={[13.5, 30.6]} />
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Функторы и монады"}
+      sub={"map и flatMap"}
+      main={"Цепочку «может не получиться» записывают плоско."}
+    >
+      <V10 cues={[15.0, 35.4]} />
+    </Slide>
+  );
+}
+
+function S11() {
+  return (
+    <Slide
+      n={11}
+      title={"Ленивость"}
+      sub={"Генераторы и итераторы"}
+      main={"Ленивый конвейер не создаёт промежуточных массивов."}
+    >
+      <V11 cues={[13.7, 27.4]} />
+    </Slide>
+  );
+}
+
+function S12() {
+  return (
+    <Slide
+      n={12}
+      title={"Архитектура приложения"}
+      sub={"Редьюсер и селекторы"}
+      main={"Состояние — свёртка действий."}
+    >
+      <V12 cues={[12.7, 28.6]} />
+    </Slide>
+  );
+}
+
+function S13() {
+  return (
+    <Slide
+      n={13}
+      title={"Итоги"}
+      sub={"Что дальше"}
+      main={"Дальше — готовые библиотеки ФП."}
+    >
+      <V13 cues={[16.3, 27.1]} />
+    </Slide>
+  );
+}
+
+export const SLIDES_J11 = {
+  "11:11": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_J11).
+export const SLIDE_TITLES_J11 = {
+  "11:11": [
+    "Введение",
+    "Чистота",
+    "Эффекты",
+    "Неизменяемость",
+    "map, reduce",
+    "Композиция",
+    "Карринг",
+    "Рекурсия",
+    "Maybe, Either",
+    "Функторы",
+    "Ленивость",
+    "Редьюсер",
+    "Итоги",
+  ],
+};

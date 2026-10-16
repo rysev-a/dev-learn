@@ -5,7 +5,7 @@
 """
 
 TASKS: dict[int, list[dict]] = {
-    24: [
+    33: [
         {
             "id": "top-words",
             "mode": "func",
@@ -172,7 +172,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "list(heapq.merge(*lists)).",
         },
     ],
-    25: [
+    34: [
         {
             "id": "lcm-all",
             "mode": "func",
@@ -341,7 +341,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": 'b = f"{n:b}"; return b, b.count("1").',
         },
     ],
-    26: [
+    35: [
         {
             "id": "days-between",
             "mode": "func",
@@ -504,7 +504,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "date_part, time_part, level, *_ = line.split(); datetime.fromisoformat(date_part + ' ' + time_part).isoformat().",
         },
     ],
-    27: [
+    36: [
         {
             "id": "is-phone",
             "mode": "func",
@@ -671,7 +671,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": r'(?P<date>\d{4}-\d\d-\d\d) (?P<time>[\d:]{8}) (?P<level>[A-Z]+) (?P<msg>.*); m.groupdict().',
         },
     ],
-    28: [
+    37: [
         {
             "id": "parse-cli-args",
             "mode": "func",
@@ -796,7 +796,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "n = 0; for line in stream: if line.strip(): n += 1.",
         },
     ],
-    29: [
+    38: [
         {
             "id": "point-dataclass",
             "mode": "stdout",
@@ -940,7 +940,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "result = copy.deepcopy(matrix); for row in result: for j in range(len(row)): row[j] = value.",
         },
     ],
-    30: [
+    39: [
         {
             "id": "tests-for-leap",
             "mode": "stdout",

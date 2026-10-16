@@ -1,49 +1,26 @@
-// Слайды для «Python как первый язык», глава 20 — «Функции высшего порядка».
-// Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
-// рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
-// Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
+// Слайды для «Python как первый язык», глава 20 — «Контейнеры, вызываемые объекты и менеджеры контекста».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Py20.jsx).
 
-const PY_KW = new Set([
-  "print", "for", "in", "not", "and", "or", "if", "else", "while", "is",
-  "True", "False", "None", "def", "return",
-]);
-
-// Крошечный токенизатор Python: комментарии, строки, числа, ключевые слова,
-// вызовы функций. Достаточно для слайдов.
-function pySpan(src) {
-  const out = [];
-  const re =
-    /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+|.)/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const [tok, com, str, num, word] = m;
-    if (com) out.push(<span key={out.length} className="rs-com">{tok}</span>);
-    else if (str) out.push(<span key={out.length} className="rs-str">{tok}</span>);
-    else if (num) out.push(<span key={out.length} className="rs-num">{tok}</span>);
-    else if (word) {
-      let cls = "";
-      if (PY_KW.has(word)) cls = "rs-kw";
-      else if (src[re.lastIndex] === "(") cls = "rs-fn";
-      out.push(
-        cls ? (
-          <span key={out.length} className={cls}>{word}</span>
-        ) : (
-          <span key={out.length}>{word}</span>
-        ),
-      );
-    } else out.push(<span key={out.length}>{tok}</span>);
-  }
-  return out;
-}
-
-function PyCode({ children }) {
-  return <pre className="rs-code">{pySpan(children)}</pre>;
-}
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Py20.jsx";
 
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ФУНКЦИОНАЛЬНОЕ ПРОГРАММИРОВАНИЕ / ГЛАВА 20</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / МОДЕЛЬ ДАННЫХ / ГЛАВА 20</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -67,43 +44,17 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
   return (
     <Slide
       n={1}
-      title={"Функции высшего порядка"}
-      sub={"Глава 20 · Функциональное программирование"}
-      main={"Функция — такое же значение, как число: её можно передать, сохранить и вернуть."}
+      title={"Протоколы контейнеров"}
+      sub={"len, [], in, for"}
+      main={"Несколько методов делают класс полноправным контейнером."}
     >
-      <div className="s-grid2">
-        {[["lambda x: x * 2", "Лямбда", "Анонимная функция из одного выражения"], ["map · filter", "Лениво", "Преобразовать и отобрать"], ["*args · **kwargs", "Звёздочки", "Любое число аргументов"], ["f(g(x))", "Композиция", "Новая функция из двух"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V01 cues={[17.7, 25.2]} />
     </Slide>
   );
 }
@@ -112,28 +63,13 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Функция — значение"}
-      sub={"Имя без скобок — сама функция"}
-      main={"Скобки решают всё: с ними функция вызывается, без них — передаётся."}
+      title={"Последовательность"}
+      sub={"__len__ и __getitem__"}
+      main={
+        "IndexError останавливает перебор; for, in и reversed заработают сами."
+      }
     >
-      <PyCode>{`f = print
-f("привет")
-
-def add(a, b):
-    return a + b
-
-def sub(a, b):
-    return a - b
-
-ops = {"+": add, "-": sub}
-print(ops["+"](2, 3), ops["-"](5, 1))
-
-def apply(func, x):
-    return func(x)
-
-print(apply(len, "привет"))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"привет\n5 4\n6"}</Cmd>
+      <V02 cues={[13.6, 24.5]} />
     </Slide>
   );
 }
@@ -142,17 +78,11 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Лямбда"}
-      sub={"lambda параметры: выражение"}
-      main={"Длинная лямбда — повод превратить её в функцию с именем."}
+      title={"Срезы"}
+      sub={"Объект slice"}
+      main={"Срез приходит в __getitem__ объектом slice."}
     >
-      <PyCode>{`double = lambda x: x * 2
-print(double(21))
-print((lambda a, b: a + b)(2, 3))
-print(sorted([3, 1, 2], key=lambda x: -x))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"42\n5\n[3, 2, 1]"}</Cmd>
-      <div className="s-note">{"return писать не нужно; в теле — одно выражение: без присваиваний и блоков."}</div>
+      <V03 cues={[10.1, 25.9]} />
     </Slide>
   );
 }
@@ -161,19 +91,11 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Лямбда и key"}
-      sub={"sorted, min и max принимают функцию-ключ"}
-      main={"Несколько признаков — кортеж в ключе: первый главный, второй решает ничьи."}
+      title={"Запись и удаление"}
+      sub={"__setitem__, __delitem__"}
+      main={"IndexError — для последовательностей, KeyError — для отображений."}
     >
-      <PyCode>{`words = ["ccc", "a", "bb"]
-print(sorted(words, key=lambda w: len(w)))
-users = [{"name": "Аня", "age": 31}, {"name": "Боря", "age": 25}]
-print(max(users, key=lambda u: u["age"])["name"])
-pairs = [("б", 2), ("а", 2), ("в", 1)]
-print(sorted(pairs, key=lambda p: (p[1], p[0])))
-print(max([], default="пусто"))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['a', 'bb', 'ccc']\nАня\n[('в', 1), ('а', 2), ('б', 2)]\nпусто"}</Cmd>
+      <V04 cues={[10.1, 26.2]} />
     </Slide>
   );
 }
@@ -182,18 +104,11 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"map"}
-      sub={"Применить функцию к каждому элементу — лениво"}
-      main={"map возвращает итератор: чтобы увидеть значения, обернуть в list или перебрать."}
+      title={"Проверка вхождения"}
+      sub={"__contains__"}
+      main={"Напишите __contains__, если вхождение дешевле перебора."}
     >
-      <PyCode>{`nums = [1, 2, 3]
-print(list(map(str, nums)))
-print(list(map(lambda x: x * 2, nums)))
-print(list(map(lambda a, b: a + b, [1, 2], [10, 20])))
-m = map(str, nums)
-print(type(m).__name__, list(m), list(m))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['1', '2', '3']\n[2, 4, 6]\n[11, 22]\nmap ['1', '2', '3'] []"}</Cmd>
+      <V05 cues={[14.1, 20.9]} />
     </Slide>
   );
 }
@@ -202,15 +117,11 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"filter"}
-      sub={"Оставить те, для которых функция истинна"}
-      main={"filter(None, данные) убирает «пустое»: нули, пустые строки и списки, None."}
+      title={"Кортеж как ключ"}
+      sub={"grid[x, y]"}
+      main={"Ключ в скобках — любой объект, в том числе кортеж."}
     >
-      <PyCode>{`print(list(filter(lambda x: x > 0, [-1, 2, -3, 4])))
-print(list(filter(None, [0, 1, "", "а", [], [0], None])))
-print(list(filter(str.isalpha, ["abc", "a1", "xyz"])))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[2, 4]\n[1, 'а', [0]]\n['abc', 'xyz']"}</Cmd>
+      <V06 cues={[13.6, 25.6]} />
     </Slide>
   );
 }
@@ -219,20 +130,11 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"map или генератор списка"}
-      sub={"Обычно читается лучше второе"}
-      main={"Готовая функция — map и filter; выражение с условиями — генератор списка."}
+      title={"Отображения"}
+      sub={"Mapping и MutableMapping"}
+      main={"Три метода — и остальное приходит бесплатно."}
     >
-      <PyCode>{`nums = [1, 2, 3, 4]
-print(list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums))))
-print([x * x for x in nums if x % 2 == 0])`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[4, 16]\n[4, 16]"}</Cmd>
-      <div className="s-cols">
-        <Node kind="" mono={true} title={"готовая функция"} sub={"map(int, строки)"} />
-        <Node kind="green" mono={true} title={"выражение с условием"} sub={"[x * x for x in a if ...]"} />
-        <Node kind="" mono={true} title={"один проход"} sub={"(x for x in a)"} />
-      </div>
+      <V07 cues={[16.0, 23.6]} />
     </Slide>
   );
 }
@@ -241,18 +143,11 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Свёртка"}
-      sub={"Отобрать, преобразовать — свернуть"}
-      main={"Для суммы и максимума берите встроенные; reduce — для редких свёрток."}
+      title={"Встроенные типы"}
+      sub={"UserDict и __missing__"}
+      main={"Для переопределений берите UserDict, а не dict."}
     >
-      <PyCode>{`from functools import reduce
-
-nums = [1, 2, 3, 4]
-print(sum(nums), max(nums))
-print(reduce(lambda acc, x: acc * x, nums, 1))
-print(reduce(lambda acc, x: acc + str(x), nums, ""))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"10 4\n24\n1234"}</Cmd>
+      <V08 cues={[13.0, 32.8]} />
     </Slide>
   );
 }
@@ -261,24 +156,11 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"*args и **kwargs"}
-      sub={"Собрать любое число аргументов — и раздать обратно"}
-      main={"Так пишутся универсальные обёртки, передающие всё дальше, не зная что именно."}
+      title={"__call__"}
+      sub={"Объект как функция"}
+      main={"Объект, в отличие от функции, помнит состояние."}
     >
-      <PyCode>{`def show(*args, **kwargs):
-    print(args, kwargs)
-
-show(1, 2, a=3)
-nums = [1, 2]
-opts = {"sep": "-"}
-print(*nums, **opts)
-
-def only_named(a, *, b):
-    return a + b
-
-print(only_named(1, b=2))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"(1, 2) {'a': 3}\n1-2\n3"}</Cmd>
+      <V09 cues={[14.8, 24.1]} />
     </Slide>
   );
 }
@@ -287,28 +169,11 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Чистые функции"}
-      sub={"Зависят только от аргументов и ничего не меняют"}
-      main={"Эффекты — на краях программы, чистое ядро — внутри. Не меняйте чужие аргументы."}
+      title={"Оператор with"}
+      sub={"__enter__ и __exit__"}
+      main={"Вход и выход выполняются парой; истина из __exit__ гасит ошибку."}
     >
-      <PyCode>{`def pure_add(items, x):
-    return items + [x]          # новый список
-
-def impure_add(items, x):
-    items.append(x)             # меняет аргумент
-
-a = [1]
-print(pure_add(a, 2), a)
-impure_add(a, 2)
-print(a)
-
-def bad(x, acc=[]):             # один список на все вызовы
-    acc.append(x)
-    return acc
-
-print(bad(1), bad(2))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 2] [1]\n[1, 2]\n[1, 2] [1, 2]"}</Cmd>
+      <V10 cues={[4.9, 15.6, 24.8]} />
     </Slide>
   );
 }
@@ -317,19 +182,11 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Композиция"}
-      sub={"Новая функция из двух"}
-      main={"Маленькие преобразования, собранные в конвейер, — и каждое можно заменить или переставить."}
+      title={"@contextmanager"}
+      sub={"Менеджер из генератора"}
+      main={"До yield — вход, после — выход; try/finally для ошибок."}
     >
-      <PyCode>{`def compose(f, g):
-    return lambda x: f(g(x))
-
-clean = compose(str.strip, str.lower)
-shout = compose(str.upper, str.strip)
-print(repr(clean("  ПрИвЕт ")))
-print(shout("  тихо  "))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"'привет'\nТИХО"}</Cmd>
+      <V11 cues={[11.0, 24.9]} />
     </Slide>
   );
 }
@@ -338,17 +195,11 @@ function S12() {
   return (
     <Slide
       n={12}
-      title={"Типичные ошибки"}
-      sub={"Лямбды в цикле и ленивые map"}
-      main={"Лямбда запоминает переменную, а не значение; map и filter возвращают итератор."}
+      title={"Всё вместе"}
+      sub={"Игровое поле"}
+      main={"Каждая возможность — несколько строк привычного синтаксиса."}
     >
-      <PyCode>{`funcs = [lambda: i for i in range(3)]
-print([f() for f in funcs])      # все видят последнее i
-funcs = [lambda i=i: i for i in range(3)]
-print([f() for f in funcs])
-print(len(map(str, [1, 2])))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[2, 2, 2]\n[0, 1, 2]\nTypeError: object of type 'map' has no len()"}</Cmd>
+      <V12 cues={[13.7, 25.1]} />
     </Slide>
   );
 }
@@ -357,59 +208,34 @@ function S13() {
   return (
     <Slide
       n={13}
-      title={"Итог"}
-      sub={"Глава 20 · Функциональное программирование"}
-      main={"Функции — значения; чистота лучше побочных эффектов; читаемость важнее краткости."}
+      title={"Итоги"}
+      sub={"Модель данных · часть третья"}
+      main={"Протоколы контейнера, вызова и контекста."}
     >
-      <div className="s-grid2">
-        {[["lambda", "Лямбда", "Одно выражение; главное место — key"], ["map · filter · reduce", "Три глагола", "Преобразовать, отобрать, свернуть"], ["*args · **kwargs", "Любые аргументы", "Собирают и раскладывают"], ["compose", "Композиция", "Конвейер из мелких функций"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
-      <div className="s-note">{"Дальше — замыкания и декораторы."}</div>
+      <V13 cues={[8.1, 14.4, 27.3]} />
     </Slide>
   );
 }
 
-// Реестр: «book:chapter» → список слайдов, по одному на абзац урока.
 export const SLIDES_P20 = {
-  "13:20": [
-    S01,
-    S02,
-    S03,
-    S04,
-    S05,
-    S06,
-    S07,
-    S08,
-    S09,
-    S10,
-    S11,
-    S12,
-    S13,
-  ],
+  "13:20": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
 };
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P20).
 export const SLIDE_TITLES_P20 = {
   "13:20": [
-    "Функции высшего порядка",
-    "Функция — значение",
-    "Лямбда",
-    "Лямбда и key",
-    "map",
-    "filter",
-    "map или генератор",
-    "Свёртка",
-    "*args и **kwargs",
-    "Чистые функции",
-    "Композиция",
-    "Типичные ошибки",
-    "Итог",
+    "Контейнеры",
+    "Последовательность",
+    "Срезы",
+    "Запись и удаление",
+    "in",
+    "Кортеж-ключ",
+    "Mapping",
+    "UserDict",
+    "call",
+    "with",
+    "contextmanager",
+    "Игровое поле",
+    "Итоги",
   ],
 };

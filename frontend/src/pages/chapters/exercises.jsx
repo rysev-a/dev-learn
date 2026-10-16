@@ -5,6 +5,8 @@ import Exercises from "../../components/Exercises.jsx";
 
 // Лаборатория (схемы, ассемблер) тяжёлая: грузится только на вкладке «Практика» нужных глав
 const LabPractice = lazy(() => import("../../components/LabPractice.jsx"));
+// Симулятор сети («Компьютерные сети») — тоже лаборатория, но со своим движком
+const NetPractice = lazy(() => import("../../components/NetPractice.jsx"));
 
 // Вкладка «Практика»: код-задачи в Docker (по одной, со списком слева);
 // у книги без кода — задачи с вводом ответа.
@@ -22,7 +24,9 @@ export default function ChapterExercises() {
   const navigate = useNavigate();
   const Practice =
     codeTasks.length > 0 && codeTasks.every((t) => t.mode === "lab")
-      ? LabPractice
+      ? String(bookId) === "15"
+        ? NetPractice
+        : LabPractice
       : CodePractice;
   if (codeTasks.length > 0)
     return (

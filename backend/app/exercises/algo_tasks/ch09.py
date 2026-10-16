@@ -1,1090 +1,1497 @@
 """Задачи книги «Алгоритмы и структуры данных»: глава 9."""
 
-from app.exercises.algo_tasks._kept import KEPT
-
-_NEW: dict[int, list[dict]] = {
-    9: [
-        {
-            "id": "bst-search",
-            "mode": "stdout",
-            "title": "Поиск в дереве поиска",
-            "statement": (
-                "Дан класс TreeNode и дерево поиска (слева меньшие, справа большие, "
-                "ключи различны). Напишите функцию search(root, val): True, если "
-                "ключ есть. Итеративно: проверка подаёт цепочку из 100 000 узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef search(root, val):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([5, 3, 8, 1, 4, 7, 9])\n"
-                "print(search(t, 4), search(t, 9), search(t, 6), search(None, 1), search(t, 5))\n"
-                "chain = chain_bst(100000)\n"
-                "print(search(chain, 99999), search(chain, 100000), search(chain, 0))\n"
-            ),
-            "expected": ["True True False False True", "True False True"],
-            "hint": "Пока root не пуст: равны — True; меньше — идём налево, больше — направо. Рекурсия не нужна.",
-        },
-        {
-            "id": "bst-min-max",
-            "mode": "stdout",
-            "title": "Наименьший и наибольший",
-            "statement": (
-                "Напишите функцию min_max(root): кортеж (наименьший ключ, "
-                "наибольший ключ) дерева поиска или None для пустого дерева. "
-                "Достаточно двух спусков: влево до конца и вправо до конца."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef min_max(root):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "print(min_max(bst_from([5, 3, 8, 1, 4, 7, 9])), min_max(None), min_max(TreeNode(4)), min_max(bst_from([3, 2, 1])))\n"
-                "print(min_max(bst_from(rnd(100000, 3))))\n"
-            ),
-            "expected": ["(1, 9) None (4, 4) (1, 3)", "(8749, 999992346)"],
-            "hint": "Минимум — самый левый узел, максимум — самый правый.",
-        },
-        {
-            "id": "bst-successor",
-            "mode": "stdout",
-            "title": "Следующий по величине",
-            "statement": (
-                "Напишите функцию successor(root, val): наименьший ключ дерева "
-                "поиска, строго больший val (val может быть и не в дереве), или "
-                "None. Один спуск от корня: при повороте налево запоминайте узел "
-                "как кандидата."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef successor(root, val):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([8, 3, 10, 1, 6, 14, 4, 7, 13])\n"
-                "print([successor(t, v) for v in (1, 4, 7, 8, 13, 14, 0, 5, 20)], successor(None, 1))\n"
-                "big = bst_from(rnd(100000, 9, 10**6))\n"
-                "s = inorder_list(big)\n"
-                "print(successor(big, s[50000]) == s[50001], successor(big, s[-1]), successor(big, -1) == s[0])\n"
-            ),
-            "expected": ["[3, 6, 8, 10, 14, None, 1, 6, None] None", "True None True"],
-            "hint": "best = None; пока есть узел: если val < узел.val — он кандидат, идём налево; иначе — направо.",
-        },
-        {
-            "id": "bst-kth",
-            "mode": "stdout",
-            "title": "k-й по величине",
-            "statement": (
-                "Напишите функцию kth_smallest(root, k): k-й по возрастанию ключ "
-                "дерева поиска (k считается с 1; гарантируется 1 ≤ k ≤ число "
-                "узлов). Итеративный центрированный обход с остановкой на k-м узле."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef kth_smallest(root, k):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([5, 3, 6, 2, 4, 1])\n"
-                "print([kth_smallest(t, k) for k in range(1, 7)], kth_smallest(TreeNode(7), 1))\n"
-                "chain = chain_bst(100000)\n"
-                "print(kth_smallest(chain, 100000), kth_smallest(chain, 1))\n"
-            ),
-            "expected": ["[1, 2, 3, 4, 5, 6] 7", "99999 0"],
-            "hint": "Центрированный обход со стеком; уменьшайте k при каждом снятии узла, и когда k стал 0 — это ответ.",
-        },
-        {
-            "id": "bst-floor-ceiling",
-            "mode": "stdout",
-            "title": "Пол и потолок",
-            "statement": (
-                "Напишите функцию floor_ceiling(root, x): кортеж (floor, ceil), где "
-                "floor — наибольший ключ ≤ x, ceil — наименьший ключ ≥ x; если "
-                "такого нет — None на его месте. Один спуск от корня."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef floor_ceiling(root, x):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([8, 3, 10, 1, 6, 14, 4, 7, 13])\n"
-                "print([floor_ceiling(t, x) for x in (0, 1, 5, 8, 9, 14, 15)], floor_ceiling(None, 3))\n"
-                "big = bst_from(rnd(100000, 4, 10**7))\n"
-                "s = inorder_list(big)\n"
-                "print(floor_ceiling(big, s[777] + 1)[0] >= s[777], floor_ceiling(big, -5), floor_ceiling(big, 10**8))\n"
-            ),
-            "expected": ["[(None, 1), (1, 1), (4, 6), (8, 8), (8, 10), (14, 14), (14, None)] (None, None)", "True (None, 22) (9999977, None)"],
-            "hint": "Если ключ узла < x — он кандидат на floor, идём направо; если > x — кандидат на ceil, идём налево; равный — оба равны x.",
-        },
-        {
-            "id": "bst-range-sum",
-            "mode": "stdout",
-            "title": "Сумма в диапазоне",
-            "statement": (
-                "Напишите функцию range_sum(root, lo, hi): сумма ключей дерева "
-                "поиска, попадающих в отрезок [lo, hi]. Отсекайте поддеревья, "
-                "которые заведомо вне диапазона: проверка считает обращения к "
-                "ключам и требует не больше нескольких сотен на дереве из 100 000 "
-                "узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef range_sum(root, lo, hi):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "class Spy(TreeNode):\n"
-                "    reads = 0\n"
-                "\n"
-                "    @property\n"
-                "    def val(self):\n"
-                "        Spy.reads += 1\n"
-                "        return self._v\n"
-                "\n"
-                "    @val.setter\n"
-                "    def val(self, v):\n"
-                "        self._v = v\n"
-                "\n"
-                "\n"
-                "def spy_balanced(a):\n"
-                "    def go(lo, hi):\n"
-                "        if lo > hi:\n"
-                "            return None\n"
-                "        m = (lo + hi) // 2\n"
-                "        n = Spy(a[m])\n"
-                "        n.left = go(lo, m - 1)\n"
-                "        n.right = go(m + 1, hi)\n"
-                "        return n\n"
-                "    return go(0, len(a) - 1)\n"
-                "\n"
-                "\n"
-                "t = bst_from([8, 3, 10, 1, 6, 14, 4, 7, 13])\n"
-                "print(range_sum(t, 4, 10), range_sum(t, 0, 100), range_sum(t, 15, 20), range_sum(None, 1, 2), range_sum(t, 6, 6))\n"
-                "a = list(range(0, 200000, 2))\n"
-                "big = spy_balanced(a)\n"
-                "Spy.reads = 0\n"
-                "s = range_sum(big, 50000, 50040)\n"
-                "print(s, Spy.reads < 400)\n"
-            ),
-            "expected": ["35 66 0 0 6", "1050420 True"],
-            "hint": "Левое поддерево имеет смысл только если ключ узла > lo, правое — если ключ < hi. Остальное пропускайте целиком.",
-        },
-        {
-            "id": "bst-lca",
-            "mode": "stdout",
-            "title": "Общий предок в дереве поиска",
-            "statement": (
-                "Напишите функцию lca_bst(root, p, q): ключ наименьшего общего "
-                "предка узлов с ключами p и q в дереве поиска (оба ключа есть в "
-                "дереве; узел — предок самого себя). Не нужен полный обход: "
-                "спускайтесь, пока p и q с одной стороны от узла."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef lca_bst(root, p, q):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([6, 2, 8, 0, 4, 7, 9, 3, 5])\n"
-                "print(lca_bst(t, 2, 8), lca_bst(t, 2, 4), lca_bst(t, 3, 5), lca_bst(t, 0, 5), lca_bst(t, 7, 9), lca_bst(t, 6, 6))\n"
-                "big = chain_bst(100000)\n"
-                "print(lca_bst(big, 5, 99999), lca_bst(big, 70000, 70001))\n"
-            ),
-            "expected": ["6 2 4 2 8 6", "5 70000"],
-            "hint": "Если оба ключа меньше узла — идём налево, оба больше — направо. Иначе узел разделяет их (или равен одному) — это ответ.",
-        },
-        {
-            "id": "sorted-to-bst",
-            "mode": "stdout",
-            "title": "Сбалансированное дерево из массива",
-            "statement": (
-                "Напишите функцию sorted_to_bst(a): из отсортированного списка "
-                "различных чисел постройте дерево поиска минимальной высоты и "
-                "верните корень. Корнем берите средний элемент, левое и правое "
-                "поддерево строятся из половин. Проверка подаёт 200 000 чисел и "
-                "смотрит высоту."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef sorted_to_bst(a):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "print(inorder_list(sorted_to_bst([1, 2, 3, 4, 5, 6, 7])), height(sorted_to_bst([1, 2, 3, 4, 5, 6, 7])), sorted_to_bst([]), height(sorted_to_bst([1])))\n"
-                "a = list(range(200000))\n"
-                "t = sorted_to_bst(a)\n"
-                "print(inorder_list(t) == a, height(t))\n"
-            ),
-            "expected": ["[1, 2, 3, 4, 5, 6, 7] 3 None 1", "True 18"],
-            "hint": "Рекурсивная функция go(lo, hi): если lo > hi — None; иначе m = (lo + hi) // 2, корень a[m], левое поддерево go(lo, m − 1), правое go(m + 1, hi).",
-        },
-        {
-            "id": "bst-trim",
-            "mode": "stdout",
-            "title": "Обрезка дерева поиска",
-            "statement": (
-                "Напишите функцию trim(root, lo, hi): оставьте в дереве поиска "
-                "только ключи из отрезка [lo, hi], сохранив относительную структуру "
-                "оставшихся узлов, и верните новый корень. Если узел меньше lo — "
-                "берём только его правое поддерево, больше hi — левое."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef trim(root, lo, hi):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([3, 0, 4, 2, 1])\n"
-                "print(inorder_list(trim(t, 1, 3)))\n"
-                "t = bst_from([3, 0, 4, 2, 1])\n"
-                "r = trim(t, 1, 3)\n"
-                "print(r.val, r.left.val, r.left.right.val if r.left.right else None)\n"
-                "print(trim(bst_from([5, 3, 8]), 9, 10), inorder_list(trim(bst_from([1, 2, 3]), 0, 100)), trim(None, 1, 2))\n"
-                "big = bst_from(rnd(100000, 12, 10**6))\n"
-                "r = trim(big, 200000, 700000)\n"
-                "v = inorder_list(r)\n"
-                "print(len(v) > 0, v[0] >= 200000, v[-1] <= 700000, v == sorted(v))\n"
-            ),
-            "expected": ["[1, 2, 3]", "3 2 None", "None [1, 2, 3] None", "True True True True"],
-            "hint": "Рекурсия: узел вне диапазона заменяется результатом для нужного поддерева; узел внутри — оставляем и обрезаем оба ребёнка.",
-        },
-        {
-            "id": "bst-iterator",
-            "mode": "stdout",
-            "title": "Итератор по дереву",
-            "statement": (
-                "Реализуйте класс BSTIterator(root): методы next() — следующий по "
-                "возрастанию ключ и has_next() — есть ли ещё. Память — O(высота): "
-                "держите стек пути, как в итеративном центрированном обходе. next() "
-                "вызывается только при has_next()."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\nclass BSTIterator:\n    def __init__(self, root):\n        pass\n\n    def next(self):\n        pass\n\n    def has_next(self):\n        pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([7, 3, 15, 9, 20])\n"
-                "it = BSTIterator(t)\n"
-                "out = []\n"
-                "while it.has_next():\n"
-                "    out.append(it.next())\n"
-                "print(out, BSTIterator(None).has_next())\n"
-                "big = bst_from(rnd(100000, 21, 10**7))\n"
-                "it = BSTIterator(big)\n"
-                "vals = []\n"
-                "while it.has_next():\n"
-                "    vals.append(it.next())\n"
-                "print(vals == inorder_list(big), len(vals))\n"
-            ),
-            "expected": ["[3, 7, 9, 15, 20] False", "True 100000"],
-            "hint": "В конструкторе спуститесь от корня налево, складывая узлы в стек. next(): снять узел, спуститься влево от его правого ребёнка, вернуть значение.",
-        },
-        {
-            "id": "bst-two-sum",
-            "mode": "stdout",
-            "title": "Пара с суммой в дереве",
-            "statement": (
-                "Напишите функцию find_target(root, k): есть ли в дереве поиска два "
-                "РАЗНЫХ узла, сумма ключей которых равна k. Решите двумя "
-                "итераторами навстречу (по возрастанию и по убыванию), как в задаче "
-                "с двумя указателями; память — O(высота). Проверка подаёт 100 000 "
-                "узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef find_target(root, k):\n    pass\n",
-            "driver": (
-                "def bst_from(vals):\n"
-                "    root = None\n"
-                "    for v in vals:\n"
-                "        n = TreeNode(v)\n"
-                "        if root is None:\n"
-                "            root = n\n"
-                "            continue\n"
-                "        cur = root\n"
-                "        while True:\n"
-                "            if v < cur.val:\n"
-                "                if cur.left is None:\n"
-                "                    cur.left = n\n"
-                "                    break\n"
-                "                cur = cur.left\n"
-                "            else:\n"
-                "                if cur.right is None:\n"
-                "                    cur.right = n\n"
-                "                    break\n"
-                "                cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def inorder_list(root):\n"
-                "    out, st, cur = [], [], root\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def height(root):\n"
-                "    h, cur = 0, [root] if root else []\n"
-                "    while cur:\n"
-                "        h += 1\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return h\n"
-                "\n"
-                "\n"
-                "def chain_bst(n):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        cur.right = TreeNode(i)\n"
-                "        cur = cur.right\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "def shuffled(n, seed):\n"
-                "    a = list(range(n))\n"
-                "    x = seed\n"
-                "    for i in range(n - 1, 0, -1):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        j = x % (i + 1)\n"
-                "        a[i], a[j] = a[j], a[i]\n"
-                "    return a\n"
-                "\n"
-                "\n"
-                "def rnd(n, seed, mod=10**9):\n"
-                "    x = seed\n"
-                "    out = []\n"
-                "    for _ in range(n):\n"
-                "        x = (x * 1103515245 + 12345) % 2147483648\n"
-                "        out.append(x % mod)\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "t = bst_from([5, 3, 6, 2, 4, 7])\n"
-                "print(find_target(t, 9), find_target(t, 28), find_target(TreeNode(2), 4), find_target(None, 0), find_target(t, 8))\n"
-                "vals = list(range(0, 200000, 2))\n"
-                "big = bst_from([vals[j] for j in shuffled(len(vals), 5)])\n"
-                "print(find_target(big, 199998), find_target(big, 199999), find_target(big, 4), find_target(big, 2))\n"
-            ),
-            "expected": ["True False False False True", "True False True True"],
-            "hint": "Два стека-итератора: левый идёт по возрастанию, правый — по убыванию. Сумма мала — двигаем левый, велика — правый; остановка, когда они сошлись на одном узле.",
-        },
-        {
-            "id": "bst-class",
-            "mode": "stdout",
-            "title": "Своё дерево поиска",
-            "statement": (
-                "Реализуйте класс BST: insert(x) (повтор игнорируется), "
-                "contains(x), delete(x) → True/False (все три случая: лист, один "
-                "ребёнок, два ребёнка через преемника), inorder() — список ключей, "
-                "height() — высота (пустое дерево — 0), len(t). Все операции кроме "
-                "inorder — итеративно. Проверка кладёт и удаляет по 100 000 ключей."
-            ),
-            "starter": "class Node:\n    def __init__(self, key):\n        self.key = key\n        self.left = None\n        self.right = None\n\n\nclass BST:\n    def __init__(self):\n        self.root = None\n        self._n = 0\n\n    def __len__(self):\n        return self._n\n\n    # insert, contains, delete, inorder, height\n",
-            "driver": (
-                "t = BST()\n"
-                "for x in (8, 3, 10, 1, 6, 14, 4, 7, 13, 6):\n"
-                "    t.insert(x)\n"
-                "print(t.inorder(), len(t), t.height(), t.contains(7), t.contains(5))\n"
-                "print(t.delete(7), t.delete(3), t.delete(8), t.delete(99), t.inorder(), len(t))\n"
-                "print(t.contains(3), t.contains(4), t.height())\n"
-                "while len(t):\n"
-                "    t.delete(t.root.key)\n"
-                "print(t.inorder(), t.height(), t.delete(1))\n"
-                "x = 17\n"
-                "keys = []\n"
-                "for _ in range(100000):\n"
-                "    x = (x * 1103515245 + 12345) % 2147483648\n"
-                "    keys.append(x % 10**6)\n"
-                "big = BST()\n"
-                "for k in keys:\n"
-                "    big.insert(k)\n"
-                "s = sorted(set(keys))\n"
-                "print(len(big) == len(s), big.inorder() == s, big.height() < 60)\n"
-                "for k in keys[::2]:\n"
-                "    big.delete(k)\n"
-                "left = sorted(set(keys) - set(keys[::2]))\n"
-                "print(len(big) == len(left), big.inorder() == left)\n"
-            ),
-            "expected": ["[1, 3, 4, 6, 7, 8, 10, 13, 14] 9 4 True False", "True True True False [1, 4, 6, 10, 13, 14] 6", "False True 3", "[] 0 False", "True True True", "True True"],
-            "hint": "В delete спуститесь к узлу, запомнив родителя. Два ребёнка: найдите преемника (минимум правого поддерева) с его родителем, скопируйте ключ и удаляйте преемника как узел максимум с одним ребёнком.",
-        },
-    ],
-}
-
-_BY_ID = {t["id"]: t for t in _NEW[9]} | KEPT
-
 TASKS: dict[int, list[dict]] = {
-    9: [_BY_ID[i] for i in (
-        "bst-search",
-        "tree-valid-bst",
-        "bst-insert",
-        "bst-min-max",
-        "bst-successor",
-        "bst-kth",
-        "bst-floor-ceiling",
-        "bst-range-sum",
-        "bst-lca",
-        "sorted-to-bst",
-        "bst-trim",
-        "bst-iterator",
-        "bst-two-sum",
-        "bst-class",
-    )],
+    9: [
+        {'id': 'num-gcd',
+         'mode': 'func',
+         'func': 'gcd',
+         'title': 'Наибольший общий делитель',
+         'statement': 'Напишите функцию gcd(a, b): наибольший общий делитель неотрицательных чисел '
+                      'алгоритмом Евклида. gcd(a, 0) = a. Числа в проверках достигают 10^30 — перебор '
+                      'делителей не уложится.',
+         'starter': 'def gcd(a, b):\n    pass\n',
+         'tests': [{'args': [48, 18], 'expected': 6},
+                   {'args': [0, 5], 'expected': 5},
+                   {'args': [17, 0], 'expected': 17},
+                   {'args': [0, 0], 'expected': 0},
+                   {'args': [7, 13], 'expected': 1},
+                   {'args': [1267650600228229401496703205376, 808281277464764060643139600456536293376],
+                    'expected': 1125899906842624},
+                   {'args': [498454011879264, 308061521170129], 'expected': 1},
+                   {'args': [1000000000000000000000000000001, 1000000000000000], 'expected': 1}],
+         'hint': 'Пока b не ноль, заменяйте пару (a, b) на (b, a % b).'},
+        {'id': 'num-lcm',
+         'mode': 'func',
+         'func': 'lcm_list',
+         'title': 'Наименьшее общее кратное списка',
+         'statement': 'Напишите функцию lcm_list(nums): наименьшее общее кратное всех положительных чисел '
+                      'списка. Для пустого списка — 1. Подсказка: lcm(a, b) = a / gcd(a, b) · b.',
+         'starter': 'def lcm_list(nums):\n    pass\n',
+         'tests': [{'args': [[4, 6]], 'expected': 12},
+                   {'args': [[]], 'expected': 1},
+                   {'args': [[7]], 'expected': 7},
+                   {'args': [[2, 3, 5, 7, 11, 13]], 'expected': 30030},
+                   {'args': [[12, 18, 24]], 'expected': 72},
+                   {'args': [[1000000007, 1000000009]], 'expected': 1000000016000000063},
+                   {'args': [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]],
+                    'expected': 232792560}],
+         'hint': 'Накапливайте результат: res = res // gcd(res, v) * v.'},
+        {'id': 'num-ext-gcd',
+         'mode': 'stdout',
+         'title': 'Расширенный алгоритм Евклида',
+         'statement': 'Напишите функцию ext_gcd(a, b): кортеж (g, x, y), где g — наибольший общий делитель '
+                      'неотрицательных a и b, а целые x и y удовлетворяют a·x + b·y = g. Подойдёт любая '
+                      'пара (x, y), проверка подставляет её в равенство.',
+         'starter': 'def ext_gcd(a, b):\n    pass\n',
+         'driver': 'import math\n'
+                   'pairs = [(30, 18), (18, 30), (7, 0), (0, 7), (240, 46), (10 ** 18 + 9, 10 ** 9 + 7), '
+                   '(2 ** 89 - 1, 3 ** 40), (1, 1), (0, 0), (35, 15)]\n'
+                   'bad = []\n'
+                   'for a, b in pairs:\n'
+                   '    r = ext_gcd(a, b)\n'
+                   '    if not (isinstance(r, tuple) and len(r) == 3):\n'
+                   '        bad.append((a, b, "не кортеж из трёх чисел"))\n'
+                   '        continue\n'
+                   '    g, x, y = r\n'
+                   '    if g != math.gcd(a, b) or a * x + b * y != g:\n'
+                   '        bad.append((a, b))\n'
+                   'print("ошибки:", bad)\n',
+         'expected': ['ошибки: []'],
+         'hint': "Рекурсивно: (g, x, y) = ext_gcd(b, a % b), затем x' = y, y' = x − (a // b)·y."},
+        {'id': 'num-mod-inverse',
+         'mode': 'func',
+         'func': 'mod_inverse',
+         'title': 'Обратный по модулю',
+         'statement': 'Напишите функцию mod_inverse(a, m): такое x от 0 до m − 1, что a·x ≡ 1 (mod m), или '
+                      '-1, если обратного нет (a и m не взаимно просты). Модуль m ≥ 2, не обязательно '
+                      'простой.',
+         'starter': 'def mod_inverse(a, m):\n    pass\n',
+         'tests': [{'args': [3, 7], 'expected': 5},
+                   {'args': [10, 17], 'expected': 12},
+                   {'args': [2, 4], 'expected': -1},
+                   {'args': [1, 2], 'expected': 1},
+                   {'args': [123456789, 1000000007], 'expected': 18633540},
+                   {'args': [6, 9], 'expected': -1},
+                   {'args': [-3, 7], 'expected': 2},
+                   {'args': [14, 15], 'expected': 14},
+                   {'args': [999999999999, 1000000000039], 'expected': 975000000038}],
+         'hint': 'Ведите коэффициенты при a вместе с остатками — это итеративный расширенный Евклид.'},
+        {'id': 'num-pow-mod',
+         'mode': 'func',
+         'func': 'power_mod',
+         'title': 'Быстрое возведение в степень по модулю',
+         'statement': 'Напишите функцию power_mod(b, e, m): b в степени e по модулю m (m ≥ 1, e ≥ 0). '
+                      'Показатель может быть порядка 10^18 — нужно порядка log e умножений. Без '
+                      'встроенного pow с тремя аргументами.',
+         'starter': 'def power_mod(b, e, m):\n    pass\n',
+         'tests': [{'args': [2, 10, 1000], 'expected': 24},
+                   {'args': [3, 13, 1000000007], 'expected': 1594323},
+                   {'args': [5, 0, 7], 'expected': 1},
+                   {'args': [7, 1, 1], 'expected': 0},
+                   {'args': [2, 1000000000000000000, 1000000007], 'expected': 719476260},
+                   {'args': [123456789, 987654321987654321, 998244353], 'expected': 89607075},
+                   {'args': [0, 0, 5], 'expected': 1},
+                   {'args': [10, 1000000000000000001, 1000000000039], 'expected': 906917793724}],
+         'hint': 'Идите по двоичным разрядам e: если разряд единица — умножайте результат на текущую '
+                 'степень b; затем возводите b в квадрат.'},
+        {'id': 'num-fib-mod',
+         'mode': 'func',
+         'func': 'fib_mod',
+         'title': 'Число Фибоначчи за логарифм',
+         'statement': 'Напишите функцию fib_mod(n, m): n-е число Фибоначчи по модулю m (F(0) = 0, F(1) = '
+                      '1). n бывает порядка 10^18, поэтому нужна быстрая степень матрицы или формулы '
+                      'удвоения.',
+         'starter': 'def fib_mod(n, m):\n    pass\n',
+         'tests': [{'args': [0, 10], 'expected': 0},
+                   {'args': [1, 10], 'expected': 1},
+                   {'args': [10, 1000], 'expected': 55},
+                   {'args': [50, 1000000007], 'expected': 586268941},
+                   {'args': [1000000000000000000, 1000000007], 'expected': 209783453},
+                   {'args': [1000000000000000000, 1000], 'expected': 875},
+                   {'args': [90, 1000000000000000000000000000000], 'expected': 2880067194370816120},
+                   {'args': [2, 1], 'expected': 0}],
+         'hint': 'Возведите матрицу [[1, 1], [1, 0]] в степень n по модулю m; число Фибоначчи — элемент в '
+                 'углу.'},
+        {'id': 'num-is-prime',
+         'mode': 'func',
+         'func': 'is_prime',
+         'title': 'Проверка на простоту',
+         'statement': 'Напишите функцию is_prime(n): True, если n простое (n ≥ 0; 0 и 1 — не простые). '
+                      'Числа в проверках достигают 10^12, поэтому делители ищите только до корня из n.',
+         'starter': 'def is_prime(n):\n    pass\n',
+         'tests': [{'args': [0], 'expected': False},
+                   {'args': [1], 'expected': False},
+                   {'args': [2], 'expected': True},
+                   {'args': [3], 'expected': True},
+                   {'args': [4], 'expected': False},
+                   {'args': [91], 'expected': False},
+                   {'args': [97], 'expected': True},
+                   {'args': [999999999989], 'expected': True},
+                   {'args': [1000000000039], 'expected': True},
+                   {'args': [1000000000037], 'expected': False},
+                   {'args': [2147483647], 'expected': True},
+                   {'args': [999985999949], 'expected': False}],
+         'hint': 'Проверьте двойку отдельно, затем делители 3, 5, 7, … пока d · d ≤ n.'},
+        {'id': 'num-sieve',
+         'mode': 'stdout',
+         'title': 'Решето Эратосфена',
+         'statement': 'Напишите функцию primes_upto(n): список всех простых чисел от 2 до n включительно. '
+                      'Проверка просит все простые до пяти миллионов — пробное деление не уложится в лимит '
+                      'времени.',
+         'starter': 'def primes_upto(n):\n    pass\n',
+         'driver': 'print(primes_upto(30), primes_upto(1), primes_upto(2))\n'
+                   'p = primes_upto(5000000)\n'
+                   'print(len(p), p[-1], sum(p[:100]))\n',
+         'expected': ['[2, 3, 5, 7, 11, 13, 17, 19, 23, 29] [] [2]', '348513 4999999 24133'],
+         'hint': 'Заведите массив отметок; для каждого неотмеченного i с i·i ≤ n отметьте i·i, i·i + i, … '
+                 '(срезом это быстрее).'},
+        {'id': 'num-goldbach',
+         'mode': 'func',
+         'func': 'goldbach',
+         'title': 'Разбиение Гольдбаха',
+         'statement': 'Напишите функцию goldbach(n): для чётного n ≥ 4 верните наименьшее простое p, при '
+                      'котором n − p тоже простое (например, для 28 это 5, потому что 23 простое). '
+                      'Проверки доходят до 10^6.',
+         'starter': 'def goldbach(n):\n    pass\n',
+         'tests': [{'args': [4], 'expected': 2},
+                   {'args': [6], 'expected': 3},
+                   {'args': [28], 'expected': 5},
+                   {'args': [100], 'expected': 3},
+                   {'args': [1000], 'expected': 3},
+                   {'args': [1000000], 'expected': 17},
+                   {'args': [999998], 'expected': 19},
+                   {'args': [98], 'expected': 19}],
+         'hint': 'Постройте решето до n и найдите первое простое p, для которого n − p тоже отмечено '
+                 'простым.'},
+        {'id': 'num-factorize',
+         'mode': 'func',
+         'func': 'factorize',
+         'title': 'Разложение на простые множители',
+         'statement': 'Напишите функцию factorize(n): разложение n ≥ 1 на простые множители — список '
+                      'кортежей (простое, степень) по возрастанию простых. Для 1 — пустой список; '
+                      'например, factorize(12) = [(2, 2), (3, 1)]. Числа достигают 10^12: делите пробно до '
+                      'корня.',
+         'starter': 'def factorize(n):\n    pass\n',
+         'tests': [{'args': [1], 'expected': []},
+                   {'args': [12], 'expected': [(2, 2), (3, 1)]},
+                   {'args': [97], 'expected': [(97, 1)]},
+                   {'args': [600851475143], 'expected': [(71, 1), (839, 1), (1471, 1), (6857, 1)]},
+                   {'args': [1000000000000], 'expected': [(2, 12), (5, 12)]},
+                   {'args': [999999999989], 'expected': [(999999999989, 1)]},
+                   {'args': [2147483647], 'expected': [(2147483647, 1)]},
+                   {'args': [8633], 'expected': [(89, 1), (97, 1)]},
+                   {'args': [720720], 'expected': [(2, 4), (3, 2), (5, 1), (7, 1), (11, 1), (13, 1)]},
+                   {'args': [1099511627776], 'expected': [(2, 40)]}],
+         'hint': 'Делите на d, пока делится, записывая степень; после цикла остаток больше 1 — это простой '
+                 'множитель.'},
+        {'id': 'num-spf',
+         'mode': 'stdout',
+         'title': 'Разложение через таблицу делителей',
+         'statement': 'Напишите класс Factorizer: конструктор Factorizer(limit) строит таблицу наименьших '
+                      'простых делителей до limit, метод factor(n) (2 ≤ n ≤ limit) возвращает список '
+                      'кортежей (простое, степень) по возрастанию. Проверка: таблица до трёх миллионов и '
+                      'триста тысяч запросов — пробное деление не успеет.',
+         'starter': 'class Factorizer:\n'
+                    '    def __init__(self, limit):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def factor(self, n):\n'
+                    '        pass\n',
+         'driver': 'def nxt(x):\n'
+                   '    x ^= (x << 13) & 0xFFFFFFFF\n'
+                   '    x ^= x >> 17\n'
+                   '    x ^= (x << 5) & 0xFFFFFFFF\n'
+                   '    return x\n'
+                   'f = Factorizer(3000000)\n'
+                   'print(f.factor(84), f.factor(97), f.factor(2 ** 20), f.factor(2999999))\n'
+                   'N = 3000000\n'
+                   's = bytearray([1]) * (N + 1)\n'
+                   's[0] = s[1] = 0\n'
+                   'for i in range(2, 1733):\n'
+                   '    if s[i]:\n'
+                   '        s[i * i :: i] = bytearray(len(range(i * i, N + 1, i)))\n'
+                   'primes = [i for i in range(2000000, N + 1) if s[i]]\n'
+                   'x = 2024\n'
+                   'total = 0\n'
+                   'distinct = 0\n'
+                   'for q in range(300000):\n'
+                   '    x = nxt(x)\n'
+                   '    n = primes[x % len(primes)] if q % 2 else 2 + x % 2999999\n'
+                   '    r = f.factor(n)\n'
+                   '    distinct += len(r)\n'
+                   '    total += sum(e for _, e in r)\n'
+                   'print(distinct, total)\n',
+         'expected': ['[(2, 2), (3, 1), (7, 1)] [(97, 1)] [(2, 20)] [(2999999, 1)]', '590231 705430'],
+         'hint': 'Решето: spf[j] = i для составных j, которые ещё не получили делитель; factor делит n на '
+                 'spf[n], пока n > 1.'},
+        {'id': 'num-divisor-count',
+         'mode': 'func',
+         'func': 'divisor_count',
+         'title': 'Количество делителей',
+         'statement': 'Напишите функцию divisor_count(n): сколько натуральных делителей у n ≥ 1 (включая 1 '
+                      'и n). Числа достигают 10^12: раскладывайте на простые и перемножайте (степень + 1).',
+         'starter': 'def divisor_count(n):\n    pass\n',
+         'tests': [{'args': [1], 'expected': 1},
+                   {'args': [36], 'expected': 9},
+                   {'args': [97], 'expected': 2},
+                   {'args': [1000000000000], 'expected': 169},
+                   {'args': [963761198400], 'expected': 6720},
+                   {'args': [1099511627776], 'expected': 41},
+                   {'args': [999999999989], 'expected': 2},
+                   {'args': [720720], 'expected': 240}],
+         'hint': 'Разложите n: ответ — произведение (e + 1) по всем простым множителям.'},
+        {'id': 'num-euler-phi',
+         'mode': 'func',
+         'func': 'euler_phi',
+         'title': 'Функция Эйлера',
+         'statement': 'Напишите функцию euler_phi(n): сколько чисел от 1 до n взаимно просты с n (φ(1) = '
+                      '1). Для n = p₁ᵉ¹ · … ответ равен n · ∏(1 − 1/p). Числа достигают 10^12.',
+         'starter': 'def euler_phi(n):\n    pass\n',
+         'tests': [{'args': [1], 'expected': 1},
+                   {'args': [2], 'expected': 1},
+                   {'args': [9], 'expected': 6},
+                   {'args': [10], 'expected': 4},
+                   {'args': [36], 'expected': 12},
+                   {'args': [97], 'expected': 96},
+                   {'args': [1000000000000], 'expected': 400000000000},
+                   {'args': [999999999989], 'expected': 999999999988},
+                   {'args': [720720], 'expected': 138240},
+                   {'args': [1099511627776], 'expected': 549755813888}],
+         'hint': 'Для каждого простого делителя p выполните result -= result // p, после чего выделите p '
+                 'из n целиком.'},
+        {'id': 'num-binom',
+         'mode': 'stdout',
+         'title': 'Биномиальные коэффициенты по модулю',
+         'statement': 'Напишите класс Binom: конструктор Binom(limit, p) (p простое, p > limit) готовит '
+                      'факториалы и обратные факториалы по модулю p; метод c(n, k) возвращает C(n, k) mod '
+                      'p за O(1) (0, если k < 0 или k > n). Проверка: limit = 10^6 и триста тысяч '
+                      'запросов.',
+         'starter': 'class Binom:\n'
+                    '    def __init__(self, limit, p):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def c(self, n, k):\n'
+                    '        pass\n',
+         'driver': 'def nxt(x):\n'
+                   '    x ^= (x << 13) & 0xFFFFFFFF\n'
+                   '    x ^= x >> 17\n'
+                   '    x ^= (x << 5) & 0xFFFFFFFF\n'
+                   '    return x\n'
+                   'P = 10 ** 9 + 7\n'
+                   'b = Binom(1000000, P)\n'
+                   'print(b.c(5, 2), b.c(10, 0), b.c(10, 11), b.c(10, 10), b.c(1000000, 500000))\n'
+                   'x = 31337\n'
+                   'total = 0\n'
+                   'for _ in range(300000):\n'
+                   '    x = nxt(x)\n'
+                   '    n = x % 1000001\n'
+                   '    x = nxt(x)\n'
+                   '    k = x % (n + 1)\n'
+                   '    total = (total + b.c(n, k)) % P\n'
+                   'print(total)\n',
+         'expected': ['10 1 0 1 996692777', '960654159'],
+         'hint': 'f[n] = n! mod p; обратный к f[limit] — степень p − 2, остальные: inv[i − 1] = inv[i] · '
+                 'i.'},
+        {'id': 'num-pow2',
+         'mode': 'func',
+         'func': 'is_power_of_two',
+         'title': 'Степень двойки',
+         'statement': 'Напишите функцию is_power_of_two(x): True, если x — степень двойки (1, 2, 4, 8, …). '
+                      'Нуль и отрицательные числа — False. Без циклов и без логарифмов: одним битовым '
+                      'выражением.',
+         'starter': 'def is_power_of_two(x):\n    pass\n',
+         'tests': [{'args': [1], 'expected': True},
+                   {'args': [2], 'expected': True},
+                   {'args': [3], 'expected': False},
+                   {'args': [0], 'expected': False},
+                   {'args': [-4], 'expected': False},
+                   {'args': [1024], 'expected': True},
+                   {'args': [1267650600228229401496703205376], 'expected': True},
+                   {'args': [1267650600228229401496703205377], 'expected': False},
+                   {'args': [6], 'expected': False}],
+         'hint': 'У степени двойки единственная единица в двоичной записи: x & (x − 1) сбрасывает её и '
+                 'даёт 0.'},
+        {'id': 'num-popcount',
+         'mode': 'func',
+         'func': 'popcount',
+         'title': 'Число единиц в двоичной записи',
+         'statement': 'Напишите функцию popcount(x): сколько единиц в двоичной записи неотрицательного x. '
+                      'Цикл должен выполняться столько раз, сколько в числе единиц: используйте x & (x − '
+                      '1). Без bin(), count и bit_count.',
+         'starter': 'def popcount(x):\n    pass\n',
+         'tests': [{'args': [0], 'expected': 0},
+                   {'args': [1], 'expected': 1},
+                   {'args': [44], 'expected': 3},
+                   {'args': [255], 'expected': 8},
+                   {'args': [1606938044258990275541962092341162602522202993782792835301375],
+                    'expected': 200},
+                   {'args': [10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376],
+                    'expected': 1},
+                   {'args': [18446744078004518913], 'expected': 3},
+                   {'args': [12345678901234567890], 'expected': 32}],
+         'hint': 'Пока x не ноль, сбрасывайте младшую единицу и увеличивайте счётчик.'},
+        {'id': 'num-gray',
+         'mode': 'func',
+         'func': 'gray_code',
+         'title': 'Код Грея',
+         'statement': 'Напишите функцию gray_code(n): список из 2ⁿ чисел — кодов Грея длины n в порядке '
+                      'номеров, где соседние коды отличаются ровно одним битом. Формула: i ^ (i >> 1). Для '
+                      'n = 0 — [0].',
+         'starter': 'def gray_code(n):\n    pass\n',
+         'tests': [{'args': [0], 'expected': [0]},
+                   {'args': [1], 'expected': [0, 1]},
+                   {'args': [2], 'expected': [0, 1, 3, 2]},
+                   {'args': [3], 'expected': [0, 1, 3, 2, 6, 7, 5, 4]},
+                   {'args': [4], 'expected': [0, 1, 3, 2, 6, 7, 5, 4, 12, 13, 15, 14, 10, 11, 9, 8]},
+                   {'args': [10],
+                    'expected': [0,
+                                 1,
+                                 3,
+                                 2,
+                                 6,
+                                 7,
+                                 5,
+                                 4,
+                                 12,
+                                 13,
+                                 15,
+                                 14,
+                                 10,
+                                 11,
+                                 9,
+                                 8,
+                                 24,
+                                 25,
+                                 27,
+                                 26,
+                                 30,
+                                 31,
+                                 29,
+                                 28,
+                                 20,
+                                 21,
+                                 23,
+                                 22,
+                                 18,
+                                 19,
+                                 17,
+                                 16,
+                                 48,
+                                 49,
+                                 51,
+                                 50,
+                                 54,
+                                 55,
+                                 53,
+                                 52,
+                                 60,
+                                 61,
+                                 63,
+                                 62,
+                                 58,
+                                 59,
+                                 57,
+                                 56,
+                                 40,
+                                 41,
+                                 43,
+                                 42,
+                                 46,
+                                 47,
+                                 45,
+                                 44,
+                                 36,
+                                 37,
+                                 39,
+                                 38,
+                                 34,
+                                 35,
+                                 33,
+                                 32,
+                                 96,
+                                 97,
+                                 99,
+                                 98,
+                                 102,
+                                 103,
+                                 101,
+                                 100,
+                                 108,
+                                 109,
+                                 111,
+                                 110,
+                                 106,
+                                 107,
+                                 105,
+                                 104,
+                                 120,
+                                 121,
+                                 123,
+                                 122,
+                                 126,
+                                 127,
+                                 125,
+                                 124,
+                                 116,
+                                 117,
+                                 119,
+                                 118,
+                                 114,
+                                 115,
+                                 113,
+                                 112,
+                                 80,
+                                 81,
+                                 83,
+                                 82,
+                                 86,
+                                 87,
+                                 85,
+                                 84,
+                                 92,
+                                 93,
+                                 95,
+                                 94,
+                                 90,
+                                 91,
+                                 89,
+                                 88,
+                                 72,
+                                 73,
+                                 75,
+                                 74,
+                                 78,
+                                 79,
+                                 77,
+                                 76,
+                                 68,
+                                 69,
+                                 71,
+                                 70,
+                                 66,
+                                 67,
+                                 65,
+                                 64,
+                                 192,
+                                 193,
+                                 195,
+                                 194,
+                                 198,
+                                 199,
+                                 197,
+                                 196,
+                                 204,
+                                 205,
+                                 207,
+                                 206,
+                                 202,
+                                 203,
+                                 201,
+                                 200,
+                                 216,
+                                 217,
+                                 219,
+                                 218,
+                                 222,
+                                 223,
+                                 221,
+                                 220,
+                                 212,
+                                 213,
+                                 215,
+                                 214,
+                                 210,
+                                 211,
+                                 209,
+                                 208,
+                                 240,
+                                 241,
+                                 243,
+                                 242,
+                                 246,
+                                 247,
+                                 245,
+                                 244,
+                                 252,
+                                 253,
+                                 255,
+                                 254,
+                                 250,
+                                 251,
+                                 249,
+                                 248,
+                                 232,
+                                 233,
+                                 235,
+                                 234,
+                                 238,
+                                 239,
+                                 237,
+                                 236,
+                                 228,
+                                 229,
+                                 231,
+                                 230,
+                                 226,
+                                 227,
+                                 225,
+                                 224,
+                                 160,
+                                 161,
+                                 163,
+                                 162,
+                                 166,
+                                 167,
+                                 165,
+                                 164,
+                                 172,
+                                 173,
+                                 175,
+                                 174,
+                                 170,
+                                 171,
+                                 169,
+                                 168,
+                                 184,
+                                 185,
+                                 187,
+                                 186,
+                                 190,
+                                 191,
+                                 189,
+                                 188,
+                                 180,
+                                 181,
+                                 183,
+                                 182,
+                                 178,
+                                 179,
+                                 177,
+                                 176,
+                                 144,
+                                 145,
+                                 147,
+                                 146,
+                                 150,
+                                 151,
+                                 149,
+                                 148,
+                                 156,
+                                 157,
+                                 159,
+                                 158,
+                                 154,
+                                 155,
+                                 153,
+                                 152,
+                                 136,
+                                 137,
+                                 139,
+                                 138,
+                                 142,
+                                 143,
+                                 141,
+                                 140,
+                                 132,
+                                 133,
+                                 135,
+                                 134,
+                                 130,
+                                 131,
+                                 129,
+                                 128,
+                                 384,
+                                 385,
+                                 387,
+                                 386,
+                                 390,
+                                 391,
+                                 389,
+                                 388,
+                                 396,
+                                 397,
+                                 399,
+                                 398,
+                                 394,
+                                 395,
+                                 393,
+                                 392,
+                                 408,
+                                 409,
+                                 411,
+                                 410,
+                                 414,
+                                 415,
+                                 413,
+                                 412,
+                                 404,
+                                 405,
+                                 407,
+                                 406,
+                                 402,
+                                 403,
+                                 401,
+                                 400,
+                                 432,
+                                 433,
+                                 435,
+                                 434,
+                                 438,
+                                 439,
+                                 437,
+                                 436,
+                                 444,
+                                 445,
+                                 447,
+                                 446,
+                                 442,
+                                 443,
+                                 441,
+                                 440,
+                                 424,
+                                 425,
+                                 427,
+                                 426,
+                                 430,
+                                 431,
+                                 429,
+                                 428,
+                                 420,
+                                 421,
+                                 423,
+                                 422,
+                                 418,
+                                 419,
+                                 417,
+                                 416,
+                                 480,
+                                 481,
+                                 483,
+                                 482,
+                                 486,
+                                 487,
+                                 485,
+                                 484,
+                                 492,
+                                 493,
+                                 495,
+                                 494,
+                                 490,
+                                 491,
+                                 489,
+                                 488,
+                                 504,
+                                 505,
+                                 507,
+                                 506,
+                                 510,
+                                 511,
+                                 509,
+                                 508,
+                                 500,
+                                 501,
+                                 503,
+                                 502,
+                                 498,
+                                 499,
+                                 497,
+                                 496,
+                                 464,
+                                 465,
+                                 467,
+                                 466,
+                                 470,
+                                 471,
+                                 469,
+                                 468,
+                                 476,
+                                 477,
+                                 479,
+                                 478,
+                                 474,
+                                 475,
+                                 473,
+                                 472,
+                                 456,
+                                 457,
+                                 459,
+                                 458,
+                                 462,
+                                 463,
+                                 461,
+                                 460,
+                                 452,
+                                 453,
+                                 455,
+                                 454,
+                                 450,
+                                 451,
+                                 449,
+                                 448,
+                                 320,
+                                 321,
+                                 323,
+                                 322,
+                                 326,
+                                 327,
+                                 325,
+                                 324,
+                                 332,
+                                 333,
+                                 335,
+                                 334,
+                                 330,
+                                 331,
+                                 329,
+                                 328,
+                                 344,
+                                 345,
+                                 347,
+                                 346,
+                                 350,
+                                 351,
+                                 349,
+                                 348,
+                                 340,
+                                 341,
+                                 343,
+                                 342,
+                                 338,
+                                 339,
+                                 337,
+                                 336,
+                                 368,
+                                 369,
+                                 371,
+                                 370,
+                                 374,
+                                 375,
+                                 373,
+                                 372,
+                                 380,
+                                 381,
+                                 383,
+                                 382,
+                                 378,
+                                 379,
+                                 377,
+                                 376,
+                                 360,
+                                 361,
+                                 363,
+                                 362,
+                                 366,
+                                 367,
+                                 365,
+                                 364,
+                                 356,
+                                 357,
+                                 359,
+                                 358,
+                                 354,
+                                 355,
+                                 353,
+                                 352,
+                                 288,
+                                 289,
+                                 291,
+                                 290,
+                                 294,
+                                 295,
+                                 293,
+                                 292,
+                                 300,
+                                 301,
+                                 303,
+                                 302,
+                                 298,
+                                 299,
+                                 297,
+                                 296,
+                                 312,
+                                 313,
+                                 315,
+                                 314,
+                                 318,
+                                 319,
+                                 317,
+                                 316,
+                                 308,
+                                 309,
+                                 311,
+                                 310,
+                                 306,
+                                 307,
+                                 305,
+                                 304,
+                                 272,
+                                 273,
+                                 275,
+                                 274,
+                                 278,
+                                 279,
+                                 277,
+                                 276,
+                                 284,
+                                 285,
+                                 287,
+                                 286,
+                                 282,
+                                 283,
+                                 281,
+                                 280,
+                                 264,
+                                 265,
+                                 267,
+                                 266,
+                                 270,
+                                 271,
+                                 269,
+                                 268,
+                                 260,
+                                 261,
+                                 263,
+                                 262,
+                                 258,
+                                 259,
+                                 257,
+                                 256,
+                                 768,
+                                 769,
+                                 771,
+                                 770,
+                                 774,
+                                 775,
+                                 773,
+                                 772,
+                                 780,
+                                 781,
+                                 783,
+                                 782,
+                                 778,
+                                 779,
+                                 777,
+                                 776,
+                                 792,
+                                 793,
+                                 795,
+                                 794,
+                                 798,
+                                 799,
+                                 797,
+                                 796,
+                                 788,
+                                 789,
+                                 791,
+                                 790,
+                                 786,
+                                 787,
+                                 785,
+                                 784,
+                                 816,
+                                 817,
+                                 819,
+                                 818,
+                                 822,
+                                 823,
+                                 821,
+                                 820,
+                                 828,
+                                 829,
+                                 831,
+                                 830,
+                                 826,
+                                 827,
+                                 825,
+                                 824,
+                                 808,
+                                 809,
+                                 811,
+                                 810,
+                                 814,
+                                 815,
+                                 813,
+                                 812,
+                                 804,
+                                 805,
+                                 807,
+                                 806,
+                                 802,
+                                 803,
+                                 801,
+                                 800,
+                                 864,
+                                 865,
+                                 867,
+                                 866,
+                                 870,
+                                 871,
+                                 869,
+                                 868,
+                                 876,
+                                 877,
+                                 879,
+                                 878,
+                                 874,
+                                 875,
+                                 873,
+                                 872,
+                                 888,
+                                 889,
+                                 891,
+                                 890,
+                                 894,
+                                 895,
+                                 893,
+                                 892,
+                                 884,
+                                 885,
+                                 887,
+                                 886,
+                                 882,
+                                 883,
+                                 881,
+                                 880,
+                                 848,
+                                 849,
+                                 851,
+                                 850,
+                                 854,
+                                 855,
+                                 853,
+                                 852,
+                                 860,
+                                 861,
+                                 863,
+                                 862,
+                                 858,
+                                 859,
+                                 857,
+                                 856,
+                                 840,
+                                 841,
+                                 843,
+                                 842,
+                                 846,
+                                 847,
+                                 845,
+                                 844,
+                                 836,
+                                 837,
+                                 839,
+                                 838,
+                                 834,
+                                 835,
+                                 833,
+                                 832,
+                                 960,
+                                 961,
+                                 963,
+                                 962,
+                                 966,
+                                 967,
+                                 965,
+                                 964,
+                                 972,
+                                 973,
+                                 975,
+                                 974,
+                                 970,
+                                 971,
+                                 969,
+                                 968,
+                                 984,
+                                 985,
+                                 987,
+                                 986,
+                                 990,
+                                 991,
+                                 989,
+                                 988,
+                                 980,
+                                 981,
+                                 983,
+                                 982,
+                                 978,
+                                 979,
+                                 977,
+                                 976,
+                                 1008,
+                                 1009,
+                                 1011,
+                                 1010,
+                                 1014,
+                                 1015,
+                                 1013,
+                                 1012,
+                                 1020,
+                                 1021,
+                                 1023,
+                                 1022,
+                                 1018,
+                                 1019,
+                                 1017,
+                                 1016,
+                                 1000,
+                                 1001,
+                                 1003,
+                                 1002,
+                                 1006,
+                                 1007,
+                                 1005,
+                                 1004,
+                                 996,
+                                 997,
+                                 999,
+                                 998,
+                                 994,
+                                 995,
+                                 993,
+                                 992,
+                                 928,
+                                 929,
+                                 931,
+                                 930,
+                                 934,
+                                 935,
+                                 933,
+                                 932,
+                                 940,
+                                 941,
+                                 943,
+                                 942,
+                                 938,
+                                 939,
+                                 937,
+                                 936,
+                                 952,
+                                 953,
+                                 955,
+                                 954,
+                                 958,
+                                 959,
+                                 957,
+                                 956,
+                                 948,
+                                 949,
+                                 951,
+                                 950,
+                                 946,
+                                 947,
+                                 945,
+                                 944,
+                                 912,
+                                 913,
+                                 915,
+                                 914,
+                                 918,
+                                 919,
+                                 917,
+                                 916,
+                                 924,
+                                 925,
+                                 927,
+                                 926,
+                                 922,
+                                 923,
+                                 921,
+                                 920,
+                                 904,
+                                 905,
+                                 907,
+                                 906,
+                                 910,
+                                 911,
+                                 909,
+                                 908,
+                                 900,
+                                 901,
+                                 903,
+                                 902,
+                                 898,
+                                 899,
+                                 897,
+                                 896,
+                                 640,
+                                 641,
+                                 643,
+                                 642,
+                                 646,
+                                 647,
+                                 645,
+                                 644,
+                                 652,
+                                 653,
+                                 655,
+                                 654,
+                                 650,
+                                 651,
+                                 649,
+                                 648,
+                                 664,
+                                 665,
+                                 667,
+                                 666,
+                                 670,
+                                 671,
+                                 669,
+                                 668,
+                                 660,
+                                 661,
+                                 663,
+                                 662,
+                                 658,
+                                 659,
+                                 657,
+                                 656,
+                                 688,
+                                 689,
+                                 691,
+                                 690,
+                                 694,
+                                 695,
+                                 693,
+                                 692,
+                                 700,
+                                 701,
+                                 703,
+                                 702,
+                                 698,
+                                 699,
+                                 697,
+                                 696,
+                                 680,
+                                 681,
+                                 683,
+                                 682,
+                                 686,
+                                 687,
+                                 685,
+                                 684,
+                                 676,
+                                 677,
+                                 679,
+                                 678,
+                                 674,
+                                 675,
+                                 673,
+                                 672,
+                                 736,
+                                 737,
+                                 739,
+                                 738,
+                                 742,
+                                 743,
+                                 741,
+                                 740,
+                                 748,
+                                 749,
+                                 751,
+                                 750,
+                                 746,
+                                 747,
+                                 745,
+                                 744,
+                                 760,
+                                 761,
+                                 763,
+                                 762,
+                                 766,
+                                 767,
+                                 765,
+                                 764,
+                                 756,
+                                 757,
+                                 759,
+                                 758,
+                                 754,
+                                 755,
+                                 753,
+                                 752,
+                                 720,
+                                 721,
+                                 723,
+                                 722,
+                                 726,
+                                 727,
+                                 725,
+                                 724,
+                                 732,
+                                 733,
+                                 735,
+                                 734,
+                                 730,
+                                 731,
+                                 729,
+                                 728,
+                                 712,
+                                 713,
+                                 715,
+                                 714,
+                                 718,
+                                 719,
+                                 717,
+                                 716,
+                                 708,
+                                 709,
+                                 711,
+                                 710,
+                                 706,
+                                 707,
+                                 705,
+                                 704,
+                                 576,
+                                 577,
+                                 579,
+                                 578,
+                                 582,
+                                 583,
+                                 581,
+                                 580,
+                                 588,
+                                 589,
+                                 591,
+                                 590,
+                                 586,
+                                 587,
+                                 585,
+                                 584,
+                                 600,
+                                 601,
+                                 603,
+                                 602,
+                                 606,
+                                 607,
+                                 605,
+                                 604,
+                                 596,
+                                 597,
+                                 599,
+                                 598,
+                                 594,
+                                 595,
+                                 593,
+                                 592,
+                                 624,
+                                 625,
+                                 627,
+                                 626,
+                                 630,
+                                 631,
+                                 629,
+                                 628,
+                                 636,
+                                 637,
+                                 639,
+                                 638,
+                                 634,
+                                 635,
+                                 633,
+                                 632,
+                                 616,
+                                 617,
+                                 619,
+                                 618,
+                                 622,
+                                 623,
+                                 621,
+                                 620,
+                                 612,
+                                 613,
+                                 615,
+                                 614,
+                                 610,
+                                 611,
+                                 609,
+                                 608,
+                                 544,
+                                 545,
+                                 547,
+                                 546,
+                                 550,
+                                 551,
+                                 549,
+                                 548,
+                                 556,
+                                 557,
+                                 559,
+                                 558,
+                                 554,
+                                 555,
+                                 553,
+                                 552,
+                                 568,
+                                 569,
+                                 571,
+                                 570,
+                                 574,
+                                 575,
+                                 573,
+                                 572,
+                                 564,
+                                 565,
+                                 567,
+                                 566,
+                                 562,
+                                 563,
+                                 561,
+                                 560,
+                                 528,
+                                 529,
+                                 531,
+                                 530,
+                                 534,
+                                 535,
+                                 533,
+                                 532,
+                                 540,
+                                 541,
+                                 543,
+                                 542,
+                                 538,
+                                 539,
+                                 537,
+                                 536,
+                                 520,
+                                 521,
+                                 523,
+                                 522,
+                                 526,
+                                 527,
+                                 525,
+                                 524,
+                                 516,
+                                 517,
+                                 519,
+                                 518,
+                                 514,
+                                 515,
+                                 513,
+                                 512]}],
+         'hint': 'Код с номером i равен i XOR (i >> 1).'},
+        {'id': 'num-subsets',
+         'mode': 'func',
+         'func': 'all_subsets',
+         'title': 'Все подмножества масками',
+         'statement': 'Напишите функцию all_subsets(items): список всех подмножеств списка (каждое — '
+                      'список) в порядке масок 0, 1, …, 2ⁿ − 1; бит с номером i маски означает, что в '
+                      'подмножество входит items[i]; элементы внутри подмножества идут в порядке индексов. '
+                      'Для [1, 2] — [[], [1], [2], [1, 2]].',
+         'starter': 'def all_subsets(items):\n    pass\n',
+         'tests': [{'args': [[1, 2]], 'expected': [[], [1], [2], [1, 2]]},
+                   {'args': [[]], 'expected': [[]]},
+                   {'args': [['a', 'b', 'c']],
+                    'expected': [[],
+                                 ['a'],
+                                 ['b'],
+                                 ['a', 'b'],
+                                 ['c'],
+                                 ['a', 'c'],
+                                 ['b', 'c'],
+                                 ['a', 'b', 'c']]},
+                   {'args': [[5]], 'expected': [[], [5]]},
+                   {'args': [[3, 1, 2, 4]],
+                    'expected': [[],
+                                 [3],
+                                 [1],
+                                 [3, 1],
+                                 [2],
+                                 [3, 2],
+                                 [1, 2],
+                                 [3, 1, 2],
+                                 [4],
+                                 [3, 4],
+                                 [1, 4],
+                                 [3, 1, 4],
+                                 [2, 4],
+                                 [3, 2, 4],
+                                 [1, 2, 4],
+                                 [3, 1, 2, 4]]}],
+         'hint': 'Для каждой маски от 0 до 2ⁿ − 1 соберите элементы, чьи биты включены.'},
+        {'id': 'num-single-number',
+         'mode': 'stdout',
+         'title': 'Единственное непарное число',
+         'statement': 'Напишите функцию single_number(nums): в списке каждое число встречается дважды, '
+                      'кроме одного; верните это число. Время — линейное, память — константа. Словари, '
+                      'множества, sorted, count и index запрещены: проверка подаёт два миллиона чисел.',
+         'starter': 'def single_number(nums):\n    pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'count', 'index'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif False and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   "    elif isinstance(_n, _ast.Name) and _n.id in {'set', 'sorted', 'dict', 'Counter', "
+                   "'defaultdict', 'frozenset'}:\n"
+                   '        _bad.add(_n.id)\n'
+                   "    elif type(_n).__name__ in {'Set', 'DictComp', 'SetComp', 'Dict'}:\n"
+                   '        _bad.add("словари и множества")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    print(single_number([4, 1, 2, 1, 2]), single_number([7]), single_number([-3, 5, '
+                   '5]))\n'
+                   '    x = 7\n'
+                   '    a = []\n'
+                   '    def nxt(x):\n'
+                   '        x ^= (x << 13) & 0xFFFFFFFF\n'
+                   '        x ^= x >> 17\n'
+                   '        x ^= (x << 5) & 0xFFFFFFFF\n'
+                   '        return x\n'
+                   '    for i in range(1000000):\n'
+                   '        x = nxt(x)\n'
+                   '        a.append(x)\n'
+                   '    a.append(123456789012)\n'
+                   '    a = a + a[:-1]\n'
+                   '    a = a[1:] + a[:1]\n'
+                   '    print(single_number(a))\n',
+         'expected': ['4 7 -3', '123456789012'],
+         'hint': 'Исключающее или: a ^ a = 0, a ^ 0 = a — пары сократятся, останется одно число.'},
+        {'id': 'num-tsp',
+         'mode': 'func',
+         'func': 'tsp',
+         'title': 'Коммивояжёр динамикой по маскам',
+         'statement': 'Напишите функцию tsp(dist): dist — квадратная матрица расстояний между n городами '
+                      '(dist[i][j] — путь из i в j, может быть несимметричной). Верните длину кратчайшего '
+                      'цикла, который начинается и заканчивается в городе 0 и посещает каждый город ровно '
+                      'один раз; для одного города — 0. Городов до 13: перебор всех перестановок не '
+                      'уложится, нужна динамика dp[маска][последний город].',
+         'starter': 'def tsp(dist):\n    pass\n',
+         'tests': [{'args': [[[0]]], 'expected': 0},
+                   {'args': [[[0, 5], [7, 0]]], 'expected': 12},
+                   {'args': [[[0, 2, 9, 10, 7],
+                              [1, 0, 6, 4, 3],
+                              [15, 7, 0, 8, 3],
+                              [6, 3, 12, 0, 11],
+                              [9, 7, 5, 6, 0]]],
+                    'expected': 22},
+                   {'args': [[[0, 1, 9], [9, 0, 1], [1, 9, 0]]], 'expected': 3},
+                   {'args': [[[0, 80, 33, 95, 46, 89, 95, 84, 68, 4, 60, 32, 84],
+                              [7, 0, 21, 15, 48, 61, 32, 49, 70, 14, 74, 32, 2],
+                              [94, 28, 0, 53, 36, 24, 99, 50, 21, 98, 10, 18, 80],
+                              [80, 57, 17, 0, 17, 1, 1, 27, 28, 22, 22, 38, 41],
+                              [26, 70, 87, 81, 0, 27, 24, 89, 26, 50, 39, 3, 47],
+                              [54, 22, 19, 34, 9, 0, 43, 39, 78, 76, 1, 77, 87],
+                              [91, 44, 9, 40, 46, 40, 0, 62, 90, 41, 24, 62, 61],
+                              [91, 23, 8, 33, 3, 96, 46, 0, 52, 3, 71, 54, 47],
+                              [49, 75, 2, 58, 6, 91, 24, 80, 0, 26, 16, 97, 32],
+                              [60, 45, 66, 46, 68, 33, 60, 14, 76, 0, 96, 48, 38],
+                              [5, 56, 12, 27, 44, 66, 79, 47, 19, 44, 0, 36, 90],
+                              [70, 12, 40, 88, 41, 40, 23, 11, 81, 20, 93, 0, 89],
+                              [40, 62, 21, 93, 7, 11, 77, 69, 52, 5, 31, 95, 0]]],
+                    'expected': 122}],
+         'hint': 'dp[mask][v] — длина кратчайшего пути из 0 через города маски, заканчивающегося в v; '
+                 'переходы — в ещё не посещённый город.'},
+    ],
 }

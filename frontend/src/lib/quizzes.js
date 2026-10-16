@@ -9,6 +9,7 @@ import { LINUX_QUIZZES } from "../quizzes/linux.js";
 import { PY_QUIZZES } from "../quizzes/py.js";
 import { RUST_QUIZZES } from "../quizzes/rust.js";
 import { C_QUIZZES } from "../quizzes/c.js";
+import { NET_QUIZZES } from "../quizzes/networks.js";
 import { VIRT_QUIZZES } from "../quizzes/virtualization.js";
 
 export const QUIZZES = {
@@ -18,6 +19,7 @@ export const QUIZZES = {
   ...DB_QUIZZES,
   ...RUST_QUIZZES,
   ...C_QUIZZES,
+  ...NET_QUIZZES,
   ...VIRT_QUIZZES,
   ...JS_QUIZZES,
   ...DM_QUIZZES,

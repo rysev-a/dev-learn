@@ -14,7 +14,7 @@ import { useProgress } from "../../lib/progress.jsx";
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 
 // прогресс одной главы: слайды, вопросы, упражнения (сделано / всего)
-function chapterStats(progress, bookId, ch, codeCounts) {
+export function chapterStats(progress, bookId, ch, codeCounts) {
   const key = `${bookId}:${ch.num}`;
   const slidesTotal = (SLIDES[key] || []).length;
   const quiz = QUIZZES[key];

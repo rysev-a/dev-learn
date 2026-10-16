@@ -1,6 +1,7 @@
 // Глобальный аудиоплеер: одно приложение — одно играющее аудио.
 // Живёт в контексте, чтобы любая страница могла управлять воспроизведением.
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { VirtualClock, estimateSeconds } from "./voice.js";
 
 const PlayerContext = createContext(null);
 
@@ -38,7 +39,10 @@ export function PlayerProvider({ children }) {
   function startItem(item) {
     currentItemRef.current = item;
     setCurrent(item);
-    const audio = new Audio(item.url);
+    // без файла озвучки абзац «читается» по виртуальным часам (см. lib/voice.js)
+    const audio = item.url
+      ? new Audio(item.url)
+      : new VirtualClock(item.est || estimateSeconds(item.text));
     audioRef.current = audio;
     setPlayingId(item.id);
     setPaused(false);
@@ -49,7 +53,8 @@ export function PlayerProvider({ children }) {
         d: audio.duration || 0,
       });
     audio.onended = audio.onerror = playNext;
-    audio.play();
+    const started = audio.play();
+    if (started?.catch) started.catch(() => {});
   }
 
   function playNext() {

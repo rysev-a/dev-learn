@@ -3109,3 +3109,598 @@ h2 {
 html {
   scrollbar-gutter: stable;
 }
+
+/* ---------- корень раздела: карточки тем ---------- */
+
+.topics-sec {
+  margin-bottom: 26px;
+}
+
+.topics-title {
+  margin-bottom: 10px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--s-muted);
+}
+
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.topic-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--s-panel);
+  border: 1px solid var(--s-border);
+  border-radius: 12px;
+  color: var(--s-text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.topic-card:hover {
+  border-color: var(--s-accent);
+  transform: translateY(-1px);
+}
+
+.topic-num {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--s-accent);
+}
+
+.topic-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.topic-meta {
+  font-size: 11px;
+  color: var(--s-muted);
+}
+
+.topic-prog {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.topic-pct {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  color: var(--s-muted);
+}
+
+/* ---------- текст озвучки: окно снизу (пока звука нет, абзац «читается» по таймеру) ---------- */
+
+.voice-pop {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, calc(100vw - 2rem));
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  background: var(--s-panel);
+  border: 1px solid var(--s-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 0.7rem 1.1rem;
+  z-index: 1090;
+}
+
+.voice-pop-tag {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s-accent);
+  padding-top: 3px;
+}
+
+.voice-pop-text {
+  margin: 0;
+  max-height: 6.6em;
+  overflow-y: auto;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--s-text);
+  scrollbar-width: thin;
+}
+
+.voice-pop-text .past {
+  opacity: 0.55;
+}
+
+.voice-pop-text .next {
+  opacity: 0.9;
+}
+
+.voice-pop-text .now {
+  color: var(--s-accent);
+  font-weight: 600;
+}
+
+/* плеер встаёт над окном текста, а содержимое страниц не прячется под ними */
+body:has(.voice-pop) .np-card {
+  bottom: calc(1rem + var(--voice-h, 7.4rem) + 0.6rem);
+}
+
+body:has(.voice-pop) .content {
+  padding-bottom: 9rem;
+}
+
+body:has(.voice-pop) .slide-fs {
+  padding-bottom: 150px;
+}
+
+body:has(.voice-pop):has(.np-card) .slide-fs {
+  padding-bottom: 270px;
+}
+
+@media (max-width: 768px) {
+  .voice-pop {
+    bottom: 0.5rem;
+  }
+}
+
+/* ───── SQL-упражнения: виджет «База данных» (ERD и данные) и сравнение результатов ───── */
+.sx {
+  margin: 4px 0 10px;
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  background: var(--s-panel);
+  overflow: hidden;
+}
+
+.sx-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px 6px 10px;
+}
+
+.sx-fold {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--s-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sx-fold em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--s-muted);
+  font-size: 11.5px;
+}
+
+.sx-chev {
+  display: inline-block;
+  color: var(--s-muted);
+  transition: transform 0.15s;
+}
+
+.sx-chev.on {
+  transform: rotate(90deg);
+}
+
+.sx-seg {
+  display: inline-flex;
+  border: 1px solid var(--s-border);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.sx-seg button {
+  padding: 3px 11px;
+  border: 0;
+  background: transparent;
+  color: var(--s-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sx-seg button + button {
+  border-left: 1px solid var(--s-border);
+}
+
+.sx-seg button.on {
+  background: var(--s-accent);
+  color: var(--s-bg);
+}
+
+.sx-erd {
+  padding: 4px 10px 8px;
+  border-top: 1px solid var(--s-border);
+  background: var(--s-bg);
+  overflow: auto;
+}
+
+.sx-erd svg {
+  display: block;
+  touch-action: none;
+  user-select: none;
+}
+
+.sx-tbl {
+  cursor: grab;
+}
+
+.sx-tbl:active {
+  cursor: grabbing;
+}
+
+.sx-frame {
+  fill: var(--s-panel);
+  stroke: var(--s-border);
+  stroke-width: 1.2;
+}
+
+.sx-head {
+  fill: var(--s-panel2);
+}
+
+.sx-tbl.on .sx-frame,
+.sx-tbl.linked .sx-frame {
+  stroke: var(--s-accent);
+  stroke-width: 1.6;
+}
+
+.sx-tbl.view .sx-frame {
+  stroke-dasharray: 4 3;
+}
+
+.sx-name {
+  fill: var(--s-text);
+  font: 700 11.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sx-count {
+  fill: var(--s-muted);
+  font: 400 10px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sx-col {
+  fill: var(--s-text);
+  font: 400 11px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sx-type {
+  fill: var(--s-muted);
+  font: 400 9.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sx-key {
+  font: 700 8.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+g.pk .sx-key {
+  fill: var(--s-amber);
+}
+
+g.pk .sx-col {
+  font-weight: 700;
+}
+
+g.fk .sx-key {
+  fill: var(--s-blue);
+}
+
+.sx-rel path {
+  stroke: var(--s-muted);
+  stroke-width: 1.3;
+  opacity: 0.7;
+}
+
+.sx-rel.on path {
+  stroke: var(--s-accent);
+  stroke-width: 2;
+  opacity: 1;
+}
+
+.sx-card {
+  fill: var(--s-muted);
+  font: 700 9.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sx-rel.on .sx-card {
+  fill: var(--s-accent);
+}
+
+.sx-erd-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+  color: var(--s-muted);
+  font-size: 11px;
+}
+
+.sx-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--s-accent);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.sx-data {
+  border-top: 1px solid var(--s-border);
+}
+
+.sx-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px 0;
+}
+
+.sx-tab {
+  padding: 4px 10px;
+  border: 1px solid var(--s-border);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: transparent;
+  color: var(--s-muted);
+  font: 600 11.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  cursor: pointer;
+}
+
+.sx-tab em {
+  margin-left: 6px;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.sx-tab.on {
+  background: var(--s-bg);
+  color: var(--s-text);
+}
+
+.sx-scroll {
+  max-height: 260px;
+  overflow: auto;
+  background: var(--s-bg);
+  border-top: 1px solid var(--s-border);
+}
+
+.sx-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 11.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sx-grid th {
+  position: sticky;
+  top: 0;
+  padding: 5px 10px;
+  text-align: left;
+  white-space: nowrap;
+  background: var(--s-panel2);
+  color: var(--s-text);
+  border-bottom: 1px solid var(--s-border);
+}
+
+.sx-grid th b {
+  margin-right: 5px;
+  font-size: 8.5px;
+  color: var(--s-amber);
+}
+
+.sx-grid th.fk b {
+  color: var(--s-blue);
+}
+
+.sx-grid th small {
+  margin-left: 6px;
+  font-weight: 400;
+  font-size: 9.5px;
+  color: var(--s-muted);
+}
+
+.sx-grid td {
+  padding: 3px 10px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--s-border);
+  color: var(--s-text);
+}
+
+.sx-grid tr:last-child td {
+  border-bottom: 0;
+}
+
+.sx-num {
+  display: block;
+  text-align: right;
+}
+
+.sx-null {
+  color: var(--s-muted);
+  font-size: 10.5px;
+}
+
+.sx-empty {
+  color: var(--s-muted);
+  text-align: center;
+}
+
+.sx-more {
+  margin: 0;
+  padding: 4px 10px 6px;
+  color: var(--s-muted);
+  font-size: 11px;
+  background: var(--s-bg);
+}
+
+/* сравнение результата с эталоном */
+.sd {
+  margin-top: 6px;
+}
+
+.sd-sum {
+  margin: 0 0 6px;
+  color: var(--s-amber);
+  font-size: 12px;
+}
+
+.sd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .sd-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sd-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.sd-count {
+  color: var(--s-muted);
+  font-size: 11px;
+}
+
+.sd-side.exp .sd-scroll {
+  border-color: var(--s-accent-a45);
+}
+
+.sd-scroll {
+  max-height: 260px;
+  overflow: auto;
+  background: var(--s-bg);
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+}
+
+.sd-t {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 11.5px "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.sd-t th,
+.sd-t td {
+  padding: 3px 9px;
+  white-space: nowrap;
+  text-align: left;
+  border-bottom: 1px solid var(--s-border);
+  color: var(--s-text);
+}
+
+.sd-t th {
+  position: sticky;
+  top: 0;
+  background: var(--s-panel2);
+}
+
+.sd-t .num {
+  text-align: right;
+}
+
+.sd-t .sd-n {
+  width: 1%;
+  color: var(--s-muted);
+  font-size: 10px;
+  text-align: right;
+}
+
+.sd-t tr:last-child td {
+  border-bottom: 0;
+}
+
+.sd-t td.extra,
+.sd-t th.extra {
+  background: color-mix(in srgb, var(--s-red) 24%, transparent);
+  color: var(--s-red);
+  font-weight: 700;
+}
+
+.sd-t td.missing,
+.sd-t th.missing {
+  background: color-mix(in srgb, var(--s-amber) 26%, transparent);
+  color: var(--s-amber);
+  font-weight: 700;
+}
+
+.sd-t tr.sd-extra td:first-child {
+  box-shadow: inset 3px 0 0 var(--s-red);
+}
+
+.sd-t tr.sd-missing td:first-child {
+  box-shadow: inset 3px 0 0 var(--s-amber);
+}
+
+.sd-empty {
+  color: var(--s-muted);
+  text-align: center;
+}
+
+.sd-more {
+  margin: 3px 0 0;
+  color: var(--s-muted);
+  font-size: 11px;
+}
+
+.sd-legend {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  color: var(--s-muted);
+  font-size: 11.5px;
+}
+
+.sd-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.sd-key.extra {
+  background: var(--s-red);
+}
+
+.sd-key.missing {
+  background: var(--s-amber);
+}
+
+.sd-note {
+  flex-basis: 100%;
+}

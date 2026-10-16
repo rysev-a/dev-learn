@@ -1,4 +1,4 @@
-// Слайды для «Python как первый язык», глава 33 — «asyncio на практике: сеть, структура, тесты, веб».
+// Слайды для «Python как первый язык», глава 33 — «Коллекции: collections, heapq, bisect».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / АСИНХРОННОСТЬ / ГЛАВА 33</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / СТАНДАРТНАЯ БИБЛИОТЕКА / ГЛАВА 33</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -90,12 +90,12 @@ function S01() {
   return (
     <Slide
       n={1}
-      title={"asyncio на практике"}
-      sub={"Глава 33 · Асинхронность"}
-      main={"Асинхронность родилась ради сети: большую часть времени программа ждёт чужие ответы."}
+      title={"Коллекции"}
+      sub={"Глава 33 · Стандартная библиотека"}
+      main={"Специализированные контейнеры поверх встроенных: меньше кода, меньше ошибок."}
     >
       <div className="s-grid2">
-        {[["streams", "Сеть", "start_server, open_connection"], ["TaskGroup · Event", "Каркас", "main(), корректная остановка"], ["retry · timeout", "Устойчивость", "Повторы с растущей задержкой"], ["IsolatedAsyncioTestCase", "Тесты", "Корутины на настоящем цикле"]].map(([big, t, d]) => (
+        {[["Counter", "Подсчёт", "Частоты и most_common"], ["defaultdict · deque", "Группы и очереди", "Значение по умолчанию; быстрые концы"], ["namedtuple", "Записи", "Неизменяемые, с именами полей"], ["heapq · bisect", "Порядок", "Куча и двоичный поиск"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -112,16 +112,19 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Потоки ввода-вывода"}
-      sub={"Читатель и писатель"}
-      main={"Один поток обслуживает тысячи клиентов: пока обработчик ждёт данных, цикл занят другими."}
+      title={"Counter"}
+      sub={"Словарь для подсчёта"}
+      main={"Нет ключа — ноль, а не ошибка; most_common сразу отдаёт самые частые."}
     >
-      <div className="s-cols">
-        <Node kind="" mono={true} title={"await asyncio.open_connection(host, port)"} sub={"клиент: (reader, writer)"} />
-        <Node kind="green" mono={true} title={"await asyncio.start_server(handler, host, port)"} sub={"сервер: handler(reader, writer) на каждое подключение"} />
-        <Node kind="" mono={true} title={"await reader.readline() · writer.write(...) · await writer.drain()"} sub={"чтение, запись, ожидание отправки"} />
-      </div>
-      <div className="s-note">{"Готовые веб-клиенты (aiohttp, httpx) построены на тех же принципах: пулы соединений и таймауты."}</div>
+      <PyCode>{`from collections import Counter
+
+c = Counter("абракадабра")
+print(c)
+print(c.most_common(2))
+print(c["я"], c["а"])
+print(Counter("аб") + Counter("бв"))`}</PyCode>
+      <div className="s-label">НА ЭКРАНЕ</div>
+      <Cmd>{"Counter({'а': 5, 'б': 2, 'р': 2, 'к': 1, 'д': 1})\n[('а', 5), ('б', 2)]\n0 5\nCounter({'б': 2, 'а': 1, 'в': 1})"}</Cmd>
     </Slide>
   );
 }
@@ -130,33 +133,24 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Эхо-сервер"}
-      sub={"Сервер и клиент в одной программе"}
-      main={"Порт 0 — «любой свободный»: удобно для примеров и тестов."}
+      title={"Counter на практике"}
+      sub={"Частоты, анаграммы, хватит ли букв"}
+      main={"Счётчик берёт на себя цикл, словарь и проверку ключа — остаётся суть задачи."}
     >
-      <PyCode>{`import asyncio
+      <PyCode>{`from collections import Counter
 
-async def handle(reader, writer):
-    line = await reader.readline()
-    writer.write(line.decode().upper().encode())
-    await writer.drain()
-    writer.close()
-    await writer.wait_closed()
+text = "да нет да нет да может"
+print(Counter(text.split()).most_common(1))
 
-async def main():
-    server = await asyncio.start_server(handle, "127.0.0.1", 0)
-    port = server.sockets[0].getsockname()[1]
-    async with server:
-        reader, writer = await asyncio.open_connection("127.0.0.1", port)
-        writer.write("привет\\n".encode())
-        await writer.drain()
-        print((await reader.readline()).decode().strip())
-        writer.close()
-        await writer.wait_closed()
+def is_anagram(a, b):
+    return Counter(a) == Counter(b)
 
-asyncio.run(main())`}</PyCode>
+print(is_anagram("лотос", "столо"), is_anagram("кот", "ток "))
+need = Counter("кот")
+have = Counter("токарь")
+print(not (need - have))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"ПРИВЕТ"}</Cmd>
+      <Cmd>{"[('да', 3)]\nTrue False\nTrue"}</Cmd>
     </Slide>
   );
 }
@@ -165,25 +159,24 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Асинхронные подпроцессы"}
-      sub={"create_subprocess_exec"}
-      main={"Те же правила безопасности: аргументы списком, без склейки из пользовательского ввода, с таймаутом."}
+      title={"defaultdict"}
+      sub={"Фабрика значений по умолчанию"}
+      main={"Даже чтение отсутствующего ключа создаёт запись; проверяйте через in или get."}
     >
-      <PyCode>{`import asyncio
-import sys
+      <PyCode>{`from collections import defaultdict
 
-async def run(code):
-    proc = await asyncio.create_subprocess_exec(
-        sys.executable, "-c", code, stdout=asyncio.subprocess.PIPE)
-    out, _ = await proc.communicate()
-    return proc.returncode, out.decode().strip()
-
-async def main():
-    print(await asyncio.gather(run("print(1 + 1)"), run("print('привет')")))
-
-asyncio.run(main())`}</PyCode>
+groups = defaultdict(list)
+for w in ["арбуз", "банан", "абрикос"]:
+    groups[w[0]].append(w)
+print(dict(groups))
+counts = defaultdict(int)
+for ch in "aabbb":
+    counts[ch] += 1
+print(dict(counts))
+d = defaultdict(list)
+print("x" in d, d["x"], "x" in d)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[(0, '2'), (0, 'привет')]"}</Cmd>
+      <Cmd>{"{'а': ['арбуз', 'абрикос'], 'б': ['банан']}\n{'a': 2, 'b': 3}\nFalse [] True"}</Cmd>
     </Slide>
   );
 }
@@ -192,32 +185,22 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Каркас программы"}
-      sub={"main(), Event остановки, TaskGroup"}
-      main={"Один asyncio.run в конце файла; остановка — через событие, а не через «убить задачи»."}
+      title={"deque"}
+      sub={"Двусторонняя очередь"}
+      main={"Операции на обоих концах быстрые; maxlen делает очередь окном."}
     >
-      <PyCode>{`import asyncio
+      <PyCode>{`from collections import deque
 
-async def worker(name, stop):
-    ticks = 0
-    try:
-        while not stop.is_set():
-            ticks += 1
-            await asyncio.sleep(0.01)
-    finally:
-        print(name, "остановлен", ticks > 0)
-
-async def main():
-    stop = asyncio.Event()
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(worker("а", stop))
-        tg.create_task(worker("б", stop))
-        await asyncio.sleep(0.1)
-        stop.set()
-
-asyncio.run(main())`}</PyCode>
+q = deque([1, 2, 3])
+q.append(4)
+q.appendleft(0)
+print(q)
+print(q.popleft(), q.pop(), q)
+q.rotate(1)
+print(q)
+print(deque([1, 2, 3], maxlen=2))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"а остановлен True\nб остановлен True"}</Cmd>
+      <Cmd>{"deque([0, 1, 2, 3, 4])\n0 4 deque([1, 2, 3])\ndeque([3, 1, 2])\ndeque([2, 3], maxlen=2)"}</Cmd>
     </Slide>
   );
 }
@@ -226,27 +209,29 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Шаблон: первый успешный"}
-      sub={"asyncio.wait и FIRST_COMPLETED"}
-      main={"Ветвление, ограничение семафором, конвейеры на очередях — комбинируются как кирпичики."}
+      title={"deque на практике"}
+      sub={"Окно и обход в ширину"}
+      main={"Нужна очередь — deque; нужен стек — достаточно списка с append и pop."}
     >
-      <PyCode>{`import asyncio
+      <PyCode>{`from collections import deque
 
-async def source(name, delay):
-    await asyncio.sleep(delay)
-    return name
+window = deque(maxlen=3)
+for x in [10, 20, 30, 40, 50]:
+    window.append(x)
+    print(sum(window) / len(window))
 
-async def main():
-    tasks = [asyncio.create_task(source(n, d)) for n, d in
-             [("медленный", 0.3), ("быстрый", 0.05), ("средний", 0.15)]]
-    done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-    for t in pending:
-        t.cancel()
-    print(done.pop().result(), len(pending))
-
-asyncio.run(main())`}</PyCode>
+graph = {"А": ["Б", "В"], "Б": ["Г"], "В": ["Г"], "Г": []}
+queue, seen, order = deque(["А"]), {"А": True}, []
+while queue:
+    v = queue.popleft()
+    order.append(v)
+    for u in graph[v]:
+        if u not in seen:
+            seen[u] = True
+            queue.append(u)
+print(order)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"быстрый 2"}</Cmd>
+      <Cmd>{"10.0\n15.0\n20.0\n30.0\n40.0\n['А', 'Б', 'В', 'Г']"}</Cmd>
     </Slide>
   );
 }
@@ -255,32 +240,20 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Повторы с задержкой"}
-      sub={"Экспоненциальный backoff"}
-      main={"Повторять можно только безопасные действия; платёж — нет, пока не уверены, что он не прошёл."}
+      title={"namedtuple"}
+      sub={"Кортеж с именами полей"}
+      main={"Для записей без логики — точек, цветов, строк таблицы — лучший выбор."}
     >
-      <PyCode>{`import asyncio
+      <PyCode>{`from collections import namedtuple
 
-attempts = []
-
-async def flaky():
-    attempts.append(1)
-    if len(attempts) < 3:
-        raise ConnectionError("нет связи")
-    return "успех"
-
-async def retry(func, tries=5, base=0.01):
-    for i in range(tries):
-        try:
-            return await func()
-        except ConnectionError:
-            if i == tries - 1:
-                raise
-            await asyncio.sleep(base * 2 ** i)
-
-print(asyncio.run(retry(flaky)), len(attempts))`}</PyCode>
+Point = namedtuple("Point", ["x", "y"])
+p = Point(3, 4)
+print(p, p.x, p[1])
+x, y = p
+print(p._replace(x=10), p._asdict())
+print(p == (3, 4))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"успех 3"}</Cmd>
+      <Cmd>{"Point(x=3, y=4) 3 4\nPoint(x=10, y=4) {'x': 3, 'y': 4}\nTrue"}</Cmd>
     </Slide>
   );
 }
@@ -289,29 +262,24 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Тесты корутин"}
-      sub={"IsolatedAsyncioTestCase"}
-      main={"Проверяйте логику и порядок событий, а не секунды: тест не должен гоняться с планировщиком."}
+      title={"ChainMap и OrderedDict"}
+      sub={"Слои настроек и перестановка ключей"}
+      main={"ChainMap склеивает словари без копирования; запись идёт в первый слой."}
     >
-      <PyCode>{`import asyncio
-import io
-import unittest
+      <PyCode>{`from collections import ChainMap, OrderedDict
 
-async def double_later(x):
-    await asyncio.sleep(0.01)
-    return x * 2
+defaults = {"тема": "светлая", "шрифт": 14}
+user = {"шрифт": 18}
+cfg = ChainMap(user, defaults)
+print(cfg["шрифт"], cfg["тема"])
+cfg["язык"] = "ru"
+print(user)
 
-class T(unittest.IsolatedAsyncioTestCase):
-    async def test_double(self):
-        self.assertEqual(await double_later(21), 42)
-
-    async def test_gather(self):
-        self.assertEqual(await asyncio.gather(double_later(1), double_later(2)), [2, 4])
-
-r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(T))
-print(r.testsRun, r.wasSuccessful())`}</PyCode>
+od = OrderedDict(a=1, b=2, c=3)
+od.move_to_end("a")
+print(list(od))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2 True"}</Cmd>
+      <Cmd>{"18 светлая\n{'шрифт': 18, 'язык': 'ru'}\n['b', 'c', 'a']"}</Cmd>
     </Slide>
   );
 }
@@ -320,25 +288,23 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"Отладка"}
-      sub={"debug=True, имена задач, all_tasks"}
-      main={"Режим отладки показывает не-ожидавшиеся корутины и долгие блокировки цикла; давайте задачам имена."}
+      title={"heapq: куча"}
+      sub={"Наименьший элемент всегда под рукой"}
+      main={"Нужен максимум — кладите числа с обратным знаком; приоритеты — кортежи (приоритет, значение)."}
     >
-      <PyCode>{`import asyncio
+      <PyCode>{`import heapq
 
-async def job():
-    await asyncio.sleep(0.05)
-
-async def main():
-    t = asyncio.create_task(job(), name="загрузка")
-    await asyncio.sleep(0)
-    names = sorted(x.get_name() for x in asyncio.all_tasks() if x is not asyncio.current_task())
-    print(names)
-    await t
-
-asyncio.run(main(), debug=True)`}</PyCode>
+h = []
+for x in [5, 1, 4, 2]:
+    heapq.heappush(h, x)
+print(heapq.heappop(h), heapq.heappop(h), h[0])
+tasks = []
+heapq.heappush(tasks, (2, "письма"))
+heapq.heappush(tasks, (1, "срочное"))
+print(heapq.heappop(tasks))
+print(heapq.nsmallest(2, [7, 3, 9, 1]), heapq.nlargest(2, [7, 3, 9, 1]))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['загрузка']"}</Cmd>
+      <Cmd>{"1 2 4\n(1, 'срочное')\n[1, 3] [9, 7]"}</Cmd>
     </Slide>
   );
 }
@@ -347,16 +313,25 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Веб на asyncio"}
-      sub={"ASGI и FastAPI"}
-      main={"Блокирующий вызов в async-обработчике останавливает весь сервер: ожидание — циклу, блокировку — потокам."}
+      title={"heapq на практике"}
+      sub={"Топ-k, слияние, максимум через минус"}
+      main={"Куча не отсортирована целиком — гарантирован лишь минимум в начале."}
     >
-      <div className="s-cols">
-        <Node kind="" mono={true} title={"@app.get(\"/items\")"} sub={"async def handler(): data = await db.fetch(...)"} />
-        <Node kind="green" mono={true} title={"await"} sub={"пока обработчик ждёт базу, сервер обслуживает остальных"} />
-        <Node kind="amber" mono={true} title={"def handler()"} sub={"обычная функция фреймворк сам запускает в пуле потоков"} />
-      </div>
-      <div className="s-note">{"Наш бэкенд курса — на FastAPI: те же цикл событий, задачи и ожидания."}</div>
+      <PyCode>{`import heapq
+
+nums = [5, 1, 9, 3, 7, 8]
+top3 = []
+for x in nums:
+    heapq.heappush(top3, x)
+    if len(top3) > 3:
+        heapq.heappop(top3)
+print(sorted(top3, reverse=True))
+print(list(heapq.merge([1, 4, 7], [2, 5], [3, 6])))
+maxheap = [-x for x in nums]
+heapq.heapify(maxheap)
+print(-heapq.heappop(maxheap))`}</PyCode>
+      <div className="s-label">НА ЭКРАНЕ</div>
+      <Cmd>{"[9, 8, 7]\n[1, 2, 3, 4, 5, 6, 7]\n9"}</Cmd>
     </Slide>
   );
 }
@@ -365,30 +340,23 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"contextvars"}
-      sub={"Переменные, своя у каждой задачи"}
-      main={"Номер запроса в журнале — без передачи по всем функциям."}
+      title={"bisect"}
+      sub={"Двоичный поиск в отсортированном списке"}
+      main={"Поиск за логарифмическое время — но только если данные уже отсортированы."}
     >
-      <PyCode>{`import asyncio
-import contextvars
+      <PyCode>{`import bisect
 
-request_id = contextvars.ContextVar("request_id", default="-")
+nums = [10, 20, 20, 30]
+print(bisect.bisect_left(nums, 20), bisect.bisect_right(nums, 20))
+bisect.insort(nums, 25)
+print(nums)
 
-async def log(msg):
-    print(request_id.get(), msg)
+def grade(score, bounds=(60, 75, 90), names="DCBA"):
+    return names[bisect.bisect(bounds, score)]
 
-async def handle(rid):
-    request_id.set(rid)
-    await asyncio.sleep(0.01)
-    await log("обработка")
-
-async def main():
-    await asyncio.gather(handle("r1"), handle("r2"))
-    await log("снаружи")
-
-asyncio.run(main())`}</PyCode>
+print(grade(55), grade(75), grade(95))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"r1 обработка\nr2 обработка\n- снаружи"}</Cmd>
+      <Cmd>{"1 3\n[10, 20, 20, 25, 30]\nD B A"}</Cmd>
     </Slide>
   );
 }
@@ -398,27 +366,22 @@ function S12() {
     <Slide
       n={12}
       title={"Типичные ошибки"}
-      sub={"Блокирующий вызов вместо await"}
-      main={"Одна блокировка в корутине — и три «параллельных» дела идут по очереди."}
+      sub={"Вычитание счётчиков, чтение defaultdict, «отсортированная» куча"}
+      main={"Список вместо очереди, bisect по несортированному и сравнение несравнимого в куче — классика."}
     >
-      <PyCode>{`import asyncio
-import time
+      <PyCode>{`from collections import Counter, defaultdict
+import heapq
 
-async def bad():
-    time.sleep(0.1)
-
-async def good():
-    await asyncio.sleep(0.1)
-
-async def run(f):
-    t0 = time.perf_counter()
-    await asyncio.gather(f(), f(), f())
-    return time.perf_counter() - t0
-
-print(asyncio.run(run(bad)) >= 0.3, asyncio.run(run(good)) < 0.25)`}</PyCode>
+print(Counter("aab") - Counter("abb"))
+d = defaultdict(list)
+if d["нет"]:
+    pass
+print(len(d))
+h = [5, 1, 4]
+heapq.heapify(h)
+print(h == sorted(h), h[0])`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True True"}</Cmd>
-      <div className="s-note">{"Ещё: нет таймаута на сеть, повтор без паузы, незакрытый writer, нет аккуратной остановки, тысячи задач без ограничения."}</div>
+      <Cmd>{"Counter({'a': 1})\n1\nFalse 1"}</Cmd>
     </Slide>
   );
 }
@@ -428,11 +391,11 @@ function S13() {
     <Slide
       n={13}
       title={"Итог"}
-      sub={"Глава 33 · Асинхронность"}
-      main={"Вы завершили раздел об асинхронности и всю книгу по Питону — дальше алгоритмы."}
+      sub={"Глава 33 · Стандартная библиотека"}
+      main={"Прежде чем писать цикл, спросите: нет ли подходящего контейнера в стандартной библиотеке?"}
     >
       <div className="s-grid2">
-        {[["start_server · open_connection", "Сеть", "Читатель и писатель; подпроцессы корутинами"], ["main() · TaskGroup · Event", "Каркас", "Один run, корректная остановка"], ["timeout · retry", "Устойчивость", "Таймауты и повторы только безопасного"], ["IsolatedAsyncioTestCase", "Тесты и отладка", "debug=True, имена задач, contextvars"]].map(([big, t, d]) => (
+        {[["Counter · defaultdict", "Подсчёт и группы", "Без проверок ключей"], ["deque · namedtuple", "Очередь и запись", "Быстрые концы; поля по именам"], ["heapq", "Куча", "Минимум первым; топ-k; планировщик"], ["bisect", "Двоичный поиск", "Только по отсортированным"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -441,7 +404,7 @@ function S13() {
           </div>
         ))}
       </div>
-      <div className="s-note">{"Дальше — алгоритмы на Python."}</div>
+      <div className="s-note">{"Дальше — числа и случайность."}</div>
     </Slide>
   );
 }
@@ -468,17 +431,17 @@ export const SLIDES_P33 = {
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P33).
 export const SLIDE_TITLES_P33 = {
   "13:33": [
-    "asyncio на практике",
-    "Потоки сети",
-    "Эхо-сервер",
-    "Подпроцессы",
-    "Каркас программы",
-    "Первый успешный",
-    "Повторы с задержкой",
-    "Тесты корутин",
-    "Отладка",
-    "Веб на asyncio",
-    "contextvars",
+    "Коллекции",
+    "Counter",
+    "Counter на практике",
+    "defaultdict",
+    "deque",
+    "deque на практике",
+    "namedtuple",
+    "ChainMap и OrderedDict",
+    "heapq: куча",
+    "heapq на практике",
+    "bisect",
     "Типичные ошибки",
     "Итог",
   ],

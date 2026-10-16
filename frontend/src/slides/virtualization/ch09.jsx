@@ -1,0 +1,194 @@
+// Слайды для «Виртуализации», глава 9 — «Диски и образы».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Vm09.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+} from "../anim/Vm09.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>ГИПЕРВИЗОРЫ И ЭКСПЛУАТАЦИЯ / ГЛАВА 9</span>
+      <span>{String(n).padStart(2, "0")} / 10</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"Что такое диск ВМ"}
+      sub={"Глава 9 · Диски и образы"}
+      main={"Файл, логический том или объект в сетевом хранилище."}
+    >
+      <V01 cues={[6.5, 14.5, 21.2]} />
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"Формат raw"}
+      sub={"Байты подряд"}
+      main={"Быстро и просто, но без снимков."}
+    >
+      <V02 cues={[9.0, 15.7, 23.5]} />
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"Формат qcow2"}
+      sub={"L1, L2, кластеры, счётчики ссылок"}
+      main={"Кластеры выделяются по мере записи."}
+    >
+      <V03 cues={[8.6, 13.7, 24.1]} />
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Базовый образ и слои"}
+      sub={"Копирование при записи"}
+      main={"Из одной базы — сотни машин с маленькими слоями."}
+    >
+      <V04 cues={[10.2, 19.3, 27.3]} />
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Снимки и цепочка"}
+      sub={"Новый слой — мгновенный снимок"}
+      main={"Чем длиннее цепочка, тем дольше поиск: слои сливают."}
+    >
+      <V05 cues={[9.8, 15.6, 25.3]} />
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"Согласованный снимок"}
+      sub={"fsfreeze и guest agent"}
+      main={"Перед снимком гость сбрасывает кэши и замораживает запись."}
+    >
+      <V06 cues={[11.8, 21.3, 33.1]} />
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"Скорость qcow2"}
+      sub={"Кэш таблиц, метаданные, режим кэша"}
+      main={"qcow2 медленнее raw на случайной записи."}
+    >
+      <V07 cues={[10.1, 15.8, 25.1]} />
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"Сжатие и шифрование"}
+      sub={"Возможности qcow2"}
+      main={"Не всегда нужны: часто шифруют на уровне хранилища."}
+    >
+      <V08 cues={[9.8, 18.6, 23.2]} />
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"Хранилища под образами"}
+      sub={"Файлы, ZFS, NFS, Ceph"}
+      main={"Общий диск делает миграцию дешёвой."}
+    >
+      <V09 cues={[11.5, 12.5, 26.4]} />
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Что выбрать"}
+      sub={"raw, qcow2, сетевое хранилище"}
+      main={"Короткая цепочка, discard, fsfreeze."}
+    >
+      <V10 cues={[11.4, 19.9, 20.9]} />
+    </Slide>
+  );
+}
+
+export const SLIDES_VM9 = {
+  "17:9": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_VM9).
+export const SLIDE_TITLES_VM9 = {
+  "17:9": [
+    "Диск",
+    "raw",
+    "qcow2",
+    "Слои",
+    "Снимки",
+    "fsfreeze",
+    "Скорость",
+    "Сжатие",
+    "Хранилища",
+    "Итог",
+  ],
+};

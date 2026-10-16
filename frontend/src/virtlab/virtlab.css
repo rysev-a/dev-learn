@@ -1,0 +1,466 @@
+/* Симуляторы книги «Виртуализация»: токены приложения, обе темы. */
+.vl {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.vl-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.vl-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.vl-tab.on {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.vl-tab.ok .vl-tab-mark {
+  color: var(--s-accent);
+}
+.vl-tab-mark {
+  width: 10px;
+  font-size: 12px;
+}
+.vl-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+@container (min-width: 760px) {
+  .vl-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+}
+.vl-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.vl-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.vl-facts b {
+  color: var(--text);
+}
+.vl-goal {
+  margin: 0;
+  font-size: 14px;
+}
+.vl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-field input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.vl-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+}
+.vl-check.row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+.vl-check input[type="checkbox"] {
+  flex: none;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+.vl-check select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font: inherit;
+}
+.vl-actions {
+  display: flex;
+  gap: 8px;
+}
+.vl-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vl-rounds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vl-rounds li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+.vl-rk {
+  color: var(--muted);
+}
+.vl-bar {
+  height: 12px;
+  background: var(--panel-2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.vl-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 6px;
+  transition: width 0.3s;
+}
+.vl-bar i.full {
+  background: var(--error);
+}
+.vl-rv {
+  font-family: var(--mono, ui-monospace, monospace);
+  color: var(--muted);
+  grid-column: 2;
+  margin-top: -2px;
+}
+.vl-final {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  font-size: 13px;
+}
+.vl-final p {
+  margin: 0 0 6px;
+}
+.vl-final.failed p:first-child {
+  color: var(--error);
+}
+.vl-yes {
+  color: var(--s-accent);
+}
+.vl-no {
+  color: var(--muted);
+}
+
+/* общие элементы симуляторов */
+.vl-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.vl-field select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+.vl-seg {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.vl-segbtn {
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.vl-segbtn.on {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.vl-goals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.vl-goals li {
+  display: flex;
+  gap: 8px;
+  color: var(--muted);
+}
+.vl-goals li.ok {
+  color: var(--text);
+}
+.vl-goals li.ok .vl-gm {
+  color: var(--s-accent);
+}
+.vl-goals em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-gm {
+  width: 14px;
+  flex: none;
+}
+.vl-grid2 {
+  display: grid;
+  gap: 3px;
+  justify-content: start;
+}
+.vl-grid2 i {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+.vl-grid2 i.on {
+  background: color-mix(in srgb, var(--accent) 30%, var(--panel));
+  border-color: var(--accent);
+}
+.vl-grid2 i.data {
+  background: var(--s-accent);
+  border-color: var(--s-accent);
+}
+.vl-stat {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.vl-stat td {
+  padding: 3px 0;
+}
+.vl-stat td:last-child {
+  text-align: right;
+  font-family: var(--mono, ui-monospace, monospace);
+}
+
+/* мини-гипервизор */
+.vl-code {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 13px;
+}
+.vl-code li {
+  display: flex;
+  gap: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+.vl-code li.cur {
+  color: var(--text);
+  background: var(--panel-2);
+  border-color: var(--accent);
+}
+.vl-code li.past {
+  opacity: 0.6;
+}
+.vl-ln {
+  width: 14px;
+  color: var(--muted);
+}
+.vl-state {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.vl-trap {
+  border: 1px solid var(--amber);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vl-trap-t {
+  font-size: 13px;
+  color: var(--amber);
+}
+.vl-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vl-opt {
+  text-align: left;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.vl-opt:hover {
+  border-color: var(--accent);
+}
+.vl-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 140px;
+  overflow: auto;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* слои qcow2 */
+.vl-actions.wrap {
+  flex-wrap: wrap;
+}
+.vl-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vl-layer {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.vl-layer.walk {
+  border-color: var(--accent);
+}
+.vl-lname {
+  font-size: 12px;
+  color: var(--muted);
+}
+.vl-cells {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 3px;
+}
+.vl-cells i {
+  height: 24px;
+  border-radius: 5px;
+  background: var(--panel-2);
+  border: 1px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  font-size: 12px;
+  font-family: var(--mono, ui-monospace, monospace);
+}
+.vl-cells i.has {
+  border-style: solid;
+  border-color: var(--accent);
+}
+.vl-cells i.hit {
+  background: var(--s-accent);
+  border-color: var(--s-accent);
+  color: var(--s-bg);
+}
+
+/* virtqueue */
+.vl-desc {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+}
+.vl-desc i {
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+}
+.vl-desc i.avail {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 25%, var(--panel));
+}
+.vl-desc i.used {
+  border-color: var(--s-accent);
+  background: color-mix(in srgb, var(--s-accent) 25%, var(--panel));
+}
+
+/* NUMA */
+.vl-vms {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.vl-vms th {
+  text-align: left;
+  font-weight: normal;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 2px 4px;
+}
+.vl-vms td {
+  padding: 4px;
+  vertical-align: middle;
+}
+.vl-vms select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font: inherit;
+  max-width: 100%;
+}
+.vl-node {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+}
+.vl-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--muted);
+}

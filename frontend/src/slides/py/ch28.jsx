@@ -1,4 +1,4 @@
-// Слайды для «Python как первый язык», глава 28 — «Программы и среда: sys, argparse, logging, subprocess».
+// Слайды для «Python как первый язык», глава 28 — «itertools».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / СТАНДАРТНАЯ БИБЛИОТЕКА / ГЛАВА 28</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ФУНКЦИОНАЛЬНОЕ ПРОГРАММИРОВАНИЕ / ГЛАВА 28</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -90,12 +90,12 @@ function S01() {
   return (
     <Slide
       n={1}
-      title={"Программы и среда"}
-      sub={"Глава 28 · Стандартная библиотека"}
-      main={"Настоящая программа — утилита: параметры, журнал, коды завершения, вызов других программ."}
+      title={"itertools"}
+      sub={"Глава 28 · Функциональное программирование"}
+      main={"Ленивые потоки: бесконечные счётчики, склейка, группировка и комбинаторика."}
     >
       <div className="s-grid2">
-        {[["sys · os", "Среда", "Аргументы, потоки, окружение"], ["argparse", "Аргументы", "Разбор, типы, справка"], ["logging", "Журнал", "Уровни и обработчики вместо print"], ["subprocess", "Другие программы", "Запустить и прочитать ответ"]].map(([big, t, d]) => (
+        {[["count · cycle", "Потоки", "Бесконечные источники значений"], ["islice · chain", "Нарезка и склейка", "Срезы и объединения итераторов"], ["accumulate · groupby", "Итоги и группы", "Нарастающие суммы, соседние группы"], ["product · combinations", "Комбинаторика", "Перебор вариантов"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -112,20 +112,19 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Модуль sys"}
-      sub={"Аргументы, потоки, путь поиска"}
-      main={"Ошибки — в stderr, данные — в stdout: так их можно разделить при перенаправлении."}
+      title={"Бесконечные потоки"}
+      sub={"count, cycle, repeat"}
+      main={"Бесконечный поток всегда ограничивайте: islice, takewhile или break."}
     >
-      <PyCode>{`import sys
+      <PyCode>{`from itertools import count, cycle, repeat, islice
 
-print(sys.argv[0] != "", type(sys.argv).__name__)
-print(sys.version_info >= (3, 8), sys.platform in ("linux", "darwin", "win32"))
-print("ошибка", file=sys.stderr)
-sys.stdout.write("в stdout\\n")
-print(isinstance(sys.path, list))`}</PyCode>
+print(list(islice(count(10, 5), 4)))
+print(list(islice(cycle("ABC"), 7)))
+print(list(repeat("x", 3)))
+for i, ch in zip(count(1), "abc"):
+    print(i, ch)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True list\nTrue True\nв stdout\nTrue"}</Cmd>
-      <div className="s-note">{"sys.exit(0) — успех, любое другое число — ошибка: по коду её поймёт оболочка."}</div>
+      <Cmd>{"[10, 15, 20, 25]\n['A', 'B', 'C', 'A', 'B', 'C', 'A']\n['x', 'x', 'x']\n1 a\n2 b\n3 c"}</Cmd>
     </Slide>
   );
 }
@@ -134,21 +133,19 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"argparse"}
-      sub={"Позиционные и необязательные аргументы"}
-      main={"Одним описанием вы получаете разбор, проверку типов и справку по --help."}
+      title={"islice"}
+      sub={"Срез для итераторов"}
+      main={"Итератор продвигается: взятые и пропущенные элементы израсходованы."}
     >
-      <PyCode>{`import argparse
+      <PyCode>{`from itertools import islice
 
-parser = argparse.ArgumentParser(description="Считалка")
-parser.add_argument("name", help="имя")
-parser.add_argument("--times", type=int, default=2, help="сколько раз")
-parser.add_argument("-v", "--verbose", action="store_true")
-args = parser.parse_args(["Аня", "--times", "3", "-v"])
-print(args.name, args.times, args.verbose)
-print(parser.parse_args(["Боря"]))`}</PyCode>
+it = iter(range(100))
+print(list(islice(it, 3)))
+print(list(islice(it, 2, 5)))       # пропустить 2, взять 3
+print(list(islice("abcdefgh", 0, None, 3)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"Аня 3 True\nNamespace(name='Боря', times=2, verbose=False)"}</Cmd>
+      <Cmd>{"[0, 1, 2]\n[5, 6, 7]\n['a', 'd', 'g']"}</Cmd>
+      <div className="s-note">{"Отрицательных индексов нет: итератор не знает своей длины."}</div>
     </Slide>
   );
 }
@@ -157,23 +154,18 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Приёмы argparse"}
-      sub={"nargs, choices, ошибки"}
-      main={"Подкоманды — отдельный парсер на каждое действие, как у git."}
+      title={"chain и zip_longest"}
+      sub={"Склеить потоки и выровнять разной длины"}
+      main={"zip теряет хвост более длинного; zip_longest хранит всё."}
     >
-      <PyCode>{`import argparse
+      <PyCode>{`from itertools import chain, zip_longest
 
-p = argparse.ArgumentParser(prog="tool")
-p.add_argument("nums", nargs="+", type=int)
-p.add_argument("--op", choices=["sum", "max"], default="sum")
-a = p.parse_args(["3", "9", "4", "--op", "max"])
-print(a.nums, a.op)
-try:
-    p.parse_args(["1", "--op", "avg"])
-except SystemExit as e:
-    print("выход с кодом", e.code)`}</PyCode>
+print(list(chain([1, 2], (3,), "ab")))
+print(list(chain.from_iterable([[1], [2, 3], []])))
+print(list(zip([1, 2, 3], "ab")))
+print(list(zip_longest([1, 2, 3], "ab", fillvalue="-")))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[3, 9, 4] max\nвыход с кодом 2"}</Cmd>
+      <Cmd>{"[1, 2, 3, 'a', 'b']\n[1, 2, 3]\n[(1, 'a'), (2, 'b')]\n[(1, 'a'), (2, 'b'), (3, '-')]"}</Cmd>
     </Slide>
   );
 }
@@ -182,21 +174,20 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Модуль os"}
-      sub={"Окружение и обход папок"}
-      main={"Переменные окружения читайте через get — отсутствие настройки не должно ронять программу."}
+      title={"accumulate"}
+      sub={"Нарастающие итоги"}
+      main={"reduce отдаёт только итог, accumulate — все промежуточные шаги."}
     >
-      <PyCode>{`import os
+      <PyCode>{`from itertools import accumulate
+import operator
 
-os.environ["MODE"] = "test"
-print(os.environ.get("MODE"), os.environ.get("НЕТ", "—"))
-print(os.getcwd() == os.path.abspath("."), (os.cpu_count() or 1) >= 1)
-os.makedirs("a/b", exist_ok=True)
-open("a/b/f.txt", "w").close()
-for root, dirs, files in os.walk("a"):
-    print(root, dirs, files)`}</PyCode>
+nums = [1, 2, 3, 4]
+print(list(accumulate(nums)))
+print(list(accumulate(nums, operator.mul)))
+print(list(accumulate([3, 1, 4, 1, 5], max)))
+print(list(accumulate(nums, initial=100)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"test —\nTrue True\na ['b'] []\na/b [] ['f.txt']"}</Cmd>
+      <Cmd>{"[1, 3, 6, 10]\n[1, 2, 6, 24]\n[3, 3, 4, 4, 5]\n[100, 101, 103, 106, 110]"}</Cmd>
     </Slide>
   );
 }
@@ -205,20 +196,19 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Ввод, вывод и код возврата"}
-      sub={"stdin, stderr, exit code"}
-      main={"Утилита, читающая stdin и пишущая в stdout, соединяется с другими программами в конвейер."}
+      title={"Отбор в потоках"}
+      sub={"takewhile, dropwhile, filterfalse, compress"}
+      main={"takewhile останавливается и не читает дальше — для бесконечных потоков это спасение."}
     >
-      <PyCode>{`import io
-import sys
+      <PyCode>{`from itertools import takewhile, dropwhile, filterfalse, compress
 
-fake = io.StringIO("10\\n20\\n30\\n")      # вместо sys.stdin
-total = sum(int(line) for line in fake)
-print(total)
-print("это ошибка", file=sys.stderr)
-print("код возврата", 0 if total else 1)`}</PyCode>
+nums = [1, 3, 5, 6, 7, 9]
+print(list(takewhile(lambda x: x % 2 == 1, nums)))
+print(list(dropwhile(lambda x: x % 2 == 1, nums)))
+print(list(filterfalse(lambda x: x % 2 == 1, nums)))
+print(list(compress("ABCDE", [1, 0, 1, 0, 1])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"60\nкод возврата 0"}</Cmd>
+      <Cmd>{"[1, 3, 5]\n[6, 7, 9]\n[6]\n['A', 'C', 'E']"}</Cmd>
     </Slide>
   );
 }
@@ -227,21 +217,20 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"logging"}
-      sub={"Уровни важности вместо print"}
-      main={"Сообщения уровня DEBUG молчат в обычной работе — а при поиске ошибки достаточно сменить уровень."}
+      title={"groupby"}
+      sub={"Группирует только соседние элементы"}
+      main={"Сначала отсортируйте по тому же ключу; группу превращайте в список сразу."}
     >
-      <PyCode>{`import logging
-import sys
+      <PyCode>{`from itertools import groupby
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                    format="%(levelname)s: %(message)s", force=True)
-logging.debug("не видно")
-logging.info("старт")
-logging.warning("осторожно")
-logging.error("сбой")`}</PyCode>
+words = ["аб", "ав", "ба", "бб", "аг"]
+for key, group in groupby(words, key=lambda w: w[0]):
+    print(key, list(group))
+print("— с сортировкой —")
+for key, group in groupby(sorted(words), key=lambda w: w[0]):
+    print(key, list(group))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"INFO: старт\nWARNING: осторожно\nERROR: сбой"}</Cmd>
+      <Cmd>{"а ['аб', 'ав']\nб ['ба', 'бб']\nа ['аг']\n— с сортировкой —\nа ['аб', 'ав', 'аг']\nб ['ба', 'бб']"}</Cmd>
     </Slide>
   );
 }
@@ -250,26 +239,18 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Логгеры и обработчики"}
-      sub={"getLogger(__name__), handler, formatter"}
-      main={"logger.exception() внутри except пишет ошибку вместе с трассировкой; пароли в журнал не пишут."}
+      title={"Комбинаторика"}
+      sub={"product, permutations, combinations"}
+      main={"Результаты ленивые: перебирайте по одному и останавливайтесь, когда нашли нужное."}
     >
-      <PyCode>{`import logging
-import sys
+      <PyCode>{`from itertools import product, permutations, combinations
 
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter("%(name)s | %(levelname)s | %(message)s"))
-log = logging.getLogger("app.db")
-log.addHandler(handler)
-log.setLevel(logging.DEBUG)
-log.propagate = False
-log.debug("запрос")
-try:
-    1 / 0
-except ZeroDivisionError as e:
-    log.error("деление: %s", e)`}</PyCode>
+print(list(product("ab", [1, 2])))
+print(list(permutations([1, 2, 3], 2)))
+print(list(combinations("abc", 2)))
+print(len(list(permutations(range(5)))), len(list(combinations(range(5), 2))))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"app.db | DEBUG | запрос\napp.db | ERROR | деление: division by zero"}</Cmd>
+      <Cmd>{"[('a', 1), ('a', 2), ('b', 1), ('b', 2)]\n[(1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)]\n[('a', 'b'), ('a', 'c'), ('b', 'c')]\n120 10"}</Cmd>
     </Slide>
   );
 }
@@ -278,26 +259,19 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"subprocess"}
-      sub={"Запустить внешнюю команду"}
-      main={"Команду — списком, без shell=True; всегда с таймаутом."}
+      title={"starmap, pairwise, tee"}
+      sub={"Мелкие, но полезные инструменты"}
+      main={"pairwise — готовое скользящее окно из двух; tee копирует итератор, исходный трогать нельзя."}
     >
-      <PyCode>{`import subprocess
-import sys
+      <PyCode>{`from itertools import starmap, pairwise, tee
+import operator
 
-r = subprocess.run([sys.executable, "-c", "print('привет из процесса')"],
-                   capture_output=True, text=True, check=True)
-print(r.returncode, r.stdout.strip())
-try:
-    subprocess.run([sys.executable, "-c", "raise SystemExit(3)"], check=True)
-except subprocess.CalledProcessError as e:
-    print("код", e.returncode)
-try:
-    subprocess.run([sys.executable, "-c", "import time; time.sleep(5)"], timeout=0.2)
-except subprocess.TimeoutExpired:
-    print("таймаут")`}</PyCode>
+print(list(starmap(operator.mul, [(2, 3), (4, 5)])))
+print(list(pairwise([1, 2, 4, 7])))
+a, b = tee(iter([1, 2, 3]))
+print(list(a), list(b))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"0 привет из процесса\nкод 3\nтаймаут"}</Cmd>
+      <Cmd>{"[6, 20]\n[(1, 2), (2, 4), (4, 7)]\n[1, 2, 3] [1, 2, 3]"}</Cmd>
     </Slide>
   );
 }
@@ -306,31 +280,30 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Шаблон утилиты"}
-      sub={"main() и проверка __name__"}
-      main={"Код под if __name__ == \"__main__\" запускается только как программа, а не при импорте."}
+      title={"Рецепты"}
+      sub={"Из примитивов — нужные функции"}
+      main={"Многие «хитрые» задачи тривиальны, если знать подходящий кирпичик."}
     >
-      <PyCode>{`import argparse
-import sys
+      <PyCode>{`from itertools import chain, islice
 
-def total(nums):
-    return sum(nums)
+def take(n, it):
+    return list(islice(it, n))
 
-def main(argv=None):
-    p = argparse.ArgumentParser()
-    p.add_argument("nums", nargs="*", type=int)
-    args = p.parse_args(argv)
-    if not args.nums:
-        print("нет чисел", file=sys.stderr)
-        return 1
-    print(total(args.nums))
-    return 0
+def flatten(list_of_lists):
+    return list(chain.from_iterable(list_of_lists))
 
-if __name__ == "__main__":
-    code = main(["1", "2", "3"])
-    print("код", code)`}</PyCode>
+def unique(items):
+    seen = {}
+    for x in items:
+        if x not in seen:
+            seen[x] = True
+            yield x
+
+print(take(3, iter(range(10))))
+print(flatten([[1, 2], [3], []]))
+print(list(unique([3, 1, 3, 2, 1])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"6\nкод 0"}</Cmd>
+      <Cmd>{"[0, 1, 2]\n[1, 2, 3]\n[3, 1, 2]"}</Cmd>
     </Slide>
   );
 }
@@ -339,20 +312,19 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Модули и пакеты"}
-      sub={"import, __name__, venv"}
-      main={"Окружение на каждый проект — и конфликты версий вас не коснутся."}
+      title={"Задачи в одну строку"}
+      sub={"Пары, нарастающий итог, повторы подряд"}
+      main={"Узнавать задачу, за которой стоит один из этих инструментов, — главный навык."}
     >
-      <PyCode>{`import importlib
-import sys
+      <PyCode>{`from itertools import combinations, accumulate, groupby, islice, count
 
-print("antigravity" in sys.modules, "os" in sys.modules)
-m = importlib.import_module("math")
-print(m.__name__, m.sqrt(9))
-print(__name__)`}</PyCode>
+names = ["Аня", "Боря", "Вера"]
+print(list(combinations(names, 2)))
+print(list(accumulate([1, -2, 3, -4])))
+print("".join(k for k, _ in groupby("ааббвввб")))
+print(list(islice((n * n for n in count(1)), 4)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"False True\nmath 3.0\n__main__"}</Cmd>
-      <div className="s-note">{"Файл __init__.py превращает папку в пакет; python -m venv .venv — изолированное окружение; pip или uv ставят пакеты."}</div>
+      <Cmd>{"[('Аня', 'Боря'), ('Аня', 'Вера'), ('Боря', 'Вера')]\n[1, -1, 2, -2]\nабвб\n[1, 4, 9, 16]"}</Cmd>
     </Slide>
   );
 }
@@ -362,22 +334,17 @@ function S12() {
     <Slide
       n={12}
       title={"Типичные ошибки"}
-      sub={"Данные и ошибки в одном потоке, молчаливый журнал"}
-      main={"Код возврата — часть интерфейса: ошибка без ненулевого кода — ложь для вызывающего."}
+      sub={"groupby без сортировки и недействительные группы"}
+      main={"Ленивые потоки нужно ограничивать и не использовать повторно."}
     >
-      <PyCode>{`import logging
-import subprocess
-import sys
+      <PyCode>{`from itertools import groupby
 
-print("данные")
-print("ошибка", file=sys.stderr)
-logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format="%(message)s", force=True)
-logging.info("не видно: уровень выше")
-r = subprocess.run([sys.executable, "-c", "pass"], capture_output=True)
-print(r.stdout, r.returncode)`}</PyCode>
+data = [1, 2, 1, 1]
+print([(k, len(list(g))) for k, g in groupby(data)])   # без sorted — дробится
+print([(k, list(g)) for k, g in list(groupby([1, 1, 2]))])   # группы недействительны`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"данные\nb'' 0"}</Cmd>
-      <div className="s-note">{"Ещё: пароли в журнале, shell=True со строкой пользователя, подпроцесс без таймаута, logging.basicConfig в библиотеке."}</div>
+      <Cmd>{"[(1, 1), (2, 1), (1, 2)]\n[(1, []), (2, [])]"}</Cmd>
+      <div className="s-note">{"Ещё: исчерпанные tee и permutations, размер комбинаторики, путаница permutations и combinations."}</div>
     </Slide>
   );
 }
@@ -387,11 +354,11 @@ function S13() {
     <Slide
       n={13}
       title={"Итог"}
-      sub={"Глава 28 · Стандартная библиотека"}
-      main={"Утилита — это main(), аргументы, журнал и честный код возврата."}
+      sub={"Глава 28 · Функциональное программирование"}
+      main={"С функциональным программированием закончили — дальше стандартная библиотека."}
     >
       <div className="s-grid2">
-        {[["sys.argv · sys.exit", "sys", "Аргументы, потоки, код возврата"], ["argparse", "Аргументы", "Типы, умолчания, флаги, подкоманды"], ["logging", "Журнал", "Уровни, обработчики, логгер на модуль"], ["subprocess.run", "Процессы", "Список, check, timeout, без shell"]].map(([big, t, d]) => (
+        {[["count · islice", "Потоки", "Бесконечные источники и срезы"], ["chain · accumulate", "Склейка и итоги", "Объединить, накопить"], ["groupby", "Группы", "Соседние элементы; сначала sorted"], ["product · combinations", "Комбинаторика", "Ленивый перебор вариантов"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -400,7 +367,7 @@ function S13() {
           </div>
         ))}
       </div>
-      <div className="s-note">{"Дальше — dataclasses, enum и typing."}</div>
+      <div className="s-note">{"Дальше — стандартная библиотека: коллекции, числа, даты, регулярные выражения."}</div>
     </Slide>
   );
 }
@@ -427,17 +394,17 @@ export const SLIDES_P28 = {
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P28).
 export const SLIDE_TITLES_P28 = {
   "13:28": [
-    "Программы и среда",
-    "Модуль sys",
-    "argparse",
-    "Приёмы argparse",
-    "Модуль os",
-    "Ввод и вывод",
-    "logging",
-    "Логгеры и обработчики",
-    "subprocess",
-    "Шаблон утилиты",
-    "Модули и пакеты",
+    "itertools",
+    "Бесконечные потоки",
+    "islice",
+    "chain и zip_longest",
+    "accumulate",
+    "Отбор в потоках",
+    "groupby",
+    "Комбинаторика",
+    "starmap, pairwise, tee",
+    "Рецепты",
+    "Задачи в одну строку",
     "Типичные ошибки",
     "Итог",
   ],

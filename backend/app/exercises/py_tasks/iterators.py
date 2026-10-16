@@ -5,7 +5,7 @@
 """
 
 TASKS: dict[int, list[dict]] = {
-    18: [
+    22: [
         {
             "id": "countdown-iterator",
             "mode": "stdout",
@@ -124,7 +124,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "n = 0; for _ in iterable: n += 1; return n.",
         },
     ],
-    19: [
+    23: [
         {
             "id": "countdown-gen",
             "mode": "stdout",

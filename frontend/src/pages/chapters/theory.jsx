@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import { FsItem } from "../../components/FsTree.jsx";
@@ -6,6 +6,7 @@ import { SLIDES, SLIDE_TITLES } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { SlideAudioContext } from "../../lib/slideAudio.js";
 import { fmtTime } from "../../lib/time.js";
+import { estimateSeconds } from "../../lib/voice.js";
 import { useProgress } from "../../lib/progress.jsx";
 
 export default function ChapterTheory() {
@@ -62,7 +63,10 @@ export default function ChapterTheory() {
   function asItems(lessons) {
     return lessons.map((l) => ({
       id: l.id,
-      url: l.audio,
+      // файл озвучки есть только когда бэкенд знает его длительность
+      url: l.dur > 0 ? l.audio : null,
+      text: l.text,
+      est: estimateSeconds(l.text),
       title: `Часть ${l.ord + 1}`,
       subtitle: `Урок ${chapter.num}. ${chapter.title}`,
       badge: String(chapter.num),
@@ -100,7 +104,7 @@ export default function ChapterTheory() {
 
   // Время на уровне главы: позиция = сумма частей до показанного слайда
   // + прогресс внутри него; всего — сумма всех частей.
-  const durOf = (l) => (l.dur ? Number(l.dur) : 0);
+  const durOf = (l) => (l.dur > 0 ? Number(l.dur) : estimateSeconds(l.text));
   const chapterDur = chapter.lessons.reduce((a, l) => a + durOf(l), 0);
   const offsetBefore = chapter.lessons.reduce(
     (a, l) => a + (l.ord < slideIdx ? durOf(l) : 0),
@@ -111,8 +115,23 @@ export default function ChapterTheory() {
   const chapterPos =
     offsetBefore + (playingThisSlide && progress ? progress.t : 0);
 
+  const slideLesson = chapter.lessons.find((l) => l.ord === slideIdx);
+  const spokenT = playingThisSlide
+    ? progress?.id === playingId
+      ? progress.t
+      : 0
+    : null;
+  const spokenD = slideLesson
+    ? slideLesson.dur > 0
+      ? Number(slideLesson.dur)
+      : estimateSeconds(slideLesson.text)
+    : 0;
+
   return (
     <div>
+      {slideLesson && (
+        <VoiceText text={slideLesson.text} t={spokenT} d={spokenD} key={slideLesson.id} />
+      )}
       <SlidePanel
         slides={slides}
         titles={slideTitles}
@@ -135,6 +154,43 @@ export default function ChapterTheory() {
         onPlay={panelPlay}
         onPause={panelPause}
       />
+    </div>
+  );
+}
+
+// Всплывающее окно снизу: текст абзаца, который звучит за кадром. Слова,
+// которые уже «прочитаны», светлее, текущее подсвечено; без воспроизведения —
+// просто текст.
+function VoiceText({ text, t, d }) {
+  const words = useMemo(() => text.split(/\s+/).filter(Boolean), [text]);
+  const boxRef = useRef(null);
+  const curRef = useRef(null);
+  const cur =
+    t == null || !d ? -1 : Math.min(words.length - 1, Math.floor((t / d) * words.length));
+
+  useEffect(() => {
+    const box = boxRef.current;
+    const el = curRef.current;
+    if (!box || !el) return;
+    const top = el.offsetTop - box.offsetTop;
+    if (top < box.scrollTop || top + el.offsetHeight > box.scrollTop + box.clientHeight)
+      box.scrollTop = Math.max(0, top - box.clientHeight / 3);
+  }, [cur]);
+
+  return (
+    <div className="voice-pop" role="region" aria-label="Текст озвучки">
+      <div className="voice-pop-tag">За кадром</div>
+      <p className="voice-pop-text" ref={boxRef}>
+        {words.map((w, i) => (
+          <span
+            key={i}
+            ref={i === cur ? curRef : null}
+            className={cur < 0 ? "" : i < cur ? "past" : i === cur ? "now" : "next"}
+          >
+            {w}{" "}
+          </span>
+        ))}
+      </p>
     </div>
   );
 }

@@ -8,11 +8,14 @@
     "build": "vite build",
     "preview": "vite preview",
     "lab:manifest": "node scripts/lab-manifest.mjs",
-    "lab:check": "node scripts/lab-selfcheck.mjs"
+    "lab:check": "node scripts/lab-selfcheck.mjs",
+    "net:manifest": "node scripts/net-manifest.mjs",
+    "net:check": "node scripts/net-selfcheck.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-cpp": "^6.0.3",
+    "@codemirror/lang-javascript": "^6.2.5",
     "@codemirror/lang-python": "^6.2.1",
     "@codemirror/lang-rust": "^6.0.2",
     "@codemirror/lang-sql": "^6.10.0",

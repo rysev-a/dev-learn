@@ -513,7 +513,7 @@ const af = (n) => [
     ),
   ),
   ...If(
-    n >= 1 && n <= 2,
+    n === 1,
     Tx("sm", 180, 150, "echo 4 > /proc/irq/45/smp_affinity", {
       mono: true,
       size: 8.5,
@@ -526,7 +526,10 @@ const af = (n) => [
   ),
   ...If(
     n === 2,
-    Tx("si", 290, 70, "top: si 85% на CPU 0", { size: 8, c: "y", o: 0 }),
+    Bx("irqb", 94, 150, 140, 20, "служба irqbalance", "g", { size: 8.5 }),
+    Bx("top", 262, 150, 150, 20, "top: «si» — время софтирков", "y", {
+      size: 8.5,
+    }),
   ),
   ...If(
     n === 3,

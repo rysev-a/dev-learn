@@ -1,4 +1,4 @@
-// Слайды для «Python как первый язык», глава 22 — «functools и operator».
+// Слайды для «Python как первый язык», глава 22 — «Итераторы».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ФУНКЦИОНАЛЬНОЕ ПРОГРАММИРОВАНИЕ / ГЛАВА 22</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ИТЕРАТОРЫ И ГЕНЕРАТОРЫ / ГЛАВА 22</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -90,12 +90,12 @@ function S01() {
   return (
     <Slide
       n={1}
-      title={"functools и operator"}
-      sub={"Глава 22 · Функциональное программирование"}
-      main={"Многие типичные приёмы уже написаны за нас в стандартной библиотеке."}
+      title={"Итераторы"}
+      sub={"Глава 22 · Итераторы и генераторы"}
+      main={"Один протокол стоит за циклом for, list, sum, zip — и за вашими собственными классами."}
     >
       <div className="s-grid2">
-        {[["reduce", "Свёртка", "Сложить набор в одно значение"], ["partial", "Фиксация", "Зафиксировать часть аргументов"], ["lru_cache", "Кеш", "Запомнить результаты функции"], ["itemgetter", "operator", "Операторы как функции для key"]].map(([big, t, d]) => (
+        {[["iter · next", "Протокол", "Итерируемый отдаёт итератор, итератор — значения"], ["StopIteration", "Конец", "Сигнал «элементы закончились»"], ["__iter__ · __next__", "Свой итератор", "Класс с двумя методами"], ["lazy", "Лень", "Значения рождаются по требованию"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -112,22 +112,23 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"reduce"}
-      sub={"Функция двух аргументов, набор, начальное значение"}
-      main={"Начальное значение защищает от пустого набора; для сумм и максимумов берите встроенные."}
+      title={"Итерируемый и итератор"}
+      sub={"iter() отдаёт итератор, next() — следующее значение"}
+      main={"Список — итерируемый, но не итератор: next(список) — ошибка."}
     >
-      <PyCode>{`from functools import reduce
-import operator
-
-print(reduce(operator.mul, [1, 2, 3, 4]))
-print(reduce(lambda acc, s: acc + "-" + s, ["а", "б", "в"]))
-print(reduce(operator.add, [], 0))
+      <PyCode>{`nums = [10, 20]
+it = iter(nums)
+print(next(it), next(it))
 try:
-    reduce(operator.add, [])
+    next(it)
+except StopIteration:
+    print("конец")
+try:
+    next(nums)
 except TypeError as e:
     print(e)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"24\nа-б-в\n0\nreduce() of empty iterable with no initial value"}</Cmd>
+      <Cmd>{"10 20\nконец\n'list' object is not an iterator"}</Cmd>
     </Slide>
   );
 }
@@ -136,18 +137,20 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"partial"}
-      sub={"Часть аргументов уже подставлена"}
-      main={"Заменяет лямбду, в которой просто подставляются готовые значения."}
+      title={"Как работает for"}
+      sub={"iter, затем next до StopIteration"}
+      main={"Любой for можно переписать через while True, try и except StopIteration."}
     >
-      <PyCode>{`from functools import partial
-
-from_bin = partial(int, base=2)
-print(from_bin("101"), from_bin("1111"))
-power_of_2 = partial(pow, 2)
-print(list(map(power_of_2, [1, 2, 3])))`}</PyCode>
+      <PyCode>{`nums = [1, 2, 3]
+it = iter(nums)
+while True:
+    try:
+        x = next(it)
+    except StopIteration:
+        break
+    print(x)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"5 15\n[2, 4, 8]"}</Cmd>
+      <Cmd>{"1\n2\n3"}</Cmd>
     </Slide>
   );
 }
@@ -156,21 +159,17 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"lru_cache"}
-      sub={"Повторный вызов с теми же аргументами — из кеша"}
-      main={"Аргументы должны быть хешируемыми, а результат — зависеть только от аргументов."}
+      title={"Одноразовость"}
+      sub={"Итератор идёт только вперёд"}
+      main={"Файл, zip, enumerate, map и filter — итераторы; range — итерируемый, он многоразовый."}
     >
-      <PyCode>{`from functools import lru_cache
-
-@lru_cache(maxsize=None)
-def fib(n):
-    return n if n < 2 else fib(n - 1) + fib(n - 2)
-
-print(fib(80))
-print(fib.cache_info())`}</PyCode>
+      <PyCode>{`it = iter([1, 2, 3])
+print(list(it))
+print(list(it))        # исчерпан
+r = range(3)
+print(list(r), list(r))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"23416728348467685\nCacheInfo(hits=78, misses=81, maxsize=None, currsize=81)"}</Cmd>
-      <div className="s-note">{"Без кеша fib(80) пересчитывалась бы миллиарды лет."}</div>
+      <Cmd>{"[1, 2, 3]\n[]\n[0, 1, 2] [0, 1, 2]"}</Cmd>
     </Slide>
   );
 }
@@ -179,33 +178,24 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"total_ordering и cached_property"}
-      sub={"Меньше методов — тот же результат"}
-      main={"__eq__ и один оператор порядка — остальное достроит декоратор."}
+      title={"Свой итератор"}
+      sub={"__iter__ возвращает self, __next__ — значение"}
+      main={"Аккуратно подними StopIteration в нужный момент — иначе цикл не завершится."}
     >
-      <PyCode>{`from functools import total_ordering, cached_property
-
-@total_ordering
-class Version:
+      <PyCode>{`class Countdown:
     def __init__(self, n):
         self.n = n
-    def __eq__(self, other):
-        return self.n == other.n
-    def __lt__(self, other):
-        return self.n < other.n
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.n <= 0:
+            raise StopIteration
+        self.n -= 1
+        return self.n + 1
 
-print(Version(1) < Version(2), Version(3) >= Version(2), Version(2) > Version(5))
-
-class Data:
-    @cached_property
-    def heavy(self):
-        print("считаю")
-        return 42
-
-d = Data()
-print(d.heavy, d.heavy)`}</PyCode>
+print(list(Countdown(3)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True True False\nсчитаю\n42 42"}</Cmd>
+      <Cmd>{"[3, 2, 1]"}</Cmd>
     </Slide>
   );
 }
@@ -214,27 +204,21 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"singledispatch"}
-      sub={"Перегрузка по типу первого аргумента"}
-      main={"Новый тип добавляется регистрацией — без правки исходной функции."}
+      title={"Многоразовый итерируемый"}
+      sub={"__iter__ каждый раз создаёт новый итератор"}
+      main={"Коллекции — итерируемые, итераторы создаются по требованию."}
     >
-      <PyCode>{`from functools import singledispatch
+      <PyCode>{`class Repeat:
+    def __init__(self, n):
+        self.n = n
+    def __iter__(self):
+        return iter(range(self.n))      # каждый раз новый
 
-@singledispatch
-def show(x):
-    return f"что-то: {x}"
-
-@show.register(int)
-def _(x):
-    return f"число {x}"
-
-@show.register(list)
-def _(x):
-    return f"список из {len(x)}"
-
-print(show(5), show([1, 2]), show("a"))`}</PyCode>
+r = Repeat(3)
+print(list(r), list(r))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"число 5 список из 2 что-то: a"}</Cmd>
+      <Cmd>{"[0, 1, 2] [0, 1, 2]"}</Cmd>
+      <div className="s-note">{"Если __iter__ вернёт self — класс станет одноразовым."}</div>
     </Slide>
   );
 }
@@ -243,18 +227,17 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"operator: операторы как функции"}
-      sub={"add, mul, lt, pow"}
-      main={"Вместо лямбды с одним оператором — готовая и более быстрая функция."}
+      title={"Помощники"}
+      sub={"enumerate, zip, reversed, next со значением"}
+      main={"Что понимает одна функция-потребитель, понимают все: list, tuple, sum, max, join, in."}
     >
-      <PyCode>{`import operator
-from functools import reduce
-
-print(operator.add(2, 3), operator.mul(4, 5), operator.lt(1, 2))
-print(list(map(operator.pow, [2, 3], [3, 2])))
-print(reduce(operator.mul, range(1, 6)))`}</PyCode>
+      <PyCode>{`words = ["a", "b", "c"]
+print(list(enumerate(words, 1)))
+print(list(zip(words, [1, 2, 3])))
+print(list(reversed(words)))
+print(next(iter(()), "пусто"))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"5 20 True\n[8, 9]\n120"}</Cmd>
+      <Cmd>{"[(1, 'a'), (2, 'b'), (3, 'c')]\n[('a', 1), ('b', 2), ('c', 3)]\n['c', 'b', 'a']\nпусто"}</Cmd>
     </Slide>
   );
 }
@@ -263,25 +246,18 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"itemgetter, attrgetter, methodcaller"}
-      sub={"Лучшие параметры для key"}
-      main={"Несколько ключей в itemgetter — сортировка по нескольким полям в одну строку."}
+      title={"Распаковка и потребители"}
+      sub={"Звёздочка, sum, max, next с запасным значением"}
+      main={"next(поток, значение) безопасно берёт один элемент — удобно для поиска первого подходящего."}
     >
-      <PyCode>{`from operator import itemgetter, attrgetter, methodcaller
-
-users = [{"name": "Аня", "age": 31}, {"name": "Боря", "age": 25}]
-print(sorted(users, key=itemgetter("age"))[0]["name"])
-rows = [("б", 2), ("а", 2), ("в", 1)]
-print(sorted(rows, key=itemgetter(1, 0)))
-
-class P:
-    def __init__(self, year):
-        self.year = year
-
-print([p.year for p in sorted([P(2000), P(1990)], key=attrgetter("year"))])
-print(list(map(methodcaller("upper"), ["а", "б"])))`}</PyCode>
+      <PyCode>{`a, *rest = iter([1, 2, 3, 4])
+print(a, rest)
+print(*[1, 2, 3])
+print(sum(x for x in range(5)), max(iter([3, 9, 2])))
+gen = (n for n in [5, 8, 12] if n > 6)
+print(next(gen), next(gen, None), next(gen, None))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"Боря\n[('в', 1), ('а', 2), ('б', 2)]\n[1990, 2000]\n['А', 'Б']"}</Cmd>
+      <Cmd>{"1 [2, 3, 4]\n1 2 3\n10 9\n8 12 None"}</Cmd>
     </Slide>
   );
 }
@@ -290,19 +266,17 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"cmp_to_key"}
-      sub={"Старая схема сравнения двух элементов"}
-      main={"Нужно сортировать «чужим» способом — переходник превращает сравнение в ключ."}
+      title={"Ленивость"}
+      sub={"Значения рождаются по требованию"}
+      main={"Вместо «посчитать всё, потом отобрать» — «описать конвейер и тянуть по одному»."}
     >
-      <PyCode>{`from functools import cmp_to_key
-
-def compare(a, b):
-    return len(a) - len(b) or (a > b) - (a < b)
-
-print(sorted(["bb", "a", "cc", "b"], key=cmp_to_key(compare)))`}</PyCode>
+      <PyCode>{`big = range(10**12)
+print(len(big), big[-1])
+nums = map(str, range(3))
+print(type(nums).__name__)     # ничего не посчитано
+print(list(nums))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['a', 'b', 'bb', 'cc']"}</Cmd>
-      <div className="s-note">{"Функция сравнения возвращает отрицательное число, ноль или положительное."}</div>
+      <Cmd>{"1000000000000 999999999999\nmap\n['0', '1', '2']"}</Cmd>
     </Slide>
   );
 }
@@ -311,19 +285,26 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Конвейер без лямбд"}
-      sub={"Отобрать, упорядочить, свернуть"}
-      main={"Пользуйтесь инструментом, который делает текст короче без потери ясности."}
+      title={"Бесконечные итераторы"}
+      sub={"Числа Фибоначчи без конца"}
+      main={"Бесконечный поток всегда ограничивайте: брейк, счётчик или условие."}
     >
-      <PyCode>{`from operator import itemgetter
+      <PyCode>{`class Fib:
+    def __init__(self):
+        self.a, self.b = 0, 1
+    def __iter__(self):
+        return self
+    def __next__(self):
+        self.a, self.b = self.b, self.a + self.b
+        return self.a
 
-sales = [{"dept": "ИТ", "sum": 120}, {"dept": "HR", "sum": 70},
-         {"dept": "ИТ", "sum": 30}, {"dept": "HR", "sum": 200}]
-big = filter(lambda s: s["sum"] >= 50, sales)
-ordered = sorted(big, key=itemgetter("dept", "sum"))
-print([(s["dept"], s["sum"]) for s in ordered])`}</PyCode>
+for i, x in enumerate(Fib()):
+    if i == 8:
+        break
+    print(x, end=" ")`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[('HR', 70), ('HR', 200), ('ИТ', 120)]"}</Cmd>
+      <Cmd>{"1 1 2 3 5 8 13 21"}</Cmd>
+      <div className="s-note">{"list(Fib()) никогда не вернётся и съест всю память."}</div>
     </Slide>
   );
 }
@@ -332,18 +313,22 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Сочетания инструментов"}
-      sub={"Маленькие кирпичики складываются"}
-      main={"Сначала смотрите, нет ли нужного в стандартной библиотеке, потом пишите своё."}
+      title={"Словари и итерация"}
+      sub={"Представления keys, values, items"}
+      main={"Размер словаря во время перебора менять нельзя: итератор потеряет согласованность."}
     >
-      <PyCode>{`from functools import partial, reduce
-import operator
-
-print(list(map(partial(int, base=16), ["ff", "10", "a"])))
-print(reduce(operator.or_, [1, 2, 4]))
-print(list(map(operator.methodcaller("strip"), [" а ", "б "])))`}</PyCode>
+      <PyCode>{`d = {"a": 1, "b": 2}
+for k in d:
+    print(k, end=" ")
+print(list(d.items()))
+print(list(reversed(d)))
+try:
+    for k in d:
+        d["c"] = 3
+except RuntimeError as e:
+    print(e)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[255, 16, 10]\n7\n['а', 'б']"}</Cmd>
+      <Cmd>{"a b [('a', 1), ('b', 2)]\n['b', 'a']\ndictionary changed size during iteration"}</Cmd>
     </Slide>
   );
 }
@@ -353,27 +338,20 @@ function S12() {
     <Slide
       n={12}
       title={"Типичные ошибки"}
-      sub={"reduce без начального значения, кеш для списков"}
-      main={"Спросите себя: что станет с функцией при повторном вызове?"}
+      sub={"Исчерпанный итератор"}
+      main={"Итератор — одноразовый курсор, итерируемый — источник свежих курсоров."}
     >
-      <PyCode>{`from functools import lru_cache, reduce
+      <PyCode>{`f = open("demo.txt", "w", encoding="utf-8")
+f.write("1\\n2\\n")
+f.close()
 
-try:
-    reduce(lambda a, b: a + b, [])
-except TypeError:
-    print("reduce без начального значения")
-
-@lru_cache
-def total(xs):
-    return sum(xs)
-
-try:
-    total([1, 2])
-except TypeError as e:
-    print(e)`}</PyCode>
+f = open("demo.txt", encoding="utf-8")
+print(list(f))
+print(list(f))        # файл — итератор: второй проход пуст
+f.close()`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"reduce без начального значения\nunhashable type: 'list'"}</Cmd>
-      <div className="s-note">{"Ещё: кеш функции с побочными эффектами; кеш без maxsize на бесконечных данных; itemgetter с несколькими ключами возвращает кортеж."}</div>
+      <Cmd>{"['1\\n', '2\\n']\n[]"}</Cmd>
+      <div className="s-note">{"Ещё: next(список), итерируемый класс с return self, нет StopIteration, list(бесконечный)."}</div>
     </Slide>
   );
 }
@@ -383,11 +361,11 @@ function S13() {
     <Slide
       n={13}
       title={"Итог"}
-      sub={"Глава 22 · Функциональное программирование"}
-      main={"Готовые инструменты экономят часы: reduce, partial, lru_cache, itemgetter."}
+      sub={"Глава 22 · Итераторы и генераторы"}
+      main={"Итератор — одноразовый курсор; итерируемый — источник свежих курсоров."}
     >
       <div className="s-grid2">
-        {[["reduce · partial", "Функции", "Свёртка и фиксация аргументов"], ["lru_cache · cached_property", "Кеш", "Запомнить результат; хешируемые аргументы"], ["total_ordering · singledispatch", "Классы и типы", "Меньше методов; реализация по типу"], ["itemgetter · attrgetter", "operator", "Лучшие ключи для sorted и max"]].map(([big, t, d]) => (
+        {[["iter · next", "Протокол", "for = iter + повторяющийся next"], ["StopIteration", "Конец", "Сигнал, что элементы закончились"], ["__iter__ · __next__", "Свой класс", "Многоразовый — iter создаёт новый итератор"], ["lazy", "Лень", "Память — на один элемент; бесконечное — ограничивать"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -396,7 +374,7 @@ function S13() {
           </div>
         ))}
       </div>
-      <div className="s-note">{"Дальше — itertools: потоки значений."}</div>
+      <div className="s-note">{"Дальше — генераторы: самый короткий способ писать итераторы."}</div>
     </Slide>
   );
 }
@@ -423,17 +401,17 @@ export const SLIDES_P22 = {
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P22).
 export const SLIDE_TITLES_P22 = {
   "13:22": [
-    "functools и operator",
-    "reduce",
-    "partial",
-    "lru_cache",
-    "total_ordering",
-    "singledispatch",
-    "operator",
-    "itemgetter и друзья",
-    "cmp_to_key",
-    "Конвейер без лямбд",
-    "Сочетания",
+    "Итераторы",
+    "Итерируемый и итератор",
+    "Как работает for",
+    "Одноразовость",
+    "Свой итератор",
+    "Многоразовый класс",
+    "Помощники",
+    "Распаковка",
+    "Ленивость",
+    "Бесконечные итераторы",
+    "Словари",
     "Типичные ошибки",
     "Итог",
   ],

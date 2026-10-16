@@ -1,456 +1,531 @@
 """Задачи книги «Алгоритмы и структуры данных»: глава 8."""
 
-from app.exercises.algo_tasks._kept import KEPT
-
-_NEW: dict[int, list[dict]] = {
-    8: [
-        {
-            "id": "tree-preorder-iter",
-            "mode": "stdout",
-            "title": "Прямой обход без рекурсии",
-            "statement": (
-                "Дан класс TreeNode (val, left, right). Напишите функцию "
-                "preorder(root): список значений в прямом порядке (узел, левое, "
-                "правое) без рекурсии — со своим стеком. Проверка подаёт цепочку из "
-                "100 000 узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef preorder(root):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(preorder(build([4, 2, 6, 1, 3, 5, 7])), preorder(None), preorder(TreeNode(9)), preorder(build([1, None, 2, 3])))\n"
-                "r = preorder(chain(100000))\n"
-                "print(len(r), r[0], r[-1])\n"
-            ),
-            "expected": ["[4, 2, 1, 3, 6, 5, 7] [] [9] [1, 2, 3]", "100000 0 99999"],
-            "hint": "Стек с корнем. Снимаем узел, записываем значение, кладём правого ребёнка, затем левого — чтобы левый вышел раньше.",
-        },
-        {
-            "id": "tree-postorder-iter",
-            "mode": "stdout",
-            "title": "Обратный обход без рекурсии",
-            "statement": (
-                "Дан класс TreeNode. Напишите функцию postorder(root): значения в "
-                "обратном порядке (левое, правое, узел) без рекурсии. Подсказка: "
-                "обратный порядок — это «узел, правое, левое», развёрнутый. "
-                "Проверка подаёт цепочку из 100 000 узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef postorder(root):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(postorder(build([4, 2, 6, 1, 3, 5, 7])), postorder(None), postorder(TreeNode(9)), postorder(build([1, None, 2, 3])))\n"
-                "r = postorder(chain(100000, \"right\"))\n"
-                "print(len(r), r[0], r[-1])\n"
-            ),
-            "expected": ["[1, 3, 2, 5, 7, 6, 4] [] [9] [3, 2, 1]", "100000 99999 0"],
-            "hint": "Тот же стек, что и для прямого, но детей кладём в обратном порядке (сначала левого), а итоговый список разворачиваем.",
-        },
-        {
-            "id": "tree-zigzag",
-            "mode": "stdout",
-            "title": "Обход зигзагом",
-            "statement": (
-                "Дан класс TreeNode. Напишите функцию zigzag(root): список уровней, "
-                "где первый уровень идёт слева направо, второй — справа налево, "
-                "третий снова слева направо и так далее. Пустое дерево — []."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef zigzag(root):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(zigzag(build([3, 9, 20, None, None, 15, 7])), zigzag(None), zigzag(TreeNode(1)), zigzag(build([1, 2, 3, 4, None, None, 5])))\n"
-            ),
-            "expected": ["[[3], [20, 9], [15, 7]] [] [[1]] [[1], [3, 2], [4, 5]]"],
-            "hint": "Обычный обход по уровням, а у каждого второго уровня список значений разворачивается.",
-        },
-        {
-            "id": "tree-right-view",
-            "mode": "stdout",
-            "title": "Вид справа",
-            "statement": (
-                "Дан класс TreeNode. Напишите функцию right_view(root): значения "
-                "узлов, которые видны, если смотреть на дерево справа, — по одному "
-                "на каждый уровень (самый правый узел уровня), сверху вниз. Пустое "
-                "дерево — []."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef right_view(root):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(right_view(build([1, 2, 3, None, 5, None, 4])), right_view(None), right_view(build([1, None, 3])), right_view(build([1, 2])), right_view(build([1, 2, 3, 4])))\n"
-            ),
-            "expected": ["[1, 3, 4] [] [1, 3] [1, 2] [1, 3, 4]"],
-            "hint": "Обход по уровням слева направо: последний узел списка текущего уровня — тот, что виден справа.",
-        },
-        {
-            "id": "tree-symmetric",
-            "mode": "stdout",
-            "title": "Симметричное дерево",
-            "statement": (
-                "Дан класс TreeNode. Напишите функцию is_symmetric(root): True, "
-                "если дерево — зеркальное отражение самого себя относительно корня "
-                "(левое поддерево — отражение правого). Пустое дерево симметрично. "
-                "Решите итеративно, очередью пар узлов: проверка подаёт "
-                "симметричное дерево из цепочек по 50 000 узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef is_symmetric(root):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(is_symmetric(build([1, 2, 2, 3, 4, 4, 3])), is_symmetric(build([1, 2, 2, None, 3, None, 3])), is_symmetric(None), is_symmetric(TreeNode(1)), is_symmetric(build([1, 2, 3])))\n"
-                "root = TreeNode(0)\n"
-                "a = root.left = TreeNode(1)\n"
-                "b = root.right = TreeNode(1)\n"
-                "for i in range(2, 50000):\n"
-                "    a.left = TreeNode(i)\n"
-                "    b.right = TreeNode(i)\n"
-                "    a, b = a.left, b.right\n"
-                "print(is_symmetric(root))\n"
-                "b.val = -1\n"
-                "print(is_symmetric(root))\n"
-            ),
-            "expected": ["True False True True False", "True", "False"],
-            "hint": "Кладите в очередь или стек пары (левый, правый), которые должны быть зеркальны: у них равны значения, а их дети кладутся перекрёстно — (a.left, b.right) и (a.right, b.left).",
-        },
-        {
-            "id": "tree-invert",
-            "mode": "stdout",
-            "title": "Отразить дерево",
-            "statement": (
-                "Дан класс TreeNode. Напишите функцию invert(root): поменяйте "
-                "местами левого и правого ребёнка у каждого узла и верните корень. "
-                "Решите без рекурсии — проверка подаёт цепочку из 100 000 узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef invert(root):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(levels(invert(build([4, 2, 7, 1, 3, 6, 9]))), levels(invert(None)), levels(invert(build([1, 2]))))\n"
-                "r = invert(chain(100000))\n"
-                "d = 0\n"
-                "while r.right:\n"
-                "    r = r.right\n"
-                "    d += 1\n"
-                "print(d, r.val)\n"
-            ),
-            "expected": ["[[4], [7, 2], [9, 6, 3, 1]] [] [[1], [2]]", "99999 99999"],
-            "hint": "Обойдите дерево любым способом со своим стеком и у каждого узла поменяйте left и right местами.",
-        },
-        {
-            "id": "tree-build-pre-in",
-            "mode": "stdout",
-            "title": "Дерево по двум обходам",
-            "statement": (
-                "Даны прямой (preorder) и центрированный (inorder) обходы бинарного "
-                "дерева с различными значениями. Напишите функцию build_tree(pre, "
-                "ino): восстановите дерево и верните корень. Поиск корня в inorder "
-                "должен быть O(1) — заведите словарь значение → позиция. Проверка "
-                "подаёт 100 000 узлов."
-            ),
-            "starter": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef build_tree(pre, ino):\n    pass\n",
-            "driver": (
-                "def build(vals):\n"
-                "    if not vals or vals[0] is None:\n"
-                "        return None\n"
-                "    nodes = [TreeNode(v) if v is not None else None for v in vals]\n"
-                "    kids = nodes[1:][::-1]\n"
-                "    for n in nodes:\n"
-                "        if n:\n"
-                "            if kids:\n"
-                "                n.left = kids.pop()\n"
-                "            if kids:\n"
-                "                n.right = kids.pop()\n"
-                "    return nodes[0]\n"
-                "\n"
-                "\n"
-                "def levels(root):\n"
-                "    out, cur = [], [root] if root else []\n"
-                "    while cur:\n"
-                "        out.append([n.val for n in cur])\n"
-                "        cur = [c for n in cur for c in (n.left, n.right) if c]\n"
-                "    return out\n"
-                "\n"
-                "\n"
-                "def chain(n, side=\"left\"):\n"
-                "    root = cur = TreeNode(0)\n"
-                "    for i in range(1, n):\n"
-                "        nxt = TreeNode(i)\n"
-                "        setattr(cur, side, nxt)\n"
-                "        cur = nxt\n"
-                "    return root\n"
-                "\n"
-                "\n"
-                "print(levels(build_tree([3, 9, 20, 15, 7], [9, 3, 15, 20, 7])), levels(build_tree([], [])), levels(build_tree([1], [1])), levels(build_tree([1, 2], [2, 1])))\n"
-                "n = 100000\n"
-                "vals = [(i * 7919) % n for i in range(n)]\n"
-                "root = None\n"
-                "nodes = []\n"
-                "def ins(r, v):\n"
-                "    if r is None:\n"
-                "        return TreeNode(v)\n"
-                "    cur = r\n"
-                "    while True:\n"
-                "        if v < cur.val:\n"
-                "            if cur.left is None:\n"
-                "                cur.left = TreeNode(v)\n"
-                "                return r\n"
-                "            cur = cur.left\n"
-                "        else:\n"
-                "            if cur.right is None:\n"
-                "                cur.right = TreeNode(v)\n"
-                "                return r\n"
-                "            cur = cur.right\n"
-                "for v in vals:\n"
-                "    root = ins(root, v)\n"
-                "def pre(r):\n"
-                "    out, st = [], [r]\n"
-                "    while st:\n"
-                "        x = st.pop()\n"
-                "        out.append(x.val)\n"
-                "        if x.right: st.append(x.right)\n"
-                "        if x.left: st.append(x.left)\n"
-                "    return out\n"
-                "def ino_(r):\n"
-                "    out, st, cur = [], [], r\n"
-                "    while cur or st:\n"
-                "        while cur:\n"
-                "            st.append(cur)\n"
-                "            cur = cur.left\n"
-                "        cur = st.pop()\n"
-                "        out.append(cur.val)\n"
-                "        cur = cur.right\n"
-                "    return out\n"
-                "p, i = pre(root), ino_(root)\n"
-                "t = build_tree(p, i)\n"
-                "print(pre(t) == p, ino_(t) == i)\n"
-            ),
-            "expected": ["[[3], [9, 20], [15, 7]] [] [[1]] [[1], [2]]", "True True"],
-            "hint": "Первый элемент pre — корень. Его позиция m в ino делит ино-обход: слева левое поддерево (m − lo узлов), справа правое. Прямой порядок ведите одним итератором: сначала строится левое поддерево, потом правое.",
-        },
-        {
-            "id": "trie-class",
-            "mode": "stdout",
-            "title": "Префиксное дерево",
-            "statement": (
-                "Реализуйте класс Trie: insert(word), search(word) — есть ли слово "
-                "целиком, starts_with(prefix) — есть ли слово с таким началом, "
-                "count_prefix(prefix) — сколько вставленных слов (с учётом "
-                "повторных вставок) начинаются с prefix. Узел — словарь детей и "
-                "счётчик. Все операции — O(длина слова). Проверка подаёт 100 000 "
-                "слов."
-            ),
-            "starter": "class Trie:\n    def __init__(self):\n        self.root = {}\n\n    # insert, search, starts_with, count_prefix\n",
-            "driver": (
-                "t = Trie()\n"
-                "for w in (\"apple\", \"app\", \"apple\", \"apt\", \"bat\", \"bath\"):\n"
-                "    t.insert(w)\n"
-                "print(t.search(\"apple\"), t.search(\"app\"), t.search(\"ap\"), t.search(\"bath\"), t.search(\"bad\"))\n"
-                "print(t.starts_with(\"ap\"), t.starts_with(\"ba\"), t.starts_with(\"c\"), t.starts_with(\"bathe\"))\n"
-                "print(t.count_prefix(\"app\"), t.count_prefix(\"ap\"), t.count_prefix(\"b\"), t.count_prefix(\"z\"), t.count_prefix(\"bath\"))\n"
-                "words = [\"\".join(chr(97 + (i * j) % 26) for j in range(1, 9)) for i in range(1, 100001)]\n"
-                "big = Trie()\n"
-                "for w in words:\n"
-                "    big.insert(w)\n"
-                "print(all(big.search(w) for w in words[:2000]), big.search(\"zzzzzzzz\"), big.count_prefix(words[7][:3]), big.count_prefix(words[999][:5]))\n"
-            ),
-            "expected": ["True True False True False", "True True False False", "3 4 2 0 1", "True False 3846 3846"],
-            "hint": "Узел хранит словарь детей, счётчик слов, прошедших через узел, и счётчик слов, закончившихся здесь. count_prefix — счётчик «прошло» у узла, до которого спустились по префиксу.",
-        },
-    ],
-}
-
-_BY_ID = {t["id"]: t for t in _NEW[8]} | KEPT
-
 TASKS: dict[int, list[dict]] = {
-    8: [_BY_ID[i] for i in (
-        "tree-max-depth",
-        "tree-path-sum",
-        "tree-preorder-iter",
-        "tree-inorder-iter",
-        "tree-postorder-iter",
-        "tree-level-order",
-        "tree-zigzag",
-        "tree-right-view",
-        "tree-symmetric",
-        "tree-invert",
-        "tree-diameter",
-        "tree-lca",
-        "tree-build-pre-in",
-        "trie-class",
-    )],
+    8: [
+        {'id': 'str-find-first',
+         'mode': 'func',
+         'func': 'find_first',
+         'title': 'Первое вхождение: наивный поиск',
+         'statement': 'Напишите функцию find_first(text, pat): индекс первого вхождения образца pat в '
+                      'строку text или -1, если его нет. Пустой образец встречается в позиции 0. Решите '
+                      'двумя вложенными циклами: сдвиг и посимвольное сравнение, без find, index и in.',
+         'starter': 'def find_first(text, pat):\n    pass\n',
+         'tests': [{'args': ['hello world', 'o w'], 'expected': 4},
+                   {'args': ['aaa', 'aaaa'], 'expected': -1},
+                   {'args': ['abc', ''], 'expected': 0},
+                   {'args': ['', 'a'], 'expected': -1},
+                   {'args': ['abcabcd', 'abcd'], 'expected': 3},
+                   {'args': ['aaaaab', 'aab'], 'expected': 3}],
+         'hint': 'Для каждого сдвига i сравнивайте text[i + j] и pat[j], пока символы равны; дошли до '
+                 'длины образца — нашли.'},
+        {'id': 'str-common-prefix',
+         'mode': 'func',
+         'func': 'common_prefix',
+         'title': 'Общее начало слов',
+         'statement': 'Напишите функцию common_prefix(words): наибольшее общее начало всех слов списка. '
+                      'Для пустого списка или если общего начала нет — пустая строка.',
+         'starter': 'def common_prefix(words):\n    pass\n',
+         'tests': [{'args': [['flower', 'flow', 'flight']], 'expected': 'fl'},
+                   {'args': [['dog', 'racecar']], 'expected': ''},
+                   {'args': [[]], 'expected': ''},
+                   {'args': [['same', 'same']], 'expected': 'same'},
+                   {'args': [['a']], 'expected': 'a'},
+                   {'args': [['ab', 'abc', 'a']], 'expected': 'a'}],
+         'hint': 'Возьмите первое слово как образец и укорачивайте длину общего начала по каждому '
+                 'следующему слову.'},
+        {'id': 'str-count-overlap',
+         'mode': 'func',
+         'func': 'count_overlapping',
+         'title': 'Сколько раз встречается, включая перекрытия',
+         'statement': 'Напишите функцию count_overlapping(text, pat): число вхождений образца pat (он '
+                      'непустой) в text, при этом вхождения могут перекрываться: в «aaaa» образец «aa» '
+                      'встречается три раза.',
+         'starter': 'def count_overlapping(text, pat):\n    pass\n',
+         'tests': [{'args': ['aaaa', 'aa'], 'expected': 3},
+                   {'args': ['abababa', 'aba'], 'expected': 3},
+                   {'args': ['abc', 'd'], 'expected': 0},
+                   {'args': ['a', 'a'], 'expected': 1},
+                   {'args': ['mississippi', 'issi'], 'expected': 2},
+                   {'args': ['xyz', 'xyzxyz'], 'expected': 0}],
+         'hint': 'После каждого найденного вхождения сдвигайтесь всего на одну позицию, а не на длину '
+                 'образца.'},
+        {'id': 'str-prefix-function',
+         'mode': 'func',
+         'func': 'prefix_function',
+         'title': 'Префикс-функция',
+         'statement': 'Напишите функцию prefix_function(s): список p той же длины, где p[i] — длина '
+                      'наибольшего собственного префикса подстроки s[0..i], совпадающего с её суффиксом. '
+                      'Для «abacaba» ответ [0, 0, 1, 0, 1, 2, 3]. Время — линейное.',
+         'starter': 'def prefix_function(s):\n    pass\n',
+         'tests': [{'args': ['abacaba'], 'expected': [0, 0, 1, 0, 1, 2, 3]},
+                   {'args': ['aaaa'], 'expected': [0, 1, 2, 3]},
+                   {'args': ['abcd'], 'expected': [0, 0, 0, 0]},
+                   {'args': ['abababab'], 'expected': [0, 0, 1, 2, 3, 4, 5, 6]},
+                   {'args': [''], 'expected': []},
+                   {'args': ['a'], 'expected': [0]},
+                   {'args': ['aabaaab'], 'expected': [0, 1, 0, 1, 2, 2, 3]}],
+         'hint': 'Держите k — текущую длину совпадения; при несовпадении откатывайтесь: k = p[k - 1].'},
+        {'id': 'str-longest-border',
+         'mode': 'func',
+         'func': 'longest_border',
+         'title': 'Самая длинная граница',
+         'statement': 'Граница строки — собственный префикс, равный суффиксу. Напишите функцию '
+                      'longest_border(s): самая длинная граница в виде строки (пустая, если границ нет). '
+                      'Для «abacaba» это «aba».',
+         'starter': 'def longest_border(s):\n    pass\n',
+         'tests': [{'args': ['abacaba'], 'expected': 'aba'},
+                   {'args': ['abcd'], 'expected': ''},
+                   {'args': ['aaaa'], 'expected': 'aaa'},
+                   {'args': ['abab'], 'expected': 'ab'},
+                   {'args': [''], 'expected': ''},
+                   {'args': ['xyxyxyx'], 'expected': 'xyxyx'}],
+         'hint': 'Последнее значение префикс-функции — длина самой длинной границы.'},
+        {'id': 'str-min-period',
+         'mode': 'func',
+         'func': 'min_period',
+         'title': 'Наименьший период',
+         'statement': 'Напишите функцию min_period(s): наименьшая длина p, при которой строка целиком '
+                      'состоит из повторений своих первых p символов (p делит длину). Если такого p меньше '
+                      'длины нет, ответ — длина строки; для пустой строки — 0. Например, для «abcabcabc» '
+                      'ответ 3, для «abcab» — 5.',
+         'starter': 'def min_period(s):\n    pass\n',
+         'tests': [{'args': ['abcabcabc'], 'expected': 3},
+                   {'args': ['abcab'], 'expected': 5},
+                   {'args': ['aaaa'], 'expected': 1},
+                   {'args': ['abab'], 'expected': 2},
+                   {'args': ['a'], 'expected': 1},
+                   {'args': [''], 'expected': 0},
+                   {'args': ['abaaba'], 'expected': 3},
+                   {'args': ['abaab'], 'expected': 5}],
+         'hint': 'Кандидат в периоды — длина минус последнее значение префикс-функции; проверьте, что он '
+                 'делит длину.'},
+        {'id': 'str-kmp-search',
+         'mode': 'stdout',
+         'title': 'Поиск Кнута — Морриса — Пратта',
+         'statement': 'Напишите функцию find_all(text, pat): список начал всех вхождений образца в текст '
+                      '(с перекрытиями) по возрастанию. Пустой образец встречается в каждой позиции от 0 '
+                      'до len(text). Время — порядка n + m: проверка подаёт текст в миллион символов и '
+                      'образец в триста тысяч. Запрещены find, index, count, startswith, split, replace, '
+                      'in и re.',
+         'starter': 'def find_all(text, pat):\n    pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'endswith', 'find', 'replace', "
+                   "'rfind', 'split', 'rindex', 'partition', 'startswith', 'index', 'count'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif False and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    print(find_all("abracadabra", "abra"), find_all("aaaa", "aa"), find_all("abc", '
+                   '"d"), find_all("abc", ""))\n'
+                   '    big = "a" * 1000000\n'
+                   '    print(len(find_all(big, "a" * 300000 + "b")))\n'
+                   '    r = find_all(big, "a" * 300000)\n'
+                   '    print(len(r), r[0], r[-1])\n'
+                   '    r = find_all("ab" * 400000, "abab")\n'
+                   '    print(len(r), r[1], r[-1])\n',
+         'expected': ['[0, 7] [0, 1, 2] [] [0, 1, 2, 3]', '0', '700001 0 700000', '399999 2 799996'],
+         'hint': 'Постройте префикс-функцию образца, затем идите по тексту: указатель по тексту не '
+                 'возвращается, k откатывается по таблице.'},
+        {'id': 'str-prefix-occurrences',
+         'mode': 'func',
+         'func': 'prefix_occurrences',
+         'title': 'Сколько раз встречается каждый префикс',
+         'statement': 'Напишите функцию prefix_occurrences(s): список ans, где ans[l - 1] — сколько раз '
+                      'префикс длины l встречается в s как подстрока (с перекрытиями). Для «abab» ответ '
+                      '[2, 2, 1, 1]. Время — линейное.',
+         'starter': 'def prefix_occurrences(s):\n    pass\n',
+         'tests': [{'args': ['abab'], 'expected': [2, 2, 1, 1]},
+                   {'args': ['aaa'], 'expected': [3, 2, 1]},
+                   {'args': ['abc'], 'expected': [1, 1, 1]},
+                   {'args': ['abacaba'], 'expected': [4, 2, 2, 1, 1, 1, 1]},
+                   {'args': [''], 'expected': []},
+                   {'args': ['a'], 'expected': [1]},
+                   {'args': ['aabaab'], 'expected': [4, 2, 2, 1, 1, 1]}],
+         'hint': 'Каждое значение префикс-функции — вхождение префикса этой длины; затем «протолкните» '
+                 'счётчики по цепочке p[l - 1].'},
+        {'id': 'str-is-rotation',
+         'mode': 'stdout',
+         'title': 'Циклический сдвиг',
+         'statement': 'Напишите функцию is_rotation(a, b): можно ли получить b циклическим сдвигом a. '
+                      'Время — линейное: проверка подаёт строки по пятьсот тысяч символов. Запрещены '
+                      'срезы, find, index, count, startswith, split, replace, in и re.',
+         'starter': 'def is_rotation(a, b):\n    pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'endswith', 'find', 'replace', "
+                   "'rfind', 'split', 'rindex', 'partition', 'startswith', 'index', 'count'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif True and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    print(is_rotation("abcde", "cdeab"), is_rotation("abcde", "abced"), '
+                   'is_rotation("", ""), is_rotation("a", "ab"))\n'
+                   '    a = "a" * 500000 + "b"\n'
+                   '    print(is_rotation(a, "a" * 300000 + "b" + "a" * 200000))\n'
+                   '    print(is_rotation(a, "a" * 500000 + "c"))\n'
+                   '    print(is_rotation("ab" * 250000, "ba" * 250000))\n',
+         'expected': ['True False True False', 'True', 'False', 'True'],
+         'hint': 'b — сдвиг a, если b встречается в склейке a + a; ищите её префикс-функцией, не создавая '
+                 'лишних копий.'},
+        {'id': 'str-shortest-palindrome',
+         'mode': 'stdout',
+         'title': 'Кратчайший палиндром приписыванием',
+         'statement': 'Напишите функцию shortest_palindrome(s): припишите к s слева минимальное число '
+                      'символов так, чтобы получился палиндром, и верните результат. Для «abcd» ответ '
+                      '«dcbabcd». Время — линейное: проверка подаёт строку в четыреста тысяч символов. '
+                      'Запрещены find, index, count, startswith, split, replace, in и re.',
+         'starter': 'def shortest_palindrome(s):\n    pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'endswith', 'find', 'replace', "
+                   "'rfind', 'split', 'rindex', 'partition', 'startswith', 'index', 'count'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif False and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    print(shortest_palindrome("aacecaaa"), shortest_palindrome("abcd"), '
+                   'repr(shortest_palindrome("")), shortest_palindrome("a"))\n'
+                   '    r = shortest_palindrome("abcd" * 100000)\n'
+                   '    print(len(r), r[:6], r[-6:])\n'
+                   '    r = shortest_palindrome("a" * 200000 + "b")\n'
+                   '    print(len(r), r[:3], r[-3:])\n',
+         'expected': ["aaacecaaa dcbabcd '' a", '799999 dcbadc cdabcd', '200002 baa aab'],
+         'hint': 'Найдите самый длинный палиндромный префикс: префикс-функция строки s + разделитель + '
+                 'развёрнутая s.'},
+        {'id': 'str-z-function',
+         'mode': 'func',
+         'func': 'z_function',
+         'title': 'Зет-функция',
+         'statement': 'Напишите функцию z_function(s): список z, где z[i] — длина наибольшего общего '
+                      'начала строки s и её суффикса, начинающегося в позиции i. Значение z[0] считаем '
+                      'равным 0. Для «aabxaab» ответ [0, 1, 0, 0, 3, 1, 0]. Время — линейное.',
+         'starter': 'def z_function(s):\n    pass\n',
+         'tests': [{'args': ['aabxaab'], 'expected': [0, 1, 0, 0, 3, 1, 0]},
+                   {'args': ['aaaa'], 'expected': [0, 3, 2, 1]},
+                   {'args': ['abc'], 'expected': [0, 0, 0]},
+                   {'args': [''], 'expected': []},
+                   {'args': ['a'], 'expected': [0]},
+                   {'args': ['abababab'], 'expected': [0, 0, 6, 0, 4, 0, 2, 0]},
+                   {'args': ['aabaaab'], 'expected': [0, 1, 0, 2, 3, 1, 0]}],
+         'hint': 'Храните зет-блок [l, r): внутри него начинайте с min(r − i, z[i − l]), затем расширяйте '
+                 'посимвольно.'},
+        {'id': 'str-z-search',
+         'mode': 'stdout',
+         'title': 'Поиск через зет-функцию',
+         'statement': 'Напишите функцию z_count(text, pat): число вхождений непустого образца в текст (с '
+                      'перекрытиями) через зет-функцию склейки pat + разделитель + text. Время — линейное: '
+                      'проверка подаёт текст в миллион символов. Запрещены find, index, count, startswith, '
+                      'split, replace, in и re.',
+         'starter': 'def z_count(text, pat):\n    pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'endswith', 'find', 'replace', "
+                   "'rfind', 'split', 'rindex', 'partition', 'startswith', 'index', 'count'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif False and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    print(z_count("abracadabra", "abra"), z_count("aaaa", "aa"), z_count("abc", "d"))\n'
+                   '    big = "a" * 1000000\n'
+                   '    print(z_count(big, "a" * 300000), z_count(big, "a" * 300000 + "b"))\n'
+                   '    print(z_count("ab" * 500000, "abab"))\n',
+         'expected': ['2 3 0', '700001 0', '499999'],
+         'hint': 'z[i] == len(pat) на позиции i > len(pat) означает вхождение; разделитель не даёт z '
+                 'вырасти больше длины образца.'},
+        {'id': 'str-hash-substring',
+         'mode': 'stdout',
+         'title': 'Хеш подстроки за константу',
+         'statement': 'Напишите класс SubHash: конструктор SubHash(s) считает хеши префиксов; метод get(l, '
+                      'r) возвращает хеш подстроки s[l:r] за O(1), метод same(l1, l2, length) — True, если '
+                      'подстроки s[l1:l1+length] и s[l2:l2+length] равны (сравнение по хешам, без срезов). '
+                      'Используйте большой модуль, например 2^61 − 1. Проверка: строка в девятьсот тысяч '
+                      'символов и двести тысяч запросов. Запрещены срезы, find, index, count, startswith, '
+                      'split, replace, in и re.',
+         'starter': 'class SubHash:\n'
+                    '    def __init__(self, s):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def get(self, l, r):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def same(self, l1, l2, length):\n'
+                    '        pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'endswith', 'find', 'replace', "
+                   "'rfind', 'split', 'rindex', 'partition', 'startswith', 'index', 'count'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif True and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    t = SubHash("abracadabra")\n'
+                   '    print(t.same(0, 7, 4), t.same(1, 8, 3), t.same(0, 3, 2), t.same(2, 9, 0))\n'
+                   '    def nxt(x):\n'
+                   '        x ^= (x << 13) & 0xFFFFFFFF\n'
+                   '        x ^= x >> 17\n'
+                   '        x ^= (x << 5) & 0xFFFFFFFF\n'
+                   '        return x\n'
+                   '    s = "abc" * 300000\n'
+                   '    h = SubHash(s)\n'
+                   '    n = len(s)\n'
+                   '    x = 12345\n'
+                   '    total = 0\n'
+                   '    for _ in range(200000):\n'
+                   '        x = nxt(x)\n'
+                   '        l1 = x % n\n'
+                   '        x = nxt(x)\n'
+                   '        l2 = x % n\n'
+                   '        x = nxt(x)\n'
+                   '        length = x % (n - max(l1, l2) + 1)\n'
+                   '        if h.same(l1, l2, length):\n'
+                   '            total += 1\n'
+                   '    print(total)\n',
+         'expected': ['True True False True', '66636'],
+         'hint': 'H[i + 1] = (H[i] · B + код символа) mod M; хеш [l, r) = H[r] − H[l] · B^(r − l) mod M.'},
+        {'id': 'str-rabin-karp',
+         'mode': 'stdout',
+         'title': 'Алгоритм Рабина — Карпа',
+         'statement': 'Напишите функцию rabin_karp(text, pat): индекс первого вхождения pat в text или -1; '
+                      'пустой образец — 0. Считайте хеш образца и скользящий хеш окна (модуль большой, '
+                      'например 2^61 − 1), а при равенстве хешей сверяйте строки. Проверка: текст в '
+                      'миллион символов и образец в триста тысяч. Запрещены срезы, find, index, count, '
+                      'startswith, split, replace, in и re.',
+         'starter': 'def rabin_karp(text, pat):\n    pass\n',
+         'driver': 'import ast as _ast\n'
+                   '_src = open("/sandbox/solution.py", encoding="utf-8").read()\n'
+                   '_bad = set()\n'
+                   'for _n in _ast.walk(_ast.parse(_src)):\n'
+                   "    if isinstance(_n, _ast.Attribute) and _n.attr in {'endswith', 'find', 'replace', "
+                   "'rfind', 'split', 'rindex', 'partition', 'startswith', 'index', 'count'}:\n"
+                   '        _bad.add("." + _n.attr + "()")\n'
+                   '    elif True and isinstance(_n, _ast.Compare) and any(isinstance(_o, (_ast.In, '
+                   '_ast.NotIn)) for _o in _n.ops):\n'
+                   '        _bad.add("in")\n'
+                   '    elif True and isinstance(_n, _ast.Slice):\n'
+                   '        _bad.add("срезы")\n'
+                   '    elif isinstance(_n, _ast.Import) and any(_a.name.split(".")[0] in {\'re\'} for _a '
+                   'in _n.names):\n'
+                   '        _bad.add("import")\n'
+                   '    elif isinstance(_n, _ast.ImportFrom) and (_n.module or "").split(".")[0] in '
+                   "{'re'}:\n"
+                   '        _bad.add("import")\n'
+                   'if _bad:\n'
+                   '    print("запрещённые приёмы:", ", ".join(sorted(_bad)))\n'
+                   'else:\n'
+                   '    print(rabin_karp("hello world", "o w"), rabin_karp("abc", "abcd"), '
+                   'rabin_karp("abc", ""), rabin_karp("abcabc", "cab"))\n'
+                   '    big = "a" * 1000000\n'
+                   '    print(rabin_karp(big, "a" * 300000 + "b"))\n'
+                   '    print(rabin_karp(big + "b", "a" * 300000 + "b"))\n'
+                   '    print(rabin_karp("ab" * 400000 + "c", "abababc"))\n',
+         'expected': ['4 -1 0 2', '-1', '700000', '799994'],
+         'hint': 'Окно: ht = ((ht − код ушедшего · B^(m−1)) · B + код нового) mod M; не забывайте брать '
+                 'остаток после вычитания.'},
+        {'id': 'str-trie',
+         'mode': 'stdout',
+         'title': 'Префиксное дерево',
+         'statement': 'Напишите класс Trie с методами insert(word), contains(word) → bool и '
+                      'count_prefix(prefix) → сколько различных вставленных слов начинается с prefix '
+                      '(пустая приставка — все слова). Повторная вставка слова ничего не меняет. Проверка: '
+                      'сто тысяч слов и сто тысяч запросов — перебор списка не уложится.',
+         'starter': 'class Trie:\n'
+                    '    def __init__(self):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def insert(self, word):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def contains(self, word):\n'
+                    '        pass\n'
+                    '\n'
+                    '    def count_prefix(self, prefix):\n'
+                    '        pass\n',
+         'driver': 't = Trie()\n'
+                   'for w in ["to", "tea", "ten", "in", "to"]:\n'
+                   '    t.insert(w)\n'
+                   'print(t.contains("te"), t.contains("ten"), t.count_prefix("te"), t.count_prefix(""), '
+                   't.count_prefix("x"))\n'
+                   'def nxt(x):\n'
+                   '    x ^= (x << 13) & 0xFFFFFFFF\n'
+                   '    x ^= x >> 17\n'
+                   '    x ^= (x << 5) & 0xFFFFFFFF\n'
+                   '    return x\n'
+                   'x = 777\n'
+                   'def rnd():\n'
+                   '    global x\n'
+                   '    x = nxt(x)\n'
+                   '    return x\n'
+                   'words = []\n'
+                   'big = Trie()\n'
+                   'for _ in range(100000):\n'
+                   '    w = "".join("abcdefgh"[rnd() % 8] for _ in range(1 + rnd() % 12))\n'
+                   '    words.append(w)\n'
+                   '    big.insert(w)\n'
+                   'print(sum(big.contains(words[rnd() % 100000]) for _ in range(20000)))\n'
+                   'total = 0\n'
+                   'for _ in range(100000):\n'
+                   '    w = words[rnd() % 100000]\n'
+                   '    total += big.count_prefix(w[: 1 + rnd() % 6])\n'
+                   'print(total, big.count_prefix(""))\n',
+         'expected': ['False True 2 4 0', '20000', '229381066 69785'],
+         'hint': 'В узле храните словарь детей, признак конца слова и сколько слов проходит через узел.'},
+        {'id': 'str-autocomplete',
+         'mode': 'func',
+         'func': 'autocomplete',
+         'title': 'Автодополнение',
+         'statement': 'Напишите функцию autocomplete(words, prefix, k): первые k слов (без повторов) из '
+                      'списка words, которые начинаются с prefix, в алфавитном порядке. Если таких слов '
+                      'меньше k — вернуть сколько есть.',
+         'starter': 'def autocomplete(words, prefix, k):\n    pass\n',
+         'tests': [{'args': [['tea', 'ten', 'to', 'in', 'tea'], 'te', 5], 'expected': ['tea', 'ten']},
+                   {'args': [['tea', 'ten', 'to', 'in'], 't', 2], 'expected': ['tea', 'ten']},
+                   {'args': [['a', 'b'], 'c', 3], 'expected': []},
+                   {'args': [['b', 'ab', 'a'], '', 2], 'expected': ['a', 'ab']},
+                   {'args': [[], 'x', 1], 'expected': []}],
+         'hint': 'Спуститесь в бор по приставке и обойдите поддерево, посещая детей по алфавиту, пока не '
+                 'наберёте k слов.'},
+        {'id': 'str-edit-distance',
+         'mode': 'func',
+         'func': 'edit_distance',
+         'title': 'Расстояние Левенштейна',
+         'statement': 'Напишите функцию edit_distance(a, b): минимальное число вставок, удалений и замен '
+                      'символа, которое превращает a в b. Для «kitten» и «sitting» ответ 3. Время — '
+                      'порядка len(a) · len(b).',
+         'starter': 'def edit_distance(a, b):\n    pass\n',
+         'tests': [{'args': ['kitten', 'sitting'], 'expected': 3},
+                   {'args': ['', 'abc'], 'expected': 3},
+                   {'args': ['abc', 'abc'], 'expected': 0},
+                   {'args': ['flaw', 'lawn'], 'expected': 2},
+                   {'args': ['intention', 'execution'], 'expected': 5},
+                   {'args': ['abc', ''], 'expected': 3},
+                   {'args': ['a', 'b'], 'expected': 1}],
+         'hint': 'd[i][j] = d[i − 1][j − 1], если символы равны; иначе 1 + min из трёх соседей. Хватит '
+                 'двух строк таблицы.'},
+        {'id': 'str-one-edit',
+         'mode': 'func',
+         'func': 'one_edit_away',
+         'title': 'Одна правка',
+         'statement': 'Напишите функцию one_edit_away(a, b): True, если a можно превратить в b не более '
+                      'чем одной вставкой, удалением или заменой символа (строки равны — тоже True). Время '
+                      '— линейное, без таблицы.',
+         'starter': 'def one_edit_away(a, b):\n    pass\n',
+         'tests': [{'args': ['pale', 'ple'], 'expected': True},
+                   {'args': ['pales', 'pale'], 'expected': True},
+                   {'args': ['pale', 'bale'], 'expected': True},
+                   {'args': ['pale', 'bake'], 'expected': False},
+                   {'args': ['same', 'same'], 'expected': True},
+                   {'args': ['', 'a'], 'expected': True},
+                   {'args': ['', 'ab'], 'expected': False},
+                   {'args': ['abc', 'ab'], 'expected': True}],
+         'hint': 'Найдите первую позицию, где строки расходятся, и проверьте оставшиеся хвосты для трёх '
+                 'случаев длины.'},
+        {'id': 'str-lcs',
+         'mode': 'func',
+         'func': 'lcs_length',
+         'title': 'Наибольшая общая подпоследовательность',
+         'statement': 'Напишите функцию lcs_length(a, b): длина наибольшей общей подпоследовательности '
+                      'двух строк — символы идут в том же порядке, но не обязательно подряд. Для «abcde» и '
+                      '«ace» ответ 3.',
+         'starter': 'def lcs_length(a, b):\n    pass\n',
+         'tests': [{'args': ['abcde', 'ace'], 'expected': 3},
+                   {'args': ['abc', 'def'], 'expected': 0},
+                   {'args': ['', 'a'], 'expected': 0},
+                   {'args': ['AGGTAB', 'GXTXAYB'], 'expected': 4},
+                   {'args': ['aaaa', 'aa'], 'expected': 2},
+                   {'args': ['abc', 'abc'], 'expected': 3}],
+         'hint': 'Совпали последние символы — длина на единицу больше, чем у префиксов; иначе максимум из '
+                 '«без последнего в a» и «без последнего в b».'},
+        {'id': 'str-distinct-substrings',
+         'mode': 'stdout',
+         'title': 'Сколько различных подстрок',
+         'statement': 'Напишите функцию count_distinct(s): число различных непустых подстрок строки s. Для '
+                      '«aaa» ответ 3, для «abab» — 7. Хранить все подстроки нельзя: проверка подаёт строки '
+                      'в две тысячи символов, а память песочницы ограничена. Идея: при дописывании символа '
+                      'к префиксу длины i появляются новые подстроки — суффиксы, которых раньше не было. '
+                      'Их число равно i минус наибольшее значение префикс-функции развёрнутого префикса.',
+         'starter': 'def count_distinct(s):\n    pass\n',
+         'driver': 'print(count_distinct("aaa"), count_distinct("abab"), count_distinct("abc"), '
+                   'count_distinct(""))\n'
+                   'print(count_distinct("a" * 2000), count_distinct("ab" * 1000))\n'
+                   'def nxt(x):\n'
+                   '    x ^= (x << 13) & 0xFFFFFFFF\n'
+                   '    x ^= x >> 17\n'
+                   '    x ^= (x << 5) & 0xFFFFFFFF\n'
+                   '    return x\n'
+                   'x = 99\n'
+                   's = []\n'
+                   'for _ in range(1500):\n'
+                   '    x = nxt(x)\n'
+                   '    s.append("abc"[(x >> 10) % 3])\n'
+                   'print(count_distinct("".join(s)))\n',
+         'expected': ['3 7 6 0', '2000 3999', '1117153'],
+         'hint': 'Новые подстроки при дописывании символа — это суффиксы, ещё не встречавшиеся раньше; их '
+                 'длина — i минус максимум π развёрнутого префикса.'},
+    ],
 }

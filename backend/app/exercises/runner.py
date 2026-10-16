@@ -17,12 +17,17 @@ from pathlib import Path
 
 IMAGE = "python:3.13-slim"
 RUST_IMAGE = "rust:1.97-slim"
+# Образ с заранее собранными tokio, futures, tokio-stream, tokio-util и bytes (docker/rust-tokio/Dockerfile);
+# используется задачами с полем `crates` — сети во время проверки нет, rustc получает --extern на готовые rlib.
+RUST_TOKIO_IMAGE = "say-rust-tokio:1"
+RUST_TOKIO_CRATES = ("tokio", "tokio_stream", "tokio_util", "futures", "bytes")
 RUST_TIMEOUT_SEC = 60
 RUST_MEMORY = "1g"
 RUST_CPUS = "2.0"
 RUST_COMPILE_ERR_LIMIT = 3000
 C_IMAGE = RUST_IMAGE  # в образе rust:slim есть gcc 14, libc и санитайзеры
 C_DEFAULT_FLAGS = "-std=gnu11 -O1 -g0 -Wall"
+JS_IMAGE = "node:22-alpine"
 TIMEOUT_SEC = 25
 MEMORY = "256m"
 CPUS = "1.0"
@@ -146,7 +151,24 @@ def cell(v):
     return round(v, 4) if isinstance(v, float) else v
 
 def fmt(rows):
-    return "\\n".join(" | ".join("NULL" if v is None else str(v) for v in r) for r in rows)
+    return "\n".join(" | ".join("NULL" if v is None else str(v) for v in r) for r in rows)
+
+def table(rows):
+    # столбцы выровнены по ширине: текст влево, числа вправо, последний столбец без хвоста
+    cells = [["NULL" if v is None else str(v) for v in r] for r in rows]
+    if not cells:
+        return ""
+    n = max(len(r) for r in cells)
+    widths = [max((len(r[j]) for r in cells if j < len(r)), default=0) for j in range(n)]
+    num = [all(isinstance(r[j], (int, float)) or r[j] is None for r in rows if j < len(r)) for j in range(n)]
+    lines = []
+    for raw, r in zip(rows, cells):
+        parts = []
+        for j, v in enumerate(r):
+            last = j == len(r) - 1
+            parts.append(v.rjust(widths[j]) if num[j] else (v if last else v.ljust(widths[j])))
+        lines.append(" | ".join(parts))
+    return "\n".join(lines)
 
 def statements(sql):
     buf, out = "", []
@@ -161,6 +183,7 @@ def statements(sql):
 
 error = None
 got = []
+cols = []
 try:
     con = sqlite3.connect(":memory:", isolation_level=None)
     con.executescript(SETUP)
@@ -170,8 +193,11 @@ try:
         cur = con.execute(st)
         if cur.description is not None:
             last = [tuple(cell(v) for v in r) for r in cur.fetchall()]
+            cols = [d[0] for d in cur.description]
     if CHECK:
-        got = [tuple(cell(v) for v in r) for r in con.execute(CHECK).fetchall()]
+        cur = con.execute(CHECK)
+        cols = [d[0] for d in cur.description]
+        got = [tuple(cell(v) for v in r) for r in cur.fetchall()]
     elif last is None:
         raise ValueError("Запрос ничего не вернул: нужен SELECT")
     else:
@@ -191,9 +217,22 @@ else:
         ok = error is None and got == exp
     else:
         ok = error is None and sorted(got, key=repr) == sorted(exp, key=repr)
-    shown_expected = fmt(exp)
-result = [{"ok": ok, "got": fmt(got), "expected": shown_expected, "error": error}]
-print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
+    shown_expected = table(exp)
+result = [{
+    "ok": ok,
+    "got": table(got) if not CONTAINS else fmt(got),
+    "expected": shown_expected,
+    "error": error,
+    "kind": "text" if CONTAINS else "rows",
+    "ordered": ORDERED,
+    "got_cols": cols,
+    "got_rows": [list(r) for r in got[:LIMIT_ROWS]],
+    "got_total": len(got),
+    "exp_cols": EXPCOLS,
+    "exp_rows": [list(r) for r in exp[:LIMIT_ROWS]],
+    "exp_total": len(exp),
+}]
+print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False, default=str))
 """
 
 
@@ -223,6 +262,8 @@ def _harness(task: dict) -> str:
             f"SETUP = {task['setup']!r}\n"
             f"CHECK = {task.get('check', '')!r}\n"
             f"EXPECTED = {task.get('expected', [])!r}\n"
+            f"EXPCOLS = {task.get('expected_cols', [])!r}\n"
+            f"LIMIT_ROWS = 200\n"
             f"ORDERED = {bool(task.get('ordered', False))!r}\n"
             f"CONTAINS = {task.get('contains', [])!r}\n"
             f"FORBID = {task.get('forbid', [])!r}\n"
@@ -240,7 +281,10 @@ def wrap_rust_driver(driver: str) -> str:
     """Драйвер кладётся в собственный модуль: его `use` не конфликтуют с
     импортами ученика (явные импорты модуля важнее глобального `use super::*`),
     а имена из решения ученика доступны через `super`."""
-    body = driver.strip("\n").replace("fn main(", "pub fn main(", 1)
+    if "async fn main(" in driver:
+        body = driver.strip("\n").replace("async fn main(", "pub async fn main(", 1)
+    else:
+        body = driver.strip("\n").replace("fn main(", "pub fn main(", 1)
     return (
         "mod __say_driver {\n"
         "    #[allow(unused_imports)]\n"
@@ -255,9 +299,20 @@ def run_rust(task: dict, code: str) -> dict:
     """Режим «rust»: код ученика + скрытый драйвер (fn main) компилируются
     rustc в песочнице без сети; сравнивается построчный вывод программы.
     Ошибка компиляции показывается ученику как результат проверки."""
-    source = code.rstrip() + "\n\n" + wrap_rust_driver(task["driver"])
+    if task.get("standalone"):
+        # ученик пишет программу целиком (своя fn main); проверяется только вывод
+        source = code.rstrip() + "\n"
+    else:
+        source = code.rstrip() + "\n\n" + wrap_rust_driver(task["driver"])
+    crates = bool(task.get("crates"))
+    image = RUST_TOKIO_IMAGE if crates else RUST_IMAGE
+    externs = ""
+    if crates:
+        externs = "-L dependency=/opt/deps/target/release/deps " + " ".join(
+            f"--extern {c}=/opt/ext/lib{c}.rlib" for c in RUST_TOKIO_CRATES
+        )
     script = (
-        "rustc --edition 2021 -O -C debuginfo=0 -o /tmp/prog /sandbox/main.rs 2>/tmp/err "
+        f"rustc --edition 2021 -O -C debuginfo=0 {externs} -o /tmp/prog /sandbox/main.rs 2>/tmp/err "
         "|| { echo COMPILE_ERROR; cat /tmp/err; exit 0; }; "
         "timeout 10 /tmp/prog 2>/tmp/run_err; code=$?; "
         'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
@@ -271,7 +326,7 @@ def run_rust(task: dict, code: str) -> dict:
             "--read-only", "--tmpfs", "/tmp:rw,exec,size=256m",
             "-e", "HOME=/tmp",
             "-v", f"{sandbox}:/sandbox:ro", "-w", "/tmp",
-            RUST_IMAGE, "sh", "-c", script,
+            image, "sh", "-c", script,
         ]
         try:
             proc = subprocess.run(
@@ -288,6 +343,12 @@ def run_rust(task: dict, code: str) -> dict:
             )
     out = proc.stdout
     if proc.returncode != 0 and not out:
+        if crates and "say-rust-tokio" in proc.stderr:
+            return _docker_failed(
+                "Образ say-rust-tokio:1 не собран. Один раз выполните: "
+                "docker build -t say-rust-tokio:1 backend/docker/rust-tokio",
+                "error",
+            )
         return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
     expected = task["expected"]
     if out.startswith("COMPILE_ERROR"):
@@ -360,12 +421,66 @@ def run_c(task: dict, code: str) -> dict:
     return {"status": "ok", "results": res, "stdout": "", "stderr": ""}
 
 
+def run_js(task: dict, code: str) -> dict:
+    """Режим «js»: код ученика + скрытый драйвер собираются в один модуль (.mjs, Node 22) и
+    выполняются в песочнице без сети; сравнивается построчный вывод. Синтаксическая ошибка или
+    необработанное исключение показываются ученику вместе со стеком."""
+    source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
+    script = (
+        "timeout 10 node --max-old-space-size=256 /sandbox/main.mjs 2>/tmp/run_err; code=$?; "
+        'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
+    )
+    with tempfile.TemporaryDirectory(prefix="say-js-") as td:
+        sandbox = Path(td)
+        (sandbox / "main.mjs").write_text(source, encoding="utf-8")
+        cmd = [
+            "docker", "run", "--rm", "--network", "none",
+            "--memory", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
+            "--read-only", "--tmpfs", "/tmp:rw,exec,size=256m",
+            "-e", "HOME=/tmp",
+            "-v", f"{sandbox}:/sandbox:ro", "-w", "/tmp",
+            JS_IMAGE, "sh", "-c", script,
+        ]
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, errors="replace", timeout=RUST_TIMEOUT_SEC
+            )
+        except subprocess.TimeoutExpired:
+            return {
+                "status": "timeout", "results": [], "stdout": "",
+                "stderr": f"Превышен лимит времени ({RUST_TIMEOUT_SEC} с).",
+            }
+        except FileNotFoundError:
+            return _docker_failed(
+                "Docker недоступен. Запустите Docker/OrbStack и попробуйте снова."
+            )
+    out = proc.stdout
+    if proc.returncode != 0 and not out:
+        return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
+    expected = task["expected"]
+    if out.startswith("COMPILE_ERROR"):
+        err = out[len("COMPILE_ERROR"):].strip()[:RUST_COMPILE_ERR_LIMIT]
+        res = [{"ok": False, "got": "", "expected": "\n".join(expected), "error": "Ошибка компиляции:\n" + err}]
+    elif "__EXIT__" in out:
+        body, _, rest = out.partition("__EXIT__")
+        code_, _, msg = rest.partition("\n")
+        res = [{"ok": False, "got": body, "expected": "\n".join(expected),
+                "error": f"Программа завершилась с кодом {code_}.\n{msg.strip()}"}]
+    else:
+        got = [line.rstrip() for line in out.strip("\n").split("\n")] if out.strip() else []
+        want = [line.rstrip() for line in expected]
+        res = [{"ok": got == want, "got": "\n".join(got), "expected": "\n".join(want), "error": None}]
+    return {"status": "ok", "results": res, "stdout": "", "stderr": ""}
+
+
 def run_task(task: dict, code: str) -> dict:
     """Возвращает {status, results, stdout, stderr}."""
     if task["mode"] == "rust":
         return run_rust(task, code)
     if task["mode"] == "c":
         return run_c(task, code)
+    if task["mode"] == "js":
+        return run_js(task, code)
     with tempfile.TemporaryDirectory(prefix="say-ex-") as td:
         sandbox = Path(td)
         (sandbox / "solution.py").write_text(code, encoding="utf-8")

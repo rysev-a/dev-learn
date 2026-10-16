@@ -5,7 +5,7 @@
 """
 
 TASKS: dict[int, list[dict]] = {
-    20: [
+    25: [
         {
             "id": "apply-all",
             "mode": "stdout",
@@ -154,7 +154,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "reduce(lambda acc, x: acc * x, nums, 1) — единица как начальное значение даёт 1 для пустого списка.",
         },
     ],
-    21: [
+    26: [
         {
             "id": "make-multiplier",
             "mode": "stdout",
@@ -293,7 +293,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "В wrapper: for a in args: if a < 0: raise ValueError(...).",
         },
     ],
-    22: [
+    27: [
         {
             "id": "merge-dicts-reduce",
             "mode": "func",
@@ -439,7 +439,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "list(map(itemgetter(i), rows)).",
         },
     ],
-    23: [
+    28: [
         {
             "id": "first-squares",
             "mode": "func",

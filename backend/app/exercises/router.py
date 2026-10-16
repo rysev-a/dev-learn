@@ -32,7 +32,7 @@ def list_tasks(book_id: int, chapter: int):
     items = tasks.chapter_tasks(book_id, chapter)
     if items is None:
         raise HTTPException(404, "У этой главы нет код-упражнений")
-    return {"tasks": items}
+    return {"tasks": items, "datasets": tasks.chapter_datasets(book_id, chapter)}
 
 
 @router.get("/{book_id}/{chapter}/state")

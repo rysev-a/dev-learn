@@ -1,4 +1,4 @@
-// Слайды для «Python как первый язык», глава 23 — «itertools».
+// Слайды для «Python как первый язык», глава 23 — «Генераторы».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ФУНКЦИОНАЛЬНОЕ ПРОГРАММИРОВАНИЕ / ГЛАВА 23</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ИТЕРАТОРЫ И ГЕНЕРАТОРЫ / ГЛАВА 23</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -90,12 +90,12 @@ function S01() {
   return (
     <Slide
       n={1}
-      title={"itertools"}
-      sub={"Глава 23 · Функциональное программирование"}
-      main={"Ленивые потоки: бесконечные счётчики, склейка, группировка и комбинаторика."}
+      title={"Генераторы"}
+      sub={"Глава 23 · Итераторы и генераторы"}
+      main={"Слово yield превращает функцию в итератор — без класса и без StopIteration."}
     >
       <div className="s-grid2">
-        {[["count · cycle", "Потоки", "Бесконечные источники значений"], ["islice · chain", "Нарезка и склейка", "Срезы и объединения итераторов"], ["accumulate · groupby", "Итоги и группы", "Нарастающие суммы, соседние группы"], ["product · combinations", "Комбинаторика", "Перебор вариантов"]].map(([big, t, d]) => (
+        {[["yield", "Генератор", "Функция, которая отдаёт значения порциями"], ["( x for ... )", "Выражение", "Ленивый брат генератора списка"], ["a | b | c", "Конвейер", "Генераторы друг в друга"], ["yield from", "Делегирование", "Отдать всё из вложенного источника"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -112,19 +112,21 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Бесконечные потоки"}
-      sub={"count, cycle, repeat"}
-      main={"Бесконечный поток всегда ограничивайте: islice, takewhile или break."}
+      title={"Функция с yield"}
+      sub={"Вызов создаёт генератор и ничего не выполняет"}
+      main={"return отдаёт и завершает; yield отдаёт и приостанавливает, помня всё состояние."}
     >
-      <PyCode>{`from itertools import count, cycle, repeat, islice
+      <PyCode>{`def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
 
-print(list(islice(count(10, 5), 4)))
-print(list(islice(cycle("ABC"), 7)))
-print(list(repeat("x", 3)))
-for i, ch in zip(count(1), "abc"):
-    print(i, ch)`}</PyCode>
+g = countdown(3)
+print(type(g).__name__)
+print(next(g), next(g), next(g))
+print(list(countdown(2)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[10, 15, 20, 25]\n['A', 'B', 'C', 'A', 'B', 'C', 'A']\n['x', 'x', 'x']\n1 a\n2 b\n3 c"}</Cmd>
+      <Cmd>{"generator\n3 2 1\n[2, 1]"}</Cmd>
     </Slide>
   );
 }
@@ -133,19 +135,27 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"islice"}
-      sub={"Срез для итераторов"}
-      main={"Итератор продвигается: взятые и пропущенные элементы израсходованы."}
+      title={"Порядок выполнения"}
+      sub={"Код внутри идёт ровно настолько, насколько просят значений"}
+      main={"Перемежающееся выполнение двух программ — вызывающей и генератора — суть генераторов."}
     >
-      <PyCode>{`from itertools import islice
+      <PyCode>{`def gen():
+    print("старт")
+    yield 1
+    print("середина")
+    yield 2
+    print("конец")
 
-it = iter(range(100))
-print(list(islice(it, 3)))
-print(list(islice(it, 2, 5)))       # пропустить 2, взять 3
-print(list(islice("abcdefgh", 0, None, 3)))`}</PyCode>
+g = gen()
+print("создали")
+print(next(g))
+print(next(g))
+try:
+    next(g)
+except StopIteration:
+    print("StopIteration")`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[0, 1, 2]\n[5, 6, 7]\n['a', 'd', 'g']"}</Cmd>
-      <div className="s-note">{"Отрицательных индексов нет: итератор не знает своей длины."}</div>
+      <Cmd>{"создали\nстарт\n1\nсередина\n2\nконец\nStopIteration"}</Cmd>
     </Slide>
   );
 }
@@ -154,18 +164,20 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"chain и zip_longest"}
-      sub={"Склеить потоки и выровнять разной длины"}
-      main={"zip теряет хвост более длинного; zip_longest хранит всё."}
+      title={"Генератор — это итератор"}
+      sub={"Всё из прошлой главы работает"}
+      main={"Нужно перебрать дважды — вызовите генераторную функцию заново: каждый вызов — новый курсор."}
     >
-      <PyCode>{`from itertools import chain, zip_longest
+      <PyCode>{`def squares(n):
+    for i in range(n):
+        yield i * i
 
-print(list(chain([1, 2], (3,), "ab")))
-print(list(chain.from_iterable([[1], [2, 3], []])))
-print(list(zip([1, 2, 3], "ab")))
-print(list(zip_longest([1, 2, 3], "ab", fillvalue="-")))`}</PyCode>
+g = squares(4)
+print(list(g))
+print(list(g))
+print(sum(squares(4)), 9 in squares(4))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 2, 3, 'a', 'b']\n[1, 2, 3]\n[(1, 'a'), (2, 'b')]\n[(1, 'a'), (2, 'b'), (3, '-')]"}</Cmd>
+      <Cmd>{"[0, 1, 4, 9]\n[]\n14 True"}</Cmd>
     </Slide>
   );
 }
@@ -174,20 +186,22 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"accumulate"}
-      sub={"Нарастающие итоги"}
-      main={"reduce отдаёт только итог, accumulate — все промежуточные шаги."}
+      title={"Бесконечные генераторы"}
+      sub={"Вечный цикл и yield"}
+      main={"Ни класса, ни хранения последовательности: значения рождаются и забываются."}
     >
-      <PyCode>{`from itertools import accumulate
-import operator
+      <PyCode>{`def fib():
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
 
-nums = [1, 2, 3, 4]
-print(list(accumulate(nums)))
-print(list(accumulate(nums, operator.mul)))
-print(list(accumulate([3, 1, 4, 1, 5], max)))
-print(list(accumulate(nums, initial=100)))`}</PyCode>
+for i, x in enumerate(fib()):
+    if i == 10:
+        break
+    print(x, end=" ")`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 3, 6, 10]\n[1, 2, 6, 24]\n[3, 3, 4, 4, 5]\n[100, 101, 103, 106, 110]"}</Cmd>
+      <Cmd>{"0 1 1 2 3 5 8 13 21 34"}</Cmd>
     </Slide>
   );
 }
@@ -196,19 +210,17 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Отбор в потоках"}
-      sub={"takewhile, dropwhile, filterfalse, compress"}
-      main={"takewhile останавливается и не читает дальше — для бесконечных потоков это спасение."}
+      title={"Генераторное выражение"}
+      sub={"Круглые скобки вместо квадратных"}
+      main={"Нужно один раз свернуть в число — выражение; нужен список для повторного обхода — генератор списка."}
     >
-      <PyCode>{`from itertools import takewhile, dropwhile, filterfalse, compress
-
-nums = [1, 3, 5, 6, 7, 9]
-print(list(takewhile(lambda x: x % 2 == 1, nums)))
-print(list(dropwhile(lambda x: x % 2 == 1, nums)))
-print(list(filterfalse(lambda x: x % 2 == 1, nums)))
-print(list(compress("ABCDE", [1, 0, 1, 0, 1])))`}</PyCode>
+      <PyCode>{`s = sum(x * x for x in range(1_000_000))
+print(s)
+gen = (x * x for x in range(3))
+print(type(gen).__name__, list(gen))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 3, 5]\n[6, 7, 9]\n[6]\n['A', 'C', 'E']"}</Cmd>
+      <Cmd>{"333332833333500000\ngenerator [0, 1, 4]"}</Cmd>
+      <div className="s-note">{"Миллион квадратов посчитан без списка в памяти."}</div>
     </Slide>
   );
 }
@@ -217,20 +229,26 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"groupby"}
-      sub={"Группирует только соседние элементы"}
-      main={"Сначала отсортируйте по тому же ключу; группу превращайте в список сразу."}
+      title={"Конвейеры"}
+      sub={"Каждый этап — маленькая функция"}
+      main={"Через цепочку течёт по одному элементу: файл на сто гигабайт обрабатывается так же, как на сто килобайт."}
     >
-      <PyCode>{`from itertools import groupby
+      <PyCode>{`def lines():
+    for t in ["  Привет ", "", "МИР  ", "  ", "Да"]:
+        yield t
 
-words = ["аб", "ав", "ба", "бб", "аг"]
-for key, group in groupby(words, key=lambda w: w[0]):
-    print(key, list(group))
-print("— с сортировкой —")
-for key, group in groupby(sorted(words), key=lambda w: w[0]):
-    print(key, list(group))`}</PyCode>
+def non_empty(src):
+    for s in src:
+        if s.strip():
+            yield s
+
+def cleaned(src):
+    for s in src:
+        yield s.strip().lower()
+
+print(list(cleaned(non_empty(lines()))))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"а ['аб', 'ав']\nб ['ба', 'бб']\nа ['аг']\n— с сортировкой —\nа ['аб', 'ав', 'аг']\nб ['ба', 'бб']"}</Cmd>
+      <Cmd>{"['привет', 'мир', 'да']"}</Cmd>
     </Slide>
   );
 }
@@ -239,18 +257,20 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Комбинаторика"}
-      sub={"product, permutations, combinations"}
-      main={"Результаты ленивые: перебирайте по одному и останавливайтесь, когда нашли нужное."}
+      title={"yield from"}
+      sub={"Отдать всё из вложенного источника"}
+      main={"Рекурсивный обход вложенных структур — в пять строк."}
     >
-      <PyCode>{`from itertools import product, permutations, combinations
+      <PyCode>{`def flat(items):
+    for x in items:
+        if isinstance(x, list):
+            yield from flat(x)
+        else:
+            yield x
 
-print(list(product("ab", [1, 2])))
-print(list(permutations([1, 2, 3], 2)))
-print(list(combinations("abc", 2)))
-print(len(list(permutations(range(5)))), len(list(combinations(range(5), 2))))`}</PyCode>
+print(list(flat([1, [2, [3, 4]], 5])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[('a', 1), ('a', 2), ('b', 1), ('b', 2)]\n[(1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)]\n[('a', 'b'), ('a', 'c'), ('b', 'c')]\n120 10"}</Cmd>
+      <Cmd>{"[1, 2, 3, 4, 5]"}</Cmd>
     </Slide>
   );
 }
@@ -259,19 +279,24 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"starmap, pairwise, tee"}
-      sub={"Мелкие, но полезные инструменты"}
-      main={"pairwise — готовое скользящее окно из двух; tee копирует итератор, исходный трогать нельзя."}
+      title={"send: значения внутрь"}
+      sub={"yield — ещё и выражение"}
+      main={"Основа корутин и асинхронного программирования: функция приостанавливается и уступает."}
     >
-      <PyCode>{`from itertools import starmap, pairwise, tee
-import operator
+      <PyCode>{`def averager():
+    total, n = 0, 0
+    avg = None
+    while True:
+        x = yield avg
+        total += x
+        n += 1
+        avg = total / n
 
-print(list(starmap(operator.mul, [(2, 3), (4, 5)])))
-print(list(pairwise([1, 2, 4, 7])))
-a, b = tee(iter([1, 2, 3]))
-print(list(a), list(b))`}</PyCode>
+g = averager()
+next(g)               # дошли до первого yield
+print(g.send(10), g.send(20), g.send(30))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[6, 20]\n[(1, 2), (2, 4), (4, 7)]\n[1, 2, 3] [1, 2, 3]"}</Cmd>
+      <Cmd>{"10.0 15.0 20.0"}</Cmd>
     </Slide>
   );
 }
@@ -280,30 +305,24 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Рецепты"}
-      sub={"Из примитивов — нужные функции"}
-      main={"Многие «хитрые» задачи тривиальны, если знать подходящий кирпичик."}
+      title={"Менеджеры контекста"}
+      sub={"@contextmanager и один yield"}
+      main={"До yield — вход в with, после — выход; try/finally гарантирует уборку при ошибке."}
     >
-      <PyCode>{`from itertools import chain, islice
+      <PyCode>{`from contextlib import contextmanager
 
-def take(n, it):
-    return list(islice(it, n))
+@contextmanager
+def tag(name):
+    print(f"<{name}>")
+    try:
+        yield
+    finally:
+        print(f"</{name}>")
 
-def flatten(list_of_lists):
-    return list(chain.from_iterable(list_of_lists))
-
-def unique(items):
-    seen = {}
-    for x in items:
-        if x not in seen:
-            seen[x] = True
-            yield x
-
-print(take(3, iter(range(10))))
-print(flatten([[1, 2], [3], []]))
-print(list(unique([3, 1, 3, 2, 1])))`}</PyCode>
+with tag("p"):
+    print("текст")`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[0, 1, 2]\n[1, 2, 3]\n[3, 1, 2]"}</Cmd>
+      <Cmd>{"<p>\nтекст\n</p>"}</Cmd>
     </Slide>
   );
 }
@@ -312,19 +331,21 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Задачи в одну строку"}
-      sub={"Пары, нарастающий итог, повторы подряд"}
-      main={"Узнавать задачу, за которой стоит один из этих инструментов, — главный навык."}
+      title={"Типовые приёмы"}
+      sub={"Пачки, скользящие пары, страницы"}
+      main={"Потребитель не знает, как устроен источник, а источник — зачем нужны значения."}
     >
-      <PyCode>{`from itertools import combinations, accumulate, groupby, islice, count
+      <PyCode>{`def chunks(items, n):
+    for i in range(0, len(items), n):
+        yield items[i:i + n]
 
-names = ["Аня", "Боря", "Вера"]
-print(list(combinations(names, 2)))
-print(list(accumulate([1, -2, 3, -4])))
-print("".join(k for k, _ in groupby("ааббвввб")))
-print(list(islice((n * n for n in count(1)), 4)))`}</PyCode>
+def pairs(items):
+    return zip(items, items[1:])
+
+print(list(chunks([1, 2, 3, 4, 5], 2)))
+print(list(pairs([1, 2, 3, 4])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[('Аня', 'Боря'), ('Аня', 'Вера'), ('Боря', 'Вера')]\n[1, -1, 2, -2]\nабвб\n[1, 4, 9, 16]"}</Cmd>
+      <Cmd>{"[[1, 2], [3, 4], [5]]\n[(1, 2), (2, 3), (3, 4)]"}</Cmd>
     </Slide>
   );
 }
@@ -334,17 +355,19 @@ function S12() {
     <Slide
       n={12}
       title={"Типичные ошибки"}
-      sub={"groupby без сортировки и недействительные группы"}
-      main={"Ленивые потоки нужно ограничивать и не использовать повторно."}
+      sub={"Генератор ничего не делает, пока не попросят"}
+      main={"Главный критерий — понятность: сложное выражение перепишите функцией с yield."}
     >
-      <PyCode>{`from itertools import groupby
+      <PyCode>{`def gen():
+    print("не напечатается без next")
+    yield 1
 
-data = [1, 2, 1, 1]
-print([(k, len(list(g))) for k, g in groupby(data)])   # без sorted — дробится
-print([(k, list(g)) for k, g in list(groupby([1, 1, 2]))])   # группы недействительны`}</PyCode>
+g = gen()               # ничего не выполнено
+print("создан")
+print(list(g), list(g))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[(1, 1), (2, 1), (1, 2)]\n[(1, []), (2, [])]"}</Cmd>
-      <div className="s-note">{"Ещё: исчерпанные tee и permutations, размер комбинаторики, путаница permutations и combinations."}</div>
+      <Cmd>{"создан\nне напечатается без next\n[1] []"}</Cmd>
+      <div className="s-note">{"Ещё: повторный проход по генератору, бесконечный без ограничения, return со значением внутри генератора."}</div>
     </Slide>
   );
 }
@@ -354,11 +377,11 @@ function S13() {
     <Slide
       n={13}
       title={"Итог"}
-      sub={"Глава 23 · Функциональное программирование"}
-      main={"С функциональным программированием закончили — дальше стандартная библиотека."}
+      sub={"Глава 23 · Итераторы и генераторы"}
+      main={"Генераторы — самый короткий способ писать итераторы и ленивые конвейеры."}
     >
       <div className="s-grid2">
-        {[["count · islice", "Потоки", "Бесконечные источники и срезы"], ["chain · accumulate", "Склейка и итоги", "Объединить, накопить"], ["groupby", "Группы", "Соседние элементы; сначала sorted"], ["product · combinations", "Комбинаторика", "Ленивый перебор вариантов"]].map(([big, t, d]) => (
+        {[["yield", "Генераторная функция", "Лениво и по порядку; одноразовая"], ["(x for ...)", "Выражение", "Свернуть без списка в памяти"], ["yield from", "Делегирование", "Рекурсивные обходы"], ["@contextmanager", "with на генераторе", "До yield — вход, после — выход"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -367,7 +390,7 @@ function S13() {
           </div>
         ))}
       </div>
-      <div className="s-note">{"Дальше — стандартная библиотека: коллекции, числа, даты, регулярные выражения."}</div>
+      <div className="s-note">{"Дальше — функциональное программирование: функции как значения, lambda, замыкания и декораторы."}</div>
     </Slide>
   );
 }
@@ -394,17 +417,17 @@ export const SLIDES_P23 = {
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P23).
 export const SLIDE_TITLES_P23 = {
   "13:23": [
-    "itertools",
-    "Бесконечные потоки",
-    "islice",
-    "chain и zip_longest",
-    "accumulate",
-    "Отбор в потоках",
-    "groupby",
-    "Комбинаторика",
-    "starmap, pairwise, tee",
-    "Рецепты",
-    "Задачи в одну строку",
+    "Генераторы",
+    "Функция с yield",
+    "Порядок выполнения",
+    "Генератор — итератор",
+    "Бесконечные генераторы",
+    "Генераторное выражение",
+    "Конвейеры",
+    "yield from",
+    "send",
+    "contextmanager",
+    "Типовые приёмы",
     "Типичные ошибки",
     "Итог",
   ],

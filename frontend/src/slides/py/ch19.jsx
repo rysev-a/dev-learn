@@ -1,49 +1,26 @@
-// Слайды для «Python как первый язык», глава 19 — «Генераторы».
-// Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
-// рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
-// Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
+// Слайды для «Python как первый язык», глава 19 — «Перегрузка операторов».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Py19.jsx).
 
-const PY_KW = new Set([
-  "print", "for", "in", "not", "and", "or", "if", "else", "while", "is",
-  "True", "False", "None", "def", "return",
-]);
-
-// Крошечный токенизатор Python: комментарии, строки, числа, ключевые слова,
-// вызовы функций. Достаточно для слайдов.
-function pySpan(src) {
-  const out = [];
-  const re =
-    /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+|.)/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const [tok, com, str, num, word] = m;
-    if (com) out.push(<span key={out.length} className="rs-com">{tok}</span>);
-    else if (str) out.push(<span key={out.length} className="rs-str">{tok}</span>);
-    else if (num) out.push(<span key={out.length} className="rs-num">{tok}</span>);
-    else if (word) {
-      let cls = "";
-      if (PY_KW.has(word)) cls = "rs-kw";
-      else if (src[re.lastIndex] === "(") cls = "rs-fn";
-      out.push(
-        cls ? (
-          <span key={out.length} className={cls}>{word}</span>
-        ) : (
-          <span key={out.length}>{word}</span>
-        ),
-      );
-    } else out.push(<span key={out.length}>{tok}</span>);
-  }
-  return out;
-}
-
-function PyCode({ children }) {
-  return <pre className="rs-code">{pySpan(children)}</pre>;
-}
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Py19.jsx";
 
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ИТЕРАТОРЫ И ГЕНЕРАТОРЫ / ГЛАВА 19</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / МОДЕЛЬ ДАННЫХ / ГЛАВА 19</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -67,43 +44,17 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
   return (
     <Slide
       n={1}
-      title={"Генераторы"}
-      sub={"Глава 19 · Итераторы и генераторы"}
-      main={"Слово yield превращает функцию в итератор — без класса и без StopIteration."}
+      title={"Плюс — это метод"}
+      sub={"Операторы и специальные методы"}
+      main={"a + b — это вызов type(a).__add__(a, b)."}
     >
-      <div className="s-grid2">
-        {[["yield", "Генератор", "Функция, которая отдаёт значения порциями"], ["( x for ... )", "Выражение", "Ленивый брат генератора списка"], ["a | b | c", "Конвейер", "Генераторы друг в друга"], ["yield from", "Делегирование", "Отдать всё из вложенного источника"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V01 cues={[11.7, 23.9]} />
     </Slide>
   );
 }
@@ -112,21 +63,11 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Функция с yield"}
-      sub={"Вызов создаёт генератор и ничего не выполняет"}
-      main={"return отдаёт и завершает; yield отдаёт и приостанавливает, помня всё состояние."}
+      title={"Арифметические методы"}
+      sub={"Сложение, вычитание, умножение…"}
+      main={"Арифметика возвращает новый объект и не меняет операнды."}
     >
-      <PyCode>{`def countdown(n):
-    while n > 0:
-        yield n
-        n -= 1
-
-g = countdown(3)
-print(type(g).__name__)
-print(next(g), next(g), next(g))
-print(list(countdown(2)))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"generator\n3 2 1\n[2, 1]"}</Cmd>
+      <V02 cues={[10.8, 23.4]} />
     </Slide>
   );
 }
@@ -135,27 +76,11 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Порядок выполнения"}
-      sub={"Код внутри идёт ровно настолько, насколько просят значений"}
-      main={"Перемежающееся выполнение двух программ — вызывающей и генератора — суть генераторов."}
+      title={"Отражённые методы"}
+      sub={"Когда слева чужой тип"}
+      main={"NotImplemented даёт шанс отражённому методу правого."}
     >
-      <PyCode>{`def gen():
-    print("старт")
-    yield 1
-    print("середина")
-    yield 2
-    print("конец")
-
-g = gen()
-print("создали")
-print(next(g))
-print(next(g))
-try:
-    next(g)
-except StopIteration:
-    print("StopIteration")`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"создали\nстарт\n1\nсередина\n2\nконец\nStopIteration"}</Cmd>
+      <V03 cues={[9.7, 16.9, 26.1]} />
     </Slide>
   );
 }
@@ -164,20 +89,11 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Генератор — это итератор"}
-      sub={"Всё из прошлой главы работает"}
-      main={"Нужно перебрать дважды — вызовите генераторную функцию заново: каждый вызов — новый курсор."}
+      title={"Операторы «на месте»"}
+      sub={"+=, -=, *="}
+      main={"__iadd__ обязан вернуть self."}
     >
-      <PyCode>{`def squares(n):
-    for i in range(n):
-        yield i * i
-
-g = squares(4)
-print(list(g))
-print(list(g))
-print(sum(squares(4)), 9 in squares(4))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[0, 1, 4, 9]\n[]\n14 True"}</Cmd>
+      <V04 cues={[6.1, 20.4, 27.5]} />
     </Slide>
   );
 }
@@ -186,22 +102,11 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Бесконечные генераторы"}
-      sub={"Вечный цикл и yield"}
-      main={"Ни класса, ни хранения последовательности: значения рождаются и забываются."}
+      title={"Унарные и преобразования"}
+      sub={"-x, abs, int, float"}
+      main={"Метод ищется в типе и возвращает новое значение."}
     >
-      <PyCode>{`def fib():
-    a, b = 0, 1
-    while True:
-        yield a
-        a, b = b, a + b
-
-for i, x in enumerate(fib()):
-    if i == 10:
-        break
-    print(x, end=" ")`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"0 1 1 2 3 5 8 13 21 34"}</Cmd>
+      <V05 cues={[14.7, 22.4]} />
     </Slide>
   );
 }
@@ -210,17 +115,11 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Генераторное выражение"}
-      sub={"Круглые скобки вместо квадратных"}
-      main={"Нужно один раз свернуть в число — выражение; нужен список для повторного обхода — генератор списка."}
+      title={"__index__"}
+      sub={"Точное целое"}
+      main={"__index__ даёт индекс, срез, hex и range."}
     >
-      <PyCode>{`s = sum(x * x for x in range(1_000_000))
-print(s)
-gen = (x * x for x in range(3))
-print(type(gen).__name__, list(gen))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"333332833333500000\ngenerator [0, 1, 4]"}</Cmd>
-      <div className="s-note">{"Миллион квадратов посчитан без списка в памяти."}</div>
+      <V06 cues={[9.2, 22.5]} />
     </Slide>
   );
 }
@@ -229,26 +128,11 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Конвейеры"}
-      sub={"Каждый этап — маленькая функция"}
-      main={"Через цепочку течёт по одному элементу: файл на сто гигабайт обрабатывается так же, как на сто килобайт."}
+      title={"Другие операторы"}
+      sub={"Биты, матрицы, множества"}
+      main={"Выбирайте знак по смыслу, а не по краткости."}
     >
-      <PyCode>{`def lines():
-    for t in ["  Привет ", "", "МИР  ", "  ", "Да"]:
-        yield t
-
-def non_empty(src):
-    for s in src:
-        if s.strip():
-            yield s
-
-def cleaned(src):
-    for s in src:
-        yield s.strip().lower()
-
-print(list(cleaned(non_empty(lines()))))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['привет', 'мир', 'да']"}</Cmd>
+      <V07 cues={[15.1, 22.0]} />
     </Slide>
   );
 }
@@ -257,20 +141,11 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"yield from"}
-      sub={"Отдать всё из вложенного источника"}
-      main={"Рекурсивный обход вложенных структур — в пять строк."}
+      title={"Вектор целиком"}
+      sub={"Класс-величина"}
+      main={"Несколько методов превращают класс в полноценную величину."}
     >
-      <PyCode>{`def flat(items):
-    for x in items:
-        if isinstance(x, list):
-            yield from flat(x)
-        else:
-            yield x
-
-print(list(flat([1, [2, [3, 4]], 5])))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 2, 3, 4, 5]"}</Cmd>
+      <V08 cues={[10.3, 20.5]} />
     </Slide>
   );
 }
@@ -279,24 +154,11 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"send: значения внутрь"}
-      sub={"yield — ещё и выражение"}
-      main={"Основа корутин и асинхронного программирования: функция приостанавливается и уступает."}
+      title={"Проверка типа"}
+      sub={"Утиная типизация"}
+      main={"Чужой тип — NotImplemented, а не TypeError."}
     >
-      <PyCode>{`def averager():
-    total, n = 0, 0
-    avg = None
-    while True:
-        x = yield avg
-        total += x
-        n += 1
-        avg = total / n
-
-g = averager()
-next(g)               # дошли до первого yield
-print(g.send(10), g.send(20), g.send(30))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"10.0 15.0 20.0"}</Cmd>
+      <V09 cues={[11.7, 26.7]} />
     </Slide>
   );
 }
@@ -305,24 +167,11 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Менеджеры контекста"}
-      sub={"@contextmanager и один yield"}
-      main={"До yield — вход в with, после — выход; try/finally гарантирует уборку при ошибке."}
+      title={"В стандартной библиотеке"}
+      sub={"Даты, пути, счётчики"}
+      main={"Оператор значит то, что читатель ждёт."}
     >
-      <PyCode>{`from contextlib import contextmanager
-
-@contextmanager
-def tag(name):
-    print(f"<{name}>")
-    try:
-        yield
-    finally:
-        print(f"</{name}>")
-
-with tag("p"):
-    print("текст")`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"<p>\nтекст\n</p>"}</Cmd>
+      <V10 cues={[10.2, 24.6]} />
     </Slide>
   );
 }
@@ -331,21 +180,11 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Типовые приёмы"}
-      sub={"Пачки, скользящие пары, страницы"}
-      main={"Потребитель не знает, как устроен источник, а источник — зачем нужны значения."}
+      title={"Типичные ошибки"}
+      sub={"Чего не делать"}
+      main={"Нет побочных эффектов, нет забытых r-методов."}
     >
-      <PyCode>{`def chunks(items, n):
-    for i in range(0, len(items), n):
-        yield items[i:i + n]
-
-def pairs(items):
-    return zip(items, items[1:])
-
-print(list(chunks([1, 2, 3, 4, 5], 2)))
-print(list(pairs([1, 2, 3, 4])))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[[1, 2], [3, 4], [5]]\n[(1, 2), (2, 3), (3, 4)]"}</Cmd>
+      <V11 cues={[11.2, 15.4, 27.6]} />
     </Slide>
   );
 }
@@ -354,20 +193,11 @@ function S12() {
   return (
     <Slide
       n={12}
-      title={"Типичные ошибки"}
-      sub={"Генератор ничего не делает, пока не попросят"}
-      main={"Главный критерий — понятность: сложное выражение перепишите функцией с yield."}
+      title={"Порядок вызова"}
+      sub={"Подкласс справа"}
+      main={"Подкласс справа с отражённым методом идёт первым."}
     >
-      <PyCode>{`def gen():
-    print("не напечатается без next")
-    yield 1
-
-g = gen()               # ничего не выполнено
-print("создан")
-print(list(g), list(g))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"создан\nне напечатается без next\n[1] []"}</Cmd>
-      <div className="s-note">{"Ещё: повторный проход по генератору, бесконечный без ограничения, return со значением внутри генератора."}</div>
+      <V12 cues={[8.1, 20.1]} />
     </Slide>
   );
 }
@@ -376,59 +206,34 @@ function S13() {
   return (
     <Slide
       n={13}
-      title={"Итог"}
-      sub={"Глава 19 · Итераторы и генераторы"}
-      main={"Генераторы — самый короткий способ писать итераторы и ленивые конвейеры."}
+      title={"Итоги"}
+      sub={"Модель данных · часть вторая"}
+      main={"Оператор — вызов метода; выбирайте знак ради читаемости."}
     >
-      <div className="s-grid2">
-        {[["yield", "Генераторная функция", "Лениво и по порядку; одноразовая"], ["(x for ...)", "Выражение", "Свернуть без списка в памяти"], ["yield from", "Делегирование", "Рекурсивные обходы"], ["@contextmanager", "with на генераторе", "До yield — вход, после — выход"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
-      <div className="s-note">{"Дальше — функциональное программирование: функции как значения, lambda, замыкания и декораторы."}</div>
+      <V13 cues={[9.0, 19.5, 27.9]} />
     </Slide>
   );
 }
 
-// Реестр: «book:chapter» → список слайдов, по одному на абзац урока.
 export const SLIDES_P19 = {
-  "13:19": [
-    S01,
-    S02,
-    S03,
-    S04,
-    S05,
-    S06,
-    S07,
-    S08,
-    S09,
-    S10,
-    S11,
-    S12,
-    S13,
-  ],
+  "13:19": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
 };
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P19).
 export const SLIDE_TITLES_P19 = {
   "13:19": [
-    "Генераторы",
-    "Функция с yield",
-    "Порядок выполнения",
-    "Генератор — итератор",
-    "Бесконечные генераторы",
-    "Генераторное выражение",
-    "Конвейеры",
-    "yield from",
-    "send",
-    "contextmanager",
-    "Типовые приёмы",
-    "Типичные ошибки",
-    "Итог",
+    "Плюс — метод",
+    "Арифметика",
+    "Отражённые",
+    "На месте",
+    "Унарные",
+    "index",
+    "Другие знаки",
+    "Вектор",
+    "Проверка типа",
+    "Стандартная библиотека",
+    "Ошибки",
+    "Порядок",
+    "Итоги",
   ],
 };

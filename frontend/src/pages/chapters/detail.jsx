@@ -79,7 +79,14 @@ export default function ChapterDetail() {
     fetch(`/api/exercises/${bookId}/${chapter.num}`)
       .then((r) => (r.ok ? r.json() : { tasks: [] }))
       .then((d) => {
-        if (alive) setCodeTasks(d.tasks || []);
+        if (alive)
+          setCodeTasks(
+            (d.tasks || []).map((t) =>
+              t.dataset && d.datasets?.[t.dataset]
+                ? { ...t, schema: d.datasets[t.dataset] }
+                : t,
+            ),
+          );
       })
       .catch(() => {})
       .finally(() => {

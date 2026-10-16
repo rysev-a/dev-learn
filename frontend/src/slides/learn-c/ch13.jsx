@@ -1,0 +1,239 @@
+// Слайды для «От assembler к языку C», глава 13 — «Тестирование и стиль кода: assert, юнит-тесты, стандарты».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Cl13.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Cl13.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>ОТ ASSEMBLER К ЯЗЫКУ C / УГЛУБЛЕНИЕ / ГЛАВА 13</span>
+      <span>{String(n).padStart(2, "0")} / 13</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"Что такое тест"}
+      sub={"Глава 13 · программа с кодом"}
+      main={"Тест вызывает код и возвращает ненулевой код при расхождении."}
+    >
+      <V01 cues={[17.8, 31.0]} />
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"assert и ошибки"}
+      sub={"Контракты"}
+      main={"assert — для багов программы, коды ошибок — для плохого ввода."}
+    >
+      <V02 cues={[17.1, 24.9]} />
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"Минимальный фреймворк"}
+      sub={"Макросы EXPECT"}
+      main={"Файл, строка, выражение, оба значения; итог — кодом."}
+    >
+      <V03 cues={[12.8, 30.1]} />
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Что тестировать"}
+      sub={"Границы и классы"}
+      main={"Границы, классы эквивалентности, таблицы случаев."}
+    >
+      <V04 cues={[9.6, 24.4]} />
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Тестируемый дизайн"}
+      sub={"Зависимости через указатели"}
+      main={"Отделяйте логику от ввода-вывода; fmemopen в тестах."}
+    >
+      <V05 cues={[16.8, 29.3]} />
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"Тестовые двойники"}
+      sub={"Заглушки, шпионы, моки"}
+      main={"Аллокатор с отказами проверяет путь ошибки."}
+    >
+      <V06 cues={[17.2, 23.2]} />
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"Покрытие и мутации"}
+      sub={"gcov"}
+      main={"Покрытие — подсказка, а не мера качества."}
+    >
+      <V07 cues={[15.4, 24.6]} />
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"Свойства и фаззинг"}
+      sub={"Законы вместо примеров"}
+      main={"Детерминированный генератор, сокращение, фаззинг."}
+    >
+      <V08 cues={[16.2, 25.4]} />
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"Регрессии и CI"}
+      sub={"Матрица конфигураций"}
+      main={"Каждая ошибка — в тест; прогон в нескольких конфигурациях."}
+    >
+      <V09 cues={[16.7, 29.4]} />
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Стиль кода"}
+      sub={"Форматирование и имена"}
+      main={"clang-format, snake_case, комментарии «зачем»."}
+    >
+      <V10 cues={[13.8, 26.3]} />
+    </Slide>
+  );
+}
+
+function S11() {
+  return (
+    <Slide
+      n={11}
+      title={"Безопасные привычки"}
+      sub={"const, static, goto cleanup"}
+      main={"Размеры в параметрах; единый блок очистки."}
+    >
+      <V11 cues={[15.0, 24.8]} />
+    </Slide>
+  );
+}
+
+function S12() {
+  return (
+    <Slide
+      n={12}
+      title={"Стандарты"}
+      sub={"C99, C11, MISRA"}
+      main={"Правила, которые проверяет машина, соблюдаются."}
+    >
+      <V12 cues={[12.8, 28.8]} />
+    </Slide>
+  );
+}
+
+function S13() {
+  return (
+    <Slide
+      n={13}
+      title={"Итоги"}
+      sub={"Что дальше"}
+      main={"Дальше — современный C: C11 и C23."}
+    >
+      <V13 cues={[8.5, 25.5]} />
+    </Slide>
+  );
+}
+
+export const SLIDES_C13 = {
+  "16:13": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_C13).
+export const SLIDE_TITLES_C13 = {
+  "16:13": [
+    "Тест",
+    "assert",
+    "Фреймворк",
+    "Что",
+    "Дизайн",
+    "Двойники",
+    "Покрытие",
+    "Свойства",
+    "CI",
+    "Стиль",
+    "Привычки",
+    "Стандарты",
+    "Итоги",
+  ],
+};

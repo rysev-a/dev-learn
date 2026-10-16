@@ -6,8 +6,17 @@ ASan/UBSan); сравнивается построчный вывод прогр
 `-std=gnu11 -O1 -Wall`, задача может задать свои через поле `flags`.
 """
 
-from app.exercises.c_tasks import ch01_05
+from app.exercises.c_tasks import ch01_05, ch06, ch07, ch08, ch09, ch10, ch11, ch12, ch13, ch14
 
 C_TASKS: dict[int, list[dict]] = {
     **ch01_05.TASKS,
+    **ch06.TASKS,
+    **ch07.TASKS,
+    **ch08.TASKS,
+    **ch09.TASKS,
+    **ch10.TASKS,
+    **ch11.TASKS,
+    **ch12.TASKS,
+    **ch13.TASKS,
+    **ch14.TASKS,
 }

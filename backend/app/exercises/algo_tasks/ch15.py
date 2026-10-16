@@ -3,169 +3,169 @@
 TASKS: dict[int, list[dict]] = {
     15: [
         {
-            "id": "greedy-interval-scheduling",
+            "id": "graph-bfs-distances",
             "mode": "func",
-            "func": "max_meetings",
-            "title": "Выбор максимума непересекающихся встреч",
+            "func": "bfs_distances",
+            "title": "Расстояния обходом в ширину",
             "statement": (
-                "Напишите функцию max_meetings(intervals): intervals — список "
-                "пар [начало, конец]. Верните наибольшее число встреч, "
-                "которые можно провести, если две встречи не должны "
-                "пересекаться (встреча, заканчивающаяся в момент t, не "
-                "мешает той, что начинается в t). Жадный выбор: по самому "
-                "раннему окончанию."
+                "Напишите функцию bfs_distances(graph, start): graph — словарь "
+                "«вершина → список соседей» (имена вершин — строки). Верните "
+                "словарь «вершина → минимальное число рёбер от start» для "
+                "всех достижимых вершин."
             ),
-            "starter": "def max_meetings(intervals):\n    pass\n",
+            "starter": "from collections import deque\n\n\ndef bfs_distances(graph, start):\n    pass\n",
             "tests": [
-                {"args": [[[1, 3], [2, 4], [3, 5], [0, 6], [5, 7], [8, 9], [5, 9]]], "expected": 4},
-                {"args": [[]], "expected": 0},
-                {"args": [[[1, 2], [1, 2], [1, 2]]], "expected": 1},
-                {"args": [[[1, 10], [2, 3], [4, 5], [6, 7]]], "expected": 3},
+                {"args": [{"a": ["b", "c"], "b": ["d"], "c": ["d"], "d": []}, "a"], "expected": {"a": 0, "b": 1, "c": 1, "d": 2}},
+                {"args": [{"x": []}, "x"], "expected": {"x": 0}},
+                {"args": [{"a": ["b"], "b": ["a"], "c": ["a"]}, "a"], "expected": {"a": 0, "b": 1}},
+                {"args": [{"1": ["2"], "2": ["3"], "3": ["1"]}, "2"], "expected": {"2": 0, "3": 1, "1": 2}},
             ],
-            "hint": "Отсортируйте по концу; берите встречу, если её начало >= конца последней выбранной.",
+            "hint": "Очередь и словарь расстояний (он же «посещённые»): сосед получает dist[v] + 1, если ещё не посещён.",
         },
         {
-            "id": "greedy-merge-intervals",
-            "mode": "func",
-            "func": "merge_intervals",
-            "title": "Слияние отрезков",
-            "statement": (
-                "Напишите функцию merge_intervals(intervals): объедините "
-                "пересекающиеся и касающиеся отрезки [начало, конец] и верните "
-                "результат, отсортированный по началу."
-            ),
-            "starter": "def merge_intervals(intervals):\n    pass\n",
-            "tests": [
-                {"args": [[[1, 3], [2, 6], [8, 10], [15, 18]]], "expected": [[1, 6], [8, 10], [15, 18]]},
-                {"args": [[[1, 4], [4, 5]]], "expected": [[1, 5]]},
-                {"args": [[]], "expected": []},
-                {"args": [[[5, 6], [1, 10], [2, 3]]], "expected": [[1, 10]]},
-            ],
-            "hint": "Сортировка по началу; текущий отрезок продлевайте, пока следующий начинается не позже его конца.",
-        },
-        {
-            "id": "greedy-jump-game",
+            "id": "graph-components",
             "mode": "stdout",
-            "title": "Прыжки по массиву",
+            "title": "Компоненты связности",
             "statement": (
-                "Напишите функцию can_reach(jumps): на i-й позиции можно "
-                "прыгнуть вперёд на любое число клеток от 0 до jumps[i]. "
-                "Можно ли добраться из первой клетки до последней? Жадно: "
-                "следите за самой дальней достижимой клеткой. Проверка — "
-                "миллион клеток."
+                "Напишите функцию count_components(graph): число компонент "
+                "связности неориентированного графа (словарь «вершина → список "
+                "соседей», каждое ребро записано в обе стороны). Проверка "
+                "подаёт цепочку из 200 000 вершин, поэтому обход должен быть "
+                "итеративным (рекурсия упадёт)."
             ),
-            "starter": "def can_reach(jumps):\n    pass\n",
+            "starter": "def count_components(graph):\n    pass\n",
             "driver": (
-                "print(can_reach([2, 3, 1, 1, 4]), can_reach([3, 2, 1, 0, 4]), can_reach([0]), can_reach([1, 0]), can_reach([0, 1]))\n"
-                "print(can_reach([1] * 1000000), can_reach([1] * 999999 + [0]), can_reach([1] * 500000 + [0] + [1] * 499999))\n"
+                "print(count_components({'a': ['b'], 'b': ['a'], 'c': []}), count_components({}), count_components({'x': []}))\n"
+                "n = 200000\ng = {i: [] for i in range(n)}\nfor i in range(n - 1):\n    g[i].append(i + 1)\n    g[i + 1].append(i)\nprint(count_components(g))\n"
+                "g2 = {i: [] for i in range(n)}\nprint(count_components(g2))\n"
             ),
-            "expected": ["True False True True False", "True True False"],
-            "hint": "far = 0; для i: если i > far — тупик (False); far = max(far, i + jumps[i]); достигли last — True.",
+            "expected": ["2 0 1", "1", "200000"],
+            "hint": "Для каждой непосещённой вершины запустите обход со стеком/очередью и увеличьте счётчик компонент.",
         },
         {
-            "id": "greedy-min-jumps",
+            "id": "graph-undirected-cycle",
+            "mode": "func",
+            "func": "has_cycle",
+            "title": "Цикл в неориентированном графе",
+            "statement": (
+                "Напишите функцию has_cycle(graph): True, если в "
+                "неориентированном графе (каждое ребро записано в обе "
+                "стороны, петель и кратных рёбер нет) есть цикл. При обходе "
+                "помните «родителя» вершины: возврат к нему циклом не "
+                "считается."
+            ),
+            "starter": "def has_cycle(graph):\n    pass\n",
+            "tests": [
+                {"args": [{"a": ["b", "c"], "b": ["a", "c"], "c": ["a", "b"]}], "expected": True},
+                {"args": [{"a": ["b"], "b": ["a", "c"], "c": ["b"]}], "expected": False},
+                {"args": [{}], "expected": False},
+                {"args": [{"a": [], "b": ["c"], "c": ["b", "d", "e"], "d": ["c", "e"], "e": ["c", "d"]}], "expected": True},
+            ],
+            "hint": "DFS/BFS с (вершина, родитель): если сосед уже посещён и это не родитель — найден цикл.",
+        },
+        {
+            "id": "graph-topological",
+            "mode": "func",
+            "func": "topo_order",
+            "title": "Топологическая сортировка",
+            "statement": (
+                "Напишите функцию topo_order(graph): graph — ориентированный "
+                "граф без циклов, «вершина → список тех, на кого указывает». "
+                "Верните порядок вершин, в котором каждая идёт раньше всех "
+                "своих потомков; из нескольких допустимых берите "
+                "лексикографически наименьший (в алгоритме Кана выбирайте "
+                "наименьшую готовую вершину — куча). Если есть цикл — верните "
+                "пустой список."
+            ),
+            "starter": "import heapq\n\n\ndef topo_order(graph):\n    pass\n",
+            "tests": [
+                {"args": [{"a": ["b", "c"], "b": ["d"], "c": ["d"], "d": []}], "expected": ["a", "b", "c", "d"]},
+                {"args": [{"c": ["a"], "b": ["a"], "a": []}], "expected": ["b", "c", "a"]},
+                {"args": [{"a": ["b"], "b": ["a"]}], "expected": []},
+                {"args": [{}], "expected": []},
+                {"args": [{"x": []}], "expected": ["x"]},
+            ],
+            "hint": "indegree каждой вершины; в куче — вершины с нулём; вынимайте, уменьшайте indegree соседей. Если выдали не все вершины — цикл.",
+        },
+        {
+            "id": "graph-bipartite",
+            "mode": "func",
+            "func": "is_bipartite",
+            "title": "Двудольный граф",
+            "statement": (
+                "Напишите функцию is_bipartite(graph): True, если вершины "
+                "неориентированного графа можно раскрасить в два цвета так, "
+                "чтобы концы каждого ребра были разного цвета. Граф может быть "
+                "несвязным."
+            ),
+            "starter": "def is_bipartite(graph):\n    pass\n",
+            "tests": [
+                {"args": [{"a": ["b", "d"], "b": ["a", "c"], "c": ["b", "d"], "d": ["a", "c"]}], "expected": True},
+                {"args": [{"a": ["b", "c"], "b": ["a", "c"], "c": ["a", "b"]}], "expected": False},
+                {"args": [{}], "expected": True},
+                {"args": [{"a": [], "b": ["c"], "c": ["b"]}], "expected": True},
+            ],
+            "hint": "Обход с раскраской: сосед получает противоположный цвет; если у уже покрашенного соседа тот же цвет — граф не двудольный.",
+        },
+        {
+            "id": "grid-islands",
             "mode": "stdout",
-            "title": "Минимум прыжков",
+            "title": "Количество островов",
             "statement": (
-                "Напишите функцию min_jumps(jumps): наименьшее число "
-                "прыжков из первой клетки в последнюю (на i-й клетке — "
-                "прыжок на 0..jumps[i]); до конца гарантированно можно "
-                "добраться. Жадно, за один проход: проверка подаёт миллион "
-                "клеток."
+                "Напишите функцию count_islands(grid): grid — список строк "
+                "из '1' (суша) и '0' (вода). Остров — группа клеток суши, "
+                "соединённых по горизонтали и вертикали. Верните число "
+                "островов. Проверка подаёт поле 1000×1000, поэтому без "
+                "рекурсии."
             ),
-            "starter": "def min_jumps(jumps):\n    pass\n",
+            "starter": "def count_islands(grid):\n    pass\n",
             "driver": (
-                "print(min_jumps([2, 3, 1, 1, 4]), min_jumps([2, 3, 0, 1, 4]), min_jumps([0]), min_jumps([1, 1, 1, 1]))\n"
-                "print(min_jumps([1000] * 1000), min_jumps([1] * 1000000), min_jumps([5] + [1] * 5))\n"
+                "print(count_islands(['11000', '11000', '00100', '00011']), count_islands([]), count_islands(['0']), count_islands(['1']))\n"
+                "print(count_islands(['101', '010', '101']))\n"
+                "big = ['1' * 1000 for _ in range(1000)]\nprint(count_islands(big))\n"
+                "chess = [''.join('1' if (i + j) % 2 == 0 else '0' for j in range(1000)) for i in range(1000)]\nprint(count_islands(chess))\n"
             ),
-            "expected": ["2 2 0 3", "1 999999 1"],
-            "hint": "Границы «текущего прыжка»: end — предел текущего шага, far — самая дальняя достижимая; дошли до end — делаем прыжок, end = far.",
+            "expected": ["3 0 0 1", "5", "1", "500000"],
+            "hint": "Для каждой клетки '1', которую ещё не видели, запустите обход (стек) по четырём направлениям и увеличьте счётчик.",
         },
         {
-            "id": "greedy-gas-station",
-            "mode": "func",
-            "func": "start_station",
-            "title": "Заправки по кругу",
-            "statement": (
-                "По кольцевой дороге стоят заправки: gas[i] — сколько топлива "
-                "на i-й, cost[i] — сколько его тратится на переезд до "
-                "следующей. Напишите функцию start_station(gas, cost): "
-                "индекс заправки, с которой можно начать (с пустым баком) и "
-                "объехать круг, либо -1. Такой индекс единственный. "
-                "Один проход."
-            ),
-            "starter": "def start_station(gas, cost):\n    pass\n",
-            "tests": [
-                {"args": [[1, 2, 3, 4, 5], [3, 4, 5, 1, 2]], "expected": 3},
-                {"args": [[2, 3, 4], [3, 4, 3]], "expected": -1},
-                {"args": [[5], [4]], "expected": 0},
-                {"args": [[5, 1, 2, 3, 4], [4, 4, 1, 5, 1]], "expected": 4},
-            ],
-            "hint": "Если суммарно топлива меньше расхода — -1. Иначе идите по кругу: когда баланс стал отрицательным, начало — со следующей заправки.",
-        },
-        {
-            "id": "greedy-fractional-knapsack",
-            "mode": "func",
-            "func": "fractional_knapsack",
-            "title": "Непрерывный рюкзак",
-            "statement": (
-                "Предметы можно дробить. Напишите функцию "
-                "fractional_knapsack(items, capacity): items — пары "
-                "[вес, ценность]. Верните наибольшую ценность, округлённую "
-                "до двух знаков (round). Жадно: сначала предметы с наибольшей "
-                "ценностью на единицу веса."
-            ),
-            "starter": "def fractional_knapsack(items, capacity):\n    pass\n",
-            "tests": [
-                {"args": [[[10, 60], [20, 100], [30, 120]], 50], "expected": 240.0},
-                {"args": [[[5, 50]], 2], "expected": 20.0},
-                {"args": [[], 10], "expected": 0.0},
-                {"args": [[[1, 1], [2, 5]], 10], "expected": 6.0},
-            ],
-            "hint": "Отсортируйте по ценность/вес по убыванию; берите целиком, пока влезает, последний — долей.",
-        },
-        {
-            "id": "greedy-huffman-cost",
-            "mode": "func",
-            "func": "huffman_cost",
-            "title": "Стоимость кода Хаффмана",
-            "statement": (
-                "Напишите функцию huffman_cost(freqs): freqs — частоты "
-                "символов. Верните суммарную стоимость оптимального "
-                "префиксного кода: сумму длин кодов, взвешенную частотами "
-                "(равна сумме всех слияний в алгоритме Хаффмана). Каждый "
-                "шаг: берём две наименьшие частоты (куча), заменяем их "
-                "суммой. Для одного символа — 0."
-            ),
-            "starter": "import heapq\n\n\ndef huffman_cost(freqs):\n    pass\n",
-            "tests": [
-                {"args": [[5, 9, 12, 13, 16, 45]], "expected": 224},
-                {"args": [[1, 1]], "expected": 2},
-                {"args": [[7]], "expected": 0},
-                {"args": [[]], "expected": 0},
-                {"args": [[1, 2, 3, 4]], "expected": 19},
-            ],
-            "hint": "heap = freqs; пока в куче больше одного: a, b = два наименьших; cost += a + b; вернуть a + b.",
-        },
-        {
-            "id": "greedy-min-platforms",
+            "id": "grid-shortest-path",
             "mode": "stdout",
-            "title": "Минимум платформ",
+            "title": "Кратчайший путь в лабиринте",
             "statement": (
-                "Напишите функцию min_platforms(arrivals, departures): "
-                "сколько платформ нужно вокзалу, чтобы ни один поезд не "
-                "ждал. Поезд i стоит с arrivals[i] до departures[i] "
-                "(если один уезжает, когда другой приезжает, платформа "
-                "освобождается). Отсортируйте события и идите двумя "
-                "указателями. Проверка — 200 000 поездов."
+                "Напишите функцию maze_steps(grid): grid — список строк из "
+                "'.' (проход) и '#' (стена). Минимальное число шагов из "
+                "левого верхнего угла в правый нижний (шаг — на соседнюю "
+                "клетку по горизонтали или вертикали) либо -1. Поле до "
+                "501×501: нужен обход в ширину."
             ),
-            "starter": "def min_platforms(arrivals, departures):\n    pass\n",
+            "starter": "from collections import deque\n\n\ndef maze_steps(grid):\n    pass\n",
             "driver": (
-                "print(min_platforms([900, 940, 950, 1100, 1500, 1800], [910, 1200, 1120, 1130, 1900, 2000]), min_platforms([], []), min_platforms([1], [2]), min_platforms([1, 2], [2, 3]))\n"
-                "n = 200000\nprint(min_platforms(list(range(n)), [i + 5 for i in range(n)]), min_platforms(list(range(n)), [i + 1 for i in range(n)]))\n"
+                "print(maze_steps(['..#', '#..', '#..']), maze_steps(['.#', '#.']), maze_steps(['.']), maze_steps(['#.']), maze_steps([]))\n"
+                "n = 500\nopen_field = ['.' * n for _ in range(n)]\nprint(maze_steps(open_field))\n"
+                "n = 501\nsnake = []\nfor i in range(n):\n    row = ['.'] * n\n    if i % 2 == 1:\n        row = ['#'] * n\n        row[0 if i % 4 == 3 else n - 1] = '.'\n    snake.append(''.join(row))\nprint(maze_steps(snake))\n"
             ),
-            "expected": ["3 0 1 1", "5 1"],
-            "hint": "Отсортируйте обе последовательности; i, j: если arrivals[i] < departures[j] — нужна новая платформа (i += 1), иначе поезд уехал (j += 1); следите за максимумом.",
+            "expected": ["4 -1 0 -1 -1", "998", "126000"],
+            "hint": "Очередь клеток с расстоянием, список посещённых; соседей — только внутри поля и без стен.",
+        },
+        {
+            "id": "union-find-class",
+            "mode": "stdout",
+            "title": "Система непересекающихся множеств",
+            "statement": (
+                "Опишите класс UnionFind(n): элементы 0..n-1, поначалу каждый "
+                "в своём множестве. Методы: find(x) — представитель "
+                "множества, union(a, b) — объединить, connected(a, b) и "
+                "атрибут count — число множеств. Нужны сжатие путей и "
+                "объединение по размеру: проверка делает миллион операций."
+            ),
+            "starter": "class UnionFind:\n    def __init__(self, n):\n        pass\n",
+            "driver": (
+                "u = UnionFind(6)\nu.union(0, 1)\nu.union(1, 2)\nu.union(4, 5)\nprint(u.connected(0, 2), u.connected(0, 4), u.count)\nu.union(2, 5)\nprint(u.connected(0, 4), u.count)\n"
+                "n = 1000000\nbig = UnionFind(n)\nfor i in range(n - 1):\n    big.union(i, i + 1)\nprint(big.count, big.connected(0, n - 1))\n"
+            ),
+            "expected": ["True False 3", "True 2", "1 True"],
+            "hint": "parent[i] = i; find с сжатием путей (итеративно!); union по размеру; при слиянии count -= 1.",
         },
     ],
 }

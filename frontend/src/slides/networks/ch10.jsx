@@ -1,0 +1,230 @@
+// Слайды для «Компьютерные сети», глава 10 — «DNS: как имя превращается в адрес».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Nt10.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+} from "../anim/Nt10.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>ПРИКЛАДНОЙ УРОВЕНЬ / ГЛАВА 10</span>
+      <span>{String(n).padStart(2, "0")} / 10</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"Имя и адрес"}
+      sub={"Зачем нужен DNS"}
+      main={
+        "Люди помнят имена, маршрутизаторы работают с адресами: DNS отвечает за перевод."
+      }
+    >
+      <V01 cues={[8.2, 15.9, 21.5]} />
+      <div className="s-note">
+        Каждое подключение к сайту начинается с вопроса к DNS.
+      </div>
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"Дерево имён"}
+      sub={"Корень, TLD, домены"}
+      main={
+        "Имена образуют дерево: читаем справа налево — корень, TLD, домен, поддомен."
+      }
+    >
+      <V02 cues={[10.9, 17.7, 26.0]} />
+      <div className="s-note">У каждого узла может быть свой владелец.</div>
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"Серверы и рефералы"}
+      sub={"Иерархия делегирования"}
+      main={
+        "Корень знает TLD, TLD знает зону, авторитативный сервер знает ответ; промежуточные дают реферал."
+      }
+    >
+      <V03 cues={[7.0, 14.8, 25.3]} />
+      <div className="s-note">
+        Ни один сервер не знает всего, зато знает, куда отправить.
+      </div>
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Рекурсивный резолвер"}
+      sub={"Работает за клиента"}
+      main={
+        "Резолвер идёт от корня к авторитативному серверу, возвращает клиенту адрес и кэширует ответы."
+      }
+    >
+      <V04 cues={[13.8, 16.6, 30.8]} />
+      <div className="s-note">Адрес резолвера выдают DHCP или провайдер.</div>
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Типы записей"}
+      sub={"A, AAAA, CNAME, MX, NS, TXT"}
+      main={
+        "A и AAAA — адреса, CNAME — псевдоним, MX — почта, NS — серверы зоны, TXT — текст."
+      }
+    >
+      <V05 cues={[6.4, 15.9, 27.1]} />
+      <div className="s-note">PTR работает наоборот: по адресу даёт имя.</div>
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"TTL и кэш"}
+      sub={"Скорость против свежести"}
+      main={
+        "TTL решает, как долго запись живёт в кэше; после смены адреса старый ответ живёт до конца TTL."
+      }
+    >
+      <V06 cues={[5.3, 14.4, 25.1]} />
+      <div className="s-note">Перед переездом TTL снижают заранее.</div>
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"Коды ответа"}
+      sub={"Диагностика по статусу"}
+      main={
+        "NOERROR, NXDOMAIN, SERVFAIL, REFUSED — разные диагнозы; тишина — это уже не про DNS."
+      }
+    >
+      <V07 cues={[7.4, 13.6, 22.2]} />
+      <div className="s-note">
+        dig показывает ответ целиком, nslookup — коротко.
+      </div>
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"Ловушки"}
+      sub={"Типичные беды"}
+      main={
+        "hosts побеждает DNS, неверное делегирование отключает зону, один NS — один сбой, запросы открыты."
+      }
+    >
+      <V08 cues={[11.2, 17.6, 26.5]} />
+      <div className="s-note">CNAME нельзя ставить на вершине зоны.</div>
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"Защита"}
+      sub={"DNSSEC и DoT/DoH"}
+      main={
+        "DNSSEC подписывает записи, DNS поверх TLS и HTTPS прячет запросы от соседей по сети."
+      }
+    >
+      <V09 cues={[10.3, 20.6, 21.6]} />
+      <div className="s-note">Сам факт визита на сайт это не скрывает.</div>
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Итоги главы"}
+      sub={"Что унести дальше"}
+      main={
+        "Иерархия, резолвер с кэшем, записи, TTL и коды ответа — всё про превращение имени в адрес."
+      }
+    >
+      <V10 cues={[4.7, 13.7, 25.6]} />
+      <div className="s-note">Дальше — HTTP.</div>
+    </Slide>
+  );
+}
+
+export const SLIDES_NT10 = {
+  "15:10": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_NT10).
+export const SLIDE_TITLES_NT10 = {
+  "15:10": [
+    "Имя и адрес",
+    "Дерево имён",
+    "Серверы и рефералы",
+    "Резолвер",
+    "Записи DNS",
+    "TTL и кэш",
+    "Коды ответа",
+    "Ловушки",
+    "Защита DNS",
+    "Итоги",
+  ],
+};

@@ -1,49 +1,26 @@
-// Слайды для «Python как первый язык», глава 32 — «asyncio: корутины и async/await».
-// Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
-// рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
-// Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
+// Слайды для «Python как первый язык», глава 32 — «Код как данные: ast, eval, exec и dis».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Py32.jsx).
 
-const PY_KW = new Set([
-  "print", "for", "in", "not", "and", "or", "if", "else", "while", "is",
-  "True", "False", "None", "def", "return",
-]);
-
-// Крошечный токенизатор Python: комментарии, строки, числа, ключевые слова,
-// вызовы функций. Достаточно для слайдов.
-function pySpan(src) {
-  const out = [];
-  const re =
-    /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+|.)/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const [tok, com, str, num, word] = m;
-    if (com) out.push(<span key={out.length} className="rs-com">{tok}</span>);
-    else if (str) out.push(<span key={out.length} className="rs-str">{tok}</span>);
-    else if (num) out.push(<span key={out.length} className="rs-num">{tok}</span>);
-    else if (word) {
-      let cls = "";
-      if (PY_KW.has(word)) cls = "rs-kw";
-      else if (src[re.lastIndex] === "(") cls = "rs-fn";
-      out.push(
-        cls ? (
-          <span key={out.length} className={cls}>{word}</span>
-        ) : (
-          <span key={out.length}>{word}</span>
-        ),
-      );
-    } else out.push(<span key={out.length}>{tok}</span>);
-  }
-  return out;
-}
-
-function PyCode({ children }) {
-  return <pre className="rs-code">{pySpan(children)}</pre>;
-}
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Py32.jsx";
 
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / АСИНХРОННОСТЬ / ГЛАВА 32</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / МЕТАПРОГРАММИРОВАНИЕ / ГЛАВА 32</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -67,43 +44,17 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
   return (
     <Slide
       n={1}
-      title={"asyncio"}
-      sub={"Глава 32 · Асинхронность"}
-      main={"Один поток, тысячи дел: корутины добровольно уступают управление на await."}
+      title={"От текста к исполнению"}
+      sub={"Дерево и байт-код"}
+      main={"Каждый этап можно прочитать и даже изменить."}
     >
-      <div className="s-grid2">
-        {[["async def · await", "Корутины", "Заготовка работы и точка переключения"], ["create_task · gather", "Конкурентность", "Задачи и ожидание нескольких"], ["timeout · cancel", "Время", "Таймауты и отмена"], ["Queue · Semaphore", "Взаимодействие", "Очереди и ограничения"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V01 cues={[16.5, 25.2]} />
     </Slide>
   );
 }
@@ -112,20 +63,11 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Корутина"}
-      sub={"async def и asyncio.run"}
-      main={"Вызов async-функции не выполняет тело: он возвращает корутину, которую нужно запустить."}
+      title={"eval, exec, literal_eval"}
+      sub={"Строки с кодом"}
+      main={"Чужие строки не выполняют никогда."}
     >
-      <PyCode>{`import asyncio
-
-async def hello(name):
-    return f"привет, {name}"
-
-coro = hello("Аня")
-print(type(coro).__name__)
-print(asyncio.run(coro))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"coroutine\nпривет, Аня"}</Cmd>
+      <V02 cues={[10.7, 31.5]} />
     </Slide>
   );
 }
@@ -134,23 +76,11 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"await и asyncio.sleep"}
-      sub={"Точка переключения"}
-      main={"time.sleep внутри async-функции замораживает весь цикл событий — используйте asyncio.sleep."}
+      title={"compile"}
+      sub={"Объект кода"}
+      main={"Объект кода выполняют много раз без повторного разбора."}
     >
-      <PyCode>{`import asyncio
-import time
-
-async def main():
-    start = time.perf_counter()
-    await asyncio.sleep(0.1)
-    await asyncio.sleep(0.1)
-    return time.perf_counter() - start
-
-print(asyncio.run(main()) >= 0.2)`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True"}</Cmd>
-      <div className="s-note">{"Два await подряд — последовательно: чтобы дела накладывались, нужны задачи."}</div>
+      <V03 cues={[11.7, 23.6]} />
     </Slide>
   );
 }
@@ -159,26 +89,11 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Задачи"}
-      sub={"create_task ставит корутину в расписание"}
-      main={"Три ожидания по 0,2 с накладываются: около 0,2 с вместо 0,6. Ссылку на задачу сохраняйте."}
+      title={"ast.parse"}
+      sub={"Дерево разбора"}
+      main={"ast.dump показывает структуру любого выражения."}
     >
-      <PyCode>{`import asyncio
-import time
-
-async def job(name, delay):
-    await asyncio.sleep(delay)
-    return name
-
-async def main():
-    start = time.perf_counter()
-    tasks = [asyncio.create_task(job(n, 0.2)) for n in "abc"]
-    results = [await t for t in tasks]
-    return results, time.perf_counter() - start < 0.5
-
-print(asyncio.run(main()))`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"(['a', 'b', 'c'], True)"}</Cmd>
+      <V04 cues={[12.1, 29.9]} />
     </Slide>
   );
 }
@@ -187,26 +102,11 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"gather"}
-      sub={"Результаты — в порядке передачи"}
-      main={"return_exceptions=True превращает ошибки в элементы результата — разбираете сами."}
+      title={"Обход дерева"}
+      sub={"walk и NodeVisitor"}
+      main={"Линтеры ищут шаблоны, не запуская программу."}
     >
-      <PyCode>{`import asyncio
-
-async def fetch(n):
-    await asyncio.sleep(0.3 - n * 0.1)
-    if n == 2:
-        raise ValueError("сбой")
-    return n * 10
-
-async def main():
-    print(await asyncio.gather(fetch(0), fetch(1)))
-    res = await asyncio.gather(*(fetch(n) for n in range(4)), return_exceptions=True)
-    print(res)
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[0, 10]\n[0, 10, ValueError('сбой'), 30]"}</Cmd>
+      <V05 cues={[12.9, 25.3]} />
     </Slide>
   );
 }
@@ -215,35 +115,11 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Таймаут и отмена"}
-      sub={"asyncio.timeout и task.cancel"}
-      main={"CancelledError не глотайте; finally выполнится и при отмене — для уборки."}
+      title={"Преобразование"}
+      sub={"NodeTransformer"}
+      main={"Метод возвращает новый узел; unparse вернёт текст."}
     >
-      <PyCode>{`import asyncio
-
-async def slow():
-    try:
-        await asyncio.sleep(10)
-    finally:
-        print("уборка")
-
-async def main():
-    try:
-        async with asyncio.timeout(0.1):
-            await slow()
-    except TimeoutError:
-        print("таймаут")
-    t = asyncio.create_task(slow())
-    await asyncio.sleep(0.05)
-    t.cancel()
-    try:
-        await t
-    except asyncio.CancelledError:
-        print("отменена", t.cancelled())
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"уборка\nтаймаут\nуборка\nотменена True"}</Cmd>
+      <V06 cues={[12.4, 28.8]} />
     </Slide>
   );
 }
@@ -252,35 +128,11 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"TaskGroup"}
-      sub={"Структурная конкурентность"}
-      main={"Упала одна задача — остальные отменяются, а ошибки собираются в группу (except*)."}
+      title={"Безопасный калькулятор"}
+      sub={"Белый список узлов"}
+      main={"Опора на грамматику надёжнее фильтра строк."}
     >
-      <PyCode>{`import asyncio
-
-async def ok(n):
-    await asyncio.sleep(0.05)
-    return n
-
-async def bad():
-    await asyncio.sleep(0.01)
-    raise ValueError("сбой")
-
-async def main():
-    async with asyncio.TaskGroup() as tg:
-        a = tg.create_task(ok(1))
-        b = tg.create_task(ok(2))
-    print(a.result(), b.result())
-    try:
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(ok(3))
-            tg.create_task(bad())
-    except* ValueError as eg:
-        print("группа:", [str(e) for e in eg.exceptions])
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"1 2\nгруппа: ['сбой']"}</Cmd>
+      <V07 cues={[12.4, 26.5]} />
     </Slide>
   );
 }
@@ -289,33 +141,11 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"async for и async with"}
-      sub={"Асинхронные итераторы, генераторы, менеджеры"}
-      main={"Методы с приставкой «а»: __anext__, __aenter__, __aexit__."}
+      title={"Объект кода и функция"}
+      sub={"__code__"}
+      main={"Функция — оболочка вокруг объекта кода."}
     >
-      <PyCode>{`import asyncio
-
-async def ticker(n):
-    for i in range(n):
-        await asyncio.sleep(0.01)
-        yield i
-
-class Conn:
-    async def __aenter__(self):
-        print("открыли")
-        return self
-    async def __aexit__(self, *exc):
-        print("закрыли")
-
-async def main():
-    async with Conn():
-        async for x in ticker(3):
-            print(x)
-    print([x async for x in ticker(2)])
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"открыли\n0\n1\n2\nзакрыли\n[0, 1]"}</Cmd>
+      <V08 cues={[9.0, 21.5]} />
     </Slide>
   );
 }
@@ -324,31 +154,11 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"asyncio.Queue"}
-      sub={"Пул воркеров"}
-      main={"Без замков и гонок: переключение происходит только на await. maxsize замедляет производителя."}
+      title={"Модуль dis"}
+      sub={"Стековая машина"}
+      main={"Набор команд меняется от версии к версии."}
     >
-      <PyCode>{`import asyncio
-
-async def worker(name, q, out):
-    while True:
-        item = await q.get()
-        out.append((name, item * 2))
-        q.task_done()
-
-async def main():
-    q, out = asyncio.Queue(), []
-    workers = [asyncio.create_task(worker(n, q, out)) for n in "ab"]
-    for i in range(5):
-        await q.put(i)
-    await q.join()
-    for w in workers:
-        w.cancel()
-    print(sorted(item for _, item in out))
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[0, 2, 4, 6, 8]"}</Cmd>
+      <V09 cues={[12.3, 28.0]} />
     </Slide>
   );
 }
@@ -357,30 +167,11 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Semaphore"}
-      sub={"Не больше N одновременно"}
-      main={"Потоковые замки здесь не годятся: они блокируют цикл. Используйте asyncio-версии."}
+      title={"Что видно в байт-коде"}
+      sub={"Оптимизации"}
+      main={"Байт-код объясняет производительность."}
     >
-      <PyCode>{`import asyncio
-
-active = peak = 0
-
-async def request(sem):
-    global active, peak
-    async with sem:
-        active += 1
-        peak = max(peak, active)
-        await asyncio.sleep(0.02)
-        active -= 1
-
-async def main():
-    sem = asyncio.Semaphore(3)
-    await asyncio.gather(*(request(sem) for _ in range(10)))
-    print(peak)
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"3"}</Cmd>
+      <V10 cues={[15.7, 31.2]} />
     </Slide>
   );
 }
@@ -389,25 +180,11 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Блокирующий код: to_thread"}
-      sub={"Вынести наружу цикла событий"}
-      main={"Цикл отвечает за ожидание; блокирующую работу — в потоки или процессы."}
+      title={"Применения"}
+      sub={"Тесты и генераторы"}
+      main={"pytest и dataclass тоже работают с кодом."}
     >
-      <PyCode>{`import asyncio
-import time
-
-def blocking():
-    time.sleep(0.2)
-    return "готово"
-
-async def main():
-    start = time.perf_counter()
-    results = await asyncio.gather(*(asyncio.to_thread(blocking) for _ in range(5)))
-    print(results[0], len(results), time.perf_counter() - start < 0.8)
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"готово 5 True"}</Cmd>
+      <V11 cues={[10.2, 24.6]} />
     </Slide>
   );
 }
@@ -416,29 +193,11 @@ function S12() {
   return (
     <Slide
       n={12}
-      title={"Типичные ошибки"}
-      sub={"Забытый await"}
-      main={"Блокирующий вызов в корутине подводит всех остальных; корутина без await не выполнится."}
+      title={"Безопасность"}
+      sub={"Правила"}
+      main={"Строите дерево, а не склеиваете строки."}
     >
-      <PyCode>{`import asyncio
-import gc
-import warnings
-
-async def work():
-    return 1
-
-async def main():
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        work()                       # забыли await
-        gc.collect()
-    print(len(w) >= 1, "never awaited" in str(w[0].message))
-    print(await work())
-
-asyncio.run(main())`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True True\n1"}</Cmd>
-      <div className="s-note">{"Ещё: asyncio.run внутри цикла, потерянная ссылка на задачу, проглоченный CancelledError, тысячи задач без ограничения, ожидание без таймаута."}</div>
+      <V12 cues={[15.7, 25.9]} />
     </Slide>
   );
 }
@@ -447,59 +206,34 @@ function S13() {
   return (
     <Slide
       n={13}
-      title={"Итог"}
-      sub={"Глава 32 · Асинхронность"}
-      main={"Модель кооперативная: корутина должна уступать — иначе подведёт всех."}
+      title={"Итоги"}
+      sub={"Метапрограммирование"}
+      main={"Код — данные: читаем, меняем, объясняем."}
     >
-      <div className="s-grid2">
-        {[["async def · await", "Основа", "asyncio.run запускает цикл событий"], ["create_task · gather · TaskGroup", "Конкурентность", "Задачи, порядок результатов, структурность"], ["timeout · cancel", "Время", "Не ждать вечно; отмену не глотать"], ["Queue · Semaphore · to_thread", "Приёмы", "Воркеры, лимиты, блокирующий код"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
-      <div className="s-note">{"Дальше — asyncio на практике: сеть, структура программы, тесты, веб."}</div>
+      <V13 cues={[11.7, 22.6, 33.4]} />
     </Slide>
   );
 }
 
-// Реестр: «book:chapter» → список слайдов, по одному на абзац урока.
 export const SLIDES_P32 = {
-  "13:32": [
-    S01,
-    S02,
-    S03,
-    S04,
-    S05,
-    S06,
-    S07,
-    S08,
-    S09,
-    S10,
-    S11,
-    S12,
-    S13,
-  ],
+  "13:32": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
 };
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P32).
 export const SLIDE_TITLES_P32 = {
   "13:32": [
-    "asyncio",
-    "Корутина",
-    "await и sleep",
-    "Задачи",
-    "gather",
-    "Таймаут и отмена",
-    "TaskGroup",
-    "async for и async with",
-    "Queue",
-    "Semaphore",
-    "to_thread",
-    "Типичные ошибки",
-    "Итог",
+    "Этапы",
+    "eval и exec",
+    "compile",
+    "parse",
+    "Обход",
+    "Преобразование",
+    "Калькулятор",
+    "__code__",
+    "dis",
+    "Оптимизации",
+    "Применения",
+    "Правила",
+    "Итоги",
   ],
 };

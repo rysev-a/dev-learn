@@ -1,4 +1,4 @@
-// Слайды для «Python как первый язык», глава 26 — «Дата и время».
+// Слайды для «Python как первый язык», глава 26 — «Замыкания и декораторы».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / СТАНДАРТНАЯ БИБЛИОТЕКА / ГЛАВА 26</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ФУНКЦИОНАЛЬНОЕ ПРОГРАММИРОВАНИЕ / ГЛАВА 26</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -90,12 +90,12 @@ function S01() {
   return (
     <Slide
       n={1}
-      title={"Дата и время"}
-      sub={"Глава 26 · Стандартная библиотека"}
-      main={"Храните и считайте в UTC, в местное время переводите только при показе."}
+      title={"Замыкания и декораторы"}
+      sub={"Глава 26 · Функциональное программирование"}
+      main={"Функцию можно создать внутри функции — и вернуть вместе с её окружением."}
     >
       <div className="s-grid2">
-        {[["date · datetime", "Типы", "Дата, время, момент и промежуток"], ["strftime · strptime", "Формат", "В строку и из строки; ISO для хранения"], ["tzinfo", "Пояса", "Наивные и осведомлённые; zoneinfo"], ["time · calendar", "Часы и календарь", "Таймер, unix-время, високосные годы"]].map(([big, t, d]) => (
+        {[["def f(): def g()", "Вложенные", "Видят переменные внешней"], ["closure", "Замыкание", "Функция запоминает окружение"], ["@decorator", "Декоратор", "Функция, улучшающая функцию"], ["@wraps", "Аккуратно", "Сохраняет имя и докстринг"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -112,21 +112,30 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"date, time, datetime"}
-      sub={"Неизменяемые объекты, которые сравниваются и сортируются"}
-      main={"weekday() считает с нуля, где ноль — понедельник; replace возвращает копию."}
+      title={"Вложенные функции"}
+      sub={"Читать внешние переменные можно, менять — через nonlocal"}
+      main={"Имя ищется по цепочке: функция, охватывающая функция, модуль, встроенные."}
     >
-      <PyCode>{`from datetime import date, time, datetime
+      <PyCode>{`def outer():
+    x = 10
+    def inner():
+        return x + 1          # читаем внешнюю
+    return inner()
 
-d = date(2024, 2, 29)
-t = time(14, 30)
-dt = datetime(2024, 2, 29, 14, 30)
-print(d, t, dt)
-print(d.year, d.month, d.day, d.weekday())
-print(dt.replace(hour=9))
-print(date(2024, 3, 1) > d)`}</PyCode>
+print(outer())
+
+def counter():
+    n = 0
+    def inc():
+        nonlocal n
+        n += 1
+        return n
+    return inc
+
+c = counter()
+print(c(), c(), c())`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2024-02-29 14:30:00 2024-02-29 14:30:00\n2024 2 29 3\n2024-02-29 09:30:00\nTrue"}</Cmd>
+      <Cmd>{"11\n1 2 3"}</Cmd>
     </Slide>
   );
 }
@@ -135,19 +144,21 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"timedelta"}
-      sub={"Промежутки: дни, часы, секунды"}
-      main={"В timedelta нет месяцев и лет: их длина не постоянна, поэтому «плюс месяц» считают вручную."}
+      title={"Замыкание"}
+      sub={"Функция уносит окружение с собой"}
+      main={"Внешняя функция уже завершилась, а число n осталось жить внутри внутренней — как в капсуле."}
     >
-      <PyCode>{`from datetime import date, timedelta
+      <PyCode>{`def make_multiplier(n):
+    def mul(x):
+        return x * n
+    return mul
 
-d = date(2024, 2, 28)
-print(d + timedelta(days=2))
-print(date(2025, 1, 1) - date(2024, 12, 25))
-delta = timedelta(hours=1, minutes=30)
-print(delta.total_seconds(), delta * 2)`}</PyCode>
+triple = make_multiplier(3)
+five = make_multiplier(5)
+print(triple(10), five(10))
+print(triple.__closure__[0].cell_contents)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2024-03-01\n7 days, 0:00:00\n5400.0 3:00:00"}</Cmd>
+      <Cmd>{"30 50\n3"}</Cmd>
     </Slide>
   );
 }
@@ -156,19 +167,22 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Форматирование"}
-      sub={"strftime и isoformat"}
-      main={"ISO-запись сортируется как текст в порядке времени — лучший формат хранения."}
+      title={"Состояние в замыкании"}
+      sub={"Каждый вызов фабрики — своя капсула"}
+      main={"Один метод и немного состояния — замыкание короче; несколько методов — класс понятнее."}
     >
-      <PyCode>{`from datetime import datetime
+      <PyCode>{`def make_counter():
+    count = 0
+    def inc():
+        nonlocal count
+        count += 1
+        return count
+    return inc
 
-dt = datetime(2024, 3, 5, 9, 7, 3)
-print(dt.strftime("%d.%m.%Y %H:%M"))
-print(dt.strftime("%Y-%m-%d"))
-print(dt.isoformat())`}</PyCode>
+a, b = make_counter(), make_counter()
+print(a(), a(), b())`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"05.03.2024 09:07\n2024-03-05\n2024-03-05T09:07:03"}</Cmd>
-      <div className="s-note">{"%Y год, %m месяц, %d день, %H часы, %M минуты, %S секунды."}</div>
+      <Cmd>{"1 2 1"}</Cmd>
     </Slide>
   );
 }
@@ -177,21 +191,21 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Разбор строки"}
-      sub={"strptime и fromisoformat"}
-      main={"Несуществующую дату Питон не создаст: разбор — уже проверка."}
+      title={"Поздняя привязка"}
+      sub={"Функция помнит переменную, а не значение"}
+      main={"Лечится значением по умолчанию, фабрикой или partial."}
     >
-      <PyCode>{`from datetime import datetime
+      <PyCode>{`funcs = [lambda: i for i in range(3)]
+print([f() for f in funcs])
+fixed = [lambda i=i: i for i in range(3)]
+print([f() for f in fixed])
 
-d = datetime.strptime("05.03.2024", "%d.%m.%Y")
-print(d, d.year)
-print(datetime.fromisoformat("2024-03-05T09:07:03"))
-try:
-    datetime.strptime("30.02.2024", "%d.%m.%Y")
-except ValueError as e:
-    print(e)`}</PyCode>
+def make(i):
+    return lambda: i
+
+print([make(i)() for i in range(3)])`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2024-03-05 00:00:00 2024\n2024-03-05 09:07:03\nday 30 must be in range 1..29 for month 2 in year 2024"}</Cmd>
+      <Cmd>{"[2, 2, 2]\n[0, 1, 2]\n[0, 1, 2]"}</Cmd>
     </Slide>
   );
 }
@@ -200,24 +214,27 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Часовые пояса"}
-      sub={"Наивные и осведомлённые даты"}
-      main={"Наивное с осведомлённым сравнивать нельзя: храните UTC, переводите через astimezone."}
+      title={"Первый декоратор"}
+      sub={"Принимает функцию, возвращает обёртку"}
+      main={"@имя над def — сокращённая запись: square = timer(square)."}
     >
-      <PyCode>{`from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+      <PyCode>{`import time
 
-utc = datetime(2024, 6, 1, 12, 0, tzinfo=timezone.utc)
-msk = utc.astimezone(ZoneInfo("Europe/Moscow"))
-print(utc, msk)
-print(msk.utcoffset())
-naive = datetime(2024, 6, 1, 12, 0)
-try:
-    naive < utc
-except TypeError as e:
-    print(e)`}</PyCode>
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        print(f"{func.__name__}: готово")
+        return result
+    return wrapper
+
+@timer
+def square(x):
+    return x * x
+
+print(square(7))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2024-06-01 12:00:00+00:00 2024-06-01 15:00:00+03:00\n3:00:00\ncan't compare offset-naive and offset-aware datetimes"}</Cmd>
+      <Cmd>{"square: готово\n49"}</Cmd>
     </Slide>
   );
 }
@@ -226,21 +243,23 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Модуль time"}
-      sub={"perf_counter, sleep, timestamp"}
-      main={"Для замеров — perf_counter: он не зависит от перевода системных часов."}
+      title={"Аргументы и результат"}
+      sub={"*args, **kwargs и return в обёртке"}
+      main={"Шаблон наизусть: внутренняя функция, вызвать оригинал, вернуть результат, вернуть обёртку."}
     >
-      <PyCode>{`import time
-from datetime import datetime, timezone
+      <PyCode>{`def logged(func):
+    def wrapper(*args, **kwargs):
+        print("вызов", args, kwargs)
+        return func(*args, **kwargs)
+    return wrapper
 
-start = time.perf_counter()
-time.sleep(0.01)
-print(time.perf_counter() - start >= 0.01)
-print(datetime(1970, 1, 2, tzinfo=timezone.utc).timestamp())
-print(datetime.fromtimestamp(86400, tz=timezone.utc))`}</PyCode>
+@logged
+def add(a, b=0):
+    return a + b
+
+print(add(1, b=2))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True\n86400.0\n1970-01-02 00:00:00+00:00"}</Cmd>
-      <div className="s-note">{"Unix-время — секунды с 1 января 1970 по UTC."}</div>
+      <Cmd>{"вызов (1,) {'b': 2}\n3"}</Cmd>
     </Slide>
   );
 }
@@ -249,19 +268,25 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Диапазоны и сравнение"}
-      sub={"min, max, рабочие дни, номер недели"}
-      main={"Всё это — знакомая арифметика, сравнение и генераторы; нового только набор типов."}
+      title={"functools.wraps"}
+      sub={"Чтобы имя и документация не терялись"}
+      main={"Любой декоратор, который вы пишете, украшайте @wraps."}
     >
-      <PyCode>{`from datetime import date, timedelta
+      <PyCode>{`from functools import wraps
 
-start, end = date(2024, 3, 1), date(2024, 3, 10)
-days = [start + timedelta(days=i) for i in range((end - start).days + 1)]
-workdays = [d for d in days if d.weekday() < 5]
-print(len(days), len(workdays))
-print(min(days), max(days).isocalendar()[1])`}</PyCode>
+def deco(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+@deco
+def hello():
+    """Поздороваться."""
+
+print(hello.__name__, hello.__doc__)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"10 6\n2024-03-01 10"}</Cmd>
+      <Cmd>{"hello Поздороваться."}</Cmd>
     </Slide>
   );
 }
@@ -270,26 +295,27 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"calendar и возраст"}
-      sub={"Високосные годы, длина месяца"}
-      main={"Возраст — не «дни / 365»: вычтите годы и поправьте, если день рождения ещё не наступил."}
+      title={"Декоратор с параметрами"}
+      sub={"Ещё один уровень: фабрика декораторов"}
+      main={"Скобки после имени декоратора — это вызов фабрики, а не самого декоратора."}
     >
-      <PyCode>{`import calendar
-from datetime import date
+      <PyCode>{`def repeat(times):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            result = None
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
 
-weekday, days = calendar.monthrange(2024, 2)
-print(calendar.isleap(2024), int(weekday), days)
-print(date(2024, 2, days))
+@repeat(3)
+def hello():
+    print("привет")
 
-def age(born, today):
-    years = today.year - born.year
-    if (today.month, today.day) < (born.month, born.day):
-        years -= 1
-    return years
-
-print(age(date(2000, 6, 15), date(2024, 6, 14)), age(date(2000, 6, 15), date(2024, 6, 15)))`}</PyCode>
+hello()`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True 3 29\n2024-02-29\n23 24"}</Cmd>
+      <Cmd>{"привет\nпривет\nпривет"}</Cmd>
     </Slide>
   );
 }
@@ -298,22 +324,26 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Типовые задачи"}
-      sub={"До Нового года, день недели, журнал по датам"}
-      main={"Дата в начале строки журнала — и группировка по дням занимает одну строку."}
+      title={"Кеш на декораторе"}
+      sub={"Те же аргументы — тот же ответ"}
+      main={"Замеры, логи, права, повторы при сбоях, регистрация обработчиков — одной строкой над функцией."}
     >
-      <PyCode>{`from collections import Counter
-from datetime import date
+      <PyCode>{`def memo(func):
+    cache = {}
+    def wrapper(n):
+        if n not in cache:
+            cache[n] = func(n)
+        return cache[n]
+    return wrapper
 
-today = date(2024, 12, 20)
-new_year = date(2025, 1, 1)
-print((new_year - today).days)
-names = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
-print(names[date(2000, 1, 1).weekday()])
-log = ["2024-03-01 error", "2024-03-01 ok", "2024-03-02 ok"]
-print(Counter(line.split()[0] for line in log))`}</PyCode>
+@memo
+def slow_square(n):
+    print("считаю", n)
+    return n * n
+
+print(slow_square(4), slow_square(4))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"12\nсб\nCounter({'2024-03-01': 2, '2024-03-02': 1})"}</Cmd>
+      <Cmd>{"считаю 4\n16 16"}</Cmd>
     </Slide>
   );
 }
@@ -322,20 +352,27 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Даты и JSON"}
-      sub={"Записываем строкой, читаем обратно"}
-      main={"Формат хранения — часть контракта: опишите «в строку» и «из строки» в одном месте."}
+      title={"Класс как декоратор"}
+      sub={"__call__ делает экземпляр вызываемым"}
+      main={"Несколько декораторов применяются снизу вверх: ближайший к функции срабатывает первым."}
     >
-      <PyCode>{`import json
-from datetime import datetime
+      <PyCode>{`class CountCalls:
+    def __init__(self, func):
+        self.func = func
+        self.calls = 0
+    def __call__(self, *args, **kwargs):
+        self.calls += 1
+        return self.func(*args, **kwargs)
 
-event = {"name": "сдача", "at": datetime(2024, 5, 1, 10, 0)}
-text = json.dumps(event, default=str, ensure_ascii=False)
-print(text)
-back = json.loads(text)
-print(datetime.fromisoformat(back["at"]).month)`}</PyCode>
+@CountCalls
+def hi():
+    return "привет"
+
+hi()
+hi()
+print(hi.calls, hi())`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"{\"name\": \"сдача\", \"at\": \"2024-05-01 10:00:00\"}\n5"}</Cmd>
+      <Cmd>{"2 привет"}</Cmd>
     </Slide>
   );
 }
@@ -345,22 +382,22 @@ function S12() {
     <Slide
       n={12}
       title={"Типичные ошибки"}
-      sub={"Месяц — не тридцать дней; строки дат — не даты"}
-      main={"Сравнивайте объекты дат, а не строки в нестандартном формате."}
+      sub={"Забытый return в обёртке"}
+      main={"Проверьте руками: имя = декоратор(функция) — и сразу видно, что вы возвращаете."}
     >
-      <PyCode>{`from datetime import date, timedelta
+      <PyCode>{`def broken(func):
+    def wrapper(*args, **kwargs):
+        func(*args, **kwargs)          # забыли return
+    return wrapper
 
-d = date(2024, 1, 31)
-print(d + timedelta(days=30))
-try:
-    d.replace(month=2)
-except ValueError as e:
-    print(e)
-print((date(2024, 3, 1) - date(2023, 3, 1)).days)
-print(date(2024, 5, 3) < date(2024, 5, 10), "3.5.2024" < "10.5.2024")`}</PyCode>
+@broken
+def one():
+    return 1
+
+print(one())`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2024-03-01\nday 31 must be in range 1..29 for month 2 in year 2024\n366\nTrue False"}</Cmd>
-      <div className="s-note">{"Ещё: переходы на летнее время, устаревший utcnow() без пояса, русские названия месяцев без локали."}</div>
+      <Cmd>{"None"}</Cmd>
+      <div className="s-note">{"Ещё: не вернули обёртку, нет @wraps, лямбды в цикле, порядок нескольких декораторов, слишком «умный» декоратор."}</div>
     </Slide>
   );
 }
@@ -370,11 +407,11 @@ function S13() {
     <Slide
       n={13}
       title={"Итог"}
-      sub={"Глава 26 · Стандартная библиотека"}
-      main={"UTC внутри, местное время — снаружи; ISO — для хранения."}
+      sub={"Глава 26 · Функциональное программирование"}
+      main={"Замыкание — функция с окружением; декоратор — замыкание, улучшающее другую функцию."}
     >
       <div className="s-grid2">
-        {[["date · timedelta", "Арифметика", "Разность дат — timedelta; месяцев в ней нет"], ["strftime · fromisoformat", "Формат", "ISO для хранения, шаблон для показа"], ["ZoneInfo · astimezone", "Пояса", "Не смешивать наивные и осведомлённые"], ["perf_counter · calendar", "Часы", "Замеры; високосные годы и длина месяца"]].map(([big, t, d]) => (
+        {[["nonlocal", "Замыкание", "Фабрики функций и состояние"], ["@decorator", "Декоратор", "wrapper(*args, **kwargs) и return"], ["@wraps", "Аккуратность", "Имя и докстринг не теряются"], ["@repeat(3)", "С параметрами", "Фабрика декораторов"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -383,7 +420,7 @@ function S13() {
           </div>
         ))}
       </div>
-      <div className="s-note">{"Дальше — регулярные выражения."}</div>
+      <div className="s-note">{"Дальше — functools и operator: готовые инструменты."}</div>
     </Slide>
   );
 }
@@ -410,17 +447,17 @@ export const SLIDES_P26 = {
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P26).
 export const SLIDE_TITLES_P26 = {
   "13:26": [
-    "Дата и время",
-    "Типы",
-    "timedelta",
-    "Форматирование",
-    "Разбор строки",
-    "Часовые пояса",
-    "Модуль time",
-    "Диапазоны дат",
-    "calendar и возраст",
-    "Типовые задачи",
-    "Даты и JSON",
+    "Замыкания и декораторы",
+    "Вложенные функции",
+    "Замыкание",
+    "Состояние в замыкании",
+    "Поздняя привязка",
+    "Первый декоратор",
+    "Аргументы и результат",
+    "wraps",
+    "С параметрами",
+    "Кеш",
+    "Класс-декоратор",
     "Типичные ошибки",
     "Итог",
   ],

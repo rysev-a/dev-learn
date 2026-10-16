@@ -506,7 +506,7 @@ export const V09 = scene({
 // 10. C и Rust
 const CC = [
   "spin_lock(&lock);",
-  "if (err) return -1;   /* утечка! */",
+  "if (err) return -1;",
   "counter++;",
   "spin_unlock(&lock);",
 ];

@@ -1,0 +1,232 @@
+// Слайды для «Компьютерные сети», глава 20 — «Сети в облаке и контейнерах: Docker, VPC и Kubernetes».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Nt20.jsx).
+
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+} from "../anim/Nt20.jsx";
+
+function Rubric({ n }) {
+  return (
+    <div className="s-rubric">
+      <span>ЭКСПЛУАТАЦИЯ И БЕЗОПАСНОСТЬ / ГЛАВА 20</span>
+      <span>{String(n).padStart(2, "0")} / 10</span>
+    </div>
+  );
+}
+
+function Slide({ n, title, sub, main, children }) {
+  return (
+    <div className="slide">
+      <Rubric n={n} />
+      <h3 className="s-title">{title}</h3>
+      {sub && <p className="s-sub">{sub}</p>}
+      <div className="s-divider" />
+      <div className="s-body">{children}</div>
+      {main && (
+        <div className="s-main">
+          <span className="s-main-label">ГЛАВНОЕ</span>
+          <span className="s-main-text">{main}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- сцены ---------------------------------------------------------------
+
+function S01() {
+  return (
+    <Slide
+      n={1}
+      title={"Те же идеи, но виртуально"}
+      sub={"Что нового в облаке"}
+      main={
+        "Облако, контейнеры и Kubernetes — те же маршрутизаторы, NAT, файрволы и балансировщики, только виртуальные."
+      }
+    >
+      <V01 cues={[14.7, 22.9, 35.9]} />
+      <div className="s-note">Ничего принципиально нового.</div>
+    </Slide>
+  );
+}
+
+function S02() {
+  return (
+    <Slide
+      n={2}
+      title={"VPC"}
+      sub={"Частная сеть в облаке"}
+      main={
+        "Публичная подсеть ведёт на Internet Gateway, приватная выходит наружу через NAT-шлюз — всё в таблицах маршрутов."
+      }
+    >
+      <V02 cues={[11.6, 13.1, 23.9]} />
+      <div className="s-note">Адресация и подсети задаются кодом.</div>
+    </Slide>
+  );
+}
+
+function S03() {
+  return (
+    <Slide
+      n={3}
+      title={"Группы безопасности"}
+      sub={"Файрвол облака"}
+      main={
+        "Группа безопасности разрешает порты по источникам и помнит состояния; сетевые списки подсети — без состояний."
+      }
+    >
+      <V03 cues={[7.3, 21.9, 31.2]} />
+      <div className="s-note">Всё, что не разрешено, закрыто.</div>
+    </Slide>
+  );
+}
+
+function S04() {
+  return (
+    <Slide
+      n={4}
+      title={"Связность сетей"}
+      sub={"Пиринг и шлюзы"}
+      main={
+        "Пиринг не транзитивен, для звёзд нужен транзитный шлюз; к офису — VPN, адреса сетей не пересекаются."
+      }
+    >
+      <V04 cues={[10.8, 21.4, 31.9]} />
+      <div className="s-note">
+        Приватные эндпоинты оставляют трафик к службам внутри.
+      </div>
+    </Slide>
+  );
+}
+
+function S05() {
+  return (
+    <Slide
+      n={5}
+      title={"Контейнер и namespace"}
+      sub={"Мост и veth"}
+      main={
+        "У контейнера своё сетевое пространство, veth ведёт к мосту, а узел работает как маршрутизатор и NAT."
+      }
+    >
+      <V05 cues={[12.3, 21.6, 27.5]} />
+      <div className="s-note">
+        То же, что на реальных хостах, но внутри одной машины.
+      </div>
+    </Slide>
+  );
+}
+
+function S06() {
+  return (
+    <Slide
+      n={6}
+      title={"Docker"}
+      sub={"Публикация портов"}
+      main={
+        "Выход контейнеров — маскарад, публикация -p 8080:80 — DNAT на узле, имена разрешает встроенный DNS."
+      }
+    >
+      <V06 cues={[14.2, 15.2, 23.9]} />
+      <div className="s-note">Режимы: bridge, host, none, overlay.</div>
+    </Slide>
+  );
+}
+
+function S07() {
+  return (
+    <Slide
+      n={7}
+      title={"Оверлей"}
+      sub={"Сеть поверх сети"}
+      main={
+        "Пакет пода упаковывается в UDP (VXLAN) между узлами; адресацию и политики реализует CNI-плагин."
+      }
+    >
+      <V07 cues={[11.4, 21.9, 34.6]} />
+      <div className="s-note">MTU внутри оверлея меньше.</div>
+    </Slide>
+  );
+}
+
+function S08() {
+  return (
+    <Slide
+      n={8}
+      title={"Kubernetes Service"}
+      sub={"Балансировка в кластере"}
+      main={
+        "Service даёт подам постоянный адрес; NodePort, LoadBalancer и Ingress выводят наружу, kube-proxy раскладывает по готовым подам."
+      }
+    >
+      <V08 cues={[8.6, 17.6, 34.8]} />
+      <div className="s-note">Проба готовности — как health check.</div>
+    </Slide>
+  );
+}
+
+function S09() {
+  return (
+    <Slide
+      n={9}
+      title={"Политики и сетки"}
+      sub={"Сегментация"}
+      main={
+        "По умолчанию все поды видят всех: NetworkPolicy оставляет доступ только нужным, service mesh шифрует связи."
+      }
+    >
+      <V09 cues={[11.5, 18.2, 27.6]} />
+      <div className="s-note">
+        Диагностика та же, но внутри нужного namespace.
+      </div>
+    </Slide>
+  );
+}
+
+function S10() {
+  return (
+    <Slide
+      n={10}
+      title={"Итоги книги"}
+      sub={"Что унести"}
+      main={
+        "Узлы, адреса, маршруты, транспорт, прикладные протоколы, защита — основа любой сети, физической или виртуальной."
+      }
+    >
+      <V10 cues={[6.1, 21.7, 26.9]} />
+      <div className="s-note">
+        Спросите: какие здесь адреса, маршруты, правила и порты.
+      </div>
+    </Slide>
+  );
+}
+
+export const SLIDES_NT20 = {
+  "15:20": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10],
+};
+
+// Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_NT20).
+export const SLIDE_TITLES_NT20 = {
+  "15:20": [
+    "Те же идеи",
+    "VPC",
+    "Группы безопасности",
+    "Связность",
+    "Namespace и мост",
+    "Docker",
+    "Оверлей и CNI",
+    "Service",
+    "NetworkPolicy",
+    "Итоги книги",
+  ],
+};

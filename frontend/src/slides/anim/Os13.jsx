@@ -220,7 +220,7 @@ const mn = (n) => [
   ),
   ...If(
     n === 3,
-    Bx("pp", 262, 138, 140, 18, "proc, dev, tmpfs, том /data", "b", {
+    Bx("pp", 270, 128, 140, 16, "proc, dev, tmpfs, том /data", "b", {
       size: 8,
     }),
   ),

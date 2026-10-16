@@ -1,4 +1,4 @@
-// Слайды для «Python как первый язык», глава 27 — «Регулярные выражения».
+// Слайды для «Python как первый язык», глава 27 — «functools и operator».
 // Тот же дизайн-код, что и в эталоне: тёмная палитра, IBM Plex Mono / Inter,
 // рубрика + номер, схема, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
 // Отличие: примеры кода на Python с подсветкой синтаксиса (классы rs-*).
@@ -43,7 +43,7 @@ function PyCode({ children }) {
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / СТАНДАРТНАЯ БИБЛИОТЕКА / ГЛАВА 27</span>
+      <span>PYTHON КАК ПЕРВЫЙ ЯЗЫК / ФУНКЦИОНАЛЬНОЕ ПРОГРАММИРОВАНИЕ / ГЛАВА 27</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -90,12 +90,12 @@ function S01() {
   return (
     <Slide
       n={1}
-      title={"Регулярные выражения"}
-      sub={"Глава 27 · Стандартная библиотека"}
-      main={"Шаблон описывает не строку, а семейство строк: «три цифры, дефис, четыре цифры»."}
+      title={"functools и operator"}
+      sub={"Глава 27 · Функциональное программирование"}
+      main={"Многие типичные приёмы уже написаны за нас в стандартной библиотеке."}
     >
       <div className="s-grid2">
-        {[["\\d  \\w  [а-я]", "Символы", "Цифры, буквы, наборы"], ["*  +  ?  {n,m}", "Повторы", "По умолчанию жадные"], ["( )  (?P<name>)", "Группы", "Достать нужные куски"], ["sub · split · findall", "Функции", "Заменить, разрезать, найти все"]].map(([big, t, d]) => (
+        {[["reduce", "Свёртка", "Сложить набор в одно значение"], ["partial", "Фиксация", "Зафиксировать часть аргументов"], ["lru_cache", "Кеш", "Запомнить результаты функции"], ["itemgetter", "operator", "Операторы как функции для key"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -112,19 +112,22 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Основы шаблона"}
-      sub={"Точка, наборы, якоря и функции поиска"}
-      main={"search ищет где угодно, match — с начала, fullmatch — всю строку."}
+      title={"reduce"}
+      sub={"Функция двух аргументов, набор, начальное значение"}
+      main={"Начальное значение защищает от пустого набора; для сумм и максимумов берите встроенные."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import reduce
+import operator
 
-print(bool(re.search(r"\\d\\d", "в 2024 году")))
-print(re.search(r"к.т", "кот и кит").group())
-print(re.match(r"\\d+", "а123") is None, re.match(r"\\d+", "123а").group())
-print(bool(re.fullmatch(r"[а-я]+", "привет")), bool(re.fullmatch(r"[а-я]+", "Привет")))
-print(bool(re.search(r"^а", "арбуз")), bool(re.search(r"з$", "арбуз")))`}</PyCode>
+print(reduce(operator.mul, [1, 2, 3, 4]))
+print(reduce(lambda acc, s: acc + "-" + s, ["а", "б", "в"]))
+print(reduce(operator.add, [], 0))
+try:
+    reduce(operator.add, [])
+except TypeError as e:
+    print(e)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"True\nкот\nTrue 123\nTrue False\nTrue True"}</Cmd>
+      <Cmd>{"24\nа-б-в\n0\nreduce() of empty iterable with no initial value"}</Cmd>
     </Slide>
   );
 }
@@ -133,18 +136,18 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Квантификаторы и жадность"}
-      sub={"*, +, ?, {n,m}"}
-      main={"Жадность — источник половины неожиданностей: добавьте ? и получите минимум."}
+      title={"partial"}
+      sub={"Часть аргументов уже подставлена"}
+      main={"Заменяет лямбду, в которой просто подставляются готовые значения."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import partial
 
-print(re.findall(r"\\d{2,4}", "1 22 333 55555"))
-print(re.search(r"<.*>", "<b>жирный</b>").group())
-print(re.search(r"<.*?>", "<b>жирный</b>").group())
-print(re.findall(r"colou?r", "color colour colr"))`}</PyCode>
+from_bin = partial(int, base=2)
+print(from_bin("101"), from_bin("1111"))
+power_of_2 = partial(pow, 2)
+print(list(map(power_of_2, [1, 2, 3])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['22', '333', '5555']\n<b>жирный</b>\n<b>\n['color', 'colour']"}</Cmd>
+      <Cmd>{"5 15\n[2, 4, 8]"}</Cmd>
     </Slide>
   );
 }
@@ -153,19 +156,21 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Группы"}
-      sub={"Вытащить нужные куски текста"}
-      main={"Группы — главный способ не просто проверить, а извлечь данные."}
+      title={"lru_cache"}
+      sub={"Повторный вызов с теми же аргументами — из кеша"}
+      main={"Аргументы должны быть хешируемыми, а результат — зависеть только от аргументов."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import lru_cache
 
-m = re.search(r"заказ (\\d+) от (\\d+)\\.(\\d+)", "заказ 123 от 05.03")
-print(m.group(), m.group(1), m.groups(), m.span())
-print(re.findall(r"(\\w+)@(\\w+)\\.ru", "ivan@mail.ru, olga@ya.ru"))
-for m in re.finditer(r"\\d+", "a1 b22 c333"):
-    print(m.group(), m.start())`}</PyCode>
+@lru_cache(maxsize=None)
+def fib(n):
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+print(fib(80))
+print(fib.cache_info())`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"заказ 123 от 05.03 123 ('123', '05', '03') (0, 18)\n[('ivan', 'mail'), ('olga', 'ya')]\n1 1\n22 4\n333 8"}</Cmd>
+      <Cmd>{"23416728348467685\nCacheInfo(hits=78, misses=81, maxsize=None, currsize=81)"}</Cmd>
+      <div className="s-note">{"Без кеша fib(80) пересчитывалась бы миллиарды лет."}</div>
     </Slide>
   );
 }
@@ -174,18 +179,33 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Именованные группы"}
-      sub={"(?P<имя>...) и (?:...)"}
-      main={"Имя читается лучше номера; незахватывающая группа нужна, когда запоминать не надо."}
+      title={"total_ordering и cached_property"}
+      sub={"Меньше методов — тот же результат"}
+      main={"__eq__ и один оператор порядка — остальное достроит декоратор."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import total_ordering, cached_property
 
-pat = re.compile(r"(?P<y>\\d{4})-(?P<m>\\d\\d)-(?P<d>\\d\\d)")
-m = pat.search("дата: 2024-03-05")
-print(m["y"], m.group("m"), m.groupdict())
-print(re.findall(r"(?:кот|пёс)ы?", "коты и пёс, котёнок"))`}</PyCode>
+@total_ordering
+class Version:
+    def __init__(self, n):
+        self.n = n
+    def __eq__(self, other):
+        return self.n == other.n
+    def __lt__(self, other):
+        return self.n < other.n
+
+print(Version(1) < Version(2), Version(3) >= Version(2), Version(2) > Version(5))
+
+class Data:
+    @cached_property
+    def heavy(self):
+        print("считаю")
+        return 42
+
+d = Data()
+print(d.heavy, d.heavy)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2024 03 {'y': '2024', 'm': '03', 'd': '05'}\n['коты', 'пёс', 'кот']"}</Cmd>
+      <Cmd>{"True True False\nсчитаю\n42 42"}</Cmd>
     </Slide>
   );
 }
@@ -194,19 +214,27 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"sub и split"}
-      sub={"Заменить и разрезать по шаблону"}
-      main={"В замене доступны группы (\\1) и даже функция, вычисляющая подстановку."}
+      title={"singledispatch"}
+      sub={"Перегрузка по типу первого аргумента"}
+      main={"Новый тип добавляется регистрацией — без правки исходной функции."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import singledispatch
 
-print(re.sub(r"\\s+", " ", "много   пробелов\\n тут"))
-print(re.sub(r"(\\w+) (\\w+)", r"\\2 \\1", "Иван Петров"))
-print(re.sub(r"\\d+", lambda m: str(int(m.group()) * 2), "5 яблок и 12 груш"))
-print(re.split(r"[,;]\\s*", "а, б;в,  г"))
-print(re.subn("а", "о", "ала"))`}</PyCode>
+@singledispatch
+def show(x):
+    return f"что-то: {x}"
+
+@show.register(int)
+def _(x):
+    return f"число {x}"
+
+@show.register(list)
+def _(x):
+    return f"список из {len(x)}"
+
+print(show(5), show([1, 2]), show("a"))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"много пробелов тут\nПетров Иван\n10 яблок и 24 груш\n['а', 'б', 'в', 'г']\n('оло', 2)"}</Cmd>
+      <Cmd>{"число 5 список из 2 что-то: a"}</Cmd>
     </Slide>
   );
 }
@@ -215,23 +243,18 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Сырые строки, compile, флаги"}
-      sub={"r\"...\", re.compile, re.I, re.M, re.X"}
-      main={"Подробный режим re.X — лучший способ записать сложный шаблон: части и пояснения."}
+      title={"operator: операторы как функции"}
+      sub={"add, mul, lt, pow"}
+      main={"Вместо лямбды с одним оператором — готовая и более быстрая функция."}
     >
-      <PyCode>{`import re
+      <PyCode>{`import operator
+from functools import reduce
 
-print(len(r"\\d"), len("\\\\d"))
-pat = re.compile(r"""
-    (\\d{3})   # код
-    -
-    (\\d{4})   # номер
-""", re.X)
-print(pat.fullmatch("555-1234").groups())
-print(re.findall(r"кот", "Кот КОТ кот", re.I))
-print(re.findall(r"^\\w+", "раз\\nдва\\nтри", re.M))`}</PyCode>
+print(operator.add(2, 3), operator.mul(4, 5), operator.lt(1, 2))
+print(list(map(operator.pow, [2, 3], [3, 2])))
+print(reduce(operator.mul, range(1, 6)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"2 2\n('555', '1234')\n['Кот', 'КОТ', 'кот']\n['раз', 'два', 'три']"}</Cmd>
+      <Cmd>{"5 20 True\n[8, 9]\n120"}</Cmd>
     </Slide>
   );
 }
@@ -240,18 +263,25 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Границы и проверки контекста"}
-      sub={"\\b, (?=...), (?<=...), (?!...)"}
-      main={"Проверки контекста не входят в результат, но решают, подходит ли совпадение."}
+      title={"itemgetter, attrgetter, methodcaller"}
+      sub={"Лучшие параметры для key"}
+      main={"Несколько ключей в itemgetter — сортировка по нескольким полям в одну строку."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from operator import itemgetter, attrgetter, methodcaller
 
-print(re.findall(r"\\bкот\\b", "кот коты котёл кот."))
-print(re.findall(r"\\d+(?=%)", "скидка 20% и 5 штук, 30%"))
-print(re.findall(r"(?<=\\$)\\d+", "цена $100 и 200"))
-print(re.findall(r"\\b(?!не)\\w+", "не пойду, пойду"))`}</PyCode>
+users = [{"name": "Аня", "age": 31}, {"name": "Боря", "age": 25}]
+print(sorted(users, key=itemgetter("age"))[0]["name"])
+rows = [("б", 2), ("а", 2), ("в", 1)]
+print(sorted(rows, key=itemgetter(1, 0)))
+
+class P:
+    def __init__(self, year):
+        self.year = year
+
+print([p.year for p in sorted([P(2000), P(1990)], key=attrgetter("year"))])
+print(list(map(methodcaller("upper"), ["а", "б"])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['кот', 'кот']\n['20', '30']\n['100']\n['пойду', 'пойду']"}</Cmd>
+      <Cmd>{"Боря\n[('в', 1), ('а', 2), ('б', 2)]\n[1990, 2000]\n['А', 'Б']"}</Cmd>
     </Slide>
   );
 }
@@ -260,20 +290,19 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"Практика"}
-      sub={"Журнал, почта, телефон"}
-      main={"Идеальных шаблонов для почты и телефонов не бывает: проверка лишь отсеивает явный мусор."}
+      title={"cmp_to_key"}
+      sub={"Старая схема сравнения двух элементов"}
+      main={"Нужно сортировать «чужим» способом — переходник превращает сравнение в ключ."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import cmp_to_key
 
-line = "2024-03-05 09:07:03 ERROR сбой диска"
-m = re.match(r"(?P<date>\\S+) (?P<time>\\S+) (?P<level>[A-Z]+) (?P<msg>.*)", line)
-print(m.groupdict())
-text = "почта: ivan@mail.ru, olga@ya.ru; тел. +7-900-123-45-67"
-print(re.findall(r"[\\w.]+@[\\w.]+\\w", text))
-print(re.findall(r"\\+7(?:-\\d{2,3}){4}", text))`}</PyCode>
+def compare(a, b):
+    return len(a) - len(b) or (a > b) - (a < b)
+
+print(sorted(["bb", "a", "cc", "b"], key=cmp_to_key(compare)))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"{'date': '2024-03-05', 'time': '09:07:03', 'level': 'ERROR', 'msg': 'сбой диска'}\n['ivan@mail.ru', 'olga@ya.ru']\n['+7-900-123-45-67']"}</Cmd>
+      <Cmd>{"['a', 'b', 'bb', 'cc']"}</Cmd>
+      <div className="s-note">{"Функция сравнения возвращает отрицательное число, ноль или положительное."}</div>
     </Slide>
   );
 }
@@ -282,18 +311,19 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Пределы регулярок"}
-      sub={"Вложенное — не для них; простое — простыми методами"}
-      main={"Не парсите ими HTML и JSON; избегайте вложенных квантификаторов — катастрофический откат."}
+      title={"Конвейер без лямбд"}
+      sub={"Отобрать, упорядочить, свернуть"}
+      main={"Пользуйтесь инструментом, который делает текст короче без потери ясности."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from operator import itemgetter
 
-print(re.search(r"<.+>", "<a><b>").group())
-print(re.search(r"<[^>]+>", "<a><b>").group())
-print("кот".startswith("к"), "кот" in "котёнок", "а-б".replace("-", "+"))`}</PyCode>
+sales = [{"dept": "ИТ", "sum": 120}, {"dept": "HR", "sum": 70},
+         {"dept": "ИТ", "sum": 30}, {"dept": "HR", "sum": 200}]
+big = filter(lambda s: s["sum"] >= 50, sales)
+ordered = sorted(big, key=itemgetter("dept", "sum"))
+print([(s["dept"], s["sum"]) for s in ordered])`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"<a><b>\n<a>\nTrue True а+б"}</Cmd>
-      <div className="s-note">{"Простое: startswith, in, replace. Регулярка — когда нужны варианты, повторы, группы."}</div>
+      <Cmd>{"[('HR', 70), ('HR', 200), ('ИТ', 120)]"}</Cmd>
     </Slide>
   );
 }
@@ -302,19 +332,18 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Русский текст"}
-      sub={"\\w узнаёт кириллицу; ё — отдельно"}
-      main={"[а-я] не включает «ё»; \\d узнаёт цифры других алфавитов — для обычных пишите [0-9]."}
+      title={"Сочетания инструментов"}
+      sub={"Маленькие кирпичики складываются"}
+      main={"Сначала смотрите, нет ли нужного в стандартной библиотеке, потом пишите своё."}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import partial, reduce
+import operator
 
-print(re.findall(r"\\w+", "Привет, мир! hello"))
-print(re.findall(r"[а-я]+", "ёж и ель"))
-print(re.findall(r"[а-яё]+", "ёж и ель"))
-print(re.findall(r"\\w+", "Привет hello", re.ASCII))
-print(re.findall(r"[0-9]+", "123 ٣٤٥"), re.findall(r"\\d+", "123 ٣٤٥"))`}</PyCode>
+print(list(map(partial(int, base=16), ["ff", "10", "a"])))
+print(reduce(operator.or_, [1, 2, 4]))
+print(list(map(operator.methodcaller("strip"), [" а ", "б "])))`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"['Привет', 'мир', 'hello']\n['ж', 'и', 'ель']\n['ёж', 'и', 'ель']\n['hello']\n['123'] ['123', '٣٤٥']"}</Cmd>
+      <Cmd>{"[255, 16, 10]\n7\n['а', 'б']"}</Cmd>
     </Slide>
   );
 }
@@ -324,18 +353,27 @@ function S12() {
     <Slide
       n={12}
       title={"Типичные ошибки"}
-      sub={"None вместо совпадения, неэкранированная точка"}
-      main={"Проверяйте результат поиска перед обращением к группе; спецсимволы экранируйте через re.escape."}
+      sub={"reduce без начального значения, кеш для списков"}
+      main={"Спросите себя: что станет с функцией при повторном вызове?"}
     >
-      <PyCode>{`import re
+      <PyCode>{`from functools import lru_cache, reduce
 
-m = re.search(r"\\d+", "нет цифр")
-print(m)
-print(re.search(r"1.5", "1x5") is not None, re.search(r"1\\.5", "1x5") is not None)
-print(re.escape("1.5+2"))
-print(re.match(r"b", "abc"), re.search(r"b", "abc").group())`}</PyCode>
+try:
+    reduce(lambda a, b: a + b, [])
+except TypeError:
+    print("reduce без начального значения")
+
+@lru_cache
+def total(xs):
+    return sum(xs)
+
+try:
+    total([1, 2])
+except TypeError as e:
+    print(e)`}</PyCode>
       <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"None\nTrue False\n1\\.5\\+2\nNone b"}</Cmd>
+      <Cmd>{"reduce без начального значения\nunhashable type: 'list'"}</Cmd>
+      <div className="s-note">{"Ещё: кеш функции с побочными эффектами; кеш без maxsize на бесконечных данных; itemgetter с несколькими ключами возвращает кортеж."}</div>
     </Slide>
   );
 }
@@ -345,11 +383,11 @@ function S13() {
     <Slide
       n={13}
       title={"Итог"}
-      sub={"Глава 27 · Стандартная библиотека"}
-      main={"Простое — методами строк, гибкое — регулярками, вложенное — настоящими парсерами."}
+      sub={"Глава 27 · Функциональное программирование"}
+      main={"Готовые инструменты экономят часы: reduce, partial, lru_cache, itemgetter."}
     >
       <div className="s-grid2">
-        {[["\\d \\w \\s [..] . ^ $", "Элементы", "Символы, наборы, якоря"], ["* + ? {n,m} *?", "Повторы", "Жадные и ленивые"], ["( ) (?P<n>) (?: )", "Группы", "Извлечение и альтернативы"], ["search · findall · sub · split", "Функции", "r-строки, compile, флаги, re.X"]].map(([big, t, d]) => (
+        {[["reduce · partial", "Функции", "Свёртка и фиксация аргументов"], ["lru_cache · cached_property", "Кеш", "Запомнить результат; хешируемые аргументы"], ["total_ordering · singledispatch", "Классы и типы", "Меньше методов; реализация по типу"], ["itemgetter · attrgetter", "operator", "Лучшие ключи для sorted и max"]].map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -358,7 +396,7 @@ function S13() {
           </div>
         ))}
       </div>
-      <div className="s-note">{"Дальше — модули для программ: sys, argparse, logging, subprocess."}</div>
+      <div className="s-note">{"Дальше — itertools: потоки значений."}</div>
     </Slide>
   );
 }
@@ -385,17 +423,17 @@ export const SLIDES_P27 = {
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_P27).
 export const SLIDE_TITLES_P27 = {
   "13:27": [
-    "Регулярные выражения",
-    "Основы шаблона",
-    "Квантификаторы",
-    "Группы",
-    "Именованные группы",
-    "sub и split",
-    "Сырые строки и флаги",
-    "Границы и контекст",
-    "Практика",
-    "Пределы регулярок",
-    "Русский текст",
+    "functools и operator",
+    "reduce",
+    "partial",
+    "lru_cache",
+    "total_ordering",
+    "singledispatch",
+    "operator",
+    "itemgetter и друзья",
+    "cmp_to_key",
+    "Конвейер без лямбд",
+    "Сочетания",
     "Типичные ошибки",
     "Итог",
   ],

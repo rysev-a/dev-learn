@@ -23,6 +23,7 @@ import {
 import { python } from "@codemirror/lang-python";
 import { rust } from "@codemirror/lang-rust";
 import { cpp } from "@codemirror/lang-cpp";
+import { javascript } from "@codemirror/lang-javascript";
 import { SQLite, sql } from "@codemirror/lang-sql";
 import { tags as t } from "@lezer/highlight";
 
@@ -35,11 +36,25 @@ import { tags as t } from "@lezer/highlight";
 const external = Annotation.define();
 
 const highlight = HighlightStyle.define([
-  { tag: [t.keyword, t.controlKeyword, t.operatorKeyword, t.definitionKeyword, t.moduleKeyword, t.self], color: "var(--s-accent)" },
+  {
+    tag: [
+      t.keyword,
+      t.controlKeyword,
+      t.operatorKeyword,
+      t.definitionKeyword,
+      t.moduleKeyword,
+      t.self,
+    ],
+    color: "var(--s-accent)",
+  },
   { tag: [t.string, t.special(t.string)], color: "var(--s-blue)" },
   { tag: [t.number, t.bool, t.null], color: "var(--s-violet)" },
   { tag: t.comment, color: "var(--s-muted)", fontStyle: "italic" },
-  { tag: [t.function(t.variableName), t.function(t.propertyName)], color: "var(--s-text)", fontWeight: "500" },
+  {
+    tag: [t.function(t.variableName), t.function(t.propertyName)],
+    color: "var(--s-text)",
+    fontWeight: "500",
+  },
   { tag: [t.definition(t.variableName), t.className], color: "var(--s-amber)" },
   { tag: t.operator, color: "var(--s-muted)" },
 ]);
@@ -74,9 +89,10 @@ const theme = EditorView.theme({
   },
   // селекторы той же специфичности, что у базовой темы CodeMirror, иначе
   // выделение остаётся светло-сиреневым
-  "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, & > .cm-scroller > .cm-selectionLayer .cm-selectionBackground": {
-    backgroundColor: "var(--s-accent-a45)",
-  },
+  "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, & > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
+    {
+      backgroundColor: "var(--s-accent-a45)",
+    },
   ".cm-content ::selection": { backgroundColor: "var(--s-accent-a45)" },
   ".cm-matchingBracket": {
     backgroundColor: "var(--s-accent-a35)",
@@ -114,7 +130,9 @@ export default function CodeEditor({
             ? rust()
             : lang === "c"
               ? cpp()
-              : python(),
+              : lang === "js"
+                ? javascript()
+                : python(),
         syntaxHighlighting(highlight),
         theme,
         keymap.of([

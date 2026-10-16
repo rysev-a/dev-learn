@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useAuth } from "../lib/auth.jsx";
 import { useProgress } from "../lib/progress.jsx";
 import CodeEditor from "./CodeEditor.jsx";
+import SqlDiff from "./SqlDiff.jsx";
+import SqlSchema from "./SqlSchema.jsx";
 import { FsItem } from "./FsTree.jsx";
+
+// Симуляторы книги «Виртуализация» (задачи режима lab среди код-задач) грузятся лениво
+const VirtLab = lazy(() => import("../virtlab/VirtLab.jsx"));
 
 /* Вкладка «Практика»: упражнения с проверкой кода в Docker-песочнице
    (бэкенд /api/exercises). Слева — список со статусами и прогресс, справа —
@@ -17,7 +22,9 @@ import { FsItem } from "./FsTree.jsx";
    в адресе (?task=id), логи последнего запуска — в памяти на время сессии. */
 
 const langOf = (t) =>
-  t.mode === "sql" || t.mode === "rust" || t.mode === "c" ? t.mode : "python";
+  t.mode === "sql" || t.mode === "rust" || t.mode === "c" || t.mode === "js"
+    ? t.mode
+    : "python";
 const SAVE_DELAY = 700;
 
 // логи последнего запуска каждой задачи переживают переключение вкладок
@@ -219,9 +226,11 @@ export default function CodePractice({
               ? "rust"
               : tasks.every((t) => t.mode === "c")
                 ? "c · gcc"
-                : tasks.some((t) => t.mode === "c")
-                  ? "python + c"
-                  : "python"}{" "}
+                : tasks.every((t) => t.mode === "js")
+                  ? "javascript · node"
+                  : tasks.some((t) => t.mode === "c")
+                    ? "python + c"
+                    : "python"}{" "}
           · docker
         </span>
       </div>
@@ -279,7 +288,34 @@ export default function CodePractice({
             </span>
           </div>
           <p className="pr-statement">{task.statement}</p>
+          {task.mode === "sql" && task.schema && (
+            <SqlSchema key={task.dataset} schema={task.schema} />
+          )}
 
+          {task.mode === "lab" ? (
+            <Suspense fallback={<p className="empty">Загрузка…</p>}>
+              <VirtLab
+                key={task.id}
+                task={task}
+                solved={solved}
+                onSolved={(solution) => {
+                  progress.setCodeStatus(bookId, chapter, task.id, "ok");
+                  api(`${base}/${task.id}/solved`, {
+                    method: "PUT",
+                    body: { solution },
+                  }).catch(() => {});
+                }}
+              />
+              {hasNext && solved && (
+                <div className="ex-row">
+                  <button className="quiz-btn" onClick={goNext}>
+                    {idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →"}
+                  </button>
+                </div>
+              )}
+            </Suspense>
+          ) : (
+            <>
           <CodeEditor
             className={solved && accepted ? "right" : ""}
             lang={langOf(task)}
@@ -344,6 +380,8 @@ export default function CodePractice({
             current={code[task.id]}
             onPick={(a) => edit(a.code)}
           />
+            </>
+          )}
         </div>
       </div>
     </section>
@@ -442,6 +480,8 @@ function Results({ res, running }) {
               {!r.ok &&
                 (r.error ? (
                   <pre className="cx-error">{r.error}</pre>
+                ) : r.kind === "rows" ? (
+                  <SqlDiff r={r} />
                 ) : (
                   <div className="pr-diff">
                     <div>

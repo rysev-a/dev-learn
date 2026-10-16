@@ -1,59 +1,26 @@
-// Слайды для «Изучаем Rust», глава 11 — «Алгоритмы на Rust».
-// Тот же дизайн-код, что и в главах 1–5: палитра, IBM Plex Mono / Inter,
-// рубрика + номер, «ГЛАВНОЕ» внизу. Один абзац урока = один слайд.
+// Слайды для «Изучаем Rust», глава 11 — «Строки: str в Python и String в Rust».
+// Один абзац урока = один слайд; в каждом — анимированная схема (slides/anim/Rs11.jsx).
 
-const RS_KW = new Set([
-  "fn", "let", "mut", "pub", "struct", "enum", "impl", "match", "if", "else",
-  "for", "while", "loop", "return", "use", "mod", "crate", "self", "Self",
-  "move", "ref", "const", "static", "type", "where", "async", "await",
-  "unsafe", "trait", "dyn", "in", "as", "break", "continue",
-]);
-const RS_TY = new Set([
-  "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64",
-  "u128", "usize", "f32", "f64", "bool", "char", "str", "String", "Vec",
-  "Option", "Result", "Box", "Rc", "Arc", "RefCell", "HashMap",
-]);
-
-// Крошечный токенизатор Rust: комментарии, строки, времена жизни, ключевые
-// слова, типы, макросы, числа, вызовы функций. Достаточно для слайдов.
-function rsSpan(src) {
-  const out = [];
-  const re =
-    /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|('(\w+)\b)|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*!)|([A-Za-z_][A-Za-z0-9_]*)|(\s+|.)/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const [tok, com, str, life, num, mac, word] = m;
-    if (com) out.push(<span key={out.length} className="rs-com">{tok}</span>);
-    else if (str) out.push(<span key={out.length} className="rs-str">{tok}</span>);
-    else if (life) out.push(<span key={out.length} className="rs-life">{tok}</span>);
-    else if (num) out.push(<span key={out.length} className="rs-num">{tok}</span>);
-    else if (mac) out.push(<span key={out.length} className="rs-mac">{tok}</span>);
-    else if (word) {
-      let cls = "";
-      if (RS_KW.has(word)) cls = "rs-kw";
-      else if (RS_TY.has(word)) cls = "rs-ty";
-      else if (/^[A-Z]/.test(word)) cls = "rs-ty";
-      else if (src[re.lastIndex] === "(") cls = "rs-fn";
-      out.push(
-        cls ? (
-          <span key={out.length} className={cls}>{word}</span>
-        ) : (
-          <span key={out.length}>{word}</span>
-        ),
-      );
-    } else out.push(<span key={out.length}>{tok}</span>);
-  }
-  return out;
-}
-
-function PyCode({ children }) {
-  return <pre className="rs-code">{rsSpan(children)}</pre>;
-}
+import {
+  V01,
+  V02,
+  V03,
+  V04,
+  V05,
+  V06,
+  V07,
+  V08,
+  V09,
+  V10,
+  V11,
+  V12,
+  V13,
+} from "../anim/Rs11.jsx";
 
 function Rubric({ n }) {
   return (
     <div className="s-rubric">
-      <span>ИЗУЧАЕМ RUST / ПРИМЕНЯЕМ: АЛГОРИТМЫ / ГЛАВА 11</span>
+      <span>ИЗУЧАЕМ RUST / RUST ПОСЛЕ PYTHON / ГЛАВА 11</span>
       <span>{String(n).padStart(2, "0")} / 13</span>
     </div>
   );
@@ -77,43 +44,17 @@ function Slide({ n, title, sub, main, children }) {
   );
 }
 
-function Node({ mono, title, sub, kind }) {
-  return (
-    <div className={`s-node ${kind || ""}`}>
-      <span className={mono ? "s-node-mono" : "s-node-title"}>{title}</span>
-      {sub && <span className="s-node-sub">{sub}</span>}
-    </div>
-  );
-}
-
-function Cmd({ children }) {
-  return (
-    <div className="s-cmd">
-      <pre>{children}</pre>
-    </div>
-  );
-}
-
 // --- сцены ---------------------------------------------------------------
 
 function S01() {
   return (
     <Slide
       n={1}
-      title={"Алгоритмы курса — на Rust"}
-      sub={"Глава 11 · Применяем: алгоритмы"}
-      main={"Те же идеи, но со срезами, обобщениями и стандартными коллекциями; числа без знака требуют внимания."}
+      title={"Таблица соответствий"}
+      sub={"Глава 11 · str ↔ String"}
+      main={"Каждой строковой операции Python — запись в Rust."}
     >
-      <div className="s-grid2">
-        {[["&[T] · &mut [T]", "Срезы", "Без копирования"], ["BinaryHeap · HashMap", "Коллекции", "Из коробки"], ["Vec<Vec<usize>>", "Графы", "Индексы вместо указателей"], ["checked · wrapping", "Числа", "Явный выбор операции"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V01 cues={[12.7, 26.1]} />
     </Slide>
   );
 }
@@ -122,27 +63,11 @@ function S02() {
   return (
     <Slide
       n={2}
-      title={"Считаем операции"}
-      sub={"Счётчик вместо секундомера"}
-      main={"Число сравнений не зависит от машины — его удобно проверять в тестах."}
+      title={"Два типа"}
+      sub={"&str и String"}
+      main={"&str читает, String владеет; принимаем &str, возвращаем String."}
     >
-      <PyCode>{`fn linear(v: &[i32], x: i32, ops: &mut u32) -> Option<usize> {
-    for (i, &y) in v.iter().enumerate() {
-        *ops += 1;
-        if y == x {
-            return Some(i);
-        }
-    }
-    None
-}
-
-fn main() {
-    let v: Vec<i32> = (0..1000).collect();
-    let mut ops = 0;
-    println!("{:?} {}", linear(&v, 999, &mut ops), ops);
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"Some(999) 1000"}</Cmd>
+      <V02 cues={[11.4, 23.1]} />
     </Slide>
   );
 }
@@ -151,34 +76,11 @@ function S03() {
   return (
     <Slide
       n={3}
-      title={"Бинарный поиск"}
-      sub={"Обобщённый, на срезе"}
-      main={"Середина lo + (hi − lo) / 2 не переполняется; сравнение — перечисление Ordering."}
+      title={"Длина и индексы"}
+      sub={"Байты и символы"}
+      main={"len в байтах, нет s[0], срезы по границам символов."}
     >
-      <PyCode>{`use std::cmp::Ordering;
-
-fn binary_search<T: Ord>(v: &[T], x: &T, steps: &mut u32) -> Option<usize> {
-    let (mut lo, mut hi) = (0, v.len());
-    while lo < hi {
-        *steps += 1;
-        let mid = lo + (hi - lo) / 2;
-        match v[mid].cmp(x) {
-            Ordering::Equal => return Some(mid),
-            Ordering::Less => lo = mid + 1,
-            Ordering::Greater => hi = mid,
-        }
-    }
-    None
-}
-
-fn main() {
-    let v: Vec<i32> = (0..1000).collect();
-    let mut s = 0;
-    println!("{:?} {}", binary_search(&v, &999, &mut s), s);
-    println!("{:?} {:?}", v.binary_search(&500), v.binary_search(&-1));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"Some(999) 9\nOk(500) Err(0)"}</Cmd>
+      <V03 cues={[13.7, 26.1]} />
     </Slide>
   );
 }
@@ -187,30 +89,11 @@ function S04() {
   return (
     <Slide
       n={4}
-      title={"Сортировка вставками"}
-      sub={"На изменяемом срезе"}
-      main={"swap переставляет соседей без копирования значений — работает и для строк."}
+      title={"Методы"}
+      sub={"trim, find, contains"}
+      main={"strip → trim; find → Option."}
     >
-      <PyCode>{`fn insertion_sort<T: PartialOrd>(v: &mut [T]) {
-    for i in 1..v.len() {
-        let mut j = i;
-        while j > 0 && v[j - 1] > v[j] {
-            v.swap(j - 1, j);
-            j -= 1;
-        }
-    }
-}
-
-fn main() {
-    let mut a = [5, 2, 9, 1, 5, 6];
-    insertion_sort(&mut a);
-    println!("{:?}", a);
-    let mut w = vec!["pear", "apple", "fig"];
-    insertion_sort(&mut w);
-    println!("{:?}", w);
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 2, 5, 5, 6, 9]\n[\"apple\", \"fig\", \"pear\"]"}</Cmd>
+      <V04 cues={[11.1, 28.7]} />
     </Slide>
   );
 }
@@ -219,37 +102,11 @@ function S05() {
   return (
     <Slide
       n={5}
-      title={"Сортировка слиянием"}
-      sub={"split_at и два указателя"}
-      main={"split_at делит срез без копий; слияние устойчиво — равные элементы не меняют порядок."}
+      title={"split и join"}
+      sub={"Разбор и склейка"}
+      main={"split → итератор + collect; split_once; join на срезе."}
     >
-      <PyCode>{`fn merge_sort(v: &[i32]) -> Vec<i32> {
-    if v.len() <= 1 {
-        return v.to_vec();
-    }
-    let (l, r) = v.split_at(v.len() / 2);
-    let (l, r) = (merge_sort(l), merge_sort(r));
-    let mut out = Vec::with_capacity(v.len());
-    let (mut i, mut j) = (0, 0);
-    while i < l.len() && j < r.len() {
-        if l[i] <= r[j] {
-            out.push(l[i]);
-            i += 1;
-        } else {
-            out.push(r[j]);
-            j += 1;
-        }
-    }
-    out.extend_from_slice(&l[i..]);
-    out.extend_from_slice(&r[j..]);
-    out
-}
-
-fn main() {
-    println!("{:?}", merge_sort(&[8, 3, 5, 1, 9, 2, 7]));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[1, 2, 3, 5, 7, 8, 9]"}</Cmd>
+      <V05 cues={[9.9, 28.0]} />
     </Slide>
   );
 }
@@ -258,31 +115,11 @@ function S06() {
   return (
     <Slide
       n={6}
-      title={"Куча и top-k"}
-      sub={"BinaryHeap и Reverse"}
-      main={"BinaryHeap — максимальная куча; Reverse превращает её в минимальную."}
+      title={"Форматирование"}
+      sub={"f-строки и format!"}
+      main={"Те же спецификаторы; проверка при сборке."}
     >
-      <PyCode>{`use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-
-fn top_k(v: &[i32], k: usize) -> Vec<i32> {
-    let mut heap = BinaryHeap::new();
-    for &x in v {
-        heap.push(Reverse(x));
-        if heap.len() > k {
-            heap.pop();
-        }
-    }
-    let mut out: Vec<i32> = heap.into_iter().map(|Reverse(x)| x).collect();
-    out.sort_by(|a, b| b.cmp(a));
-    out
-}
-
-fn main() {
-    println!("{:?}", top_k(&[5, 1, 9, 3, 7, 9, 2], 3));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[9, 9, 7]"}</Cmd>
+      <V06 cues={[14.4, 25.8]} />
     </Slide>
   );
 }
@@ -291,30 +128,11 @@ function S07() {
   return (
     <Slide
       n={7}
-      title={"Хеш-таблицы в алгоритмах"}
-      sub={"Группировка анаграмм"}
-      main={"Отсортированные буквы — ключ группы; entry().or_default() вставляет и меняет за один поиск."}
+      title={"Построение строк"}
+      sub={"push_str и with_capacity"}
+      main={"String растёт амортизированно; with_capacity; retain."}
     >
-      <PyCode>{`use std::collections::HashMap;
-
-fn group(words: &[&str]) -> Vec<Vec<String>> {
-    let mut m: HashMap<String, Vec<String>> = HashMap::new();
-    for w in words {
-        let mut k: Vec<char> = w.chars().collect();
-        k.sort();
-        m.entry(k.into_iter().collect()).or_default().push(w.to_string());
-    }
-    let mut groups: Vec<Vec<String>> = m.into_values().collect();
-    groups.iter_mut().for_each(|g| g.sort());
-    groups.sort();
-    groups
-}
-
-fn main() {
-    println!("{:?}", group(&["eat", "tea", "tan", "ate", "nat", "bat"]));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[[\"ate\", \"eat\", \"tea\"], [\"bat\"], [\"nat\", \"tan\"]]"}</Cmd>
+      <V07 cues={[11.4, 27.6]} />
     </Slide>
   );
 }
@@ -323,33 +141,11 @@ function S08() {
   return (
     <Slide
       n={8}
-      title={"Граф и обход в ширину"}
-      sub={"Список смежности"}
-      main={"Вершины — индексы; Option<u32> в массиве расстояний кодирует «недостижима»."}
+      title={"Сравнение и сортировка"}
+      sub={"По байтам UTF-8"}
+      main={"Заглавные раньше строчных; sort_by_key с to_lowercase."}
     >
-      <PyCode>{`use std::collections::VecDeque;
-
-fn bfs(adj: &Vec<Vec<usize>>, start: usize) -> Vec<Option<u32>> {
-    let mut dist = vec![None; adj.len()];
-    dist[start] = Some(0);
-    let mut q = VecDeque::from([start]);
-    while let Some(v) = q.pop_front() {
-        for &u in &adj[v] {
-            if dist[u].is_none() {
-                dist[u] = Some(dist[v].unwrap() + 1);
-                q.push_back(u);
-            }
-        }
-    }
-    dist
-}
-
-fn main() {
-    let adj = vec![vec![1, 2], vec![3], vec![3], vec![], vec![0]];
-    println!("{:?}", bfs(&adj, 0));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[Some(0), Some(1), Some(1), Some(2), None]"}</Cmd>
+      <V08 cues={[17.4, 22.1]} />
     </Slide>
   );
 }
@@ -358,39 +154,11 @@ function S09() {
   return (
     <Slide
       n={9}
-      title={"Алгоритм Дейкстры"}
-      sub={"Куча пар (расстояние, вершина)"}
-      main={"Устаревшие записи кучи пропускаем при извлечении; бесконечность — u64::MAX."}
+      title={"Символы"}
+      sub={"char"}
+      main={"ord, chr, проверки; to_uppercase возвращает итератор."}
     >
-      <PyCode>{`use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-
-fn dijkstra(adj: &Vec<Vec<(usize, u64)>>, s: usize) -> Vec<u64> {
-    let mut dist = vec![u64::MAX; adj.len()];
-    let mut heap = BinaryHeap::new();
-    dist[s] = 0;
-    heap.push(Reverse((0u64, s)));
-    while let Some(Reverse((d, v))) = heap.pop() {
-        if d > dist[v] {
-            continue;
-        }
-        for &(u, w) in &adj[v] {
-            let nd = d + w;
-            if nd < dist[u] {
-                dist[u] = nd;
-                heap.push(Reverse((nd, u)));
-            }
-        }
-    }
-    dist
-}
-
-fn main() {
-    let adj = vec![vec![(1, 7), (2, 2)], vec![(3, 1)], vec![(1, 3), (3, 8)], vec![]];
-    println!("{:?}", dijkstra(&adj, 0));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"[0, 5, 2, 6]"}</Cmd>
+      <V09 cues={[14.2, 32.0]} />
     </Slide>
   );
 }
@@ -399,32 +167,11 @@ function S10() {
   return (
     <Slide
       n={10}
-      title={"Динамическое программирование"}
-      sub={"LCS в двух строках таблицы"}
-      main={"Хватает двух строк таблицы — память с произведения длин падает до одной длины."}
+      title={"Юникод"}
+      sub={"Точки и графемы"}
+      main={"Кодовые точки, графемы, нормализация — внешние пакеты."}
     >
-      <PyCode>{`fn lcs(a: &str, b: &str) -> usize {
-    let (a, b): (Vec<char>, Vec<char>) = (a.chars().collect(), b.chars().collect());
-    let mut prev = vec![0; b.len() + 1];
-    for i in 1..=a.len() {
-        let mut cur = vec![0; b.len() + 1];
-        for j in 1..=b.len() {
-            cur[j] = if a[i - 1] == b[j - 1] {
-                prev[j - 1] + 1
-            } else {
-                prev[j].max(cur[j - 1])
-            };
-        }
-        prev = cur;
-    }
-    prev[b.len()]
-}
-
-fn main() {
-    println!("{} {}", lcs("abcde", "ace"), lcs("abc", "xyz"));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"3 0"}</Cmd>
+      <V10 cues={[15.9, 30.9]} />
     </Slide>
   );
 }
@@ -433,47 +180,11 @@ function S11() {
   return (
     <Slide
       n={11}
-      title={"Система непересекающихся множеств"}
-      sub={"Union-Find"}
-      main={"Сжатие путей и объединение по размеру — почти константное время."}
+      title={"Байты"}
+      sub={"encode и decode"}
+      main={"as_bytes, from_utf8, from_utf8_lossy; encoding_rs."}
     >
-      <PyCode>{`struct Dsu {
-    parent: Vec<usize>,
-    size: Vec<usize>,
-}
-
-impl Dsu {
-    fn new(n: usize) -> Dsu {
-        Dsu { parent: (0..n).collect(), size: vec![1; n] }
-    }
-    fn find(&mut self, x: usize) -> usize {
-        if self.parent[x] != x {
-            let r = self.find(self.parent[x]);
-            self.parent[x] = r;
-        }
-        self.parent[x]
-    }
-    fn union(&mut self, a: usize, b: usize) -> bool {
-        let (mut a, mut b) = (self.find(a), self.find(b));
-        if a == b {
-            return false;
-        }
-        if self.size[a] < self.size[b] {
-            std::mem::swap(&mut a, &mut b);
-        }
-        self.parent[b] = a;
-        self.size[a] += self.size[b];
-        true
-    }
-}
-
-fn main() {
-    let mut d = Dsu::new(5);
-    println!("{} {} {}", d.union(0, 1), d.union(1, 2), d.union(0, 2));
-    println!("{} {}", d.find(2) == d.find(0), d.find(3) == d.find(0));
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"true true false\ntrue false"}</Cmd>
+      <V11 cues={[12.8, 31.7]} />
     </Slide>
   );
 }
@@ -482,20 +193,11 @@ function S12() {
   return (
     <Slide
       n={12}
-      title={"Ловушки целых чисел"}
-      sub={"checked, saturating, wrapping, overflowing"}
-      main={"usize без знака: 3 − 5 — не −2. Выбирайте явную операцию."}
+      title={"Безопасность"}
+      sub={"Граница UTF-8"}
+      main={"Любая String — корректный UTF-8; OsString и Path."}
     >
-      <PyCode>{`fn main() {
-    let a: usize = 3;
-    println!("{:?} {}", a.checked_sub(5), a.saturating_sub(5));
-    println!("{} {:?}", 250u8.wrapping_add(10), 250u8.checked_add(10));
-    println!("{:?}", 200u8.overflowing_add(100));
-    let mid = (u32::MAX / 2 + 10).midpoint(u32::MAX / 2 + 20);
-    println!("{}", mid);
-}`}</PyCode>
-      <div className="s-label">НА ЭКРАНЕ</div>
-      <Cmd>{"None 0\n4 None\n(44, true)\n2147483662"}</Cmd>
+      <V12 cues={[15.1, 20.4]} />
     </Slide>
   );
 }
@@ -504,58 +206,34 @@ function S13() {
   return (
     <Slide
       n={13}
-      title={"Итоги главы"}
-      sub={"Что мы узнали"}
-      main={"Алгоритмы на Rust: срезы, обобщения, стандартные коллекции и аккуратная арифметика."}
+      title={"Итоги"}
+      sub={"Что дальше"}
+      main={"Дальше — списки, массивы, векторы."}
     >
-      <div className="s-grid2">
-        {[["O(n log n)", "Сортировки", "Вставками, слиянием"], ["Reverse(heap)", "Куча", "top-k, Дейкстра"], ["Vec<Vec<>>", "Графы и ДП", "Таблицы и списки"], ["DSU", "Связность", "Union-Find"]].map(([big, t, d]) => (
-          <div className="s-topic" key={t}>
-            <span className="s-topic-big">{big}</span>
-            <span className="s-divider" />
-            <span className="s-node-title">{t}</span>
-            <span className="s-node-sub">{d}</span>
-          </div>
-        ))}
-      </div>
+      <V13 cues={[12.1, 24.1]} />
     </Slide>
   );
 }
 
-// Реестр: «book:chapter» → список слайдов, по одному на абзац урока.
 export const SLIDES_R11 = {
-  "10:11": [
-    S01,
-    S02,
-    S03,
-    S04,
-    S05,
-    S06,
-    S07,
-    S08,
-    S09,
-    S10,
-    S11,
-    S12,
-    S13,
-  ],
+  "10:11": [S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13],
 };
 
 // Короткие названия для списка слайдов в фулскрине (порядок = SLIDES_R11).
 export const SLIDE_TITLES_R11 = {
   "10:11": [
-    "Алгоритмы на Rust",
-    "Счётчик операций",
-    "Бинарный поиск",
-    "Вставками",
-    "Слиянием",
-    "Куча",
-    "Хеш-таблицы",
-    "BFS",
-    "Дейкстра",
-    "ДП: LCS",
-    "Union-Find",
-    "Ловушки целых",
+    "Введение",
+    "Типы",
+    "Индексы",
+    "Методы",
+    "split, join",
+    "format!",
+    "Построение",
+    "Сортировка",
+    "char",
+    "Юникод",
+    "Байты",
+    "Безопасность",
     "Итоги",
   ],
 };

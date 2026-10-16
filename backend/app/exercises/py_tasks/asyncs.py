@@ -5,7 +5,7 @@
 """
 
 TASKS: dict[int, list[dict]] = {
-    31: [
+    43: [
         {
             "id": "parallel-map-threads",
             "mode": "stdout",
@@ -135,7 +135,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "futures = [pool.submit(f) for f in funcs]; затем try: ('ok', fut.result()) / except Exception as e: ('error', str(e)).",
         },
     ],
-    32: [
+    44: [
         {
             "id": "async-add-later",
             "mode": "stdout",
@@ -290,7 +290,7 @@ TASKS: dict[int, list[dict]] = {
             "hint": "for i in range(attempts): try: return await make_coro() / except Exception as e: last = e; await asyncio.sleep(delay); после цикла raise last.",
         },
     ],
-    33: [
+    45: [
         {
             "id": "tcp-roundtrip",
             "mode": "stdout",
