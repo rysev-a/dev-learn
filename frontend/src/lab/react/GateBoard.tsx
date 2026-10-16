@@ -38,14 +38,12 @@ import {
   type Wire,
 } from "../exercises/logic-gates/circuit.model.ts";
 import {
-  gateBodyPath,
-  gateBubbleCx,
-  gateExtraArc,
   gatePinY,
   gatePinsOf,
 } from "../exercises/logic-gates/gate-shapes.ts";
 import { clampWorld, isClick, viewBoxOf } from "../exercises/logic-gates/board-pan.ts";
-import { ZoomControls, boardMetrics, useBoardView } from "./useBoardView.tsx";
+import GateShape from "./GateShape.tsx";
+import { ZoomControls, boardMetrics, useBoardView, useToBoard } from "./useBoardView.tsx";
 import {
   AUTO_WIRE_RADIUS_DEFAULT,
   AUTO_WIRE_RADIUS_FACTOR,
@@ -246,16 +244,7 @@ export default function GateBoard({
   };
 
   /** точка экрана → координаты доски */
-  const toBoard = useCallback((cx: number, cy: number): Point => {
-    const svg = svgRef.current;
-    const m = svg?.getScreenCTM();
-    if (!svg || !m) return { x: 0, y: 0 };
-    const pt = svg.createSVGPoint();
-    pt.x = cx;
-    pt.y = cy;
-    const r = pt.matrixTransform(m.inverse());
-    return { x: r.x, y: r.y };
-  }, []);
+  const toBoard = useToBoard(svgRef);
 
   /* ---------- автоподстановка ---------- */
   const dropGate = useMemo(() => {
@@ -560,18 +549,7 @@ export default function GateBoard({
               onPointerDown={(e) => startPlace(e, g.type)}
             >
               <svg viewBox="-12 0 96 48" aria-hidden="true" overflow="visible">
-                {gateExtraArc(g.type) && (
-                  <path className="gate-extra" d={gateExtraArc(g.type) ?? undefined} />
-                )}
-                <path className="gate-body" d={gateBodyPath(g.type)} />
-                {gateBubbleCx(g.type) !== null && (
-                  <circle
-                    className="gate-bubble"
-                    cx={gateBubbleCx(g.type) ?? undefined}
-                    cy="24"
-                    r="5"
-                  />
-                )}
+                <GateShape type={g.type} label={false} />
               </svg>
               {g.locked && <span className="lab-pal-lock">🔒</span>}
             </button>
@@ -739,25 +717,7 @@ export default function GateBoard({
             transform={`translate(${g.x} ${g.y})`}
             onPointerDown={(e) => gateDown(e, g)}
           >
-            <path className="gate-body" d={gateBodyPath(g.type)} />
-            {gateExtraArc(g.type) && (
-              <path className="gate-extra" d={gateExtraArc(g.type) ?? undefined} />
-            )}
-            {gateBubbleCx(g.type) !== null && (
-              <circle
-                className="gate-bubble"
-                cx={gateBubbleCx(g.type) ?? undefined}
-                cy="24"
-                r="5"
-              />
-            )}
-            <text
-              className={`gate-label ${g.type === "NOT" ? "small" : ""}`}
-              x={g.type === "NOT" ? 13 : GATE_W / 2}
-              y="29"
-            >
-              {g.type}
-            </text>
+            <GateShape type={g.type} />
             <g
               className="gate-del"
               onPointerDown={(e) => e.stopPropagation()}
@@ -849,15 +809,7 @@ export default function GateBoard({
           aria-hidden="true"
         >
           <svg viewBox="0 0 84 48" width="56" height="32">
-            <path className="gate-body" d={gateBodyPath(placing)} />
-            {gateBubbleCx(placing) !== null && (
-              <circle
-                className="gate-bubble"
-                cx={gateBubbleCx(placing) ?? undefined}
-                cy="24"
-                r="5"
-              />
-            )}
+            <GateShape type={placing} label={false} />
           </svg>
         </div>
       )}

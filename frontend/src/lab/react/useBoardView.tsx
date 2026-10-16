@@ -28,6 +28,23 @@ export function boardMetrics(svg: SVGSVGElement, w: number, h: number): BoardMet
   return { rect, base, offX: (rect.width - w * base) / 2, offY: (rect.height - h * base) / 2 };
 }
 
+/** Перевод экранных координат (clientX, clientY) в координаты доски с учётом сдвига и масштаба */
+export function useToBoard(svgRef: RefObject<SVGSVGElement | null>) {
+  return useCallback(
+    (cx: number, cy: number): Point => {
+      const svg = svgRef.current;
+      const m = svg?.getScreenCTM();
+      if (!svg || !m) return { x: 0, y: 0 };
+      const pt = svg.createSVGPoint();
+      pt.x = cx;
+      pt.y = cy;
+      const r = pt.matrixTransform(m.inverse());
+      return { x: r.x, y: r.y };
+    },
+    [svgRef],
+  );
+}
+
 const HOME: Point = { x: 0, y: 0 };
 
 export function useBoardView(

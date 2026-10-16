@@ -12,7 +12,7 @@ import {
 } from "react";
 import { wirePath, type Point } from "../exercises/logic-gates/circuit.model.ts";
 import { clampWorld, isClick, viewBoxOf } from "../exercises/logic-gates/board-pan.ts";
-import { ZoomControls, boardMetrics, useBoardView } from "./useBoardView.tsx";
+import { ZoomControls, boardMetrics, useBoardView, useToBoard } from "./useBoardView.tsx";
 import {
   TOP,
   type BlockInstance,
@@ -279,16 +279,7 @@ export default function BlockBoard({
   st.current = { pending, sticky, hover, movingId, pan, zoom, pins, readonly };
 
   /* ---------- координаты ---------- */
-  const toBoard = useCallback((cx: number, cy: number): Point => {
-    const svg = svgRef.current;
-    const m = svg?.getScreenCTM();
-    if (!svg || !m) return { x: 0, y: 0 };
-    const pt = svg.createSVGPoint();
-    pt.x = cx;
-    pt.y = cy;
-    const r = pt.matrixTransform(m.inverse());
-    return { x: r.x, y: r.y };
-  }, []);
+  const toBoard = useToBoard(svgRef);
 
   const cancelWire = useCallback(() => {
     const had = st.current.pending !== null;

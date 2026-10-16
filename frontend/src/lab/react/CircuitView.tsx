@@ -1,5 +1,6 @@
+import GateShape from "./GateShape.tsx";
+import { useToBoard } from "./useBoardView.tsx";
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -27,9 +28,6 @@ import {
 } from "../exercises/logic-gates/circuit.model.ts";
 import type { BlockInterface, ValueScope } from "../exercises/logic-gates/blocks.ts";
 import {
-  gateBodyPath,
-  gateBubbleCx,
-  gateExtraArc,
   gatePinY,
   gatePinsOf,
 } from "../exercises/logic-gates/gate-shapes.ts";
@@ -146,16 +144,7 @@ export default function CircuitView({
   };
   const label = (id: string) => iface.labels?.[iface.inputs.indexOf(id)] ?? id;
 
-  const toBoard = useCallback((cx: number, cy: number): Point => {
-    const svg = svgRef.current;
-    const m = svg?.getScreenCTM();
-    if (!svg || !m) return { x: 0, y: 0 };
-    const pt = svg.createSVGPoint();
-    pt.x = cx;
-    pt.y = cy;
-    const r = pt.matrixTransform(m.inverse());
-    return { x: r.x, y: r.y };
-  }, []);
+  const toBoard = useToBoard(svgRef);
   const metrics = () => {
     const rect = svgRef.current!.getBoundingClientRect();
     const base = Math.min(rect.width / W, rect.height / st.current.H);
@@ -418,25 +407,7 @@ export default function CircuitView({
             transform={`translate(${g.x} ${g.y})`}
             onPointerDown={(e) => gateDown(e, g)}
           >
-            <path className="gate-body" d={gateBodyPath(g.type)} />
-            {gateExtraArc(g.type) && (
-              <path className="gate-extra" d={gateExtraArc(g.type) ?? undefined} />
-            )}
-            {gateBubbleCx(g.type) !== null && (
-              <circle
-                className="gate-bubble"
-                cx={gateBubbleCx(g.type) ?? undefined}
-                cy="24"
-                r="5"
-              />
-            )}
-            <text
-              className={`gate-label ${g.type === "NOT" ? "small" : ""}`}
-              x={g.type === "NOT" ? 13 : GATE_W / 2}
-              y="29"
-            >
-              {g.type}
-            </text>
+            <GateShape type={g.type} />
             {gatePinsOf(g.type).map((p) => (
               <circle
                 key={p}
