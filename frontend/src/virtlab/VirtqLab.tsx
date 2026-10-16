@@ -1,21 +1,21 @@
-import { SetStateAction, useState } from "react";
-import { GOALS, SIZE, device, free, initial, post, reap } from "./virtq.ts";
-import { useGoals } from "./goals.ts";
+import { useState } from "react";
+import { GOALS, SIZE, device, free, initial, post, reap, type QueueState } from "./virtq.ts";
+import { useGoals, type LabProps } from "./goals.ts";
 
 /* Симулятор виртуальной очереди virtio (глава 6): гость кладёт буферы, устройство их обрабатывает,
    гость забирает результат. Считаются оповещения — выходы в гипервизор. */
 
-export default function VirtqLab({ solved, onSolved }) {
+export default function VirtqLab({ solved, onSolved }: LabProps) {
   const goals = useGoals(
     GOALS.map((g) => g.id),
     solved,
     onSolved,
   );
-  const [s, setS] = useState(initial);
+  const [s, setS] = useState<QueueState>(initial);
   const [suppress, setSuppress] = useState(false);
   const [note, setNote] = useState("Очередь пуста: 8 свободных дескрипторов.");
 
-  function apply(next: SetStateAction<{ avail: number; used: number; busy: boolean; notifies: number; posted: number; processed: number; overflow: boolean; }>, text: SetStateAction<string>) {
+  function apply(next: QueueState, text: string) {
     setS(next);
     setNote(text);
     for (const g of GOALS) if (g.check(next, { suppress })) goals.mark(g.id);
@@ -43,7 +43,7 @@ export default function VirtqLab({ solved, onSolved }) {
     setNote("Очередь сброшена.");
   };
 
-  const cells = [];
+  const cells: string[] = [];
   for (let i = 0; i < SIZE; i++)
     cells.push(i < s.used ? "used" : i < s.used + s.avail ? "avail" : "free");
 

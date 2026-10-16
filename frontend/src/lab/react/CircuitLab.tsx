@@ -1,5 +1,5 @@
 import ResultAlert from "./ResultAlert.tsx";
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   COMPOSITE_GATES,
   evaluateCircuit,
@@ -109,7 +109,7 @@ export default function CircuitLab({
   /* ---------- проверка ---------- */
   const tableRows = useMemo(() => {
     if (stepsMode) return [];
-    return ex.target.map((targetRow: { [x: string]: any; }, row: number) => {
+    return ex.target.map((targetRow, row: number) => {
       const inputs = inputsForRow(ex.inputs, row);
       const actuals = ex.outputs.map((o: string) => outputValue(circuit, inputs, o));
       return {
@@ -119,11 +119,11 @@ export default function CircuitLab({
       };
     });
   }, [circuit, ex, stepsMode]);
-  const matched = tableRows.filter((r: { ok: any; }) => r.ok).length;
+  const matched = tableRows.filter((r) => r.ok).length;
   const totalSteps = ex.steps?.length ?? 0;
   const solved = stepsMode
     ? totalSteps > 0 && passed === totalSteps
-    : tableRows.length > 0 && tableRows.every((r: { ok: any; }) => r.ok);
+    : tableRows.length > 0 && tableRows.every((r) => r.ok);
   const currentRow = ex.inputs.reduce(
     (acc: number, id: string|number) => (acc << 1) | inputState[id],
     0,
@@ -472,8 +472,8 @@ export default function CircuitLab({
             <p className="ex-hint">
               {ex.hint}
               {palette
-                .filter((p: { locked: any; }) => p.locked)
-                .map((p: { type: Key|null|undefined; title: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }) => (
+                .filter((p) => p.locked)
+                .map((p) => (
                   <span key={p.type} className="lab-lock-hint">
                     <br />
                     🔒 {p.title}
@@ -487,7 +487,7 @@ export default function CircuitLab({
               role="toolbar"
               aria-label="Блоки: кликните, чтобы добавить на доску"
             >
-              {blockPalette.map((b: { id: Key|null|undefined; available: any; summary: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; hint: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; title: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }) => (
+              {blockPalette.map((b) => (
                 <button
                   key={b.id}
                   type="button"

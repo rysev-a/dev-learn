@@ -1,6 +1,5 @@
 /* Поле сети: устройства, кабели и бегущие по ним пакеты. Рисуется в SVG 640×360. */
 
-import { ReactElement,JSXElementConstructor,ReactNode,ReactPortal, Key } from "react";
 
 const ICONS = {
   host: (
@@ -56,7 +55,7 @@ export default function Board({
 }) {
   return (
     <svg className="nl-board" viewBox="-24 0 704 360" role="img" aria-label="Схема сети">
-      {state.links.map((l: { a: { split: (arg0: string) => [any,any]; }; b: { split: (arg0: string) => [any,any]; }; km: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, i: any) => {
+      {state.links.map((l, i: any) => {
         const [da, pa] = l.a.split(":");
         const [db, pb] = l.b.split(":");
         const a = pos(state, da);
@@ -66,8 +65,8 @@ export default function Board({
         const la = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
         const lb = { x: b.x + (a.x - b.x) * t, y: b.y + (a.y - b.y) * t };
         const down =
-          state.devices[da].ifaces.find((x: { name: any; }) => x.name === pa)?.up === false ||
-          state.devices[db].ifaces.find((x: { name: any; }) => x.name === pb)?.up === false;
+          state.devices[da].ifaces.find((x) => x.name === pa)?.up === false ||
+          state.devices[db].ifaces.find((x) => x.name === pb)?.up === false;
         return (
           <g key={`${l.a}-${l.b}`} className={`nl-link ${selectedLink === i ? "on" : ""} ${down ? "down" : ""}`}>
             <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
@@ -88,7 +87,7 @@ export default function Board({
       })}
 
       {Object.values(state.devices).map((d) => {
-        const ips = d.ifaces.filter((i: { ip: any; }) => i.ip).map((i: { ip: any; prefix: any; }) => `${i.ip}/${i.prefix}`);
+        const ips = d.ifaces.filter((i) => i.ip).map((i) => `${i.ip}/${i.prefix}`);
         const cls = ["nl-dev", d.kind, selected === d.id ? "on" : "", cableFrom === d.id ? "from" : "", d.locked ? "locked" : ""].join(" ");
         return (
           <g key={d.id} className={cls} onClick={() => onDevice(d.id)} transform={`translate(${d.x},${d.y})`}>
@@ -108,7 +107,7 @@ export default function Board({
         );
       })}
 
-      {dots.map((h: { from: string|number; to: string|number; p: number; kind: any; }, i: Key|null|undefined) => {
+      {dots.map((h, i: Key|null|undefined) => {
         const a = pos(state, h.from);
         const b = pos(state, h.to);
         const x = a.x + (b.x - a.x) * h.p;
@@ -120,7 +119,7 @@ export default function Board({
         );
       })}
 
-      {marks.map((m: { dev: string|number; kind: string; row: any; text: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, i: Key|null|undefined) => {
+      {marks.map((m, i: Key|null|undefined) => {
         const d = state.devices[m.dev];
         return (
           <g key={i} className={`nl-mark ${m.kind}`} transform={`translate(${d.x},${d.y - H / 2 - 8 - (m.row ?? 0) * 12})`}>

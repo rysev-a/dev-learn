@@ -1,4 +1,4 @@
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ResultAlert from "../../lab/react/ResultAlert.tsx";
 import { checkGoals, resolveTarget, runProbe } from "../check.ts";
 import { transfer } from "../transfer.ts";
@@ -62,7 +62,7 @@ export default function NetLab({
   const raf = useRef(0);
 
   const save = useCallback(
-    (n: { devices: { [x: string]: any; }; }) => {
+    (n) => {
       onCode?.(JSON.stringify(strip(n)));
     },
     [onCode],
@@ -97,16 +97,16 @@ export default function NetLab({
   const dots = useMemo(() => {
     if (!run) return [];
     return run.hops
-      .map((h: { t0: any; t1: any; }) => {
+      .map((h) => {
         const a = run.tl.indexOf(h.t0);
         const b = Math.max(a + 0.6, run.tl.indexOf(h.t1));
         return { ...h, a, b, p: (slot - a) / (b - a) };
       })
-      .filter((h: { p: number; }) => h.p >= 0 && h.p <= 1);
+      .filter((h) => h.p >= 0 && h.p <= 1);
   }, [run, slot]);
 
   const shown = useMemo(
-    () => (run ? run.events.filter((e: { t: any; }) => run.tl.indexOf(e.t) <= slot) : []),
+    () => (run ? run.events.filter((e) => run.tl.indexOf(e.t) <= slot) : []),
     [run, slot],
   );
   const marks = useMemo(() => {
@@ -199,7 +199,7 @@ export default function NetLab({
       onSolved?.(code);
     }
   };
-  const allOk = results?.every((x: { ok: any; }) => x.ok);
+  const allOk = results?.every((x) => x.ok);
   const playGoal = (g: { xfer?: any; dns?: any; text?: any; ping?: any; tcp?: any; udp?: any; }) => {
     if (g.xfer) {
       const s = clone(net);
@@ -303,7 +303,7 @@ export default function NetLab({
         <div className="nl-goals">
           <h4>Цели</h4>
           <ul>
-            {scenario.goals.map((g: { id?: any; text: any; xfer?: any; dns?: any; ping?: any; tcp?: any; udp?: any; }, i: number) => {
+            {scenario.goals.map((g, i: number) => {
               const r = results?.[i];
               return (
                 <li key={g.id} className={r ? (r.ok ? "ok" : "bad") : ""}>
@@ -348,7 +348,7 @@ export default function NetLab({
             <p className="nl-none">Запустите ping в терминале или нажмите ▶ у цели — здесь появится путь пакета: ARP, пересылка, NAT, потери.</p>
           ) : (
             <ol>
-              {lastLines.map((e: { kind: string|undefined; t: any; dev: string|number; text: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, i: Key|null|undefined) => (
+              {lastLines.map((e, i: Key|null|undefined) => (
                 <li key={i} className={e.kind}>
                   <time>{fmtMs(e.t)}</time>
                   <b>{nameOf(e.dev)}</b>

@@ -67,7 +67,7 @@ export default function BlockBoard({
       : Math.max(
           BLOCKS_BOARD_W,
           Math.round(
-            Math.max(0, ...instances.map((i: { x: number; }) => spreadX(i.x))) +
+            Math.max(0, ...instances.map((i) => spreadX(i.x))) +
               BLOCK_W +
               30 +
               SIDE_W +
@@ -79,7 +79,7 @@ export default function BlockBoard({
       ? height
       : Math.max(
           height,
-          Math.round(Math.max(0, ...instances.map((i: { y: number; }) => spreadY(i.y) + 290))),
+          Math.round(Math.max(0, ...instances.map((i) => spreadY(i.y) + 290))),
         );
   const svgRef = useRef(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -100,14 +100,14 @@ export default function BlockBoard({
     () => (node: string) =>
       node === TOP
         ? iface.ports
-        : library.def(instances.find((i: { id: string; }) => i.id === node)?.blockId ?? "")
+        : library.def(instances.find((i) => i.id === node)?.blockId ?? "")
             ?.ports,
     [iface, library, instances],
   );
 
   const boxes = useMemo(() => {
     const { inBox, outBox } = sideBoxes(iface.ports, expanded, W);
-    const blocks = instances.map((inst: { blockId: any; id: string; x: number; y: number; }) => {
+    const blocks = instances.map((inst) => {
       const def = library.def(inst.blockId);
       return layoutBox(
         inst.id,
@@ -153,7 +153,7 @@ export default function BlockBoard({
     return connectionError(from, to, portsOf) === undefined;
   };
 
-  const wiresView = busWires.flatMap((w: { from: BusEnd; to: BusEnd; id: any; }) => {
+  const wiresView = busWires.flatMap((w) => {
     const a = pinFor(w.from);
     const b = pinFor(w.to);
     if (!a || !b) return [];
@@ -254,7 +254,7 @@ export default function BlockBoard({
   }, [resetKey, cancelWire]);
 
   const nextWireId = () => {
-    const used = new Set(busWires.map((w: { id: any; }) => w.id));
+    const used = new Set(busWires.map((w) => w.id));
     let n = used.size + 1;
     while (used.has(`b${n}`)) n++;
     return `b${n}`;
@@ -536,7 +536,7 @@ export default function BlockBoard({
           fill="url(#bb-dots)"
         />
 
-        {wiresView.map((w: { id: Key|null|undefined; width: number; d: string|undefined; cls: any; mx: any; my: any; text: string|number|bigint|boolean|any[]|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }) => (
+        {wiresView.map((w) => (
           <g
             key={w.id}
             className={`bwire ${w.width > 1 ? "bus" : ""}`}
@@ -614,7 +614,7 @@ export default function BlockBoard({
               </text>
             )}
 
-            {box.rows.map((row: { key?: any; nodes?: any; y?: any; side?: any; expandable?: any; expanded?: any; depth?: any; name?: any; type?: any; end?: SetStateAction<null>; }) => {
+            {box.rows.map((row) => {
               const dim = pending !== null && !compatible.has(row.key);
               const chipW = Math.max(18, row.nodes.length * 8 + 8);
               return (

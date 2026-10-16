@@ -1,5 +1,5 @@
 import ResultAlert from "./ResultAlert.tsx";
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ABI_NAMES, OPS, PSEUDO, fieldsOf } from "../riscv/rv-isa.ts";
 import { STACK_TOP, assemble } from "../riscv/rv-asm.ts";
 import { MMIO_MAP, RvMachine } from "../riscv/rv-machine.ts";
@@ -604,7 +604,7 @@ function RowFragment({ l, selected, onClick }) {
         <td className="mono">{l.addrHex}</td>
         <td className="mono">{l.wordHex}</td>
         <td className="left mono lab-fields">
-          {l.parts.fields.map((f: { cls: any; name: string|undefined; bits: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, i: Key|null|undefined) => (
+          {l.parts.fields.map((f, i: Key|null|undefined) => (
             <span key={i} className={`fld ${f.cls}`} title={f.name}>
               {f.bits}
             </span>
@@ -617,7 +617,7 @@ function RowFragment({ l, selected, onClick }) {
           <td colSpan={4}>
             <div className="lab-legend">
               <strong>Формат {l.parts.fmt}.</strong>
-              {l.parts.fields.map((f: { cls: any; bits: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; name: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, i: Key|null|undefined) => (
+              {l.parts.fields.map((f, i: Key|null|undefined) => (
                 <span key={i} className="lab-legend-item">
                   <span className={`fld ${f.cls}`}>{f.bits}</span> {f.name}
                 </span>

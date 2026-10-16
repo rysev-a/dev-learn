@@ -1,5 +1,5 @@
 import ResultAlert from "./ResultAlert.tsx";
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { assemble } from "../asm/assembler.ts";
 import { OPS, PSEUDO, REG_COUNT, fields } from "../asm/isa.ts";
 import { Machine } from "../asm/machine.ts";
@@ -93,7 +93,7 @@ export default function AsmLab({
   }));
   const mem = view?.mem ?? task.disk;
   const regionOf = (i: number) =>
-    task.regions.findIndex((r: { from: number; length: any; }) => i >= r.from && i < r.from + r.length);
+    task.regions.findIndex((r) => i >= r.from && i < r.from + r.length);
   const grid = Array.from({ length: 16 }, (_, row) => ({
     addr: row * 16,
     cells: Array.from({ length: 16 }, (_, col) => {
@@ -343,7 +343,7 @@ export default function AsmLab({
               </div>
             </div>
             <div className="lab-regions">
-              {task.regions.map((r: { name: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; from: number; }, i: any) => (
+              {task.regions.map((r, i: any) => (
                 <span key={r.name} className={`lab-region rg${i}`}>
                   {r.name} · {hex(r.from)}
                 </span>

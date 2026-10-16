@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { NODES, PLACES, SCENARIOS, defaultPlan, evaluate } from "./numa.ts";
-import { useGoals } from "./goals.ts";
+import { NODES, PLACES, SCENARIOS, defaultPlan, evaluate, type Plan } from "./numa.ts";
+import { useGoals, type LabProps } from "./goals.ts";
 
 /* Симулятор размещения по узлам NUMA (глава 11): для каждой машины выбирают узлы процессоров и
    памяти. Показаны загрузка узлов и доля удалённых обращений. Цель сценария проверяется по
@@ -8,22 +8,22 @@ import { useGoals } from "./goals.ts";
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
-export default function NumaLab({ solved, onSolved }) {
+export default function NumaLab({ solved, onSolved }: LabProps) {
   const goals = useGoals(
     SCENARIOS.map((s) => s.id),
     solved,
     onSolved,
   );
   const [sid, setSid] = useState(SCENARIOS[0].id);
-  const sc = SCENARIOS.find((s) => s.id === sid);
-  const [plans, setPlans] = useState(() =>
+  const sc = SCENARIOS.find((s) => s.id === sid) ?? SCENARIOS[0];
+  const [plans, setPlans] = useState<Record<string, Plan>>(() =>
     Object.fromEntries(SCENARIOS.map((s) => [s.id, defaultPlan(s.vms)])),
   );
-  const [msg, setMsg] = useState(null);
+  const [msg, setMsg] = useState<{ bad: boolean; text: string } | null>(null);
   const plan = plans[sid];
   const ev = evaluate(sc.vms, plan);
 
-  const set = (name: string, key: string, value: string) => {
+  const set = (name: string, key: "cpu" | "mem", value: string) => {
     setPlans((p) => ({ ...p, [sid]: { ...p[sid], [name]: { ...p[sid][name], [key]: value } } }));
     setMsg(null);
   };
@@ -78,7 +78,7 @@ export default function NumaLab({ solved, onSolved }) {
                       {vm.vcpus} vCPU · {vm.mem} ГиБ
                     </span>
                   </td>
-                  {["cpu", "mem"].map((k) => (
+                  {(["cpu", "mem"] as const).map((k) => (
                     <td key={k}>
                       <select value={plan[vm.name][k]} onChange={(e) => set(vm.name, k, e.target.value)}>
                         {PLACES.map(([v, t]) => (
@@ -151,7 +151,7 @@ export default function NumaLab({ solved, onSolved }) {
   );
 }
 
-function Meter({ label, used, max }) {
+function Meter({ label, used, max }: { label: string; used: number; max: number }) {
   const over = used > max;
   return (
     <div className="vl-meter">

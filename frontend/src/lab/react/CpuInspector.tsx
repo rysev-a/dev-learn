@@ -63,7 +63,7 @@ export default function CpuInspector({ machine, version }) {
   const current = levels[levels.length - 1];
   const stats = useMemo(() => {
     const c = current.expansion.circuit;
-    const dffs = c.gates.filter((g: { type: string; }) => g.type === "DFF").length;
+    const dffs = c.gates.filter((g) => g.type === "DFF").length;
     return { gates: c.gates.length - dffs, dffs };
   }, [current]);
   const sol = current.solution;

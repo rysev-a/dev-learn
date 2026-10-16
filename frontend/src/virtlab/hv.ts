@@ -4,6 +4,30 @@
    над виртуальным состоянием гостя. Команда POPF в кольце 1 не вызывает ловушки (дыра x86), пока
    не включена двоичная трансляция. */
 
+export interface GuestState {
+  pc: number;
+  acc: number;
+  vif: number;
+  vcr3: number;
+  queue: number[];
+  delivered: number[];
+  log: string[];
+  mistakes: number;
+  silent: boolean;
+  halted: boolean;
+}
+
+export interface TrapOption {
+  label: string;
+  ok: boolean;
+  why?: string;
+}
+
+export type Inspection =
+  | { kind: "direct" }
+  | { kind: "silent"; why: string }
+  | { kind: "trap"; title: string; options: TrapOption[] };
+
 export const PROGRAMS = [
   {
     id: "base",
@@ -25,7 +49,7 @@ export const PROGRAMS = [
   },
 ];
 
-export const initial = () => ({
+export const initial = (): GuestState => ({
   pc: 0,
   acc: 0,
   vif: 1,
@@ -38,10 +62,10 @@ export const initial = () => ({
   halted: false,
 });
 
-const opt = (label: string, ok: boolean, why: string|undefined) => ({ label, ok, why });
+const opt = (label: string, ok: boolean, why?: string): TrapOption => ({ label, ok, why });
 
 /* Что происходит на команде: {kind: "direct"} | {kind: "silent", why} | {kind: "trap", options} */
-export function inspect(ins: string, s: { pc?: number; acc?: number; vif: any; vcr3?: number; queue?: never[]; delivered?: never[]; log?: never[]; mistakes?: number; silent?: boolean; halted?: boolean; }, translate: boolean) {
+export function inspect(ins: string, s: GuestState, translate: boolean): Inspection {
   const [op, arg] = ins.split(" ");
   const n = Number(arg);
   switch (op) {
@@ -127,7 +151,7 @@ export function inspect(ins: string, s: { pc?: number; acc?: number; vif: any; v
 }
 
 /* Применить верную имитацию (или прямое исполнение) команды к состоянию. */
-export function apply(ins: string, s: { pc: any; acc?: number; vif?: number; vcr3?: number; queue: any; delivered: any; log?: never[]; mistakes?: number; silent?: boolean; halted?: boolean; }) {
+export function apply(ins: string, s: GuestState): GuestState {
   const [op, arg] = ins.split(" ");
   const n = Number(arg);
   const t = { ...s, pc: s.pc + 1, queue: [...s.queue], delivered: [...s.delivered] };
@@ -165,7 +189,7 @@ export function apply(ins: string, s: { pc: any; acc?: number; vif?: number; vcr
 }
 
 /* Ожидаемое виртуальное состояние при верной имитации всей программы. */
-export function expected(code: string[]) {
+export function expected(code: string[]): GuestState {
   let s = initial();
   for (const ins of code) s = apply(ins, s);
   return s;

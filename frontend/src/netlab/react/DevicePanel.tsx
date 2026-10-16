@@ -1,4 +1,4 @@
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, useState } from "react";
+import { useState } from "react";
 import {
   addRoute,
   clearAddr,
@@ -34,12 +34,12 @@ function IfaceRow({ d, i, apply, readOnly, tools }) {
     if (readOnly) return;
     setErr("");
     if (!ip.trim()) {
-      if (i.ip !== null) apply((n: { devices: { [x: string]: { routes?: any; ifaces: any; }; }; }) => clearAddr(n.devices[d.id], i.name));
+      if (i.ip !== null) apply((n) => clearAddr(n.devices[d.id], i.name));
       return;
     }
-    const e = apply((n: { devices: { [x: string]: any; }; }) => {
+    const e = apply((n) => {
       const dev = n.devices[d.id];
-      const cur = dev.ifaces.find((x: { name: any; }) => x.name === i.name);
+      const cur = dev.ifaces.find((x) => x.name === i.name);
       const old = { ip: cur.ip, prefix: cur.prefix };
       clearAddr(dev, i.name);
       const er = setAddr(dev, i.name, `${ip.trim()}/${prefix}`);
@@ -79,7 +79,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }) {
           type="checkbox"
           checked={i.up}
           disabled={readOnly}
-          onChange={(e) => apply((n: { devices: { [x: string]: { ifaces: any[]; }; }; }) => setUp(n.devices[d.id], i.name, e.target.checked))}
+          onChange={(e) => apply((n) => setUp(n.devices[d.id], i.name, e.target.checked))}
         />
         вкл
       </label>
@@ -93,7 +93,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }) {
             aria-label={`Очередь ${i.name}`}
             onBlur={(e) => {
               const v = Number(e.target.value);
-              if (v >= 1 && v <= 10000) apply((n: { devices: { [x: string]: { ifaces: any[]; }; }; }) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).txqueuelen = v));
+              if (v >= 1 && v <= 10000) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).txqueuelen = v));
             }}
           />
           пакетов
@@ -111,7 +111,7 @@ function Routes({ d, apply, readOnly }) {
   const rows = routeTable(d);
   const add = () => {
     setErr("");
-    const e = apply((n: { devices: { [x: string]: { ifaces: any; routes?: any; }; }; }) => addRoute(n.devices[d.id], dst.trim() || "default", via.trim() || null, null));
+    const e = apply((n) => addRoute(n.devices[d.id], dst.trim() || "default", via.trim() || null, null));
     if (e) setErr(e);
     else (setDst(""), setVia(""));
   };
@@ -131,7 +131,7 @@ function Routes({ d, apply, readOnly }) {
                     type="button"
                     className="nl-x"
                     aria-label="Удалить маршрут"
-                    onClick={() => apply((n: { devices: { [x: string]: { routes: any[]; }; }; }) => delRoute(n.devices[d.id], r.prefix === 0 ? "default" : netStr(r.net, r.prefix)))}
+                    onClick={() => apply((n) => delRoute(n.devices[d.id], r.prefix === 0 ? "default" : netStr(r.net, r.prefix)))}
                   >
                     ×
                   </button>
@@ -162,14 +162,14 @@ function Nat({ d, apply, readOnly, exec }) {
   const [to, setTo] = useState("");
   const [inn, setInn] = useState(d.ifaces[d.ifaces.length - 1]?.name ?? "");
   const [msg, setMsg] = useState("");
-  const masq = d.nat.find((n: { action: string; }) => n.action === "MASQUERADE");
+  const masq = d.nat.find((n) => n.action === "MASQUERADE");
   return (
     <div className="nl-sec">
       <h4>NAT</h4>
       <div className="nl-add">
         <span className="nl-lbl">MASQUERADE на интерфейсе</span>
         <select value={out} onChange={(e) => setOut(e.target.value)} disabled={readOnly}>
-          {d.ifaces.map((i: { name: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }) => (
+          {d.ifaces.map((i) => (
             <option key={i.name}>{i.name}</option>
           ))}
         </select>
@@ -185,7 +185,7 @@ function Nat({ d, apply, readOnly, exec }) {
       <div className="nl-add">
         <span className="nl-lbl">Проброс порта: вход</span>
         <select value={inn} onChange={(e) => setInn(e.target.value)} disabled={readOnly}>
-          {d.ifaces.map((i: { name: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }) => (
+          {d.ifaces.map((i) => (
             <option key={i.name}>{i.name}</option>
           ))}
         </select>
@@ -204,13 +204,13 @@ function Nat({ d, apply, readOnly, exec }) {
         </button>
       </div>
       <ul className="nl-rules">
-        {d.nat.map((n: { chain: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; action: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; out: any; in: any; dport: any; to: any; }, k: Key|null|undefined) => (
+        {d.nat.map((n, k: Key|null|undefined) => (
           <li key={k}>
             <code>
               {n.chain}: {n.action} {n.out ? `-o ${n.out}` : ""} {n.in ? `-i ${n.in}` : ""} {n.dport ? `порт ${n.dport}` : ""} {n.to ? `→ ${n.to}` : ""}
             </code>
             {!readOnly && (
-              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s: { devices: { [x: string]: { nat: { splice: (arg0: Key|null|undefined,arg1: number) => any; }; }; }; }) => void s.devices[d.id].nat.splice(k, 1))}>
+              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].nat.splice(k, 1))}>
                 ×
               </button>
             )}
@@ -274,13 +274,13 @@ function Firewall({ d, apply, readOnly, exec }) {
         </button>
       </div>
       <ol className="nl-rules">
-        {d.fw.rules.map((r: { action: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; proto: any; src: any; dst: any; dport: any; state: string; }, k: Key|null|undefined) => (
+        {d.fw.rules.map((r, k: Key|null|undefined) => (
           <li key={k}>
             <code>
               {r.action} {r.proto ?? ""} {r.src ? `от ${r.src}` : ""} {r.dst ? `к ${r.dst}` : ""} {r.dport ? `порт ${r.dport}` : ""} {r.state ? (r.state === "established" ? "(установленные)" : "(новые)") : ""}
             </code>
             {!readOnly && (
-              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s: { devices: { [x: string]: { fw: { rules: { splice: (arg0: Key|null|undefined,arg1: number) => any; }; }; }; }; }) => void s.devices[d.id].fw.rules.splice(k, 1))}>
+              <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].fw.rules.splice(k, 1))}>
                 ×
               </button>
             )}
@@ -300,16 +300,16 @@ function Services({ d, apply, readOnly }) {
     <div className="nl-sec">
       <h4>Слушающие порты</h4>
       <ul className="nl-rules">
-        {d.services.map((s: { proto: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; port: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; bind: string; }, k: Key|null|undefined) => (
+        {d.services.map((s, k: Key|null|undefined) => (
           <li key={k}>
             <code>{s.proto}/{s.port}{s.bind && s.bind !== "0.0.0.0" ? ` (только ${s.bind})` : ""}</code>
             {!readOnly && s.bind && s.bind !== "0.0.0.0" && (
-              <button type="button" className="quiz-btn ghost" onClick={() => apply((n: { devices: { [x: string]: { services: { [x: string]: { bind: string; }; }; }; }; }) => void (n.devices[d.id].services[k].bind = "0.0.0.0"))}>
+              <button type="button" className="quiz-btn ghost" onClick={() => apply((n) => void (n.devices[d.id].services[k].bind = "0.0.0.0"))}>
                 слушать везде
               </button>
             )}
             {!readOnly && (
-              <button type="button" className="nl-x" aria-label="Закрыть порт" onClick={() => apply((n: { devices: { [x: string]: { services: { splice: (arg0: Key|null|undefined,arg1: number) => any; }; }; }; }) => void n.devices[d.id].services.splice(k, 1))}>
+              <button type="button" className="nl-x" aria-label="Закрыть порт" onClick={() => apply((n) => void n.devices[d.id].services.splice(k, 1))}>
                 ×
               </button>
             )}
@@ -329,7 +329,7 @@ function Services({ d, apply, readOnly }) {
             className="quiz-btn ghost"
             onClick={() => {
               if (!port) return;
-              apply((n: { devices: { [x: string]: { services: { proto: string; port: number; }[]; }; }; }) => void n.devices[d.id].services.push({ proto, port: Number(port) }));
+              apply((n) => void n.devices[d.id].services.push({ proto, port: Number(port) }));
               setPort("");
             }}
           >
@@ -399,7 +399,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                   type="checkbox"
                   checked={d.forward}
                   disabled={readOnly}
-                  onChange={(e) => apply((n: { devices: { [x: string]: { forward: boolean; }; }; }) => void (n.devices[d.id].forward = e.target.checked))}
+                  onChange={(e) => apply((n) => void (n.devices[d.id].forward = e.target.checked))}
                 />
                 пересылать пакеты между интерфейсами (ip_forward)
               </label>
@@ -414,7 +414,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
               <h4>Порты</h4>
               <table className="nl-table">
                 <tbody>
-                  {d.ifaces.map((i: { name: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; up: boolean|undefined; trunk: any; vlan: any; }) => (
+                  {d.ifaces.map((i) => (
                     <tr key={i.name}>
                       <td>{i.name}</td>
                       <td>
@@ -423,7 +423,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             type="checkbox"
                             checked={i.up}
                             disabled={readOnly}
-                            onChange={(e) => apply((n: { devices: { [x: string]: { ifaces: any[]; }; }; }) => setUp(n.devices[d.id], i.name, e.target.checked))}
+                            onChange={(e) => apply((n) => setUp(n.devices[d.id], i.name, e.target.checked))}
                           />
                           вкл
                         </label>
@@ -438,7 +438,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             aria-label={`VLAN ${i.name}`}
                             onChange={(e) => {
                               const v = Number(e.target.value.replace(/\D/g, "").slice(0, 4));
-                              if (v >= 1) apply((n: { devices: { [x: string]: { ifaces: any[]; }; }; }) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).vlan = v));
+                              if (v >= 1) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).vlan = v));
                             }}
                           />
                         </label>
@@ -449,7 +449,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             type="checkbox"
                             checked={!!i.trunk}
                             disabled={readOnly}
-                            onChange={(e) => apply((n: { devices: { [x: string]: { ifaces: any[]; }; }; }) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).trunk = e.target.checked))}
+                            onChange={(e) => apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).trunk = e.target.checked))}
                           />
                           trunk
                         </label>
@@ -498,7 +498,7 @@ function WebServer({ d, apply, readOnly, exec }) {
       {d.http.page && (
         <div className="nl-add">
           <span className="nl-lbl">протокол</span>
-          <select value={d.http.protocol ?? "h1"} disabled={readOnly} onChange={(e) => apply((s: { devices: { [x: string]: { http: { protocol: string; }; }; }; }) => void (s.devices[d.id].http.protocol = e.target.value))}>
+          <select value={d.http.protocol ?? "h1"} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].http.protocol = e.target.value))}>
             <option value="h1">HTTP/1.1</option>
             <option value="h2">HTTP/2</option>
             <option value="h3">HTTP/3</option>
@@ -508,7 +508,7 @@ function WebServer({ d, apply, readOnly, exec }) {
       )}
       <table className="nl-table">
         <tbody>
-          {d.http.routes.map((r: { path: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; status: any; location: any; headers: { [s: string]: unknown; }|ArrayLike<unknown>; }, k: Key|null|undefined) => (
+          {d.http.routes.map((r, k: Key|null|undefined) => (
             <tr key={k}>
               <td>{r.path}</td>
               <td>{r.status ?? 200}</td>
@@ -516,7 +516,7 @@ function WebServer({ d, apply, readOnly, exec }) {
                 {r.location ? `→ ${r.location}` : ""}
                 {r.headers ? Object.entries(r.headers).map(([n, v]) => ` ${n}: ${v}`).join(";") : ""}
               </td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить маршрут" onClick={() => apply((s: { devices: { [x: string]: { http: { routes: { splice: (arg0: Key|null|undefined,arg1: number) => any; }; }; }; }; }) => void s.devices[d.id].http.routes.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить маршрут" onClick={() => apply((s) => void s.devices[d.id].http.routes.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -597,7 +597,7 @@ function TlsServer({ d, apply, readOnly, exec, cas }) {
                 <input
                   type="checkbox"
                   checked={t.versions.includes(v)}
-                  onChange={(e) => apply((s: { devices: { [x: string]: { tls: { versions: string|string[]; }; }; }; }) => void (s.devices[d.id].tls.versions = ["1.0", "1.1", "1.2", "1.3"].filter((x) => (x === v ? e.target.checked : s.devices[d.id].tls.versions.includes(x)))))}
+                  onChange={(e) => apply((s) => void (s.devices[d.id].tls.versions = ["1.0", "1.1", "1.2", "1.3"].filter((x) => (x === v ? e.target.checked : s.devices[d.id].tls.versions.includes(x)))))}
                 />
                 {v}
               </label>
@@ -620,7 +620,7 @@ function TrustStore({ d, apply, readOnly, cas }) {
         {trust.map((c: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => (
           <li key={c}>
             <code>{c}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать" onClick={() => apply((s: { devices: { [x: string]: { trust: any; }; }; }) => void (s.devices[d.id].trust = trust.filter((x: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => x !== c)))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать" onClick={() => apply((s) => void (s.devices[d.id].trust = trust.filter((x: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => x !== c)))}>×</button>}
           </li>
         ))}
       </ul>
@@ -629,7 +629,7 @@ function TrustStore({ d, apply, readOnly, cas }) {
           <select value={pick} onChange={(e) => setPick(e.target.value)}>
             {cas.map((c: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => <option key={c}>{c}</option>)}
           </select>
-          <button type="button" className="quiz-btn ghost" onClick={() => apply((s: { devices: { [x: string]: { trust: any[]; }; }; }) => void (s.devices[d.id].trust = [...new Set([...trust, pick])]))}>
+          <button type="button" className="quiz-btn ghost" onClick={() => apply((s) => void (s.devices[d.id].trust = [...new Set([...trust, pick])]))}>
             + доверять
           </button>
         </div>
@@ -648,7 +648,7 @@ function ProxyBox({ d, apply, readOnly, exec }) {
         {d.proxy.deny.map((h: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined, k: any) => (
           <li key={h}>
             <code>запрещён: {h}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s: { devices: { [x: string]: { proxy: { deny: any[]; }; }; }; }) => void s.devices[d.id].proxy.deny.splice(k, 1))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s) => void s.devices[d.id].proxy.deny.splice(k, 1))}>×</button>}
           </li>
         ))}
         {d.proxy.deny.length === 0 && <li className="nl-none">запретов нет</li>}
@@ -675,20 +675,20 @@ function LbBox({ d, apply, readOnly, exec }) {
       <h4>Балансировщик {lb.vip}:{lb.port}</h4>
       <div className="nl-add">
         <span className="nl-lbl">алгоритм</span>
-        <select value={lb.algo} disabled={readOnly} onChange={(e) => apply((s: { devices: { [x: string]: { lb: { algo: string; }; }; }; }) => void (s.devices[d.id].lb.algo = e.target.value))}>
+        <select value={lb.algo} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb.algo = e.target.value))}>
           <option value="rr">по кругу</option>
           <option value="hash">привязка по адресу клиента</option>
         </select>
         <label className="nl-up">
-          <input type="checkbox" checked={!!lb.health} disabled={readOnly} onChange={(e) => apply((s: { devices: { [x: string]: { lb: { health: boolean; }; }; }; }) => void (s.devices[d.id].lb.health = e.target.checked))} />
+          <input type="checkbox" checked={!!lb.health} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb.health = e.target.checked))} />
           проверка здоровья
         </label>
       </div>
       <ul className="nl-rules">
-        {lb.backends.map((b: { ip: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; port: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, k: any) => (
+        {lb.backends.map((b, k: any) => (
           <li key={b.ip + b.port}>
             <code>{b.ip}:{b.port}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s: { devices: { [x: string]: { lb: { backends: any[]; }; }; }; }) => void s.devices[d.id].lb.backends.splice(k, 1))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s) => void s.devices[d.id].lb.backends.splice(k, 1))}>×</button>}
           </li>
         ))}
       </ul>
@@ -713,17 +713,17 @@ function RproxyBox({ d, apply, readOnly, exec }) {
       <h4>Обратный прокси / кэш</h4>
       <table className="nl-table">
         <tbody>
-          {d.rproxy.rules.map((r: { host: any; path: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; backend: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; cache: any; }, k: Key|null|undefined) => (
+          {d.rproxy.rules.map((r, k: Key|null|undefined) => (
             <tr key={k}>
               <td>{r.host ?? "*"}{r.path}</td>
               <td>→ {r.backend}</td>
               <td>
                 <label className="nl-up">
-                  <input type="checkbox" checked={!!r.cache} disabled={readOnly} onChange={(e) => apply((s: { devices: { [x: string]: { rproxy: { rules: { [x: string]: { cache: boolean; }; }; }; }; }; }) => void (s.devices[d.id].rproxy.rules[k].cache = e.target.checked))} />
+                  <input type="checkbox" checked={!!r.cache} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].rproxy.rules[k].cache = e.target.checked))} />
                   кэш
                 </label>
               </td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s: { devices: { [x: string]: { rproxy: { rules: { splice: (arg0: Key|null|undefined,arg1: number) => any; }; }; }; }; }) => void s.devices[d.id].rproxy.rules.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].rproxy.rules.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -750,7 +750,7 @@ function SshBox({ d, apply, readOnly, exec }) {
         <>
           <p className="nl-none">ключ хоста: {d.ssh.hostKey}</p>
           <label className="nl-up">
-            <input type="checkbox" checked={d.ssh.passwordAuth} disabled={readOnly} onChange={(e) => apply((s: { devices: { [x: string]: { ssh: { passwordAuth: boolean; }; }; }; }) => void (s.devices[d.id].ssh.passwordAuth = e.target.checked))} />
+            <input type="checkbox" checked={d.ssh.passwordAuth} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].ssh.passwordAuth = e.target.checked))} />
             разрешить вход по паролю
           </label>
           <ul className="nl-rules">
@@ -779,12 +779,12 @@ function VpnBox({ d, apply, readOnly, exec }) {
   const [addr, setAddr] = useState("");
   const [key, setKey] = useState("");
   const [msg, setMsg] = useState("");
-  const tuns = d.ifaces.filter((i: { tun: any; }) => i.tun);
+  const tuns = d.ifaces.filter((i) => i.tun);
   return (
     <div className="nl-sec">
       <h4>VPN-туннели</h4>
       <ul className="nl-rules">
-        {tuns.map((i: { name: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; ip: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; prefix: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; tun: { peer: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }; }) => (
+        {tuns.map((i) => (
           <li key={i.name}>
             <code>{i.name}: {i.ip}/{i.prefix} ↔ {i.tun.peer}</code>
             {!readOnly && <button type="button" className="nl-x" aria-label="Удалить туннель" onClick={() => setMsg(exec(`vpn del ${i.name}`))}>×</button>}
@@ -813,7 +813,7 @@ function Resolver({ d, apply, readOnly }) {
     if (readOnly) return;
     setErr("");
     if (v.trim() && parseIp(v.trim()) === null) return setErr("нужен IPv4-адрес DNS-сервера");
-    apply((n: { devices: { [x: string]: { resolver: any; }; }; }) => void (n.devices[d.id].resolver = v.trim() || undefined));
+    apply((n) => void (n.devices[d.id].resolver = v.trim() || undefined));
   };
   return (
     <div className="nl-sec">
@@ -844,20 +844,20 @@ function DnsServer({ d, apply, readOnly, exec }) {
       )}
       <table className="nl-table">
         <tbody>
-          {dns.records.map((r: { name: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; type: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; value: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, k: Key|null|undefined) => (
+          {dns.records.map((r, k: Key|null|undefined) => (
             <tr key={k}>
               <td>{r.name}</td>
               <td>{r.type}</td>
               <td>{r.value}</td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить запись" onClick={() => apply((s: { devices: { [x: string]: { dns: { records: { splice: (arg0: Key|null|undefined,arg1: number) => any; }; }; }; }; }) => void s.devices[d.id].dns.records.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить запись" onClick={() => apply((s) => void s.devices[d.id].dns.records.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
-          {dns.delegations.map((x: { zone: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; ns: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, k: string) => (
+          {dns.delegations.map((x, k: string) => (
             <tr key={"d" + k}>
               <td>{x.zone}</td>
               <td>NS →</td>
               <td>{x.ns}</td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Убрать делегирование" onClick={() => apply((s: { devices: { [x: string]: { dns: { delegations: { splice: (arg0: string,arg1: number) => any; }; }; }; }; }) => void s.devices[d.id].dns.delegations.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Убрать делегирование" onClick={() => apply((s) => void s.devices[d.id].dns.delegations.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -904,11 +904,11 @@ function TcpTune({ d, apply, readOnly }) {
           disabled={readOnly}
           aria-label="Окно приёма"
           onChange={(e) => setW(e.target.value.replace(/\D/g, "").slice(0, 6))}
-          onBlur={() => Number(w) >= 4 && apply((n: { devices: { [x: string]: { rwnd: number; }; }; }) => void (n.devices[d.id].rwnd = Number(w)))}
-          onKeyDown={(e) => e.key === "Enter" && Number(w) >= 4 && apply((n: { devices: { [x: string]: { rwnd: number; }; }; }) => void (n.devices[d.id].rwnd = Number(w)))}
+          onBlur={() => Number(w) >= 4 && apply((n) => void (n.devices[d.id].rwnd = Number(w)))}
+          onKeyDown={(e) => e.key === "Enter" && Number(w) >= 4 && apply((n) => void (n.devices[d.id].rwnd = Number(w)))}
         />
         <span className="nl-lbl">алгоритм</span>
-        <select value={d.cc ?? "cubic"} disabled={readOnly} onChange={(e) => apply((n: { devices: { [x: string]: { cc: string; }; }; }) => void (n.devices[d.id].cc = e.target.value))}>
+        <select value={d.cc ?? "cubic"} disabled={readOnly} onChange={(e) => apply((n) => void (n.devices[d.id].cc = e.target.value))}>
           <option>reno</option>
           <option>cubic</option>
           <option>bbr</option>
@@ -924,7 +924,7 @@ function GatewayField({ d, apply, readOnly }) {
   const commit = () => {
     if (readOnly) return;
     setErr("");
-    const e = apply((n: { devices: { [x: string]: { routes: any; ifaces?: any; }; }; }) => setGateway(n.devices[d.id], gw.trim()));
+    const e = apply((n) => setGateway(n.devices[d.id], gw.trim()));
     if (e) setErr(e);
   };
   return (

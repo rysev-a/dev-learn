@@ -1,19 +1,19 @@
 import { useState } from "react";
-import { GOALS, LEVELS, TLB_ENTRIES, WORKLOADS, simulate } from "./ept.ts";
-import { useGoals } from "./goals.ts";
+import { GOALS, LEVELS, TLB_ENTRIES, WORKLOADS, simulate, type PageSize, type SimConfig, type SimRun } from "./ept.ts";
+import { useGoals, type LabProps } from "./goals.ts";
 
 /* Симулятор трансляции адресов (глава 4): режим (теневые таблицы или EPT), размеры страниц гостя и
    хозяина, нагрузка. Показывает цену обхода (двумерная сетка обращений), промахи TLB и общую
    стоимость в обращениях к памяти. Решено, когда достигнуты все цели. */
 
 const fmt = (n: number) => Math.round(n).toLocaleString("ru-RU");
-const SIZES = [
+const SIZES: [PageSize, string][] = [
   ["4K", "4 КиБ"],
   ["2M", "2 МиБ"],
   ["1G", "1 ГиБ"],
 ];
 
-function Grid({ mode, guest, host }) {
+function Grid({ mode, guest, host }: SimConfig) {
   if (mode === "shadow") {
     const n = Math.min(LEVELS[guest], LEVELS[host]);
     return (
@@ -35,17 +35,17 @@ function Grid({ mode, guest, host }) {
   );
 }
 
-export default function EptLab({ solved, onSolved }) {
+export default function EptLab({ solved, onSolved }: LabProps) {
   const goals = useGoals(
     GOALS.map((g) => g.id),
     solved,
     onSolved,
   );
   const [mode, setMode] = useState("ept");
-  const [guest, setGuest] = useState("4K");
-  const [host, setHost] = useState("4K");
+  const [guest, setGuest] = useState<PageSize>("4K");
+  const [host, setHost] = useState<PageSize>("4K");
   const [workload, setWorkload] = useState("one");
-  const [res, setRes] = useState(null);
+  const [res, setRes] = useState<(SimRun & { cfg: SimConfig }) | null>(null);
 
   function run() {
     const cfg = { mode, guest, host, workload };
@@ -54,7 +54,7 @@ export default function EptLab({ solved, onSolved }) {
     for (const g of GOALS)
       if (g.workload === workload && g.check(r, cfg)) goals.mark(g.id, cfg);
   }
-  const wl = WORKLOADS.find((w) => w.id === workload);
+  const wl = WORKLOADS.find((w) => w.id === workload) ?? WORKLOADS[0];
 
   return (
     <div className="vl">
@@ -80,7 +80,7 @@ export default function EptLab({ solved, onSolved }) {
           <div className="vl-row">
             <label className="vl-field">
               <span>страница гостя</span>
-              <select value={guest} onChange={(e) => setGuest(e.target.value)}>
+              <select value={guest} onChange={(e) => setGuest(e.target.value as PageSize)}>
                 {SIZES.map(([v, t]) => (
                   <option key={v} value={v}>
                     {t}
@@ -90,7 +90,7 @@ export default function EptLab({ solved, onSolved }) {
             </label>
             <label className="vl-field">
               <span>страница хозяина</span>
-              <select value={host} onChange={(e) => setHost(e.target.value)}>
+              <select value={host} onChange={(e) => setHost(e.target.value as PageSize)}>
                 {SIZES.map(([v, t]) => (
                   <option key={v} value={v}>
                     {t}
@@ -125,7 +125,7 @@ export default function EptLab({ solved, onSolved }) {
                 <span className="vl-gm">{goals.isDone(g.id) ? "✓" : "○"}</span>
                 <span>
                   {g.text}
-                  <em> — нагрузка «{WORKLOADS.find((w) => w.id === g.workload).title}»</em>
+                  <em> — нагрузка «{WORKLOADS.find((w) => w.id === g.workload)?.title}»</em>
                 </span>
               </li>
             ))}

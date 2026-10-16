@@ -224,7 +224,7 @@ export default function GateBoard({
   const autoWires = useMemo(() => {
     const moving = movingId
       ? movedFar
-        ? gates.find((g: { id: any; }) => g.id === movingId)
+        ? gates.find((g) => g.id === movingId)
         : null
       : dropGate;
     const list = moving ? autoFor(moving, memo.current) : [];
@@ -281,7 +281,7 @@ export default function GateBoard({
       return;
     }
     const { wires: ws, circuit: c, stepsMode: sm } = st.current;
-    const rest = ws.filter((w: { to: PinRef; }) => !samePin(w.to, to));
+    const rest = ws.filter((w) => !samePin(w.to, to));
     if (!sm && createsCycle({ ...c, wires: rest }, from, to)) {
       onMessage("Так схема замкнётся в цикл — сигнал будет бежать по кругу");
       setWires(rest);
@@ -497,7 +497,7 @@ export default function GateBoard({
     hover && samePin(hover, { node, pin }) && setHover(null);
 
   const startPlace = (e: PointerEvent<HTMLButtonElement>, type: SetStateAction<null>) => {
-    const item = palette.find((p: { type: SetStateAction<null>; }) => p.type === type);
+    const item = palette.find((p) => p.type === type);
     if (item?.locked) {
       onLockedPick(type);
       return;
@@ -511,7 +511,7 @@ export default function GateBoard({
   const pos = (ref: PinRef) => pinPos(ref, gates, outputYMap, inputYMap);
   const pinValue = (node: any, pin: string) => {
     if (pin === "out") return valueFn(node);
-    const w = wires.find((x: { to: PinRef; }) => samePin(x.to, { node, pin }));
+    const w = wires.find((x) => samePin(x.to, { node, pin }));
     return w ? valueFn(w.from.node) : undefined;
   };
   const labelOf = (id: any) => labels[inputs.indexOf(id)] ?? id;
@@ -537,7 +537,7 @@ export default function GateBoard({
           role="toolbar"
           aria-label="Элементы: перетащите на доску или кликните"
         >
-          {palette.map((g: { type: SetStateAction<null>|Key|undefined; locked: any; title: string|undefined; label: string|undefined; }) => (
+          {palette.map((g) => (
             <button
               key={g.type}
               type="button"
@@ -626,7 +626,7 @@ export default function GateBoard({
           fill="url(#lab-dots)"
         />
 
-        {wires.map((w: { from: PinRef; to: PinRef; id: Key|null|undefined; }) => {
+        {wires.map((w) => {
           const d = wirePath(pos(w.from), pos(w.to));
           return (
             <g
@@ -751,7 +751,7 @@ export default function GateBoard({
           );
         })}
 
-        {gates.map((g: { id: any; x: any; y: any; type?: any; }) => (
+        {gates.map((g) => (
           <g
             key={g.id}
             className={`gate ${guideFocus?.has(g.id) ? "guide-focus" : ""} ${movingId === g.id ? "dragging" : ""}`}

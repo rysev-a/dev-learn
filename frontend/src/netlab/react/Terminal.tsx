@@ -1,4 +1,4 @@
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /* Мини-терминал устройства: история строк живёт выше (по устройству), здесь — ввод и вывод. */
 export default function Terminal({ device, lines, onRun, disabled }) {
@@ -40,7 +40,7 @@ export default function Terminal({ device, lines, onRun, disabled }) {
         {lines.length === 0 && (
           <div className="nl-term-hint">Введите «help», чтобы увидеть команды.</div>
         )}
-        {lines.map((l: { cmd: any; text: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }, i: Key|null|undefined) => (
+        {lines.map((l, i: Key|null|undefined) => (
           <div key={i} className={l.cmd ? "cmd" : "res"}>
             {l.cmd ? prompt + l.text : l.text}
           </div>

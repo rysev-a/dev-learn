@@ -5,14 +5,16 @@
    Запись TLB описывает страницу наименьшего из двух размеров: крупная страница гостя на мелкой
    страничке хозяина «дробится». */
 
-export const PAGES = { "4K": 4096, "2M": 2 * 1024 * 1024, "1G": 1024 * 1024 * 1024 };
-export const LEVELS = { "4K": 4, "2M": 3, "1G": 2 };
+export type PageSize = "4K" | "2M" | "1G";
+
+export const PAGES: Record<PageSize, number> = { "4K": 4096, "2M": 2 * 1024 * 1024, "1G": 1024 * 1024 * 1024 };
+export const LEVELS: Record<PageSize, number> = { "4K": 4, "2M": 3, "1G": 2 };
 export const TLB_ENTRIES = 64;
 export const EXIT_COST = 1000;
 
-const smaller = (a: string|number, b: string|number) => (PAGES[a] <= PAGES[b] ? a : b);
+const smaller = (a: PageSize, b: PageSize): PageSize => (PAGES[a] <= PAGES[b] ? a : b);
 
-export function walkCost(mode: string, guest: string|number, host: string|number) {
+export function walkCost(mode: string, guest: PageSize, host: PageSize): number {
   if (mode === "shadow") return LEVELS[smaller(guest, host)];
   return (LEVELS[guest] + 1) * (LEVELS[host] + 1) - 1;
 }
@@ -58,11 +60,18 @@ export const WORKLOADS = [
   },
 ];
 
-export function simulate({ mode, guest, host, workload }) {
-  const w = WORKLOADS.find((x) => x.id === workload).make();
+export interface SimInput {
+  mode: string;
+  guest: PageSize;
+  host: PageSize;
+  workload: string;
+}
+
+export function simulate({ mode, guest, host, workload }: SimInput) {
+  const w = (WORKLOADS.find((x) => x.id === workload) ?? WORKLOADS[0]).make();
   const eff = PAGES[smaller(guest, host)];
   const walk = walkCost(mode, guest, host);
-  const tlb = [];
+  const tlb: number[] = [];
   let misses = 0;
   let cost = 0;
   for (const a of w.addrs) {
@@ -92,29 +101,45 @@ export function simulate({ mode, guest, host, workload }) {
 }
 
 /* Цели: каждая привязана к нагрузке; check получает результат запуска и настройки. */
+export interface SimRun {
+  walk: number;
+  accesses: number;
+  misses: number;
+  hits: number;
+  exits: number;
+  cost: number;
+  effPage: PageSize;
+}
+
+export interface SimConfig {
+  mode: string;
+  guest: PageSize;
+  host: PageSize;
+}
+
 export const GOALS = [
   {
     id: "walk",
     workload: "one",
     text: "Один промах стоит не больше 15 обращений (вложенные таблицы)",
-    check: (r: { walk: number; }, c: { mode: string; }) => c.mode === "ept" && r.walk <= 15,
+    check: (r: SimRun, c: SimConfig) => c.mode === "ept" && r.walk <= 15,
   },
   {
     id: "scan",
     workload: "scan",
     text: "Сканирование 8 МиБ в 4 КиБ-страницах дешевле, чем в EPT: не больше 15 000",
-    check: (r: { cost: number; }, c: { mode: string; guest: string; host: string; }) => c.mode === "shadow" && c.guest === "4K" && c.host === "4K" && r.cost <= 15000,
+    check: (r: SimRun, c: SimConfig) => c.mode === "shadow" && c.guest === "4K" && c.host === "4K" && r.cost <= 15000,
   },
   {
     id: "random",
     workload: "random",
     text: "Случайные доступы по 64 МиБ укладываются в 10 000 обращений",
-    check: (r: { cost: number; }) => r.cost <= 10000,
+    check: (r: SimRun) => r.cost <= 10000,
   },
   {
     id: "fork",
     workload: "fork",
     text: "Частые изменения таблиц: не больше 35 000 обращений",
-    check: (r: { cost: number; }) => r.cost <= 35000,
+    check: (r: SimRun) => r.cost <= 35000,
   },
 ];

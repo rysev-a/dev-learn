@@ -1,5 +1,6 @@
-import { ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor, useEffect, useRef, useState } from "react";
-import { MEM_MIB, SCENARIOS, simulate } from "./migration.ts";
+import { useEffect, useRef, useState } from "react";
+import type { LabProps } from "./goals.ts";
+import { MEM_MIB, SCENARIOS, simulate, type MigrationInput, type Simulation } from "./migration.ts";
 
 /* Симулятор живой миграции (глава 10): сценарий задаёт скорость записи гостя и сети, ученик
    подбирает допустимый простой, замедление, сжатие и момент перехода на post-copy. Цель каждого
@@ -7,17 +8,17 @@ import { MEM_MIB, SCENARIOS, simulate } from "./migration.ts";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("ru-RU");
 
-export default function MigrationLab({ solved, onSolved }) {
+export default function MigrationLab({ solved, onSolved }: LabProps) {
   const [sid, setSid] = useState(SCENARIOS[0].id);
-  const sc = SCENARIOS.find((s) => s.id === sid);
+  const sc = SCENARIOS.find((s) => s.id === sid) ?? SCENARIOS[0];
   const [downtimeMs, setDowntimeMs] = useState(300);
   const [autoConverge, setAutoConverge] = useState(false);
   const [compress, setCompress] = useState(false);
   const [hybrid, setHybrid] = useState(false);
   const [after, setAfter] = useState(3);
-  const [run, setRun] = useState(null); // {result, shown, scenario}
-  const [done, setDone] = useState({}); // id сценария → настройки, при которых цель достигнута
-  const timer = useRef(null);
+  const [run, setRun] = useState<{ result: Simulation; shown: number; scenario: string } | null>(null);
+  const [done, setDone] = useState<Record<string, MigrationInput>>({}); // id сценария → настройки, при которых цель достигнута
+  const timer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const reported = useRef(false);
 
   useEffect(() => () => clearInterval(timer.current), []);
@@ -26,7 +27,7 @@ export default function MigrationLab({ solved, onSolved }) {
     clearInterval(timer.current);
   }, [sid]);
 
-  const params = () => ({
+  const params = (): MigrationInput => ({
     dirty: sc.dirty,
     bw: sc.bw,
     downtimeMs,
@@ -65,8 +66,8 @@ export default function MigrationLab({ solved, onSolved }) {
   }
 
   const result = run?.result;
-  const finished = run && run.shown > run.result.rounds.length;
-  const reachedNow = finished && sc.check(result);
+  const finished = run && result ? run.shown > result.rounds.length : false;
+  const reachedNow = !!result && finished && sc.check(result);
   const maxBar = MEM_MIB;
 
   return (
@@ -179,7 +180,7 @@ export default function MigrationLab({ solved, onSolved }) {
           )}
           {result && (
             <ul className="vl-rounds">
-              {result.rounds.slice(0, run.shown).map((r: { k: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; sent: number; secs: number; throttle: any; }) => (
+              {result.rounds.slice(0, run.shown).map((r) => (
                 <li key={r.k}>
                   <span className="vl-rk">круг {r.k}</span>
                   <div className="vl-bar">
@@ -196,7 +197,7 @@ export default function MigrationLab({ solved, onSolved }) {
               ))}
             </ul>
           )}
-          {finished && (
+          {finished && result && (
             <div className={`vl-final ${result.outcome}`}>
               {result.outcome === "precopy" && (
                 <p>

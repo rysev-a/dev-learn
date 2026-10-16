@@ -8,30 +8,31 @@ import {
   revert,
   snapshot,
   write,
+  type Layer,
 } from "./qcow2.ts";
-import { useGoals } from "./goals.ts";
+import { useGoals, type LabProps } from "./goals.ts";
 
 /* Симулятор слоёв qcow2 (глава 9): снимки, запись с копированием, чтение вниз по цепочке,
    слияние и откат. Решено, когда выполнены все три цели. */
 
 const LETTERS = "EFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-export default function Qcow2Lab({ solved, onSolved }) {
+export default function Qcow2Lab({ solved, onSolved }: LabProps) {
   const goals = useGoals(
     GOALS.map((g) => g.id),
     solved,
     onSolved,
   );
-  const [chain, setChain] = useState(initialChain);
+  const [chain, setChain] = useState<Layer[]>(initialChain);
   const [cluster, setCluster] = useState(0);
   const [letter, setLetter] = useState("E");
-  const [path, setPath] = useState(null); // {cluster, depth}
+  const [path, setPath] = useState<{ cluster: number; depth: number } | null>(null);
   const [msg, setMsg] = useState("Цепочка из одного слоя: база с кластерами 0–3.");
   const maxLen = useRef(1);
   const snaps = useRef(0);
-  const dropped = useRef(null); // кластеры отброшенного слоя: {c: данные}
+  const dropped = useRef<Record<number, string> | null>(null); // кластеры отброшенного слоя: {c: данные}
 
-  const setNewChain = (c: string|any[]|((prevState: { id: number; name: any; data: {}; }[]) => { id: number; name: any; data: {}; }[])) => {
+  const setNewChain = (c: Layer[]) => {
     setChain(c);
     maxLen.current = Math.max(maxLen.current, c.length);
   };

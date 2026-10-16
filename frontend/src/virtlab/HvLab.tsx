@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { PROGRAMS, apply, expected, initial, inspect } from "./hv.ts";
-import { useGoals } from "./goals.ts";
+import { PROGRAMS, apply, expected, initial, inspect, type GuestState, type TrapOption } from "./hv.ts";
+import { useGoals, type LabProps } from "./goals.ts";
 
 /* Симулятор мини-гипервизора (глава 2): гость исполняет программу, а ученик — монитор:
    на каждой ловушке выбирает верную имитацию над виртуальным состоянием. Команда POPF
    не вызывает ловушку, пока не включена двоичная трансляция. Решено, когда пройдены все программы. */
 
-const shuffle = (arr: { label: any; ok: any; why: any; }[]|undefined, seed: number) => {
+const shuffle = <T,>(arr: T[], seed: number): T[] => {
   const a = [...arr];
   let x = seed;
   for (let i = a.length - 1; i > 0; i--) {
@@ -17,18 +17,18 @@ const shuffle = (arr: { label: any; ok: any; why: any; }[]|undefined, seed: numb
   return a;
 };
 
-export default function HvLab({ solved, onSolved }) {
+export default function HvLab({ solved, onSolved }: LabProps) {
   const goals = useGoals(
     PROGRAMS.map((p) => p.id),
     solved,
     onSolved,
   );
   const [pid, setPid] = useState(PROGRAMS[0].id);
-  const prog = PROGRAMS.find((p) => p.id === pid);
+  const prog = PROGRAMS.find((p) => p.id === pid) ?? PROGRAMS[0];
   const [translate, setTranslate] = useState(false);
-  const [s, setS] = useState(initial());
-  const [msg, setMsg] = useState(null);
-  const [finished, setFinished] = useState(null); // итог последнего прогона
+  const [s, setS] = useState<GuestState>(initial());
+  const [msg, setMsg] = useState<{ bad: boolean; text: string } | null>(null);
+  const [finished, setFinished] = useState<{ ok: boolean; state: GuestState; want: GuestState } | null>(null); // итог последнего прогона
 
   const started = s.pc > 0 || s.log.length > 0;
   const ins = prog.code[s.pc];
@@ -49,7 +49,7 @@ export default function HvLab({ solved, onSolved }) {
     setPid(nextPid);
   }
 
-  function finish(state: { silent: any; acc: number; vif: number; vcr3: number; delivered: any[]; mistakes: any; }) {
+  function finish(state: GuestState) {
     const want = expected(prog.code);
     const ok =
       !state.silent &&
@@ -62,7 +62,7 @@ export default function HvLab({ solved, onSolved }) {
   }
 
   function step() {
-    if (!ins || s.halted || info?.kind === "trap") return;
+    if (!ins || s.halted || !info || info.kind === "trap") return;
     if (info.kind === "direct") {
       const t = apply(ins, s);
       t.log = [...s.log, `${ins} — напрямую на процессоре`];
@@ -76,7 +76,8 @@ export default function HvLab({ solved, onSolved }) {
     setMsg({ bad: true, text: info.why });
   }
 
-  function choose(o: { ok: any; why: any; label: any; }) {
+  function choose(o: TrapOption) {
+    if (!ins) return;
     if (!o.ok) {
       setS({ ...s, mistakes: s.mistakes + 1 });
       setMsg({ bad: true, text: `Нет: ${o.why}.` });

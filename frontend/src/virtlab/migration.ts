@@ -14,6 +14,36 @@ export const COMPRESS_FACTOR = 1.5; // нулевые страницы и дел
    autoConverge — притормаживать vCPU (старт 20%, +10% за круг, не больше 99%);
    compress — сжатие страниц;
    postcopyAfter — null (только pre-copy) или число кругов pre-copy до переключения на post-copy. */
+export interface Simulation {
+  outcome: MigrationOutcome;
+  rounds: MigrationRound[];
+  remaining: number;
+  downtime: number;
+  total: number;
+  faults: number;
+  limit: number;
+}
+
+export interface MigrationInput {
+  dirty: number;
+  bw: number;
+  downtimeMs: number;
+  autoConverge?: boolean;
+  compress?: boolean;
+  postcopyAfter?: number | null;
+  mem?: number;
+}
+
+export type MigrationOutcome = "precopy" | "postcopy" | "failed";
+
+export interface MigrationRound {
+  k: number;
+  sent: number;
+  secs: number;
+  throttle: number;
+  next: number;
+}
+
 export function simulate({
   dirty,
   bw,
@@ -22,10 +52,10 @@ export function simulate({
   compress = false,
   postcopyAfter = null,
   mem = MEM_MIB,
-}) {
+}: MigrationInput): Simulation {
   const eff = bw * (compress ? COMPRESS_FACTOR : 1);
   const limit = (eff * downtimeMs) / 1000; // сколько МиБ можно передать за допустимый простой
-  const rounds = [];
+  const rounds: MigrationRound[] = [];
   let remaining = mem;
   let elapsed = 0;
   let throttle = 0;
@@ -47,9 +77,9 @@ export function simulate({
   }
 
   const fit = remaining <= limit;
-  let outcome;
-  let downtime;
-  let total;
+  let outcome: MigrationOutcome;
+  let downtime: number;
+  let total: number;
   let faults = 0;
   if (fit) {
     outcome = "precopy";
@@ -80,14 +110,24 @@ export function simulate({
 }
 
 /* Сценарии и цели. Скорости гостя и сети заданы сценарием, остальное подбирает ученик. */
-export const SCENARIOS = [
+export interface MigrationScenario {
+  id: string;
+  title: string;
+  dirty: number;
+  bw: number;
+  goal: string;
+  check: (r: Simulation) => boolean;
+  hint: string;
+}
+
+export const SCENARIOS: MigrationScenario[] = [
   {
     id: "calm",
     title: "Спокойный гость",
     dirty: 300,
     bw: 1250,
     goal: "Pre-copy сошёлся, простой не больше 100 мс",
-    check: (r: { outcome: string; downtime: number; }) => r.outcome === "precopy" && r.downtime <= 100,
+    check: (r) => r.outcome === "precopy" && r.downtime <= 100,
     hint: "Допустимый простой — это порог остановки: чем он меньше, тем больше кругов, но тем короче пауза.",
   },
   {
@@ -96,7 +136,7 @@ export const SCENARIOS = [
     dirty: 2000,
     bw: 1250,
     goal: "Без post-copy: миграция сошлась, простой не больше 600 мс",
-    check: (r: { outcome: string; downtime: number; }) => r.outcome === "precopy" && r.downtime <= 600,
+    check: (r) => r.outcome === "precopy" && r.downtime <= 600,
     hint: "Гость пишет быстрее, чем уходит по сети, — остаток не уменьшается. Нужно притормозить vCPU.",
   },
   {

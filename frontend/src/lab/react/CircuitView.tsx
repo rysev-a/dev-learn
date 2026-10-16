@@ -1,4 +1,4 @@
-import { JSXElementConstructor, Key, PointerEvent, ReactPortal, ReactNode, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BOARD_H,
   BOARD_W,
@@ -63,11 +63,11 @@ export default function CircuitView({
       ? BOARD_W
       : Math.max(
           BOARD_W,
-          Math.max(0, ...gates.map((g: { x: number; }) => spreadX(g.x))) + 110 + 160,
+          Math.max(0, ...gates.map((g) => spreadX(g.x))) + 110 + 160,
         );
   const extraW = W - BOARD_W;
   const H = useMemo(() => {
-    const lowest = Math.max(0, ...gates.map((g: { y: number; }) => spreadY(g.y))) + 110;
+    const lowest = Math.max(0, ...gates.map((g) => spreadY(g.y))) + 110;
     const ports = Math.max(iface.inputs.length, iface.outputs.length) * 50 + 40;
     return Math.max(BOARD_H, lowest, ports);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,7 +82,7 @@ export default function CircuitView({
 
   const placed = useMemo(
     () =>
-      gates.map((g: { id: string|number; x: number; y: number; }) => ({
+      gates.map((g) => ({
         ...g,
         x: moved[g.id]?.x ?? spreadX(g.x),
         y: moved[g.id]?.y ?? spreadY(g.y),
@@ -110,7 +110,7 @@ export default function CircuitView({
   };
   const val = (n: any) => scope(n);
   const pinVal = (node: any, pin: string) => {
-    const w = wires.find((x: { to: { node: any; pin: string; }; }) => x.to.node === node && x.to.pin === pin);
+    const w = wires.find((x) => x.to.node === node && x.to.pin === pin);
     return w ? val(w.from.node) : undefined;
   };
   const label = (id: any) => iface.labels?.[iface.inputs.indexOf(id)] ?? id;
@@ -301,7 +301,7 @@ export default function CircuitView({
           height={H / zoom}
           fill="url(#cv-dots)"
         />
-        {wires.map((w: { id: Key|null|undefined; from: PinRef; to: PinRef; }) => (
+        {wires.map((w) => (
           <path
             key={w.id}
             className={`wire-line ${cls(val(w.from.node))}`}
@@ -378,7 +378,7 @@ export default function CircuitView({
             </g>
           );
         })}
-        {placed.map((g: { id: any; x: any; y: any; type?: any; }) => (
+        {placed.map((g) => (
           <g
             key={g.id}
             className="gate"

@@ -4,12 +4,35 @@
    узлах — 1; что-то растянуто, а другое нет — 0,5; растянуто всё — 0,5, а с виртуальной
    топологией NUMA гость сам размещает данные ближе — 0,25. */
 
+export interface Vm {
+  name: string;
+  vcpus: number;
+  mem: number;
+}
+
+/** размещение одной машины: узел процессоров, узел памяти или «wide» (растянуть) */
+export interface Placement {
+  cpu: string;
+  mem: string;
+  vnuma: boolean;
+}
+
+export type Plan = Record<string, Placement>;
+
+export interface NumaScenario {
+  id: string;
+  title: string;
+  vms: Vm[];
+  goal: string;
+  max: number;
+}
+
 export const NODES = [
   { cores: 8, mem: 32 },
   { cores: 8, mem: 32 },
 ];
 
-export const SCENARIOS = [
+export const SCENARIOS: NumaScenario[] = [
   {
     id: "small",
     title: "Четыре небольшие машины",
@@ -35,7 +58,7 @@ export const SCENARIOS = [
   },
 ];
 
-export const PLACES = [
+export const PLACES: [string, string][] = [
   ["0", "узел 0"],
   ["1", "узел 1"],
   ["wide", "растянуть"],
@@ -44,18 +67,18 @@ export const PLACES = [
 // чему равна нагрузка на узел i от машины с таким размещением
 const share = (place: string, i: number) => (place === "wide" ? 0.5 : Number(place) === i ? 1 : 0);
 
-export function remote(cpu: string, mem: string, vnuma: any) {
+export function remote(cpu: string, mem: string, vnuma: boolean): number {
   if (cpu === "wide" && mem === "wide") return vnuma ? 0.25 : 0.5;
   if (cpu === "wide" || mem === "wide") return 0.5;
   return cpu === mem ? 0 : 1;
 }
 
 /* plan: {имя: {cpu, mem, vnuma}} → загрузка узлов, переполнения и доля удалённых обращений. */
-export function evaluate(vms: { name: string; vcpus: number; mem: number; }[], plan: { [x: string]: any; }) {
+export function evaluate(vms: Vm[], plan: Plan) {
   const load = NODES.map(() => ({ cores: 0, mem: 0 }));
   let weighted = 0;
   let total = 0;
-  const per = {};
+  const per: Record<string, number> = {};
   for (const vm of vms) {
     const p = plan[vm.name];
     NODES.forEach((_, i) => {
@@ -71,5 +94,5 @@ export function evaluate(vms: { name: string; vcpus: number; mem: number; }[], p
   return { load, over, per, avg: total ? weighted / total : 0 };
 }
 
-export const defaultPlan = (vms: { name: string; vcpus: number; mem: number; }[]) =>
+export const defaultPlan = (vms: Vm[]): Plan =>
   Object.fromEntries(vms.map((v) => [v.name, { cpu: "0", mem: "0", vnuma: false }]));

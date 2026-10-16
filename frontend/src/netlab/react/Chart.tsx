@@ -6,11 +6,11 @@ export default function Chart({ chart }) {
   const L = 60;
   const B = 22;
   const T = 10;
-  const maxT = Math.max(...trace.map((p: { t: any; }) => p.t), 1);
-  const maxY = Math.max(...trace.map((p: { cwnd: any; }) => p.cwnd), bdpKb * 1.15, Math.min(rwndKb, bdpKb * 3), 10);
+  const maxT = Math.max(...trace.map((p) => p.t), 1);
+  const maxY = Math.max(...trace.map((p) => p.cwnd), bdpKb * 1.15, Math.min(rwndKb, bdpKb * 3), 10);
   const x = (t: number) => L + (t / maxT) * (W - L - 8);
   const y = (v: number) => H - B - (Math.min(v, maxY) / maxY) * (H - B - T);
-  const pts = trace.map((p: { t: number; cwnd: number; }) => `${x(p.t).toFixed(1)},${y(p.cwnd).toFixed(1)}`).join(" ");
+  const pts = trace.map((p) => `${x(p.t).toFixed(1)},${y(p.cwnd).toFixed(1)}`).join(" ");
   return (
     <figure className="nl-chart">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="График окна перегрузки">

@@ -1,4 +1,3 @@
-import { JSXElementConstructor, Key, ReactPortal, ReactNode, ReactElement } from "react";
 import { WAVE } from "../exercises/logic-gates/lab/wave.ts";
 
 /* Временная диаграмма: история сигналов в упражнениях с защёлками и регистрами */
@@ -42,7 +41,7 @@ export default function WaveDiagram({ wave, onClear }) {
             height={wave.height}
           />
         )}
-        {wave.rows.map((r: { label: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; kind: any; top: number; dx: string|undefined; d: string|undefined; }) => (
+        {wave.rows.map((r) => (
           <g key={r.label} className={`wave-row ${r.kind}`}>
             <text className="wave-label" x="0" y={r.top + 18}>
               {r.label}

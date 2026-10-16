@@ -1,4 +1,3 @@
-import { ReactElement,JSXElementConstructor,ReactNode,ReactPortal,Key } from "react";
 import { inputsForRow } from "../exercises/logic-gates/circuit.model.ts";
 
 /* Проверка решения: таблица истинности или сценарий по шагам (для защёлок и регистров) */
@@ -31,7 +30,7 @@ export default function CheckPanel({
           </span>
         </div>
         <div className="lab-steps">
-          {ex.steps.map((st: { text: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; pulses: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; inputs: { [x: string]: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined; }; expect: { [x: string]: undefined; }; }, i: Key|null|undefined) => (
+          {ex.steps.map((st, i: Key|null|undefined) => (
             <div
               key={i}
               className={`lab-step ${i < passedSteps ? "done" : ""} ${i === passedSteps ? "active" : ""}`}
@@ -107,7 +106,7 @@ export default function CheckPanel({
             </tr>
           </thead>
           <tbody>
-            {tableRows.map((row: { targets: any[]; actuals: any[]; ok: any; }, i: Key|null|undefined) => {
+            {tableRows.map((row, i: Key|null|undefined) => {
               const st = inputsForRow(ex.inputs, i);
               return (
                 <tr key={i} className={i === currentRow ? "current" : ""}>
