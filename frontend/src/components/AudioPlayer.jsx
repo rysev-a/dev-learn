@@ -1,5 +1,5 @@
-import { usePlayer } from "../lib/player.jsx";
-import { fmtTime } from "../lib/format.js";
+import { usePlayer } from "../lib/player.tsx";
+import { fmtTime } from "../lib/format.ts";
 
 export default function AudioPlayer() {
   const { current, paused, progress, togglePause, playPrev, playNextManual, seek } =

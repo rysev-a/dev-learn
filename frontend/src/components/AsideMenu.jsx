@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMatch, useNavigate } from "react-router-dom";
-import { usePlayer } from "../lib/player.jsx";
+import { usePlayer } from "../lib/player.tsx";
 import BookIcon from "./BookIcon.jsx";
 
 const STORE = "say-aside-collapsed";

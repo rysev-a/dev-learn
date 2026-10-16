@@ -1,8 +1,8 @@
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
-import { pct } from "../../lib/format.js";
-import { usePlayer } from "../../lib/player.jsx";
-import { useCodeCounts } from "../../lib/queries.js";
-import { useProgress } from "../../lib/progress.jsx";
+import { pct } from "../../lib/format.ts";
+import { usePlayer } from "../../lib/player.tsx";
+import { useCodeCounts } from "../../lib/queries.ts";
+import { useProgress } from "../../lib/progress.tsx";
 import { chapterStats } from "../books/index.jsx";
 
 /* Корень раздела: карточки всех тем (глав), сгруппированные по подразделам. */

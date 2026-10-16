@@ -2,7 +2,9 @@
 // Новый тип заданий: ответ вводится текстом, проверка — строковым сравнением
 // с эталонами (числовое приведение «6» == «6.0» на стороне приложения).
 // Ключ — «bookId:номер_главы».
-export const DM_EXERCISES = {
+import type { PracticeSet } from "../types.ts";
+
+export const DM_EXERCISES: Record<string, PracticeSet> = {
   "12:1": {
     kind: "practice",
     title: "Упражнения: множества",

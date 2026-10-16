@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import BookIcon from "../../components/BookIcon.jsx";
-import { QUIZZES } from "../../lib/quizzes.js";
-import { EXERCISES } from "../../lib/exercises.js";
-import { pct } from "../../lib/format.js";
-import { usePlayer } from "../../lib/player.jsx";
-import { useProgress } from "../../lib/progress.jsx";
-import { useCodeCounts, useCourses } from "../../lib/queries.js";
+import { QUIZZES } from "../../lib/quizzes.ts";
+import { EXERCISES } from "../../lib/exercises.ts";
+import { pct } from "../../lib/format.ts";
+import { usePlayer } from "../../lib/player.tsx";
+import { useProgress } from "../../lib/progress.tsx";
+import { useCodeCounts, useCourses } from "../../lib/queries.ts";
 
 /* Главная — дашборд: прогресс по слайдам, вопросам и упражнениям во всех
    разделах. Данные о составе курса приходят с бэкенда (главы разделов и число

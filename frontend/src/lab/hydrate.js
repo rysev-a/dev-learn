@@ -1,7 +1,7 @@
 /* Движок лаборатории хранит решения схем в localStorage (ключи — по пользователю), а настоящий прогресс
    живёт в кабинете. При входе в лабораторию решённое с сервера переписывается в localStorage:
    блоки собираются из решений других глав, а палитра открывает составные элементы. */
-import { api } from "../lib/api.js";
+import { api } from "../lib/api.ts";
 import { ARCH_BOOK, LAB_CHAPTERS, sectionOf } from "./registry.js";
 import { setLabNamespace } from "./exercises/logic-gates/lab/exercise-progress";
 import {

@@ -7,9 +7,9 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "react-router-dom";
-import { api } from "../lib/api.js";
-import { useAuth } from "../lib/auth.jsx";
-import { useProgress } from "../lib/progress.jsx";
+import { api } from "../lib/api.ts";
+import { useAuth } from "../lib/auth.tsx";
+import { useProgress } from "../lib/progress.tsx";
 import CodeEditor from "./CodeEditor.jsx";
 import SqlDiff from "./SqlDiff.jsx";
 import SqlSchema from "./SqlSchema.jsx";

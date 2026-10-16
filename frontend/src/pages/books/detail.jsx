@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import { usePlayer } from "../../lib/player.jsx";
-import { useCourse } from "../../lib/queries.js";
+import { usePlayer } from "../../lib/player.tsx";
+import { useCourse } from "../../lib/queries.ts";
 
 export default function BookDetail({ books }) {
   const { bookId, chapterId } = useParams();

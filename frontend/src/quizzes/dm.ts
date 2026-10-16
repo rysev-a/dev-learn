@@ -1,7 +1,9 @@
 // Квизы книги «Дискретная математика» (book id 12) — главы 1–10.
-// Формат записи тот же, что в src/lib/quizzes.js: kind, title, questions[].
+// Формат записи тот же, что в src/lib/quizzes.ts: kind, title, questions[].
 // Реестр QUIZZES может подключать этот модуль, когда главы появятся в базе.
-export const DM_QUIZZES = {
+import type { Quiz } from "../types.ts";
+
+export const DM_QUIZZES: Record<string, Quiz> = {
   "12:1": {
     kind: "theory",
     title: "Квиз: множества",

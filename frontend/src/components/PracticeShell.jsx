@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
-import { api } from "../lib/api.js";
+import { api } from "../lib/api.ts";
 import { FsItem } from "./FsTree.jsx";
 
 /* Общая оболочка вкладки «Практика»: полоса «решено N из M», список упражнений (слева или

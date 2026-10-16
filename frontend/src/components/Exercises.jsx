@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useProgress } from "../lib/progress.jsx";
+import { useProgress } from "../lib/progress.tsx";
 
 /* Нормализация ввода: пробелы, регистр, запятая как десятичный разделитель. */
 function normalize(s) {

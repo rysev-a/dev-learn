@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { FsItem } from "./FsTree.jsx";
-import { useProgress } from "../lib/progress.jsx";
+import { useProgress } from "../lib/progress.tsx";
 
 /* Квизы на теорию: вопросы с вариантами, ответ проверяется сразу при выборе. */
 export default function Quiz({ quiz, bookId, chapter, itemsSlot }) {

@@ -1,29 +1,48 @@
 // Тонкая обёртка над fetch для JSON API: ошибки приходят как Error с текстом от сервера.
 
 export class ApiError extends Error {
-  constructor(message, status, detail) {
+  readonly status: number;
+  readonly detail: unknown;
+
+  constructor(message: string, status: number, detail: unknown) {
     super(message);
     this.status = status;
     this.detail = detail;
   }
 }
 
+interface ValidationIssue {
+  loc?: (string | number)[];
+  msg?: string;
+}
+
+const FIELD_MESSAGES: Record<string, string> = {
+  email: "Введите корректный email",
+  login: "Логин: 3–32 символа — латиница, цифры, «_», «.», «-»",
+  password: "Пароль: от 6 до 128 символов",
+};
+
 // человекочитаемое сообщение из ответа FastAPI (detail — строка или список ошибок валидации)
-function messageOf(detail, fallback) {
+function messageOf(detail: unknown, fallback: string): string {
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail) && detail.length) {
-    const FIELD = {
-      email: "Введите корректный email",
-      login: "Логин: 3–32 символа — латиница, цифры, «_», «.», «-»",
-      password: "Пароль: от 6 до 128 символов",
-    };
-    const field = detail[0]?.loc?.[detail[0].loc.length - 1];
-    return FIELD[field] || detail[0]?.msg || fallback;
+    const first = detail[0] as ValidationIssue;
+    const field = first?.loc?.[first.loc.length - 1];
+    return (typeof field === "string" && FIELD_MESSAGES[field]) || first?.msg || fallback;
   }
   return fallback;
 }
 
-export async function api(path, { method = "GET", body, keepalive } = {}) {
+export interface ApiOptions {
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  body?: unknown;
+  keepalive?: boolean;
+}
+
+export async function api<T = unknown>(
+  path: string,
+  { method = "GET", body, keepalive }: ApiOptions = {},
+): Promise<T> {
   const res = await fetch(path, {
     method,
     headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
@@ -34,8 +53,8 @@ export async function api(path, { method = "GET", body, keepalive } = {}) {
     // сессия истекла: AuthProvider вернёт пользователя на форму входа
     window.dispatchEvent(new Event("say-unauthorized"));
   }
-  if (res.status === 204) return null;
-  let data = null;
+  if (res.status === 204) return null as T;
+  let data: { detail?: unknown } | null = null;
   try {
     data = await res.json();
   } catch {
@@ -47,5 +66,5 @@ export async function api(path, { method = "GET", body, keepalive } = {}) {
       res.status,
       data?.detail,
     );
-  return data;
+  return data as T;
 }

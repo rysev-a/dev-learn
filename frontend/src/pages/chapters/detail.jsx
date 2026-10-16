@@ -10,12 +10,12 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import FsTree from "../../components/FsTree.jsx";
-import { usePlayer } from "../../lib/player.jsx";
-import { hasSlides as chapterHasSlides } from "../../lib/slides.js";
-import { QUIZZES } from "../../lib/quizzes.js";
-import { EXERCISES } from "../../lib/exercises.js";
-import { useProgress } from "../../lib/progress.jsx";
-import { useApi, useCodeCounts } from "../../lib/queries.js";
+import { usePlayer } from "../../lib/player.tsx";
+import { hasSlides as chapterHasSlides } from "../../lib/slides.ts";
+import { QUIZZES } from "../../lib/quizzes.ts";
+import { EXERCISES } from "../../lib/exercises.ts";
+import { useProgress } from "../../lib/progress.tsx";
+import { useApi, useCodeCounts } from "../../lib/queries.ts";
 
 /* Страница главы: заголовок и три вкладки, каждая со своим адресом —
      /book/:bookId/chapter/:chapterId             Теория  (слайды)

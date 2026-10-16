@@ -1,22 +1,37 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api } from "./api.js";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { User } from "../types.ts";
+import { api } from "./api.ts";
 
 /* Текущий пользователь. user: undefined — ещё узнаём, null — не вошёл. Сессия
    живёт в HttpOnly-cookie, а клиент лишь спрашивает /api/auth/me. */
 
-const AuthContext = createContext(null);
+interface AuthValue {
+  user: User | null | undefined;
+  login: (ident: string, password: string) => Promise<void>;
+  register: (email: string, loginName: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
-export const useAuth = () => {
+const AuthContext = createContext<AuthValue | null>(null);
+
+export const useAuth = (): AuthValue => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 };
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(undefined);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    api("/api/auth/me")
+    api<User>("/api/auth/me")
       .then(setUser)
       .catch(() => setUser(null));
     const onExpired = () => setUser(null);
@@ -25,15 +40,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(
-    async (ident, password) =>
-      setUser(await api("/api/auth/login", { method: "POST", body: { login: ident, password } })),
+    async (ident: string, password: string) =>
+      setUser(
+        await api<User>("/api/auth/login", {
+          method: "POST",
+          body: { login: ident, password },
+        }),
+      ),
     [],
   );
 
   const register = useCallback(
-    async (email, loginName, password) =>
+    async (email: string, loginName: string, password: string) =>
       setUser(
-        await api("/api/auth/register", {
+        await api<User>("/api/auth/register", {
           method: "POST",
           body: { email, login: loginName, password },
         }),

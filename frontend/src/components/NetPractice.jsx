@@ -1,5 +1,5 @@
-import { api } from "../lib/api.js";
-import { useProgress } from "../lib/progress.jsx";
+import { api } from "../lib/api.ts";
+import { useProgress } from "../lib/progress.tsx";
 import PracticeShell, {
   usePracticeDrafts,
   useTaskSelection,

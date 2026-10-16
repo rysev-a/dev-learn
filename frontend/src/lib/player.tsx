@@ -1,25 +1,64 @@
 // Глобальный аудиоплеер: одно приложение — одно играющее аудио.
 // Живёт в контексте, чтобы любая страница могла управлять воспроизведением.
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { VirtualClock, estimateSeconds } from "./voice.js";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { VirtualClock, estimateSeconds } from "./voice.ts";
 
-const PlayerContext = createContext(null);
+// Элемент очереди: часть главы со своим файлом озвучки (url) или без него (озвучка по часам)
+export interface PlayerItem {
+  id: string;
+  url: string | null;
+  text: string;
+  est?: number;
+  title: string;
+  subtitle: string;
+  badge: string;
+}
 
-export function usePlayer() {
+export interface PlayerProgress {
+  id: string;
+  t: number;
+  d: number;
+}
+
+type Clock = HTMLAudioElement | VirtualClock;
+
+interface PlayerValue {
+  playingId: string | null;
+  paused: boolean;
+  progress: PlayerProgress | null;
+  current: PlayerItem | null;
+  stop: () => void;
+  playSequence: (items: PlayerItem[]) => void;
+  playPrev: () => void;
+  playNextManual: () => void;
+  togglePause: () => void;
+  seek: (frac: number) => void;
+}
+
+const PlayerContext = createContext<PlayerValue | null>(null);
+
+export function usePlayer(): PlayerValue {
   const ctx = useContext(PlayerContext);
   if (!ctx) throw new Error("usePlayer must be used within PlayerProvider");
   return ctx;
 }
 
-export function PlayerProvider({ children }) {
-  const audioRef = useRef(null);
-  const queueRef = useRef([]);
-  const stackRef = useRef([]);
-  const currentItemRef = useRef(null);
-  const [playingId, setPlayingId] = useState(null);
+export function PlayerProvider({ children }: { children: ReactNode }) {
+  const audioRef = useRef<Clock | null>(null);
+  const queueRef = useRef<PlayerItem[]>([]);
+  const stackRef = useRef<PlayerItem[]>([]);
+  const currentItemRef = useRef<PlayerItem | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
-  const [progress, setProgress] = useState(null); // {id, t, d}
-  const [current, setCurrent] = useState(null); // карточка «сейчас играет»
+  const [progress, setProgress] = useState<PlayerProgress | null>(null);
+  const [current, setCurrent] = useState<PlayerItem | null>(null); // карточка «сейчас играет»
 
   useEffect(() => {
     return () => audioRef.current?.pause();
@@ -36,11 +75,11 @@ export function PlayerProvider({ children }) {
     setCurrent(null);
   }
 
-  function startItem(item) {
+  function startItem(item: PlayerItem) {
     currentItemRef.current = item;
     setCurrent(item);
     // без файла озвучки абзац «читается» по виртуальным часам (см. lib/voice.js)
-    const audio = item.url
+    const audio: Clock = item.url
       ? new Audio(item.url)
       : new VirtualClock(item.est || estimateSeconds(item.text));
     audioRef.current = audio;
@@ -52,9 +91,9 @@ export function PlayerProvider({ children }) {
         t: audio.currentTime,
         d: audio.duration || 0,
       });
-    audio.onended = audio.onerror = playNext;
-    const started = audio.play();
-    if (started?.catch) started.catch(() => {});
+    audio.onended = playNext;
+    audio.onerror = playNext;
+    audio.play().catch(() => {});
   }
 
   function playNext() {
@@ -68,7 +107,7 @@ export function PlayerProvider({ children }) {
     startItem(next);
   }
 
-  function playSequence(items) {
+  function playSequence(items: PlayerItem[]) {
     audioRef.current?.pause();
     stackRef.current = [];
     queueRef.current = [...items];
@@ -86,7 +125,7 @@ export function PlayerProvider({ children }) {
     queueRef.current.unshift(currentItemRef.current);
     const prevItem = stackRef.current.pop();
     a.pause();
-    startItem(prevItem);
+    if (prevItem) startItem(prevItem);
   }
 
   function playNextManual() {
@@ -104,7 +143,7 @@ export function PlayerProvider({ children }) {
     const a = audioRef.current;
     if (!a) return;
     if (a.paused) {
-      a.play();
+      a.play().catch(() => {});
       setPaused(false);
     } else {
       a.pause();
@@ -112,7 +151,7 @@ export function PlayerProvider({ children }) {
     }
   }
 
-  function seek(frac) {
+  function seek(frac: number) {
     const a = audioRef.current;
     if (a && isFinite(a.duration) && a.duration > 0) {
       a.currentTime = frac * a.duration;

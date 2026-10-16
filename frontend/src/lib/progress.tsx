@@ -6,33 +6,55 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
-import { api } from "./api.js";
-import { useAuth } from "./auth.jsx";
+import type { ProgressData, TaskStatus } from "../types.ts";
+import { api } from "./api.ts";
+import { useAuth } from "./auth.tsx";
 
 /* Прогресс пользователя живёт на сервере (кабинет). Клиент один раз забирает всё
    (`GET /api/progress`), держит копию в состоянии и точечно пишет изменения.
    Ключ главы везде «книга:номер_главы». */
 
-const ProgressContext = createContext(null);
+type BookId = number | string;
+export type ResetScope = "practice" | "all";
 
-export const useProgress = () => {
+interface ProgressActions {
+  markSlide: (book: BookId, num: number, slide: number) => void;
+  saveQuizPicks: (book: BookId, num: number, picks: (number | null)[] | null) => void;
+  saveAnswers: (book: BookId, num: number, solved: Record<string, string>) => void;
+  setCodeStatus: (book: BookId, num: number, task: string, status: TaskStatus) => void;
+  reset: (scope: ResetScope) => Promise<void>;
+}
+
+interface ProgressValue extends ProgressActions {
+  ready: boolean;
+  slidesSeen: (book: BookId, num: number) => number[];
+  quizPicks: (book: BookId, num: number) => (number | null)[] | null;
+  answerSolved: (book: BookId, num: number) => Record<string, string>;
+  codeStatus: (book: BookId, num: number) => Record<string, TaskStatus>;
+}
+
+const ProgressContext = createContext<ProgressValue | null>(null);
+
+export const useProgress = (): ProgressValue => {
   const ctx = useContext(ProgressContext);
   if (!ctx) throw new Error("useProgress must be used within ProgressProvider");
   return ctx;
 };
 
-const EMPTY = { slides: {}, quiz: {}, answers: {}, code: {} };
-const k = (book, num) => `${book}:${num}`;
-const fire = (path, method, body) => api(path, { method, body }).catch(() => {});
+const EMPTY: ProgressData = { slides: {}, quiz: {}, answers: {}, code: {} };
+const k = (book: BookId, num: number) => `${book}:${num}`;
+const fire = (path: string, method: "POST" | "PUT", body: unknown) =>
+  api(path, { method, body }).catch(() => {});
 
-export function ProgressProvider({ children }) {
+export function ProgressProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [data, setData] = useState(EMPTY);
+  const [data, setData] = useState<ProgressData>(EMPTY);
   const [ready, setReady] = useState(false);
 
   const load = useCallback(() => {
-    return api("/api/progress")
+    return api<Partial<ProgressData>>("/api/progress")
       .then((d) => setData({ ...EMPTY, ...d }))
       .catch(() => {})
       .finally(() => setReady(true));
@@ -50,7 +72,7 @@ export function ProgressProvider({ children }) {
   const ref = useRef(data);
   ref.current = data;
 
-  const actions = useMemo(
+  const actions = useMemo<ProgressActions>(
     () => ({
       markSlide: (book, num, slide) => {
         const key = k(book, num);
@@ -99,7 +121,7 @@ export function ProgressProvider({ children }) {
     [load],
   );
 
-  const value = {
+  const value: ProgressValue = {
     ready,
     ...actions,
     slidesSeen: (book, num) => data.slides[k(book, num)] || [],

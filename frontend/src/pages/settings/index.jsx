@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useAuth } from "../../lib/auth.jsx";
-import { useProgress } from "../../lib/progress.jsx";
-import { KEYS, readSetting, writeSetting } from "../../lib/settings.js";
+import { useAuth } from "../../lib/auth.tsx";
+import { useProgress } from "../../lib/progress.tsx";
+import { KEYS, readSetting, writeSetting } from "../../lib/settings.ts";
 
 // Страница настроек: внешний вид хранится в браузере, прогресс и аккаунт — в кабинете.
 export default function SettingsPage({ theme, setTheme }) {

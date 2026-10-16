@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useSlideAudioTime } from "../../lib/slideAudio.js";
-import { motionOff } from "../../lib/settings.js";
+import { useSlideAudioTime } from "../../lib/slideAudio.ts";
+import { motionOff } from "../../lib/settings.ts";
 
 /* Анимированная диаграмма Венна для слайда «Три операции».
 

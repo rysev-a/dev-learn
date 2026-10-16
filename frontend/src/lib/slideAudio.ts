@@ -3,8 +3,8 @@
 // двигаться синхронно с голосом; без звука они идут по собственным таймерам.
 import { createContext, useContext } from "react";
 
-export const SlideAudioContext = createContext(null);
+export const SlideAudioContext = createContext<number | null>(null);
 
-export function useSlideAudioTime() {
+export function useSlideAudioTime(): number | null {
   return useContext(SlideAudioContext);
 }

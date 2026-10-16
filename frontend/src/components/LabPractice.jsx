@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api.js";
-import { useAuth } from "../lib/auth.jsx";
-import { useProgress } from "../lib/progress.jsx";
+import { api } from "../lib/api.ts";
+import { useAuth } from "../lib/auth.tsx";
+import { useProgress } from "../lib/progress.tsx";
 import PracticeShell, {
   usePracticeDrafts,
   useTaskSelection,

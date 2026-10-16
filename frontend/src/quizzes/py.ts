@@ -1,6 +1,8 @@
 // Теоретические квизы к книге 13 — Python как первый язык (главы 0–51).
 // Ключ — «bookId:номер_главы».
-export const PY_QUIZZES = {
+import type { Quiz } from "../types.ts";
+
+export const PY_QUIZZES: Record<string, Quiz> = {
   "13:0": {
     kind: "theory",
     title: "Квиз: язык программирования и Питон",

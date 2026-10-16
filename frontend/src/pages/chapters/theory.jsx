@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import { FsItem } from "../../components/FsTree.jsx";
-import { useChapterSlides } from "../../lib/slides.js";
-import { usePlayer } from "../../lib/player.jsx";
-import { SlideAudioContext } from "../../lib/slideAudio.js";
-import { fmtTime } from "../../lib/format.js";
-import { estimateSeconds } from "../../lib/voice.js";
-import { useProgress } from "../../lib/progress.jsx";
+import { useChapterSlides } from "../../lib/slides.ts";
+import { usePlayer } from "../../lib/player.tsx";
+import { SlideAudioContext } from "../../lib/slideAudio.ts";
+import { fmtTime } from "../../lib/format.ts";
+import { estimateSeconds } from "../../lib/voice.ts";
+import { useProgress } from "../../lib/progress.tsx";
 
 export default function ChapterTheory() {
   const { chapter, bookId, fs, itemsSlot, headSlot } = useOutletContext();

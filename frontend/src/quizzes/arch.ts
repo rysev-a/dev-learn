@@ -1,6 +1,8 @@
 // Теоретические квизы к книге 14 — Архитектура компьютера (главы 1–10).
-// Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.js.
-export const ARCH_QUIZZES = {
+// Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.ts.
+import type { Quiz } from "../types.ts";
+
+export const ARCH_QUIZZES: Record<string, Quiz> = {
 
   "14:1": {
     kind: "theory",

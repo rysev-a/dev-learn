@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "../../lib/auth.jsx";
+import { useAuth } from "../../lib/auth.tsx";
 
 /* Вход и регистрация. Пока идёт разработка, форма входа сразу заполнена данными
    student/student, а под ней две кнопки быстрого входа за готовых пользователей. */

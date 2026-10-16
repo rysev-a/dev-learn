@@ -1,6 +1,8 @@
 // Теоретические квизы к книге 9 — Базы данных (главы 1–10).
-// Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.js.
-export const DB_QUIZZES = {
+// Ключ — «bookId:номер_главы», формат записи совпадает с src/lib/quizzes.ts.
+import type { Quiz } from "../types.ts";
+
+export const DB_QUIZZES: Record<string, Quiz> = {
   "9:17": {
     kind: "theory",
     title: "Квиз: реляционная модель и запросы",
