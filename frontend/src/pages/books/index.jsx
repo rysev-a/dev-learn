@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import BookIcon from "../../components/BookIcon.jsx";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
+import { pct } from "../../lib/format.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { useProgress } from "../../lib/progress.jsx";
+import { useCodeCounts, useCourses } from "../../lib/queries.js";
 
 /* Главная — дашборд: прогресс по слайдам, вопросам и упражнениям во всех
    разделах. Данные о составе курса приходят с бэкенда (главы разделов и число
    код-упражнений), прогресс берётся из кабинета пользователя (сервер). */
-
-const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 
 // прогресс одной главы: слайды, вопросы, упражнения (сделано / всего)
 export function chapterStats(progress, bookId, ch, codeCounts) {
@@ -45,25 +45,8 @@ export default function BooksIndex({ books }) {
   const navigate = useNavigate();
   const { stop } = usePlayer();
   const progress = useProgress();
-  const [courses, setCourses] = useState({}); // bookId → разделы с главами
-  const [codeCounts, setCodeCounts] = useState(null);
-
-  useEffect(() => {
-    let live = true;
-    books.forEach((b) =>
-      fetch(`/api/books/${b.id}/course`)
-        .then((r) => r.json())
-        .then((d) => live && setCourses((p) => ({ ...p, [b.id]: d })))
-        .catch(() => {}),
-    );
-    fetch("/api/exercises")
-      .then((r) => (r.ok ? r.json() : {}))
-      .then((d) => live && setCodeCounts(d))
-      .catch(() => live && setCodeCounts({}));
-    return () => {
-      live = false;
-    };
-  }, [books]);
+  const courses = useCourses(books); // bookId → разделы с главами
+  const codeCounts = useCodeCounts();
 
   const rows = useMemo(
     () =>

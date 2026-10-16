@@ -5,6 +5,7 @@ import AudioPlayer from "./components/AudioPlayer.jsx";
 import { useAuth } from "./lib/auth.jsx";
 import { PlayerProvider, usePlayer } from "./lib/player.jsx";
 import { useProgress } from "./lib/progress.jsx";
+import { useBooks } from "./lib/queries.js";
 import AuthPage from "./pages/auth/index.jsx";
 import BookDetail from "./pages/books/detail.jsx";
 import BooksIndex from "./pages/books/index.jsx";
@@ -24,7 +25,7 @@ export default function App() {
 }
 
 function Shell() {
-  const [books, setBooks] = useState([]);
+  const books = useBooks();
   const navigate = useNavigate();
   const { stop } = usePlayer();
   const { user, logout } = useAuth();
@@ -37,13 +38,6 @@ function Shell() {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("say-theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    fetch("/api/books")
-      .then((r) => r.json())
-      .then(setBooks)
-      .catch(() => {});
-  }, []);
 
   function goHome() {
     stop();

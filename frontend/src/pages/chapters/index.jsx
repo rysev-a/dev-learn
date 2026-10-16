@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { pct } from "../../lib/format.js";
 import { usePlayer } from "../../lib/player.jsx";
+import { useCodeCounts } from "../../lib/queries.js";
 import { useProgress } from "../../lib/progress.jsx";
 import { chapterStats } from "../books/index.jsx";
 
 /* Корень раздела: карточки всех тем (глав), сгруппированные по подразделам. */
-
-const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 
 export default function ChaptersIndex() {
   const { course } = useOutletContext();
@@ -14,18 +13,7 @@ export default function ChaptersIndex() {
   const navigate = useNavigate();
   const { stop } = usePlayer();
   const progress = useProgress();
-  const [codeCounts, setCodeCounts] = useState(null);
-
-  useEffect(() => {
-    let live = true;
-    fetch("/api/exercises")
-      .then((r) => (r.ok ? r.json() : {}))
-      .then((d) => live && setCodeCounts(d))
-      .catch(() => live && setCodeCounts({}));
-    return () => {
-      live = false;
-    };
-  }, []);
+  const codeCounts = useCodeCounts();
 
   function open(id) {
     stop();

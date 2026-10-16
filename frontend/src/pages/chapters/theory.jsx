@@ -5,7 +5,7 @@ import { FsItem } from "../../components/FsTree.jsx";
 import { useChapterSlides } from "../../lib/slides.js";
 import { usePlayer } from "../../lib/player.jsx";
 import { SlideAudioContext } from "../../lib/slideAudio.js";
-import { fmtTime } from "../../lib/time.js";
+import { fmtTime } from "../../lib/format.js";
 import { estimateSeconds } from "../../lib/voice.js";
 import { useProgress } from "../../lib/progress.jsx";
 

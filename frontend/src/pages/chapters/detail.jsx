@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   NavLink,
@@ -15,6 +15,7 @@ import { hasSlides as chapterHasSlides } from "../../lib/slides.js";
 import { QUIZZES } from "../../lib/quizzes.js";
 import { EXERCISES } from "../../lib/exercises.js";
 import { useProgress } from "../../lib/progress.jsx";
+import { useApi, useCodeCounts } from "../../lib/queries.js";
 
 /* Страница главы: заголовок и три вкладки, каждая со своим адресом —
      /book/:bookId/chapter/:chapterId             Теория  (слайды)
@@ -43,59 +44,23 @@ export default function ChapterDetail() {
   // слоты левого дерева и шапки: активная вкладка публикует в них пункты и кнопки
   const [itemsSlot, setItemsSlot] = useState(null);
   const [headSlot, setHeadSlot] = useState(null);
-  const [chapter, setChapter] = useState(null);
-  const [error, setError] = useState(null);
-  // Код-упражнения (Docker-песочница): приходят с бэкенда, если есть.
-  const [codeTasks, setCodeTasks] = useState([]);
-  const [tasksReady, setTasksReady] = useState(false);
-  const [codeCounts, setCodeCounts] = useState(null); // {книга: {глава: число}} — куда идти по Ctrl+Enter
+  const { data: chapter, error: chapterError } = useApi(
+    chapterId == null ? null : `/api/chapters/${chapterId}`,
+  );
+  const error = chapterError ? "Урок не найден" : null;
+  const codeCounts = useCodeCounts(); // {книга: {глава: число}} — куда идти по Ctrl+Enter
 
-  useEffect(() => {
-    if (chapterId == null) return;
-    setError(null);
-    setChapter(null);
-    setCodeTasks([]);
-    setTasksReady(false);
-    fetch(`/api/chapters/${chapterId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Урок не найден");
-        return r.json();
-      })
-      .then(setChapter)
-      .catch((e) => setError(e.message));
-  }, [chapterId]);
-
-  useEffect(() => {
-    fetch("/api/exercises")
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setCodeCounts)
-      .catch(() => {});
-  }, []);
-
-  // Код-упражнения ключуются номером главы, 404 — просто нет.
-  useEffect(() => {
-    if (chapter == null || bookId == null) return;
-    let alive = true;
-    fetch(`/api/exercises/${bookId}/${chapter.num}`)
-      .then((r) => (r.ok ? r.json() : { tasks: [] }))
-      .then((d) => {
-        if (alive)
-          setCodeTasks(
-            (d.tasks || []).map((t) =>
-              t.dataset && d.datasets?.[t.dataset]
-                ? { ...t, schema: d.datasets[t.dataset] }
-                : t,
-            ),
-          );
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (alive) setTasksReady(true);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [chapter, bookId]);
+  // Код-упражнения (Docker-песочница) ключуются номером главы; ответ 404 — упражнений нет.
+  const tasksQuery = useApi(
+    chapter == null || bookId == null ? null : `/api/exercises/${bookId}/${chapter.num}`,
+  );
+  const tasksReady = chapter != null && !tasksQuery.loading;
+  const codeTasks = useMemo(() => {
+    const d = tasksQuery.data;
+    return (d?.tasks || []).map((t) =>
+      t.dataset && d.datasets?.[t.dataset] ? { ...t, schema: d.datasets[t.dataset] } : t,
+    );
+  }, [tasksQuery.data]);
 
   useEffect(() => {
     if (!fs) {

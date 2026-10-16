@@ -1,27 +1,12 @@
-import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { usePlayer } from "../../lib/player.jsx";
+import { useCourse } from "../../lib/queries.js";
 
 export default function BookDetail({ books }) {
   const { bookId, chapterId } = useParams();
   const navigate = useNavigate();
   const { stop } = usePlayer();
-  const [course, setCourse] = useState([]);
-
-  useEffect(() => {
-    let live = true;
-    setCourse([]);
-    fetch(`/api/books/${bookId}/course`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!live) return;
-        setCourse(data);
-      })
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, [bookId]);
+  const course = useCourse(bookId);
 
   const book = books.find((b) => String(b.id) === String(bookId));
 
