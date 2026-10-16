@@ -121,7 +121,7 @@ export default function AsmLab({
       };
     }),
   }));
-  const cellClass = (c: { addr?: number; hex?: string; char?: string; changed: any; written: any; read: any; region: any; }) =>
+  const cellClass = (c: { region: number; changed?: boolean; read?: boolean; written?: boolean }) =>
     [
       "lab-cell",
       c.region >= 0 ? `rg${c.region}` : "",

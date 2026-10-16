@@ -12,7 +12,7 @@ export function recordCapture(sim: Sim): void {
   const cap = (rt.cap ??= {});
   const base = rt.clock ?? 0;
   let last = 0;
-  const put = (dev: any, iface: any, row: { t: any; dir: string; frame: any; }) => {
+  const put = (dev: string, iface: string, row: { t: number; dir: string; frame: Frame }) => {
     const k = `${dev}:${iface}`;
     (cap[k] ??= []).push(row);
     if (cap[k].length > LIMIT) cap[k].shift();
@@ -81,7 +81,7 @@ function matches(row: { frame: Frame }, filters: string[]): boolean {
 export function captureLines(state: NetState, dev: string, iface: string, filters: string[], count: number): string[] {
   const cap = state.rt?.cap ?? {};
   const keys = iface === "any" ? state.devices[dev].ifaces.map((i) => `${dev}:${i.name}`) : [`${dev}:${iface}`];
-  const rows = keys.flatMap((k) => (cap[k] ?? []).map((r: any) => ({ ...r, k })));
+  const rows = keys.flatMap((k) => (cap[k] ?? []).map((r) => ({ ...r, k })));
   rows.sort((a, b) => a.t - b.t);
   const out = rows.filter((r) => matches(r, filters)).slice(-count);
   return out.map((r) => `${clock(r.t)} ${iface === "any" ? r.k.split(":")[1] + " " : ""}${r.dir.padEnd(3)} ${lineOf(r)}`);

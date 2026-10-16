@@ -677,7 +677,7 @@ function ProxyBox({ d, apply, readOnly, exec }: ExecFormProps) {
     <div className="nl-sec">
       <h4>HTTP-прокси (tcp/{proxy.port})</h4>
       <ul className="nl-rules">
-        {proxy.deny.map((h, k: any) => (
+        {proxy.deny.map((h, k) => (
           <li key={h}>
             <code>запрещён: {h}</code>
             {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s) => void s.devices[d.id].proxy!.deny.splice(k, 1))}>×</button>}
@@ -718,7 +718,7 @@ function LbBox({ d, apply, readOnly, exec }: ExecFormProps) {
         </label>
       </div>
       <ul className="nl-rules">
-        {lb.backends.map((b, k: any) => (
+        {lb.backends.map((b, k) => (
           <li key={b.ip + b.port}>
             <code>{b.ip}:{b.port}</code>
             {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s) => void s.devices[d.id].lb!.backends.splice(k, 1))}>×</button>}
@@ -871,7 +871,7 @@ function DnsServer({ d, apply, readOnly, exec }: ExecFormProps) {
   return (
     <div className="nl-sec">
       <h4>DNS-сервер {dns.recursive ? "(рекурсивный резолвер)" : "(авторитативный)"}</h4>
-      {dns.zones.length > 0 && <p className="nl-none">зоны: {dns.zones.map((z: any) => z || "корень").join(", ")}</p>}
+      {dns.zones.length > 0 && <p className="nl-none">зоны: {dns.zones.map((z) => z || "корень").join(", ")}</p>}
       {dns.recursive && (
         <div className="nl-add">
           <span className="nl-lbl">корневой сервер</span>

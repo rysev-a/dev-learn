@@ -293,14 +293,14 @@ export class Sim {
     const pin = ifaceOf(d, port);
     if (!pin.up) return this.log(at, d.id, "drop", `порт ${port} выключен`);
     const vlan = pin.trunk ? (frame.vlan ?? 1) : (pin.vlan ?? 1);
-    const key = (m: any) => (vlan === 1 ? m : `${m}@vlan${vlan}`);
+    const key = (m: string) => (vlan === 1 ? m : `${m}@vlan${vlan}`);
     const mt = (this.rt.mac[d.id] ??= {});
     if (frame.src !== BCAST_MAC && mt[key(frame.src)] !== port) {
       mt[key(frame.src)] = port;
       this.log(at, d.id, "learn", `запомнил: ${frame.src} за портом ${port}${vlan === 1 ? "" : ` (VLAN ${vlan})`}`);
     }
     const t = at + PROC.switch;
-    const out = (name: any) => {
+    const out = (name: string) => {
       const e = ifaceOf(d, name);
       if (e.trunk) return this.xmit(d.id, name, { ...frame, vlan }, t);
       if ((e.vlan ?? 1) !== vlan) return;

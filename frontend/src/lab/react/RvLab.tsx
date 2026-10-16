@@ -1,5 +1,5 @@
 import ResultAlert from "./ResultAlert.tsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ABI_NAMES, OPS, PSEUDO, fieldsOf, type BitField } from "../riscv/rv-isa.ts";
 import { STACK_TOP, assemble } from "../riscv/rv-asm.ts";
 import { MMIO_MAP, RvMachine } from "../riscv/rv-machine.ts";
@@ -107,10 +107,10 @@ export default function RvLab({
   const step = () => (machine?.step(), follow(), bump((n) => n + 1));
   const run = () => (machine?.run(RUN_LIMIT), follow(), bump((n) => n + 1));
 
-  const onKey = (e: { key: string; preventDefault: () => void; target: any; }) => {
+  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Tab") return;
     e.preventDefault();
-    const el = e.target;
+    const el = e.currentTarget;
     const { selectionStart: s, selectionEnd: en, value } = el;
     onCode(`${value.slice(0, s)}  ${value.slice(en)}`);
     requestAnimationFrame(() => (el.selectionStart = el.selectionEnd = s + 2));

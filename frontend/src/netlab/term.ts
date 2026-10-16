@@ -557,7 +557,7 @@ function trustAdmin(state: NetState, d: Device, a: string[]) {
     return { out: `корневой CA ${a[1]} добавлен в хранилище доверия`, changed: true };
   }
   if (sub === "del") {
-    d.trust = (d.trust ?? DEFAULT_TRUST).filter((x: any) => x !== a[1]);
+    d.trust = (d.trust ?? DEFAULT_TRUST).filter((x) => x !== a[1]);
     return { out: "удалён из хранилища", changed: true };
   }
   return { out: "trust show | add <CA> | del <CA>" };
