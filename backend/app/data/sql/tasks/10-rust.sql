@@ -9051,6 +9051,1070 @@ async fn main() {
     println!("{}", v.len());
 }
 ', 'Arc::clone и move.', '{"crates": ["tokio"], "driver": "", "expected": ["сумма 10", "4"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-sleep-elapsed', 0, 'rust', 'sleep и elapsed', 'Запомните Instant::now(), усните на 100 мс через tokio::time::sleep и напечатайте «прошло не меньше 100 мс: true» (сравните elapsed() с Duration::from_millis(100)).
+
+Ожидаемый вывод:
+прошло не меньше 100 мс: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'start.elapsed() >= Duration::from_millis(100).', '{"crates": ["tokio"], "driver": "", "expected": ["прошло не меньше 100 мс: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-fix-thread-sleep', 1, 'rust', 'Исправьте: блокирующий sleep', 'Три задачи спят блокирующим std::thread::sleep на однопоточном рантайме, поэтому выполняются одна за другой. Исправьте программу, чтобы они спали одновременно: нужно «быстро: true».
+
+Ожидаемый вывод:
+быстро: true', 'use std::time::{Duration, Instant};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let start = Instant::now();
+    let mut hs = Vec::new();
+    for _ in 0..3 {
+        hs.push(tokio::spawn(async {
+            std::thread::sleep(Duration::from_millis(100));
+        }));
+    }
+    for h in hs {
+        h.await.unwrap();
+    }
+    println!("быстро: {}", start.elapsed() < Duration::from_millis(250));
+}
+', 'Замените std::thread::sleep(..) на tokio::time::sleep(..).await — задача отдаст поток.', '{"crates": ["tokio"], "driver": "", "expected": ["быстро: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-join-sleeps', 2, 'rust', 'Три сна одновременно', 'Через tokio::join! запустите три сна по 100 мс одновременно и напечатайте «параллельно: true», если всё заняло меньше 200 мс.
+
+Ожидаемый вывод:
+параллельно: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::join!(sleep(d), sleep(d), sleep(d)).await не нужен: join! уже возвращает фьючер, его ждут .await.', '{"crates": ["tokio"], "driver": "", "expected": ["параллельно: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-sleep-until', 3, 'rust', 'sleep_until', 'Вычислите дедлайн: Instant::now() + 120 мс, дождитесь его через sleep_until и напечатайте «дедлайн достигнут: true» (Instant::now() >= deadline).
+
+Ожидаемый вывод:
+дедлайн достигнут: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'time::sleep_until(deadline).await.', '{"crates": ["tokio"], "driver": "", "expected": ["дедлайн достигнут: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-completion-order', 4, 'rust', 'Порядок завершения', 'Запустите три задачи: «a» спит 60 мс, «b» — 20 мс, «c» — 40 мс; каждая после сна печатает своё имя. Дождитесь всех. Порядок вывода определяют сны.
+
+Ожидаемый вывод:
+b
+c
+a', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Для каждой задачи tokio::spawn(async move { sleep(..).await; println!(..) }); потом .await на каждом JoinHandle.', '{"crates": ["tokio"], "driver": "", "expected": ["b", "c", "a"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-timeout-ok', 5, 'rust', 'timeout: успел', 'Оберните async-блок (сон 20 мс, затем возвращает 5) в timeout 200 мс и напечатайте результат через {:?}.
+
+Ожидаемый вывод:
+Ok(5)', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'time::timeout(Duration, future).await возвращает Result<T, Elapsed>.', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(5)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-timeout-err', 6, 'rust', 'timeout: не успел', 'Оберните сон на 200 мс в timeout на 30 мс. Если вернулась ошибка, напечатайте её через {} (Display у Elapsed).
+
+Ожидаемый вывод:
+deadline has elapsed', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'if let Err(e) = r { println!("{}", e); }', '{"crates": ["tokio"], "driver": "", "expected": ["deadline has elapsed"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-timeout-map-err', 7, 'rust', 'Elapsed в свою ошибку', 'Напишите async fn fetch() -> Result<u32, String>: ожидает сон 200 мс через timeout на 30 мс и превращает Elapsed в строку «таймаут» методом map_err. Напечатайте результат через {:?}.
+
+Ожидаемый вывод:
+Err("таймаут")', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'time::timeout(..).await.map_err(|_| "таймаут".to_string()) — получится Result<(), String>.', '{"crates": ["tokio"], "driver": "", "expected": ["Err(\"таймаут\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-timeout-at', 8, 'rust', 'Общий дедлайн', 'Задайте дедлайн «сейчас + 100 мс». Выполните два шага подряд, каждый — сон 60 мс, и оба ограничьте timeout_at(deadline, ..). Для каждого напечатайте «шаг N: ok» или «шаг N: просрочен».
+
+Ожидаемый вывод:
+шаг 1: ok
+шаг 2: просрочен', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Дедлайн один на оба шага: второй шаг уже не успевает.', '{"crates": ["tokio"], "driver": "", "expected": ["шаг 1: ok", "шаг 2: просрочен"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-first-tick', 9, 'rust', 'Первый тик сразу', 'Создайте interval на 100 мс, дождитесь первого tick() и напечатайте «первый тик сразу: true», если прошло меньше 30 мс.
+
+Ожидаемый вывод:
+первый тик сразу: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'time::interval(Duration) — первый tick() возвращается немедленно.', '{"crates": ["tokio"], "driver": "", "expected": ["первый тик сразу: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-four-ticks', 10, 'rust', 'Четыре тика', 'Interval на 50 мс: дождитесь 4 тиков (первый сразу). Напечатайте «4 тика за 140–220 мс: true», если общее время попало в этот диапазон.
+
+Ожидаемый вывод:
+4 тика за 140–220 мс: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Тики на 0, 50, 100 и 150 мс — около 150 мс в сумме.', '{"crates": ["tokio"], "driver": "", "expected": ["4 тика за 140–220 мс: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-no-drift', 11, 'rust', 'Интервал без дрейфа', '5 раз выполните: tick() интервала 50 мс, затем «работа» (сон 20 мс). Напечатайте «без дрейфа: true», если всё заняло меньше 300 мс. (С sleep(50) вместо интервала получилось бы около 350 мс.)
+
+Ожидаемый вывод:
+без дрейфа: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Период интервала отсчитывается от запуска, а не от конца работы.', '{"crates": ["tokio"], "driver": "", "expected": ["без дрейфа: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-missed-delay', 12, 'rust', 'MissedTickBehavior::Delay', 'Interval на 50 мс с MissedTickBehavior::Delay. Возьмите первый тик, усните на 120 мс (тики опоздали), возьмите второй тик (он срабатывает сразу), затем замерьте время до третьего. Напечатайте «пауза после опоздания: true», если оно не меньше 45 мс.
+
+Ожидаемый вывод:
+пауза после опоздания: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'iv.set_missed_tick_behavior(time::MissedTickBehavior::Delay).', '{"crates": ["tokio"], "driver": "", "expected": ["пауза после опоздания: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-missed-burst', 13, 'rust', 'MissedTickBehavior::Burst', 'Тот же сценарий с поведением по умолчанию (Burst): первый тик, сон 120 мс, затем два тика подряд. Напечатайте «Burst подряд: true», если второй пришёл менее чем через 20 мс после первого из них.
+
+Ожидаемый вывод:
+Burst подряд: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Burst отдаёт пропущенные тики без пауз, чтобы догнать расписание.', '{"crates": ["tokio"], "driver": "", "expected": ["Burst подряд: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-missed-skip', 14, 'rust', 'MissedTickBehavior::Skip', 'Interval на 50 мс с MissedTickBehavior::Skip. Первый тик, сон 120 мс (пропущены тики на 50 и 100), затем один tick() (он опоздал и срабатывает сразу) и замер ожидания следующего tick(). Напечатайте «Skip ждёт сетку: true», если оно от 10 до 50 мс (до тика на 150-й мс).
+
+Ожидаемый вывод:
+Skip ждёт сетку: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Skip отбрасывает пропущенные и ждёт ближайший тик исходной сетки.', '{"crates": ["tokio"], "driver": "", "expected": ["Skip ждёт сетку: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-interval-reset', 15, 'rust', 'reset интервала', 'Interval на 100 мс: первый тик сразу, усните 30 мс, вызовите reset(), замерьте следующий tick(). Напечатайте «после reset ждали ≥ 90 мс: true».
+
+Ожидаемый вывод:
+после reset ждали ≥ 90 мс: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'reset() сдвигает следующий тик на полный период от текущего момента.', '{"crates": ["tokio"], "driver": "", "expected": ["после reset ждали ≥ 90 мс: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-interval-at', 16, 'rust', 'interval_at', 'Создайте interval_at(Instant::now() + 100 мс, 50 мс), замерьте первый tick(). Напечатайте «первый тик позже: true», если прошло не меньше 95 мс.
+
+Ожидаемый вывод:
+первый тик позже: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'interval_at(start, period): первый тик — в момент start.', '{"crates": ["tokio"], "driver": "", "expected": ["первый тик позже: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-first', 17, 'rust', 'Кто первый', 'В select! ждите два сна: 20 мс (печатает «a») и 100 мс (печатает «b»). Выполнится только первый.
+
+Ожидаемый вывод:
+a', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::select! { _ = sleep(..) => println!(..), _ = sleep(..) => println!(..) }', '{"crates": ["tokio"], "driver": "", "expected": ["a"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-timeout', 18, 'rust', 'select! как таймаут', 'В select! ждите медленную операцию (async-блок: сон 200 мс, затем возвращает «готово») и сон 50 мс. Если победила операция — напечатайте её значение, иначе — «тайм-аут».
+
+Ожидаемый вывод:
+тайм-аут', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'v = async { .. } => println!("{v}"), _ = sleep(..) => println!("тайм-аут")', '{"crates": ["tokio"], "driver": "", "expected": ["тайм-аут"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-value', 19, 'rust', 'select! как выражение', 'Присвойте результат select! переменной: первая ветка — async-блок со сном 30 мс и значением 1, вторая — сон 10 мс и значение 2. Напечатайте переменную.
+
+Ожидаемый вывод:
+2', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let r = tokio::select! { v = f1 => v, v = f2 => v };', '{"crates": ["tokio"], "driver": "", "expected": ["2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-else', 20, 'rust', 'Ветка else', 'Заведите let ready = false; и в select! поставьте ветку со сном 10 мс с условием `if ready` и ветку else. Напечатайте «else» из else-ветки.
+
+Ожидаемый вывод:
+else', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', '_ = sleep(..), if ready => .., else => println!("else")', '{"crates": ["tokio"], "driver": "", "expected": ["else"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-biased', 21, 'rust', 'biased', 'В цикле на 100 итераций вызывайте select! с biased; и двумя сразу готовыми ветками (std::future::ready(())). Считайте, сколько раз победила первая. Напечатайте «первая ветка: 100».
+
+Ожидаемый вывод:
+первая ветка: 100', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::select! { biased; _ = ready(()) => first += 1, _ = ready(()) => {} }', '{"crates": ["tokio"], "driver": "", "expected": ["первая ветка: 100"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-fair', 22, 'rust', 'Справедливый выбор', 'Без biased; в цикле на 1000 итераций вызывайте select! с двумя готовыми ветками и считайте победы каждой. Напечатайте «обе выигрывали: true», если у обеих победы больше нуля.
+
+Ожидаемый вывод:
+обе выигрывали: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'По умолчанию порядок опроса случаен, поэтому выигрывают обе ветки.', '{"crates": ["tokio"], "driver": "", "expected": ["обе выигрывали: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-select-drop', 23, 'rust', 'Проигравший отбрасывается', 'Заведите структуру Guard(&''static str) с Drop, который печатает «drop <имя>». В select! первая ветка — async-блок: создаёт Guard("медленный") и спит 200 мс; вторая — сон 10 мс. После select! напечатайте «после select». Посмотрите, в каком порядке появились строки: проигравший фьючер отбрасывается (и Guard вместе с ним) до этого.
+
+Ожидаемый вывод:
+drop медленный
+после select', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Guard живёт внутри async-блока: он освобождается, когда блок отбрасывают.', '{"crates": ["tokio"], "driver": "", "expected": ["drop медленный", "после select"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-fix-pin-loop', 24, 'rust', 'Исправьте: сон в цикле select!', 'Отправитель шлёт сообщения каждые 50 мс. Нужно остановить цикл через 125 мс от старта, но сон создаётся заново на каждой итерации и никогда не срабатывает. Исправьте: создайте сон до цикла, закрепите (tokio::pin!) и передайте в select! по &mut. Ожидается «сообщений: 2».
+
+Ожидаемый вывод:
+сообщений: 2', 'use std::time::Duration;
+use tokio::sync::mpsc;
+use tokio::time::sleep;
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = mpsc::channel::<u32>(8);
+    tokio::spawn(async move {
+        for i in 0..6 {
+            sleep(Duration::from_millis(50)).await;
+            if tx.send(i).await.is_err() {
+                break;
+            }
+        }
+    });
+    let mut got = 0;
+    loop {
+        tokio::select! {
+            _ = sleep(Duration::from_millis(125)) => break,
+            m = rx.recv() => {
+                if m.is_none() {
+                    break;
+                }
+                got += 1;
+            }
+        }
+    }
+    println!("сообщений: {got}");
+}
+', 'let deadline = sleep(..); tokio::pin!(deadline); и в select! — _ = &mut deadline => break.', '{"crates": ["tokio"], "driver": "", "expected": ["сообщений: 2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-recv-cancel-safe', 25, 'rust', 'recv безопасен к отмене', 'Отправитель шлёт числа 1, 2, 3 с паузой 40 мс и закрывает канал. Получатель в цикле: select! между rx.recv() и сном на 15 мс (сон лишь считает «пустые» ожидания и отбрасывает recv). Все сообщения должны дойти. Напечатайте «получено: 3».
+
+Ожидаемый вывод:
+получено: 3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'recv() можно отбрасывать безопасно: сообщение остаётся в канале.', '{"crates": ["tokio"], "driver": "", "expected": ["получено: 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-retry-backoff', 26, 'rust', 'Повтор с растущей паузой', 'Напишите повтор: операция падает на первых двух попытках (Err("fail")) и удаётся на третьей. После неудач ждите 20 мс, затем 40 мс (удвоение). Для каждой попытки печатайте «попытка N: fail» или «попытка N: ok», а в конце — «ждали не меньше 60 мс: true».
+
+Ожидаемый вывод:
+попытка 1: fail
+попытка 2: fail
+попытка 3: ok
+ждали не меньше 60 мс: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Цикл по попыткам; после неудачи sleep(delay).await и delay *= 2.', '{"crates": ["tokio"], "driver": "", "expected": ["попытка 1: fail", "попытка 2: fail", "попытка 3: ok", "ждали не меньше 60 мс: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-attempt-timeout', 27, 'rust', 'Таймаут на каждую попытку', 'Операция attempt(n): первые две попытки спят 200 мс, третья возвращает 42 сразу. Ограничьте каждую попытку timeout на 50 мс. Печатайте «попытка N: таймаут» или «попытка N: 42».
+
+Ожидаемый вывод:
+попытка 1: таймаут
+попытка 2: таймаут
+попытка 3: 42', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'for n in 1..=3 { match timeout(.., attempt(n)).await { Ok(v) => .., Err(_) => .. } }', '{"crates": ["tokio"], "driver": "", "expected": ["попытка 1: таймаут", "попытка 2: таймаут", "попытка 3: 42"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-nested-timeout', 28, 'rust', 'Вложенные таймауты', 'Внутренний timeout 30 мс оборачивает сон 80 мс, внешний timeout 200 мс оборачивает внутренний. Напечатайте «внутренний: просрочен, внешний: ok».
+
+Ожидаемый вывод:
+внутренний: просрочен, внешний: ok', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Внешний вернёт Ok(Err(Elapsed)): сам он успел, а внутренний — нет.', '{"crates": ["tokio"], "driver": "", "expected": ["внутренний: просрочен, внешний: ok"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 34, 'r34-heartbeat', 29, 'rust', 'Сердцебиение', 'В цикле select! соедините interval 100 мс (считайте тики) и общий дедлайн 250 мс (sleep, закреплённый до цикла). Когда дедлайн сработает, выйдите и напечатайте «сердцебиений: 3» (тики на 0, 100 и 200 мс).
+
+Ожидаемый вывод:
+сердцебиений: 3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::pin! для дедлайна; в select! — _ = &mut deadline => break и _ = iv.tick() => n += 1.', '{"crates": ["tokio"], "driver": "", "expected": ["сердцебиений: 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-mpsc-basic', 0, 'rust', 'Первый канал', 'Создайте mpsc::channel(4). Из запущенной задачи отправьте 1, 2, 3 (и закройте канал, уничтожив отправитель). В main читайте через while let Some(v) = rx.recv().await и печатайте значения, а после цикла — «конец».
+
+Ожидаемый вывод:
+1
+2
+3
+конец', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Sender переезжает в задачу через async move; когда он уничтожен, recv() вернёт None.', '{"crates": ["tokio"], "driver": "", "expected": ["1", "2", "3", "конец"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-mpsc-producers', 1, 'rust', 'Несколько производителей', 'Запустите три задачи, каждая отправляет свой номер 0, 1, 2 по общему каналу (tx.clone()). Соберите все значения, отсортируйте и напечатайте вектор через {:?}.
+
+Ожидаемый вывод:
+[0, 1, 2]', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Исходный tx уничтожьте (drop), иначе recv() не закончится.', '{"crates": ["tokio"], "driver": "", "expected": ["[0, 1, 2]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-recv-none', 2, 'rust', 'Закрытый канал', 'Создайте канал mpsc::channel::<u32>(1), уничтожьте отправителя и напечатайте rx.recv().await через {:?}.
+
+Ожидаемый вывод:
+None', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Закрытый и пустой канал возвращает None.', '{"crates": ["tokio"], "driver": "", "expected": ["None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-send-closed', 3, 'rust', 'Нет получателя', 'Создайте канал, уничтожьте получателя и отправьте значение. Напечатайте «отправка не удалась: true», если send вернул ошибку.
+
+Ожидаемый вывод:
+отправка не удалась: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tx.send(1).await.is_err() после drop(rx).', '{"crates": ["tokio"], "driver": "", "expected": ["отправка не удалась: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-try-send', 4, 'rust', 'try_send и переполнение', 'Канал ёмкостью 2. Три раза вызовите try_send: для успешных печатайте «ok», для переполнения (TrySendError::Full) — «переполнен».
+
+Ожидаемый вывод:
+ok
+ok
+переполнен', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'use tokio::sync::mpsc::error::TrySendError; match tx.try_send(i) { Ok(()) => .., Err(TrySendError::Full(_)) => .., _ => .. }', '{"crates": ["tokio"], "driver": "", "expected": ["ok", "ok", "переполнен"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-capacity', 5, 'rust', 'capacity', 'Канал ёмкостью 3. Напечатайте tx.capacity() до отправки и после одной отправки (send без ожидания: try_send).
+
+Ожидаемый вывод:
+3
+2', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'capacity() — сколько свободного места осталось.', '{"crates": ["tokio"], "driver": "", "expected": ["3", "2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-reserve', 6, 'rust', 'reserve и permit', 'Канал ёмкостью 1. Зарезервируйте место через tx.reserve().await, отправьте 5 через разрешение (permit.send(5)) и напечатайте rx.recv().await через {:?}.
+
+Ожидаемый вывод:
+Some(5)', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let permit = tx.reserve().await.unwrap(); permit.send(5);', '{"crates": ["tokio"], "driver": "", "expected": ["Some(5)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-unbounded', 7, 'rust', 'Неограниченный канал', 'Через mpsc::unbounded_channel отправьте числа от 0 до 999 (send без .await), уничтожьте отправитель и напечатайте «сумма: …» (сложите всё, что принято).
+
+Ожидаемый вывод:
+сумма: 499500', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tx.send(i).unwrap(); потом drop(tx) и while let Some(v) = rx.recv().await.', '{"crates": ["tokio"], "driver": "", "expected": ["сумма: 499500"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-order', 8, 'rust', 'Порядок от одного отправителя', 'Одна задача отправляет 0, 1, 2, 3, 4; получатель собирает значения в вектор. Напечатайте вектор через {:?}: порядок сохраняется.
+
+Ожидаемый вывод:
+[0, 1, 2, 3, 4]', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'mpsc сохраняет порядок сообщений одного отправителя.', '{"crates": ["tokio"], "driver": "", "expected": ["[0, 1, 2, 3, 4]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-oneshot', 9, 'rust', 'oneshot: результат задачи', 'Запустите задачу, которая отправляет по oneshot-каналу 21 * 2. Дождитесь значения через rx.await и напечатайте его.
+
+Ожидаемый вывод:
+42', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let (tx, rx) = oneshot::channel(); tx.send(..); rx.await.unwrap().', '{"crates": ["tokio"], "driver": "", "expected": ["42"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-request-reply', 10, 'rust', 'Запрос с ответом', 'Запустите рабочую задачу: она принимает по mpsc пары (u32, oneshot::Sender<u32>) и отвечает квадратом числа. Отправьте запрос (5, reply_tx) и напечатайте ответ.
+
+Ожидаемый вывод:
+25', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Рабочий: while let Some((n, reply)) = rx.recv().await { reply.send(n * n).ok(); }', '{"crates": ["tokio"], "driver": "", "expected": ["25"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-oneshot-dropped', 11, 'rust', 'Отправитель oneshot пропал', 'Создайте oneshot-канал, уничтожьте отправитель без отправки и напечатайте ошибку от rx.await через {} (Display у RecvError).
+
+Ожидаемый вывод:
+channel closed', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'if let Err(e) = rx.await { println!("{}", e); }', '{"crates": ["tokio"], "driver": "", "expected": ["channel closed"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-oneshot-try-recv', 12, 'rust', 'try_recv у oneshot', 'Создайте oneshot-канал. Напечатайте rx.try_recv() через {:?} до отправки, затем отправьте 7 и напечатайте try_recv() снова.
+
+Ожидаемый вывод:
+Err(Empty)
+Ok(7)', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Receiver должен быть изменяемым: let (tx, mut rx) = …', '{"crates": ["tokio"], "driver": "", "expected": ["Err(Empty)", "Ok(7)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-broadcast', 13, 'rust', 'Рассылка двум получателям', 'Создайте broadcast::channel(8) и двух подписчиков (tx.subscribe()). Отправьте «a» и «b». Каждый подписчик читает два сообщения. Напечатайте «r1: a b» и «r2: a b».
+
+Ожидаемый вывод:
+r1: a b
+r2: a b', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Каждый подписчик получает копию каждого сообщения.', '{"crates": ["tokio"], "driver": "", "expected": ["r1: a b", "r2: a b"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-broadcast-lagged', 14, 'rust', 'Отставший подписчик', 'broadcast::channel(2): отправьте 1, 2, 3, 4, не читая. Затем читайте: на ошибку Lagged(n) напечатайте «пропущено n», значения печатайте как есть, до конца буфера (3 чтения).
+
+Ожидаемый вывод:
+пропущено 2
+3
+4', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'use tokio::sync::broadcast::error::RecvError; Err(RecvError::Lagged(n)) => ..', '{"crates": ["tokio"], "driver": "", "expected": ["пропущено 2", "3", "4"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-broadcast-late', 15, 'rust', 'Поздняя подписка', 'Создайте broadcast-канал, отправьте «old», затем подпишитесь (subscribe) и напечатайте late.try_recv() через {:?}: старое сообщение подписчик не увидит.
+
+Ожидаемый вывод:
+Err(Empty)', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Сохраните первого получателя (let (tx, _rx)), иначе send вернёт ошибку.', '{"crates": ["tokio"], "driver": "", "expected": ["Err(Empty)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-watch-borrow', 16, 'rust', 'watch: текущее значение', 'Создайте watch::channel(0), отправьте 5 и напечатайте *rx.borrow().
+
+Ожидаемый вывод:
+5', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tx.send(5).unwrap(); *rx.borrow().', '{"crates": ["tokio"], "driver": "", "expected": ["5"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-watch-changed', 17, 'rust', 'watch: ждём изменений', 'Задача обновляет значение watch-канала: 1, 2, 3 с паузой 40 мс между обновлениями и затем завершается. В main ждите rx.changed().await в цикле и печатайте новое значение.
+
+Ожидаемый вывод:
+1
+2
+3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'while rx.changed().await.is_ok() { println!("{}", *rx.borrow()); }', '{"crates": ["tokio"], "driver": "", "expected": ["1", "2", "3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-mutex-counter', 18, 'rust', 'Счётчик под Mutex', 'Десять задач увеличивают общий счётчик Arc<tokio::sync::Mutex<u32>> на 1. Дождитесь всех и напечатайте значение.
+
+Ожидаемый вывод:
+10', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', '*m.lock().await += 1;', '{"crates": ["tokio"], "driver": "", "expected": ["10"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-mutex-across-await', 19, 'rust', 'Замок через await', 'Две задачи берут один tokio::sync::Mutex, держат охранника во время sleep 50 мс. Напечатайте «последовательно: true», если вся работа заняла не меньше 90 мс.
+
+Ожидаемый вывод:
+последовательно: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let _g = m.lock().await; sleep(..).await; — охранник живёт до конца блока.', '{"crates": ["tokio"], "driver": "", "expected": ["последовательно: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-fix-std-mutex', 20, 'rust', 'Исправьте: std Mutex через await', 'Программа не компилируется: охранник std::sync::Mutex живёт через .await внутри spawn. Исправьте, сократив его время жизни (увеличивайте счётчик в отдельном блоке до sleep). Ожидается «счётчик: 1».
+
+Ожидаемый вывод:
+счётчик: 1', 'use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::time::sleep;
+
+#[tokio::main]
+async fn main() {
+    let m = Arc::new(Mutex::new(0));
+    let m2 = Arc::clone(&m);
+    let h = tokio::spawn(async move {
+        let mut g = m2.lock().unwrap();
+        *g += 1;
+        sleep(Duration::from_millis(10)).await;
+    });
+    h.await.unwrap();
+    println!("счётчик: {}", *m.lock().unwrap());
+}
+', 'Оберните let mut g … *g += 1; в отдельные фигурные скобки до .await — охранник уничтожится раньше.', '{"crates": ["tokio"], "driver": "", "expected": ["счётчик: 1"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-rwlock', 21, 'rust', 'RwLock: писатель и читатели', 'Положите число в Arc<RwLock<u32>>: сначала запишите 10, затем запустите три читающие задачи, каждая возвращает прочитанное. Сложите результаты и напечатайте «сумма: …».
+
+Ожидаемый вывод:
+сумма: 30', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', '*lock.write().await = 10; let v = *lock.read().await;', '{"crates": ["tokio"], "driver": "", "expected": ["сумма: 30"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-semaphore-limit', 22, 'rust', 'Ограничение параллелизма', 'Семафор на 2 разрешения, шесть задач: каждая берёт разрешение, увеличивает счётчик одновременно работающих (AtomicUsize), обновляет максимум, спит 50 мс и уменьшает счётчик. Напечатайте «максимум одновременно: 2».
+
+Ожидаемый вывод:
+максимум одновременно: 2', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'cur.fetch_add(1) + 1; max.fetch_max(now); потом cur.fetch_sub(1).', '{"crates": ["tokio"], "driver": "", "expected": ["максимум одновременно: 2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-acquire-owned', 23, 'rust', 'acquire_owned', 'Семафор Arc::new(Semaphore::new(3)): запустите три задачи, каждая получает разрешение через acquire_owned().await (оно переезжает внутрь задачи) и спит 30 мс. После всех напечатайте available_permits().
+
+Ожидаемый вывод:
+3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'sem.clone().acquire_owned().await.unwrap() — разрешение с владением.', '{"crates": ["tokio"], "driver": "", "expected": ["3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-try-acquire', 24, 'rust', 'try_acquire', 'Семафор на одно разрешение. Первый try_acquire — успех (напечатайте «ok»), и пока разрешение держится, второй — отказ (напечатайте «занято»).
+
+Ожидаемый вывод:
+ok
+занято', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let p = sem.try_acquire(); … sem.try_acquire().is_err()', '{"crates": ["tokio"], "driver": "", "expected": ["ok", "занято"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-notify', 25, 'rust', 'Notify: разбудить задачу', 'Задача ждёт notify.notified().await и затем печатает «проснулась». Главная задача печатает «будим» и вызывает notify_one(), после чего дожидается завершения.
+
+Ожидаемый вывод:
+будим
+проснулась', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Notify в Arc; ждущая задача — spawn; будить notify.notify_one().', '{"crates": ["tokio"], "driver": "", "expected": ["будим", "проснулась"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-notify-permit', 26, 'rust', 'Notify: запомненное разрешение', 'Вызовите notify_one() до ожидания, затем notified().await — он не должен заблокироваться. Напечатайте «не блокируется».
+
+Ожидаемый вывод:
+не блокируется', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Notify запоминает одно разрешение, если никто не ждёт.', '{"crates": ["tokio"], "driver": "", "expected": ["не блокируется"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-barrier', 27, 'rust', 'Barrier', 'Barrier::new(3) и три задачи: каждая увеличивает общий счётчик AtomicUsize, затем ждёт на барьере и после него проверяет, что счётчик равен 3. Напечатайте «все видят 3: true».
+
+Ожидаемый вывод:
+все видят 3: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'barrier.wait().await; после барьера все три увеличения уже сделаны.', '{"crates": ["tokio"], "driver": "", "expected": ["все видят 3: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-actor', 28, 'rust', 'Актор-счётчик', 'Напишите актор: задача владеет счётчиком и принимает команды enum Cmd { Add(u32), Get(oneshot::Sender<u32>) } по mpsc. Отправьте Add(3), Add(3), Add(4), затем Get и напечатайте ответ.
+
+Ожидаемый вывод:
+10', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Актор: let mut total = 0; while let Some(cmd) = rx.recv().await { match cmd { .. } }', '{"crates": ["tokio"], "driver": "", "expected": ["10"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 35, 'r35-worker-pool', 29, 'rust', 'Пул рабочих', 'Три рабочих берут задания из общего канала (приёмник в Arc<tokio::sync::Mutex<Receiver<u32>>>), считают квадрат и отправляют результат в канал результатов. Отправьте задания 1…9, закройте канал заданий и напечатайте «сумма квадратов: …».
+
+Ожидаемый вывод:
+сумма квадратов: 285', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Рабочий: let job = { let mut g = rx.lock().await; g.recv().await }; None — выход из цикла.', '{"crates": ["tokio"], "driver": "", "expected": ["сумма квадратов: 285"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-bind-port0', 0, 'rust', 'Порт 0', 'Привяжите TcpListener к 127.0.0.1:0, возьмите порт из local_addr() и напечатайте «порт больше нуля: true».
+
+Ожидаемый вывод:
+порт больше нуля: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'TcpListener::bind("127.0.0.1:0").await?.local_addr()?.port()', '{"crates": ["tokio"], "driver": "", "expected": ["порт больше нуля: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-accept-connect', 1, 'rust', 'Сервер принял клиента', 'Запустите сервер в задаче: он принимает одно соединение и печатает «подключился». Клиент в main подключается (TcpStream::connect). Дождитесь задачи сервера.
+
+Ожидаемый вывод:
+подключился', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Адрес возьмите у listener.local_addr() до spawn.', '{"crates": ["tokio"], "driver": "", "expected": ["подключился"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-write-read', 2, 'rust', 'Отправить и прочитать', 'Клиент отправляет «привет» и закрывает соединение. Сервер читает до конца (read_to_end) и печатает «получено: привет».
+
+Ожидаемый вывод:
+получено: привет', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Клиента уничтожьте (drop) — сервер получит EOF.', '{"crates": ["tokio"], "driver": "", "expected": ["получено: привет"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-read-zero', 3, 'rust', 'read вернул 0', 'Клиент подключается и сразу закрывает соединение. Сервер вызывает read один раз и печатает «EOF: n», где n — число прочитанных байт.
+
+Ожидаемый вывод:
+EOF: 0', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Закрытое собеседником соединение: read возвращает Ok(0).', '{"crates": ["tokio"], "driver": "", "expected": ["EOF: 0"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-echo-once', 4, 'rust', 'Эхо на одно сообщение', 'Сервер читает до 64 байт (один read) и отправляет их обратно. Клиент отправляет «ping», читает ответ и печатает «echo: ping».
+
+Ожидаемый вывод:
+echo: ping', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Сервер: let n = s.read(&mut buf).await?; s.write_all(&buf[..n]).await?.', '{"crates": ["tokio"], "driver": "", "expected": ["echo: ping"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-echo-loop', 5, 'rust', 'Эхо-сервер для многих', 'Напишите сервер с циклом accept и spawn на каждого клиента: обработчик читает и пишет обратно, пока не получит EOF. Три клиента по очереди подключаются, отправляют «id N», читают ответ и печатают «эхо N» для N = 0, 1, 2.
+
+Ожидаемый вывод:
+эхо 0
+эхо 1
+эхо 2', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'loop { let (s, _) = l.accept().await?; tokio::spawn(handle(s)); } — сервер запускайте в отдельной задаче.', '{"crates": ["tokio"], "driver": "", "expected": ["эхо 0", "эхо 1", "эхо 2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-lines', 6, 'rust', 'Чтение построчно', 'Сервер отправляет клиенту «a\nb\nc\n» и закрывает соединение. Клиент читает через BufReader::lines() и печатает каждую строку.
+
+Ожидаемый вывод:
+a
+b
+c', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'use tokio::io::{AsyncBufReadExt, BufReader}; BufReader::new(c).lines(); next_line().await.', '{"crates": ["tokio"], "driver": "", "expected": ["a", "b", "c"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-read-line', 7, 'rust', 'read_line и счёт байт', 'Клиент отправляет «hello\nworld\n» и закрывает соединение. Сервер читает read_line в цикле и печатает «N: строка», где N — число байт (с переводом строки), а на конце потока — «EOF».
+
+Ожидаемый вывод:
+6: hello
+6: world
+EOF', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let n = reader.read_line(&mut s).await?; if n == 0 { break }', '{"crates": ["tokio"], "driver": "", "expected": ["6: hello", "6: world", "EOF"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-length-prefix', 8, 'rust', 'Префикс длины', 'Клиент отправляет кадр: 4 байта длины (big-endian) и затем «hello». Сервер читает заголовок (read_exact на 4 байта), затем ровно столько байт данных и печатает «длина 5, данные hello».
+
+Ожидаемый вывод:
+длина 5, данные hello', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'u32::from_be_bytes(hdr) as usize; (5u32).to_be_bytes().', '{"crates": ["tokio"], "driver": "", "expected": ["длина 5, данные hello"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-read-u32', 9, 'rust', 'read_u32 и write_u32', 'Клиент отправляет число 256 через write_u32 (big-endian). Сервер читает его через read_u32 и печатает.
+
+Ожидаемый вывод:
+256', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'AsyncWriteExt::write_u32 и AsyncReadExt::read_u32 используют сетевой порядок байт.', '{"crates": ["tokio"], "driver": "", "expected": ["256"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-split', 10, 'rust', 'into_split', 'Эхо-сервер (читает и пишет обратно). Клиент разделяет сокет через into_split(): задача-писатель отправляет «split», основная задача читает ровно 5 байт (read_exact) и печатает «ответ: split».
+
+Ожидаемый вывод:
+ответ: split', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let (mut r, mut w) = c.into_split(); tokio::spawn(async move { w.write_all(..).await });', '{"crates": ["tokio"], "driver": "", "expected": ["ответ: split"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-half-close', 11, 'rust', 'shutdown записи', 'Клиент отправляет «запрос», закрывает запись (shutdown), затем читает ответ до конца. Сервер читает до конца запроса, отвечает «ok» и закрывается. Клиент печатает «ответ: ok».
+
+Ожидаемый вывод:
+ответ: ok', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'c.shutdown().await закрывает запись; read_to_end у сервера завершится.', '{"crates": ["tokio"], "driver": "", "expected": ["ответ: ok"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-refused', 12, 'rust', 'Отказ в соединении', 'Привяжите listener, узнайте адрес и уничтожьте listener. Попытка TcpStream::connect к этому адресу должна завершиться ошибкой. Напечатайте её вид через {:?}: e.kind().
+
+Ожидаемый вывод:
+ConnectionRefused', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'match TcpStream::connect(addr).await { Err(e) => println!("{:?}", e.kind()), .. }', '{"crates": ["tokio"], "driver": "", "expected": ["ConnectionRefused"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-udp-echo', 13, 'rust', 'UDP: эхо', 'Сервер на UdpSocket (bind 127.0.0.1:0) принимает датаграмму через recv_from и отправляет её обратно отправителю. Клиент посылает «ping» и печатает «ответ: ping».
+
+Ожидаемый вывод:
+ответ: ping', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let (n, from) = s.recv_from(&mut buf).await?; s.send_to(&buf[..n], from).await?;', '{"crates": ["tokio"], "driver": "", "expected": ["ответ: ping"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-udp-boundaries', 14, 'rust', 'Границы датаграмм', 'Отправьте с одного UDP-сокета на другой «ab» и «cd» двумя send_to. Принимающий делает два recv_from и печатает каждую датаграмму отдельной строкой.
+
+Ожидаемый вывод:
+ab
+cd', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Одна отправка — одно чтение, без слияния.', '{"crates": ["tokio"], "driver": "", "expected": ["ab", "cd"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-read-timeout', 15, 'rust', 'Таймаут чтения', 'Сервер принимает соединение и молчит (держит сокет 300 мс). Клиент пытается прочитать с timeout 50 мс и при ошибке печатает «таймаут чтения».
+
+Ожидаемый вывод:
+таймаут чтения', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::time::timeout(Duration::from_millis(50), c.read(&mut buf)).await', '{"crates": ["tokio"], "driver": "", "expected": ["таймаут чтения"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-accept-shutdown', 16, 'rust', 'Остановка цикла accept', 'Цикл accept в задаче с select!: либо принять клиента (считать), либо получить сигнал остановки по oneshot. Один клиент подключается, затем (после паузы 50 мс) отправляется сигнал. Задача печатает «принято: 1» и «остановлен».
+
+Ожидаемый вывод:
+принято: 1
+остановлен', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'select! { r = l.accept() => { r.unwrap(); n += 1; }, _ = &mut stop => break }', '{"crates": ["tokio"], "driver": "", "expected": ["принято: 1", "остановлен"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-count-conns', 17, 'rust', 'Подсчёт соединений', 'Сервер в цикле принимает ровно 5 соединений и считает их в AtomicUsize (каждое — в своей задаче spawn). Пять клиентов подключаются. Дождитесь сервера и напечатайте «подключений: 5».
+
+Ожидаемый вывод:
+подключений: 5', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'for _ in 0..5 { let (s, _) = l.accept().await?; counter.fetch_add(1, SeqCst); spawn(..) }', '{"crates": ["tokio"], "driver": "", "expected": ["подключений: 5"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-io-copy', 18, 'rust', 'io::copy', 'Скопируйте байты из среза &[u8] (b"hello world") в Vec<u8> функцией tokio::io::copy и напечатайте «скопировано: N».
+
+Ожидаемый вывод:
+скопировано: 11', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let mut r: &[u8] = b"hello world"; let mut w = Vec::new(); tokio::io::copy(&mut r, &mut w).await?', '{"crates": ["tokio"], "driver": "", "expected": ["скопировано: 11"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-duplex', 19, 'rust', 'duplex в памяти', 'Создайте пару tokio::io::duplex(64). Запишите в одну половину «hi», закройте её и прочитайте всё из другой в String. Напечатайте строку.
+
+Ожидаемый вывод:
+hi', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let (mut a, mut b) = tokio::io::duplex(64); drop(a) после записи; b.read_to_string(&mut s).', '{"crates": ["tokio"], "driver": "", "expected": ["hi"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-proxy', 20, 'rust', 'Прокси через copy_bidirectional', 'Эхо-сервер, прокси и клиент. Прокси принимает соединение клиента, подключается к эхо-серверу и гонит данные в обе стороны через tokio::io::copy_bidirectional. Клиент отправляет «via proxy», читает столько же байт и печатает «через прокси: via proxy».
+
+Ожидаемый вывод:
+через прокси: via proxy', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'copy_bidirectional(&mut client_side, &mut upstream).await — в отдельной задаче.', '{"crates": ["tokio"], "driver": "", "expected": ["через прокси: via proxy"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-stream-map', 21, 'rust', 'Stream: map и collect', 'Из tokio_stream::iter(1..=3) получите поток, умножьте каждое значение на 2 (map) и соберите в Vec (collect). Напечатайте вектор через {:?}.
+
+Ожидаемый вывод:
+[2, 4, 6]', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'use tokio_stream::{self as stream, StreamExt}; stream::iter(..).map(..).collect::<Vec<_>>().await', '{"crates": ["tokio"], "driver": "", "expected": ["[2, 4, 6]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-receiver-stream', 22, 'rust', 'ReceiverStream', 'Оберните приёмник mpsc-канала в ReceiverStream, отправьте из задачи 1, 2, 3 и соберите поток в вектор. Напечатайте вектор через {:?}.
+
+Ожидаемый вывод:
+[1, 2, 3]', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio_stream::wrappers::ReceiverStream::new(rx).collect::<Vec<_>>().await', '{"crates": ["tokio"], "driver": "", "expected": ["[1, 2, 3]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-stream-filter-take', 23, 'rust', 'Stream: filter и take', 'Из iter(1..=10) оставьте чётные (filter), возьмите первые три (take) и соберите в Vec. Напечатайте вектор через {:?}.
+
+Ожидаемый вывод:
+[2, 4, 6]', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', '.filter(|x| x % 2 == 0).take(3).collect::<Vec<_>>().await', '{"crates": ["tokio"], "driver": "", "expected": ["[2, 4, 6]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-fs', 24, 'rust', 'tokio::fs', 'Запишите «hello» в файл /tmp/say_r36.txt через tokio::fs::write, прочитайте обратно read_to_string, напечатайте содержимое и удалите файл (remove_file).
+
+Ожидаемый вывод:
+hello', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::fs::write(path, data).await?; tokio::fs::read_to_string(path).await?', '{"crates": ["tokio"], "driver": "", "expected": ["hello"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-spawn-blocking', 25, 'rust', 'spawn_blocking', 'Через tokio::task::spawn_blocking вычислите сумму чисел от 1 до 1_000_000 (u64) и напечатайте результат.
+
+Ожидаемый вывод:
+500000500000', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'spawn_blocking(|| (1..=1_000_000u64).sum::<u64>()).await?', '{"crates": ["tokio"], "driver": "", "expected": ["500000500000"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-lookup-host', 26, 'rust', 'lookup_host', 'Через tokio::net::lookup_host("127.0.0.1:80") получите адреса и напечатайте «адресов: N».
+
+Ожидаемый вывод:
+адресов: 1', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'lookup_host(..).await?.count()', '{"crates": ["tokio"], "driver": "", "expected": ["адресов: 1"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-peer-addr', 27, 'rust', 'Адрес клиента', 'Сервер получает адрес клиента из accept() и печатает «клиент с петли: true», если addr.ip().is_loopback().
+
+Ожидаемый вывод:
+клиент с петли: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let (_s, peer) = l.accept().await?; peer.ip().is_loopback()', '{"crates": ["tokio"], "driver": "", "expected": ["клиент с петли: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-unix-socket', 28, 'rust', 'Unix-сокет', 'Привяжите UnixListener к /tmp/say_r36.sock, подключитесь UnixStream-клиентом, отправьте «ping», сервер читает и печатает «unix: ping». После работы удалите файл сокета.
+
+Ожидаемый вывод:
+unix: ping', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'use tokio::net::{UnixListener, UnixStream}; перед bind удалите старый файл (let _ = std::fs::remove_file).', '{"crates": ["tokio"], "driver": "", "expected": ["unix: ping"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 36, 'r36-line-protocol', 29, 'rust', 'Текстовый протокол', 'Сервер читает строку «ADD 2 3», складывает числа и отвечает строкой с результатом и переводом строки. Клиент отправляет «ADD 2 3\n», читает строку ответа и печатает её без перевода строки.
+
+Ожидаемый вывод:
+5', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'BufReader::new(socket).read_line(..); split_whitespace(); write_all(format!("{}\n", sum)).', '{"crates": ["tokio"], "driver": "", "expected": ["5"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-abort-inflight', 0, 'rust', 'abort в полёте', 'Запустите задачу: печатает «start», спит 100 мс и печатает «end». Через 20 мс отмените её (abort), дождитесь хэндла и напечатайте «отменена: true» (JoinError::is_cancelled).
+
+Ожидаемый вывод:
+start
+отменена: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let e = h.await.unwrap_err(); e.is_cancelled()', '{"crates": ["tokio"], "driver": "", "expected": ["start", "отменена: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-drop-future', 1, 'rust', 'Drop отменённого фьючера', 'Заведите структуру Guard с Drop, печатающим «drop guard». В select! первая ветка — async-блок: создаёт Guard и спит 200 мс; вторая — сон 20 мс и печать «тайм-аут». Посмотрите, что и в каком порядке напечатано: проигравший фьючер уничтожается вместе со своими локальными значениями.
+
+Ожидаемый вывод:
+drop guard
+тайм-аут', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Guard живёт внутри async-блока и уничтожается при отбрасывании блока.', '{"crates": ["tokio"], "driver": "", "expected": ["drop guard", "тайм-аут"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-is-finished', 2, 'rust', 'abort и is_finished', 'Запустите задачу со сном 1 с, отмените её (abort), подождите 10 мс и напечатайте «завершена: true» по is_finished().
+
+Ожидаемый вывод:
+завершена: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'После abort задача завершается на ближайшем .await; is_finished() покажет true.', '{"crates": ["tokio"], "driver": "", "expected": ["завершена: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-detached', 3, 'rust', 'Уничтоженный хэндл не отменяет', 'Запустите задачу: сон 30 мс и печать «работает». Сразу уничтожьте JoinHandle (drop) и ждите в main 100 мс. Задача должна успеть напечатать своё.
+
+Ожидаемый вывод:
+работает', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'drop(handle) не вызывает abort: задача продолжает жить.', '{"crates": ["tokio"], "driver": "", "expected": ["работает"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-token-loop', 4, 'rust', 'Цикл с токеном', 'Задача в цикле select!: ждёт tokio_util::sync::CancellationToken::cancelled() или сон 10 мс (считать). Через 50 мс main отменяет токен. Задача печатает «остановлена», main дожидается её.
+
+Ожидаемый вывод:
+остановлена', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::select! { _ = token.cancelled() => break, _ = sleep(..) => n += 1 }', '{"crates": ["tokio"], "driver": "", "expected": ["остановлена"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-child-token', 5, 'rust', 'Дерево токенов', 'Создайте родительский токен и дочерний (child_token()). Отмените родителя и напечатайте «дочерний: true» (child.is_cancelled()). Затем создайте новую пару, отмените ребёнка и напечатайте «родитель: false».
+
+Ожидаемый вывод:
+дочерний: true
+родитель: false', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Отмена идёт вниз по дереву, но не вверх.', '{"crates": ["tokio"], "driver": "", "expected": ["дочерний: true", "родитель: false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-cancelled-await', 6, 'rust', 'Ждём сигнал', 'Запущенная задача ждёт token.cancelled().await и печатает «сигнал получен». Main печатает «отменяем» (после паузы 20 мс), отменяет токен и дожидается задачи.
+
+Ожидаемый вывод:
+отменяем
+сигнал получен', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'cancel() будит все ожидающие cancelled().', '{"crates": ["tokio"], "driver": "", "expected": ["отменяем", "сигнал получен"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-drop-guard', 7, 'rust', 'DropGuard токена', 'Получите drop_guard() у клона токена в отдельном блоке; после выхода из блока напечатайте «отменён: true» (token.is_cancelled()).
+
+Ожидаемый вывод:
+отменён: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', '{ let _g = token.clone().drop_guard(); }', '{"crates": ["tokio"], "driver": "", "expected": ["отменён: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-broadcast-shutdown', 8, 'rust', 'Остановка рассылкой', 'Запустите три рабочих задачи, каждая ждёт сообщение остановки из broadcast-канала и возвращает свой номер. Через 20 мс main отправляет сигнал, собирает номера (JoinSet) и печатает «остановлено: 3».
+
+Ожидаемый вывод:
+остановлено: 3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let mut rx = tx.subscribe(); rx.recv().await; JoinSet::join_next().', '{"crates": ["tokio"], "driver": "", "expected": ["остановлено: 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-task-tracker', 9, 'rust', 'TaskTracker', 'Запустите через TaskTracker три задачи со снами 10, 20 и 30 мс, закройте трекер (close) и дождитесь (wait). Напечатайте «все завершены».
+
+Ожидаемый вывод:
+все завершены', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'use tokio_util::task::TaskTracker; tracker.spawn(..); tracker.close(); tracker.wait().await', '{"crates": ["tokio"], "driver": "", "expected": ["все завершены"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-joinset-sum', 10, 'rust', 'JoinSet: сумма', 'Запустите в JoinSet три задачи, возвращающие 1, 2 и 3. Сложите результаты по мере готовности (join_next) и напечатайте «сумма: 6».
+
+Ожидаемый вывод:
+сумма: 6', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'while let Some(r) = set.join_next().await { sum += r.unwrap(); }', '{"crates": ["tokio"], "driver": "", "expected": ["сумма: 6"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-cleanup-abort', 11, 'rust', 'Очистка при abort', 'Задача создаёт Guard с Drop, печатающим «очистка», и спит секунду. Через 20 мс отмените её, дождитесь хэндла и напечатайте «отменена». Очистка должна пройти раньше.
+
+Ожидаемый вывод:
+очистка
+отменена', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Drop сработает при отбрасывании фьючера, до возврата h.await.', '{"crates": ["tokio"], "driver": "", "expected": ["очистка", "отменена"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-semaphore-peak', 12, 'rust', 'Предел параллелизма', 'Обработайте 10 заданий, ограничив одновременность семафором на 3 разрешения. В каждом задании увеличивайте счётчик активных (AtomicUsize), обновляйте максимум, спите 30 мс и уменьшайте. Напечатайте «пик: 3».
+
+Ожидаемый вывод:
+пик: 3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'fetch_max для пика; разрешение — в переменной на время сна.', '{"crates": ["tokio"], "driver": "", "expected": ["пик: 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-load-shed', 13, 'rust', 'Сброс нагрузки', 'Очередь на 2 места, потребителя нет. Отправьте 5 заданий через try_send; считайте принятые и отброшенные (Full). Напечатайте «принято 2, отброшено 3».
+
+Ожидаемый вывод:
+принято 2, отброшено 3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Err(TrySendError::Full(_)) => rejected += 1', '{"crates": ["tokio"], "driver": "", "expected": ["принято 2, отброшено 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-timeout-error', 14, 'rust', 'Своя ошибка таймаута', 'Опишите enum Error { Timeout } (derive Debug) и async fn call() -> Result<u32, Error>: ожидание сна 200 мс под timeout 30 мс, при просрочке — Error::Timeout. Напечатайте результат вызова через {:?}.
+
+Ожидаемый вывод:
+Err(Timeout)', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', '.await.map_err(|_| Error::Timeout)?; затем Ok(..)', '{"crates": ["tokio"], "driver": "", "expected": ["Err(Timeout)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-blocking-parallel', 15, 'rust', 'spawn_blocking не мешает', 'На однопоточном рантайме (flavor = "current_thread") запустите задачу-тикер: каждые 10 мс увеличивает счётчик. Одновременно дождитесь spawn_blocking с блокирующим std::thread::sleep на 100 мс. Затем остановите тикер и напечатайте «работал параллельно: true», если тиков не меньше 5.
+
+Ожидаемый вывод:
+работал параллельно: true', '#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    // ваш код
+}
+', 'spawn_blocking(|| std::thread::sleep(..)).await — пока ждём, поток рантайма свободен для тикера.', '{"crates": ["tokio"], "driver": "", "expected": ["работал параллельно: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-fix-blocking', 16, 'rust', 'Исправьте: блокирующий сон в задаче', 'Тикер на однопоточном рантайме не получает времени: main выполняет «тяжёлую работу» (std::thread::sleep на 100 мс) прямо в асинхронной функции. Вынесите её в spawn_blocking, чтобы тикер успел сработать не менее 5 раз: должно быть «тиков не меньше 5: true».
+
+Ожидаемый вывод:
+тиков не меньше 5: true', 'use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::time::sleep;
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let ticks = Arc::new(AtomicUsize::new(0));
+    let t = ticks.clone();
+    let ticker = tokio::spawn(async move {
+        loop {
+            sleep(Duration::from_millis(10)).await;
+            t.fetch_add(1, Ordering::SeqCst);
+        }
+    });
+    std::thread::sleep(Duration::from_millis(100)); // тяжёлая работа
+    ticker.abort();
+    println!("тиков не меньше 5: {}", ticks.load(Ordering::SeqCst) >= 5);
+}
+', 'tokio::task::spawn_blocking(|| std::thread::sleep(..)).await.unwrap();', '{"crates": ["tokio"], "driver": "", "expected": ["тиков не меньше 5: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-join-panic', 17, 'rust', 'Паника в задаче', 'Запустите задачу, которая паникует (panic!), дождитесь хэндла и напечатайте «паника: true» по JoinError::is_panic(). Программа при этом не должна упасть.
+
+Ожидаемый вывод:
+паника: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let e = h.await.unwrap_err(); e.is_panic()', '{"crates": ["tokio"], "driver": "", "expected": ["паника: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-supervisor', 18, 'rust', 'Супервайзер', 'Задача при первых двух запусках паникует, на третьем завершается нормально; каждый запуск печатает «запуск N». Напишите цикл-супервайзер: пока хэндл возвращает ошибку, запускайте задачу заново. После успеха напечатайте «готово».
+
+Ожидаемый вывод:
+запуск 1
+запуск 2
+запуск 3
+готово', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'AtomicUsize считает запуски; if tokio::spawn(..).await.is_ok() { break }', '{"crates": ["tokio"], "driver": "", "expected": ["запуск 1", "запуск 2", "запуск 3", "готово"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-retry-limit', 19, 'rust', 'Повторы с пределом', 'Операция всегда падает (Err("fail")). Повторите её не более 3 раз с паузой 10 мс между попытками. Напечатайте «попыток: 3» и «итог: Err».
+
+Ожидаемый вывод:
+попыток: 3
+итог: Err', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Счётчик попыток, пауза после каждой неудачи, выход по пределу.', '{"crates": ["tokio"], "driver": "", "expected": ["попыток: 3", "итог: Err"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-interval-limit', 20, 'rust', 'Ограничение частоты интервалом', 'Обработайте 5 событий, перед каждым ожидая tick() интервала 20 мс (первый тик сразу). Напечатайте «ограничено: true», если всё заняло не меньше 70 мс.
+
+Ожидаемый вывод:
+ограничено: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Тики на 0, 20, 40, 60, 80 мс — до последнего события 80 мс.', '{"crates": ["tokio"], "driver": "", "expected": ["ограничено: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-refill', 21, 'rust', 'Ведро токенов', 'Семафор без разрешений и фоновая задача: каждые 20 мс добавляет одно разрешение (add_permits(1)). Main берёт три разрешения подряд (acquire().await.forget()). Напечатайте «пополнение работает: true», если это заняло не меньше 55 мс.
+
+Ожидаемый вывод:
+пополнение работает: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'sem.acquire().await.unwrap().forget() — токен потрачен, а не возвращён.', '{"crates": ["tokio"], "driver": "", "expected": ["пополнение работает: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-bucket-burst', 22, 'rust', 'Всплеск и ожидание', 'Ведро на 3 токена изначально полное, пополнение — по одному каждые 50 мс. Возьмите 3 токена (должно занять меньше 20 мс) и напечатайте «всплеск: true», затем возьмите четвёртый и напечатайте «четвёртый ждал: true» (не меньше 40 мс).
+
+Ожидаемый вывод:
+всплеск: true
+четвёртый ждал: true', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'Измеряйте Instant перед и после acquire; пополнение — в фоновой задаче.', '{"crates": ["tokio"], "driver": "", "expected": ["всплеск: true", "четвёртый ждал: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-metrics', 23, 'rust', 'Метрики рантайма', 'В обычной fn main постройте многопоточный рантайм с 2 рабочими потоками (Builder, enable_all) и напечатайте rt.metrics().num_workers().
+
+Ожидаемый вывод:
+2', 'fn main() {
+    // ваш код
+}
+', 'tokio::runtime::Builder::new_multi_thread().worker_threads(2).enable_all().build()', '{"crates": ["tokio"], "driver": "", "expected": ["2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-yield', 24, 'rust', 'yield_now: уступить поток', 'На однопоточном рантайме запустите задачу, которая поднимает общий AtomicBool. В main ждите, пока флаг поднимется, циклом с tokio::task::yield_now().await (без sleep) и напечатайте «флаг поднят».
+
+Ожидаемый вывод:
+флаг поднят', '#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    // ваш код
+}
+', 'while !flag.load(Ordering::SeqCst) { tokio::task::yield_now().await; } — без yield_now задача никогда не получит поток.', '{"crates": ["tokio"], "driver": "", "expected": ["флаг поднят"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-actor-timeout', 25, 'rust', 'Актор не отвечает', 'Актор принимает запрос с oneshot::Sender и «зависает» (сон 500 мс, ответа нет). Клиент ждёт ответ с timeout 50 мс и при просрочке печатает «актор не ответил».
+
+Ожидаемый вывод:
+актор не ответил', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'timeout(Duration::from_millis(50), reply_rx).await.is_err()', '{"crates": ["tokio"], "driver": "", "expected": ["актор не ответил"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-drain', 26, 'rust', 'Дочитать очередь', 'Производитель отправляет 5 заданий и закрывает канал. Потребитель обрабатывает каждое (сон 5 мс) до закрытия и затем печатает «обработано: 5» — очередь не теряется при закрытии.
+
+Ожидаемый вывод:
+обработано: 5', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'while let Some(_) = rx.recv().await — выходит только после того, как все сообщения прочитаны.', '{"crates": ["tokio"], "driver": "", "expected": ["обработано: 5"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-biased-stop', 27, 'rust', 'Остановка в приоритете', 'Токен уже отменён, а в очереди лежат задания. Цикл select! с biased; проверяет сначала cancelled(), затем recv(). Напечатайте «после остановки: 0» — число обработанных заданий.
+
+Ожидаемый вывод:
+после остановки: 0', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::select! { biased; _ = token.cancelled() => break, job = rx.recv() => .. }', '{"crates": ["tokio"], "driver": "", "expected": ["после остановки: 0"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-watch-flag', 28, 'rust', 'Флаг остановки через watch', 'Три рабочих ждут, пока watch-значение станет true (rx.wait_for(|v| *v).await). Main через 20 мс отправляет true и дожидается всех (JoinSet). Напечатайте «остановлены: 3».
+
+Ожидаемый вывод:
+остановлены: 3', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'let (tx, rx) = watch::channel(false); в задаче let mut rx = rx.clone(); rx.wait_for(|v| *v).await', '{"crates": ["tokio"], "driver": "", "expected": ["остановлены: 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 37, 'r37-explicit-close', 29, 'rust', 'Явное закрытие вместо async Drop', 'Структура Conn { closed: bool } с Drop: если closed == false, печатает «не закрыто!». Добавьте async fn close(mut self): ставит closed = true и спит 10 мс (имитация сброса буферов). Вызовите close и напечатайте «закрыто явно». Предупреждения из Drop быть не должно.
+
+Ожидаемый вывод:
+закрыто явно', '#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'В close(mut self) выставьте флаг до того, как self уничтожится в конце функции.', '{"crates": ["tokio"], "driver": "", "expected": ["закрыто явно"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 38, 'r38-binary-search', 0, 'rust', 'Бинарный поиск со счётчиком шагов', 'Напишите binary_search(v: &[i32], x: i32) -> (Option<usize>, u32): индекс значения в отсортированном срезе (любой из подходящих при повторах) и число выполненных сравнений. Проверка подаёт миллион элементов и требует не больше 21 шага.', 'fn binary_search(v: &[i32], x: i32) -> (Option<usize>, u32) {
     todo!()
 }
