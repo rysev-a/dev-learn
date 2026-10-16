@@ -65,17 +65,17 @@ function parseNumber(token: string, equ: ReadonlyMap<string, number>): number | 
   if (equ.has(t)) return equ.get(t);
   const ch = /^'(\\.|[^\\'])'$/.exec(t);
   if (ch) {
-    const body = ch[1];
-    if (body.length === 2) return ESCAPES[body[1]];
+    const body = ch[1]!;
+    if (body.length === 2) return ESCAPES[body[1]!];
     return body.codePointAt(0);
   }
   const m = /^([+-]?)(0x[0-9a-f]+|0b[01]+|\d+)$/i.exec(t);
   if (!m) return undefined;
-  const n = m[2].toLowerCase().startsWith('0x')
-    ? parseInt(m[2].slice(2), 16)
-    : m[2].toLowerCase().startsWith('0b')
-      ? parseInt(m[2].slice(2), 2)
-      : parseInt(m[2], 10);
+  const n = m[2]!.toLowerCase().startsWith('0x')
+    ? parseInt(m[2]!.slice(2), 16)
+    : m[2]!.toLowerCase().startsWith('0b')
+      ? parseInt(m[2]!.slice(2), 2)
+      : parseInt(m[2]!, 10);
   return m[1] === '-' ? -n : n;
 }
 
@@ -103,20 +103,20 @@ export function assemble(source: string): AsmResult {
     // метка в начале строки
     const lab = /^([^\s:,]+):\s*(.*)$/.exec(text);
     if (lab) {
-      if (!IDENT.test(lab[1])) fail(line, `Недопустимое имя метки «${lab[1]}»`);
-      else if (lab[1] in labels) fail(line, `Метка «${lab[1]}» уже объявлена`);
-      else labels[lab[1]] = parsed.length;
-      text = lab[2].trim();
+      if (!IDENT.test(lab[1]!)) fail(line, `Недопустимое имя метки «${lab[1]}»`);
+      else if (lab[1]! in labels) fail(line, `Метка «${lab[1]}» уже объявлена`);
+      else labels[lab[1]!] = parsed.length;
+      text = lab[2]!.trim();
       if (text === '') return;
     }
 
     const head = /^(\S+)\s*(.*)$/.exec(text)!;
-    const mnemonic = head[1].toLowerCase();
-    const operands = splitOperands(head[2]);
+    const mnemonic = head[1]!.toLowerCase();
+    const operands = splitOperands(head[2]!);
 
     if (mnemonic === '.equ') {
-      const name = operands[0];
-      const value = operands.length === 2 ? parseNumber(operands[1], equ) : undefined;
+      const name = operands[0]!;
+      const value = operands.length === 2 ? parseNumber(operands[1]!, equ) : undefined;
       if (operands.length !== 2 || !IDENT.test(name ?? ''))
         fail(line, 'Нужно так: .equ ИМЯ, число');
       else if (value === undefined) fail(line, `Не понимаю число «${operands[1]}»`);
@@ -128,7 +128,7 @@ export function assemble(source: string): AsmResult {
   });
 
   if (parsed.length > PROGRAM_MAX) {
-    fail(parsed[PROGRAM_MAX].line, `Слишком длинная программа: не больше ${PROGRAM_MAX} команд`);
+    fail(parsed[PROGRAM_MAX]!.line, `Слишком длинная программа: не больше ${PROGRAM_MAX} команд`);
   }
 
   /* ---------- проход 2: кодирование ---------- */
@@ -155,25 +155,25 @@ export function assemble(source: string): AsmResult {
         break;
       case 'mv':
         if (!need(2, 'mv rd, rs')) return;
-        [mnemonic, ops] = ['addi', [ops[0], ops[1], '0']];
+        [mnemonic, ops] = ['addi', [ops[0]!, ops[1]!, '0']];
         break;
       case 'inc':
         if (!need(1, 'inc rd')) return;
-        [mnemonic, ops] = ['addi', [ops[0], ops[0], '1']];
+        [mnemonic, ops] = ['addi', [ops[0]!, ops[0]!, '1']];
         break;
       case 'dec':
         if (!need(1, 'dec rd')) return;
-        [mnemonic, ops] = ['addi', [ops[0], ops[0], '-1']];
+        [mnemonic, ops] = ['addi', [ops[0]!, ops[0]!, '-1']];
         break;
       case 'beqz':
       case 'bnez':
         if (!need(2, `${mnemonic} r, метка`)) return;
-        [mnemonic, ops] = [mnemonic === 'beqz' ? 'beq' : 'bne', [ops[0], 'r0', ops[1]]];
+        [mnemonic, ops] = [mnemonic === 'beqz' ? 'beq' : 'bne', [ops[0]!, 'r0', ops[1]!]];
         break;
       case 'bgtu':
       case 'bleu':
         if (!need(3, `${mnemonic} ra, rb, метка`)) return;
-        [mnemonic, ops] = [mnemonic === 'bgtu' ? 'bltu' : 'bgeu', [ops[1], ops[0], ops[2]]];
+        [mnemonic, ops] = [mnemonic === 'bgtu' ? 'bltu' : 'bgeu', [ops[1]!, ops[0]!, ops[2]!]];
         break;
       case 'j':
         if (!need(1, 'j метка')) return;
@@ -230,7 +230,7 @@ function encode(
   /** смещение до метки (или числом) — в командах от самой этой команды */
   const target = (token: string, bits: number): number | undefined => {
     let off: number | undefined;
-    if (token in labels) off = labels[token] - addr;
+    if (token in labels) off = labels[token]! - addr;
     else {
       const n = parseNumber(token, equ);
       if (n === undefined) {
@@ -283,13 +283,13 @@ function encode(
     case 'mem': {
       if (!count(2, `${def.mnemonic} rd, смещение(rs)`)) return undefined;
       const rd = reg(ops[0]);
-      const m = /^(.*)\(\s*([^)]+?)\s*\)$/.exec(ops[1]);
+      const m = /^(.*)\(\s*([^)]+?)\s*\)$/.exec(ops[1]!);
       if (!m) {
         fail(line, `Адрес пишется как смещение(регистр), например 0(r2), а здесь «${ops[1]}»`);
         return undefined;
       }
       const rs = reg(m[2]);
-      const off = m[1].trim() === '' ? 0 : num(m[1], -32, 31, 'Смещение');
+      const off = m[1]!.trim() === '' ? 0 : num(m[1], -32, 31, 'Смещение');
       return rd === undefined || rs === undefined || off === undefined
         ? undefined
         : pack(def.opcode, rd, rs, off);
@@ -298,7 +298,7 @@ function encode(
     case 'branch': {
       if (!count(3, `${def.mnemonic} ra, rb, метка`)) return undefined;
       const [ra, rb] = [reg(ops[0]), reg(ops[1])];
-      const off = target(ops[2], 6);
+      const off = target(ops[2]!, 6);
       return ra === undefined || rb === undefined || off === undefined
         ? undefined
         : pack(def.opcode, ra, rb, off);
@@ -306,7 +306,7 @@ function encode(
 
     case 'jump': {
       if (!count(1, 'jmp метка')) return undefined;
-      const off = target(ops[0], 12);
+      const off = target(ops[0]!, 12);
       return off === undefined ? undefined : (def.opcode << 12) | (off & 0xfff);
     }
   }

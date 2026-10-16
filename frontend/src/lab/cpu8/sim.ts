@@ -165,26 +165,26 @@ export class CompiledSim {
     for (let start = 0; start < elements.length; start++) {
       if (state[start] !== 0) continue;
       const stack: { i: number; next: number; d: number[] }[] = [
-        { i: start, next: 0, d: deps(elements[start]) },
+        { i: start, next: 0, d: deps(elements[start]!) },
       ];
       state[start] = 1;
       while (stack.length > 0) {
-        const top = stack[stack.length - 1];
+        const top = stack[stack.length - 1]!;
         if (top.next < top.d.length) {
-          const p = producer.get(top.d[top.next++]);
+          const p = producer.get(top.d[top.next++]!);
           if (p === undefined || state[p] === 2) continue;
           if (state[p] === 1) {
             const loop = stack.map((s) => {
-              const e = elements[s.i];
-              return names[e.kind === 'gate' ? e.cell.out : e.native.dout[0]];
+              const e = elements[s.i]!;
+              return names[(e.kind === 'gate' ? e.cell!.out : e.native!.dout[0])!]!;
             });
-            throw new CombinationalLoopError(loop);
+            throw new CombinationalLoopError(loop!);
           }
           state[p] = 1;
-          stack.push({ i: p, next: 0, d: deps(elements[p]) });
+          stack.push({ i: p, next: 0, d: deps(elements[p]!) });
         } else {
           state[top.i] = 2;
-          result.push(elements[top.i]);
+          result.push(elements[top.i]!);
           stack.pop();
         }
       }
@@ -219,16 +219,16 @@ export class CompiledSim {
         const { type, out, a, b } = e.cell;
         const x = a < 0 ? X : v[a];
         const y = b < 0 ? X : v[b];
-        v[out] = evalGate(type, x, y);
+        v[out] = evalGate(type, x!, y!);
       } else {
         const n = e.native;
         const addr = readBits(v, n.addr);
         const word = addr < 0 ? -1 : n.data[addr];
         const w = n.dout.length;
-        for (let k = 0; k < w; k++) v[n.dout[k]] = word < 0 ? X : (word >> (w - 1 - k)) & 1;
+        for (let k = 0; k < w; k++) v[n.dout[k]!] = word! < 0 ? X : (word! >> (w - 1 - k)) & 1;
       }
     }
-    for (const al of this.aliases) v[al.out] = v[al.src];
+    for (const al of this.aliases) v[al.out] = (v[al.src] ?? 0);
   }
 
   /**
@@ -241,8 +241,8 @@ export class CompiledSim {
     if (c === undefined) throw new Error(`Нет узла такта «${clkNode}»`);
     v[c] = 0;
     this.settle();
-    for (const d of this.dffs) d.prev = d.clk < 0 ? X : v[d.clk];
-    for (const n of this.natives.values()) n.prev = n.clk < 0 ? X : v[n.clk];
+    for (const d of this.dffs) d.prev = (d.clk < 0 ? X : v[d.clk])!;
+    for (const n of this.natives.values()) n.prev = (n.clk < 0 ? X : v[n.clk])!;
 
     v[c] = 1;
     this.settle(); // такт поднялся: вентили на пути такта (если есть) пересчитались
@@ -251,7 +251,7 @@ export class CompiledSim {
     const latched: { d: Dff; value: number }[] = [];
     for (const d of this.dffs) {
       if (d.prev === 0 && d.clk >= 0 && v[d.clk] === 1)
-        latched.push({ d, value: d.d < 0 ? X : v[d.d] });
+        latched.push({ d, value: (d.d < 0 ? X : v[d.d])! });
     }
     const writes: { n: Native; addr: number; value: number }[] = [];
     for (const n of this.natives.values()) {
@@ -273,14 +273,14 @@ export class CompiledSim {
 
   loadRom(id: string, words: ArrayLike<number>): void {
     this.native(id, 'rom').data.fill(0);
-    for (let i = 0; i < words.length; i++) this.native(id, 'rom').data[i] = words[i];
+    for (let i = 0; i < words.length; i++) this.native(id, 'rom').data[i] = words[i]!;
     this.settle();
   }
 
   loadRam(id: string, bytes: ArrayLike<number>): void {
     const n = this.native(id, 'ram');
     n.data.fill(0);
-    for (let i = 0; i < bytes.length; i++) n.data[i] = bytes[i] & 0xff;
+    for (let i = 0; i < bytes.length; i++) n.data[i] = bytes[i]! & 0xff;
     this.settle();
   }
 
@@ -317,8 +317,8 @@ function readBits(v: Int8Array, idxs: readonly number[]): number {
   let r = 0;
   for (const i of idxs) {
     const x = i < 0 ? X : v[i];
-    if (x < 0) return -1;
-    r = (r << 1) | x;
+    if (x! < 0) return -1;
+    r = (r << 1) | x!;
   }
   return r;
 }

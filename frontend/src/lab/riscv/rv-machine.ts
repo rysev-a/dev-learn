@@ -118,7 +118,7 @@ export class RvMachine {
       return undefined;
     }
     let v = 0;
-    for (let k = size - 1; k >= 0; k--) v = (v << 8) | this.mem[a + k];
+    for (let k = size - 1; k >= 0; k--) v = (v << 8) | (this.mem[a + k] ?? 0);
     return v;
   }
 
@@ -164,7 +164,7 @@ export class RvMachine {
       return;
     }
     const word =
-      this.mem[pc] | (this.mem[pc + 1] << 8) | (this.mem[pc + 2] << 16) | (this.mem[pc + 3] << 24);
+      (this.mem[pc] ?? 0) | ((this.mem[pc + 1] ?? 0) << 8) | ((this.mem[pc + 2] ?? 0) << 16) | ((this.mem[pc + 3] ?? 0) << 24);
     const d = decode(word);
     this.lastInsn = disassemble(word);
     const o = d.op;
@@ -176,8 +176,8 @@ export class RvMachine {
     }
 
     const r = this.regs;
-    const a = r[d.rs1];
-    const b = r[d.rs2];
+    const a = r[d.rs1] ?? 0;
+    const b = r[d.rs2] ?? 0;
     let next = pc + 4;
     let result: number | undefined;
 
@@ -369,7 +369,7 @@ export class RvMachine {
     switch (n) {
       case 93: // exit(код)
         this.halted = true;
-        this.exitCode = this.regs[10];
+        this.exitCode = (this.regs[10] ?? 0);
         return true;
       case 64: {
         // write(fd, буфер, длина): только fd = 1 (консоль)
@@ -379,12 +379,12 @@ export class RvMachine {
           );
           return false;
         }
-        const [buf, len] = [this.regs[11] >>> 0, this.regs[12] >>> 0];
+        const [buf, len] = [(this.regs[11] ?? 0) >>> 0, (this.regs[12] ?? 0) >>> 0];
         if (buf + len > RAM_SIZE) {
           this.fault(`write: буфер ${hex(buf)} + ${len} выходит за пределы памяти`);
           return false;
         }
-        for (let k = 0; k < len; k++) this.uart.push(this.mem[buf + k]);
+        for (let k = 0; k < len; k++) this.uart.push((this.mem[buf + k] ?? 0));
         this.regs[10] = len;
         this.lastReg = 10;
         return true;

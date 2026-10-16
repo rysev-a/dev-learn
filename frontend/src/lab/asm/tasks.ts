@@ -54,14 +54,14 @@ function compare(mem: Uint8Array, expected: Uint8Array): CheckResult {
   for (let i = 0; i < MEM_SIZE; i++) if (mem[i] !== expected[i]) diffs.push(i);
   if (diffs.length === 0)
     return { ok: true, message: 'Диск совпал с ожидаемым — задание выполнено!' };
-  const first = diffs[0];
+  const first = diffs[0]!;
   const more =
     diffs.length > 1
       ? ` (и ещё ${diffs.length - 1} ${diffs.length === 2 ? 'байт' : 'байт(а)'})`
       : '';
   return {
     ok: false,
-    message: `Адрес ${hex(first)}: ожидалось ${show(expected[first])}, а лежит ${show(mem[first])}${more}`,
+    message: `Адрес ${hex(first)}: ожидалось ${show((expected[first] ?? 0))}, а лежит ${show((mem[first] ?? 0))}${more}`,
   };
 }
 

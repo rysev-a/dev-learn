@@ -29,10 +29,10 @@ const bad = (message: string): CheckResult => ({ ok: false, message });
 
 const bin8 = (n: number) => `0b${(n & 0xff).toString(2).padStart(8, '0')}`;
 const word = (mem: Uint8Array, a: number): number =>
-  mem[a] | (mem[a + 1] << 8) | (mem[a + 2] << 16) | (mem[a + 3] << 24);
+  (mem[a] ?? 0) | ((mem[a + 1] ?? 0) << 8) | ((mem[a + 2] ?? 0) << 16) | ((mem[a + 3] ?? 0) << 24);
 const cstr = (mem: Uint8Array, a: number): string => {
   let s = '';
-  while (a < mem.length && mem[a] !== 0) s += String.fromCharCode(mem[a++]);
+  while (a < mem.length && mem[a] !== 0) s += String.fromCharCode((mem[a++] ?? 0));
   return s;
 };
 
@@ -112,7 +112,7 @@ export const RV_TASKS: readonly RvTask[] = [
     check: (v) =>
       v.regs[10] === 5050
         ? ok('a0 = 5050 — сумма верна.')
-        : bad(`В a0 лежит ${v.regs[10] | 0}, а ожидалось 5050`),
+        : bad(`В a0 лежит ${v.regs[10]! | 0}, а ожидалось 5050`),
   },
   {
     id: 'upper',
@@ -125,7 +125,7 @@ export const RV_TASKS: readonly RvTask[] = [
       "  la   t0, text\n  li   t2, 'a'\n  li   t3, 'z'\nцикл:\n  lbu  t1, 0(t0)\n  beqz t1, конец\n  bltu t1, t2, дальше   # меньше 'a'\n  bltu t3, t1, дальше   # больше 'z'\n  addi t1, t1, -32\n  sb   t1, 0(t0)\nдальше:\n  addi t0, t0, 1\n  j    цикл\nконец:\n  ebreak\n",
     data: 'text:\n  .asciz "risc-v is fun!"\n',
     check: (v, sym) => {
-      const got = cstr(v.mem, sym['text']);
+      const got = cstr(v.mem, sym['text']!);
       return got === 'RISC-V IS FUN!'
         ? ok('Строка в памяти: «RISC-V IS FUN!».')
         : bad(`В памяти «${got}», а ожидалось «RISC-V IS FUN!»`);
@@ -142,10 +142,10 @@ export const RV_TASKS: readonly RvTask[] = [
       '  li   a0, 6\n  call fact\n  ebreak\n\nfact:\n  addi sp, sp, -16\n  sw   ra, 12(sp)       # адрес возврата — на стек\n  sw   s0, 8(sp)\n  mv   s0, a0           # n запоминаем в s0\n  li   t0, 2\n  blt  s0, t0, база     # n < 2 — вернуть 1\n  addi a0, s0, -1\n  call fact             # fact(n-1)\n  mul  a0, a0, s0       # n * fact(n-1)\n  j    выход\nбаза:\n  li   a0, 1\nвыход:\n  lw   s0, 8(sp)\n  lw   ra, 12(sp)\n  addi sp, sp, 16\n  ret\n',
     data: '',
     check: (v) => {
-      if (v.regs[10] !== 720) return bad(`В a0 лежит ${v.regs[10] | 0}, а ожидалось 720`);
+      if (v.regs[10] !== 720) return bad(`В a0 лежит ${v.regs[10]! | 0}, а ожидалось 720`);
       if (v.regs[2] !== RAM_SIZE) {
         return bad(
-          `Стек не вернулся на место: sp = 0x${v.regs[2].toString(16)}, а должен быть 0x${RAM_SIZE.toString(16)}`,
+          `Стек не вернулся на место: sp = 0x${v.regs[2]!.toString(16)}, а должен быть 0x${RAM_SIZE.toString(16)}`,
         );
       }
       return ok('fact(6) = 720, и стек вернулся на место.');
@@ -162,7 +162,7 @@ export const RV_TASKS: readonly RvTask[] = [
       '  la   s0, arr\n  la   t0, n\n  lw   s1, 0(t0)\nвнешний:\n  addi s1, s1, -1\n  blez s1, готово\n  li   t1, 0            # i\nвнутренний:\n  bge  t1, s1, внешний\n  slli t2, t1, 2\n  add  t2, t2, s0       # адрес arr[i]\n  lw   t3, 0(t2)\n  lw   t4, 4(t2)\n  ble  t3, t4, дальше   # уже по порядку\n  sw   t4, 0(t2)\n  sw   t3, 4(t2)\nдальше:\n  addi t1, t1, 1\n  j    внутренний\nготово:\n  ebreak\n',
     data: 'n:\n  .word 8\narr:\n  .word 5, -3, 99, 0, -100, 42, 7, -1\n',
     check: (v, sym) => {
-      const got = Array.from({ length: 8 }, (_, i) => word(v.mem, sym['arr'] + 4 * i));
+      const got = Array.from({ length: 8 }, (_, i) => word(v.mem, sym['arr']! + 4 * i));
       const want = [-100, -3, -1, 0, 5, 7, 42, 99];
       return got.join(',') === want.join(',')
         ? ok('Массив отсортирован: −100, −3, −1, 0, 5, 7, 42, 99.')
@@ -190,13 +190,13 @@ export const RV_TASKS: readonly RvTask[] = [
       if (changes.length < 8) return bad(`LED переключился ${changes.length} раз(а), а нужно 8`);
       for (let i = 0; i < changes.length; i++) {
         const want = i % 2 === 0 ? 1 : 0;
-        if (changes[i].value !== want)
+        if (changes[i]!.value !== want)
           return bad(
-            `Переключение ${i + 1}: LED = ${changes[i].value}, а должно чередоваться 1, 0, 1, 0…`,
+            `Переключение ${i + 1}: LED = ${changes[i]!.value}, а должно чередоваться 1, 0, 1, 0…`,
           );
-        if (i > 0 && changes[i].cycle - changes[i - 1].cycle < 200) {
+        if (i > 0 && changes[i]!.cycle - changes[i - 1]!.cycle < 200) {
           return bad(
-            `Между переключениями ${i} и ${i + 1} прошло ${changes[i].cycle - changes[i - 1].cycle} тактов, а нужно хотя бы 200`,
+            `Между переключениями ${i} и ${i + 1} прошло ${changes[i]!.cycle - changes[i - 1]!.cycle} тактов, а нужно хотя бы 200`,
           );
         }
       }

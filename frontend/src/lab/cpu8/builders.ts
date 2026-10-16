@@ -98,11 +98,11 @@ export class GateBuilder {
     while (layer.length > 1) {
       const next: string[] = [];
       for (let i = 0; i < layer.length; i += 2) {
-        next.push(i + 1 < layer.length ? op(layer[i], layer[i + 1]) : layer[i]);
+        next.push((i + 1 < layer.length ? op(layer[i]!, layer[i + 1]!) : layer[i])!);
       }
       layer = next;
     }
-    return layer[0];
+    return layer[0]!;
   }
 
   /** Вывести источник на выходной узел блока */
@@ -199,7 +199,7 @@ export class HierBuilder {
 function end(ref: string): BusEnd {
   const [node, port, ...path] = ref.split('.');
   if (port === undefined) throw new Error(`Конец шины «${ref}» должен быть вида узел.порт[.поле]`);
-  return { node: node === '$' ? TOP : node, port, path: path.join('.') };
+  return { node: (node === '$' ? TOP : node)!, port, path: path.join('.') };
 }
 
 export function hierBlock(

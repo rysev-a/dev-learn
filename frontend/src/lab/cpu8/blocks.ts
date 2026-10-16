@@ -254,7 +254,7 @@ add(
       const pair = [g.and(n1, n0), g.and(n1, s0), g.and(s1, n0), g.and(s1, s0)];
       for (let k = 0; k < 8; k++) {
         const hi = k >> 2 ? s2 : n2;
-        g.out(field('en', `H${k}`), g.and(g.and(hi, pair[k & 3]), 'we'));
+        g.out(field('en', `H${k}`), g.and(g.and(hi, pair[k & 3]!), 'we'));
       }
     },
   ),
@@ -275,30 +275,30 @@ add(
       const neg = o.map((x) => g.not(x));
       const lit = (i: number, v: number) => (v ? o[i] : neg[i]);
       // «старшая» и «младшая» пары бит кода операции — четыре варианта каждая
-      const hi = [0, 1, 2, 3].map((k) => g.and(lit(3, k >> 1), lit(2, k & 1)));
-      const lo = [0, 1, 2, 3].map((k) => g.and(lit(1, k >> 1), lit(0, k & 1)));
+      const hi = [0, 1, 2, 3].map((k) => g.and(lit(3, k >> 1)!, lit(2, k & 1)!));
+      const lo = [0, 1, 2, 3].map((k) => g.and(lit(1, k >> 1)!, lit(0, k & 1)!));
       const m: Record<number, string> = {};
-      for (const code of Object.values(OP)) m[code] = g.and(hi[code >> 2], lo[code & 3]);
-      const any = (...codes: number[]) => g.orAll(codes.map((c) => m[c]));
+      for (const code of Object.values(OP)) m[code] = g.and(hi[code >> 2]!, lo[code & 3]!);
+      const any = (...codes: number[]) => g.orAll(codes.map((c) => m[c]!));
       const o_ = OP;
       const set = (name: string, src: string) => g.out(field('ctl', name), src);
       set('regWrite', any(o_.li, o_.add, o_.sub, o_.and, o_.or, o_.xor, o_.addi, o_.lb));
       set('selAdd', any(o_.add, o_.sub, o_.addi, o_.lb, o_.sb));
-      set('selAnd', m[o_.and]);
-      set('selOr', m[o_.or]);
-      set('selXor', m[o_.xor]);
-      set('selB', m[o_.li]);
-      set('sub', m[o_.sub]);
+      set('selAnd', m[o_.and]!);
+      set('selOr', m[o_.or]!);
+      set('selXor', m[o_.xor]!);
+      set('selB', m[o_.li]!);
+      set('sub', m[o_.sub]!);
       set('useImm6', any(o_.addi, o_.lb, o_.sb));
-      set('useImm8', m[o_.li]);
-      set('load', m[o_.lb]);
-      set('store', m[o_.sb]);
-      set('isBeq', m[o_.beq]);
-      set('isBne', m[o_.bne]);
-      set('isBltu', m[o_.bltu]);
-      set('isBgeu', m[o_.bgeu]);
-      set('isJmp', m[o_.jmp]);
-      set('isHlt', m[o_.hlt]);
+      set('useImm8', m[o_.li]!);
+      set('load', m[o_.lb]!);
+      set('store', m[o_.sb]!);
+      set('isBeq', m[o_.beq]!);
+      set('isBne', m[o_.bne]!);
+      set('isBltu', m[o_.bltu]!);
+      set('isBgeu', m[o_.bgeu]!);
+      set('isJmp', m[o_.jmp]!);
+      set('isHlt', m[o_.hlt]!);
       set('isR', any(o_.add, o_.sub, o_.and, o_.or, o_.xor));
     },
   ),
@@ -651,7 +651,7 @@ add(
     (def): NativeSolution => ({
       native: 'rom',
       addr: nodesOf('addr', 'Byte'),
-      dout: def.ports[1].nodes,
+      dout: def.ports[1]!.nodes,
     }),
   ),
 );
@@ -673,7 +673,7 @@ add(
       din: nodesOf('din', 'Byte'),
       we: 'we',
       clk: 'clk',
-      dout: def.ports[4].nodes,
+      dout: def.ports[4]!.nodes,
     }),
   ),
 );

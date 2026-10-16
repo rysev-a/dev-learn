@@ -45,7 +45,7 @@ export class Machine {
       this.error = `Счётчик команд вышел за пределы программы (адрес ${this.pc}). Не забыли hlt в конце?`;
       return;
     }
-    const word = this.program[this.pc];
+    const word = this.program[this.pc]!;
     const d = decode(word);
     this.lastRead = this.lastWrite = this.lastReg = null;
 
@@ -55,7 +55,7 @@ export class Machine {
         this.lastReg = r;
       }
     };
-    const addr = () => (this.regs[d.b] + toSigned(d.c, 6)) & 0xff;
+    const addr = () => (this.regs[d.b]! + toSigned(d.c, 6)) & 0xff;
     let next = this.pc + 1;
 
     switch (d.def?.mnemonic) {
@@ -67,33 +67,33 @@ export class Machine {
         setReg(d.a, word & 0xff);
         break;
       case 'add':
-        setReg(d.a, this.regs[d.b] + this.regs[d.c & 7]);
+        setReg(d.a, this.regs[d.b]! + this.regs[d.c & 7]!);
         break;
       case 'sub':
-        setReg(d.a, this.regs[d.b] - this.regs[d.c & 7]);
+        setReg(d.a, this.regs[d.b]! - this.regs[d.c & 7]!);
         break;
       case 'and':
-        setReg(d.a, this.regs[d.b] & this.regs[d.c & 7]);
+        setReg(d.a, this.regs[d.b]! & this.regs[d.c & 7]!);
         break;
       case 'or':
-        setReg(d.a, this.regs[d.b] | this.regs[d.c & 7]);
+        setReg(d.a, this.regs[d.b]! | this.regs[d.c & 7]!);
         break;
       case 'xor':
-        setReg(d.a, this.regs[d.b] ^ this.regs[d.c & 7]);
+        setReg(d.a, this.regs[d.b]! ^ this.regs[d.c & 7]!);
         break;
       case 'addi':
-        setReg(d.a, this.regs[d.b] + toSigned(d.c, 6));
+        setReg(d.a, this.regs[d.b]! + toSigned(d.c, 6));
         break;
       case 'lb': {
         const a = addr();
         this.lastRead = a;
-        setReg(d.a, this.mem[a]);
+        setReg(d.a, (this.mem[a] ?? 0));
         break;
       }
       case 'sb': {
         const a = addr();
         this.lastWrite = a;
-        this.mem[a] = this.regs[d.a];
+        this.mem[a] = this.regs[d.a]!;
         break;
       }
       case 'beq':
@@ -103,10 +103,10 @@ export class Machine {
         if (this.regs[d.a] !== this.regs[d.b]) next = this.pc + toSigned(d.c, 6);
         break;
       case 'bltu':
-        if (this.regs[d.a] < this.regs[d.b]) next = this.pc + toSigned(d.c, 6);
+        if (this.regs[d.a]! < this.regs[d.b]!) next = this.pc + toSigned(d.c, 6);
         break;
       case 'bgeu':
-        if (this.regs[d.a] >= this.regs[d.b]) next = this.pc + toSigned(d.c, 6);
+        if (this.regs[d.a]! >= this.regs[d.b]!) next = this.pc + toSigned(d.c, 6);
         break;
       case 'jmp':
         next = this.pc + toSigned(word & 0xfff, 12);

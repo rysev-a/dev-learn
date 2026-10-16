@@ -48,7 +48,7 @@ export function regNum(name: string): number | undefined {
   return i >= 0 ? i : undefined;
 }
 
-export const regName = (n: number): string => ABI_NAMES[n];
+export const regName = (n: number): string => ABI_NAMES[n]!;
 
 export type Fmt = 'R' | 'I' | 'SH' | 'L' | 'S' | 'B' | 'U' | 'J' | 'JR' | 'SYS';
 

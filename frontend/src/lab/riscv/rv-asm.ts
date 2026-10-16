@@ -124,10 +124,10 @@ function parseString(token: string): number[] | undefined {
   const m = /^"((?:\\.|[^"\\])*)"$/.exec(token.trim());
   if (!m) return undefined;
   const out: number[] = [];
-  for (let i = 0; i < m[1].length; i++) {
-    let ch = m[1][i];
+  for (let i = 0; i < m[1]!.length; i++) {
+    let ch = m[1]![i]!;
     if (ch === '\\') {
-      ch = m[1][++i];
+      ch = m[1]![++i]!;
       out.push(ESC[ch] ?? ch.charCodeAt(0));
     } else out.push(...new TextEncoder().encode(ch));
   }
@@ -166,7 +166,7 @@ export function assemble(source: string): AsmResult {
     // %hi(...) и %lo(...)
     const fn = /^%(hi|lo)\((.*)\)$/.exec(e);
     if (fn) {
-      const inner = evalExpr(fn[2], line, addrOf);
+      const inner = evalExpr(fn[2]!, line, addrOf);
       if (inner === undefined) return undefined;
       return fn[1] === 'hi' ? ((inner + 0x800) >> 12) & 0xfffff : sext(inner, 12);
     }
@@ -182,7 +182,7 @@ export function assemble(source: string): AsmResult {
       const t = raw.trim().replace(/^[+-]\s*/, '');
       let v: number | undefined;
       const ch = /^'(\\.|[^\\'])'$/.exec(t);
-      if (ch) v = ch[1].length === 2 ? (ESC[ch[1][1]] ?? ch[1].charCodeAt(1)) : ch[1].charCodeAt(0);
+      if (ch) v = ch[1]!.length === 2 ? (ESC[ch[1]![1]!] ?? ch[1]!.charCodeAt(1)) : ch[1]!.charCodeAt(0);
       else if (/^0x[0-9a-f]+$/i.test(t)) v = parseInt(t.slice(2), 16);
       else if (/^0b[01]+$/i.test(t)) v = parseInt(t.slice(2), 2);
       else if (/^\d+$/.test(t)) v = parseInt(t, 10);
@@ -231,7 +231,7 @@ export function assemble(source: string): AsmResult {
         return 2;
       case 'li': {
         if (ops.length !== 2) return 1; // ошибку отловит второй проход
-        const raw = evalExpr(ops[1], line);
+        const raw = evalExpr(ops[1]!, line);
         if (raw === undefined) return 1;
         const v = raw | 0; // 0xFFFFFFFF и −1 — одно и то же 32-битное слово
         if (v >= -2048 && v <= 2047) return 1;
@@ -251,15 +251,15 @@ export function assemble(source: string): AsmResult {
     for (;;) {
       const m = /^([A-Za-zА-Яа-яЁё_.$][\wА-Яа-яЁё.$]*)\s*:\s*(.*)$/.exec(text);
       if (!m) break;
-      if (labels.has(m[1])) fail(line, `Метка «${m[1]}» уже объявлена`);
-      else labels.set(m[1], { section, offset: size[section] });
-      text = m[2].trim();
+      if (labels.has(m[1]!)) fail(line, `Метка «${m[1]}» уже объявлена`);
+      else labels.set(m[1]!, { section, offset: size[section] });
+      text = m[2]!.trim();
     }
     if (text === '') return;
 
     const head = /^(\S+)\s*(.*)$/.exec(text)!;
-    const mn = head[1].toLowerCase();
-    const ops = splitOperands(head[2]);
+    const mn = head[1]!.toLowerCase();
+    const ops = splitOperands(head[2]!);
 
     if (mn.startsWith('.')) {
       switch (mn) {
@@ -286,9 +286,9 @@ export function assemble(source: string): AsmResult {
           return;
         case '.equ':
         case '.set': {
-          const v = ops.length === 2 ? evalExpr(ops[1], line) : undefined;
-          if (ops.length !== 2 || !IDENT.test(ops[0])) fail(line, 'Нужно так: .equ ИМЯ, число');
-          else if (v !== undefined) equ.set(ops[0], v);
+          const v = ops.length === 2 ? evalExpr(ops[1]!, line) : undefined;
+          if (ops.length !== 2 || !IDENT.test(ops[0]!)) fail(line, 'Нужно так: .equ ИМЯ, число');
+          else if (v !== undefined) equ.set(ops[0]!, v);
           return;
         }
         case '.word':
@@ -329,14 +329,14 @@ export function assemble(source: string): AsmResult {
         case '.space':
         case '.zero':
         case '.skip': {
-          const n = ops.length >= 1 ? evalExpr(ops[0], line) : undefined;
+          const n = ops.length >= 1 ? evalExpr(ops[0]!, line) : undefined;
           if (n === undefined || n < 0) fail(line, 'Нужно так: .space число_байт');
           else emitData(line, new Array<number>(n).fill(0));
           return;
         }
         case '.align':
         case '.balign': {
-          const n = ops.length >= 1 ? evalExpr(ops[0], line) : undefined;
+          const n = ops.length >= 1 ? evalExpr(ops[0]!, line) : undefined;
           if (n === undefined || n < 0) {
             fail(line, `Нужно так: ${mn} число`);
             return;
@@ -556,7 +556,7 @@ function encodeInsn(
     case 'li': {
       if (!need(2, 'li rd, число')) return undefined;
       const rd = reg(ops[0]);
-      const raw = evalExpr(ops[1], line);
+      const raw = evalExpr(ops[1]!, line);
       if (rd === undefined || raw === undefined) return undefined;
       if (raw < -0x80000000 || raw > 0xffffffff) {
         fail(line, `Число ${raw} не помещается в 32 бита`);
@@ -577,7 +577,7 @@ function encodeInsn(
       if (!need(isLa ? 2 : 1, isLa ? 'la rd, метка' : `${mn} метка`)) return undefined;
       const rd = isLa ? reg(ops[0]) : mn === 'call' ? 1 : 6;
       const sym = isLa ? ops[1] : ops[0];
-      const dest = evalExpr(sym, line, addrOf);
+      const dest = evalExpr(sym!, line, addrOf);
       if (rd === undefined || dest === undefined) return undefined;
       const off = dest - pc;
       const lo = sext(off, 12);
@@ -591,7 +591,7 @@ function encodeInsn(
     case 'jal': {
       if (mn === 'j' || ops.length === 1) {
         if (!need(1, `${mn} метка`)) return undefined;
-        const off = target(ops[0], 21);
+        const off = target(ops[0]!, 21);
         return off === undefined ? undefined : [encJ(op('jal'), mn === 'j' ? 0 : 1, off)];
       }
       break;
@@ -609,7 +609,7 @@ function encodeInsn(
     case 'bgtz': {
       if (!need(2, `${mn} rs, метка`)) return undefined;
       const rs = reg(ops[0]);
-      const off = target(ops[1], 13);
+      const off = target(ops[1]!, 13);
       if (rs === undefined || off === undefined) return undefined;
       const spec: Record<string, [string, boolean]> = {
         beqz: ['beq', false],
@@ -619,7 +619,7 @@ function encodeInsn(
         bltz: ['blt', false],
         bgtz: ['blt', true], // blt zero, rs
       };
-      const [m, swap] = spec[mn];
+      const [m, swap] = spec[mn]!;
       return [encB(op(m), swap ? 0 : rs, swap ? rs : 0, off)];
     }
     case 'bgt':
@@ -628,7 +628,7 @@ function encodeInsn(
     case 'bleu': {
       if (!need(3, `${mn} rs1, rs2, метка`)) return undefined;
       const [a, b] = [reg(ops[0]), reg(ops[1])];
-      const off = target(ops[2], 13);
+      const off = target(ops[2]!, 13);
       if (a === undefined || b === undefined || off === undefined) return undefined;
       const m = { bgt: 'blt', ble: 'bge', bgtu: 'bltu', bleu: 'bgeu' }[mn]!;
       return [encB(op(m), b, a, off)];
@@ -658,7 +658,7 @@ function encodeInsn(
     case 'I': {
       if (!need(3, `${mn} rd, rs1, число`)) return undefined;
       const [rd, rs] = [reg(ops[0]), reg(ops[1])];
-      const v = num(ops[2], -2048, 2047, 'Число');
+      const v = num(ops[2]!, -2048, 2047, 'Число');
       return rd === undefined || rs === undefined || v === undefined
         ? undefined
         : [encI(def, rd, rs, v)];
@@ -667,7 +667,7 @@ function encodeInsn(
     case 'SH': {
       if (!need(3, `${mn} rd, rs1, число 0…31`)) return undefined;
       const [rd, rs] = [reg(ops[0]), reg(ops[1])];
-      const v = num(ops[2], 0, 31, 'Величина сдвига');
+      const v = num(ops[2]!, 0, 31, 'Величина сдвига');
       return rd === undefined || rs === undefined || v === undefined
         ? undefined
         : [encSH(def, rd, rs, v)];
@@ -677,13 +677,13 @@ function encodeInsn(
     case 'S': {
       if (!need(2, `${mn} регистр, смещение(регистр)`)) return undefined;
       const r = reg(ops[0]);
-      const m = /^(.*)\(\s*([^)]+?)\s*\)$/.exec(ops[1]);
+      const m = /^(.*)\(\s*([^)]+?)\s*\)$/.exec(ops[1]!);
       if (!m) {
         fail(line, `Адрес пишется как смещение(регистр), например 4(sp), а здесь «${ops[1]}»`);
         return undefined;
       }
       const base = reg(m[2]);
-      const off = m[1].trim() === '' ? 0 : num(m[1], -2048, 2047, 'Смещение');
+      const off = m[1]!.trim() === '' ? 0 : num(m[1]!, -2048, 2047, 'Смещение');
       if (r === undefined || base === undefined || off === undefined) return undefined;
       return [def.fmt === 'L' ? encI(def, r, base, off) : encS(def, r, base, off)];
     }
@@ -691,7 +691,7 @@ function encodeInsn(
     case 'B': {
       if (!need(3, `${mn} rs1, rs2, метка`)) return undefined;
       const [a, b] = [reg(ops[0]), reg(ops[1])];
-      const off = target(ops[2], 13);
+      const off = target(ops[2]!, 13);
       return a === undefined || b === undefined || off === undefined
         ? undefined
         : [encB(def, a, b, off)];
@@ -700,14 +700,14 @@ function encodeInsn(
     case 'U': {
       if (!need(2, `${mn} rd, число`)) return undefined;
       const rd = reg(ops[0]);
-      const v = num(ops[1], -0x80000, 0xfffff, 'Число');
+      const v = num(ops[1]!, -0x80000, 0xfffff, 'Число');
       return rd === undefined || v === undefined ? undefined : [encU(def, rd, v)];
     }
 
     case 'J': {
       if (!need(2, 'jal rd, метка')) return undefined;
       const rd = reg(ops[0]);
-      const off = target(ops[1], 21);
+      const off = target(ops[1]!, 21);
       return rd === undefined || off === undefined ? undefined : [encJ(def, rd, off)];
     }
 
@@ -718,20 +718,20 @@ function encodeInsn(
         return rs === undefined ? undefined : [encI(def, 1, rs, 0)];
       }
       if (ops.length === 2) {
-        const m = /^(.*)\(\s*([^)]+?)\s*\)$/.exec(ops[1]);
+        const m = /^(.*)\(\s*([^)]+?)\s*\)$/.exec(ops[1]!);
         if (!m) {
           fail(line, `Нужно так: jalr rd, смещение(rs), а здесь «${ops[1]}»`);
           return undefined;
         }
         const [rd, rs] = [reg(ops[0]), reg(m[2])];
-        const off = m[1].trim() === '' ? 0 : num(m[1], -2048, 2047, 'Смещение');
+        const off = m[1]!.trim() === '' ? 0 : num(m[1]!, -2048, 2047, 'Смещение');
         return rd === undefined || rs === undefined || off === undefined
           ? undefined
           : [encI(def, rd, rs, off)];
       }
       if (!need(3, 'jalr rd, rs, смещение')) return undefined;
       const [rd, rs] = [reg(ops[0]), reg(ops[1])];
-      const off = num(ops[2], -2048, 2047, 'Смещение');
+      const off = num(ops[2]!, -2048, 2047, 'Смещение');
       return rd === undefined || rs === undefined || off === undefined
         ? undefined
         : [encI(def, rd, rs, off)];
