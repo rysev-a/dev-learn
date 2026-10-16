@@ -20,13 +20,13 @@ export const LIST = (
       h: rowH - 6,
       c: hot.has(i) ? "g" : "n",
     },
-    Tx(`a${i}`, 24, y0 + 4 + i * rowH, a, {
+    Tx(`a${i}`, 24, y0 + 4 + i * rowH, a ?? "", {
       mono: true,
       size: 9.5,
       anchor: "start",
       c: hot.has(i) ? "g" : undefined,
     }),
-    Tx(`d${i}`, 340, y0 + 4 + i * rowH, b, {
+    Tx(`d${i}`, 340, y0 + 4 + i * rowH, b ?? "", {
       size: 8.5,
       anchor: "end",
       o: hot.has(i) ? 1 : 0.5,

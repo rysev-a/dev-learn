@@ -76,7 +76,8 @@ function tone(c: string = "m"): ToneStyle {
       stroke: "var(--s-border)",
       text: "var(--s-text)",
     };
-  return { fill: COL[c], fo: 0.28, stroke: COL[c], text: "var(--s-text)" };
+  const col = COL[c] ?? "var(--s-muted)";
+  return { fill: col, fo: 0.28, stroke: col, text: "var(--s-text)" };
 }
 
 const GATE_BODY: Record<string, string> = {
@@ -1123,7 +1124,7 @@ export function scene({ labels, caption, frames, base = [], cues, ms = 2800, h =
     return (
       <Steps ctl={ctl} labels={labels} caption={caption} h={h}>
         {order.map((id) => {
-          const it = full[k].get(id) ?? ghost[k][id] ?? { ...firstOf[id], o: 0 };
+          const it = full[k]?.get(id) ?? ghost[k]?.[id] ?? { ...firstOf[id]!, o: 0 };
           return <Item key={id} it={it} />;
         })}
       </Steps>

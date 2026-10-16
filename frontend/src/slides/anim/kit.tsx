@@ -438,6 +438,7 @@ export function GraphView({ nodes, edges, directed, nc, ec, r = 13, o = 1, lsize
       {edges.map((e, i) => {
         const A = nodes[e.a];
         const B = nodes[e.b];
+        if (!A || !B) return null;
         const dx = B.x - A.x;
         const dy = B.y - A.y;
         const d = Math.hypot(dx, dy) || 1;
