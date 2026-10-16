@@ -23,6 +23,11 @@ export default function Terminal({
   const [hist, setHist] = useState<string[]>([]);
   const [h, setH] = useState(-1);
   const box = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  // курсор сразу в строке ввода: терминал открывают, чтобы печатать
+  useEffect(() => {
+    input.current?.focus({ preventScroll: true });
+  }, [device.id]);
   useEffect(() => {
     box.current?.scrollTo(0, box.current.scrollHeight);
   }, [lines]);
@@ -52,7 +57,13 @@ export default function Terminal({
   const prompt = `${device.name.replace(/\s+/g, "-")}# `;
 
   return (
-    <div className="nl-term">
+    <div
+      className="nl-term"
+      onClick={() => {
+        // клик в любое место терминала ставит курсор в строку ввода (если не выделяют текст вывода)
+        if (!window.getSelection()?.toString()) input.current?.focus();
+      }}
+    >
       <div className="nl-term-out" ref={box}>
         {lines.length === 0 && (
           <div className="nl-term-hint">Введите «help», чтобы увидеть команды.</div>
@@ -66,6 +77,7 @@ export default function Terminal({
       <form onSubmit={submit} className="nl-term-in">
         <span>{prompt}</span>
         <input
+          ref={input}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={key}

@@ -340,6 +340,11 @@
   color: var(--s-onink);
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
+  cursor: text;
+}
+.nl-term:focus-within {
+  border-color: var(--s-accent);
+  box-shadow: 0 0 0 1px var(--s-accent);
 }
 .nl-term-out {
   height: 260px;
@@ -372,6 +377,7 @@
   color: var(--s-onink) !important;
   outline: none;
   padding: 0 !important;
+  caret-color: var(--s-accent);
 }
 
 .nl-bottom {
