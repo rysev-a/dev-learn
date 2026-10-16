@@ -188,12 +188,12 @@ export function localLookup(
   return { ask: parseIp(d.resolver) };
 }
 
-export const answerIp = (dns) => {
+export const answerIp = (dns: DnsMessage | null | undefined): number | null => {
   const a = (dns?.answers ?? []).find((x) => x.type === "A");
   return a ? parseIp(a.value) : null;
 };
 
-export const fmtDns = (dns) =>
+export const fmtDns = (dns: DnsMessage): string =>
   [
     `;; status: ${dns.rcode}`,
     ...(dns.answers ?? []).map((a) => `${a.name}.\t${a.ttl}\tIN\t${a.type}\t${a.value}`),

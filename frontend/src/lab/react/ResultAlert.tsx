@@ -1,11 +1,15 @@
+import type { ReactNode } from "react";
+
 /* Итог проверки в стиле приложения: компактная плашка — значок, заголовок, пояснение, кнопка «дальше». */
-export default function ResultAlert({
-  ok = true,
-  title,
-  children,
-  onNext,
-  nextLabel,
-}) {
+interface ResultAlertProps {
+  ok?: boolean;
+  title: ReactNode;
+  children?: ReactNode;
+  onNext?: () => void;
+  nextLabel?: string;
+}
+
+export default function ResultAlert({ ok = true, title, children, onNext, nextLabel }: ResultAlertProps) {
   const label = (nextLabel || "Следующее").replace(/\s*→\s*$/, "");
   return (
     <div className={`lab-alert ${ok ? "ok" : "bad"}`} role="status">

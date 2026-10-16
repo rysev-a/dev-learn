@@ -4,24 +4,34 @@
 const TICK_MS = 600;
 export const CLOCK_RATES = [0.5, 1, 2, 4];
 
+/** то, чем управляет такт: id тактового входа, чтение и запись его уровня */
+export interface ClockHost {
+  clockId: () => string | null | undefined;
+  level: (id: string) => number;
+  setLevel: (id: string, level: number) => void;
+}
+
 export class Clock {
-  constructor(host: { clockId: () => any; level: (id: string|number) => any; setLevel: (id: string|number,level: number) => void; }, onChange: () => void) {
-    this.host = host; // { clockId(), level(id), setLevel(id, v) }
+  host: ClockHost;
+  onChange: () => void;
+  ticking = false;
+  auto = false;
+  rate = 1;
+  edges = 0;
+  pulseTimer: ReturnType<typeof setTimeout> | undefined = undefined;
+  autoTimer: ReturnType<typeof setInterval> | undefined = undefined;
+
+  constructor(host: ClockHost, onChange: () => void) {
+    this.host = host;
     this.onChange = onChange;
-    this.ticking = false;
-    this.auto = false;
-    this.rate = 1;
-    this.edges = 0;
-    this.pulseTimer = undefined;
-    this.autoTimer = undefined;
   }
 
-  set(patch: { ticking?: boolean; auto?: boolean; rate?: any; edges?: any; }) {
+  set(patch: { ticking?: boolean; auto?: boolean; rate?: number; edges?: number }) {
     Object.assign(this, patch);
     this.onChange();
   }
 
-  tick(done: () => void) {
+  tick(done?: () => void): boolean {
     const id = this.host.clockId();
     if (!id || this.ticking || this.auto || this.host.level(id) === 1) return false;
     this.set({ ticking: true });
@@ -42,7 +52,7 @@ export class Clock {
     this.startAuto();
   }
 
-  setRate(hz: any) {
+  setRate(hz: number) {
     this.set({ rate: hz });
     if (this.auto) this.startAuto();
   }

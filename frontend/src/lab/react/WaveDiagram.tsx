@@ -1,7 +1,7 @@
-import { WAVE } from "../exercises/logic-gates/lab/wave.ts";
+import { WAVE, type Wave } from "../exercises/logic-gates/lab/wave.ts";
 
 /* Временная диаграмма: история сигналов в упражнениях с защёлками и регистрами */
-export default function WaveDiagram({ wave, onClear }) {
+export default function WaveDiagram({ wave, onClear }: { wave: Wave; onClear: () => void }) {
   return (
     <div className="lab-card">
       <div className="lab-card-head">
@@ -22,7 +22,7 @@ export default function WaveDiagram({ wave, onClear }) {
         role="img"
         aria-label="Временная диаграмма сигналов"
       >
-        {wave.cols.map((x: string|number|undefined, i) => (
+        {wave.cols.map((x, i) => (
           <line
             key={i}
             className="wave-grid"

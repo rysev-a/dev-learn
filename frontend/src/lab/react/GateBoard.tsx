@@ -1,4 +1,16 @@
-import { SetStateAction, PointerEvent, useCallback, useEffect, useMemo, useRef, useState, Key, ReactPortal, ReactNode, ReactElement, JSXElementConstructor } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject,
+  type PointerEvent as ReactPointerEvent,
+  type SetStateAction,
+} from "react";
+import type { BoardHandle } from "./BlockBoard.tsx";
 import {
   BOARD_H,
   BOARD_W,
@@ -7,7 +19,6 @@ import {
   INPUT_X,
   OUT_PIN_X,
   OUT_X,
-  PinRef,
   createsCycle,
   inputYs,
   outputYs,
@@ -15,6 +26,16 @@ import {
   samePin,
   uid,
   wirePath,
+  type Circuit,
+  type GateInstance,
+  type GateType,
+  type InputId,
+  type InputState,
+  type NodeValue,
+  type PinKind,
+  type PinRef,
+  type Point,
+  type Wire,
 } from "../exercises/logic-gates/circuit.model.ts";
 import {
   gateBodyPath,
@@ -35,6 +56,7 @@ import {
   AUTO_WIRE_RADIUS_DEFAULT,
   AUTO_WIRE_RADIUS_FACTOR,
   suggestWires,
+  type AutoWire,
 } from "../exercises/logic-gates/auto-wire.ts";
 
 /* Доска со схемой из вентилей: элементы, провода, входы и выходы упражнения.
@@ -65,8 +87,64 @@ const saveHeight = (h: number|null) => {
     /* без хранилища высота просто не запоминается */
   }
 };
-const cls = (v: number) => (v === 1 ? "v1" : v === 0 ? "v0" : "vx");
-const txt = (v: undefined) => (v === undefined ? "?" : String(v));
+const cls = (v: NodeValue) => (v === 1 ? "v1" : v === 0 ? "v0" : "vx");
+const txt = (v: NodeValue) => (v === undefined ? "?" : String(v));
+
+/** элемент палитры: тип вентиля, закрыт ли он ещё, подписи */
+export interface PaletteItem {
+  type: GateType;
+  locked: boolean;
+  title: string;
+  label: string;
+}
+
+interface GateBoardProps {
+  gates: GateInstance[];
+  setGates: Dispatch<SetStateAction<GateInstance[]>>;
+  wires: Wire[];
+  setWires: Dispatch<SetStateAction<Wire[]>>;
+  circuit: Circuit;
+  inputs: readonly InputId[];
+  labels: readonly string[];
+  outputs: readonly string[];
+  inputState: InputState;
+  clockId?: InputId | null;
+  stepsMode: boolean;
+  valueFn: (node: string) => NodeValue;
+  palette: PaletteItem[];
+  guideFocus?: ReadonlySet<string> | null;
+  fullscreen?: boolean;
+  onToggleInput: (id: InputId) => void;
+  onEdited: () => void;
+  onMessage: (message: string) => void;
+  onLockedPick: (type: GateType) => void;
+  boardRef?: MutableRefObject<BoardHandle | null>;
+}
+
+/** текущее состояние для глобальных обработчиков документа */
+interface LiveState {
+  gates: GateInstance[];
+  wires: Wire[];
+  pending: PinRef | null;
+  sticky: boolean;
+  hover: PinRef | null;
+  placing: GateType | null;
+  movingId: string | null;
+  movedFar: boolean;
+  zoom: number;
+  pan: Point;
+  worldH: number;
+  circuit: Circuit;
+  stepsMode: boolean;
+  palette: PaletteItem[];
+}
+
+interface DragState {
+  pan?: { cx: number; cy: number; ox: number; oy: number; scale: number } | null;
+  off?: Point;
+  from?: Point;
+  pinDown?: Point;
+}
 
 export default function GateBoard({
   gates,
@@ -89,23 +167,23 @@ export default function GateBoard({
   onMessage,
   onLockedPick,
   boardRef,
-}) {
-  const svgRef = useRef(null);
+}: GateBoardProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [boardH, setBoardH] = useState(loadHeight); // px или null — высота по умолчанию (по пропорциям доски)
   const [pxW, setPxW] = useState(0); // ширина доски на экране
-  const [placing, setPlacing] = useState(null); // тип переносимого из палитры элемента
-  const [cursor, setCursor] = useState(null); // экранные координаты (для «призрака»)
-  const [movingId, setMovingId] = useState(null);
+  const [placing, setPlacing] = useState<GateType | null>(null); // тип переносимого из палитры элемента
+  const [cursor, setCursor] = useState<Point | null>(null); // экранные координаты (для «призрака»)
+  const [movingId, setMovingId] = useState<string | null>(null);
   const [movedFar, setMovedFar] = useState(false);
-  const [pending, setPending] = useState(null); // PinRef, откуда тянется провод
+  const [pending, setPending] = useState<PinRef | null>(null); // откуда тянется провод
   const [sticky, setSticky] = useState(false);
-  const [hover, setHover] = useState(null);
-  const [cursorBoard, setCursorBoard] = useState(null);
+  const [hover, setHover] = useState<PinRef | null>(null);
+  const [cursorBoard, setCursorBoard] = useState<Point | null>(null);
   const [panning, setPanning] = useState(false);
-  const drag = useRef({}); // изменяемые данные перетаскивания
-  const memo = useRef([]);
+  const drag = useRef<DragState>({}); // изменяемые данные перетаскивания
+  const memo = useRef<AutoWire[]>([]);
 
   const inputYMap = useMemo(() => inputYs(inputs), [inputs]);
   const outputYMap = useMemo(() => outputYs(outputs), [outputs]);
@@ -114,7 +192,8 @@ export default function GateBoard({
   const manualH = !fullscreen && boardH !== null && pxW > 0;
   const worldH = manualH ? (boardH * BOARD_W) / pxW : BOARD_H;
 
-  const st = useRef({});
+  const st = useRef<LiveState | null>(null);
+  const live = (): LiveState => st.current as LiveState;
   st.current = {
     gates,
     wires,
@@ -148,14 +227,14 @@ export default function GateBoard({
     setBoardH(next);
     if (persist) saveHeight(next);
   };
-  const resizeDown = (e: { preventDefault: () => void; clientY: any; }) => {
+  const resizeDown = (e: ReactPointerEvent) => {
     const svg = svgRef.current;
     if (!svg) return;
     e.preventDefault();
     const startY = e.clientY;
     const startH = svg.getBoundingClientRect().height;
     let last = startH;
-    const move = (ev: { clientY: any; }) => {
+    const move = (ev: PointerEvent) => {
       last = clampHeight(startH + ev.clientY - startY);
       setBoardH(last);
     };
@@ -167,7 +246,7 @@ export default function GateBoard({
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up);
   };
-  const resizeKey = (e: { key: string; preventDefault: () => void; }) => {
+  const resizeKey = (e: ReactKeyboardEvent) => {
     const step = e.key === "ArrowDown" ? 24 : e.key === "ArrowUp" ? -24 : 0;
     if (!step || !svgRef.current) return;
     e.preventDefault();
@@ -175,10 +254,10 @@ export default function GateBoard({
   };
 
   /** точка экрана → координаты доски */
-  const toBoard = useCallback((cx: any, cy: any) => {
+  const toBoard = useCallback((cx: number, cy: number): Point => {
     const svg = svgRef.current;
-    const m = svg.getScreenCTM();
-    if (!m) return { x: 0, y: 0 };
+    const m = svg?.getScreenCTM();
+    if (!svg || !m) return { x: 0, y: 0 };
     const pt = svg.createSVGPoint();
     pt.x = cx;
     pt.y = cy;
@@ -207,12 +286,12 @@ export default function GateBoard({
   }, [placing, cursor, toBoard]);
 
   const autoFor = useCallback(
-    (gate: any, keep = []) =>
+    (gate: GateInstance, keep: readonly AutoWire[] = []) =>
       suggestWires({
         keep,
         gate,
-        gates: st.current.gates,
-        wires: st.current.wires,
+        gates: live().gates,
+        wires: live().wires,
         inputYMap,
         outputYMap,
         stepsMode,
@@ -231,26 +310,26 @@ export default function GateBoard({
     memo.current = list;
     return list;
   }, [movingId, movedFar, gates, dropGate, autoFor]);
-  const autoRef = useRef([]);
+  const autoRef = useRef<AutoWire[]>([]);
   autoRef.current = autoWires;
 
   /* ---------- операции над схемой ---------- */
-  const addWires = (list: any[]) => {
-    setWires((all: any) => [
+  const addWires = (list: readonly { from: PinRef; to: PinRef }[]) => {
+    setWires((all) => [
       ...all,
       ...list.map((w) => ({ id: uid("w"), from: w.from, to: w.to })),
     ]);
     onEdited();
   };
 
-  const place = (type: any, at: { x: any; y: any; }, held: never[]|null) => {
+  const place = (type: GateType, at: Point, held: readonly AutoWire[] | null) => {
     const { x, y } = clampWorld(
       { x: at.x - GATE_W / 2, y: at.y - GATE_H / 2 },
       GATE_W,
       GATE_H,
     );
     const gate = { id: uid("g"), type, x, y };
-    const remap = (r: { node: string; }) => (r.node === DROP_ID ? { ...r, node: gate.id } : r);
+    const remap = (r: PinRef): PinRef => (r.node === DROP_ID ? { ...r, node: gate.id } : r);
     const keep = (held ?? []).map((w) => ({
       ...w,
       from: remap(w.from),
@@ -260,27 +339,27 @@ export default function GateBoard({
       ? suggestWires({
           keep,
           gate,
-          gates: st.current.gates,
-          wires: st.current.wires,
+          gates: live().gates,
+          wires: live().wires,
           inputYMap,
           outputYMap,
           stepsMode,
           radius: AUTO_WIRE_RADIUS_DEFAULT * AUTO_WIRE_RADIUS_FACTOR,
         })
       : [];
-    setGates((list: any) => [...list, gate]);
+    setGates((list) => [...list, gate]);
     if (auto.length > 0) addWires(auto);
     else onEdited();
   };
 
-  const tryConnect = (a: never, b: { node: any; pin: any; }) => {
+  const tryConnect = (a: PinRef, b: PinRef) => {
     const from = a.pin === "out" ? a : b;
     const to = a.pin === "out" ? b : a;
     if (from.pin !== "out" || to.pin === "out" || from.node === to.node) {
       onMessage("Соединять нужно выход элемента со входом другого");
       return;
     }
-    const { wires: ws, circuit: c, stepsMode: sm } = st.current;
+    const { wires: ws, circuit: c, stepsMode: sm } = live();
     const rest = ws.filter((w) => !samePin(w.to, to));
     if (!sm && createsCycle({ ...c, wires: rest }, from, to)) {
       onMessage("Так схема замкнётся в цикл — сигнал будет бежать по кругу");
@@ -293,7 +372,7 @@ export default function GateBoard({
   };
 
   const cancelWire = useCallback(() => {
-    const had = st.current.pending !== null;
+    const had = live().pending !== null;
     setPending(null);
     setSticky(false);
     setHover(null);
@@ -306,20 +385,20 @@ export default function GateBoard({
       resetView: () => (setPan({ x: 0, y: 0 }), setZoom(1)),
     };
 
-  const removeWire = (id: any) => {
-    setWires((l: any[]) => l.filter((w) => w.id !== id));
+  const removeWire = (id: string) => {
+    setWires((l) => l.filter((w) => w.id !== id));
     onEdited();
   };
-  const removeGate = (id: any) => {
-    setGates((l: any[]) => l.filter((g) => g.id !== id));
-    setWires((l: any[]) => l.filter((w) => w.from.node !== id && w.to.node !== id));
+  const removeGate = (id: string) => {
+    setGates((l) => l.filter((g) => g.id !== id));
+    setWires((l) => l.filter((w) => w.from.node !== id && w.to.node !== id));
     onEdited();
   };
 
   /* ---------- глобальные обработчики ---------- */
   useEffect(() => {
-    const move = (e: { clientX: number; clientY: number; }) => {
-      const s = st.current;
+    const move = (e: PointerEvent) => {
+      const s = live();
       if (drag.current.pan) {
         const d = drag.current.pan;
         setPan({
@@ -334,17 +413,20 @@ export default function GateBoard({
       }
       if (s.movingId) {
         const p = toBoard(e.clientX, e.clientY);
+        const off = drag.current.off ?? { x: 0, y: 0 };
+        const from = drag.current.from ?? { x: 0, y: 0 };
         const { x, y } = clampWorld(
-          { x: p.x - drag.current.off.x, y: p.y - drag.current.off.y },
+          { x: p.x - off.x, y: p.y - off.y },
           GATE_W,
           GATE_H,
         );
-        setGates((list: any[]) =>
-          list.map((g) => (g.id === s.movingId ? { ...g, x, y } : g)),
+        const id = s.movingId;
+        setGates((list) =>
+          list.map((g) => (g.id === id ? { ...g, x, y } : g)),
         );
         if (
           !s.movedFar &&
-          Math.hypot(x - drag.current.from.x, y - drag.current.from.y) > 6
+          Math.hypot(x - from.x, y - from.y) > 6
         )
           setMovedFar(true);
         return;
@@ -352,7 +434,7 @@ export default function GateBoard({
       if (s.pending) setCursorBoard(toBoard(e.clientX, e.clientY));
     };
     const up = (e: PointerEvent) => {
-      const s = st.current;
+      const s = live();
       if (drag.current.pan) {
         drag.current.pan = null;
         setPanning(false);
@@ -363,7 +445,7 @@ export default function GateBoard({
         const type = s.placing;
         setPlacing(null);
         setCursor(null);
-        const el = e.target;
+        const el = e.target as Element | null;
         if (el && typeof el.closest === "function") {
           if (el.closest(".lab-board-svg"))
             place(type, toBoard(e.clientX, e.clientY), held);
@@ -384,11 +466,11 @@ export default function GateBoard({
         if (target && !samePin(s.pending, target)) {
           tryConnect(s.pending, target);
           cancelWire();
-        } else if (isClick(drag.current.pinDown, e)) setSticky(true);
+        } else if (drag.current.pinDown && isClick(drag.current.pinDown, e)) setSticky(true);
         else cancelWire();
       }
     };
-    const key = (e: { key: string; }) => {
+    const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") cancelWire();
     };
     document.addEventListener("pointermove", move);
@@ -410,9 +492,9 @@ export default function GateBoard({
       if (!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
       const rect = el.getBoundingClientRect();
-      const wh = st.current.worldH;
+      const wh = live().worldH;
       const base = Math.min(rect.width / BOARD_W, rect.height / wh);
-      const s = st.current;
+      const s = live();
       const next = zoomAround(
         { pan: s.pan, zoom: s.zoom },
         wheelFactor(e),
@@ -429,8 +511,8 @@ export default function GateBoard({
     return () => el.removeEventListener("wheel", wheel);
   }, []);
 
-  const beginPan = (e: { clientX: any; clientY: any; }) => {
-    const rect = svgRef.current.getBoundingClientRect();
+  const beginPan = (e: { clientX: number; clientY: number }) => {
+    const rect = svgRef.current!.getBoundingClientRect();
     const base = Math.min(rect.width / BOARD_W, rect.height / worldH);
     drag.current.pan = {
       cx: e.clientX,
@@ -441,7 +523,7 @@ export default function GateBoard({
     };
     setPanning(true);
   };
-  const boardDown = (e: { button?: any; preventDefault?: any; target?: any; clientX?: any; clientY?: any; }) => {
+  const boardDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button === 1) {
       e.preventDefault();
       beginPan(e);
@@ -450,7 +532,7 @@ export default function GateBoard({
     if (e.button !== 0 || placing || pending) return;
     if (
       e.target === svgRef.current ||
-      e.target.classList?.contains("lab-board-bg")
+      (e.target as Element).classList?.contains("lab-board-bg")
     ) {
       e.preventDefault();
       beginPan(e);
@@ -458,12 +540,12 @@ export default function GateBoard({
   };
   // пока провод «прилип» к мыши, нажатие мимо контакта его отменяет
   const boardDownCapture = () => {
-    if (st.current.sticky && !st.current.hover) {
+    if (live().sticky && !live().hover) {
       // обработка в pinDown / здесь — отмена, если нажали не на контакт
     }
   };
 
-  const gateDown = (e: PointerEvent<SVGGElement>, g: { x: number; y: number; id: SetStateAction<null>; }) => {
+  const gateDown = (e: ReactPointerEvent<SVGGElement>, g: GateInstance) => {
     if (e.button !== 0) return;
     if (sticky) {
       cancelWire();
@@ -477,7 +559,7 @@ export default function GateBoard({
     setMovingId(g.id);
   };
 
-  const pinDown = (e: PointerEvent<SVGCircleElement>, node: any, pin: string) => {
+  const pinDown = (e: ReactPointerEvent<SVGCircleElement>, node: string, pin: PinKind) => {
     e.preventDefault();
     e.stopPropagation();
     if (pending && sticky) {
@@ -492,11 +574,11 @@ export default function GateBoard({
     setHover(null);
     setCursorBoard(toBoard(e.clientX, e.clientY));
   };
-  const pinEnter = (node: any, pin: string) => pending && setHover({ node, pin });
-  const pinLeave = (node: any, pin: string) =>
+  const pinEnter = (node: string, pin: PinKind) => pending && setHover({ node, pin });
+  const pinLeave = (node: string, pin: PinKind) =>
     hover && samePin(hover, { node, pin }) && setHover(null);
 
-  const startPlace = (e: PointerEvent<HTMLButtonElement>, type: SetStateAction<null>) => {
+  const startPlace = (e: ReactPointerEvent<HTMLButtonElement>, type: GateType) => {
     const item = palette.find((p) => p.type === type);
     if (item?.locked) {
       onLockedPick(type);
@@ -509,12 +591,12 @@ export default function GateBoard({
 
   /* ---------- вид ---------- */
   const pos = (ref: PinRef) => pinPos(ref, gates, outputYMap, inputYMap);
-  const pinValue = (node: any, pin: string) => {
+  const pinValue = (node: string, pin: PinKind): NodeValue => {
     if (pin === "out") return valueFn(node);
     const w = wires.find((x) => samePin(x.to, { node, pin }));
     return w ? valueFn(w.from.node) : undefined;
   };
-  const labelOf = (id: any) => labels[inputs.indexOf(id)] ?? id;
+  const labelOf = (id: InputId) => labels[inputs.indexOf(id)] ?? id;
 
   const preview = (() => {
     if (!pending) return null;
@@ -548,13 +630,13 @@ export default function GateBoard({
             >
               <svg viewBox="-12 0 96 48" aria-hidden="true" overflow="visible">
                 {gateExtraArc(g.type) && (
-                  <path className="gate-extra" d={gateExtraArc(g.type)} />
+                  <path className="gate-extra" d={gateExtraArc(g.type) ?? undefined} />
                 )}
                 <path className="gate-body" d={gateBodyPath(g.type)} />
                 {gateBubbleCx(g.type) !== null && (
                   <circle
                     className="gate-bubble"
-                    cx={gateBubbleCx(g.type)}
+                    cx={gateBubbleCx(g.type) ?? undefined}
                     cy="24"
                     r="5"
                   />
@@ -760,12 +842,12 @@ export default function GateBoard({
           >
             <path className="gate-body" d={gateBodyPath(g.type)} />
             {gateExtraArc(g.type) && (
-              <path className="gate-extra" d={gateExtraArc(g.type)} />
+              <path className="gate-extra" d={gateExtraArc(g.type) ?? undefined} />
             )}
             {gateBubbleCx(g.type) !== null && (
               <circle
                 className="gate-bubble"
-                cx={gateBubbleCx(g.type)}
+                cx={gateBubbleCx(g.type) ?? undefined}
                 cy="24"
                 r="5"
               />
@@ -872,7 +954,7 @@ export default function GateBoard({
             {gateBubbleCx(placing) !== null && (
               <circle
                 className="gate-bubble"
-                cx={gateBubbleCx(placing)}
+                cx={gateBubbleCx(placing) ?? undefined}
                 cy="24"
                 r="5"
               />

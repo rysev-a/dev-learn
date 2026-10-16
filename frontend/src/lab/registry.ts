@@ -1,13 +1,18 @@
 /* Какие главы книги «Архитектура компьютера» — лаборатории и что в них за упражнения.
    Номер главы → тип лаборатории и (для схем) раздел из sections.ts. */
-import { SECTIONS } from "./sections/sections.ts";
+import { SECTIONS, type Section } from "./sections/sections.ts";
 import { TASKS as ASM_TASKS } from "./asm/tasks.ts";
 import { RV_TASKS } from "./riscv/rv-tasks.ts";
 import { REAL_TASKS } from "./riscv/rv-real-tasks.ts";
 
 export const ARCH_BOOK = 14;
 
-export const LAB_CHAPTERS = {
+/** тип лаборатории главы: схемы из вентилей (раздел sections.ts), ассемблер Мини-8, RISC-V, настоящие программы */
+export type LabChapter =
+  | { kind: "circuit"; slug: string }
+  | { kind: "asm" | "riscv" | "real" };
+
+export const LAB_CHAPTERS: Record<number, LabChapter> = {
   6: { kind: "circuit", slug: "simple-circuits" },
   7: { kind: "circuit", slug: "mux" },
   8: { kind: "circuit", slug: "latches" },
@@ -23,20 +28,18 @@ export const LAB_CHAPTERS = {
 };
 
 /** номер главы, в которой лежит раздел со схемами (для открытия составных элементов) */
-export const CHAPTER_OF_SLUG = Object.fromEntries(
-  Object.entries(LAB_CHAPTERS)
-    .filter(([, v]) => v.slug)
-    .map(([n, v]) => [v.slug, Number(n)]),
+export const CHAPTER_OF_SLUG: Record<string, number> = Object.fromEntries(
+  Object.entries(LAB_CHAPTERS).flatMap(([n, v]) => (v.kind === "circuit" ? [[v.slug, Number(n)]] : [])),
 );
 
-export const sectionOf = (slug: string) => SECTIONS.find((s) => s.slug === slug);
+export const sectionOf = (slug: string): Section | undefined => SECTIONS.find((s) => s.slug === slug);
 
 /** упражнения главы в виде [{ id, title, text, hint }] */
-export function labTasks(chapterNum: string|number) {
-  const lab = LAB_CHAPTERS[chapterNum];
+export function labTasks(chapterNum: string | number) {
+  const lab = LAB_CHAPTERS[Number(chapterNum)];
   if (!lab) return [];
   if (lab.kind === "circuit")
-    return sectionOf(lab.slug).exercises.map((e) => ({
+    return (sectionOf(lab.slug)?.exercises ?? []).map((e) => ({
       id: e.id,
       title: e.title,
       text: e.task,

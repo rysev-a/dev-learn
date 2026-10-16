@@ -1,12 +1,18 @@
 import { useMemo, useState } from "react";
 import {
-BlockSolution,
   childScope,
-  GateSolution,
   isBlockSolution,
   isGateSolution,
   isNativeSolution,
+  type BlockDef,
+  type BlockInterface,
+  type BlockSolution,
+  type Expansion,
+  type GateSolution,
+  type Solution,
+  type ValueScope,
 } from "../exercises/logic-gates/blocks.ts";
+import type { GateMachine } from "../cpu8/gate-machine.ts";
 import { CPU8_BLOCKS, cpu8Library } from "../cpu8/blocks.ts";
 import BlockBoard from "./BlockBoard.tsx";
 import CircuitView from "./CircuitView.tsx";
@@ -26,16 +32,27 @@ const spreadForGates = (g: GateSolution) =>
         ? 1.35
         : 1.15;
 
-export default function CpuInspector({ machine, version }) {
-  const [path, setPath] = useState([]);
-  const scope = useMemo(
-    () => (node: any) => machine.sim.get(node),
+/** один уровень спуска в процессор: сам процессор или вложенный блок */
+interface Level {
+  title: string;
+  def: BlockDef;
+  iface: BlockInterface;
+  solution: Solution;
+  expansion: Expansion;
+  scope: ValueScope;
+}
+
+export default function CpuInspector({ machine, version }: { machine: GateMachine; version: number }) {
+  const [path, setPath] = useState<string[]>([]);
+  const scope = useMemo<ValueScope>(
+    () => (node) => machine.sim.get(node),
     [machine, version],
   ); // eslint-disable-line react-hooks/exhaustive-deps
 
   const levels = useMemo(() => {
     const cpu = CPU8_BLOCKS.get("c8-cpu");
-    const out = [
+    if (!cpu) return [];
+    const out: Level[] = [
       {
         title: cpu.def.title,
         def: cpu.def,
@@ -62,10 +79,12 @@ export default function CpuInspector({ machine, version }) {
   }, [machine, path, scope]);
   const current = levels[levels.length - 1];
   const stats = useMemo(() => {
+    if (!current) return { gates: 0, dffs: 0 };
     const c = current.expansion.circuit;
     const dffs = c.gates.filter((g) => g.type === "DFF").length;
     return { gates: c.gates.length - dffs, dffs };
   }, [current]);
+  if (!current) return null;
   const sol = current.solution;
   const key = `${machine === undefined ? "" : "m"}:${path.join("/")}`;
 
@@ -118,7 +137,7 @@ export default function CpuInspector({ machine, version }) {
           readonly
           height={boardHeight(sol)}
           spread={spreadFor(sol)}
-          onInspect={(id: any) => setPath((p) => [...p, id])}
+          onInspect={(id) => setPath((p) => [...p, id])}
           resetKey={key}
         />
       ) : isGateSolution(sol) ? (

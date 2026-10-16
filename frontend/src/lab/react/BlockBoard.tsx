@@ -1,5 +1,16 @@
-import { SetStateAction, PointerEvent, useCallback, useEffect, useMemo, useRef, useState, MouseEvent, ReactPortal, ReactNode, ReactElement, Key, JSXElementConstructor } from "react";
-import { wirePath } from "../exercises/logic-gates/circuit.model.ts";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type MouseEvent as ReactMouseEvent,
+  type MutableRefObject,
+  type PointerEvent as ReactPointerEvent,
+  type SetStateAction,
+} from "react";
+import { wirePath, type Point } from "../exercises/logic-gates/circuit.model.ts";
 import {
   ZOOM,
   clampWorld,
@@ -9,9 +20,14 @@ import {
   zoomAround,
 } from "../exercises/logic-gates/board-pan.ts";
 import {
-BusEnd,
-  BusWire,
   TOP,
+  type BlockInstance,
+  type BlockInterface,
+  type BlockLibrary,
+  type BusEnd,
+  type BusWire,
+  type Expansion,
+  type ValueScope,
   addBusWire,
   connectionError,
   endInfo,
@@ -25,6 +41,8 @@ import {
   pinCenter,
   rowKey,
   sideBoxes,
+  type BoxLayout,
+  type PinRow,
 } from "../exercises/logic-gates/block-layout.ts";
 import { busText } from "../exercises/logic-gates/interfaces.ts";
 
@@ -35,7 +53,60 @@ import { busText } from "../exercises/logic-gates/interfaces.ts";
 export const BLOCKS_BOARD_W = 880;
 export const BLOCKS_BOARD_H = 560;
 
-const sameEnd = (a: never, b: { node: any; port: any; path: any; }) =>
+/** управление доской снаружи: отменить тянущуюся шину, вернуть вид */
+export interface BoardHandle {
+  cancelWire: () => boolean;
+  resetView: () => void;
+}
+
+interface BlockBoardProps {
+  iface: BlockInterface;
+  library: BlockLibrary;
+  instances: BlockInstance[];
+  setInstances: Dispatch<SetStateAction<BlockInstance[]>>;
+  busWires: BusWire[];
+  setBusWires: Dispatch<SetStateAction<BusWire[]>>;
+  expansion?: Expansion | null;
+  scope: ValueScope;
+  readonly?: boolean;
+  clockNode?: string | null;
+  height?: number;
+  onToggle?: (node: string) => void;
+  onInspect?: (node: string) => void;
+  onMessage?: (message: string) => void;
+  boardRef?: MutableRefObject<BoardHandle | null>;
+  resetKey?: unknown;
+  spread?: number;
+  fullscreen?: boolean;
+}
+
+interface PinHit {
+  box: BoxLayout;
+  row: PinRow;
+  pos: Point;
+}
+
+/** текущее состояние для глобальных обработчиков документа (они создаются один раз) */
+interface LiveState {
+  pending: BusEnd | null;
+  sticky: boolean;
+  hover: string | null;
+  movingId: string | null;
+  pan: Point;
+  zoom: number;
+  pins: Map<string, PinHit>;
+  readonly: boolean;
+}
+
+interface DragState {
+  pan?: { cx: number; cy: number; ox: number; oy: number; scale: number } | null;
+  off?: Point;
+  h?: number;
+  pinDown?: Point;
+  connect?: (a: BusEnd, b: BusEnd) => void;
+}
+
+const sameEnd = (a: BusEnd, b: BusEnd): boolean =>
   a.node === b.node && a.port === b.port && a.path === b.path;
 
 export default function BlockBoard({
@@ -57,7 +128,7 @@ export default function BlockBoard({
   resetKey,
   spread = 1,
   fullscreen = false,
-}) {
+}: BlockBoardProps) {
   /* раздвинуть блоки при просмотре тесной схемы: координаты умножаются, доска растёт */
   const spreadX = (x: number) => Math.round(SIDE_W + 18 + (x - (SIDE_W + 18)) * spread);
   const spreadY = (y: number) => Math.round(20 + (y - 20) * spread);
@@ -81,19 +152,28 @@ export default function BlockBoard({
           height,
           Math.round(Math.max(0, ...instances.map((i) => spreadY(i.y) + 290))),
         );
-  const svgRef = useRef(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [panning, setPanning] = useState(false);
-  const [expanded, setExpanded] = useState(() => new Set());
-  const [pending, setPending] = useState(null);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [pending, setPending] = useState<BusEnd | null>(null);
   const [sticky, setSticky] = useState(false);
-  const [cursor, setCursor] = useState(null);
-  const [hover, setHover] = useState(null);
-  const [movingId, setMovingId] = useState(null);
-  const [moved, setMoved] = useState({});
-  const drag = useRef({});
-  const st = useRef({});
+  const [cursor, setCursor] = useState<Point | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+  const [movingId, setMovingId] = useState<string | null>(null);
+  const [moved, setMoved] = useState<Record<string, Point>>({});
+  const drag = useRef<DragState>({});
+  const st = useRef<LiveState>({
+    pending: null,
+    sticky: false,
+    hover: null,
+    movingId: null,
+    pan: { x: 0, y: 0 },
+    zoom: 1,
+    pins: new Map(),
+    readonly,
+  });
 
   /* ---------- раскладка ---------- */
   const portsOf = useMemo(
@@ -126,7 +206,7 @@ export default function BlockBoard({
   }, [iface, library, instances, expanded, moved, W, spread]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pins = useMemo(() => {
-    const map = new Map();
+    const map = new Map<string, PinHit>();
     for (const box of boxes)
       for (const row of box.rows)
         map.set(row.key, { box, row, pos: pinCenter(box, row) });
@@ -144,11 +224,11 @@ export default function BlockBoard({
     }
   };
 
-  const orient = (a: BusEnd, b: any) => {
+  const orient = (a: BusEnd, b: BusEnd) => {
     const ia = endInfo(a, portsOf);
     return ia && isSourceEnd(a, ia) ? { from: a, to: b } : { from: b, to: a };
   };
-  const canJoin = (a: BusEnd, b: any) => {
+  const canJoin = (a: BusEnd, b: BusEnd) => {
     const { from, to } = orient(a, b);
     return connectionError(from, to, portsOf) === undefined;
   };
@@ -197,7 +277,7 @@ export default function BlockBoard({
   })();
 
   const compatible = useMemo(() => {
-    const set = new Set();
+    const set = new Set<string>();
     if (!pending) return set;
     for (const [key, p] of pins) if (canJoin(pending, p.row.end)) set.add(key);
     return set;
@@ -207,10 +287,10 @@ export default function BlockBoard({
   st.current = { pending, sticky, hover, movingId, pan, zoom, pins, readonly };
 
   /* ---------- координаты ---------- */
-  const toBoard = useCallback((cx: any, cy: any) => {
+  const toBoard = useCallback((cx: number, cy: number): Point => {
     const svg = svgRef.current;
     const m = svg?.getScreenCTM();
-    if (!m) return { x: 0, y: 0 };
+    if (!svg || !m) return { x: 0, y: 0 };
     const pt = svg.createSVGPoint();
     pt.x = cx;
     pt.y = cy;
@@ -219,7 +299,7 @@ export default function BlockBoard({
   }, []);
 
   const metrics = () => {
-    const rect = svgRef.current.getBoundingClientRect();
+    const rect = svgRef.current!.getBoundingClientRect();
     const base = Math.min(rect.width / W, rect.height / H);
     return {
       rect,
@@ -259,7 +339,7 @@ export default function BlockBoard({
     while (used.has(`b${n}`)) n++;
     return `b${n}`;
   };
-  const connect = (a: BusEnd, b: any) => {
+  const connect = (a: BusEnd, b: BusEnd) => {
     const { from, to } = orient(a, b);
     const error = connectionError(from, to, portsOf);
     if (error) {
@@ -267,12 +347,12 @@ export default function BlockBoard({
       return;
     }
     const id = nextWireId();
-    setBusWires((list: readonly BusWire[]) => addBusWire(list, { id, from, to }, portsOf));
+    setBusWires((list) => addBusWire(list, { id, from, to }, portsOf));
   };
 
   /* ---------- глобальные обработчики ---------- */
   useEffect(() => {
-    const move = (e: { clientX: number; clientY: number; }) => {
+    const move = (e: PointerEvent) => {
       const s = st.current;
       if (drag.current.pan) {
         const d = drag.current.pan;
@@ -284,15 +364,17 @@ export default function BlockBoard({
       }
       if (s.movingId) {
         const p = toBoard(e.clientX, e.clientY);
+        const off = drag.current.off ?? { x: 0, y: 0 };
         const { x, y } = clampWorld(
-          { x: p.x - drag.current.off.x, y: p.y - drag.current.off.y },
+          { x: p.x - off.x, y: p.y - off.y },
           BLOCK_W,
           drag.current.h ?? 80,
         );
-        if (s.readonly) setMoved((m) => ({ ...m, [s.movingId]: { x, y } }));
+        const id = s.movingId;
+        if (s.readonly) setMoved((m) => ({ ...m, [id]: { x, y } }));
         else
-          setInstances((list: any[]) =>
-            list.map((i) => (i.id === s.movingId ? { ...i, x, y } : i)),
+          setInstances((list) =>
+            list.map((i) => (i.id === id ? { ...i, x, y } : i)),
           );
         return;
       }
@@ -312,19 +394,19 @@ export default function BlockBoard({
       if (!s.pending || s.sticky) return;
       const target = s.hover ? s.pins.get(s.hover) : undefined;
       if (target && !sameEnd(s.pending, target.row.end)) {
-        drag.current.connect(s.pending, target.row.end);
+        drag.current.connect?.(s.pending, target.row.end);
         cancelWire();
-      } else if (isClick(drag.current.pinDown, e)) setSticky(true);
+      } else if (drag.current.pinDown && isClick(drag.current.pinDown, e)) setSticky(true);
       else cancelWire();
     };
-    const key = (e: { key: string; }) => {
+    const key = (e: KeyboardEvent) => {
       if (e.key === "Escape" && st.current.pending) cancelWire();
     };
     // пока шина тянется за мышью, нажатие мимо порта её отменяет
-    const cancelOnDown = (e: { button: number; target: any; preventDefault: () => void; stopPropagation: () => void; }) => {
+    const cancelOnDown = (e: PointerEvent) => {
       const s = st.current;
       if (!s.sticky || e.button === 1) return;
-      const t = e.target;
+      const t = e.target as Element | null;
       if (!t || typeof t.closest !== "function") return;
       if (t.closest(".bpin-hit") || t.closest(".lab-zoom")) return;
       cancelWire();
@@ -368,13 +450,13 @@ export default function BlockBoard({
       setPan(next.pan);
       setZoom(next.zoom);
     };
-    const mid = (e: { button: number; preventDefault: () => void; stopPropagation: () => void; }) => {
+    const mid = (e: PointerEvent) => {
       if (e.button !== 1) return;
       e.preventDefault();
       e.stopPropagation();
       beginPan(e);
     };
-    const swallow = (e: { button: number; preventDefault: () => any; }) => e.button === 1 && e.preventDefault();
+    const swallow = (e: MouseEvent) => e.button === 1 && e.preventDefault();
     el.addEventListener("wheel", wheel, { passive: false });
     el.addEventListener("pointerdown", mid, { capture: true });
     el.addEventListener("mousedown", swallow, { capture: true });
@@ -388,7 +470,7 @@ export default function BlockBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const beginPan = (e: { button?: number; preventDefault?: () => void; stopPropagation?: () => void; clientX?: any; clientY?: any; }) => {
+  const beginPan = (e: { clientX: number; clientY: number }) => {
     const m = metrics();
     const s = st.current;
     drag.current.pan = {
@@ -400,9 +482,9 @@ export default function BlockBoard({
     };
     setPanning(true);
   };
-  const boardDown = (e: { button: any; target?: any; preventDefault: any; stopPropagation?: (() => void)|undefined; clientX?: any; clientY?: any; }) => {
+  const boardDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0 || pending) return;
-    if (e.target === svgRef.current || e.target.classList?.contains("bb-bg")) {
+    if (e.target === svgRef.current || (e.target as Element).classList?.contains("bb-bg")) {
       e.preventDefault();
       beginPan(e);
     }
@@ -423,7 +505,7 @@ export default function BlockBoard({
   };
 
   /* ---------- действия ---------- */
-  const pinDown = (e: PointerEvent<SVGCircleElement>, row: { end: SetStateAction<null>; }) => {
+  const pinDown = (e: ReactPointerEvent<SVGCircleElement>, row: PinRow) => {
     if (readonly) return;
     e.preventDefault();
     e.stopPropagation();
@@ -439,7 +521,7 @@ export default function BlockBoard({
     setHover(null);
     setCursor(toBoard(e.clientX, e.clientY));
   };
-  const boxDown = (e: PointerEvent<SVGRectElement>|PointerEvent<SVGTextElement>, box: { kind: string; x: number; y: number; h: any; node: SetStateAction<null>; }) => {
+  const boxDown = (e: ReactPointerEvent<SVGElement>, box: BoxLayout) => {
     if (box.kind !== "block" || e.button !== 0) return;
     e.preventDefault();
     const p = toBoard(e.clientX, e.clientY);
@@ -447,7 +529,7 @@ export default function BlockBoard({
     drag.current.h = box.h;
     setMovingId(box.node);
   };
-  const toggleExpand = (row: { key: unknown; }, e: PointerEvent<SVGGElement>) => {
+  const toggleExpand = (row: PinRow, e: ReactPointerEvent<SVGGElement>) => {
     e.stopPropagation();
     e.preventDefault();
     setExpanded((set) => {
@@ -459,18 +541,18 @@ export default function BlockBoard({
       return next;
     });
   };
-  const removeWire = (id: any) =>
-    !readonly && setBusWires((list: any[]) => list.filter((w) => w.id !== id));
-  const removeInstance = (id: any, e: MouseEvent<SVGGElement,MouseEvent>) => {
+  const removeWire = (id: string) =>
+    !readonly && setBusWires((list) => list.filter((w) => w.id !== id));
+  const removeInstance = (id: string, e: ReactMouseEvent<SVGGElement>) => {
     e.stopPropagation();
-    setInstances((list: any[]) => list.filter((i) => i.id !== id));
-    setBusWires((list: any[]) =>
+    setInstances((list) => list.filter((i) => i.id !== id));
+    setBusWires((list) =>
       list.filter((w) => w.from.node !== id && w.to.node !== id),
     );
   };
 
-  const bit = (node: any) => scope(node);
-  const rowText = (row: { nodes: any[]; }) => busText(row.nodes.map((n) => scope(n)));
+  const bit = (node: string) => scope(node);
+  const rowText = (row: PinRow) => busText(row.nodes.map((n) => scope(n)));
   const changed =
     pan.x !== 0 || pan.y !== 0 || zoom !== 1 || Object.keys(moved).length > 0;
 
@@ -705,7 +787,7 @@ export default function BlockBoard({
                   )}
 
                   {box.kind === "top-in" &&
-                    row.nodes.map((node, i: number) => (
+                    row.nodes.map((node, i) => (
                       <g
                         key={node}
                         className={`bchip ${bit(node) === 1 ? "v1" : ""} ${node === clockNode ? "clk" : ""} ${readonly ? "static" : ""}`}

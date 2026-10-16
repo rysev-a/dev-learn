@@ -3,6 +3,7 @@ import { useProgress } from "../lib/progress.tsx";
 import PracticeShell, {
   usePracticeDrafts,
   useTaskSelection,
+  type PracticeProps,
 } from "./PracticeShell.tsx";
 import { NET_BY_ID } from "../netlab/registry.ts";
 import NetLab from "../netlab/react/NetLab.tsx";
@@ -11,13 +12,7 @@ import NetLab from "../netlab/react/NetLab.tsx";
    (устройства, кабели, адреса, маршруты, NAT). Состояние сети сохраняется в кабинете как
    черновик, решённое упражнение отправляется на сервер (режим lab). */
 
-export default function NetPractice({
-  tasks,
-  bookId,
-  chapter,
-  itemsSlot,
-  nextChapter,
-}) {
+export default function NetPractice({ tasks, bookId, chapter, itemsSlot, nextChapter }: PracticeProps) {
   const progress = useProgress();
   const status = progress.codeStatus(bookId, chapter);
   const base = `/api/exercises/${bookId}/${chapter}`;
@@ -33,7 +28,7 @@ export default function NetPractice({
   const goNext = () =>
     idx < tasks.length - 1 ? select(idx + 1) : nextChapter?.open();
 
-  const onSolved = (solution) => {
+  const onSolved = (solution: string) => {
     flush();
     progress.setCodeStatus(bookId, chapter, task.id, "ok");
     api(`${base}/${task.id}/solved`, {

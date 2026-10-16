@@ -10,23 +10,27 @@ import {
 } from "./exercises/logic-gates/lab/exercise-progress.ts";
 import { localSolutionStore } from "./exercises/logic-gates/blocks.ts";
 
-let cache = { user: null, promise: null };
+let cache: { user: number | null; promise: Promise<void> | null } = { user: null, promise: null };
 
-export function hydrateLab(userId: number|null) {
+interface ServerState {
+  status?: Record<string, string>;
+  drafts?: Record<string, string>;
+}
+
+export function hydrateLab(userId: number | null): Promise<void> {
   setLabNamespace(`u${userId}:`);
   if (cache.user === userId && cache.promise) return cache.promise;
-  const circuitChapters = Object.entries(LAB_CHAPTERS).filter(
-    ([, v]) => v.kind === "circuit",
-  );
+  const circuitChapters = Object.entries(LAB_CHAPTERS).flatMap(([n, v]) => (v.kind === "circuit" ? [[n, v] as const] : []));
   const promise = Promise.all(
     circuitChapters.map(async ([num, lab]) => {
-      let state;
+      let state: ServerState;
       try {
-        state = await api(`/api/exercises/${ARCH_BOOK}/${num}/state`);
+        state = await api<ServerState>(`/api/exercises/${ARCH_BOOK}/${num}/state`);
       } catch {
         return;
       }
       const section = sectionOf(lab.slug);
+      if (!section) return;
       const solved = new Set(loadProgress(section).solved);
       section.exercises.forEach((ex, i) => {
         if (state.status?.[ex.id] !== "ok") return;

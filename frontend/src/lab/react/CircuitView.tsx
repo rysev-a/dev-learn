@@ -1,4 +1,11 @@
-import { PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import {
   BOARD_H,
   BOARD_W,
@@ -6,12 +13,19 @@ import {
   INPUT_X,
   OUT_PIN_X,
   OUT_X,
-  PinRef,
   inputYs,
   outputYs,
   pinPos,
   wirePath,
+  type GateInstance,
+  type InputId,
+  type NodeValue,
+  type PinKind,
+  type PinRef,
+  type Point,
+  type Wire,
 } from "../exercises/logic-gates/circuit.model.ts";
+import type { BlockInterface, ValueScope } from "../exercises/logic-gates/blocks.ts";
 import {
   gateBodyPath,
   gateBubbleCx,
@@ -30,14 +44,31 @@ import {
 /* Схема из вентилей только для просмотра — «внутренность» блока. Значения берутся из общей симуляции,
    сигналы здесь живые. Вентили можно двигать и раздвигать: схема от этого не меняется. */
 
-const cls = (v: number) => (v === 1 ? "v1" : v === 0 ? "v0" : "vx");
-const txt = (v: undefined) => (v === undefined ? "?" : String(v));
-const spread = (names: { length: number; map: (arg0: (n: any,i: any) => any[]) => Iterable<readonly [PropertyKey,any]>; }, h: number) => {
+const cls = (v: NodeValue) => (v === 1 ? "v1" : v === 0 ? "v0" : "vx");
+const txt = (v: NodeValue) => (v === undefined ? "?" : String(v));
+/** равномерная раскладка узлов по высоте доски h */
+const spreadYs = (names: readonly string[], h: number): Record<string, number> => {
   const step = names.length > 1 ? (h - 80) / (names.length - 1) : 0;
   return Object.fromEntries(
     names.map((n, i) => [n, names.length === 1 ? h / 2 : 40 + i * step]),
   );
 };
+
+interface CircuitViewProps {
+  gates: readonly GateInstance[];
+  wires: readonly Wire[];
+  iface: BlockInterface;
+  scope: ValueScope;
+  resetKey?: unknown;
+  spread?: number;
+  fullscreen?: boolean;
+}
+
+interface DragState {
+  pan?: { cx: number; cy: number; ox: number; oy: number; scale: number };
+  id?: string;
+  off?: Point;
+}
 
 export default function CircuitView({
   gates,
@@ -47,14 +78,14 @@ export default function CircuitView({
   resetKey,
   spread = 1,
   fullscreen = false,
-}) {
-  const svgRef = useRef(null);
+}: CircuitViewProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [moved, setMoved] = useState({});
+  const [moved, setMoved] = useState<Record<string, Point>>({});
   const [panning, setPanning] = useState(false);
-  const drag = useRef({});
-  const st = useRef({});
+  const drag = useRef<DragState>({});
+  const st = useRef({ pan, zoom, H: 0 });
 
   const spreadX = (x: number) => Math.round(150 + (x - 150) * spread);
   const spreadY = (y: number) => Math.round(20 + (y - 20) * spread);
@@ -91,13 +122,13 @@ export default function CircuitView({
   ); // eslint-disable-line react-hooks/exhaustive-deps
   const inputYMap = useMemo(
     () =>
-      iface.inputs.length > 4 ? spread(iface.inputs, H) : inputYs(iface.inputs),
+      iface.inputs.length > 4 ? spreadYs(iface.inputs, H) : inputYs(iface.inputs as readonly InputId[]),
     [iface, H],
   );
   const outputYMap = useMemo(
     () =>
       iface.outputs.length > 4
-        ? spread(iface.outputs, H)
+        ? spreadYs(iface.outputs, H)
         : outputYs(iface.outputs),
     [iface, H],
   );
@@ -108,17 +139,17 @@ export default function CircuitView({
       ? { x: p.x + extraW, y: p.y }
       : p;
   };
-  const val = (n: any) => scope(n);
-  const pinVal = (node: any, pin: string) => {
+  const val = (n: string) => scope(n);
+  const pinVal = (node: string, pin: PinKind): NodeValue => {
     const w = wires.find((x) => x.to.node === node && x.to.pin === pin);
     return w ? val(w.from.node) : undefined;
   };
-  const label = (id: any) => iface.labels?.[iface.inputs.indexOf(id)] ?? id;
+  const label = (id: string) => iface.labels?.[iface.inputs.indexOf(id)] ?? id;
 
-  const toBoard = useCallback((cx: any, cy: any) => {
+  const toBoard = useCallback((cx: number, cy: number): Point => {
     const svg = svgRef.current;
     const m = svg?.getScreenCTM();
-    if (!m) return { x: 0, y: 0 };
+    if (!svg || !m) return { x: 0, y: 0 };
     const pt = svg.createSVGPoint();
     pt.x = cx;
     pt.y = cy;
@@ -126,7 +157,7 @@ export default function CircuitView({
     return { x: r.x, y: r.y };
   }, []);
   const metrics = () => {
-    const rect = svgRef.current.getBoundingClientRect();
+    const rect = svgRef.current!.getBoundingClientRect();
     const base = Math.min(rect.width / W, rect.height / st.current.H);
     return {
       rect,
@@ -138,21 +169,23 @@ export default function CircuitView({
 
   useEffect(() => {
     const el = svgRef.current;
-    const move = (e: { clientX: number; clientY: number; }) => {
+    if (!el) return undefined;
+    const move = (e: PointerEvent) => {
       if (drag.current.pan) {
         const d = drag.current.pan;
         setPan({
           x: Math.round(d.ox - (e.clientX - d.cx) / d.scale),
           y: Math.round(d.oy - (e.clientY - d.cy) / d.scale),
         });
-      } else if (drag.current.id) {
+      } else if (drag.current.id && drag.current.off) {
         const p = toBoard(e.clientX, e.clientY);
+        const id = drag.current.id;
         const { x, y } = clampWorld(
           { x: p.x - drag.current.off.x, y: p.y - drag.current.off.y },
           GATE_W,
           48,
         );
-        setMoved((m) => ({ ...m, [drag.current.id]: { x, y } }));
+        setMoved((m) => ({ ...m, [id]: { x, y } }));
       }
     };
     const up = () => {
@@ -176,7 +209,7 @@ export default function CircuitView({
       setPan(next.pan);
       setZoom(next.zoom);
     };
-    const mid = (e: { button: number; preventDefault: () => void; stopPropagation: () => void; }) => {
+    const mid = (e: PointerEvent) => {
       if (e.button !== 1) return;
       e.preventDefault();
       e.stopPropagation();
@@ -195,7 +228,7 @@ export default function CircuitView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toBoard]);
 
-  const beginPan = (e: { button?: number; preventDefault?: () => void; stopPropagation?: () => void; clientX?: any; clientY?: any; }) => {
+  const beginPan = (e: { clientX: number; clientY: number }) => {
     const m = metrics();
     const s = st.current;
     drag.current = {
@@ -209,14 +242,14 @@ export default function CircuitView({
     };
     setPanning(true);
   };
-  const boardDown = (e: { button: any; target?: any; preventDefault: any; stopPropagation?: (() => void)|undefined; clientX?: any; clientY?: any; }) => {
+  const boardDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
-    if (e.target === svgRef.current || e.target.classList?.contains("cv-bg")) {
+    if (e.target === svgRef.current || (e.target as Element).classList?.contains("cv-bg")) {
       e.preventDefault();
       beginPan(e);
     }
   };
-  const gateDown = (e: PointerEvent<SVGGElement>, g: { id: any; x: number; y: number; }) => {
+  const gateDown = (e: ReactPointerEvent<SVGGElement>, g: { id: string; x: number; y: number }) => {
     if (e.button !== 0) return;
     e.preventDefault();
     const p = toBoard(e.clientX, e.clientY);
@@ -387,12 +420,12 @@ export default function CircuitView({
           >
             <path className="gate-body" d={gateBodyPath(g.type)} />
             {gateExtraArc(g.type) && (
-              <path className="gate-extra" d={gateExtraArc(g.type)} />
+              <path className="gate-extra" d={gateExtraArc(g.type) ?? undefined} />
             )}
             {gateBubbleCx(g.type) !== null && (
               <circle
                 className="gate-bubble"
-                cx={gateBubbleCx(g.type)}
+                cx={gateBubbleCx(g.type) ?? undefined}
                 cy="24"
                 r="5"
               />

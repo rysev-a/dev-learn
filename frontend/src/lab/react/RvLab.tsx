@@ -1,9 +1,9 @@
 import ResultAlert from "./ResultAlert.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ABI_NAMES, OPS, PSEUDO, fieldsOf } from "../riscv/rv-isa.ts";
+import { ABI_NAMES, OPS, PSEUDO, fieldsOf, type BitField } from "../riscv/rv-isa.ts";
 import { STACK_TOP, assemble } from "../riscv/rv-asm.ts";
 import { MMIO_MAP, RvMachine } from "../riscv/rv-machine.ts";
-import { fullSource } from "../riscv/rv-tasks.ts";
+import { fullSource, type RvTask } from "../riscv/rv-tasks.ts";
 import { projectFiles, projectZip } from "../riscv/rv-project.ts";
 import { makeZip } from "../riscv/zip.ts";
 
@@ -29,6 +29,18 @@ function saveBlob(blob: Blob|MediaSource, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+interface RvLabProps {
+  task: RvTask;
+  code: string | undefined;
+  onCode: (code: string) => void;
+  solvedBefore: boolean;
+  onSolved?: (code: string) => void;
+  onNext?: () => void;
+  hasNext: boolean;
+  nextLabel: string;
+  real?: boolean;
+}
+
 export default function RvLab({
   task,
   code,
@@ -39,11 +51,11 @@ export default function RvLab({
   hasNext,
   nextLabel,
   real,
-}) {
+}: RvLabProps) {
   const [resets, setResets] = useState(0);
   const [, bump] = useState(0);
   const [hintOpen, setHintOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<number | null>(null);
   const [windowId, setWindowId] = useState("text");
   const [openFile, setOpenFile] = useState("program.s");
   const reported = useRef(false);
@@ -130,7 +142,7 @@ export default function RvLab({
       changed: view?.lastReg === i,
     };
   });
-  const base = WINDOWS.find((w) => w.id === windowId).from;
+  const base = (WINDOWS.find((w) => w.id === windowId) ?? WINDOWS[0]).from;
   const mem = view?.mem ?? asm.image;
   const grid = Array.from({ length: 16 }, (_, row) => ({
     addr: base + row * 16,
@@ -491,7 +503,7 @@ export default function RvLab({
               className="quiz-btn"
               onClick={() =>
                 saveBlob(
-                  new Blob([makeZip(projectZip(files))], {
+                  new Blob([makeZip(projectZip(files)) as BlobPart], {
                     type: "application/zip",
                   }),
                   "riscv-program.zip",
@@ -594,7 +606,17 @@ export default function RvLab({
   );
 }
 
-function RowFragment({ l, selected, onClick }) {
+interface ListingRow {
+  addr: number;
+  addrHex: string;
+  wordHex: string;
+  text: string;
+  current: boolean;
+  pseudo?: boolean;
+  parts: { fmt: string; fields: BitField[] };
+}
+
+function RowFragment({ l, selected, onClick }: { l: ListingRow; selected: boolean; onClick: () => void }) {
   return (
     <>
       <tr

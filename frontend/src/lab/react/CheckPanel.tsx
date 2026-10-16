@@ -1,6 +1,18 @@
-import { inputsForRow } from "../exercises/logic-gates/circuit.model.ts";
+import { inputsForRow, type InputId, type InputState, type NodeValue, type TableRow } from "../exercises/logic-gates/circuit.model.ts";
+import type { Exercise } from "../exercises/logic-gates/exercises.ts";
 
 /* Проверка решения: таблица истинности или сценарий по шагам (для защёлок и регистров) */
+interface CheckPanelProps {
+  exercise: Exercise;
+  inputState: InputState;
+  valueAt: (output: string) => NodeValue;
+  passedSteps: number;
+  solved: boolean;
+  matched: number;
+  tableRows: readonly TableRow[];
+  currentRow: number;
+}
+
 export default function CheckPanel({
   exercise: ex,
   inputState,
@@ -10,9 +22,9 @@ export default function CheckPanel({
   matched,
   tableRows,
   currentRow,
-}) {
+}: CheckPanelProps) {
   const labels = ex.labels ?? ex.inputs;
-  const labelOf = (id: any) => labels[ex.inputs.indexOf(id)] ?? id;
+  const labelOf = (id: InputId) => labels[ex.inputs.indexOf(id)] ?? id;
   if (ex.mode === "steps") {
     const total = ex.steps?.length ?? 0;
     return (
@@ -30,7 +42,7 @@ export default function CheckPanel({
           </span>
         </div>
         <div className="lab-steps">
-          {ex.steps.map((st, i) => (
+          {(ex.steps ?? []).map((st, i) => (
             <div
               key={i}
               className={`lab-step ${i < passedSteps ? "done" : ""} ${i === passedSteps ? "active" : ""}`}
@@ -41,7 +53,7 @@ export default function CheckPanel({
               <div>
                 <p className="lab-step-text">{st.text}</p>
                 <div className="lab-step-req">
-                  {st.pulses > 1 && (
+                  {(st.pulses ?? 1) > 1 && (
                     <span className="lab-chip pulses">тактов: {st.pulses}</span>
                   )}
                   {ex.inputs.map((id) => (
@@ -64,7 +76,7 @@ export default function CheckPanel({
                         </span>
                       ),
                   )}
-                  {ex.outputs.every((o: string|number) => st.expect[o] === undefined) && (
+                  {ex.outputs.every((o) => st.expect[o] === undefined) && (
                     <span className="lab-chip out hit">
                       выход пока не проверяется
                     </span>

@@ -1,10 +1,10 @@
 import ResultAlert from "./ResultAlert.tsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { assemble } from "../asm/assembler.ts";
 import { OPS, PSEUDO, REG_COUNT, fields } from "../asm/isa.ts";
 import { Machine } from "../asm/machine.ts";
 import { GateMachine } from "../cpu8/gate-machine.ts";
-import { hex } from "../asm/tasks.ts";
+import { hex, type AsmTask } from "../asm/tasks.ts";
 import CpuInspector from "./CpuInspector.tsx";
 
 /* Ассемблер процессора «Мини-8»: пишем программу, смотрим машинный код и запускаем её на виртуальном диске
@@ -13,6 +13,17 @@ import CpuInspector from "./CpuInspector.tsx";
 const RUN_LIMIT = 100_000;
 const hexByte = (n: number) => n.toString(16).toUpperCase().padStart(2, "0");
 const regNames = Array.from({ length: REG_COUNT }, (_, i) => `r${i}`);
+
+interface AsmLabProps {
+  task: AsmTask;
+  code: string | undefined;
+  onCode: (code: string) => void;
+  solvedBefore: boolean;
+  onSolved?: (code: string) => void;
+  onNext?: () => void;
+  hasNext: boolean;
+  nextLabel: string;
+}
 
 export default function AsmLab({
   task,
@@ -23,12 +34,12 @@ export default function AsmLab({
   onNext,
   hasNext,
   nextLabel,
-}) {
+}: AsmLabProps) {
   const [engine, setEngine] = useState("emu");
   const [resets, setResets] = useState(0);
   const [, bump] = useState(0);
   const [hintOpen, setHintOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<number | null>(null);
   const reported = useRef(false);
   const source = code ?? task.starter;
   const asm = useMemo(() => assemble(source), [source]);
@@ -67,10 +78,10 @@ export default function AsmLab({
   const step = () => (machine?.step(), bump((n) => n + 1));
   const run = () => (machine?.run(RUN_LIMIT), bump((n) => n + 1));
 
-  const onKey = (e: { key: string; preventDefault: () => void; target: any; }) => {
+  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Tab") return;
     e.preventDefault();
-    const el = e.target;
+    const el = e.currentTarget;
     const { selectionStart: s, selectionEnd: en, value } = el;
     onCode(`${value.slice(0, s)}  ${value.slice(en)}`);
     requestAnimationFrame(() => (el.selectionStart = el.selectionEnd = s + 2));
@@ -343,7 +354,7 @@ export default function AsmLab({
               </div>
             </div>
             <div className="lab-regions">
-              {task.regions.map((r, i: any) => (
+              {task.regions.map((r, i) => (
                 <span key={r.name} className={`lab-region rg${i}`}>
                   {r.name} · {hex(r.from)}
                 </span>

@@ -5,6 +5,7 @@ import { useProgress } from "../lib/progress.tsx";
 import PracticeShell, {
   usePracticeDrafts,
   useTaskSelection,
+  type PracticeProps,
 } from "./PracticeShell.tsx";
 import { hydrateLab } from "../lab/hydrate.ts";
 import { ARCH_BOOK, LAB_CHAPTERS, sectionOf } from "../lab/registry.ts";
@@ -18,14 +19,7 @@ import "../lab/lab.css";
    (схемы из вентилей и блоков), проверка в браузере. Решение запоминается в кабинете:
    статус, схема и запись в истории попыток. */
 
-export default function LabPractice({
-  tasks,
-  bookId,
-  chapter,
-  itemsSlot,
-  nextChapter,
-  fullscreen,
-}) {
+export default function LabPractice({ tasks, bookId, chapter, itemsSlot, nextChapter, fullscreen }: PracticeProps) {
   const { user } = useAuth();
   const progress = useProgress();
   const [ready, setReady] = useState(false);
@@ -46,11 +40,11 @@ export default function LabPractice({
   useEffect(() => {
     let live = true;
     setReady(false);
-    hydrateLab(user.id).then(() => live && setReady(true));
+    hydrateLab(user?.id ?? null).then(() => live && setReady(true));
     return () => {
       live = false;
     };
-  }, [user.id]);
+  }, [user?.id]);
 
   const { idx, task, select } = useTaskSelection(tasks);
 
@@ -63,7 +57,7 @@ export default function LabPractice({
     idx < tasks.length - 1 ? select(idx + 1) : nextChapter?.open();
   const nextLabel = idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →";
 
-  const onSolved = (solution) => {
+  const onSolved = (solution: string) => {
     progress.setCodeStatus(bookId, chapter, task.id, "ok");
     setVersion((v) => v + 1);
     api(`/api/exercises/${ARCH_BOOK}/${chapter}/${task.id}/solved`, {
@@ -72,7 +66,7 @@ export default function LabPractice({
     }).catch(() => {});
   };
 
-  const section = lab?.kind === "circuit" ? sectionOf(lab.slug) : null;
+  const section = lab?.kind === "circuit" ? sectionOf(lab.slug) : undefined;
   const exercise = section?.exercises.find((e) => e.id === task.id);
 
   return (
@@ -90,7 +84,7 @@ export default function LabPractice({
           key={`${chapter}:${task.id}`}
           kind={lab.kind}
           task={task}
-          code={drafts[task.id]}
+          code={drafts?.[task.id]}
           onCode={(v) => edit(task.id, v)}
           solvedBefore={solved}
           onSolved={(code) => {
@@ -102,7 +96,7 @@ export default function LabPractice({
           nextLabel={nextLabel}
         />
       )}
-      {exercise && (
+      {section && exercise && (
         <CircuitLab
           key={`${chapter}:${task.id}`}
           section={section}
@@ -121,7 +115,19 @@ export default function LabPractice({
   );
 }
 
-function CodeTask({ kind, task, ...rest }) {
+interface CodeTaskProps {
+  kind: "asm" | "riscv" | "real";
+  task: { id: string };
+  code: string | undefined;
+  onCode: (code: string) => void;
+  solvedBefore: boolean;
+  onSolved: (code: string) => void;
+  onNext: () => void;
+  hasNext: boolean;
+  nextLabel: string;
+}
+
+function CodeTask({ kind, task, ...rest }: CodeTaskProps) {
   if (kind === "asm") return <AsmLab task={ASM_BY_ID[task.id]} {...rest} />;
   return (
     <RvLab

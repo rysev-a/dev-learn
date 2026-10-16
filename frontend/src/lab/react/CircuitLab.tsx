@@ -1,5 +1,9 @@
 import ResultAlert from "./ResultAlert.tsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Section } from "../sections/sections.ts";
+import type { Exercise } from "../exercises/logic-gates/exercises.ts";
+import type { BoardHandle } from "./BlockBoard.tsx";
+import type { PaletteItem } from "./GateBoard.tsx";
 import {
   COMPOSITE_GATES,
   evaluateCircuit,
@@ -8,6 +12,13 @@ import {
   reserveUids,
   settleCircuit,
   zeroInputs,
+  type Bit,
+  type GateInstance,
+  type GateType,
+  type InputId,
+  type InputState,
+  type NodeValue,
+  type Wire,
 } from "../exercises/logic-gates/circuit.model.ts";
 import { RU_NAMES } from "../exercises/logic-gates/gate-shapes.ts";
 import {
@@ -18,6 +29,13 @@ import {
   isBlockSolution,
   isGateSolution,
   localSolutionStore,
+  type BlockDef,
+  type BlockInstance,
+  type BlockInterface,
+  type BusWire,
+  type Expansion,
+  type Solution,
+  type ValueScope,
 } from "../exercises/logic-gates/blocks.ts";
 import { freeSpot } from "../exercises/logic-gates/block-layout.ts";
 import { SECTIONS } from "../sections/sections.ts";
@@ -27,7 +45,7 @@ import {
   loadProgress,
   saveProgress,
 } from "../exercises/logic-gates/lab/exercise-progress.ts";
-import { HISTORY_MAX, buildWave } from "../exercises/logic-gates/lab/wave.ts";
+import { HISTORY_MAX, buildWave, type Sample } from "../exercises/logic-gates/lab/wave.ts";
 import GateBoard from "./GateBoard.tsx";
 import CheckPanel from "./CheckPanel.tsx";
 import WaveDiagram from "./WaveDiagram.tsx";
@@ -38,6 +56,30 @@ import { CLOCK_RATES, Clock } from "./clock.ts";
 /* Одно упражнение со схемой: доска из вентилей, таблица истинности или сценарий по шагам,
    такт и временная диаграмма. Порт CircuitLab: состояние — в React, расчёт — в общем ядре.
    Решённое упражнение запоминает схему (localStorage + кабинет), см. LabPractice. */
+
+/** один уровень просмотра: верхняя схема или блок, в который «заглянули» */
+interface Level {
+  title: string;
+  def: BlockDef | null;
+  iface: BlockInterface;
+  solution: Solution;
+  expansion: Expansion;
+  scope: ValueScope;
+}
+
+interface CircuitLabProps {
+  section: Section;
+  exercise: Exercise;
+  index: number;
+  solvedBefore: boolean;
+  onSolved?: (solution: string) => void;
+  onNext?: () => void;
+  hasNext: boolean;
+  nextLabel: string;
+  progressVersion: number;
+  fullscreen?: boolean;
+  onOpenSource?: (source: { sectionSlug: string; exerciseId: string }) => void;
+}
 
 export default function CircuitLab({
   section,
@@ -51,23 +93,23 @@ export default function CircuitLab({
   progressVersion,
   fullscreen,
   onOpenSource,
-}) {
+}: CircuitLabProps) {
   const blocksMode = ex.kind === "blocks";
-  const [gates, setGates] = useState([]);
-  const [wires, setWires] = useState([]);
-  const [instances, setInstances] = useState([]);
-  const [busWires, setBusWires] = useState([]);
-  const [inspectPath, setInspectPath] = useState([]);
+  const [gates, setGates] = useState<GateInstance[]>([]);
+  const [wires, setWires] = useState<Wire[]>([]);
+  const [instances, setInstances] = useState<BlockInstance[]>([]);
+  const [busWires, setBusWires] = useState<BusWire[]>([]);
+  const [inspectPath, setInspectPath] = useState<string[]>([]);
   const [editUnlocked, setEditUnlocked] = useState(false);
   const [inputState, setInputState] = useState(zeroInputs());
   const [passed, setPassed] = useState(0);
-  const [history, setHistory] = useState([]);
-  const [flash, setFlash] = useState(null);
+  const [history, setHistory] = useState<Sample[]>([]);
+  const [flash, setFlash] = useState<string | null>(null);
   const [hintOpen, setHintOpen] = useState(false);
   const [, redraw] = useState(0);
-  const boardRef = useRef(null);
-  const lastStable = useRef(new Map());
-  const flashTimer = useRef(null);
+  const boardRef = useRef<BoardHandle | null>(null);
+  const lastStable = useRef<Map<string, NodeValue>>(new Map());
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reported = useRef(false);
   const stepsMode = ex.mode === "steps";
   const clockId = ex.clock ?? null;
@@ -96,7 +138,7 @@ export default function CircuitLab({
     [circuit, inputState],
   );
   const seqValues = useMemo(() => {
-    if (!stepsMode) return new Map();
+    if (!stepsMode) return new Map<string, NodeValue>();
     const res = settleCircuit(circuit, inputState, lastStable.current);
     lastStable.current = res.stable ? res.values : new Map();
     return res.values;
@@ -109,13 +151,13 @@ export default function CircuitLab({
   /* ---------- проверка ---------- */
   const tableRows = useMemo(() => {
     if (stepsMode) return [];
-    return ex.target.map((targetRow, row: number) => {
+    return ex.target.map((targetRow, row) => {
       const inputs = inputsForRow(ex.inputs, row);
-      const actuals = ex.outputs.map((o: string) => outputValue(circuit, inputs, o));
+      const actuals = ex.outputs.map((o) => outputValue(circuit, inputs, o));
       return {
         targets: targetRow,
         actuals,
-        ok: actuals.every((a: any, i: string|number) => a === targetRow[i]),
+        ok: actuals.every((a, i) => a === targetRow[i]),
       };
     });
   }, [circuit, ex, stepsMode]);
@@ -125,7 +167,7 @@ export default function CircuitLab({
     ? totalSteps > 0 && passed === totalSteps
     : tableRows.length > 0 && tableRows.every((r) => r.ok);
   const currentRow = ex.inputs.reduce(
-    (acc: number, id: string|number) => (acc << 1) | inputState[id],
+    (acc: number, id) => (acc << 1) | inputState[id],
     0,
   );
 
@@ -134,10 +176,10 @@ export default function CircuitLab({
     if (!stepsMode || !ex.steps) return;
     const step = ex.steps[passed];
     if (!step) return;
-    if (!ex.inputs.every((id: string|number) => inputState[id] === step.inputs[id])) return;
+    if (!ex.inputs.every((id) => inputState[id] === step.inputs[id])) return;
     if (
       ex.outputs.every(
-        (o: string|number) =>
+        (o) =>
           step.expect[o] === undefined || seqValues.get(o) === step.expect[o],
       )
     )
@@ -146,9 +188,9 @@ export default function CircuitLab({
 
   /* ---------- временная диаграмма ---------- */
   const snapshot = useCallback(
-    () => ({
-      inputs: Object.fromEntries(ex.inputs.map((id: string|number) => [id, inputState[id]])),
-      outputs: Object.fromEntries(ex.outputs.map((o: any) => [o, seqValues.get(o)])),
+    (): Sample => ({
+      inputs: Object.fromEntries(ex.inputs.map((id) => [id, inputState[id]])) as Sample["inputs"],
+      outputs: Object.fromEntries(ex.outputs.map((o) => [o, seqValues.get(o)])),
     }),
     [ex, inputState, seqValues],
   );
@@ -179,28 +221,30 @@ export default function CircuitLab({
   /* ---------- такт ---------- */
   const inputRef = useRef(inputState);
   inputRef.current = inputState;
-  const setInput = useCallback((id: string|number, level: any) => {
+  const setInput = useCallback((id: InputId, level: Bit) => {
     setInputState((s) => (s[id] === level ? s : { ...s, [id]: level }));
     inputRef.current = { ...inputRef.current, [id]: level };
   }, []);
-  const clock = useRef(null);
-  if (!clock.current)
-    clock.current = new Clock(
+  // такт создаётся один раз; id тактового входа обновляется на каждом рендере
+  const [clock] = useState(() => {
+    const c: Clock = new Clock(
       {
         clockId: () => clockId,
-        level: (id: string|number) => inputRef.current[id],
-        setLevel: (id: string|number, level: number) => {
-          if (id === clockId && level === 1 && inputRef.current[id] !== 1)
-            clock.current.edges += 1;
-          setInput(id, level);
+        level: (id) => inputRef.current[id as InputId],
+        setLevel: (id, level) => {
+          if (id === clockId && level === 1 && inputRef.current[id as InputId] !== 1)
+            c.edges += 1;
+          setInput(id as InputId, level as Bit);
         },
       },
       () => redraw((n) => n + 1),
     );
-  clock.current.host.clockId = () => clockId;
-  useEffect(() => () => clock.current?.dispose(), []);
+    return c;
+  });
+  clock.host.clockId = () => clockId;
+  useEffect(() => () => clock.dispose(), [clock]);
 
-  const notify = (text: string|SetStateAction<null>) => {
+  const notify = (text: string) => {
     setFlash(text);
     clearTimeout(flashTimer.current);
     flashTimer.current = setTimeout(() => setFlash(null), 2800);
@@ -208,8 +252,8 @@ export default function CircuitLab({
 
   /* ---------- смена упражнения: чистая доска, затем сохранённое решение ---------- */
   useEffect(() => {
-    clock.current.stop();
-    clock.current.set({ edges: 0 });
+    clock.stop();
+    clock.set({ edges: 0 });
     lastStable.current = new Map();
     reported.current = false;
     setInputState(zeroInputs());
@@ -268,14 +312,14 @@ export default function CircuitLab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gates, wires, instances, busWires]);
 
-  const toggleInput = (id: string|number) => {
-    const next = inputState[id] ^ 1;
-    if (id === clockId && next === 1) clock.current.edges += 1;
+  const toggleInput = (id: InputId) => {
+    const next = (inputState[id] ^ 1) as Bit;
+    if (id === clockId && next === 1) clock.edges += 1;
     setInputState((s) => ({ ...s, [id]: next }));
   };
 
   const reset = () => {
-    clock.current.stop();
+    clock.stop();
     setGates([]);
     setWires([]);
     setInstances([]);
@@ -324,7 +368,7 @@ export default function CircuitLab({
   };
   const levels = useMemo(() => {
     if (!expansion) return [];
-    const out = [
+    const out: Level[] = [
       {
         title: ex.title,
         def: null,
@@ -353,20 +397,21 @@ export default function CircuitLab({
     inspectPath.length > 0 && levels.length > 1
       ? levels[levels.length - 1]
       : null;
-  const inspectInto = (id: any) => (
+  const inspectInto = (id: string) => (
     setInspectPath((p) => [...p, id]),
     setEditUnlocked(false)
   );
-  const inspectTo = (n: number|undefined) => (
+  const inspectTo = (n?: number) => (
     setInspectPath((p) => p.slice(0, n)),
     setEditUnlocked(false)
   );
-  const toggleNode = (node: string|number) => ex.inputs.includes(node) && toggleInput(node);
+  const toggleNode = (node: string) =>
+    (ex.inputs as readonly string[]).includes(node) && toggleInput(node as InputId);
 
   /* ---------- палитра ---------- */
   const palette = useMemo(
-    () =>
-      ex.allowed.map((type: string) => {
+    (): PaletteItem[] =>
+      ex.allowed.map((type) => {
         const locked = !isGateUnlocked(type);
         return {
           type,
@@ -380,12 +425,12 @@ export default function CircuitLab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ex, progressVersion],
   );
-  const onLockedPick = (type: string) => {
+  const onLockedPick = (type: GateType) => {
     notify(`${gateLockHint(type)} — и элемент откроется`);
     setHintOpen(true);
   };
 
-  const clk = clock.current;
+  const clk = clock;
   const clockLevel = clockId ? inputState[clockId] : 0;
   const labels = ex.labels ?? ex.inputs;
   const what = blocksMode ? "Соедините блоки шинами" : "Соберите схему";
@@ -551,7 +596,7 @@ export default function CircuitLab({
                       )}
                     </div>
                   </div>
-                  {editUnlocked && current.def?.source && (
+                  {editUnlocked && current.def?.source && onOpenSource && (
                     <div className="lab-inspector-edit">
                       <p>
                         Схему блока меняют в упражнении, где вы её собрали:
@@ -562,7 +607,7 @@ export default function CircuitLab({
                       <button
                         type="button"
                         className="quiz-btn"
-                        onClick={() => onOpenSource(current.def.source)}
+                        onClick={() => onOpenSource(current.def!.source!)}
                       >
                         Открыть в редакторе →
                       </button>

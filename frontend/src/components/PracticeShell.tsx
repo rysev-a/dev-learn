@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api.ts";
-import type { TaskStatus } from "../types.ts";
+import type { Task, TaskStatus } from "../types.ts";
 import { FsItem } from "./FsTree.tsx";
 
 /* Общая оболочка вкладки «Практика»: полоса «решено N из M», список упражнений (слева или
@@ -19,6 +19,16 @@ export interface PracticeTaskInfo {
 }
 
 export type StatusMap = Record<string, TaskStatus>;
+
+/** то, что вкладка «Практика» главы отдаёт конкретной оболочке упражнений */
+export interface PracticeProps {
+  tasks: Task[];
+  bookId: string;
+  chapter: number;
+  itemsSlot: HTMLElement | null;
+  nextChapter?: { open: () => void } | null;
+  fullscreen?: boolean;
+}
 
 // Выбранная задача хранится в адресе (?task=<id>)
 export function useTaskSelection<T extends { id: string }>(tasks: T[]) {
