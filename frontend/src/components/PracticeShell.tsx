@@ -42,14 +42,16 @@ export function useTaskSelection<T extends { id: string }>(tasks: T[]) {
       setParams(
         (prev) => {
           const n = new URLSearchParams(prev);
-          n.set("task", String(tasks[i].id));
+          n.set("task", String(tasks[i]?.id));
           return n;
         },
         { replace: true },
       ),
     [setParams, tasks],
   );
-  return { idx, task: tasks[idx], select };
+  const task = tasks[idx];
+  if (task === undefined) throw new Error("useTaskSelection: пустой список упражнений");
+  return { idx, task, select };
 }
 
 interface DraftOptions {
