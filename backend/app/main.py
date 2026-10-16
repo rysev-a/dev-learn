@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.accounts.progress import router as progress_router
+from app.answers.router import router as answers_router
+from app.answers.store import ensure_answers
 from app.accounts.router import router as auth_router
 from app.accounts.schema import init_accounts
 from app.accounts.service import ensure_default_users
@@ -23,6 +25,7 @@ async def lifespan(app: FastAPI):
         load_books(conn)
         ensure_tasks(conn)
         ensure_quizzes(conn)
+        ensure_answers(conn)
         ensure_default_users(conn)
     yield
 
@@ -34,3 +37,4 @@ app.include_router(progress_router)
 app.include_router(books_router)
 app.include_router(exercises_router)
 app.include_router(quizzes_router)
+app.include_router(answers_router)

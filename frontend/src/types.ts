@@ -180,12 +180,14 @@ export interface QuizAnswerResult extends QuizReveal {
 
 export interface PracticeTask {
   q: string;
-  answers: string[];
   hint?: string;
 }
 
+/** Задачи с вводом ответа: верные ответы знает только сервер, он же проверяет введённое */
 export interface PracticeSet {
   kind: "practice";
   title: string;
   tasks: PracticeTask[];
+  /** решённые пользователем задачи: {номер: принятый ответ} */
+  solved: Record<string, string>;
 }

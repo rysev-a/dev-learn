@@ -14,9 +14,8 @@ import type { Chapter, ChapterTasks, Task } from "../../types.ts";
 import FsTree from "../../components/FsTree.tsx";
 import { usePlayer } from "../../lib/player.tsx";
 import { hasSlides as chapterHasSlides } from "../../lib/slides.ts";
-import { EXERCISES } from "../../lib/exercises.ts";
 import { useProgress } from "../../lib/progress.tsx";
-import { useApi, useBooks, useCodeCounts, useQuizCounts } from "../../lib/queries.ts";
+import { useApi, useBooks, useCodeCounts, useQuizCounts, useAnswerCounts } from "../../lib/queries.ts";
 
 /* Страница главы: заголовок и три вкладки, каждая со своим адресом —
      /book/:bookId/chapter/:chapterId             Теория  (слайды)
@@ -57,7 +56,8 @@ export default function ChapterDetail() {
   const error = chapterError ? "Урок не найден" : null;
   const codeCounts = useCodeCounts();
   const quizCounts = useQuizCounts();
-  const books = useBooks(); // {книга: {глава: число}} — куда идти по Ctrl+Enter
+  const books = useBooks();
+  const answerCounts = useAnswerCounts(); // {книга: {глава: число}} — куда идти по Ctrl+Enter
 
   // Код-упражнения (Docker-песочница) ключуются номером главы; ответ 404 — упражнений нет.
   const tasksQuery = useApi<ChapterTasks>(
@@ -103,12 +103,11 @@ export default function ChapterDetail() {
     <p className="empty">Загрузка…</p>
   ) : null;
 
-  const key = chapter ? `${bookId}:${chapter.num}` : null;
   const quizCount = bookId != null && chapter ? (quizCounts?.[bookId]?.[chapter.num] ?? 0) : 0;
-  const practice = (key && EXERCISES[key]) || null;
+  const answerCount = bookId != null && chapter ? (answerCounts?.[bookId]?.[chapter.num] ?? 0) : 0;
   const slidesDir = books.find((b) => String(b.id) === String(bookId))?.slides_dir;
   const hasSlides = !!chapter && !!slidesDir && chapterHasSlides({ dir: slidesDir, book: bookId ?? "", num: chapter.num });
-  const hasPractice = codeTasks.length > 0 || !!practice;
+  const hasPractice = codeTasks.length > 0 || answerCount > 0;
   const progress = useProgress();
   const doneCodes = chapter && bookId != null ? progress.codeStatus(bookId, chapter.num) : {};
   const solved = codeTasks.filter((t) => doneCodes[t.id] === "ok").length;
@@ -175,7 +174,7 @@ export default function ChapterDetail() {
             course: parent?.course || [],
             chapter,
             quizCount,
-            practice,
+            answerCount,
             codeTasks,
             tasksReady,
             nextPractice,

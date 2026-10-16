@@ -60,7 +60,8 @@ frontend/          — React 19 + Vite
   src/slides/      — слайды по книгам: <book>/chNN.tsx (реестр — lib/slides.ts)
   content/quizzes/ — исходники квизов (в БД их загружают SQL-файлы
                      backend/app/data/sql/quizzes: npm run quizzes:export)
-  src/exercises/   — упражнения с вводом ответа (дискретная математика)
+  content/exercises/ — исходники упражнений с вводом ответа (дискретная математика; в БД — через
+                     backend/app/data/sql/answers: npm run answers:export)
   src/components/  — плеер, квиз, Exercises (ответы), CodePractice + CodeEditor (код, CodeMirror)
   src/pages/       — книги и главы
 tasks/             — исходные планы курсов (algo, arch_oc, db_learn)

@@ -11,32 +11,21 @@ import json
 import sqlite3
 from pathlib import Path
 
-from app import config
+from app import config, sqlseed
 
 
 def sql_files() -> list[Path]:
-    return sorted(config.QUIZZES_SQL_DIR.glob("*.sql"))
+    return sqlseed.sql_files(config.QUIZZES_SQL_DIR)
 
 
 def reload_quizzes(conn: sqlite3.Connection) -> int:
     """Пересоздать квизы из SQL-файлов одной транзакцией; вернуть число вопросов."""
-    files = sql_files()
-    if not files:
-        raise FileNotFoundError(f"нет SQL-файлов квизов в {config.QUIZZES_SQL_DIR}")
-    script = "BEGIN;\n" + "\n".join(f.read_text(encoding="utf-8") for f in files) + "\nCOMMIT;\n"
-    try:
-        conn.executescript(script)
-    except Exception:
-        conn.rollback()
-        raise
-    return conn.execute("SELECT COUNT(*) FROM quiz_questions").fetchone()[0]
+    return sqlseed.reload(conn, config.QUIZZES_SQL_DIR, "quiz_questions")
 
 
 def ensure_quizzes(conn: sqlite3.Connection) -> None:
     """Первый запуск или потерянная база: нет квизов — загрузить из SQL-файлов."""
-    exists = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='quiz_questions'").fetchone()
-    if not exists or conn.execute("SELECT COUNT(*) FROM quiz_questions").fetchone()[0] == 0:
-        reload_quizzes(conn)
+    sqlseed.ensure(conn, config.QUIZZES_SQL_DIR, "quiz_questions")
 
 
 def counts(conn: sqlite3.Connection) -> dict[int, dict[int, int]]:

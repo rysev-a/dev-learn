@@ -12,6 +12,7 @@ AUDIO_DIR = DATA_DIR / "audio"
 # SQL для начального заполнения БД: упражнения (см. app/exercises/store.py)
 TASKS_SQL_DIR = DATA_DIR / "sql" / "tasks"
 QUIZZES_SQL_DIR = DATA_DIR / "sql" / "quizzes"
+ANSWERS_SQL_DIR = DATA_DIR / "sql" / "answers"
 # SAY_DB — другая база (тесты, проверка на копии), по умолчанию рабочая say.db
 DB_PATH = Path(os.environ.get("SAY_DB") or DATA_DIR / "say.db")
 

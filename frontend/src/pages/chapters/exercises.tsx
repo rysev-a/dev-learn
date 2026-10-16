@@ -17,7 +17,7 @@ export default function ChapterExercises() {
     chapter,
     codeTasks,
     tasksReady,
-    practice,
+    answerCount,
     fs,
     itemsSlot,
     nextPractice,
@@ -52,8 +52,7 @@ export default function ChapterExercises() {
         />
       </Suspense>
     );
-  if (practice)
-    return <Exercises quiz={practice} bookId={bookId} chapter={chapter.num} />;
+  if (answerCount) return <Exercises bookId={bookId} chapter={chapter.num} />;
   if (!tasksReady) return <p className="empty">Загрузка…</p>;
   return <p className="empty">Для этой главы нет упражнений</p>;
 }

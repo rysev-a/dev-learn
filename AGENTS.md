@@ -304,9 +304,14 @@ employees), школа и фильмы; задачи пишутся в `exercise
 
 - Квизы (`frontend/content/quizzes/`) — только теория, `kind: "theory"`; живут в БД (раздел «Квизы в БД»).
 - Упражнения с вводом ответа — «Дискретная математика»
-  (`frontend/src/exercises/dm.ts`, реестр `lib/exercises.tsx`, ключ
-  `"<bookId>:<N>"`, компонент `Exercises.tsx`). Проверка в браузере —
-  сравнением с эталонами (`answers`), без запуска кода.
+  (исходники `frontend/content/exercises/dm.ts`, ключ `"<bookId>:<N>"`, компонент `Exercises.tsx`). Живут в БД
+  (таблицы `answer_sets`, `answer_tasks`, SQL — `backend/app/data/sql/answers`, выгрузка `npm run answers:export`,
+  проверка актуальности `npm run answers:check`); клиент получает условия и подсказки без ответов, введённое
+  проверяет сервер (`POST /api/answers/{книга}/{глава}/check`, сравнение без учёта регистра и пробелов, числа по
+  значению), верный ответ не раскрывается. Решённые задачи — `answer_solved`; `DELETE /api/answers?book=&chapter=` —
+  начать заново (`PUT /api/progress/answers` убран: решённое нельзя «записать» без проверки). Восстановление и порядок
+  работы — как у квизов (раздел «Квизы в БД»): сервер заполняет пустые таблицы сам, `seed_textbook.py --no-audio`
+  перезагружает.
 - Упражнения с кодом — все книги с задачами, кроме книги 14 (там лаборатория, см. выше) (компонент `components/CodePractice.tsx`):
   редактор `CodeEditor.tsx` на CodeMirror 6 (подсветка Python цветами
   `--s-*`, обе темы; Tab — отступ, Ctrl/Cmd+Enter — проверить), проверка

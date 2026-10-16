@@ -14,7 +14,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from app import config
+from app import config, sqlseed
 
 PUBLIC_FIELDS = ("mode", "title", "statement", "starter", "hint")
 COLUMNS = ("book_id", "chapter", "id", "ord", *PUBLIC_FIELDS, "spec")
@@ -65,28 +65,17 @@ def join_task(row: sqlite3.Row) -> dict:
 # --- SQL-файлы ----------------------------------------------------------------------------
 
 def sql_files() -> list[Path]:
-    return sorted(config.TASKS_SQL_DIR.glob("*.sql"))
+    return sqlseed.sql_files(config.TASKS_SQL_DIR)
 
 
 def reload_tasks(conn: sqlite3.Connection) -> int:
     """Пересоздать таблицу задач из SQL-файлов (одной транзакцией); вернуть число задач."""
-    files = sql_files()
-    if not files:
-        raise FileNotFoundError(f"нет SQL-файлов упражнений в {config.TASKS_SQL_DIR}")
-    script = "BEGIN;\n" + "\n".join(f.read_text(encoding="utf-8") for f in files) + "\nCOMMIT;\n"
-    try:
-        conn.executescript(script)
-    except Exception:
-        conn.rollback()
-        raise
-    return conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+    return sqlseed.reload(conn, config.TASKS_SQL_DIR, "tasks")
 
 
 def ensure_tasks(conn: sqlite3.Connection) -> None:
     """Первый запуск или потерянная база: если задач в БД нет, загрузить их из SQL-файлов."""
-    exists = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='tasks'").fetchone()
-    if not exists or conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0] == 0:
-        reload_tasks(conn)
+    sqlseed.ensure(conn, config.TASKS_SQL_DIR, "tasks")
 
 
 # --- запросы ------------------------------------------------------------------------------

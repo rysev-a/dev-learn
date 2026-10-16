@@ -16,6 +16,8 @@
     "net:render": "node scripts/net-render-smoke.mjs",
     "quizzes:export": "node --disable-warning=ExperimentalWarning scripts/export-quizzes.mjs",
     "quizzes:check": "node --disable-warning=ExperimentalWarning scripts/export-quizzes.mjs --check",
+    "answers:export": "node --disable-warning=ExperimentalWarning scripts/export-answers.mjs",
+    "answers:check": "node --disable-warning=ExperimentalWarning scripts/export-answers.mjs --check",
     "tasks:export": "cd ../backend && uv run python export_tasks.py"
   },
   "dependencies": {

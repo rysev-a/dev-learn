@@ -27,6 +27,7 @@ from app import config
 from app.books.meta import audio_prefix, load_books
 from app.books.service import db, init_db
 from app.exercises.store import reload_tasks
+from app.answers.store import reload_answers
 from app.quizzes.store import reload_quizzes
 
 BOOK_RE = re.compile(r"^#BOOK\s+(\d+)$")
@@ -209,6 +210,7 @@ def main() -> None:
     with db() as conn:
         print(f"tasks: {reload_tasks(conn)} из SQL-файлов")
         print(f"quiz questions: {reload_quizzes(conn)} из SQL-файлов")
+        print(f"answer tasks: {reload_answers(conn)} из SQL-файлов")
     if not args.no_audio:
         generate_audio(ls)
     print("done")

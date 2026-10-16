@@ -1,6 +1,6 @@
 // Чтение курса с сервера: запросы кешируются на время сессии (содержимое курса не меняется,
 // пока открыта страница), поэтому меню, дашборд и главы не запрашивают одно и то же по нескольку раз.
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Book, Section } from "../types.ts";
 import { api } from "./api.ts";
 
@@ -78,6 +78,28 @@ export type QuizCounts = Record<string, Record<string, number>>;
 export function useQuizCounts(): QuizCounts | null {
   const { data, error, loading } = useApi<QuizCounts>("/api/quizzes");
   return loading ? null : error ? {} : data;
+}
+
+// число задач с вводом ответа: {книга: {глава: число}}; null, пока не загружено ({} при ошибке)
+export type AnswerCounts = Record<string, Record<string, number>>;
+
+export function useAnswerCounts(): AnswerCounts | null {
+  const { data, error, loading } = useApi<AnswerCounts>("/api/answers");
+  return loading ? null : error ? {} : data;
+}
+
+/** Составы глав: сколько в каждой код-упражнений, вопросов квиза и задач с вводом ответа (null — ещё грузится) */
+export interface Counts {
+  code: CodeCounts | null;
+  quiz: QuizCounts | null;
+  answers: AnswerCounts | null;
+}
+
+export function useCounts(): Counts {
+  const code = useCodeCounts();
+  const quiz = useQuizCounts();
+  const answers = useAnswerCounts();
+  return useMemo(() => ({ code, quiz, answers }), [code, quiz, answers]);
 }
 
 // курсы всех книг сразу: {bookId: разделы}; книга без ответа пока отсутствует

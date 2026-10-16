@@ -1,7 +1,7 @@
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { pct } from "../../lib/format.ts";
 import { usePlayer } from "../../lib/player.tsx";
-import { useCodeCounts, useQuizCounts } from "../../lib/queries.ts";
+import { useCounts } from "../../lib/queries.ts";
 import { useProgress } from "../../lib/progress.tsx";
 import { chapterStats } from "../../lib/stats.ts";
 import type { BookContext } from "../books/detail.tsx";
@@ -14,8 +14,7 @@ export default function ChaptersIndex() {
   const navigate = useNavigate();
   const { stop } = usePlayer();
   const progress = useProgress();
-  const codeCounts = useCodeCounts();
-  const quizCounts = useQuizCounts();
+  const counts = useCounts();
 
   function open(id: number) {
     stop();
@@ -29,7 +28,7 @@ export default function ChaptersIndex() {
           <h2 className="topics-title">{sec.title}</h2>
           <div className="topics-grid">
             {sec.chapters.map((ch) => {
-              const s = chapterStats(progress, bookId ?? "", ch, codeCounts, quizCounts);
+              const s = chapterStats(progress, bookId ?? "", ch, counts);
               const done = s.slides[0] + s.quiz[0] + s.ex[0];
               const all = s.slides[1] + s.quiz[1] + s.ex[1];
               const parts = [

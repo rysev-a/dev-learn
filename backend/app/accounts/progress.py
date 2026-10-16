@@ -89,26 +89,6 @@ def reset_quiz(book: Annotated[int, Query(ge=1, le=1000)], chapter: Annotated[in
         )
 
 
-class AnswersIn(BaseModel):
-    book: Book
-    chapter: Chapter
-    # номер задачи → принятый ответ (только решённые)
-    solved: dict[int, Annotated[str, Field(max_length=200)]] = Field(max_length=200)
-
-
-@router.put("/answers", status_code=204)
-def save_answers(body: AnswersIn, user: User):
-    with db() as conn:
-        conn.execute(
-            "DELETE FROM answer_solved WHERE user_id = ? AND book_id = ? AND chapter = ?",
-            (user["id"], body.book, body.chapter),
-        )
-        conn.executemany(
-            "INSERT INTO answer_solved (user_id, book_id, chapter, task_idx, answer) VALUES (?, ?, ?, ?, ?)",
-            [(user["id"], body.book, body.chapter, i, a) for i, a in body.solved.items()],
-        )
-
-
 @router.delete("", status_code=204)
 def reset_progress(user: User, scope: Annotated[str, Query(pattern="^(practice|all)$")]):
     """Сбросить упражнения (статусы, черновики, история) или весь прогресс."""

@@ -104,12 +104,13 @@ class AccountsTest(unittest.TestCase):
         c.post("/api/progress/slides", json={"book": 13, "chapter": 5, "slide": 0})
         c.post("/api/quizzes/13/5/answer", json={"question": 0, "pick": 0})
         c.post("/api/quizzes/13/5/answer", json={"question": 1, "pick": 2})
-        c.put("/api/progress/answers", json={"book": 12, "chapter": 1, "solved": {"0": "5", "2": "8"}})
+        self.assertTrue(c.post("/api/answers/12/1/check", json={"task": 0, "value": "1"}).json()["ok"])
+        self.assertTrue(c.post("/api/answers/12/1/check", json={"task": 1, "value": " 2 "}).json()["ok"])
         p = c.get("/api/progress").json()
         self.assertEqual(p["slides"]["13:5"], [0, 2])
         self.assertEqual(p["quiz"]["13:5"], [0, 2, None, None, None])
         self.assertIn("13:5", p["quizRight"])
-        self.assertEqual(p["answers"]["12:1"], {"0": "5", "2": "8"})
+        self.assertEqual(p["answers"]["12:1"], {"0": "1", "1": "2"})
 
         # пустые ответы удаляют запись
         self.assertEqual(c.delete("/api/progress/quiz", params={"book": 13, "chapter": 5}).status_code, 204)

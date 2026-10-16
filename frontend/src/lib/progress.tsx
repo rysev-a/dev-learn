@@ -24,7 +24,9 @@ interface ProgressActions {
   /** ответ на вопрос квиза принят сервером: обновить копию выбранных вариантов и число верных */
   recordQuizPick: (book: BookId, num: number, question: number, total: number, pick: number, right: number) => void;
   resetQuiz: (book: BookId, num: number) => void;
-  saveAnswers: (book: BookId, num: number, solved: Record<string, string>) => void;
+  /** сервер принял ответ на задачу: запомнить в копии прогресса */
+  recordAnswer: (book: BookId, num: number, task: number, value: string) => void;
+  resetAnswers: (book: BookId, num: number) => void;
   setCodeStatus: (book: BookId, num: number, task: string, status: TaskStatus) => void;
   reset: (scope: ResetScope) => Promise<void>;
 }
@@ -103,15 +105,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         });
         api(`/api/progress/quiz?book=${book}&chapter=${num}`, { method: "DELETE" }).catch(() => {});
       },
-      saveAnswers: (book, num, solved) => {
+      recordAnswer: (book, num, task, value) => {
+        const key = k(book, num);
+        setData((d) => ({ ...d, answers: { ...d.answers, [key]: { ...d.answers[key], [task]: value } } }));
+      },
+      resetAnswers: (book, num) => {
         const key = k(book, num);
         setData((d) => {
-          const answers = { ...d.answers };
-          if (Object.keys(solved).length) answers[key] = solved;
-          else delete answers[key];
+          const { [key]: _gone, ...answers } = d.answers;
           return { ...d, answers };
         });
-        fire("/api/progress/answers", "PUT", { book, chapter: num, solved });
+        api(`/api/answers?book=${book}&chapter=${num}`, { method: "DELETE" }).catch(() => {});
       },
       // статус код-задачи после проверки на сервере (решённое остаётся решённым)
       setCodeStatus: (book, num, task, status) => {
