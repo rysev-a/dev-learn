@@ -11,14 +11,8 @@ import {
   type SetStateAction,
 } from "react";
 import { wirePath, type Point } from "../exercises/logic-gates/circuit.model.ts";
-import {
-  ZOOM,
-  clampWorld,
-  isClick,
-  viewBoxOf,
-  wheelFactor,
-  zoomAround,
-} from "../exercises/logic-gates/board-pan.ts";
+import { clampWorld, isClick, viewBoxOf } from "../exercises/logic-gates/board-pan.ts";
+import { ZoomControls, boardMetrics, useBoardView } from "./useBoardView.tsx";
 import {
   TOP,
   type BlockInstance,
@@ -99,7 +93,6 @@ interface LiveState {
 }
 
 interface DragState {
-  pan?: { cx: number; cy: number; ox: number; oy: number; scale: number } | null;
   off?: Point;
   h?: number;
   pinDown?: Point;
@@ -153,9 +146,8 @@ export default function BlockBoard({
           Math.round(Math.max(0, ...instances.map((i) => spreadY(i.y) + 290))),
         );
   const svgRef = useRef<SVGSVGElement>(null);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [panning, setPanning] = useState(false);
+  const view = useBoardView(svgRef, () => boardMetrics(svgRef.current!, W, H), (svg) => !!svg.closest(".fill"));
+  const { pan, zoom, panning, setPan, setZoom } = view;
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [pending, setPending] = useState<BusEnd | null>(null);
   const [sticky, setSticky] = useState(false);
@@ -298,17 +290,6 @@ export default function BlockBoard({
     return { x: r.x, y: r.y };
   }, []);
 
-  const metrics = () => {
-    const rect = svgRef.current!.getBoundingClientRect();
-    const base = Math.min(rect.width / W, rect.height / H);
-    return {
-      rect,
-      base,
-      offX: (rect.width - W * base) / 2,
-      offY: (rect.height - H * base) / 2,
-    };
-  };
-
   const cancelWire = useCallback(() => {
     const had = st.current.pending !== null;
     setPending(null);
@@ -354,14 +335,7 @@ export default function BlockBoard({
   useEffect(() => {
     const move = (e: PointerEvent) => {
       const s = st.current;
-      if (drag.current.pan) {
-        const d = drag.current.pan;
-        setPan({
-          x: Math.round(d.ox - (e.clientX - d.cx) / d.scale),
-          y: Math.round(d.oy - (e.clientY - d.cy) / d.scale),
-        });
-        return;
-      }
+      if (view.movePan(e)) return;
       if (s.movingId) {
         const p = toBoard(e.clientX, e.clientY);
         const off = drag.current.off ?? { x: 0, y: 0 };
@@ -382,11 +356,7 @@ export default function BlockBoard({
     };
     const up = (e: PointerEvent) => {
       const s = st.current;
-      if (drag.current.pan) {
-        drag.current.pan = null;
-        setPanning(false);
-        return;
-      }
+      if (view.endPan()) return;
       if (s.movingId) {
         setMovingId(null);
         return;
@@ -429,79 +399,12 @@ export default function BlockBoard({
   }, [toBoard, cancelWire]);
   drag.current.connect = connect;
 
-  // колесо: Ctrl/⌘ — масштаб; средняя кнопка — сдвиг
-  useEffect(() => {
-    const el = svgRef.current;
-    if (!el) return;
-    const wheel = (e: WheelEvent) => {
-      if (!(e.ctrlKey || e.metaKey) && !el.closest(".fill")) return;
-      e.preventDefault();
-      const m = metrics();
-      const s = st.current;
-      const next = zoomAround(
-        { pan: s.pan, zoom: s.zoom },
-        wheelFactor(e),
-        {
-          x: e.clientX - m.rect.left - m.offX,
-          y: e.clientY - m.rect.top - m.offY,
-        },
-        m.base,
-      );
-      setPan(next.pan);
-      setZoom(next.zoom);
-    };
-    const mid = (e: PointerEvent) => {
-      if (e.button !== 1) return;
-      e.preventDefault();
-      e.stopPropagation();
-      beginPan(e);
-    };
-    const swallow = (e: MouseEvent) => e.button === 1 && e.preventDefault();
-    el.addEventListener("wheel", wheel, { passive: false });
-    el.addEventListener("pointerdown", mid, { capture: true });
-    el.addEventListener("mousedown", swallow, { capture: true });
-    el.addEventListener("auxclick", swallow, { capture: true });
-    return () => {
-      el.removeEventListener("wheel", wheel);
-      el.removeEventListener("pointerdown", mid, { capture: true });
-      el.removeEventListener("mousedown", swallow, { capture: true });
-      el.removeEventListener("auxclick", swallow, { capture: true });
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const beginPan = (e: { clientX: number; clientY: number }) => {
-    const m = metrics();
-    const s = st.current;
-    drag.current.pan = {
-      cx: e.clientX,
-      cy: e.clientY,
-      ox: s.pan.x,
-      oy: s.pan.y,
-      scale: m.base * s.zoom,
-    };
-    setPanning(true);
-  };
   const boardDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0 || pending) return;
     if (e.target === svgRef.current || (e.target as Element).classList?.contains("bb-bg")) {
       e.preventDefault();
-      beginPan(e);
+      view.beginPan(e);
     }
-  };
-  const zoomBy = (factor: number) => {
-    const m = metrics();
-    const next = zoomAround(
-      { pan, zoom },
-      factor,
-      {
-        x: (m.rect.width - 2 * m.offX) / 2,
-        y: (m.rect.height - 2 * m.offY) / 2,
-      },
-      m.base,
-    );
-    setPan(next.pan);
-    setZoom(next.zoom);
   };
 
   /* ---------- действия ---------- */
@@ -558,39 +461,7 @@ export default function BlockBoard({
 
   return (
     <div className={`lab-board ${fullscreen ? "fill" : ""}`}>
-      <div className="lab-zoom" role="group" aria-label="Масштаб доски">
-        <button
-          type="button"
-          title="Уменьшить (Ctrl + колесо)"
-          onClick={() => zoomBy(1 / ZOOM.step)}
-        >
-          −
-        </button>
-        <button
-          type="button"
-          className="pct"
-          title="Масштаб 100 %"
-          onClick={() => setZoom(1)}
-        >
-          {Math.round(zoom * 100)}%
-        </button>
-        <button
-          type="button"
-          title="Увеличить (Ctrl + колесо)"
-          onClick={() => zoomBy(ZOOM.step)}
-        >
-          +
-        </button>
-        {changed && (
-          <button
-            type="button"
-            title="Вернуть доску на место и масштаб 100 %"
-            onClick={resetView}
-          >
-            ⌖
-          </button>
-        )}
-      </div>
+      <ZoomControls zoom={zoom} changed={changed} onZoomBy={view.zoomBy} onActual={() => setZoom(1)} onReset={resetView} />
       <svg
         ref={svgRef}
         className={`lab-board-svg bb ${readonly ? "readonly" : ""} ${panning ? "panning" : ""}`}

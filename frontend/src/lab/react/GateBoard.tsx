@@ -44,14 +44,8 @@ import {
   gatePinY,
   gatePinsOf,
 } from "../exercises/logic-gates/gate-shapes.ts";
-import {
-  ZOOM,
-  clampWorld,
-  isClick,
-  viewBoxOf,
-  wheelFactor,
-  zoomAround,
-} from "../exercises/logic-gates/board-pan.ts";
+import { clampWorld, isClick, viewBoxOf } from "../exercises/logic-gates/board-pan.ts";
+import { ZoomControls, boardMetrics, useBoardView } from "./useBoardView.tsx";
 import {
   AUTO_WIRE_RADIUS_DEFAULT,
   AUTO_WIRE_RADIUS_FACTOR,
@@ -140,7 +134,6 @@ interface LiveState {
 }
 
 interface DragState {
-  pan?: { cx: number; cy: number; ox: number; oy: number; scale: number } | null;
   off?: Point;
   from?: Point;
   pinDown?: Point;
@@ -169,8 +162,6 @@ export default function GateBoard({
   boardRef,
 }: GateBoardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
   const [boardH, setBoardH] = useState(loadHeight); // px или null — высота по умолчанию (по пропорциям доски)
   const [pxW, setPxW] = useState(0); // ширина доски на экране
   const [placing, setPlacing] = useState<GateType | null>(null); // тип переносимого из палитры элемента
@@ -181,7 +172,6 @@ export default function GateBoard({
   const [sticky, setSticky] = useState(false);
   const [hover, setHover] = useState<PinRef | null>(null);
   const [cursorBoard, setCursorBoard] = useState<Point | null>(null);
-  const [panning, setPanning] = useState(false);
   const drag = useRef<DragState>({}); // изменяемые данные перетаскивания
   const memo = useRef<AutoWire[]>([]);
 
@@ -191,6 +181,8 @@ export default function GateBoard({
   // Высота доски меняется без смены масштаба: видимое «окно» мира растёт вместе с высотой
   const manualH = !fullscreen && boardH !== null && pxW > 0;
   const worldH = manualH ? (boardH * BOARD_W) / pxW : BOARD_H;
+  const view = useBoardView(svgRef, () => boardMetrics(svgRef.current!, BOARD_W, worldH));
+  const { pan, zoom, panning, setZoom } = view;
 
   const st = useRef<LiveState | null>(null);
   const live = (): LiveState => st.current as LiveState;
@@ -382,7 +374,7 @@ export default function GateBoard({
   if (boardRef)
     boardRef.current = {
       cancelWire,
-      resetView: () => (setPan({ x: 0, y: 0 }), setZoom(1)),
+      resetView: view.reset,
     };
 
   const removeWire = (id: string) => {
@@ -399,14 +391,7 @@ export default function GateBoard({
   useEffect(() => {
     const move = (e: PointerEvent) => {
       const s = live();
-      if (drag.current.pan) {
-        const d = drag.current.pan;
-        setPan({
-          x: Math.round(d.ox - (e.clientX - d.cx) / d.scale),
-          y: Math.round(d.oy - (e.clientY - d.cy) / d.scale),
-        });
-        return;
-      }
+      if (view.movePan(e)) return;
       if (s.placing) {
         setCursor({ x: e.clientX, y: e.clientY });
         return;
@@ -435,11 +420,7 @@ export default function GateBoard({
     };
     const up = (e: PointerEvent) => {
       const s = live();
-      if (drag.current.pan) {
-        drag.current.pan = null;
-        setPanning(false);
-        return;
-      }
+      if (view.endPan()) return;
       if (s.placing) {
         const held = autoRef.current;
         const type = s.placing;
@@ -484,58 +465,14 @@ export default function GateBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toBoard]);
 
-  // колесо: Ctrl/⌘ — масштаб, средняя кнопка — сдвиг
-  useEffect(() => {
-    const el = svgRef.current;
-    if (!el) return;
-    const wheel = (e: WheelEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
-      e.preventDefault();
-      const rect = el.getBoundingClientRect();
-      const wh = live().worldH;
-      const base = Math.min(rect.width / BOARD_W, rect.height / wh);
-      const s = live();
-      const next = zoomAround(
-        { pan: s.pan, zoom: s.zoom },
-        wheelFactor(e),
-        {
-          x: e.clientX - rect.left - (rect.width - BOARD_W * base) / 2,
-          y: e.clientY - rect.top - (rect.height - wh * base) / 2,
-        },
-        base,
-      );
-      setPan(next.pan);
-      setZoom(next.zoom);
-    };
-    el.addEventListener("wheel", wheel, { passive: false });
-    return () => el.removeEventListener("wheel", wheel);
-  }, []);
-
-  const beginPan = (e: { clientX: number; clientY: number }) => {
-    const rect = svgRef.current!.getBoundingClientRect();
-    const base = Math.min(rect.width / BOARD_W, rect.height / worldH);
-    drag.current.pan = {
-      cx: e.clientX,
-      cy: e.clientY,
-      ox: pan.x,
-      oy: pan.y,
-      scale: base * zoom,
-    };
-    setPanning(true);
-  };
   const boardDown = (e: ReactPointerEvent<SVGSVGElement>) => {
-    if (e.button === 1) {
-      e.preventDefault();
-      beginPan(e);
-      return;
-    }
     if (e.button !== 0 || placing || pending) return;
     if (
       e.target === svgRef.current ||
       (e.target as Element).classList?.contains("lab-board-bg")
     ) {
       e.preventDefault();
-      beginPan(e);
+      view.beginPan(e);
     }
   };
   // пока провод «прилип» к мыши, нажатие мимо контакта его отменяет
@@ -604,7 +541,6 @@ export default function GateBoard({
     (pending.pin === "out") !== (hover.pin === "out") &&
     pending.node !== hover.node;
   const viewBox = viewBoxOf(pan, zoom, BOARD_W, worldH);
-  const changed = pan.x !== 0 || pan.y !== 0 || zoom !== 1;
 
   return (
     <div className={`lab-board ${fullscreen ? "fill" : ""}`}>
@@ -642,39 +578,7 @@ export default function GateBoard({
           ))}
         </div>
       )}
-      <div className="lab-zoom" role="group" aria-label="Масштаб доски">
-        <button
-          type="button"
-          title="Уменьшить (Ctrl + колесо)"
-          onClick={() => setZoom((z) => Math.max(ZOOM.min, z / ZOOM.step))}
-        >
-          −
-        </button>
-        <button
-          type="button"
-          className="pct"
-          title="Масштаб 100 %"
-          onClick={() => setZoom(1)}
-        >
-          {Math.round(zoom * 100)}%
-        </button>
-        <button
-          type="button"
-          title="Увеличить (Ctrl + колесо)"
-          onClick={() => setZoom((z) => Math.min(ZOOM.max, z * ZOOM.step))}
-        >
-          +
-        </button>
-        {changed && (
-          <button
-            type="button"
-            title="Вернуть доску на место и масштаб 100 %"
-            onClick={() => (setPan({ x: 0, y: 0 }), setZoom(1))}
-          >
-            ⌖
-          </button>
-        )}
-      </div>
+      <ZoomControls zoom={zoom} changed={view.changed} onZoomBy={view.zoomBy} onActual={() => setZoom(1)} onReset={view.reset} />
       <svg
         ref={svgRef}
         className={`lab-board-svg ${panning ? "panning" : ""}`}
