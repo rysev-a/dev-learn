@@ -1,5 +1,11 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useAuth } from "../lib/auth.jsx";
@@ -7,7 +13,7 @@ import { useProgress } from "../lib/progress.jsx";
 import CodeEditor from "./CodeEditor.jsx";
 import SqlDiff from "./SqlDiff.jsx";
 import SqlSchema from "./SqlSchema.jsx";
-import { FsItem } from "./FsTree.jsx";
+import PracticeShell from "./PracticeShell.jsx";
 
 // Симуляторы книги «Виртуализация» (задачи режима lab среди код-задач) грузятся лениво
 const VirtLab = lazy(() => import("../virtlab/VirtLab.jsx"));
@@ -178,7 +184,6 @@ export default function CodePractice({
 
   if (code == null) return <p className="empty">Загрузка…</p>;
 
-  const done = tasks.filter((t) => status[t.id] === "ok").length;
   const solved = status[task.id] === "ok";
   const running = busy === task.id;
   const history = attempts[task.id] || [];
@@ -196,126 +201,57 @@ export default function CodePractice({
   // Ctrl/Cmd+Enter: проверить; если принятое решение не менялось — перейти дальше
   const primary = () => (goMode ? goNext() : run());
 
-  const marks = (t, i) => ({
-    mark:
-      status[t.id] === "ok" ? "✓" : status[t.id] === "bad" ? "✗" : undefined,
-    status: status[t.id] || "",
-    key: t.id,
-    num: i + 1,
-  });
+  const label = `${
+    tasks.every((t) => t.mode === "sql")
+      ? "sql · sqlite"
+      : tasks.every((t) => t.mode === "rust")
+        ? "rust"
+        : tasks.every((t) => t.mode === "c")
+          ? "c · gcc"
+          : tasks.every((t) => t.mode === "js")
+            ? "javascript · node"
+            : tasks.some((t) => t.mode === "c")
+              ? "python + c"
+              : "python"
+  } · docker`;
 
   return (
-    <section className="pr">
-      <div className="pr-top">
-        <span className="pr-top-label">
-          Решено {done} из {tasks.length}
-        </span>
-        <div
-          className="pr-bar"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={tasks.length}
-          aria-valuenow={done}
-        >
-          <i style={{ width: `${(done / tasks.length) * 100}%` }} />
-        </div>
-        <span className="pr-top-label">
-          {tasks.every((t) => t.mode === "sql")
-            ? "sql · sqlite"
-            : tasks.every((t) => t.mode === "rust")
-              ? "rust"
-              : tasks.every((t) => t.mode === "c")
-                ? "c · gcc"
-                : tasks.every((t) => t.mode === "js")
-                  ? "javascript · node"
-                  : tasks.some((t) => t.mode === "c")
-                    ? "python + c"
-                    : "python"}{" "}
-          · docker
-        </span>
-      </div>
+    <PracticeShell
+      tasks={tasks}
+      status={status}
+      idx={idx}
+      select={select}
+      itemsSlot={itemsSlot}
+      label={label}
+    >
+      {task.mode === "sql" && task.schema && (
+        <SqlSchema key={task.dataset} schema={task.schema} />
+      )}
 
-      <div className={`pr-body ${itemsSlot ? "single" : ""}`}>
-        {itemsSlot ? (
-          createPortal(
-            tasks.map((t, i) => {
-              const { key, num, ...m } = marks(t, i);
-              return (
-                <FsItem
-                  key={key}
-                  on={i === idx}
-                  num={num}
-                  onClick={() => select(i)}
-                  {...m}
-                >
-                  {t.title}
-                </FsItem>
-              );
-            }),
-            itemsSlot,
-          )
-        ) : (
-          <aside className="pr-list" aria-label="Упражнения">
-            {tasks.map((t, i) => {
-              const st = status[t.id];
-              return (
-                <button
-                  key={t.id}
-                  className={`pr-item ${i === idx ? "on" : ""} ${st || ""}`}
-                  onClick={() => select(i)}
-                >
-                  <span className="pr-mark">
-                    {st === "ok" ? "✓" : st === "bad" ? "✗" : i + 1}
-                  </span>
-                  <span className="pr-name">{t.title}</span>
-                </button>
-              );
-            })}
-          </aside>
-        )}
-
-        <div className="pr-main" key={task.id}>
-          <div className="pr-head">
-            <h3>
-              {idx + 1}. {task.title}
-            </h3>
-            <span className={`pr-badge ${status[task.id] || ""}`}>
-              {solved
-                ? "выполнено"
-                : status[task.id] === "bad"
-                  ? "не пройдено"
-                  : "не решено"}
-            </span>
-          </div>
-          <p className="pr-statement">{task.statement}</p>
-          {task.mode === "sql" && task.schema && (
-            <SqlSchema key={task.dataset} schema={task.schema} />
+      {task.mode === "lab" ? (
+        <Suspense fallback={<p className="empty">Загрузка…</p>}>
+          <VirtLab
+            key={task.id}
+            task={task}
+            solved={solved}
+            onSolved={(solution) => {
+              progress.setCodeStatus(bookId, chapter, task.id, "ok");
+              api(`${base}/${task.id}/solved`, {
+                method: "PUT",
+                body: { solution },
+              }).catch(() => {});
+            }}
+          />
+          {hasNext && solved && (
+            <div className="ex-row">
+              <button className="quiz-btn" onClick={goNext}>
+                {idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →"}
+              </button>
+            </div>
           )}
-
-          {task.mode === "lab" ? (
-            <Suspense fallback={<p className="empty">Загрузка…</p>}>
-              <VirtLab
-                key={task.id}
-                task={task}
-                solved={solved}
-                onSolved={(solution) => {
-                  progress.setCodeStatus(bookId, chapter, task.id, "ok");
-                  api(`${base}/${task.id}/solved`, {
-                    method: "PUT",
-                    body: { solution },
-                  }).catch(() => {});
-                }}
-              />
-              {hasNext && solved && (
-                <div className="ex-row">
-                  <button className="quiz-btn" onClick={goNext}>
-                    {idx < tasks.length - 1 ? "Дальше →" : "Следующая глава →"}
-                  </button>
-                </div>
-              )}
-            </Suspense>
-          ) : (
-            <>
+        </Suspense>
+      ) : (
+        <>
           <CodeEditor
             className={solved && accepted ? "right" : ""}
             lang={langOf(task)}
@@ -380,11 +316,9 @@ export default function CodePractice({
             current={code[task.id]}
             onPick={(a) => edit(a.code)}
           />
-            </>
-          )}
-        </div>
-      </div>
-    </section>
+        </>
+      )}
+    </PracticeShell>
   );
 }
 
