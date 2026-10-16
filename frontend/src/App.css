@@ -281,20 +281,6 @@ button {
   gap: 8px;
 }
 
-.theme-toggle {
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 0.3rem 0.55rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.theme-toggle:hover {
-  background: var(--panel-2);
-}
-
 .menu {
   display: flex;
   flex-direction: column;
@@ -410,62 +396,6 @@ body:has(.np-card) .slide-fs {
   text-transform: uppercase;
   color: var(--s-muted);
   margin: 0 0 1rem;
-}
-
-.book-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-.book-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  text-align: left;
-  padding: 16px;
-  background: var(--s-panel);
-  border: 1px solid var(--s-border);
-  border-radius: 14px;
-  color: var(--s-text);
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    color 0.2s;
-}
-
-.book-card:hover {
-  border-color: var(--s-accent-a45);
-}
-
-.book-card:hover .book-num {
-  color: var(--s-accent);
-}
-
-.book-num {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: var(--s-muted);
-  padding: 3px 8px;
-  background: var(--s-green);
-  border: 1px solid var(--s-accent-a35);
-  border-radius: 7px;
-  transition: color 0.2s;
-}
-
-.book-name {
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--s-text);
-}
-
-.book-meta {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: var(--s-muted);
 }
 
 /* ---------- content ---------- */
@@ -895,8 +825,7 @@ h2 {
   gap: 10px;
 }
 
-.s-topic,
-.s-card {
+.s-topic {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1069,25 +998,6 @@ h2 {
   text-align: right;
 }
 
-.s-blocks {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.s-block {
-  padding: 10px 12px;
-  background: var(--s-panel2);
-  border: 1px solid var(--s-border);
-  border-radius: 10px;
-  font-size: 12.5px;
-}
-
-.s-block.changed {
-  background: var(--s-green);
-  border-color: var(--s-accent-a45);
-}
-
 .s-note {
   padding: 10px 12px;
   background: var(--s-panel);
@@ -1099,58 +1009,6 @@ h2 {
 
 .s-note.amber {
   border-left-color: var(--s-amber);
-}
-
-.s-bar-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 11.5px;
-  color: var(--s-muted);
-}
-
-.s-bar {
-  height: 12px;
-  overflow: hidden;
-  background: var(--s-bg);
-  border: 1px solid var(--s-border);
-  border-radius: 6px;
-}
-
-.s-bar > div {
-  height: 100%;
-  background: var(--s-accent);
-  opacity: 0.85;
-}
-
-.s-bar.amber > div {
-  background: var(--s-amber);
-}
-
-.amber-text {
-  color: var(--s-amber);
-}
-
-.s-fstab {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 0.6fr 1fr;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--s-bg);
-  border: 1px solid var(--s-border);
-  border-radius: 8px;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  color: var(--s-text);
-}
-
-.s-opts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--s-muted);
 }
 
 .s-path {
@@ -1167,60 +1025,6 @@ h2 {
 .s-path.accent {
   color: var(--s-accent);
   border-color: var(--s-accent-a4);
-}
-
-.s-root {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 12px;
-  background: var(--s-panel2);
-  border: 1px solid var(--s-border);
-  border-radius: 10px;
-}
-
-.s-root-slash {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 38px;
-  font-weight: 500;
-  line-height: 1;
-  color: var(--s-accent);
-}
-
-.s-root-slash.small {
-  font-size: 26px;
-}
-
-.s-type {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--s-panel2);
-  border: 1px solid var(--s-border);
-  border-radius: 10px;
-}
-
-.s-type-ch {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  background: var(--s-bg);
-  border: 1px solid var(--s-accent-a4);
-  border-radius: 7px;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 14px;
-  color: var(--s-accent);
-}
-
-.s-tree {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: stretch;
 }
 
 .s-hint {
@@ -1501,14 +1305,6 @@ h2 {
   font-size: 16px;
 }
 
-.slide-fs .s-opts {
-  font-size: 16px;
-}
-
-.slide-fs .s-block {
-  font-size: 17px;
-}
-
 .slide-fs .s-table {
   font-size: 17px;
 }
@@ -1518,7 +1314,6 @@ h2 {
 }
 
 .slide-fs .s-topic,
-.slide-fs .s-card,
 .slide-fs .s-node {
   padding: 16px 18px;
 }
@@ -1533,10 +1328,6 @@ h2 {
 
 .slide-fs .s-cmd {
   padding: 12px 14px;
-}
-
-.slide-fs .s-fstab {
-  font-size: 13px;
 }
 
 @media (max-width: 900px) {
@@ -1797,48 +1588,10 @@ h2 {
   min-height: 6.5em;
 }
 
-.cx-tests {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.cx-tests li {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  font-size: 11.5px;
-  line-height: 1.5;
-}
-
-.cx-tests li.ok .cx-mark {
-  color: var(--s-accent);
-}
-
-.cx-tests li.bad .cx-mark {
-  color: var(--s-amber);
-}
-
-.cx-tests li.bad .cx-diff {
-  color: var(--s-amber);
-}
-
-.cx-mark {
-  flex-shrink: 0;
-  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-}
-
 .cx-args {
   font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   color: var(--s-muted);
   margin-right: 8px;
-}
-
-.cx-diff {
-  white-space: pre-wrap;
 }
 
 .cx-error {
@@ -1851,26 +1604,6 @@ h2 {
   font-size: 11px;
   line-height: 1.5;
   color: var(--s-amber);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.cx-stdout {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.cx-stdout pre {
-  margin: 0;
-  padding: 8px 10px;
-  background: var(--s-bg);
-  border: 1px solid var(--s-border);
-  border-radius: 8px;
-  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--s-text);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -2649,14 +2382,6 @@ h2 {
   gap: 8px;
   font-size: 12px;
   color: var(--s-text);
-}
-
-.pr-test.ok .cx-mark {
-  color: var(--s-accent);
-}
-
-.pr-test.bad .cx-mark {
-  color: var(--s-amber);
 }
 
 .pr-diff {
