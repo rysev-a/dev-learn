@@ -1,11 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx } from "./hw.jsx";
-import { Box, arrow, cc, slot } from "./cl.jsx";
+import { Box, arrow, slot } from "./cl.jsx";
+import { py } from "./cl.jsx";
 
 /* «Python как первый язык», глава 21: дескрипторы, property, __slots__. */
-
-const py = (id, x, y, lines, hl, extra = {}) =>
-  cc(id, x, y, lines, hl, { lang: "py", ...extra });
 
 // 1. Один механизм
 export const V01 = scene({

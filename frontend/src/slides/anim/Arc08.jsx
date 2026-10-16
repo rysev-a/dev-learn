@@ -1,20 +1,8 @@
 import { gp, scene } from "./alg.jsx";
 import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.jsx";
+import { Box, arrow } from "./dsl.js";
 
 /* Глава 8 книги «Архитектура компьютера»: обратная связь, SR- и D-защёлки, ячейка памяти. */
-
-const Box = (id, x, y, w, h, text, c = "m", extra = {}) =>
-  cell(id, x, y, text, c, { w, h, size: 9.5, ...extra });
-const arrow = (id, x1, y1, x2, y2, c = "m") => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  arrow: true,
-});
 
 // 1. Комбинационные и последовательностные схемы
 export const V01 = scene({

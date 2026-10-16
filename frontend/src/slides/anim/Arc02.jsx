@@ -1,20 +1,8 @@
 import { scene } from "./alg.jsx";
 import { GT, Tx, bit, cell, lv, pl } from "./hw.jsx";
+import { Box, arrow } from "./dsl.js";
 
 /* Глава 2 книги «Архитектура компьютера»: физика транзистора, КМОП, логические уровни и мощность. */
-
-const Box = (id, x, y, w, h, text, c = "m", extra = {}) =>
-  cell(id, x, y, text, c, { w, h, size: 9.5, ...extra });
-const arrow = (id, x1, y1, x2, y2, c = "m") => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  arrow: true,
-});
 
 // 1. От механики к транзистору и пластине
 const era = (n) => [

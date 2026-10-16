@@ -1,11 +1,10 @@
 import { scene } from "./alg.jsx";
 import { Tx } from "./hw.jsx";
 import { Box, arrow, asm, cc, slot } from "./cl.jsx";
+import { py } from "./cl.jsx";
 
 /* Введение книги «Python как первый язык»: что такое язык программирования и почему Питон. */
 
-const py = (id, x, y, lines, hl, extra = {}) =>
-  cc(id, x, y, lines, hl, { lang: "py", ...extra });
 const bits = (prefix, x0, y, str, c = "b", w = 14) =>
   [...str].map((ch, i) =>
     Box(`${prefix}${i}`, x0 + i * (w + 1), y, w, 18, ch, c, { size: 8.5 }),

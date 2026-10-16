@@ -1,11 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx } from "./hw.jsx";
-import { Box, arrow, cc } from "./cl.jsx";
+import { Box, arrow } from "./cl.jsx";
+import { py } from "./cl.jsx";
 
 /* «Python как первый язык», глава 42: множественное наследование и MRO. */
-
-const py = (id, x, y, lines, hl, extra = {}) =>
-  cc(id, x, y, lines, hl, { lang: "py", ...extra });
 
 // ромб: A сверху, B и C ниже, D внизу
 const diamond = (hot, cols = {}) => [

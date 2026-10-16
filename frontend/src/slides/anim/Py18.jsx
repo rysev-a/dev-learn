@@ -1,11 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx } from "./hw.jsx";
-import { Box, arrow, cc, slot } from "./cl.jsx";
+import { Box, arrow, slot } from "./cl.jsx";
+import { py } from "./cl.jsx";
 
 /* «Python как первый язык», глава 18: специальные методы (модель данных). */
-
-const py = (id, x, y, lines, hl, extra = {}) =>
-  cc(id, x, y, lines, hl, { lang: "py", ...extra });
 
 // 1. Договор между объектом и языком
 const ops = ["len(basket)", "a == b", "print(basket)", "with lock:"];

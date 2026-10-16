@@ -1,15 +1,7 @@
 import { edge, row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 12 книги «Алгоритмы и структуры данных»: куча и heapq. */
-
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 
 // слот полного дерева с индексом i
 const SLOT = (i, { y0 = 24, dy = 32, W = 300 } = {}) => {

@@ -1,15 +1,7 @@
 import { edge, row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 16 книги «Алгоритмы и структуры данных»: кратчайшие пути и остовы. */
-
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 
 const NODES = {
   S: [40, 85],

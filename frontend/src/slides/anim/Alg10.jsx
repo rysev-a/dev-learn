@@ -1,15 +1,8 @@
 import { edge, row, scene, tree } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 10 книги «Алгоритмы и структуры данных»: деревья и обходы. */
 
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 const D = (id, x, y, text, c = "m", extra = {}) => ({
   t: "dot",
   id,

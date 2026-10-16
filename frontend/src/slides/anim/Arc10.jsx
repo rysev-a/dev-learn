@@ -1,20 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx, bit, cell, lv, mux, pl, wave } from "./hw.jsx";
+import { Box, arrow } from "./dsl.js";
 
 /* Глава 10 книги «Архитектура компьютера»: такт, триггеры, регистры, счётчики и аккумулятор. */
 
-const Box = (id, x, y, w, h, text, c = "m", extra = {}) =>
-  cell(id, x, y, text, c, { w, h, size: 9.5, ...extra });
-const arrow = (id, x1, y1, x2, y2, c = "m") => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  arrow: true,
-});
 const label = (id, x, y, t) =>
   Tx(id, x, y, t, { size: 8.5, mono: true, anchor: "start" });
 

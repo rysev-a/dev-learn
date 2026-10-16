@@ -1,15 +1,8 @@
 import { curveD, row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 1 книги «Алгоритмы и структуры данных»: анализ сложности. Графики — примерной формы. */
 
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 const CB = { x: 44, y: 134, w: 276, h: 100 };
 const axes = (xl = "объём данных n", yl = "время") => [
   {

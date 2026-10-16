@@ -1,11 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx } from "./hw.jsx";
-import { Box, arrow, cc } from "./cl.jsx";
+import { Box, arrow } from "./cl.jsx";
+import { py } from "./cl.jsx";
 
 /* «Python как первый язык», глава 30: интроспекция и модуль inspect. */
-
-const py = (id, x, y, lines, hl, extra = {}) =>
-  cc(id, x, y, lines, hl, { lang: "py", ...extra });
 
 // 1. Программа изучает себя
 export const V01 = scene({

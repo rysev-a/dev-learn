@@ -3,14 +3,7 @@
 
 export { row, edge, tree, chain } from "./alg.jsx";
 
-export const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
+export { Tx } from "./dsl.js";
 
 // Прямоугольник с подписью (центр x, y).
 export const Bx = (id, x, y, w, h, text, c = "m", extra = {}) => ({
@@ -26,28 +19,8 @@ export const Bx = (id, x, y, w, h, text, c = "m", extra = {}) => ({
   ...extra,
 });
 
-export const Ar = (id, x1, y1, x2, y2, c = "m", extra = {}) => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  arrow: true,
-  ...extra,
-});
+export { arrow as Ar, line as Ln } from "./dsl.js";
 
-export const Ln = (id, x1, y1, x2, y2, c = "m", extra = {}) => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  ...extra,
-});
 
 // Рамка-область с подписью над левым краем.
 export const Zn = (id, x, y, w, h, lbl, c = "n", extra = {}) => ({

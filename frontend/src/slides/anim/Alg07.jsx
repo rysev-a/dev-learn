@@ -1,24 +1,9 @@
 import { edge, row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
+import { Pt as P } from "./lx.jsx";
 
 /* Глава 7 книги «Алгоритмы и структуры данных»: скользящее окно и разделяй и властвуй. */
 
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
-const P = (id, x, y, text, c = "g", dir = "down") => ({
-  t: "ptr",
-  id,
-  x,
-  y,
-  text,
-  c,
-  dir,
-});
 const WX = (x0, cw, l, r) => ({
   x: x0 + cw * ((l + r) / 2),
   w: (r - l + 1) * cw,

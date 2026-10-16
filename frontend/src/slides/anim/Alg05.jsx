@@ -1,4 +1,6 @@
 import { curveD, row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
+import { Pt as P } from "./lx.jsx";
 
 /* Глава 5 книги «Алгоритмы и структуры данных»: хеш-таблицы. */
 
@@ -23,23 +25,6 @@ const Cell = (id, x, y, text, c = "m", extra = {}) => ({
   text,
   c,
   ...extra,
-});
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
-const P = (id, x, y, text, c = "g", dir = "down") => ({
-  t: "ptr",
-  id,
-  x,
-  y,
-  text,
-  c,
-  dir,
 });
 
 // 1. Идея: ключ → хеш → номер → ячейка

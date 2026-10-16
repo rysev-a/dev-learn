@@ -1,13 +1,7 @@
 /* Общие помощники сцен глав 8, 9, 14 и 17 книги «Алгоритмы и структуры данных». Всё поверх alg.jsx. */
 
-export const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
+import { Tx } from "./dsl.js";
+export { Tx };
 
 // Список «слева моно — справа пояснение»; on — номер или список подсвеченных строк.
 export const LIST = (items, on, { w = 334, rowH = 34, y0 = 28 } = {}) => {

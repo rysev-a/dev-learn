@@ -1,15 +1,7 @@
 import { edge, row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 15 книги «Алгоритмы и структуры данных»: графы — обходы и связность. */
-
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 
 // общий граф: вершины A…G и рёбра
 const NODES = {

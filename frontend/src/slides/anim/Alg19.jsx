@@ -1,15 +1,8 @@
 import { row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 19 книги «Алгоритмы и структуры данных»: жадные алгоритмы и эвристики. */
 
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 const LIST = (items, k, { w = 334, rowH = 34, y0 = 28, big = false } = {}) =>
   items.flatMap(([a, b], i) => [
     {

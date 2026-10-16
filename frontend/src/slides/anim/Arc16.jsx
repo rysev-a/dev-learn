@@ -1,20 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx, cell, pl } from "./hw.jsx";
+import { Box, arrow } from "./dsl.js";
 
 /* Глава 16 книги «Архитектура компьютера»: ассемблер RISC-V (RV32IM). */
 
-const Box = (id, x, y, w, h, text, c = "m", extra = {}) =>
-  cell(id, x, y, text, c, { w, h, size: 9.5, ...extra });
-const arrow = (id, x1, y1, x2, y2, c = "m") => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  arrow: true,
-});
 const code = (id, x, y, lines, hl, extra = {}) => ({
   t: "code",
   id,

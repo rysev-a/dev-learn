@@ -1,11 +1,9 @@
 import { scene } from "./alg.jsx";
 import { Tx } from "./hw.jsx";
-import { Box, arrow, cc } from "./cl.jsx";
+import { Box, arrow } from "./cl.jsx";
+import { py } from "./cl.jsx";
 
 /* «Python как первый язык», глава 49: производительность — измерять, профилировать, ускорять. */
-
-const py = (id, x, y, lines, hl, extra = {}) =>
-  cc(id, x, y, lines, hl, { lang: "py", ...extra });
 
 // 1. Порядок действий
 const steps = [

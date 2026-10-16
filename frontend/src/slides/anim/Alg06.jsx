@@ -1,24 +1,9 @@
 import { row, scene } from "./alg.jsx";
+import { Tx } from "./dsl.js";
+import { Pt as P } from "./lx.jsx";
 
 /* Глава 6 книги «Алгоритмы и структуры данных»: два указателя. */
 
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
-const P = (id, x, y, text, c = "g", dir = "down") => ({
-  t: "ptr",
-  id,
-  x,
-  y,
-  text,
-  c,
-  dir,
-});
 const Cl = (id, x, y, text, c = "m", extra = {}) => ({
   t: "cell",
   id,

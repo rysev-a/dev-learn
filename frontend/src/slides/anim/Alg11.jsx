@@ -1,15 +1,8 @@
 import { scene, tree } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 11 книги «Алгоритмы и структуры данных»: двоичные деревья поиска. */
 
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 const O = { x0: 170, y0: 26, dx: 28, dy: 34, r: 11, size: 10 };
 
 // дерево поиска из конспекта: 8 / 3 10 / 1 6 . 14 / 4 7 13

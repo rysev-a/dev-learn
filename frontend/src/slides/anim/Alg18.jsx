@@ -1,15 +1,7 @@
 import { row, scene, tree } from "./alg.jsx";
+import { Tx } from "./dsl.js";
 
 /* Глава 18 книги «Алгоритмы и структуры данных»: динамическое программирование. */
-
-const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
 
 // таблица ячеек: vals — двумерный массив; reveal(r, c) — показывать ли; hot(r, c) — цвет
 function TBL(

@@ -1,22 +1,10 @@
-import { cell } from "./hw.jsx";
+import { cell, codeIn } from "./dsl.js";
 export { Box, arrow, slot } from "./rs.jsx";
 
 /* Помощники для сцен книги «Базы данных»: SQL с подсветкой и таблицы из ячеек. */
 
 // Код SQL: lines — строки, hl — подсвеченные, bad — ошибочные (красные)
-export const sql = (id, x, y, lines, hl, extra = {}) => ({
-  t: "code",
-  id,
-  x,
-  y,
-  lines,
-  hl,
-  lang: "sql",
-  size: 9.5,
-  lh: 13,
-  w: 200,
-  ...extra,
-});
+export const sql = codeIn("sql");
 
 /**
  * Таблица из ячеек: head — заголовки, rows — строки значений, (x, y) — левый верхний угол,

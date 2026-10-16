@@ -1,4 +1,5 @@
 import { chain, row, scene } from "./alg.jsx";
+import { Pt as P } from "./lx.jsx";
 
 /* Глава 3 книги «Алгоритмы и структуры данных»: связные списки. */
 
@@ -42,15 +43,6 @@ const Lk = (id, a, b, { c = "g", o = 1, down = false, bend, dash } = {}) =>
         bend,
         dash,
       };
-const P = (id, x, y, text, c = "g", dir = "down") => ({
-  t: "ptr",
-  id,
-  x,
-  y,
-  text,
-  c,
-  dir,
-});
 
 // 1. Введение: массив и список
 const SC = [

@@ -1,10 +1,8 @@
 import { gp, scene } from "./alg.jsx";
 import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.jsx";
+import { Box } from "./dsl.js";
 
 /* Глава 7 книги «Архитектура компьютера»: мультиплексоры, демультиплексоры, дешифраторы, шифраторы и шины. */
-
-const Box = (id, x, y, w, h, text, c = "m", extra = {}) =>
-  cell(id, x, y, text, c, { w, h, size: 9.5, ...extra });
 
 // 1. Четыре семейства
 const fam = (n) => [

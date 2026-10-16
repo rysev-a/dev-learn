@@ -1,20 +1,9 @@
 import { gp, scene } from "./alg.jsx";
 import { GT, Tx, bit, cell, lv, mux, pl } from "./hw.jsx";
+import { Box, arrow } from "./dsl.js";
 
 /* Глава 11 книги «Архитектура компьютера»: арифметико-логическое устройство и флаги. */
 
-const Box = (id, x, y, w, h, text, c = "m", extra = {}) =>
-  cell(id, x, y, text, c, { w, h, size: 9.5, ...extra });
-const arrow = (id, x1, y1, x2, y2, c = "m") => ({
-  t: "line",
-  id,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
-  arrow: true,
-});
 const bin = (n, w = 2) => n.toString(2).padStart(w, "0");
 const lamp = (id, x, y, on, name, c = "g") => [
   { t: "dot", id, x, y, r: 9, text: on ? "1" : "0", c: on ? c : "m", size: 9 },

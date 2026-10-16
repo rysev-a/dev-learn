@@ -1,17 +1,10 @@
 import { gp } from "./alg.jsx";
+import { Tx, cell, box } from "./dsl.js";
 
 /* Помощники для сцен по цифровой схемотехнике (книга «Архитектура компьютера»):
    уровень сигнала → цвет, элементы схем и ломаные провода. Элементы рисует alg.jsx (gate, tr, sw, lamp). */
 
-export { gp };
-export const Tx = (id, x, y, text, extra = {}) => ({
-  t: "text",
-  id,
-  x,
-  y,
-  text,
-  ...extra,
-});
+export { gp, Tx, cell, box };
 export const lv = (b) => (b ? "g" : "m"); // 1 — зелёный, 0 — приглушённый
 export const bit = (id, x, y, v, extra = {}) => ({
   t: "cell",
@@ -62,28 +55,6 @@ export const wr = (id, a, b, c = "m", xm, extra = {}) => {
     extra,
   );
 };
-export const box = (id, x, y, w, h, c = "n", lbl) => ({
-  t: "box",
-  id,
-  x,
-  y,
-  w,
-  h,
-  c,
-  lbl,
-});
-export const cell = (id, x, y, text, c = "m", extra = {}) => ({
-  t: "cell",
-  id,
-  x,
-  y,
-  w: 30,
-  h: 22,
-  text,
-  c,
-  size: 11,
-  ...extra,
-});
 
 // Трапеция мультиплексора (широкая сторона слева) и демультиплексора (rev — широкая справа). Возвращает [контур, подпись].
 export const mux = (id, x, y, w, h, c = "b", label = "MUX", rev = false) => [
