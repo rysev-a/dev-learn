@@ -30,7 +30,7 @@ interface RunView {
 
 interface NetLabProps {
   scenario: Scenario;
-  code?: string;
+  code?: string | undefined;
   onCode?: (code: string) => void;
   solvedBefore: boolean;
   onSolved?: (code: string) => void;

@@ -51,7 +51,7 @@ export default function Exercises({ quiz, bookId, chapter }: ExercisesProps) {
     if (bookId == null) return;
     const map: Record<string, string> = {};
     nextSt.forEach((s, i) => {
-      if (s === "right") map[i] = nextVals[i];
+      if (s === "right") map[i] = nextVals[i]!;
     });
     progress.saveAnswers(bookId, chapter, map);
   };
@@ -73,7 +73,7 @@ export default function Exercises({ quiz, bookId, chapter }: ExercisesProps) {
   function check(i: number) {
     if (st[i] === "right") return;
     const next = st.map((p, k): Verdict =>
-      k === i ? (isCorrect(vals[i], quiz.tasks[i].answers) ? "right" : "wrong") : p,
+      k === i ? (isCorrect(vals[i]!, quiz.tasks[i]!.answers) ? "right" : "wrong") : p,
     );
     setSt(next);
     persist(vals, next);

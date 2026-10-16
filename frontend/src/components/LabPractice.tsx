@@ -128,10 +128,10 @@ interface CodeTaskProps {
 }
 
 function CodeTask({ kind, task, ...rest }: CodeTaskProps) {
-  if (kind === "asm") return <AsmLab task={ASM_BY_ID[task.id]} {...rest} />;
+  if (kind === "asm") return <AsmLab task={ASM_BY_ID[task.id]!} {...rest} />;
   return (
     <RvLab
-      task={(kind === "real" ? REAL_BY_ID : RV_BY_ID)[task.id]}
+      task={(kind === "real" ? REAL_BY_ID : RV_BY_ID)[task.id]!}
       real={kind === "real"}
       {...rest}
     />

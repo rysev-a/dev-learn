@@ -47,7 +47,7 @@ export default function ChapterTheory() {
 
   let slideIdx = 0;
   if (slides) {
-    if (activeIdx >= 0) slideIdx = chapter.lessons[activeIdx].ord;
+    if (activeIdx >= 0) slideIdx = chapter.lessons[activeIdx]!.ord;
     else if (manualIdx != null) slideIdx = manualIdx;
     slideIdx = Math.min(slideIdx, slides.length - 1);
   }
@@ -111,7 +111,7 @@ export default function ChapterTheory() {
     0,
   );
   const playingThisSlide =
-    activeIdx >= 0 && chapter.lessons[activeIdx].ord === slideIdx;
+    activeIdx >= 0 && chapter.lessons[activeIdx]!.ord === slideIdx;
   const chapterPos =
     offsetBefore + (playingThisSlide && progress ? progress.t : 0);
 
@@ -212,6 +212,8 @@ interface SlidePanelProps {
   onPause: () => void;
 }
 
+const NoSlide: SlideComponent = () => null;
+
 function SlidePanel({
   slides,
   titles,
@@ -227,7 +229,7 @@ function SlidePanel({
   onPlay,
   onPause,
 }: SlidePanelProps) {
-  const Comp = slides[Math.min(idx, slides.length - 1)];
+  const Comp = slides[Math.min(idx, slides.length - 1)] ?? NoSlide;
   const count = String(slides.length).padStart(2, "0");
 
   // стрелки листают слайды в полноэкранном режиме

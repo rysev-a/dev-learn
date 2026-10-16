@@ -23,12 +23,12 @@ export function chapterStats(
 ): ChapterStats {
   const key = `${bookId}:${ch.num}`;
   const slidesTotal = ch.parts_count || 0; // один абзац = один слайд
-  const quiz = QUIZZES[key];
+  const quiz = QUIZZES[key]!;
   const quizTotal = quiz ? quiz.questions.length : 0;
   const picks = quizTotal ? progress.quizPicks(bookId, ch.num) : null;
   const quizDone = picks ? picks.filter((p) => p != null).length : 0;
   const quizRight = picks
-    ? picks.filter((p, i) => p != null && p === quiz.questions[i].answer).length
+    ? picks.filter((p, i) => p != null && p === quiz.questions[i]!.answer).length
     : 0;
   const code = codeCounts?.[bookId]?.[ch.num] || 0;
   const dm = EXERCISES[key] ? EXERCISES[key].tasks.length : 0;

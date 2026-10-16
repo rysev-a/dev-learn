@@ -66,7 +66,7 @@ export default function ChapterDetail() {
   const codeTasks = useMemo((): Task[] => {
     const d = tasksQuery.data;
     return (d?.tasks || []).map((t) =>
-      d && t.dataset && d.datasets?.[t.dataset] ? { ...t, schema: d.datasets[t.dataset] } : t,
+      d && t.dataset && d.datasets?.[t.dataset] ? { ...t, schema: d.datasets[t.dataset]! } : t,
     );
   }, [tasksQuery.data]);
 

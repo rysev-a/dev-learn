@@ -29,15 +29,15 @@ function autoLayout(schema: SqlDataset): Pos {
   for (let pass = 0; pass < names.length; pass++) {
     for (const r of schema.relations) {
       if (r.from === r.to) continue;
-      level[r.from] = Math.max(level[r.from], level[r.to] + 1);
+      level[r.from] = Math.max(level[r.from]!, level[r.to]! + 1);
     }
   }
   const byLevel: Record<number, SqlTable[]> = {};
-  for (const t of schema.tables) (byLevel[level[t.name]] ||= []).push(t);
+  for (const t of schema.tables) (byLevel[level[t.name]!] ||= []).push(t);
   const pos: Pos = {};
   for (const lv of Object.keys(byLevel).map(Number).sort((a, b) => a - b)) {
     let y = PAD;
-    for (const t of byLevel[lv]) {
+    for (const t of byLevel[lv]!) {
       pos[t.name] = { x: PAD + lv * (BOX_W + GAP_X), y };
       y += boxH(t) + GAP_Y;
     }
@@ -76,8 +76,8 @@ function Erd({ schema, onOpenTable }: { schema: SqlDataset; onOpenTable: (name: 
     const p = toSvg(e);
     drag.current = {
       name,
-      dx: p.x - pos[name].x,
-      dy: p.y - pos[name].y,
+      dx: p.x - pos[name]!.x,
+      dy: p.y - pos[name]!.y,
       moved: false,
     };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -88,7 +88,7 @@ function Erd({ schema, onOpenTable }: { schema: SqlDataset; onOpenTable: (name: 
     const p = toSvg(e);
     const x = Math.max(4, p.x - d.dx);
     const y = Math.max(4, p.y - d.dy);
-    if (Math.abs(x - pos[d.name].x) + Math.abs(y - pos[d.name].y) > 3)
+    if (Math.abs(x - pos[d.name]!.x) + Math.abs(y - pos[d.name]!.y) > 3)
       d.moved = true;
     setPos((prev) => ({ ...prev, [d.name]: { x, y } }));
   }
@@ -99,7 +99,7 @@ function Erd({ schema, onOpenTable }: { schema: SqlDataset; onOpenTable: (name: 
   }
 
   const colY = (t: SqlTable, col: string) =>
-    pos[t.name].y +
+    pos[t.name]!.y +
     HEAD_H +
     t.columns.findIndex((c) => c.name === col) * ROW_H +
     ROW_H / 2;
@@ -107,10 +107,10 @@ function Erd({ schema, onOpenTable }: { schema: SqlDataset; onOpenTable: (name: 
   const lines = schema.relations
     .filter((r) => byName[r.from] && byName[r.to] && pos[r.from] && pos[r.to])
     .map((r, i) => {
-      const a = byName[r.from];
-      const b = byName[r.to];
-      const pa = pos[a.name];
-      const pb = pos[b.name];
+      const a = byName[r.from]!;
+      const b = byName[r.to]!;
+      const pa = pos[a.name]!;
+      const pb = pos[b.name]!;
       const ya = colY(a, r.from_col);
       const yb = colY(b, r.to_col);
       let d: string;
@@ -258,6 +258,7 @@ function Cell({ v }: { v: SqlValue | undefined }) {
 
 function Data({ schema, table, setTable }: { schema: SqlDataset; table: string | undefined; setTable: (name: string) => void }) {
   const t = schema.tables.find((x) => x.name === table) || schema.tables[0];
+  if (!t) return null;
   return (
     <div className="sx-data">
       <div className="sx-tabs" role="tablist">

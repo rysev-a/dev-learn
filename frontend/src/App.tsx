@@ -90,7 +90,7 @@ function Shell() {
           </NavLink>
           {themeButton}
           <span className="user-chip" title={user.email}>
-            <span className="user-ava">{user.login[0].toUpperCase()}</span>
+            <span className="user-ava">{user.login[0]!.toUpperCase()}</span>
             {user.login}
           </span>
           <button

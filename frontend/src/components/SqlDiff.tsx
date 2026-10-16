@@ -26,7 +26,7 @@ function align(got: Row[], exp: Row[], ordered: boolean) {
   if (ordered) {
     const n = Math.min(got.length, exp.length);
     for (let i = 0; i < n; i++) {
-      if (key(got[i]) !== key(exp[i])) {
+      if (key(got[i]!) !== key(exp[i]!)) {
         gs[i] = { st: "diff", pair: i };
         es[i] = { st: "diff", pair: i };
       }
@@ -55,13 +55,13 @@ function align(got: Row[], exp: Row[], ordered: boolean) {
   missingIdx.sort((a, b) => a - b);
   const n = Math.min(extraIdx.length, missingIdx.length);
   for (let k = 0; k < n; k++) {
-    gs[extraIdx[k]] = { st: "diff", pair: missingIdx[k] };
-    es[missingIdx[k]] = { st: "diff", pair: extraIdx[k] };
+    gs[extraIdx[k]!] = { st: "diff", pair: missingIdx[k]! };
+    es[missingIdx[k]!] = { st: "diff", pair: extraIdx[k]! };
   }
   for (let k = n; k < extraIdx.length; k++)
-    gs[extraIdx[k]] = { st: "extra", pair: null };
+    gs[extraIdx[k]!] = { st: "extra", pair: null };
   for (let k = n; k < missingIdx.length; k++)
-    es[missingIdx[k]] = { st: "missing", pair: null };
+    es[missingIdx[k]!] = { st: "missing", pair: null };
   return { gs, es };
 }
 
@@ -125,7 +125,7 @@ function Table({ title, total, shown, cols, width, rows, status, other, side }: 
               </tr>
             )}
             {rows.map((r, i) => {
-              const s = status[i];
+              const s = status[i]!;
               const peer = s.pair != null ? other.rows[s.pair] : null;
               return (
                 <tr key={i} className={`sd-${s.st}`}>

@@ -120,9 +120,9 @@ export default function PracticeShell({
   label,
   children,
 }: PracticeShellProps) {
-  const task = tasks[idx];
+  const task = tasks[idx]!;
   const done = tasks.filter((t) => status[t.id] === "ok").length;
-  const st = status[task.id];
+  const st = status[task.id]!;
   return (
     <section className={`pr ${className}`.trim()}>
       <div className="pr-top">
@@ -149,7 +149,7 @@ export default function PracticeShell({
                 key={t.id}
                 on={i === idx}
                 num={i + 1}
-                mark={MARKS[status[t.id]]}
+                mark={MARKS[status[t.id]!]}
                 status={status[t.id] || ""}
                 onClick={() => select(i)}
               >
@@ -167,7 +167,7 @@ export default function PracticeShell({
                 onClick={() => select(i)}
                 title={t.title}
               >
-                <span className="pr-mark">{MARKS[status[t.id]] || i + 1}</span>
+                <span className="pr-mark">{MARKS[status[t.id]!] || i + 1}</span>
                 <span className="pr-name">{t.title}</span>
               </button>
             ))}

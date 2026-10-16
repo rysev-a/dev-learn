@@ -33,7 +33,7 @@ for (const [path, load] of Object.entries(
   import.meta.glob<ChapterModule>("../slides/*/ch*.{jsx,tsx}"),
 )) {
   const m = path.match(/slides\/([^/]+)\/ch(\d+)\.[jt]sx$/);
-  const book = m ? BOOK_DIRS[m[1]] : undefined;
+  const book = m ? BOOK_DIRS[m[1]!] : undefined;
   if (m && book != null) loaders[`${book}:${Number(m[2])}`] = load;
 }
 
