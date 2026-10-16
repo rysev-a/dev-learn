@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   addRoute,
   clearAddr,
@@ -12,11 +12,28 @@ import { routeTable } from "../sim.ts";
 import { fqdn } from "../dns.ts";
 import { ipStr, netStr, parseIp } from "../ip.ts";
 import Terminal from "./Terminal.tsx";
+import type { TermLine } from "./Terminal.tsx";
+import type { Device, Iface, NetState } from "../types.ts";
 
 /* Карточка устройства: вкладка «Настройки» (формы) и «Терминал». Формы и терминал меняют
    сеть через одни и те же функции, так что результат одинаковый. */
 
-function Field({ label, children, error }) {
+/** изменить копию сети; вернуть результат функции (текст ошибки или null) */
+export type Apply = <T>(fn: (n: NetState) => T) => T;
+/** выполнить команду терминала от имени выбранного устройства; вернуть её вывод */
+export type FormExec = (line: string) => string;
+
+interface FormProps {
+  d: Device;
+  apply: Apply;
+  readOnly: boolean;
+}
+
+interface ExecFormProps extends FormProps {
+  exec: FormExec;
+}
+
+function Field({ label, children, error }: { label: string; children: ReactNode; error?: string }) {
   return (
     <label className="nl-field">
       <span>{label}</span>
@@ -26,7 +43,7 @@ function Field({ label, children, error }) {
   );
 }
 
-function IfaceRow({ d, i, apply, readOnly, tools }) {
+function IfaceRow({ d, i, apply, readOnly, tools }: FormProps & { i: Iface; tools?: Record<string, boolean | undefined> }) {
   const [ip, setIp] = useState(i.ip ?? "");
   const [prefix, setPrefix] = useState(String(i.prefix));
   const [err, setErr] = useState("");
@@ -40,6 +57,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }) {
     const e = apply((n) => {
       const dev = n.devices[d.id];
       const cur = dev.ifaces.find((x) => x.name === i.name);
+      if (!cur) return `нет интерфейса ${i.name}`;
       const old = { ip: cur.ip, prefix: cur.prefix };
       clearAddr(dev, i.name);
       const er = setAddr(dev, i.name, `${ip.trim()}/${prefix}`);
@@ -93,7 +111,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }) {
             aria-label={`Очередь ${i.name}`}
             onBlur={(e) => {
               const v = Number(e.target.value);
-              if (v >= 1 && v <= 10000) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).txqueuelen = v));
+              if (v >= 1 && v <= 10000) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name)!.txqueuelen = v));
             }}
           />
           пакетов
@@ -104,7 +122,7 @@ function IfaceRow({ d, i, apply, readOnly, tools }) {
   );
 }
 
-function Routes({ d, apply, readOnly }) {
+function Routes({ d, apply, readOnly }: FormProps) {
   const [dst, setDst] = useState("");
   const [via, setVia] = useState("");
   const [err, setErr] = useState("");
@@ -155,7 +173,7 @@ function Routes({ d, apply, readOnly }) {
   );
 }
 
-function Nat({ d, apply, readOnly, exec }) {
+function Nat({ d, apply, readOnly, exec }: ExecFormProps) {
   const [out, setOut] = useState(d.ifaces[d.ifaces.length - 1]?.name ?? "");
   const [proto, setProto] = useState("tcp");
   const [port, setPort] = useState("");
@@ -204,7 +222,7 @@ function Nat({ d, apply, readOnly, exec }) {
         </button>
       </div>
       <ul className="nl-rules">
-        {d.nat.map((n, k: Key|null|undefined) => (
+        {d.nat.map((n, k) => (
           <li key={k}>
             <code>
               {n.chain}: {n.action} {n.out ? `-o ${n.out}` : ""} {n.in ? `-i ${n.in}` : ""} {n.dport ? `порт ${n.dport}` : ""} {n.to ? `→ ${n.to}` : ""}
@@ -223,7 +241,7 @@ function Nat({ d, apply, readOnly, exec }) {
   );
 }
 
-function Firewall({ d, apply, readOnly, exec }) {
+function Firewall({ d, apply, readOnly, exec }: ExecFormProps) {
   const [action, setAction] = useState("ACCEPT");
   const [src, setSrc] = useState("");
   const [dst, setDst] = useState("");
@@ -274,7 +292,7 @@ function Firewall({ d, apply, readOnly, exec }) {
         </button>
       </div>
       <ol className="nl-rules">
-        {d.fw.rules.map((r, k: Key|null|undefined) => (
+        {d.fw.rules.map((r, k) => (
           <li key={k}>
             <code>
               {r.action} {r.proto ?? ""} {r.src ? `от ${r.src}` : ""} {r.dst ? `к ${r.dst}` : ""} {r.dport ? `порт ${r.dport}` : ""} {r.state ? (r.state === "established" ? "(установленные)" : "(новые)") : ""}
@@ -293,14 +311,14 @@ function Firewall({ d, apply, readOnly, exec }) {
   );
 }
 
-function Services({ d, apply, readOnly }) {
+function Services({ d, apply, readOnly }: FormProps) {
   const [port, setPort] = useState("");
   const [proto, setProto] = useState("tcp");
   return (
     <div className="nl-sec">
       <h4>Слушающие порты</h4>
       <ul className="nl-rules">
-        {d.services.map((s, k: Key|null|undefined) => (
+        {d.services.map((s, k) => (
           <li key={k}>
             <code>{s.proto}/{s.port}{s.bind && s.bind !== "0.0.0.0" ? ` (только ${s.bind})` : ""}</code>
             {!readOnly && s.bind && s.bind !== "0.0.0.0" && (
@@ -341,7 +359,17 @@ function Services({ d, apply, readOnly }) {
   );
 }
 
-export default function DevicePanel({ state, devId, tools, apply, exec, lines, onRun }) {
+interface DevicePanelProps {
+  state: NetState;
+  devId: string;
+  tools: Record<string, boolean | undefined>;
+  apply: Apply;
+  exec: FormExec;
+  lines: TermLine[];
+  onRun: (line: string) => void;
+}
+
+export default function DevicePanel({ state, devId, tools, apply, exec, lines, onRun }: DevicePanelProps) {
   const [tab, setTab] = useState("cfg");
   const d = state.devices[devId];
   if (!d) return null;
@@ -373,7 +401,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
           {d.kind !== "switch" && (
             <div className="nl-sec">
               <h4>Интерфейсы</h4>
-              {d.ifaces.map((i: unknown) => (
+              {d.ifaces.map((i) => (
                 <IfaceRow key={`${d.id}${i.name}${i.ip}${i.prefix}`} d={d} i={i} apply={apply} readOnly={readOnly} tools={tools} />
               ))}
             </div>
@@ -438,7 +466,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             aria-label={`VLAN ${i.name}`}
                             onChange={(e) => {
                               const v = Number(e.target.value.replace(/\D/g, "").slice(0, 4));
-                              if (v >= 1) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).vlan = v));
+                              if (v >= 1) apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name)!.vlan = v));
                             }}
                           />
                         </label>
@@ -449,7 +477,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
                             type="checkbox"
                             checked={!!i.trunk}
                             disabled={readOnly}
-                            onChange={(e) => apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name).trunk = e.target.checked))}
+                            onChange={(e) => apply((n) => void (n.devices[d.id].ifaces.find((x) => x.name === i.name)!.trunk = e.target.checked))}
                           />
                           trunk
                         </label>
@@ -484,7 +512,7 @@ export default function DevicePanel({ state, devId, tools, apply, exec, lines, o
   );
 }
 
-function WebServer({ d, apply, readOnly, exec }) {
+function WebServer({ d, apply, readOnly, exec }: ExecFormProps) {
   const [path, setPath] = useState("");
   const [status, setStatus] = useState("200");
   const [extra, setExtra] = useState("");
@@ -492,23 +520,25 @@ function WebServer({ d, apply, readOnly, exec }) {
   const [hn, setHn] = useState("");
   const [hv, setHv] = useState("");
   const [msg, setMsg] = useState("");
+  const http = d.http;
+  if (!http) return null;
   return (
     <div className="nl-sec">
       <h4>Веб-сервер (HTTP, порт 80)</h4>
-      {d.http.page && (
+      {http.page && (
         <div className="nl-add">
           <span className="nl-lbl">протокол</span>
-          <select value={d.http.protocol ?? "h1"} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].http.protocol = e.target.value))}>
+          <select value={http.protocol ?? "h1"} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].http!.protocol = e.target.value as "h1" | "h2" | "h3"))}>
             <option value="h1">HTTP/1.1</option>
             <option value="h2">HTTP/2</option>
             <option value="h3">HTTP/3</option>
           </select>
-          <span className="nl-lbl">страница: {d.http.page.count + 1} ресурсов по ~{d.http.page.kb} КБ</span>
+          <span className="nl-lbl">страница: {http.page.count + 1} ресурсов по ~{http.page.kb} КБ</span>
         </div>
       )}
       <table className="nl-table">
         <tbody>
-          {d.http.routes.map((r, k: Key|null|undefined) => (
+          {http.routes.map((r, k) => (
             <tr key={k}>
               <td>{r.path}</td>
               <td>{r.status ?? 200}</td>
@@ -516,7 +546,7 @@ function WebServer({ d, apply, readOnly, exec }) {
                 {r.location ? `→ ${r.location}` : ""}
                 {r.headers ? Object.entries(r.headers).map(([n, v]) => ` ${n}: ${v}`).join(";") : ""}
               </td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить маршрут" onClick={() => apply((s) => void s.devices[d.id].http.routes.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить маршрут" onClick={() => apply((s) => void s.devices[d.id].http!.routes.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -553,13 +583,14 @@ function WebServer({ d, apply, readOnly, exec }) {
   );
 }
 
-function TlsServer({ d, apply, readOnly, exec, cas }) {
+function TlsServer({ d, apply, readOnly, exec, cas }: ExecFormProps & { cas: string[] }) {
   const [cn, setCn] = useState("");
   const [issuer, setIssuer] = useState("PublicIntCA");
   const [days, setDays] = useState("90");
   const [chain, setChain] = useState("PublicIntCA");
   const [msg, setMsg] = useState("");
   const t = d.tls;
+  if (!t) return null;
   return (
     <div className="nl-sec">
       <h4>TLS-сертификат</h4>
@@ -575,7 +606,7 @@ function TlsServer({ d, apply, readOnly, exec, cas }) {
           <div className="nl-add">
             <input value={cn} onChange={(e) => setCn(e.target.value)} placeholder="имена через пробел: example.org www.example.org" spellCheck={false} />
             <select value={issuer} onChange={(e) => setIssuer(e.target.value)}>
-              {cas.map((c: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => <option key={c}>{c}</option>)}
+              {cas.map((c) => <option key={c}>{c}</option>)}
             </select>
             <input className="nl-prefix wide" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ""))} aria-label="Дней" />
             <button type="button" className="quiz-btn ghost" onClick={() => setMsg(exec(`tls cert new ${cn} --issuer ${issuer} --days ${days}`))}>
@@ -585,7 +616,7 @@ function TlsServer({ d, apply, readOnly, exec, cas }) {
           <div className="nl-add">
             <span className="nl-lbl">в цепочку:</span>
             <select value={chain} onChange={(e) => setChain(e.target.value)}>
-              {cas.map((c: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => <option key={c}>{c}</option>)}
+              {cas.map((c) => <option key={c}>{c}</option>)}
             </select>
             <button type="button" className="quiz-btn ghost" onClick={() => setMsg(exec(`tls chain add ${chain}`))}>+ добавить</button>
             <button type="button" className="quiz-btn ghost" onClick={() => setMsg(exec("tls chain clear"))}>очистить</button>
@@ -597,7 +628,7 @@ function TlsServer({ d, apply, readOnly, exec, cas }) {
                 <input
                   type="checkbox"
                   checked={t.versions.includes(v)}
-                  onChange={(e) => apply((s) => void (s.devices[d.id].tls.versions = ["1.0", "1.1", "1.2", "1.3"].filter((x) => (x === v ? e.target.checked : s.devices[d.id].tls.versions.includes(x)))))}
+                  onChange={(e) => apply((s) => void (s.devices[d.id].tls!.versions = ["1.0", "1.1", "1.2", "1.3"].filter((x) => (x === v ? e.target.checked : s.devices[d.id].tls!.versions.includes(x)))))}
                 />
                 {v}
               </label>
@@ -610,24 +641,24 @@ function TlsServer({ d, apply, readOnly, exec, cas }) {
   );
 }
 
-function TrustStore({ d, apply, readOnly, cas }) {
+function TrustStore({ d, apply, readOnly, cas }: FormProps & { cas: string[] }) {
   const trust = d.trust ?? ["PublicRootCA"];
-  const [pick, setPick] = useState(cas.find((c: any) => !trust.includes(c)) ?? cas[0]);
+  const [pick, setPick] = useState(cas.find((c) => !trust.includes(c)) ?? cas[0]);
   return (
     <div className="nl-sec">
       <h4>Хранилище доверия (корневые CA)</h4>
       <ul className="nl-rules">
-        {trust.map((c: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => (
+        {trust.map((c) => (
           <li key={c}>
             <code>{c}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать" onClick={() => apply((s) => void (s.devices[d.id].trust = trust.filter((x: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => x !== c)))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать" onClick={() => apply((s) => void (s.devices[d.id].trust = trust.filter((x) => x !== c)))}>×</button>}
           </li>
         ))}
       </ul>
       {!readOnly && (
         <div className="nl-add">
           <select value={pick} onChange={(e) => setPick(e.target.value)}>
-            {cas.map((c: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => <option key={c}>{c}</option>)}
+            {cas.map((c) => <option key={c}>{c}</option>)}
           </select>
           <button type="button" className="quiz-btn ghost" onClick={() => apply((s) => void (s.devices[d.id].trust = [...new Set([...trust, pick])]))}>
             + доверять
@@ -638,20 +669,22 @@ function TrustStore({ d, apply, readOnly, cas }) {
   );
 }
 
-function ProxyBox({ d, apply, readOnly, exec }) {
+function ProxyBox({ d, apply, readOnly, exec }: ExecFormProps) {
   const [host, setHost] = useState("");
   const [msg, setMsg] = useState("");
+  const proxy = d.proxy;
+  if (!proxy) return null;
   return (
     <div className="nl-sec">
-      <h4>HTTP-прокси (tcp/{d.proxy.port})</h4>
+      <h4>HTTP-прокси (tcp/{proxy.port})</h4>
       <ul className="nl-rules">
-        {d.proxy.deny.map((h: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined, k: any) => (
+        {proxy.deny.map((h, k: any) => (
           <li key={h}>
             <code>запрещён: {h}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s) => void s.devices[d.id].proxy.deny.splice(k, 1))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Разрешить" onClick={() => apply((s) => void s.devices[d.id].proxy!.deny.splice(k, 1))}>×</button>}
           </li>
         ))}
-        {d.proxy.deny.length === 0 && <li className="nl-none">запретов нет</li>}
+        {proxy.deny.length === 0 && <li className="nl-none">запретов нет</li>}
       </ul>
       {!readOnly && (
         <div className="nl-add">
@@ -666,21 +699,22 @@ function ProxyBox({ d, apply, readOnly, exec }) {
   );
 }
 
-function LbBox({ d, apply, readOnly, exec }) {
+function LbBox({ d, apply, readOnly, exec }: ExecFormProps) {
   const [addr, setAddr] = useState("");
   const [msg, setMsg] = useState("");
   const lb = d.lb;
+  if (!lb) return null;
   return (
     <div className="nl-sec">
       <h4>Балансировщик {lb.vip}:{lb.port}</h4>
       <div className="nl-add">
         <span className="nl-lbl">алгоритм</span>
-        <select value={lb.algo} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb.algo = e.target.value))}>
+        <select value={lb.algo} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb!.algo = e.target.value))}>
           <option value="rr">по кругу</option>
           <option value="hash">привязка по адресу клиента</option>
         </select>
         <label className="nl-up">
-          <input type="checkbox" checked={!!lb.health} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb.health = e.target.checked))} />
+          <input type="checkbox" checked={!!lb.health} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].lb!.health = e.target.checked))} />
           проверка здоровья
         </label>
       </div>
@@ -688,7 +722,7 @@ function LbBox({ d, apply, readOnly, exec }) {
         {lb.backends.map((b, k: any) => (
           <li key={b.ip + b.port}>
             <code>{b.ip}:{b.port}</code>
-            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s) => void s.devices[d.id].lb.backends.splice(k, 1))}>×</button>}
+            {!readOnly && <button type="button" className="nl-x" aria-label="Убрать из пула" onClick={() => apply((s) => void s.devices[d.id].lb!.backends.splice(k, 1))}>×</button>}
           </li>
         ))}
       </ul>
@@ -703,27 +737,29 @@ function LbBox({ d, apply, readOnly, exec }) {
   );
 }
 
-function RproxyBox({ d, apply, readOnly, exec }) {
+function RproxyBox({ d, apply, readOnly, exec }: ExecFormProps) {
   const [host, setHost] = useState("*");
   const [path, setPath] = useState("");
   const [be, setBe] = useState("");
   const [msg, setMsg] = useState("");
+  const rproxy = d.rproxy;
+  if (!rproxy) return null;
   return (
     <div className="nl-sec">
       <h4>Обратный прокси / кэш</h4>
       <table className="nl-table">
         <tbody>
-          {d.rproxy.rules.map((r, k: Key|null|undefined) => (
+          {rproxy.rules.map((r, k) => (
             <tr key={k}>
               <td>{r.host ?? "*"}{r.path}</td>
               <td>→ {r.backend}</td>
               <td>
                 <label className="nl-up">
-                  <input type="checkbox" checked={!!r.cache} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].rproxy.rules[k].cache = e.target.checked))} />
+                  <input type="checkbox" checked={!!r.cache} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].rproxy!.rules[k].cache = e.target.checked))} />
                   кэш
                 </label>
               </td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].rproxy.rules.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить правило" onClick={() => apply((s) => void s.devices[d.id].rproxy!.rules.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -741,7 +777,7 @@ function RproxyBox({ d, apply, readOnly, exec }) {
   );
 }
 
-function SshBox({ d, apply, readOnly, exec }) {
+function SshBox({ d, apply, readOnly, exec }: ExecFormProps) {
   const [msg, setMsg] = useState("");
   return (
     <div className="nl-sec">
@@ -750,7 +786,7 @@ function SshBox({ d, apply, readOnly, exec }) {
         <>
           <p className="nl-none">ключ хоста: {d.ssh.hostKey}</p>
           <label className="nl-up">
-            <input type="checkbox" checked={d.ssh.passwordAuth} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].ssh.passwordAuth = e.target.checked))} />
+            <input type="checkbox" checked={d.ssh.passwordAuth} disabled={readOnly} onChange={(e) => apply((s) => void (s.devices[d.id].ssh!.passwordAuth = e.target.checked))} />
             разрешить вход по паролю
           </label>
           <ul className="nl-rules">
@@ -773,7 +809,7 @@ function SshBox({ d, apply, readOnly, exec }) {
   );
 }
 
-function VpnBox({ d, apply, readOnly, exec }) {
+function VpnBox({ d, apply, readOnly, exec }: ExecFormProps) {
   const [name, setName] = useState("wg0");
   const [peer, setPeer] = useState("");
   const [addr, setAddr] = useState("");
@@ -786,7 +822,7 @@ function VpnBox({ d, apply, readOnly, exec }) {
       <ul className="nl-rules">
         {tuns.map((i) => (
           <li key={i.name}>
-            <code>{i.name}: {i.ip}/{i.prefix} ↔ {i.tun.peer}</code>
+            <code>{i.name}: {i.ip}/{i.prefix} ↔ {i.tun?.peer}</code>
             {!readOnly && <button type="button" className="nl-x" aria-label="Удалить туннель" onClick={() => setMsg(exec(`vpn del ${i.name}`))}>×</button>}
           </li>
         ))}
@@ -806,7 +842,7 @@ function VpnBox({ d, apply, readOnly, exec }) {
   );
 }
 
-function Resolver({ d, apply, readOnly }) {
+function Resolver({ d, apply, readOnly }: FormProps) {
   const [v, setV] = useState(d.resolver ?? "");
   const [err, setErr] = useState("");
   const commit = () => {
@@ -824,7 +860,7 @@ function Resolver({ d, apply, readOnly }) {
   );
 }
 
-function DnsServer({ d, apply, readOnly, exec }) {
+function DnsServer({ d, apply, readOnly, exec }: ExecFormProps) {
   const [name, setName] = useState("");
   const [type, setType] = useState("A");
   const [val, setVal] = useState("");
@@ -832,6 +868,7 @@ function DnsServer({ d, apply, readOnly, exec }) {
   const [ns, setNs] = useState("");
   const [msg, setMsg] = useState("");
   const dns = d.dns;
+  if (!dns) return null;
   return (
     <div className="nl-sec">
       <h4>DNS-сервер {dns.recursive ? "(рекурсивный резолвер)" : "(авторитативный)"}</h4>
@@ -844,20 +881,20 @@ function DnsServer({ d, apply, readOnly, exec }) {
       )}
       <table className="nl-table">
         <tbody>
-          {dns.records.map((r, k: Key|null|undefined) => (
+          {dns.records.map((r, k) => (
             <tr key={k}>
               <td>{r.name}</td>
               <td>{r.type}</td>
               <td>{r.value}</td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить запись" onClick={() => apply((s) => void s.devices[d.id].dns.records.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Удалить запись" onClick={() => apply((s) => void s.devices[d.id].dns!.records.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
-          {dns.delegations.map((x, k: string) => (
+          {dns.delegations.map((x, k) => (
             <tr key={"d" + k}>
               <td>{x.zone}</td>
               <td>NS →</td>
               <td>{x.ns}</td>
-              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Убрать делегирование" onClick={() => apply((s) => void s.devices[d.id].dns.delegations.splice(k, 1))}>×</button>}</td>
+              <td>{!readOnly && <button type="button" className="nl-x" aria-label="Убрать делегирование" onClick={() => apply((s) => void s.devices[d.id].dns!.delegations.splice(k, 1))}>×</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -891,7 +928,7 @@ function DnsServer({ d, apply, readOnly, exec }) {
   );
 }
 
-function TcpTune({ d, apply, readOnly }) {
+function TcpTune({ d, apply, readOnly }: FormProps) {
   const [w, setW] = useState(String(d.rwnd ?? 64));
   return (
     <div className="nl-sec">
@@ -918,7 +955,7 @@ function TcpTune({ d, apply, readOnly }) {
   );
 }
 
-function GatewayField({ d, apply, readOnly }) {
+function GatewayField({ d, apply, readOnly }: FormProps) {
   const [gw, setGw] = useState(getGateway(d));
   const [err, setErr] = useState("");
   const commit = () => {

@@ -308,7 +308,7 @@ export default function CircuitView({
             d={wirePath(pos(w.from), pos(w.to))}
           />
         ))}
-        {iface.inputs.map((id: Key|null|undefined) => {
+        {iface.inputs.map((id) => {
           const y = inputYMap[id] ?? 200;
           return (
             <g key={id} className="node">
@@ -343,7 +343,7 @@ export default function CircuitView({
             </g>
           );
         })}
-        {iface.outputs.map((o: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => {
+        {iface.outputs.map((o) => {
           const y = outputYMap[o] ?? 200;
           return (
             <g key={o} className="node" transform={`translate(${extraW} 0)`}>

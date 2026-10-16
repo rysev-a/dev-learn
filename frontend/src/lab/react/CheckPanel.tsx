@@ -30,7 +30,7 @@ export default function CheckPanel({
           </span>
         </div>
         <div className="lab-steps">
-          {ex.steps.map((st, i: Key|null|undefined) => (
+          {ex.steps.map((st, i) => (
             <div
               key={i}
               className={`lab-step ${i < passedSteps ? "done" : ""} ${i === passedSteps ? "active" : ""}`}
@@ -44,7 +44,7 @@ export default function CheckPanel({
                   {st.pulses > 1 && (
                     <span className="lab-chip pulses">тактов: {st.pulses}</span>
                   )}
-                  {ex.inputs.map((id: Key|null|undefined) => (
+                  {ex.inputs.map((id) => (
                     <span
                       key={id}
                       className={`lab-chip ${inputState[id] === st.inputs[id] ? "hit" : ""}`}
@@ -54,7 +54,7 @@ export default function CheckPanel({
                   ))}
                   <span className="lab-chip-sep">→</span>
                   {ex.outputs.map(
-                    (o: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) =>
+                    (o) =>
                       st.expect[o] !== undefined && (
                         <span
                           key={o}
@@ -91,26 +91,26 @@ export default function CheckPanel({
         <table className="lab-tt">
           <thead>
             <tr>
-              {labels.map((l: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined, i: Key|null|undefined) => (
+              {labels.map((l, i) => (
                 <th key={i}>{l}</th>
               ))}
-              {ex.outputs.map((o: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => (
+              {ex.outputs.map((o) => (
                 <th key={o} className="sep">
                   Цель {o}
                 </th>
               ))}
-              {ex.outputs.map((o: string|number|bigint|boolean|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|ReactPortal|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => (
+              {ex.outputs.map((o) => (
                 <th key={`a${o}`}>Схема {o}</th>
               ))}
               <th />
             </tr>
           </thead>
           <tbody>
-            {tableRows.map((row, i: Key|null|undefined) => {
+            {tableRows.map((row, i) => {
               const st = inputsForRow(ex.inputs, i);
               return (
                 <tr key={i} className={i === currentRow ? "current" : ""}>
-                  {ex.inputs.map((id: Key|null|undefined) => (
+                  {ex.inputs.map((id) => (
                     <td key={id} className="in">
                       {st[id]}
                     </td>

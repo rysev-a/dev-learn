@@ -1,7 +1,37 @@
 /* Поле сети: устройства, кабели и бегущие по ним пакеты. Рисуется в SVG 640×360. */
 
 
-const ICONS = {
+import type { ReactNode } from "react";
+import type { NetState } from "../types.ts";
+
+/** пакет, бегущий по кабелю: доля пути p от 0 до 1 */
+export interface BoardDot {
+  from: string;
+  to: string;
+  p: number;
+  kind: string;
+}
+
+/** пометка над устройством: отброшено, NAT, файрвол … */
+export interface BoardMark {
+  dev: string;
+  kind: string;
+  text: string;
+  row?: number;
+}
+
+interface BoardProps {
+  state: NetState;
+  selected: string | null;
+  cableFrom: string | null;
+  selectedLink: number | null;
+  dots: BoardDot[];
+  marks: BoardMark[];
+  onDevice: (id: string) => void;
+  onLink?: (i: number) => void;
+}
+
+const ICONS: Record<string, ReactNode> = {
   host: (
     <>
       <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -38,7 +68,7 @@ const ICONS = {
 const W = 104;
 const H = 58;
 
-function pos(state: { devices: { [x: string]: any; }; }, dev: string|number) {
+function pos(state: NetState, dev: string) {
   const d = state.devices[dev];
   return { x: d.x, y: d.y };
 }
@@ -52,10 +82,10 @@ export default function Board({
   marks,
   onDevice,
   onLink,
-}) {
+}: BoardProps) {
   return (
     <svg className="nl-board" viewBox="-24 0 704 360" role="img" aria-label="Схема сети">
-      {state.links.map((l, i: any) => {
+      {state.links.map((l, i) => {
         const [da, pa] = l.a.split(":");
         const [db, pb] = l.b.split(":");
         const a = pos(state, da);
@@ -98,7 +128,7 @@ export default function Board({
             <text y={H / 2 - 7} className="nl-name">
               {d.name}
             </text>
-            {ips.slice(0, 3).map((ip: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined, i: number) => (
+            {ips.slice(0, 3).map((ip, i) => (
               <text key={ip} y={H / 2 + 14 + i * 12} className="nl-ip">
                 {ip}
               </text>
@@ -107,7 +137,7 @@ export default function Board({
         );
       })}
 
-      {dots.map((h, i: Key|null|undefined) => {
+      {dots.map((h, i) => {
         const a = pos(state, h.from);
         const b = pos(state, h.to);
         const x = a.x + (b.x - a.x) * h.p;
@@ -119,7 +149,7 @@ export default function Board({
         );
       })}
 
-      {marks.map((m, i: Key|null|undefined) => {
+      {marks.map((m, i) => {
         const d = state.devices[m.dev];
         return (
           <g key={i} className={`nl-mark ${m.kind}`} transform={`translate(${d.x},${d.y - H / 2 - 8 - (m.row ?? 0) * 12})`}>

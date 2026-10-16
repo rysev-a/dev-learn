@@ -1,16 +1,33 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import type { Device } from "../types.ts";
+
+/** строка терминала: введённая команда или вывод */
+export interface TermLine {
+  cmd?: boolean;
+  text: string;
+}
 
 /* Мини-терминал устройства: история строк живёт выше (по устройству), здесь — ввод и вывод. */
-export default function Terminal({ device, lines, onRun, disabled }) {
+export default function Terminal({
+  device,
+  lines,
+  onRun,
+  disabled,
+}: {
+  device: Device;
+  lines: TermLine[];
+  onRun: (line: string) => void;
+  disabled?: boolean;
+}) {
   const [value, setValue] = useState("");
-  const [hist, setHist] = useState([]);
+  const [hist, setHist] = useState<string[]>([]);
   const [h, setH] = useState(-1);
-  const box = useRef(null);
+  const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     box.current?.scrollTo(0, box.current.scrollHeight);
   }, [lines]);
 
-  const submit = (e: { preventDefault: () => void; }) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     const line = value.trim();
     if (!line) return;
@@ -19,7 +36,7 @@ export default function Terminal({ device, lines, onRun, disabled }) {
     setValue("");
     onRun(line);
   };
-  const key = (e: { key: string; preventDefault: () => void; }) => {
+  const key = (e: KeyboardEvent) => {
     if (e.key === "ArrowUp" && hist.length) {
       e.preventDefault();
       const n = Math.min(h + 1, hist.length - 1);
@@ -40,7 +57,7 @@ export default function Terminal({ device, lines, onRun, disabled }) {
         {lines.length === 0 && (
           <div className="nl-term-hint">Введите «help», чтобы увидеть команды.</div>
         )}
-        {lines.map((l, i: Key|null|undefined) => (
+        {lines.map((l, i) => (
           <div key={i} className={l.cmd ? "cmd" : "res"}>
             {l.cmd ? prompt + l.text : l.text}
           </div>

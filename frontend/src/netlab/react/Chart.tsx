@@ -1,5 +1,7 @@
 /* График окна перегрузки (cwnd) по времени передачи: «пила», уровни BDP и окна приёма. */
-export default function Chart({ chart }) {
+import type { TransferChart } from "../transfer.ts";
+
+export default function Chart({ chart }: { chart: TransferChart }) {
   const { trace, bdpKb, rwndKb, qcapKb, cc } = chart;
   const W = 640;
   const H = 150;

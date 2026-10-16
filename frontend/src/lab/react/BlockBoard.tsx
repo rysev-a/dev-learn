@@ -705,7 +705,7 @@ export default function BlockBoard({
                   )}
 
                   {box.kind === "top-in" &&
-                    row.nodes.map((node: Key|null|undefined, i: number) => (
+                    row.nodes.map((node, i: number) => (
                       <g
                         key={node}
                         className={`bchip ${bit(node) === 1 ? "v1" : ""} ${node === clockNode ? "clk" : ""} ${readonly ? "static" : ""}`}

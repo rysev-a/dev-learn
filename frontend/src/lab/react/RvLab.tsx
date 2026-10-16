@@ -604,7 +604,7 @@ function RowFragment({ l, selected, onClick }) {
         <td className="mono">{l.addrHex}</td>
         <td className="mono">{l.wordHex}</td>
         <td className="left mono lab-fields">
-          {l.parts.fields.map((f, i: Key|null|undefined) => (
+          {l.parts.fields.map((f, i) => (
             <span key={i} className={`fld ${f.cls}`} title={f.name}>
               {f.bits}
             </span>
@@ -617,7 +617,7 @@ function RowFragment({ l, selected, onClick }) {
           <td colSpan={4}>
             <div className="lab-legend">
               <strong>Формат {l.parts.fmt}.</strong>
-              {l.parts.fields.map((f, i: Key|null|undefined) => (
+              {l.parts.fields.map((f, i) => (
                 <span key={i} className="lab-legend-item">
                   <span className={`fld ${f.cls}`}>{f.bits}</span> {f.name}
                 </span>

@@ -22,7 +22,7 @@ export default function WaveDiagram({ wave, onClear }) {
         role="img"
         aria-label="Временная диаграмма сигналов"
       >
-        {wave.cols.map((x: string|number|undefined, i: Key|null|undefined) => (
+        {wave.cols.map((x: string|number|undefined, i) => (
           <line
             key={i}
             className="wave-grid"

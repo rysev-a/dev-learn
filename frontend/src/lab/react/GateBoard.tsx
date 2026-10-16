@@ -644,7 +644,7 @@ export default function GateBoard({
           );
         })}
 
-        {inputs.map((id: Key|null|undefined) => {
+        {inputs.map((id) => {
           const y = inputYMap[id] ?? 200;
           const v = inputState[id];
           return (
@@ -702,7 +702,7 @@ export default function GateBoard({
           );
         })}
 
-        {outputs.map((o: boolean|Key|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|Promise<string|number|bigint|boolean|ReactPortal|ReactElement<unknown,string|JSXElementConstructor<any>>|Iterable<ReactNode>|null|undefined>|null|undefined) => {
+        {outputs.map((o) => {
           const y = outputYMap[o] ?? 200;
           return (
             <g key={o} className="out-node">

@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ResultAlert from "../../lab/react/ResultAlert.tsx";
 import { checkGoals, resolveTarget, runProbe } from "../check.ts";
-import { transfer } from "../transfer.ts";
+import { transfer, type TransferChart } from "../transfer.ts";
 import { clone, connect, disconnect, strip } from "../model.ts";
 import { fmtMs } from "../sim.ts";
 import { exec, toIp } from "../term.ts";
 import Board from "./Board.tsx";
 import Chart from "./Chart.tsx";
+import type { Delivered, Goal, GoalResult, GoalRun, Hop, NetEvent, NetState, Scenario } from "../types.ts";
+import type { BoardMark } from "./Board.tsx";
+import type { TermLine } from "./Terminal.tsx";
 import DevicePanel from "./DevicePanel.tsx";
 import "../../lab/lab.css";
 import "../netlab.css";
@@ -16,7 +19,27 @@ import "../netlab.css";
 
 const SLOT = 320; // мс на один «момент» анимации
 
-function restore(scenario: { build: () => any; }, code: string) {
+/** пакеты и события последней пробы, разложенные по «моментам» анимации */
+interface RunView {
+  hops: Hop[];
+  events: NetEvent[];
+  delivered?: Delivered[];
+  tl: number[];
+  title: string;
+}
+
+interface NetLabProps {
+  scenario: Scenario;
+  code?: string;
+  onCode?: (code: string) => void;
+  solvedBefore: boolean;
+  onSolved?: (code: string) => void;
+  onNext?: () => void;
+  hasNext: boolean;
+  nextLabel: string;
+}
+
+function restore(scenario: Scenario, code?: string): NetState {
   const fresh = scenario.build();
   if (!code) return fresh;
   try {
@@ -29,8 +52,8 @@ function restore(scenario: { build: () => any; }, code: string) {
   }
 }
 
-function timelineOf(run: { hops: any; events: any; }) {
-  const ts = new Set();
+function timelineOf(run: { hops: Hop[]; events: NetEvent[] }): number[] {
+  const ts = new Set<number>();
   for (const h of run.hops) (ts.add(h.t0), ts.add(h.t1));
   for (const e of run.events) ts.add(e.t);
   return [...ts].sort((a, b) => a - b);
@@ -45,30 +68,30 @@ export default function NetLab({
   onNext,
   hasNext,
   nextLabel,
-}) {
+}: NetLabProps) {
   const tools = scenario.tools ?? {};
   const [net, setNet] = useState(() => restore(scenario, code));
   const [sel, setSel] = useState(() => Object.keys(restore(scenario, code).devices)[0]);
   const [cable, setCable] = useState(false);
-  const [cableFrom, setCableFrom] = useState(null);
-  const [selLink, setSelLink] = useState(null);
+  const [cableFrom, setCableFrom] = useState<string | null>(null);
+  const [selLink, setSelLink] = useState<number | null>(null);
   const [notice, setNotice] = useState("");
-  const [results, setResults] = useState(null);
-  const [terms, setTerms] = useState({});
+  const [results, setResults] = useState<GoalResult[] | null>(null);
+  const [terms, setTerms] = useState<Record<string, TermLine[]>>({});
   const [hintOpen, setHintOpen] = useState(false);
-  const [run, setRun] = useState(null); // {hops, events, tl, title}
-  const [chart, setChart] = useState(null);
+  const [run, setRun] = useState<RunView | null>(null);
+  const [chart, setChart] = useState<TransferChart | null>(null);
   const [slot, setSlot] = useState(0);
   const raf = useRef(0);
 
   const save = useCallback(
-    (n) => {
+    (n: NetState) => {
       onCode?.(JSON.stringify(strip(n)));
     },
     [onCode],
   );
 
-  const apply = (fn: (arg0: any) => any) => {
+  const apply = <T,>(fn: (n: NetState) => T): T => {
     const n = clone(net);
     const r = fn(n);
     setNet(n);
@@ -78,7 +101,7 @@ export default function NetLab({
   };
 
   /* --- анимация пробы --- */
-  const play = useCallback((r: SetStateAction<null>, title: any) => {
+  const play = useCallback((r: GoalRun | null | undefined, title: string) => {
     cancelAnimationFrame(raf.current);
     if (!r || (!r.hops.length && !r.events.length)) return setRun(null);
     const tl = timelineOf(r);
@@ -110,10 +133,10 @@ export default function NetLab({
     [run, slot],
   );
   const marks = useMemo(() => {
-    const out = [];
+    const out: BoardMark[] = [];
     for (const e of shown) {
       if (!["drop", "fw", "nat"].includes(e.kind)) continue;
-      if (slot - run.tl.indexOf(e.t) > 5) continue;
+      if (!run || slot - run.tl.indexOf(e.t) > 5) continue;
       const row = out.filter((m) => m.dev === e.dev).length;
       out.push({
         dev: e.dev,
@@ -126,7 +149,7 @@ export default function NetLab({
   }, [shown, run, slot]);
 
   /* --- команды терминала и форм --- */
-  const terminalRun = (devId: string, line: any) => {
+  const terminalRun = (devId: string, line: string) => {
     const n = clone(net);
     const res = exec(n, devId, line);
     setNet(n);
@@ -136,7 +159,7 @@ export default function NetLab({
     }
     setTerms((t) => {
       const cur = t[devId] ?? [];
-      const out = [...cur, { cmd: true, text: line }];
+      const out: TermLine[] = [...cur, { cmd: true, text: line }];
       if (res.clear) return { ...t, [devId]: [] };
       if (res.out) for (const l of res.out.split("\n")) out.push({ text: l });
       return { ...t, [devId]: out };
@@ -147,7 +170,7 @@ export default function NetLab({
   };
 
   // формы NAT/файрвола зовут терминал и показывают его ответ рядом
-  const formExec = (line: any) => {
+  const formExec = (line: string) => {
     const n = clone(net);
     const res = exec(n, sel, line);
     setNet(n);
@@ -159,7 +182,7 @@ export default function NetLab({
   };
 
   /* --- кабели --- */
-  const onDevice = (id: number|SetStateAction<string>|SetStateAction<null>) => {
+  const onDevice = (id: string) => {
     if (cable) {
       if (!cableFrom) {
         setCableFrom(id);
@@ -172,7 +195,7 @@ export default function NetLab({
           save(n);
           setResults(null);
           setNotice("");
-        } else setNotice(r.error);
+        } else setNotice(r.error ?? "");
         setCableFrom(null);
       }
       return;
@@ -200,21 +223,23 @@ export default function NetLab({
     }
   };
   const allOk = results?.every((x) => x.ok);
-  const playGoal = (g: { xfer?: any; dns?: any; text?: any; ping?: any; tcp?: any; udp?: any; }) => {
+  const playGoal = (g: Goal) => {
     if (g.xfer) {
       const s = clone(net);
-      const r = transfer(s, g.xfer.from, resolveTarget(s, g.xfer.to), { bytes: (g.xfer.mb ?? 50) * 1e6 });
+      const dst = resolveTarget(s, g.xfer.to);
+      if (dst === null) return;
+      const r = transfer(s, g.xfer.from, dst, { bytes: (g.xfer.mb ?? 50) * 1e6 });
       setChart(r.chart);
       return;
     }
     const s = clone(net);
-    let r;
+    let r: GoalRun | undefined;
     if (g.dns) {
       r = toIp(s, s.devices[g.dns.from], g.dns.name).run;
       if (!r) return;
     } else r = runProbe(s, g);
     play(r, g.text);
-    setNet((c: any) => ({ ...c, rt: s.rt }));
+    setNet((c) => ({ ...c, rt: s.rt }));
   };
   const reset = () => {
     const n = scenario.build();
@@ -230,7 +255,7 @@ export default function NetLab({
   };
 
   const lastLines = shown.length ? shown : run?.events ?? [];
-  const nameOf = (id: string|number) => net.devices[id]?.name ?? id;
+  const nameOf = (id: string) => net.devices[id]?.name ?? id;
 
   return (
     <div className="nl">
@@ -275,7 +300,7 @@ export default function NetLab({
             dots={dots}
             marks={marks}
             onDevice={onDevice}
-            onLink={(i: SetStateAction<null>) => {
+            onLink={(i) => {
               if (tools.cable) setSelLink(i);
             }}
           />
@@ -295,7 +320,7 @@ export default function NetLab({
           apply={apply}
           exec={formExec}
           lines={terms[sel] ?? []}
-          onRun={(line: any) => terminalRun(sel, line)}
+          onRun={(line) => terminalRun(sel, line)}
         />
       </div>
 
@@ -303,7 +328,7 @@ export default function NetLab({
         <div className="nl-goals">
           <h4>Цели</h4>
           <ul>
-            {scenario.goals.map((g, i: number) => {
+            {scenario.goals.map((g, i) => {
               const r = results?.[i];
               return (
                 <li key={g.id} className={r ? (r.ok ? "ok" : "bad") : ""}>
@@ -348,7 +373,7 @@ export default function NetLab({
             <p className="nl-none">Запустите ping в терминале или нажмите ▶ у цели — здесь появится путь пакета: ARP, пересылка, NAT, потери.</p>
           ) : (
             <ol>
-              {lastLines.map((e, i: Key|null|undefined) => (
+              {lastLines.map((e, i) => (
                 <li key={i} className={e.kind}>
                   <time>{fmtMs(e.t)}</time>
                   <b>{nameOf(e.dev)}</b>

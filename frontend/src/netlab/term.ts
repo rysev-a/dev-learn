@@ -13,6 +13,7 @@ import {
 } from "./ip.ts";
 import { getIface, ifaceOf } from "./model.ts";
 import { transfer } from "./transfer.ts";
+import type { TransferChart, TransferResult } from "./transfer.ts";
 import { fmtCurl, httpFetch, newHttp } from "./http.ts";
 import type { FetchResult } from "./http.ts";
 import { fmtPage, pageload } from "./pageload.ts";
@@ -32,7 +33,8 @@ export interface CmdResult {
   probe?: ProbeRun | null;
   http?: FetchResult;
   clear?: boolean;
-  [extra: string]: unknown;
+  chart?: TransferChart | null;
+  xfer?: TransferResult;
 }
 
 const NO = (d: Device) =>
