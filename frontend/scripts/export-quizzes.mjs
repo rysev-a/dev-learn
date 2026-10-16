@@ -3,25 +3,19 @@
 //   npm run quizzes:check    — проверить, что файлы не отстали от исходников (код возврата 1, если отстали)
 // В приложение исходники не попадают: сервер отдаёт вопросы без ответов, а ответ — после выбора варианта.
 import fs from "fs";
+import { DatabaseSync } from "node:sqlite";
 import path from "path";
 import { fileURLToPath } from "url";
 import { QUIZZES } from "../content/quizzes/index.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.resolve(root, "../backend/app/data/sql/quizzes");
-const BOOKS = {
-  7: ["algo", "Алгоритмы и структуры данных"],
-  8: ["linux", "Погружаемся в Unix"],
-  9: ["db", "Базы данных"],
-  10: ["rust", "Изучаем Rust"],
-  11: ["js", "Современный Frontend"],
-  12: ["dm", "Дискретная математика"],
-  13: ["py", "Python как первый язык"],
-  14: ["arch", "Архитектура компьютера"],
-  15: ["net", "Компьютерные сети"],
-  16: ["c", "От assembler к языку C"],
-  17: ["virt", "Виртуализация"],
-};
+// короткие имена и названия книг — из backend/app/data/sql/books.sql (единственное место, где они заданы)
+const BOOKS = (() => {
+  const db = new DatabaseSync(":memory:");
+  db.exec(fs.readFileSync(path.resolve(root, "../backend/app/data/sql/books.sql"), "utf8"));
+  return Object.fromEntries(db.prepare("SELECT id, slug, title FROM books").all().map((r) => [r.id, [r.slug, r.title]]));
+})();
 
 const SCHEMA = `-- Квизы на теорию. Выполнение этого файла очищает таблицы: дальше идут файлы книг с INSERT.
 -- Полная инициализация: sqlite3 say.db < app/data/sql/quizzes/*.sql (файлы выполняются по порядку имён).
@@ -61,7 +55,7 @@ function files() {
   }
   for (const book of Object.keys(byBook).map(Number).sort((a, b) => a - b)) {
     const info = BOOKS[book];
-    if (!info) throw new Error(`нет имени для книги ${book}: добавьте в BOOKS (scripts/export-quizzes.mjs)`);
+    if (!info) throw new Error(`нет имени для книги ${book}: добавьте его в backend/app/data/sql/books.sql`);
     const lines = [`-- Квизы книги ${book} «${info[1]}». Файл строит scripts/export-quizzes.mjs — руками не правьте.`, ""];
     for (const [chapter, quiz] of byBook[book].sort((a, b) => a[0] - b[0])) {
       lines.push(`INSERT INTO quizzes (book_id, chapter, kind, title) VALUES (${book}, ${chapter}, ${lit(quiz.kind)}, ${lit(quiz.title)});`);

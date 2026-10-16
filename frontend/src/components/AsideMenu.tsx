@@ -62,7 +62,7 @@ export default function AsideMenu({ books }: { books: Book[] }) {
               title={b.title}
               aria-label={b.title}
             >
-              <BookIcon id={b.id} />
+              <BookIcon icon={b.icon} />
             </button>
           ) : (
             <button

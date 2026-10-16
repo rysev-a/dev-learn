@@ -1,25 +1,18 @@
-// Реестр слайдов: «книга:глава» → компоненты сцен и их названия.
-// Файлы глав лежат в slides/<папка книги>/chNN.jsx и находятся автоматически;
-// подгружаются лениво, при открытии главы, поэтому в основной бандл не входят.
-// Новая книга — строка в BOOK_DIRS. Файл главы экспортирует SLIDES_* и SLIDE_TITLES_*
+// Реестр слайдов: глава → компоненты сцен и их названия.
+// Файлы глав лежат в slides/<каталог книги>/chNN.tsx и находятся автоматически; каталог книги задаёт сервер
+// (поле slides_dir в backend/app/data/sql/books.sql, приходит в /api/books). Главы подгружаются лениво, при
+// открытии, поэтому в основной бандл не входят. Файл главы экспортирует SLIDES_* и SLIDE_TITLES_*
 // (объекты с ключом «книга:глава»).
 import { useEffect, useState, type ComponentType } from "react";
 
-const BOOK_DIRS: Record<string, number> = {
-  algo: 7,
-  linux: 8,
-  db: 9,
-  "learn-rust": 10,
-  js: 11,
-  dm: 12,
-  py: 13,
-  arch: 14,
-  networks: 15,
-  "learn-c": 16,
-  virtualization: 17,
-};
-
 export type SlideComponent = ComponentType;
+
+/** Где искать главу: каталог слайдов книги, id книги и номер главы */
+export interface SlideRef {
+  dir: string;
+  book: number | string;
+  num: number;
+}
 
 export interface ChapterSlides {
   slides: SlideComponent[] | null;
@@ -28,18 +21,18 @@ export interface ChapterSlides {
 
 type ChapterModule = Record<string, unknown>;
 
+// «каталог:номер главы» → загрузчик модуля
 const loaders: Record<string, () => Promise<ChapterModule>> = {};
-for (const [path, load] of Object.entries(
-  import.meta.glob<ChapterModule>("../slides/*/ch*.{jsx,tsx}"),
-)) {
-  const m = path.match(/slides\/([^/]+)\/ch(\d+)\.[jt]sx$/);
-  const book = m ? BOOK_DIRS[m[1]!] : undefined;
-  if (m && book != null) loaders[`${book}:${Number(m[2])}`] = load;
+for (const [path, load] of Object.entries(import.meta.glob<ChapterModule>("../slides/*/ch*.tsx"))) {
+  const m = path.match(/slides\/([^/]+)\/ch(\d+)\.tsx$/);
+  if (m) loaders[`${m[1]}:${Number(m[2])}`] = load;
 }
 
 const cache = new Map<string, Promise<ChapterSlides>>();
 
-export const hasSlides = (key: string): boolean => key in loaders;
+const loaderKey = (ref: SlideRef) => `${ref.dir}:${ref.num}`;
+
+export const hasSlides = (ref: SlideRef | null): boolean => ref != null && loaderKey(ref) in loaders;
 
 // Первый экспорт модуля, имя которого начинается с prefix: { "книга:глава": значение }
 function pick<T>(mod: ChapterModule, prefix: string, key: string): T | null {
@@ -48,9 +41,10 @@ function pick<T>(mod: ChapterModule, prefix: string, key: string): T | null {
   return table?.[key] ?? null;
 }
 
-export function loadSlides(key: string): Promise<ChapterSlides | null> {
-  const load = loaders[key];
+export function loadSlides(ref: SlideRef): Promise<ChapterSlides | null> {
+  const load = loaders[loaderKey(ref)];
   if (!load) return Promise.resolve(null);
+  const key = `${ref.book}:${ref.num}`;
   let hit = cache.get(key);
   if (!hit) {
     hit = load().then((mod) => ({
@@ -63,19 +57,21 @@ export function loadSlides(key: string): Promise<ChapterSlides | null> {
 }
 
 // Слайды главы: loading — пока модуль грузится, slides === null — слайдов у главы нет
-export function useChapterSlides(key: string | null): ChapterSlides & { loading: boolean } {
+export function useChapterSlides(ref: SlideRef | null): ChapterSlides & { loading: boolean } {
+  const key = ref ? loaderKey(ref) : null;
   const [state, setState] = useState<{ key: string | null; data: ChapterSlides | null }>({
     key: null,
     data: null,
   });
   useEffect(() => {
     let live = true;
-    if (key) loadSlides(key).then((data) => live && setState({ key, data }));
+    if (ref && key) loadSlides(ref).then((data) => live && setState({ key, data }));
     return () => {
       live = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
-  const ready = !key || !hasSlides(key) || state.key === key;
+  const ready = !ref || !hasSlides(ref) || state.key === key;
   const data = ready && state.key === key ? state.data : null;
   return { loading: !ready, slides: data?.slides ?? null, titles: data?.titles ?? null };
 }

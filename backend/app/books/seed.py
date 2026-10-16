@@ -24,6 +24,7 @@ import sqlite3
 import uuid
 
 from app import config
+from app.books.meta import audio_prefix, load_books
 from app.books.service import db, init_db
 from app.exercises.store import reload_tasks
 from app.quizzes.store import reload_quizzes
@@ -34,37 +35,7 @@ CHAPTER_RE = re.compile(r"^#CHAPTER\s+(\d+)\s*\|\s*(.+)$")
 # фиксированное пространство имён для стабильных id уроков
 NS = uuid.UUID("d3a7c0de-0000-4000-8000-4b6f6b6f726f")
 
-# Порядок книг в левом меню — по плану курса (course.MD): дискретная математика,
-# Python, алгоритмы, архитектура компьютера, операционные системы, сети,
-# виртуализация, базы данных,
-# Rust, JavaScript. Книга «Системный дизайн» из плана ещё не написана.
-BOOKS = [
-    (12, "Дискретная математика", 0),
-    (13, "Python как первый язык", 1),
-    (7, "Алгоритмы и структуры данных", 2),
-    (14, "Архитектура компьютера", 3),
-    (16, "От assembler к языку C", 4),
-    (8, "Погружаемся в Unix", 5),
-    (15, "Компьютерные сети", 6),
-    (17, "Виртуализация", 7),
-    (9, "Базы данных", 8),
-    (10, "Изучаем Rust", 9),
-    (11, "Современный Frontend", 10),
-]
-# uuid5 source prefix per book
-AUDIO_PREFIX = {
-    7: "algx-ch",
-    8: "lin-ch",
-    9: "dbx-ch",
-    10: "rust-ch",
-    11: "js-ch",
-    12: "dm-ch",
-    13: "learn-py-ch",
-    14: "arch-ch",
-    15: "net-ch",
-    16: "c-ch",
-    17: "virt-ch",
-}
+# Порядок книг, префиксы аудио и прочие метаданные — в app/data/sql/books.sql (app/books/meta.py).
 
 
 def split_paragraph_parts(books: list[dict]) -> None:
@@ -136,18 +107,13 @@ def seed_db(books: list[dict]) -> list[dict]:
     with sqlite3.connect(config.DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
         init_db(conn)
-        for bid, title, ord_ in BOOKS:
-            conn.execute(
-                "INSERT INTO books (id, title, ord) VALUES (?, ?, ?) "
-                "ON CONFLICT(id) DO UPDATE SET title = excluded.title, ord = excluded.ord",
-                (bid, title, ord_),
-            )
+        load_books(conn)
         conn.execute("DELETE FROM lessons")
         conn.execute("DELETE FROM chapters")
         conn.execute("DELETE FROM sections")
         for book in books:
             bid = book["book_id"]
-            prefix = AUDIO_PREFIX.get(bid, f"b{bid}-ch")
+            prefix = audio_prefix(conn, bid)
             for s_ord, section in enumerate(book["sections"]):
                 cur = conn.execute(
                     "INSERT INTO sections (book_id, title, ord) VALUES (?, ?, ?)",

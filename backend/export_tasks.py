@@ -6,31 +6,29 @@ uv run export_tasks.py --check  # только проверить, что фай
 Порядок работы с упражнениями: правим модули в app/exercises/*_tasks, запускаем этот скрипт, коммитим SQL вместе
 с правкой; в БД задачи попадают при `uv run seed_textbook.py` или на первом запуске сервера (пустая таблица)."""
 
+import sqlite3
 import sys
 
 from app import config
+from app.books.meta import load_books
 from app.exercises import sources, store
 
-BOOK_NAMES = {
-    7: "algo — Алгоритмы и структуры данных",
-    8: "linux — Погружаемся в Unix",
-    9: "db — Базы данных",
-    10: "rust — Изучаем Rust",
-    11: "js — Современный Frontend",
-    13: "py — Python как первый язык",
-    14: "arch — Архитектура компьютера (лаборатория)",
-    15: "net — Компьютерные сети",
-    16: "c — От assembler к языку C",
-    17: "virt — Виртуализация",
-}
+def book_names() -> dict[int, tuple[str, str]]:
+    """{id книги: (короткое имя, название)} из app/data/sql/books.sql"""
+    conn = sqlite3.connect(":memory:")
+    load_books(conn)
+    return {r[0]: (r[1], r[2]) for r in conn.execute("SELECT id, slug, title FROM books")}
 
 
 def expected_files() -> dict[str, str]:
     """{имя файла: содержимое}"""
     files = {"00-schema.sql": store.SCHEMA_SQL}
+    names = book_names()
     for book_id, chapters in sorted(sources.BOOK_TASKS.items()):
-        slug = BOOK_NAMES[book_id].split(" ")[0]
-        files[f"{book_id:02d}-{slug}.sql"] = store.book_sql(book_id, BOOK_NAMES[book_id], chapters)
+        if book_id not in names:
+            raise SystemExit(f"книги {book_id} нет в app/data/sql/books.sql")
+        slug, title = names[book_id]
+        files[f"{book_id:02d}-{slug}.sql"] = store.book_sql(book_id, f"{slug} — {title}", chapters)
     return files
 
 

@@ -26,7 +26,7 @@ def books():
             return []
         rows = conn.execute(
             """
-            SELECT b.id, b.title,
+            SELECT b.id, b.title, b.slug, b.slides_dir, b.icon,
               (SELECT COUNT(*) FROM sections s WHERE s.book_id = b.id) AS sections_count,
               (SELECT COUNT(*) FROM chapters c JOIN sections s ON s.id = c.section_id
                WHERE s.book_id = b.id) AS lessons_count,

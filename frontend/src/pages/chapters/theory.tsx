@@ -7,6 +7,7 @@ import type { Lesson } from "../../types.ts";
 import type { SlideComponent } from "../../lib/slides.ts";
 import { FsItem } from "../../components/FsTree.tsx";
 import { useChapterSlides } from "../../lib/slides.ts";
+import { useBooks } from "../../lib/queries.ts";
 import { usePlayer } from "../../lib/player.tsx";
 import { SlideAudioContext } from "../../lib/slideAudio.ts";
 import { fmtTime } from "../../lib/format.ts";
@@ -41,9 +42,12 @@ export default function ChapterTheory() {
 
   // У каждой главы есть слайды; каждая часть — один абзац со своим слайдом и
   // своим аудио-файлом. Слайд следует за играющей частью, иначе — ручной выбор.
-  const { slides, titles: slideTitles, loading } = useChapterSlides(
-    chapter && bookId != null ? `${bookId}:${chapter.num}` : null,
+  const books = useBooks();
+  const slidesDir = books.find((b) => String(b.id) === String(bookId))?.slides_dir;
+  const { slides, titles: slideTitles, loading: slidesLoading } = useChapterSlides(
+    chapter && bookId != null && slidesDir ? { dir: slidesDir, book: bookId, num: chapter.num } : null,
   );
+  const loading = slidesLoading || books.length === 0; // каталог слайдов книги приходит вместе со списком книг
 
   let slideIdx = 0;
   if (slides) {

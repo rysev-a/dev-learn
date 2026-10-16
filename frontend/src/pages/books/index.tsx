@@ -88,7 +88,7 @@ export default function BooksIndex({ books }: { books: Book[] }) {
               onClick={() => open(`/book/${book.id}`)}
             >
               <span className="dash-ico">
-                <BookIcon id={book.id} size={18} />
+                <BookIcon icon={book.icon} size={18} />
               </span>
               <span className="dash-title">{book.title}</span>
               <span className="dash-meta">{book.lessons_count} уроков</span>

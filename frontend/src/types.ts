@@ -9,6 +9,10 @@ export interface User {
 export interface Book {
   id: number;
   title: string;
+  /** короткое имя, каталог слайдов в src/slides и имя иконки — из backend/app/data/sql/books.sql */
+  slug?: string | null;
+  slides_dir?: string | null;
+  icon?: string | null;
   ord?: number;
   sections_count?: number;
   lessons_count?: number;

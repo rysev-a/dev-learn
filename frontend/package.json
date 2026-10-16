@@ -14,8 +14,8 @@
     "net:check": "node scripts/net-selfcheck.mjs",
     "slides:check": "node scripts/slides-smoke.mjs",
     "net:render": "node scripts/net-render-smoke.mjs",
-    "quizzes:export": "node scripts/export-quizzes.mjs",
-    "quizzes:check": "node scripts/export-quizzes.mjs --check",
+    "quizzes:export": "node --disable-warning=ExperimentalWarning scripts/export-quizzes.mjs",
+    "quizzes:check": "node --disable-warning=ExperimentalWarning scripts/export-quizzes.mjs --check",
     "tasks:export": "cd ../backend && uv run python export_tasks.py"
   },
   "dependencies": {
