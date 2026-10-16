@@ -17,7 +17,7 @@ function S01() {
       main={"Маршруты, слои, состояние, пул потоков, лимиты и тесты — всё из стандартной библиотеки."}
     >
       <div className="s-grid2">
-        {[["GET /users/:id", "Маршруты", "Параметры по сегментам"], ["middleware", "Слои", "Журнал, доступ"], ["Arc<Mutex<_>>", "Состояние", "Общее для запросов"], ["ThreadPool", "Пул", "Мягкая остановка"]].map(([big, t, d]) => (
+        {([["GET /users/:id", "Маршруты", "Параметры по сегментам"], ["middleware", "Слои", "Журнал, доступ"], ["Arc<Mutex<_>>", "Состояние", "Общее для запросов"], ["ThreadPool", "Пул", "Мягкая остановка"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -592,7 +592,7 @@ function S13() {
       main={"Всё, что делают фреймворки, теперь видно: маршруты, слои, пул, лимиты, метрики."}
     >
       <div className="s-grid2">
-        {[["route", "Маршруты", "404, 405, параметры"], ["wrap(handler)", "Слои", "Сквозное поведение"], ["pool · flag", "Параллелизм", "Пул и остановка"], ["bucket · tests", "Надёжность", "Лимиты и интеграционные тесты"]].map(([big, t, d]) => (
+        {([["route", "Маршруты", "404, 405, параметры"], ["wrap(handler)", "Слои", "Сквозное поведение"], ["pool · flag", "Параллелизм", "Пул и остановка"], ["bucket · tests", "Надёжность", "Лимиты и интеграционные тесты"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

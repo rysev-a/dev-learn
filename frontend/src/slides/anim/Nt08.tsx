@@ -185,12 +185,12 @@ export const V04 = scene({
 // 5. Медленный старт
 const SS = (n: number): SceneItem[] => [
   Tx("ax", 180, 20, "cwnd (в сегментах) по кругам RTT", { size: 9, c: "y" }),
-  ...[
+  ...([
     [1, 10],
     [2, 20],
     [3, 40],
     [4, 80],
-  ].map(([k, v], i) =>
+  ] as const).map(([k, v], i) =>
     Bx(
       `b${k}`,
       55 + i * 70,

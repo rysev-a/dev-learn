@@ -458,11 +458,11 @@ const tt = (n: number): SceneItem[] => [
   ),
   ...If(
     n === 1,
-    ...[
+    ...([
       ["^C", "SIGINT", "r"],
       ["^Z", "SIGTSTP", "y"],
       ["^D", "конец файла", "b"],
-    ].flatMap(([k, s, c], i) => [
+    ] as const).flatMap(([k, s, c], i) => [
       Bx(`k${i}`, 70 + i * 110, 100, 52, 22, k!, c, { size: 9, mono: true }),
       Tx(`s${i}`, 70 + i * 110, 132, s!, { size: 8.5, c }),
     ]),

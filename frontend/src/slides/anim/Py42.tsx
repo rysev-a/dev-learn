@@ -178,12 +178,12 @@ export const V05 = scene({
       Box("b", 270, 70, 130, 30, "не родитель!", "r", { size: 11 }),
     ],
     [
-      ...[
+      ...([
         ["D", "g"],
         ["B", "y"],
         ["C", "y"],
         ["A", "b"],
-      ].map(([t, c], i) =>
+      ] as const).map(([t, c], i) =>
         Box(`m${i}`, 54 + i * 84, 70, 66, 28, t!, c, { size: 12 }),
       ),
       ...[0, 1, 2].map((i) =>
@@ -587,12 +587,12 @@ export const V13 = scene({
   frames: [
     diamond(false),
     [
-      ...[
+      ...([
         ["D", "g"],
         ["B", "y"],
         ["C", "y"],
         ["A", "b"],
-      ].map(([t, c], i) =>
+      ] as const).map(([t, c], i) =>
         Box(`m${i}`, 54 + i * 84, 70, 66, 28, t!, c, { size: 12 }),
       ),
       ...[0, 1, 2].map((i) =>

@@ -396,12 +396,12 @@ export const V10 = scene({
       py("c", 14, 118, ["age = 34"], undefined, { w: 120, size: 10.5, lh: 16 }),
     ],
     [
-      ...[
+      ...([
         ["int", "34"],
         ["float", "2.5"],
         ["str", '"hi"'],
         ["bool", "True"],
-      ].map(([t, v], i) =>
+      ] as const).map(([t, v], i) =>
         Box(
           `t${i}`,
           52 + i * 86,

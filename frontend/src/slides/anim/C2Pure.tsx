@@ -52,11 +52,11 @@ export default function C2Pure({ cues }: { cues?: number[] }) {
 
       <G o={step === 3 ? 1 : 0}>
         <text x="180" y="26" textAnchor="middle" className="a-mono" style={{ fontSize: 11, fill: "var(--s-accent)" }}>cache = {"{ }"}</text>
-        {[
+        {([
           ["2", "4"],
           ["3", "9"],
           ["4", "16"],
-        ].map(([a, b], i) => (
+        ] as const).map(([a, b], i) => (
           <g key={a} className="a-t" style={{ opacity: step === 3 ? 1 : 0, transitionDelay: `${i * 450}ms` }}>
             <Pill x={130} y={56 + i * 32} w={52} text={a} stroke="var(--s-blue)" />
             <Arrow x1={160} y1={56 + i * 32} x2={198} y2={56 + i * 32} c="g" />

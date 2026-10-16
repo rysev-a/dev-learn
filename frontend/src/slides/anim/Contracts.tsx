@@ -69,12 +69,12 @@ export default function Contracts({ cues }: { cues?: number[] }) {
       {/* множество */}
       <G o={step >= 2 ? 1 : 0}>
         <circle cx="270" cy="66" r="38" className="a-ring a" />
-        {[
+        {([
           [252, 56, 3],
           [286, 56, 1],
           [252, 82, 4],
           [286, 82, 7],
-        ].map(([x, y, v]) => (
+        ] as const).map(([x, y, v]) => (
           <Dot key={v} x={x!} y={y!} r={10} text={v} stroke={v === 7 ? "var(--s-accent)" : "var(--s-muted)"} />
         ))}
         <Pill x={270} y={126} w={64} text="есть 7?" stroke="var(--s-accent)" />

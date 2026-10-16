@@ -38,11 +38,11 @@ export default function C4Estimate({ cues }: { cues?: number[] }) {
         <Txt x={180} y={150} mono size={12} color="var(--s-amber)">сумма ≈ {tot.toFixed(2)} — первые два члена дают 2,00</Txt>
       </G>
       <G o={step === 2 ? 1 : 0}>
-        {[
+        {([
           ["сложный процент", "1,05¹⁰ ≈ 1 + 10·0,05 + …"],
           ["нагрузка", "+1 % в день: за месяц ≈ ×1,35"],
           ["анализ алгоритмов", "(n + 1)² = n² + 2n + 1 → n²"],
-        ].map(([t, f], i) => (
+        ] as const).map(([t, f], i) => (
           <g key={t}>
             <Pill x={80} y={36 + i * 40} w={128} text={t} stroke="var(--s-accent)" size={9.5} />
             <text x="160" y={40 + i * 40} className="a-mono" style={{ fontSize: 10.5 }}>{f}</text>

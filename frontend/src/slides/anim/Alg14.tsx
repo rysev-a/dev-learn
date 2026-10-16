@@ -520,13 +520,13 @@ const sparse = (hot: Record<number, Record<number, string>>, note: string, show 
     mono: true,
     size: 8.5,
     anchor: "start",
-    o: show[1],
+    o: show[1] ?? 1,
   }),
   Tx("l2", 16, 124, "k=2", {
     mono: true,
     size: 8.5,
     anchor: "start",
-    o: show[2],
+    o: show[2] ?? 1,
   }),
   ...row("t0", SPA, { x0: SPX + 10, y: 44, cw: 36, w: 32, c: hot[0] ?? {} }),
   ...row("t1", SP1, {
@@ -534,7 +534,7 @@ const sparse = (hot: Record<number, Record<number, string>>, note: string, show 
     y: 84,
     cw: 36,
     w: 32,
-    o: show[1],
+    o: show[1] ?? 1,
     c: hot[1] ?? {},
   }),
   ...row("t2", SP2, {
@@ -542,7 +542,7 @@ const sparse = (hot: Record<number, Record<number, string>>, note: string, show 
     y: 124,
     cw: 36,
     w: 32,
-    o: show[2],
+    o: show[2] ?? 1,
     c: hot[2] ?? {},
   }),
   Tx("n", 180, 162, note, { mono: true, size: 10, c: "y" }),

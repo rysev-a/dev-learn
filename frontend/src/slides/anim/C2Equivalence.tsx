@@ -28,11 +28,11 @@ export default function C2Equivalence({ cues }: { cues?: number[] }) {
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       {/* свойства */}
       <G o={step === 0 ? 1 : 0}>
-        {[
+        {([
           ["a ~ a", "рефлексивность"],
           ["a ~ b ⇒ b ~ a", "симметричность"],
           ["a ~ b, b ~ c ⇒ a ~ c", "транзитивность"],
-        ].map(([f, n], i) => (
+        ] as const).map(([f, n], i) => (
           <g key={n}>
             <rect x="30" y={30 + i * 38} width="300" height="30" rx="8" style={{ fill: "var(--s-green)", stroke: "var(--s-accent)", strokeWidth: 1.3 }} />
             <text x="44" y={49 + i * 38} className="a-mono" style={{ fontSize: 11, fill: "var(--s-accent)" }}>{f}</text>

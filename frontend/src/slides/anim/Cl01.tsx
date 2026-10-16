@@ -421,14 +421,14 @@ export const V09 = scene({
   ],
   frames: [
     [
-      ...[
+      ...([
         ["%d", "-5"],
         ["%u", "5"],
         ["%x", "ff"],
         ["%c", "'A'"],
         ["%s", '"hi"'],
         ["%zu", "sizeof"],
-      ].map(([f, v], i) =>
+      ] as const).map(([f, v], i) =>
         Box(
           `f${i}`,
           70 + (i % 3) * 110,

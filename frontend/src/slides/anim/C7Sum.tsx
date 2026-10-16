@@ -32,12 +32,12 @@ export default function C7Sum({ cues }: { cues?: number[] }) {
         <Txt x={180} y={134} mono size={15}>1 + … + (k+1) = (k+1)(k+2)/2</Txt>
       </G>
       <G o={step === 3 ? 1 : 0}>
-        {[
+        {([
           ["1 + … + k + (k+1)", "var(--s-text)"],
           ["= k(k+1)/2 + (k+1)", "var(--s-blue)"],
           ["= (k+1)(k/2 + 1)", "var(--s-blue)"],
           ["= (k+1)(k+2)/2", "var(--s-accent)"],
-        ].map(([t, c], i) => (
+        ] as const).map(([t, c], i) => (
           <g key={t} className="a-t" style={{ opacity: step === 3 ? 1 : 0, transitionDelay: `${i * 380}ms` }}>
             <text x="60" y={40 + i * 28} className="a-mono" style={{ fontSize: 14, fill: c }}>{t}</text>
           </g>

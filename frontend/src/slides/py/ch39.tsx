@@ -18,7 +18,7 @@ function S01() {
       main={"Тесты дают уверенность менять код: сломалось — сразу видно, что и где."}
     >
       <div className="s-grid2">
-        {[["assert", "Проверки", "Вызвать код и сверить результат"], ["unittest", "Каркас", "Классы, setUp, subTest, отчёт"], ["doctest", "Примеры", "Документация, которая не врёт"], ["mock · patch", "Изоляция", "Подменить сеть, время, случайность"]].map(([big, t, d]) => (
+        {([["assert", "Проверки", "Вызвать код и сверить результат"], ["unittest", "Каркас", "Классы, setUp, subTest, отчёт"], ["doctest", "Примеры", "Документация, которая не врёт"], ["mock · patch", "Изоляция", "Подменить сеть, время, случайность"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -354,7 +354,7 @@ function S13() {
       main={"Вы прошли путь от первой строки до тестов собственных программ."}
     >
       <div className="s-grid2">
-        {[["assert · unittest", "Проверки", "Независимые тесты, setUp, subTest, assertRaises"], ["doctest", "Примеры", "Живая документация"], ["Mock · patch", "Изоляция", "Подмена внешнего мира; без злоупотреблений"], ["TDD", "Подход", "Красный — зелёный — рефакторинг"]].map(([big, t, d]) => (
+        {([["assert · unittest", "Проверки", "Независимые тесты, setUp, subTest, assertRaises"], ["doctest", "Примеры", "Живая документация"], ["Mock · patch", "Изоляция", "Подмена внешнего мира; без злоупотреблений"], ["TDD", "Подход", "Красный — зелёный — рефакторинг"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

@@ -18,7 +18,7 @@ function S01() {
       main={"Пути — объекты Path, данные — JSON, таблицы — CSV."}
     >
       <div className="s-grid2">
-        {[["Path", "pathlib", "Пути как объекты: склейка, части, проверки"], ["os · shutil", "Системное", "Переменные окружения, копирование, перенос"], ["json", "JSON", "Словари и списки в текстовом виде"], ["csv", "CSV", "Таблицы: Reader, DictReader, writer"]].map(([big, t, d]) => (
+        {([["Path", "pathlib", "Пути как объекты: склейка, части, проверки"], ["os · shutil", "Системное", "Переменные окружения, копирование, перенос"], ["json", "JSON", "Словари и списки в текстовом виде"], ["csv", "CSV", "Таблицы: Reader, DictReader, writer"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -242,7 +242,7 @@ function S11() {
       main={"Обмен и настройки — JSON, таблицы — CSV, связанные данные — база; pickle — только своим файлам."}
     >
       <div className="s-grid2">
-        {[["pickle", "Объекты целиком", "Опасно: чужой файл может выполнить код"], ["sqlite3", "База в файле", "Связанные данные и запросы"], ["configparser", "INI-настройки", "Старый формат настроек"], ["tomllib", "TOML", "Чтение современных конфигов"]].map(([big, t, d]) => (
+        {([["pickle", "Объекты целиком", "Опасно: чужой файл может выполнить код"], ["sqlite3", "База в файле", "Связанные данные и запросы"], ["configparser", "INI-настройки", "Старый формат настроек"], ["tomllib", "TOML", "Чтение современных конфигов"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -285,7 +285,7 @@ function S13() {
       main={"С файлами закончили. Дальше — как устроен цикл for изнутри."}
     >
       <div className="s-grid2">
-        {[["Path / 'a'", "pathlib", "name, stem, suffix, parent; mkdir, glob, read_text"], ["json", "JSON", "dumps/loads и dump/load; ключи — строки"], ["csv", "CSV", "Из файла приходят строки; newline=''"], ["os.replace", "Надёжная запись", "Временный файл + переименование"]].map(([big, t, d]) => (
+        {([["Path / 'a'", "pathlib", "name, stem, suffix, parent; mkdir, glob, read_text"], ["json", "JSON", "dumps/loads и dump/load; ключи — строки"], ["csv", "CSV", "Из файла приходят строки; newline=''"], ["os.replace", "Надёжная запись", "Временный файл + переименование"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

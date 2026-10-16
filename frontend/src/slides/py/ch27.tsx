@@ -18,7 +18,7 @@ function S01() {
       main={"Многие типичные приёмы уже написаны за нас в стандартной библиотеке."}
     >
       <div className="s-grid2">
-        {[["reduce", "Свёртка", "Сложить набор в одно значение"], ["partial", "Фиксация", "Зафиксировать часть аргументов"], ["lru_cache", "Кеш", "Запомнить результаты функции"], ["itemgetter", "operator", "Операторы как функции для key"]].map(([big, t, d]) => (
+        {([["reduce", "Свёртка", "Сложить набор в одно значение"], ["partial", "Фиксация", "Зафиксировать часть аргументов"], ["lru_cache", "Кеш", "Запомнить результаты функции"], ["itemgetter", "operator", "Операторы как функции для key"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -310,7 +310,7 @@ function S13() {
       main={"Готовые инструменты экономят часы: reduce, partial, lru_cache, itemgetter."}
     >
       <div className="s-grid2">
-        {[["reduce · partial", "Функции", "Свёртка и фиксация аргументов"], ["lru_cache · cached_property", "Кеш", "Запомнить результат; хешируемые аргументы"], ["total_ordering · singledispatch", "Классы и типы", "Меньше методов; реализация по типу"], ["itemgetter · attrgetter", "operator", "Лучшие ключи для sorted и max"]].map(([big, t, d]) => (
+        {([["reduce · partial", "Функции", "Свёртка и фиксация аргументов"], ["lru_cache · cached_property", "Кеш", "Запомнить результат; хешируемые аргументы"], ["total_ordering · singledispatch", "Классы и типы", "Меньше методов; реализация по типу"], ["itemgetter · attrgetter", "operator", "Лучшие ключи для sorted и max"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

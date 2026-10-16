@@ -24,11 +24,11 @@ export default function C5Intro({ cues }: { cues?: number[] }) {
         <Txt x={180} y={132} size={10}>это уже формула логики высказываний</Txt>
       </G>
       <G o={step === 2 ? 1 : 0}>
-        {[
+        {([
           ["!(!a || !b)", "запутанная инверсия", "var(--s-red)"],
           ["a || b && c", "а какой приоритет?", "var(--s-amber)"],
           ["✓ ✓ ✓ …", "внезапно зелёный тест", "var(--s-blue)"],
-        ].map(([f, t, c], i) => (
+        ] as const).map(([f, t, c], i) => (
           <g key={t}>
             <rect x="40" y={26 + i * 44} width="280" height="36" rx="10" style={{ fill: "var(--s-panel2)", stroke: c, strokeWidth: 1.4 }} />
             <text x="58" y={49 + i * 44} className="a-mono" style={{ fontSize: 12 }}>{f}</text>

@@ -66,11 +66,11 @@ export default function C4Paths({ cues }: { cues?: number[] }) {
           cell={34}
           mark={(r, c) => (r === 1 && c === 1 ? "r" : r === 2 && c === 2 ? "g" : null)}
         />
-        {[
+        {([
           [1, 1, 1],
           [1, 0, 1],
           [1, 1, 2],
-        ].map((row, r) =>
+        ] as const).map((row, r) =>
           row.map((v, c) => (
             <text key={`${r}${c}`} x={96 + c * 34 + 17} y={26 + r * 34 + 21} textAnchor="middle" className="a-mono" style={{ fontSize: 12, fill: "var(--s-text)" }}>
               {r === 1 && c === 1 ? "▨" : v}

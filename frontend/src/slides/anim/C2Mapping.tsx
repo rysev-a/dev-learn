@@ -26,7 +26,7 @@ export default function C2Mapping({ cues }: { cues?: number[] }) {
   const ctl = useSteps(cues || [3.4, 9.9, 17.1, 22.9], 3200);
   const { step } = ctl;
   const k = step === 0 ? 3 : step;
-  const [nl, nr] = KIND[k];
+  const [nl, nr] = KIND[k]!;
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       {SLOT.map((y, i) => (

@@ -27,11 +27,11 @@ export default function C8Directed({ cues }: { cues?: number[] }) {
       <Txt x={180} y={130} mono size={12} o={step === 1 ? 1 : 0} color="var(--s-accent)">я — друг  =  друг — я</Txt>
       <Txt x={180} y={130} mono size={12} o={step === 2 ? 1 : 0} color="var(--s-amber)">я → блог  ≠  блог → я</Txt>
       <G o={step === 3 ? 1 : 0}>
-        {[
+        {([
           ["ссылка", "стр. A → стр. B"],
           ["поток данных", "источник → приёмник"],
           ["переход по сайту", "главная → каталог"],
-        ].map(([t, f], i) => (
+        ] as const).map(([t, f], i) => (
           <g key={t}>
             <Pill x={90} y={40 + i * 38} w={140} h={26} text={t} stroke="var(--s-amber)" size={10.5} />
             <text x="180" y={44 + i * 38} className="a-mono" style={{ fontSize: 12, fill: "var(--s-amber)" }}>→</text>

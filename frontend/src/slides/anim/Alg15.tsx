@@ -24,7 +24,7 @@ const EDGES: [string, string][] = [
   ["E", "G"],
   ["F", "G"],
 ];
-const P = (k: string, nodes: Record<string, Pos> = NODES) => ({ x: nodes[k]![0], y: nodes[k]![1] });
+const P = (k: string, nodes: Record<string, Pos> = NODES) => ({ x: nodes[k]![0]!, y: nodes[k]![1]! });
 // граф: colors — {вершина: цвет}, ec — {"A-B": цвет}
 function GR(
   colors: Record<string, string> = {},
@@ -49,7 +49,7 @@ function GR(
 ): SceneItem[] {
   return [
     ...edges.map(([a, b]) =>
-      edge(`${id}e${a}${b}`, P(a, nodes)!, P(b, nodes), {
+      edge(`${id}e${a}${b}`, P(a, nodes), P(b, nodes), {
         r,
         c: ec[`${a}-${b}`] ?? ec[`${b}-${a}`] ?? "m",
         arrow: directed,
@@ -193,12 +193,12 @@ export const V02 = scene({
           o: 0.5,
         },
       ),
-      ...[
+      ...([
         ["A", "B C"],
         ["B", "A C"],
         ["C", "A B D"],
         ["D", "C"],
-      ].flatMap(([k, ns], i): SceneItem[] => [
+      ] as const).flatMap(([k, ns], i): SceneItem[] => [
         {
           t: "cell",
           id: `ls${i}`,
@@ -534,7 +534,7 @@ export const V08 = scene({
       Object.fromEntries(
         Object.entries(DIST)
           .filter(([, d]) => d <= k)
-          .map(([v, d]) => [v, WCOL[d]]),
+          .map(([v, d]) => [v, WCOL[d]!]),
       )!,
       {},
       {
@@ -906,12 +906,12 @@ export const V14 = scene({
     [
       ...GRID(() => "m"),
       { t: "dot", id: "ctr", x: 110 + 28 * 1, y: 28 + 28 * 1, r: 4, c: "y" },
-      ...[
+      ...([
         [0, 1],
         [1, 2],
         [2, 1],
         [1, 0],
-      ].map(([dr, dc], i): SceneItem => ({
+      ] as const).map(([dr, dc], i): SceneItem => ({
         t: "line",
         id: `ar${i}`,
         x1: 110 + 28 * 1,
@@ -1021,13 +1021,13 @@ export const V16 = scene({
 
 // 17. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Хранение", "матрица · списки"],
     ["Глубина", "стек"],
     ["Ширина", "очередь"],
     ["Применения", "компоненты · порядок"],
     ["Дальше", "веса"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

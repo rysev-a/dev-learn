@@ -315,11 +315,11 @@ export const V08 = scene({
       ),
     ],
     [
-      ...[
+      ...([
         ["Relaxed", "g"],
         ["Acquire / Release", "y"],
         ["SeqCst", "r"],
-      ].map(([t, c], i) =>
+      ] as const).map(([t, c], i) =>
         Box(`o${i}`, 90, 40 + i * 36, 150, 26, t!, c, { size: 9.5 }),
       ),
       Tx("a", 270, 52, "дёшево", { size: 9, c: "g" }),
@@ -425,13 +425,13 @@ export const V11 = scene({
       Box("c1", 260, 112, 70, 22, "ядро 1 пишет B", "g", { size: 8 }),
     ],
     [
-      ...[
+      ...([
         [1, 1],
         [2, 1.8],
         [4, 3.1],
         [8, 4.7],
         [16, 6.4],
-      ].flatMap(([n, s], i): SceneItem[] => [
+      ] as const).flatMap(([n, s], i): SceneItem[] => [
         {
           t: "bar",
           id: `b${i}`,

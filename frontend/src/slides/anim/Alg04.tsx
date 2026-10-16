@@ -531,14 +531,14 @@ export const V10 = scene({
         size: 8.5,
         c: "g",
       })),
-      ...[
+      ...([
         ["g0", "g1"],
         ["g0", "g2"],
         ["g1", "g3"],
         ["g1", "g4"],
         ["g2", "g5"],
         ["g2", "g6"],
-      ].map(([a, b]): SceneItem => {
+      ] as const).map(([a, b]): SceneItem => {
         const A = GOODQ.find((q) => q[0] === a)!;
         const B = GOODQ.find((q) => q[0] === b)!;
         return {
@@ -945,13 +945,13 @@ export const V15 = scene({
 
 // 16. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Поиск", "линейный · бинарный"],
     ["Границы", "по ответу"],
     ["Сортировки", "n² · n log n"],
     ["Устойчивость", "инструмент"],
     ["Дальше", "хеш-таблицы"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

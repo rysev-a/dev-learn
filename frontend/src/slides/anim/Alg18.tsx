@@ -539,7 +539,7 @@ const KN = Array.from({ length: ITEMS.length + 1 }, () =>
   Array(WCAP + 1).fill(0),
 );
 for (let i = 1; i <= ITEMS.length; i++) {
-  const [w, v] = ITEMS[i - 1];
+  const [w, v] = ITEMS[i - 1]!;
   for (let c = 0; c <= WCAP; c++)
     KN[i]![c] = Math.max(KN[i - 1]![c], c >= w ? KN[i - 1]![c - w] + v : 0);
 }
@@ -905,13 +905,13 @@ export const V16 = scene({
 
 // 17. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Перекрытие", "подзадач"],
     ["Сверху", "мемоизация"],
     ["Снизу", "табуляция"],
     ["Состояние", "и переход"],
     ["Дальше", "жадные"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

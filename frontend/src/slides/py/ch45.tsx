@@ -18,7 +18,7 @@ function S01() {
       main={"Асинхронность родилась ради сети: большую часть времени программа ждёт чужие ответы."}
     >
       <div className="s-grid2">
-        {[["streams", "Сеть", "start_server, open_connection"], ["TaskGroup · Event", "Каркас", "main(), корректная остановка"], ["retry · timeout", "Устойчивость", "Повторы с растущей задержкой"], ["IsolatedAsyncioTestCase", "Тесты", "Корутины на настоящем цикле"]].map(([big, t, d]) => (
+        {([["streams", "Сеть", "start_server, open_connection"], ["TaskGroup · Event", "Каркас", "main(), корректная остановка"], ["retry · timeout", "Устойчивость", "Повторы с растущей задержкой"], ["IsolatedAsyncioTestCase", "Тесты", "Корутины на настоящем цикле"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -355,7 +355,7 @@ function S13() {
       main={"Вы завершили раздел об асинхронности и всю книгу по Питону — дальше алгоритмы."}
     >
       <div className="s-grid2">
-        {[["start_server · open_connection", "Сеть", "Читатель и писатель; подпроцессы корутинами"], ["main() · TaskGroup · Event", "Каркас", "Один run, корректная остановка"], ["timeout · retry", "Устойчивость", "Таймауты и повторы только безопасного"], ["IsolatedAsyncioTestCase", "Тесты и отладка", "debug=True, имена задач, contextvars"]].map(([big, t, d]) => (
+        {([["start_server · open_connection", "Сеть", "Читатель и писатель; подпроцессы корутинами"], ["main() · TaskGroup · Event", "Каркас", "Один run, корректная остановка"], ["timeout · retry", "Устойчивость", "Таймауты и повторы только безопасного"], ["IsolatedAsyncioTestCase", "Тесты и отладка", "debug=True, имена задач, contextvars"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

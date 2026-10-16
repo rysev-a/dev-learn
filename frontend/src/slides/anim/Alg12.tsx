@@ -803,13 +803,13 @@ export const V15 = scene({
 
 // 16. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Куча", "в массиве"],
     ["Вверх/вниз", "log n"],
     ["heapify", "O(n)"],
     ["Паттерны", "top-k · слияние"],
     ["Практика", "15 упражнений"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

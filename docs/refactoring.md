@@ -46,7 +46,7 @@
 - `dash: true` у линий и путей не включал пунктир (в CSS попадало `true`) — теперь `true` значит «3 3».
 
 **Строгий TypeScript.** Весь `frontend/src` — `.ts`/`.tsx`, JS-файлов нет. `tsconfig.json`: `strict`, `noUnusedLocals`, `noImplicitReturns`,
-`noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `allowUnreachableCode: false`, `allowUnusedLabels: false`. `scripts/ts-guard.mjs`
+`noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `allowUnreachableCode: false`, `allowUnusedLabels: false`. `scripts/ts-guard.mjs`
 запрещает явный `any` и `@ts-ignore`/`@ts-nocheck`/`@ts-expect-error` (сейчас 0 нарушений). Доменные типы: `types.ts` (API),
 `netlab/types.ts`, `lab/…/blocks.ts`, `slides/anim/dsl.ts` (`SceneItem`, `Tone`, `Extra`), `slides/anim/alg.tsx`
 (`SceneSpec`, `RowOpts`, `TreeNode`, `Pt`), `slides/anim/kit.tsx` (`StepsCtl`, `GraphNode`, `GraphEdge`).
@@ -77,11 +77,11 @@
 
 ## 5. Дальнейшее ужесточение TypeScript
 
-Включать по одному флагу, фиксируя количество ошибок:
+Все флаги строгости, кроме перечисленного ниже, включены (`tsconfig.json`). Остаётся сократить явные обходы типов:
 
-| Флаг | Ошибок сейчас | Комментарий |
+| Что | Сколько сейчас | Как снижать |
 |---|---|---|
-| `noUncheckedIndexedAccess` | 529 (только `slides`) | включён везде, кроме сцен (`scripts/index-check.mjs`); в сценах индексы почти всегда верны по построению: таблицы с типом кортежа и `!` |
-| запрет `!` и приведений `as` | ≈210 и ≈230 | заменять сужением типов и защитниками |
+| `!` (утверждение «не `undefined`») | ≈860, из них большая часть — индексы в таблицах сцен | сужать типом (кортежи, `Record` с точными ключами), в логике — проверкой или помощником с понятной ошибкой |
+| приведения `as` | ≈230 | защитники типов, точные типы вместо приведений |
 
-Для первых трёх удобно ввести второй проект `tsconfig.next.json` с флагом и снижать счётчик, не блокируя сборку.
+Добавить в `ts-guard.mjs` порог на число `!` и `as`, который можно только снижать.

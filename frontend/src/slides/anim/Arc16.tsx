@@ -287,11 +287,11 @@ const mm = (n: number): SceneItem[] => [
     "m",
     { w: 3 },
   ),
-  ...[
+  ...([
     ["UART TX", "sb"],
     ["светодиоды", "sw"],
     ["переключатели", "lw"],
-  ].map(([t, op], i) =>
+  ] as const).map(([t, op], i) =>
     Box(
       `d${i}`,
       270,

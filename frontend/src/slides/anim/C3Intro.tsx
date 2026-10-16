@@ -39,10 +39,10 @@ export default function C3Intro({ cues }: { cues?: number[] }) {
         <Txt x={180} y={24}>три мелких решения</Txt>
       </G>
       <G o={step >= 3 ? 1 : 0}>
-        {[
+        {([
           ["+", "сумма"],
           ["×", "произведение"],
-        ].map(([s, n], i) => (
+        ] as const).map(([s, n], i) => (
           <g key={s}>
             <rect x={36 + i * 100} y="30" width="88" height="46" rx="10" style={{ fill: "var(--s-green)", stroke: "var(--s-accent)", strokeWidth: 1.5 }} />
             <text x={80 + i * 100} y="56" textAnchor="middle" className="a-mono" style={{ fontSize: 20, fill: "var(--s-accent)" }}>{s}</text>
@@ -50,11 +50,11 @@ export default function C3Intro({ cues }: { cues?: number[] }) {
           </g>
         ))}
         <Txt x={118} y={22}>два правила</Txt>
-        {[
+        {([
           ["n!", "перестановки"],
           ["A", "размещения"],
           ["C", "сочетания"],
-        ].map(([s, n], i) => (
+        ] as const).map(([s, n], i) => (
           <g key={s}>
             <rect x={30 + i * 100} y="104" width="90" height="46" rx="10" style={{ fill: "var(--s-panel2)", stroke: "var(--s-amber)", strokeWidth: 1.5 }} />
             <text x={75 + i * 100} y="128" textAnchor="middle" className="a-mono" style={{ fontSize: 17, fill: "var(--s-amber)" }}>{s}</text>

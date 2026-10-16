@@ -17,7 +17,7 @@ function S01() {
       main={"Те же идеи, но со срезами, обобщениями и стандартными коллекциями; числа без знака требуют внимания."}
     >
       <div className="s-grid2">
-        {[["&[T] · &mut [T]", "Срезы", "Без копирования"], ["BinaryHeap · HashMap", "Коллекции", "Из коробки"], ["Vec<Vec<usize>>", "Графы", "Индексы вместо указателей"], ["checked · wrapping", "Числа", "Явный выбор операции"]].map(([big, t, d]) => (
+        {([["&[T] · &mut [T]", "Срезы", "Без копирования"], ["BinaryHeap · HashMap", "Коллекции", "Из коробки"], ["Vec<Vec<usize>>", "Графы", "Индексы вместо указателей"], ["checked · wrapping", "Числа", "Явный выбор операции"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -421,7 +421,7 @@ function S13() {
       main={"Алгоритмы на Rust: срезы, обобщения, стандартные коллекции и аккуратная арифметика."}
     >
       <div className="s-grid2">
-        {[["O(n log n)", "Сортировки", "Вставками, слиянием"], ["Reverse(heap)", "Куча", "top-k, Дейкстра"], ["Vec<Vec<>>", "Графы и ДП", "Таблицы и списки"], ["DSU", "Связность", "Union-Find"]].map(([big, t, d]) => (
+        {([["O(n log n)", "Сортировки", "Вставками, слиянием"], ["Reverse(heap)", "Куча", "top-k, Дейкстра"], ["Vec<Vec<>>", "Графы и ДП", "Таблицы и списки"], ["DSU", "Связность", "Union-Find"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

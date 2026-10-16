@@ -64,11 +64,11 @@ export default function C3Poker({ cues }: { cues?: number[] }) {
       </G>
 
       <G o={step === 3 ? 1 : 0}>
-        {[
+        {([
           ["1", "все исходы"],
           ["2", "группировка по свойству"],
           ["3", "размер группы"],
-        ].map(([n, t], i) => (
+        ] as const).map(([n, t], i) => (
           <g key={n}>
             <rect x={20 + i * 114} y="50" width="104" height="52" rx="10" style={{ fill: "var(--s-panel2)", stroke: "var(--s-accent)", strokeWidth: 1.4 }} />
             <text x={72 + i * 114} y="72" textAnchor="middle" className="a-mono" style={{ fontSize: 16, fill: "var(--s-accent)" }}>{n}</text>

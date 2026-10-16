@@ -18,7 +18,7 @@ function S01() {
       main={"Храните и считайте в UTC, в местное время переводите только при показе."}
     >
       <div className="s-grid2">
-        {[["date · datetime", "Типы", "Дата, время, момент и промежуток"], ["strftime · strptime", "Формат", "В строку и из строки; ISO для хранения"], ["tzinfo", "Пояса", "Наивные и осведомлённые; zoneinfo"], ["time · calendar", "Часы и календарь", "Таймер, unix-время, високосные годы"]].map(([big, t, d]) => (
+        {([["date · datetime", "Типы", "Дата, время, момент и промежуток"], ["strftime · strptime", "Формат", "В строку и из строки; ISO для хранения"], ["tzinfo", "Пояса", "Наивные и осведомлённые; zoneinfo"], ["time · calendar", "Часы и календарь", "Таймер, unix-время, високосные годы"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -297,7 +297,7 @@ function S13() {
       main={"UTC внутри, местное время — снаружи; ISO — для хранения."}
     >
       <div className="s-grid2">
-        {[["date · timedelta", "Арифметика", "Разность дат — timedelta; месяцев в ней нет"], ["strftime · fromisoformat", "Формат", "ISO для хранения, шаблон для показа"], ["ZoneInfo · astimezone", "Пояса", "Не смешивать наивные и осведомлённые"], ["perf_counter · calendar", "Часы", "Замеры; високосные годы и длина месяца"]].map(([big, t, d]) => (
+        {([["date · timedelta", "Арифметика", "Разность дат — timedelta; месяцев в ней нет"], ["strftime · fromisoformat", "Формат", "ISO для хранения, шаблон для показа"], ["ZoneInfo · astimezone", "Пояса", "Не смешивать наивные и осведомлённые"], ["perf_counter · calendar", "Часы", "Замеры; високосные годы и длина месяца"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

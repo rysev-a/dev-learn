@@ -185,7 +185,7 @@ const PROG: [string, string, string, number[]][] = [
   ["1100", "HLT", "11", [0, 0, 0, 1]],
 ];
 const rd = (a: number) => {
-  const [w, nm, op, ctl] = PROG[a];
+  const [w, nm, op, ctl] = PROG[a]!;
   return [
     bit("a", 30, 76, a >> 1 ? 1 : 0, { w: 24 }),
     bit("a0", 30, 104, a & 1, { w: 24 }),

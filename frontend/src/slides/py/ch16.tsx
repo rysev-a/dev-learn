@@ -18,7 +18,7 @@ function S01() {
       main={"Файлы дают программе память: сохранить, прочитать, обработать данные «со стороны»."}
     >
       <div className="s-grid2">
-        {[["open()", "Открыть", "Путь и режим: r, w, a, x, b"], ["with", "Закрыть само", "Контекстный менеджер"], ["for line in f", "Построчно", "Большие файлы — без памяти"], ["encoding", "Кодировка", "Всегда явно: utf-8"]].map(([big, t, d]) => (
+        {([["open()", "Открыть", "Путь и режим: r, w, a, x, b"], ["with", "Закрыть само", "Контекстный менеджер"], ["for line in f", "Построчно", "Большие файлы — без памяти"], ["encoding", "Кодировка", "Всегда явно: utf-8"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -274,7 +274,7 @@ function S13() {
       main={"with + encoding='utf-8' — две привычки на всю жизнь."}
     >
       <div className="s-grid2">
-        {[["open · r w a x b", "Открытие", "Режимы; w затирает, a дописывает"], ["with · for line in f", "Чтение", "Закрывается само; большие файлы — построчно"], ["write · print(file=f)", "Запись", "Нет \\n сам по себе; только строки"], ["OSError", "Ошибки", "FileNotFoundError, PermissionError — вокруг open"]].map(([big, t, d]) => (
+        {([["open · r w a x b", "Открытие", "Режимы; w затирает, a дописывает"], ["with · for line in f", "Чтение", "Закрывается само; большие файлы — построчно"], ["write · print(file=f)", "Запись", "Нет \\n сам по себе; только строки"], ["OSError", "Ошибки", "FileNotFoundError, PermissionError — вокруг open"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

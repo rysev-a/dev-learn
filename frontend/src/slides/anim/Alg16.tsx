@@ -821,13 +821,13 @@ export const V15 = scene({
 
 // 16. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Дейкстра", "w ≥ 0, куча"],
     ["Беллман — Форд", "w < 0"],
     ["A*, Флойд", "цель · все пары"],
     ["Остов", "Краскал · Прим"],
     ["Дальше", "ДП"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

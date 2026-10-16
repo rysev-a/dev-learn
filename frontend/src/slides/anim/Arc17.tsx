@@ -43,12 +43,12 @@ export const V01 = scene({
 
 // 2. Системный вызов write
 const sc = (n: number) => [
-  ...[
+  ...([
     ["a7", "64", "write"],
     ["a0", "1", "stdout"],
     ["a1", "buf", "адрес"],
     ["a2", "15", "длина"],
-  ]
+  ] as const)
     .map(([r, v], i) =>
       Box(`r${i}`, 70, 24 + i * 30, 90, 24, `${r} = ${v}`, n >= 1 ? "g" : "m", {
         size: 10,

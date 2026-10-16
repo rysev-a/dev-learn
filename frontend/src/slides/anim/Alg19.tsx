@@ -521,11 +521,11 @@ export const V09 = scene({
       Tx("t", 180, 130, "ёмкость 50", { mono: true, size: 11 }),
     ],
     [
-      ...[
+      ...([
         ["10 / 60", "g"],
         ["20 / 100", "g"],
         ["20 из 30", "y"],
-      ].map(([t, c], i): SceneItem => ({
+      ] as const).map(([t, c], i): SceneItem => ({
         t: "cell",
         id: `it${i}`,
         x: 70 + 100 * i,
@@ -543,11 +543,11 @@ export const V09 = scene({
       }),
     ],
     [
-      ...[
+      ...([
         ["10 / 60", "g"],
         ["20 / 100", "g"],
         ["30 / 120", "r"],
-      ].map(([t, c], i): SceneItem => ({
+      ] as const).map(([t, c], i): SceneItem => ({
         t: "cell",
         id: `it${i}`,
         x: 70 + 100 * i,
@@ -565,11 +565,11 @@ export const V09 = scene({
       }),
     ],
     [
-      ...[
+      ...([
         ["10 / 60", "r"],
         ["20 / 100", "g"],
         ["30 / 120", "g"],
-      ].map(([t, c], i): SceneItem => ({
+      ] as const).map(([t, c], i): SceneItem => ({
         t: "cell",
         id: `it${i}`,
         x: 70 + 100 * i,
@@ -603,7 +603,7 @@ const near = (() => {
   const order = [0];
   left.delete(0);
   while (left.size) {
-    const [cx, cy] = PTS[order[order.length - 1]!];
+    const [cx, cy] = PTS[order[order.length - 1]!]!;
     let best: [number, number] | null = null;
     for (const i of left) {
       const d = Math.hypot(PTS[i]![0] - cx, PTS[i]![1] - cy);

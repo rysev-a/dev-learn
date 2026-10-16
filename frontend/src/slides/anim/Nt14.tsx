@@ -42,12 +42,12 @@ export const V01 = scene({
 // 2. REST
 const RS = (n: number): SceneItem[] => [
   Tx("u", 180, 25, "/orders/42", { size: 12, mono: true, c: "y" }),
-  ...[
+  ...([
     ["GET", "получить", "g"],
     ["POST", "создать", "b"],
     ["PUT", "заменить", "y"],
     ["DELETE", "удалить", "r"],
-  ].map(([m, d, c], i) =>
+  ] as const).map(([m, d, c], i) =>
     Bx(`m${i}`, 180, 52 + i * 28, 220, 22, `${m}  — ${d}`, c, {
       size: 9,
       o: i < n ? 1 : 0.2,
@@ -390,12 +390,12 @@ export const V09 = scene({
 
 // 10. Выбор
 const CH = (n: number) =>
-  [
+  ([
     ["REST", "публичные ресурсы, кэш, отладка", "g"],
     ["SSE", "события в одну сторону", "y"],
     ["WebSocket", "живые двусторонние каналы", "b"],
     ["gRPC", "быстрые вызовы между своими службами", "r"],
-  ].map(([t, d, c], i) =>
+  ] as const).map(([t, d, c], i) =>
     Bx(`c${i}`, 180, 28 + i * 36, 320, 28, `${t}: ${d}`, c, {
       size: 9,
       o: i < n ? 1 : 0.2,

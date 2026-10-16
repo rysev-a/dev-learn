@@ -1528,12 +1528,12 @@ export const V14 = scene({
     "Двадцать упражнений — от второго максимума до первого пропущенного",
   ],
   frames: [0, 1, 2, 3, 4].map((k): SceneItem[] =>
-    [
+    ([
       ["a[i]", "O(1)"],
       ["append", "O(1)*"],
       ["sum(l, r)", "O(1)"],
       ["join", "O(n)"],
-    ]
+    ] as const)
       .flatMap(([t, c], i): SceneItem[] => [
         {
           t: "box",

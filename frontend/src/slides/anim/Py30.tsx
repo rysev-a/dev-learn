@@ -319,13 +319,13 @@ export const V06 = scene({
       ),
     ],
     [
-      ...[
+      ...([
         ["a", "POSITIONAL_ONLY", "b"],
         ["b, c", "POS_OR_KW", "g"],
         ["*args", "VAR_POSITIONAL", "y"],
         ["d", "KEYWORD_ONLY", "v"],
         ["**kw", "VAR_KEYWORD", "r"],
-      ]
+      ] as const)
         .map(([n, k, c], i) => [
           Box(`n${i}`, 64, 30 + i * 28, 70, 22, n!, c, { size: 10 }),
           Box(`k${i}`, 210, 30 + i * 28, 140, 22, k!, c, { size: 9 }),

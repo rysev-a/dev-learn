@@ -224,7 +224,7 @@ const arith = (a: number, b: number, kind: string) => {
     inc: [a + 1, "+", "A + 1"],
     dec: [a - 1, "−", "A − 1"],
   };
-  const [raw, sign] = ops[kind];
+  const [raw, sign] = ops[kind]!;
   const r = ((raw % 4) + 4) % 4;
   const co =
     kind === "sub"

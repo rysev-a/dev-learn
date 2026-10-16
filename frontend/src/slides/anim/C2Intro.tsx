@@ -47,11 +47,11 @@ export default function C2Intro({ cues }: { cues?: number[] }) {
         <Arrow x1={296} y1={70} x2={312} y2={70} c="g" />
       </G>
       <G o={step === 3 ? 1 : 0} y={step === 3 ? 0 : 8}>
-        {[
+        {([
           ["(a, b)", "пары"],
           ["R ⊆ A×B", "отношения"],
           ["f : A → B", "функции"],
-        ].map(([big, t], i) => (
+        ] as const).map(([big, t], i) => (
           <g key={t}>
             <rect x={28 + i * 108} y="132" width="98" height="30" rx="8" style={{ fill: "var(--s-green)", stroke: "var(--s-accent)", strokeWidth: 1.4 }} />
             <text x={77 + i * 108} y="146" textAnchor="middle" className="a-mono" style={{ fontSize: 10.5, fill: "var(--s-accent)" }}>{big}</text>

@@ -35,11 +35,11 @@ export default function C10Bayes({ cues }: { cues?: number[] }) {
         <Txt x={300} y={104} size={9.5}>P(A|B) — апостериори</Txt>
       </G>
       <G o={step === 3 ? 1 : 0}>
-        {[
+        {([
           ["падал раньше", "P(упал)", "5 %", "var(--s-blue)"],
           ["мониторинг сработал", "новые данные", "", "var(--s-amber)"],
           ["теперь", "P(упал | сработал)", "70 %", "var(--s-accent)"],
-        ].map(([t, f, v, c], i) => (
+        ] as const).map(([t, f, v, c], i) => (
           <g key={t}>
             <rect x="40" y={22 + i * 42} width="280" height="34" rx="10" style={{ fill: "var(--s-panel2)", stroke: c, strokeWidth: 1.5 }} />
             <text x="56" y={43 + i * 42} className="a-cap" style={{ fontSize: 10.5, fill: "var(--s-text)" }}>{t}</text>

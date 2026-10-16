@@ -99,7 +99,7 @@ export const V01 = scene({
         o: 0.5,
       }),
       ...chain("ln", [4, 8, 1, 6, 3], {
-        pos: ((i) => SC[i])!,
+        pos: (i) => SC[i]!,
         arrows: false,
         w: 40,
         c: () => "g",
@@ -125,7 +125,7 @@ export const V01 = scene({
         o: 0.5,
       }),
       ...chain("ln", [4, 8, 1, 6, 3], {
-        pos: ((i) => SC[i])!,
+        pos: (i) => SC[i]!,
         w: 40,
         c: () => "g",
       }),
@@ -142,7 +142,7 @@ export const V01 = scene({
     ],
     [
       ...chain("ln", [4, 8, 1, 6, 3], {
-        pos: ((i) => SC[i])!,
+        pos: (i) => SC[i]!,
         w: 40,
         c: () => "m",
         o: 0.35,
@@ -1264,12 +1264,12 @@ export const V13 = scene({
 
 // 14. Итог: три источника ошибок
 const RB = (k: number): SceneItem[] =>
-  [
+  ([
     ["Ссылки", "сохрани — потом меняй"],
     ["Особые случаи", "пусто · один · голова"],
     ["Дозорный", "меньше if-ов"],
     ["Практика", "20 упражнений"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

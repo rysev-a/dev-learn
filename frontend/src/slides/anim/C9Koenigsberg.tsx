@@ -30,8 +30,8 @@ const BR = [
 const deg: Record<string, number> = { A: 5, B: 3, C: 3, D: 3 };
 
 function arc([a, b, off]: readonly [string, string, number]) {
-  const [x1, y1] = V[a];
-  const [x2, y2] = V[b];
+  const [x1, y1] = V[a]!;
+  const [x2, y2] = V[b]!;
   const mx = (x1 + x2) / 2;
   const my = (y1 + y2) / 2;
   const dx = y2 - y1;

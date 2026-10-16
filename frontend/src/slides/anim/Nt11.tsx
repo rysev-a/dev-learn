@@ -146,12 +146,12 @@ export const V03 = scene({
 
 // 4. Методы
 const MT = (n: number) =>
-  [
+  ([
     ["GET · HEAD", "безопасные: ничего не меняют", "g"],
     ["PUT · DELETE", "идемпотентные: повтор безопасен", "y"],
     ["POST", "не идемпотентен: повтор — второй заказ", "r"],
     ["PATCH · OPTIONS", "частичное изменение · «что можно?»", "b"],
-  ].map(([t, d, c], i) =>
+  ] as const).map(([t, d, c], i) =>
     Bx(`m${i}`, 180, 30 + i * 36, 300, 28, `${t}\n${d}`, c, {
       size: 8.5,
       o: i < n ? 1 : 0.2,
@@ -170,12 +170,12 @@ export const V04 = scene({
 
 // 5. Коды ответа
 const SC = (n: number) =>
-  [
+  ([
     ["2xx", "успех: 200 OK · 201 Created · 204 No Content", "g"],
     ["3xx", "перенаправление: 301 · 302 · 304 Not Modified", "y"],
     ["4xx", "ошибка клиента: 401 · 403 · 404 · 429", "r"],
     ["5xx", "ошибка сервера: 500 · 502 · 503", "b"],
-  ].map(([t, d, c], i) =>
+  ] as const).map(([t, d, c], i) =>
     Bx(`c${i}`, 180, 30 + i * 36, 320, 28, `${t}  ${d}`, c, {
       size: 8.5,
       o: i < n ? 1 : 0.2,
@@ -194,12 +194,12 @@ export const V05 = scene({
 
 // 6. Заголовки
 const HD = (n: number) =>
-  [
+  ([
     ["Content-Type", "что в теле: html, json, png", "g"],
     ["Content-Length / chunked", "длина тела или порции", "y"],
     ["Accept · Accept-Language", "предпочтения клиента", "b"],
     ["Location", "куда идти при редиректе", "r"],
-  ].map(([t, d, c], i) =>
+  ] as const).map(([t, d, c], i) =>
     Bx(`h${i}`, 180, 30 + i * 36, 320, 28, `${t}\n${d}`, c, {
       size: 8.5,
       o: i < n ? 1 : 0.2,

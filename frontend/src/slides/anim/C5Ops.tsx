@@ -26,11 +26,11 @@ export default function C5Ops({ cues }: { cues?: number[] }) {
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <G o={step === 0 ? 1 : 0}>
-        {[
+        {([
           ["¬", "не"],
           ["∧", "и"],
           ["∨", "или"],
-        ].map(([s, n], i) => (
+        ] as const).map(([s, n], i) => (
           <g key={s}>
             <rect x={50 + i * 100} y="46" width="80" height="60" rx="12" style={{ fill: "var(--s-green)", stroke: "var(--s-accent)", strokeWidth: 1.5 }} />
             <text x={90 + i * 100} y="80" textAnchor="middle" className="a-mono" style={{ fontSize: 24, fill: "var(--s-accent)" }}>{s}</text>

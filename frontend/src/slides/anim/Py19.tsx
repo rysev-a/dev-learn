@@ -253,12 +253,12 @@ export const V05 = scene({
   ],
   frames: [
     [
-      ...[
+      ...([
         ["-x", "__neg__"],
         ["+x", "__pos__"],
         ["abs(x)", "__abs__"],
         ["~x", "__invert__"],
-      ]
+      ] as const)
         .map(([op, m], i) => [
           Box(`o${i}`, 90, 32 + i * 32, 80, 22, op!, "y", { size: 11 }),
           Box(`m${i}`, 240, 32 + i * 32, 100, 22, m!, "g", { size: 10 }),

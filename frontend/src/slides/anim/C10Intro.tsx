@@ -20,11 +20,11 @@ export default function C10Intro({ cues }: { cues?: number[] }) {
       <Txt x={180} y={80} mono size={26} o={step === 0 ? 1 : 0} color="var(--s-accent)">P ( событие )</Txt>
       <Txt x={180} y={80} mono size={20} o={step === 1 ? 1 : 0} color="var(--s-accent)">гарантий нет — есть доли</Txt>
       <G o={step === 2 ? 1 : 0}>
-        {[
+        {([
           ["кэш", "попал", "промах"],
           ["фича", "выиграла", "нет"],
           ["алерт", "настоящий", "ложный"],
-        ].map(([t, a, b], i) => (
+        ] as const).map(([t, a, b], i) => (
           <g key={t}>
             <text x="30" y={44 + i * 38} className="a-mono" style={{ fontSize: 12 }}>{t}</text>
             <Pill x={150} y={40 + i * 38} w={84} h={24} text={a} stroke="var(--s-accent)" size={10} />

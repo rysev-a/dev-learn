@@ -216,7 +216,7 @@ export const V04 = scene({
           (n === "A" && k >= 3) ||
           ((n === "B" || n === "C") && k >= 2) ||
           (["D", "E", "F"].includes(n) && k >= 1)
-            ? HVAL[n]
+            ? HVAL[n]!
             : n,
         ]),
       )!,
@@ -856,13 +856,13 @@ export const V13 = scene({
 
 // 14. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Термины", "высота"],
     ["Шаблон", "база + склейка"],
     ["Обходы", "глубина · ширина"],
     ["Приёмы", "диаметр · LCA"],
     ["Практика", "14 упражнений"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

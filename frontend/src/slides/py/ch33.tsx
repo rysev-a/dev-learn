@@ -18,7 +18,7 @@ function S01() {
       main={"Специализированные контейнеры поверх встроенных: меньше кода, меньше ошибок."}
     >
       <div className="s-grid2">
-        {[["Counter", "Подсчёт", "Частоты и most_common"], ["defaultdict · deque", "Группы и очереди", "Значение по умолчанию; быстрые концы"], ["namedtuple", "Записи", "Неизменяемые, с именами полей"], ["heapq · bisect", "Порядок", "Куча и двоичный поиск"]].map(([big, t, d]) => (
+        {([["Counter", "Подсчёт", "Частоты и most_common"], ["defaultdict · deque", "Группы и очереди", "Значение по умолчанию; быстрые концы"], ["namedtuple", "Записи", "Неизменяемые, с именами полей"], ["heapq · bisect", "Порядок", "Куча и двоичный поиск"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -318,7 +318,7 @@ function S13() {
       main={"Прежде чем писать цикл, спросите: нет ли подходящего контейнера в стандартной библиотеке?"}
     >
       <div className="s-grid2">
-        {[["Counter · defaultdict", "Подсчёт и группы", "Без проверок ключей"], ["deque · namedtuple", "Очередь и запись", "Быстрые концы; поля по именам"], ["heapq", "Куча", "Минимум первым; топ-k; планировщик"], ["bisect", "Двоичный поиск", "Только по отсортированным"]].map(([big, t, d]) => (
+        {([["Counter · defaultdict", "Подсчёт и группы", "Без проверок ключей"], ["deque · namedtuple", "Очередь и запись", "Быстрые концы; поля по именам"], ["heapq", "Куча", "Минимум первым; топ-k; планировщик"], ["bisect", "Двоичный поиск", "Только по отсортированным"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

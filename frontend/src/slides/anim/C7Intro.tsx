@@ -18,11 +18,11 @@ export default function C7Intro({ cues }: { cues?: number[] }) {
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <G o={step === 1 ? 1 : 0}>
-        {[
+        {([
           ["обход дерева", "tree"],
           ["вложенный json", "{…{…}}"],
           ["спуск по каталогам", "/a/b/c"],
-        ].map(([t, f], i) => (
+        ] as const).map(([t, f], i) => (
           <g key={t}>
             <Pill x={100} y={36 + i * 38} w={170} h={28} text={t} stroke="var(--s-accent)" size={10.5} />
             <Txt x={250} y={40 + i * 38} anchor="start" mono size={11} color="var(--s-amber)">{f}</Txt>

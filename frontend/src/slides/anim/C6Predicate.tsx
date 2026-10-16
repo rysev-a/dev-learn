@@ -23,10 +23,10 @@ export default function C6Predicate({ cues }: { cues?: number[] }) {
       </G>
       <G o={step === 1 ? 1 : 0}>
         <Pill x={180} y={34} w={120} h={30} text="P(x) = x > 5" stroke="var(--s-blue)" size={12} />
-        {[
+        {([
           [7, 1],
           [3, 0],
-        ].map(([v, ok], i) => (
+        ] as const).map(([v, ok], i) => (
           <g key={v}>
             <Pill x={70} y={96 + i * 36} w={50} text={`x = ${v}`} stroke="var(--s-muted)" size={10} />
             <Arrow x1={98} y1={96 + i * 36} x2={236} y2={96 + i * 36} c={ok ? "g" : "r"} />
@@ -36,10 +36,10 @@ export default function C6Predicate({ cues }: { cues?: number[] }) {
       </G>
       <G o={step === 2 ? 1 : 0}>
         <Pill x={180} y={34} w={200} h={30} text="возраст > 18" stroke="var(--s-blue)" size={12} />
-        {[
+        {([
           [20, 1],
           [15, 0],
-        ].map(([v, ok], i) => (
+        ] as const).map(([v, ok], i) => (
           <g key={v}>
             <Pill x={70} y={96 + i * 36} w={60} text={`${v} лет`} stroke="var(--s-muted)" size={10} />
             <Arrow x1={104} y1={96 + i * 36} x2={236} y2={96 + i * 36} c={ok ? "g" : "r"} />

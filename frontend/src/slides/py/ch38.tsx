@@ -18,7 +18,7 @@ function S01() {
       main={"Типы описывают предметную область: аккуратные данные — аккуратный проект."}
     >
       <div className="s-grid2">
-        {[["@dataclass", "Датакласс", "Запись без шаблонного кода"], ["Enum", "Перечисление", "Именованные константы вместо магических чисел"], ["x: int", "Подсказки типов", "Документация и статический анализ"], ["copy · deepcopy", "Копирование", "Поверхностное и глубокое"]].map(([big, t, d]) => (
+        {([["@dataclass", "Датакласс", "Запись без шаблонного кода"], ["Enum", "Перечисление", "Именованные константы вместо магических чисел"], ["x: int", "Подсказки типов", "Документация и статический анализ"], ["copy · deepcopy", "Копирование", "Поверхностное и глубокое"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -349,7 +349,7 @@ function S13() {
       main={"Опишите данные аккуратно — и код останется понятным через годы."}
     >
       <div className="s-grid2">
-        {[["@dataclass", "Датаклассы", "field, frozen, order, replace, asdict"], ["Enum · Flag", "Перечисления", "Имена вместо магических чисел"], ["typing · match", "Типы и разбор", "Подсказки, TypedDict, Protocol, match"], ["copy · deepcopy", "Копирование", "Вложенное — deepcopy"]].map(([big, t, d]) => (
+        {([["@dataclass", "Датаклассы", "field, frozen, order, replace, asdict"], ["Enum · Flag", "Перечисления", "Имена вместо магических чисел"], ["typing · match", "Типы и разбор", "Подсказки, TypedDict, Protocol, match"], ["copy · deepcopy", "Копирование", "Вложенное — deepcopy"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

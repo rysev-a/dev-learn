@@ -37,10 +37,10 @@ export default function C10Events({ cues }: { cues?: number[] }) {
         <Txt x={180} y={148} mono size={12} o={step === 2 ? 1 : 0} color="var(--s-amber)">P(A∩B) = ?  — зависит от связи</Txt>
       </G>
       <G o={step >= 3 ? 1 : 0}>
-        {[
+        {([
           ["ошибка в базе  ИЛИ  в сети", "A ∪ B", "var(--s-accent)"],
           ["ошибка в базе  И  ретрай исчерпан", "A ∩ B", "var(--s-amber)"],
-        ].map(([t, f, c], i) => (
+        ] as const).map(([t, f, c], i) => (
           <g key={f}>
             <rect x="30" y={30 + i * 50} width="300" height="38" rx="10" style={{ fill: "var(--s-panel2)", stroke: c, strokeWidth: 1.5 }} />
             <text x="46" y={54 + i * 50} className="a-cap" style={{ fontSize: 10, fill: "var(--s-text)" }}>{t}</text>

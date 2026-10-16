@@ -18,7 +18,7 @@ function S01() {
       main={"Целые точны, дробные приблизительны; для денег — Decimal, для безопасности — secrets."}
     >
       <div className="s-grid2">
-        {[["math", "Математика", "Корни, логарифмы, gcd, комбинаторика"], ["Decimal · Fraction", "Точность", "Деньги и точные дроби"], ["random", "Случайность", "Для игр и симуляций; seed делает повторяемой"], ["statistics · secrets", "Данные и защита", "Среднее и разброс; токены и пароли"]].map(([big, t, d]) => (
+        {([["math", "Математика", "Корни, логарифмы, gcd, комбинаторика"], ["Decimal · Fraction", "Точность", "Деньги и точные дроби"], ["random", "Случайность", "Для игр и симуляций; seed делает повторяемой"], ["statistics · secrets", "Данные и защита", "Среднее и разброс; токены и пароли"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -280,7 +280,7 @@ function S13() {
       main={"Выбирайте тип числа под задачу: float, Decimal или Fraction."}
     >
       <div className="s-grid2">
-        {[["math · isclose", "Математика", "Функции; сравнение дробных через isclose"], ["Decimal · Fraction", "Точность", "Деньги и рациональные числа"], ["random · seed", "Случайность", "Игры и симуляции; воспроизводимо"], ["secrets", "Безопасность", "Пароли и токены"]].map(([big, t, d]) => (
+        {([["math · isclose", "Математика", "Функции; сравнение дробных через isclose"], ["Decimal · Fraction", "Точность", "Деньги и рациональные числа"], ["random · seed", "Случайность", "Игры и симуляции; воспроизводимо"], ["secrets", "Безопасность", "Пароли и токены"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

@@ -18,7 +18,7 @@ function S01() {
       main={"Сначала выясните, что тормозит: вычисления или ожидание — от этого зависит инструмент."}
     >
       <div className="s-grid2">
-        {[["threading", "Потоки", "Общая память; хороши для ожидания"], ["GIL", "Блокировка", "Чистые вычисления потоки не ускоряют"], ["concurrent.futures", "Пулы", "map, submit, Future"], ["multiprocessing", "Процессы", "Для вычислений; данные копируются"]].map(([big, t, d]) => (
+        {([["threading", "Потоки", "Общая память; хороши для ожидания"], ["GIL", "Блокировка", "Чистые вычисления потоки не ускоряют"], ["concurrent.futures", "Пулы", "map, submit, Future"], ["multiprocessing", "Процессы", "Для вычислений; данные копируются"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -340,7 +340,7 @@ function S13() {
       main={"Для ожидания — потоки, для расчётов — процессы, для тысяч соединений — asyncio."}
     >
       <div className="s-grid2">
-        {[["Thread · Lock", "Потоки", "Общие данные — под замком или через Queue"], ["GIL", "Ограничение", "Один поток исполняет байткод; на ожидании отпускается"], ["ThreadPool · ProcessPool", "Пулы", "map, submit, Future, as_completed"], ["Event · Semaphore", "Синхронизация", "Сигналы, ограничения, таймауты"]].map(([big, t, d]) => (
+        {([["Thread · Lock", "Потоки", "Общие данные — под замком или через Queue"], ["GIL", "Ограничение", "Один поток исполняет байткод; на ожидании отпускается"], ["ThreadPool · ProcessPool", "Пулы", "map, submit, Future, as_completed"], ["Event · Semaphore", "Синхронизация", "Сигналы, ограничения, таймауты"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

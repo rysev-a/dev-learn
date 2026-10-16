@@ -144,12 +144,12 @@ export const V02 = scene({
     ha(1, 1),
     [
       Tx("h", 130, 20, "A  B   пер  сум", { size: 10, mono: true }),
-      ...[
+      ...([
         [0, 0],
         [0, 1],
         [1, 0],
         [1, 1],
-      ].map(([a, b], i) =>
+      ] as const).map(([a, b], i) =>
         Box(
           `r${i}`,
           130,
@@ -624,12 +624,12 @@ export const V08 = scene({
     ],
     [
       Tx("h", 130, 18, "A  B   разн  заём", { size: 10, mono: true }),
-      ...[
+      ...([
         [0, 0],
         [0, 1],
         [1, 0],
         [1, 1],
-      ].map(([a, b], i) =>
+      ] as const).map(([a, b], i) =>
         Box(
           `r${i}`,
           130,

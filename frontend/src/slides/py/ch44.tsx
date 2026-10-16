@@ -18,7 +18,7 @@ function S01() {
       main={"Один поток, тысячи дел: корутины добровольно уступают управление на await."}
     >
       <div className="s-grid2">
-        {[["async def · await", "Корутины", "Заготовка работы и точка переключения"], ["create_task · gather", "Конкурентность", "Задачи и ожидание нескольких"], ["timeout · cancel", "Время", "Таймауты и отмена"], ["Queue · Semaphore", "Взаимодействие", "Очереди и ограничения"]].map(([big, t, d]) => (
+        {([["async def · await", "Корутины", "Заготовка работы и точка переключения"], ["create_task · gather", "Конкурентность", "Задачи и ожидание нескольких"], ["timeout · cancel", "Время", "Таймауты и отмена"], ["Queue · Semaphore", "Взаимодействие", "Очереди и ограничения"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -375,7 +375,7 @@ function S13() {
       main={"Модель кооперативная: корутина должна уступать — иначе подведёт всех."}
     >
       <div className="s-grid2">
-        {[["async def · await", "Основа", "asyncio.run запускает цикл событий"], ["create_task · gather · TaskGroup", "Конкурентность", "Задачи, порядок результатов, структурность"], ["timeout · cancel", "Время", "Не ждать вечно; отмену не глотать"], ["Queue · Semaphore · to_thread", "Приёмы", "Воркеры, лимиты, блокирующий код"]].map(([big, t, d]) => (
+        {([["async def · await", "Основа", "asyncio.run запускает цикл событий"], ["create_task · gather · TaskGroup", "Конкурентность", "Задачи, порядок результатов, структурность"], ["timeout · cancel", "Время", "Не ждать вечно; отмену не глотать"], ["Queue · Semaphore · to_thread", "Приёмы", "Воркеры, лимиты, блокирующий код"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

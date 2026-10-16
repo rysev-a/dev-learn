@@ -784,13 +784,13 @@ export const V14 = scene({
 
 // 15. Итог
 const RC = (k: number): SceneItem[] =>
-  [
+  ([
     ["Окно", "O(n)"],
     ["Очередь", "максимум окна"],
     ["Разделяй", "n log n"],
     ["Дерево отрезков", "log n"],
     ["Практика", "14 упражнений"],
-  ].flatMap(([t, c], i): SceneItem[] => [
+  ] as const).flatMap(([t, c], i): SceneItem[] => [
     {
       t: "box",
       id: `b${i}`,

@@ -35,7 +35,7 @@ export default function C3Perm({ cues }: { cues?: number[] }) {
                 y={36 + Math.floor(i / 3) * 40}
                 w={26}
                 text={ch}
-                stroke={["var(--s-blue)", "var(--s-amber)", "var(--s-accent)"][ch.charCodeAt(0) - 97]}
+                stroke={["var(--s-blue)", "var(--s-amber)", "var(--s-accent)"][ch.charCodeAt(0) - 97]!}
               />
             ))}
           </g>

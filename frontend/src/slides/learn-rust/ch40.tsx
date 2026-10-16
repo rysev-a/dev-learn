@@ -17,7 +17,7 @@ function S01() {
       main={"Файлы, процессы и сокеты — типы стандартной библиотеки, а идеи — те же, что в курсе по ОС."}
     >
       <div className="s-grid2">
-        {[["fs · io::Read/Write", "Файлы", "Потоки и буферы"], ["Path · PathBuf", "Пути", "Отдельные типы"], ["Command", "Процессы", "Аргументы списком, коды возврата"], ["TcpListener · UdpSocket", "Сеть", "Только std, loopback"]].map(([big, t, d]) => (
+        {([["fs · io::Read/Write", "Файлы", "Потоки и буферы"], ["Path · PathBuf", "Пути", "Отдельные типы"], ["Command", "Процессы", "Аргументы списком, коды возврата"], ["TcpListener · UdpSocket", "Сеть", "Только std, loopback"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -397,7 +397,7 @@ function S13() {
       main={"Ввод-вывод в Rust — это Result, трейты Read/Write и явные виды ошибок."}
     >
       <div className="s-grid2">
-        {[["Result<_, io::Error>", "Файлы", "kind() вместо errno"], ["Command", "Процессы", "Статус и каналы"], ["TcpStream", "Сокеты", "Протокол на строках"], ["timeout", "Надёжность", "Всегда ограничивайте ожидание"]].map(([big, t, d]) => (
+        {([["Result<_, io::Error>", "Файлы", "kind() вместо errno"], ["Command", "Процессы", "Статус и каналы"], ["TcpStream", "Сокеты", "Протокол на строках"], ["timeout", "Надёжность", "Всегда ограничивайте ожидание"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

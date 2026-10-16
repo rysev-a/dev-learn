@@ -18,7 +18,7 @@ function S01() {
       main={"Настоящая программа — утилита: параметры, журнал, коды завершения, вызов других программ."}
     >
       <div className="s-grid2">
-        {[["sys · os", "Среда", "Аргументы, потоки, окружение"], ["argparse", "Аргументы", "Разбор, типы, справка"], ["logging", "Журнал", "Уровни и обработчики вместо print"], ["subprocess", "Другие программы", "Запустить и прочитать ответ"]].map(([big, t, d]) => (
+        {([["sys · os", "Среда", "Аргументы, потоки, окружение"], ["argparse", "Аргументы", "Разбор, типы, справка"], ["logging", "Журнал", "Уровни и обработчики вместо print"], ["subprocess", "Другие программы", "Запустить и прочитать ответ"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -314,7 +314,7 @@ function S13() {
       main={"Утилита — это main(), аргументы, журнал и честный код возврата."}
     >
       <div className="s-grid2">
-        {[["sys.argv · sys.exit", "sys", "Аргументы, потоки, код возврата"], ["argparse", "Аргументы", "Типы, умолчания, флаги, подкоманды"], ["logging", "Журнал", "Уровни, обработчики, логгер на модуль"], ["subprocess.run", "Процессы", "Список, check, timeout, без shell"]].map(([big, t, d]) => (
+        {([["sys.argv · sys.exit", "sys", "Аргументы, потоки, код возврата"], ["argparse", "Аргументы", "Типы, умолчания, флаги, подкоманды"], ["logging", "Журнал", "Уровни, обработчики, логгер на модуль"], ["subprocess.run", "Процессы", "Список, check, timeout, без shell"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

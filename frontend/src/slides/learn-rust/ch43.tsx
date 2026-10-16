@@ -17,7 +17,7 @@ function S01() {
       main={"Под библиотеками — бинарный протокол, отображение строк в типы, пул, транзакции и миграции."}
     >
       <div className="s-grid2">
-        {[["метка · длина · тело", "Протокол", "Сообщения в сетевом порядке"], ["FromColumn", "Типы", "NULL — это Option"], ["$1, $2", "Параметры", "Никакой склейки значений"], ["Pool · Tx · migrate", "Инфраструктура", "RAII и версии схемы"]].map(([big, t, d]) => (
+        {([["метка · длина · тело", "Протокол", "Сообщения в сетевом порядке"], ["FromColumn", "Типы", "NULL — это Option"], ["$1, $2", "Параметры", "Никакой склейки значений"], ["Pool · Tx · migrate", "Инфраструктура", "RAII и версии схемы"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -594,7 +594,7 @@ function S13() {
       main={"Библиотеки работы с БД — это протокол, типы, параметры, пул, транзакции и миграции: теперь вы их понимаете."}
     >
       <div className="s-grid2">
-        {[["tag · len · body", "Протокол", "Сообщения Postgres"], ["FromColumn", "Типы", "NULL → Option"], ["$1 · Select", "Запросы", "Параметры и построитель"], ["Tx · Pool · repo", "Надёжность", "RAII и тестируемость"]].map(([big, t, d]) => (
+        {([["tag · len · body", "Протокол", "Сообщения Postgres"], ["FromColumn", "Типы", "NULL → Option"], ["$1 · Select", "Запросы", "Параметры и построитель"], ["Tx · Pool · repo", "Надёжность", "RAII и тестируемость"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

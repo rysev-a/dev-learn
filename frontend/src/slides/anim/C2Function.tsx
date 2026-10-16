@@ -55,11 +55,11 @@ export default function C2Function({ cues }: { cues?: number[] }) {
       </G>
 
       <G o={step === 4 ? 1 : 0}>
-        {[
+        {([
           ["f(2)", "4"],
           ["f(2)", "4"],
           ["f(2)", "4"],
-        ].map(([a, b], i) => (
+        ] as const).map(([a, b], i) => (
           <g key={i}>
             <Pill x={110} y={36 + i * 38} w={64} text={a} stroke="var(--s-blue)" />
             <Arrow x1={144} y1={36 + i * 38} x2={208} y2={36 + i * 38} c="g" />

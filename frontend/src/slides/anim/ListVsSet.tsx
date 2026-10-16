@@ -31,14 +31,14 @@ export default function ListVsSet({ cues }: { cues?: number[] }) {
   const ctl = useSteps(cues || [1.8, 8.5, 13.4, 20.4], 2800);
   const { step } = ctl;
   const shift = [0, 0, 1, 1, 2][step]!;
-  const [dx, dy] = SET_SLOTS[shift % 3];
+  const [dx, dy] = SET_SLOTS[shift % 3]!;
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <circle cx="270" cy="88" r="62" className="a-ring a" />
       <Txt x={270} y={164}>множество гостей</Txt>
 
       {NAMES.map((n, i) => {
-        const [x, y] = SET_SLOTS[(i + shift) % 3];
+        const [x, y] = SET_SLOTS[(i + shift) % 3]!;
         return (
           <Pill key={n} x={x} y={y} w={56} text={n} o={step >= 1 ? 1 : 0} stroke="var(--s-accent)" />
         );

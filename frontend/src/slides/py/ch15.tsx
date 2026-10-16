@@ -18,7 +18,7 @@ function S01() {
       main={"Настоящая программа предвидит сбои и справляется с ними, а не рассыпается."}
     >
       <div className="s-grid2">
-        {[["try / except", "Перехват", "Поймать ошибку и пойти дальше"], ["raise", "Поднять", "Сообщить, что условия не выполнены"], ["class E(Exception)", "Свои ошибки", "Различать ситуации предметной области"], ["finally", "Уборка", "Выполняется всегда"]].map(([big, t, d]) => (
+        {([["try / except", "Перехват", "Поймать ошибку и пойти дальше"], ["raise", "Поднять", "Сообщить, что условия не выполнены"], ["class E(Exception)", "Свои ошибки", "Различать ситуации предметной области"], ["finally", "Уборка", "Выполняется всегда"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -288,7 +288,7 @@ function S13() {
       main={"Ловите только то, что умеете обработать."}
     >
       <div className="s-grid2">
-        {[["try · except · as", "Перехват", "Конкретные типы; else и finally"], ["raise · from", "Поднять", "Раньше и точнее; цепочка причин"], ["class E(Exception)", "Свои ошибки", "Иерархия: сначала конкретные except"], ["assert", "Ошибки программиста", "Для данных — raise"]].map(([big, t, d]) => (
+        {([["try · except · as", "Перехват", "Конкретные типы; else и finally"], ["raise · from", "Поднять", "Раньше и точнее; цепочка причин"], ["class E(Exception)", "Свои ошибки", "Иерархия: сначала конкретные except"], ["assert", "Ошибки программиста", "Для данных — raise"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

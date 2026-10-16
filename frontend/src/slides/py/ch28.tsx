@@ -18,7 +18,7 @@ function S01() {
       main={"Ленивые потоки: бесконечные счётчики, склейка, группировка и комбинаторика."}
     >
       <div className="s-grid2">
-        {[["count · cycle", "Потоки", "Бесконечные источники значений"], ["islice · chain", "Нарезка и склейка", "Срезы и объединения итераторов"], ["accumulate · groupby", "Итоги и группы", "Нарастающие суммы, соседние группы"], ["product · combinations", "Комбинаторика", "Перебор вариантов"]].map(([big, t, d]) => (
+        {([["count · cycle", "Потоки", "Бесконечные источники значений"], ["islice · chain", "Нарезка и склейка", "Срезы и объединения итераторов"], ["accumulate · groupby", "Итоги и группы", "Нарастающие суммы, соседние группы"], ["product · combinations", "Комбинаторика", "Перебор вариантов"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -281,7 +281,7 @@ function S13() {
       main={"С функциональным программированием закончили — дальше стандартная библиотека."}
     >
       <div className="s-grid2">
-        {[["count · islice", "Потоки", "Бесконечные источники и срезы"], ["chain · accumulate", "Склейка и итоги", "Объединить, накопить"], ["groupby", "Группы", "Соседние элементы; сначала sorted"], ["product · combinations", "Комбинаторика", "Ленивый перебор вариантов"]].map(([big, t, d]) => (
+        {([["count · islice", "Потоки", "Бесконечные источники и срезы"], ["chain · accumulate", "Склейка и итоги", "Объединить, накопить"], ["groupby", "Группы", "Соседние элементы; сначала sorted"], ["product · combinations", "Комбинаторика", "Ленивый перебор вариантов"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />

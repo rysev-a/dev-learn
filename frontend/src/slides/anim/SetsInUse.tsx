@@ -60,11 +60,11 @@ export default function SetsInUse({ cues }: { cues?: number[] }) {
 
       {/* SQL */}
       <G o={step === 2 ? 1 : 0}>
-        {[
+        {([
           ["A UNION B", "объединение"],
           ["A INTERSECT B", "пересечение"],
           ["A EXCEPT B", "разность"],
-        ].map(([code, name], i) => (
+        ] as const).map(([code, name], i) => (
           <g key={code}>
             <text x="40" y={44 + i * 34} className="a-mono" style={{ fontSize: 12 }}>
               {code}

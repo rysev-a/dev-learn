@@ -18,10 +18,10 @@ export default function C5Statement({ cues }: { cues?: number[] }) {
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <Dot x={180} y={80} r={34} text="p" size={22} o={step === 0 ? 1 : 0} stroke="var(--s-accent)" />
       <G o={step === 1 ? 1 : 0}>
-        {[
+        {([
           ["2 > 1", "истинно", "var(--s-accent)"],
           ["сегодня среда", "истинно или ложно", "var(--s-amber)"],
-        ].map(([t, v, c], i) => (
+        ] as const).map(([t, v, c], i) => (
           <g key={t}>
             <Pill x={110} y={46 + i * 56} w={130} h={28} text={t} stroke={c} />
             <Arrow x1={178} y1={46 + i * 56} x2={214} y2={46 + i * 56} c={i ? "y" : "g"} />
@@ -40,11 +40,11 @@ export default function C5Statement({ cues }: { cues?: number[] }) {
         <Txt x={330} y={120} size={9.5} color="var(--s-red)" anchor="end">парадокс</Txt>
       </G>
       <G o={step >= 3 ? 1 : 0}>
-        {[
+        {([
           ["x > 0", "bool"],
           ["name == \"\"", "bool"],
           ["len(xs) >= 5", "bool"],
-        ].map(([t, ty], i) => (
+        ] as const).map(([t, ty], i) => (
           <g key={t}>
             <Pill x={110} y={36 + i * 40} w={150} h={26} text={t} stroke="var(--s-accent)" size={10} />
             <Arrow x1={190} y1={36 + i * 40} x2={236} y2={36 + i * 40} c="g" />

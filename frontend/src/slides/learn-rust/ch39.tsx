@@ -17,7 +17,7 @@ function S01() {
       main={"Фиксированные типы, явные приведения и битовые методы делают низкоуровневый код безопасным."}
     >
       <div className="s-grid2">
-        {[["as · wrapping", "Целые", "Ширина и знак"], ["to_be_bytes", "Байты", "Порядок явный"], ["size_of · repr(C)", "Память", "Размер и выравнивание"], ["enum Instr", "Эмулятор", "Матч покрывает все команды"]].map(([big, t, d]) => (
+        {([["as · wrapping", "Целые", "Ширина и знак"], ["to_be_bytes", "Байты", "Порядок явный"], ["size_of · repr(C)", "Память", "Размер и выравнивание"], ["enum Instr", "Эмулятор", "Матч покрывает все команды"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
@@ -448,7 +448,7 @@ function S13() {
       main={"Rust выражает машинные понятия типами: ширина, порядок байтов, ловушки — всё видно в коде."}
     >
       <div className="s-grid2">
-        {[["u8 … u128", "Целые", "as, wrapping, checked"], ["be · le", "Байты", "Порядок в имени метода"], ["varint · CRC", "Кодирование", "Сдвиги и маски"], ["Result<_, Trap>", "Эмулятор", "Ошибки как данные"]].map(([big, t, d]) => (
+        {([["u8 … u128", "Целые", "as, wrapping, checked"], ["be · le", "Байты", "Порядок в имени метода"], ["varint · CRC", "Кодирование", "Сдвиги и маски"], ["Result<_, Trap>", "Эмулятор", "Ошибки как данные"]] as const).map(([big, t, d]) => (
           <div className="s-topic" key={t}>
             <span className="s-topic-big">{big}</span>
             <span className="s-divider" />
