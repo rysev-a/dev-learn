@@ -806,7 +806,7 @@ const CK = (a: number[] | null, b: number[] | null, c: Record<string, string> = 
           {
             t: "cell",
             id: `key${k}`,
-            x: 110 + 40 * pos[1],
+            x: 110 + 40 * pos[1]!,
             y: pos[0] === 1 ? 40 : 110,
             w: 36,
             h: 28,
@@ -863,7 +863,7 @@ const newSlot = (i: number) => 36 + 40 * i;
 const keyAtOld = (k: number): SceneItem => ({
   t: "cell",
   id: `kk${k}`,
-  x: oldSlot(RK[k]),
+  x: oldSlot(RK[k]!),
   y: 40,
   w: 40,
   h: 28,
@@ -873,7 +873,7 @@ const keyAtOld = (k: number): SceneItem => ({
 const keyAtNew = (k: number, c = "g"): SceneItem => ({
   t: "cell",
   id: `kk${k}`,
-  x: newSlot(NEWI[k]),
+  x: newSlot(NEWI[k]!),
   y: 118,
   w: 34,
   h: 28,
@@ -1339,12 +1339,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8.5,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V18 = scene({
   labels: ["Функция", "Коллизии", "Рост", "Шаблоны", "Практика"],

@@ -152,7 +152,7 @@ const mod = (hot: Record<number, string>, note: string, mid: string, arrow: numb
   Tx("mid", 180, 86, mid, { mono: true, size: 9.5 }),
   ...(arrow
     ? [
-        edge("arw", CIR(arrow[0]), CIR(arrow[1]), {
+        edge("arw", CIR(arrow[0]!), CIR(arrow[1]!), {
           r: 13,
           c: "y",
           arrow: true,
@@ -216,7 +216,7 @@ export const V05 = scene({
       "n",
       180,
       158,
-      ["13 = 1101₂", "3 → 9 → 81 → 6561", "3⁸ · 3⁴ · 3¹", "= 1 594 323"][k],
+      ["13 = 1101₂", "3 → 9 → 81 → 6561", "3⁸ · 3⁴ · 3¹", "= 1 594 323"][k]!,
       { mono: true, size: 10, c: "y" },
     ),
   ]),

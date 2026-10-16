@@ -327,8 +327,8 @@ export const V06 = scene({
         ["**kw", "VAR_KEYWORD", "r"],
       ]
         .map(([n, k, c], i) => [
-          Box(`n${i}`, 64, 30 + i * 28, 70, 22, n, c, { size: 10 }),
-          Box(`k${i}`, 210, 30 + i * 28, 140, 22, k, c, { size: 9 }),
+          Box(`n${i}`, 64, 30 + i * 28, 70, 22, n!, c, { size: 10 }),
+          Box(`k${i}`, 210, 30 + i * 28, 140, 22, k!, c, { size: 9 }),
         ])
         .flat(),
     ],

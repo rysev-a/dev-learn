@@ -237,7 +237,7 @@ export const V04 = scene({
       "t",
       320,
       32,
-      ["", "push(0)", "swap(7, 0)", "swap(3, 0)", "swap(1, 0)"][k],
+      ["", "push(0)", "swap(7, 0)", "swap(3, 0)", "swap(1, 0)"][k]!,
       { mono: true, size: 9.5, c: "y" },
     ),
   ]),
@@ -278,7 +278,7 @@ export const V05 = scene({
       "t",
       320,
       32,
-      ["pop()", "→ 0", "swap(7, 1)", "swap(7, 3)", "готово"][k],
+      ["pop()", "→ 0", "swap(7, 1)", "swap(7, 3)", "готово"][k]!,
       { mono: true, size: 9.5, c: "y" },
     ),
   ]),
@@ -347,7 +347,7 @@ export const V07 = scene({
   ],
   frames: [HF[0], HF[1], HF[2], HF[3], HF[3]].map((a, k) => [
     ...HEAP(
-      a,
+      a!,
       k === 1
         ? { 2: "y", 7: "b" }
         : k === 2
@@ -355,7 +355,7 @@ export const V07 = scene({
           : k === 3
             ? { 9: "y" }
             : k === 4
-              ? Object.fromEntries(a.map((v) => [v, "g"]))
+              ? Object.fromEntries(a!.map((v) => [v, "g"]))
               : {},
       { y0: 20, dy: 34, arrY: 148 },
     ),
@@ -365,7 +365,7 @@ export const V07 = scene({
       30,
       ["n = 7", "swap(7, 2)", "swap(4, 1)", "swap(9, 1), swap(9, 3)", "O(n)"][
         k
-      ],
+      ]!,
       { mono: true, size: 8.5, c: "y" },
     ),
   ]),
@@ -400,7 +400,7 @@ export const V08 = scene({
       h: 30,
       size: 12,
       sub: (i) => i,
-      c: (i) => (i >= 7 - HSDONE[k] ? "g" : "b"),
+      c: (i) => (i >= 7 - HSDONE[k]! ? "g" : "b"),
       tc: undefined,
     }).map((c, i) => ({ ...c, id: `c${a[i]}` })),
     Tx(
@@ -413,7 +413,7 @@ export const V08 = scene({
         "6 → вниз: обмен с 8",
         "хвост: 8, 9",
         "1 3 5 6 7 8 9",
-      ][k],
+      ][k]!,
       { mono: true, size: 10, c: "g" },
     ),
   ]),
@@ -487,8 +487,8 @@ export const V10 = scene({
       h: 24,
       size: 11,
       c: (i) =>
-        i === [2, 3, 4, 5, 6][k] ? "y" : i < [2, 3, 4, 5, 6][k] ? "n" : "m",
-      o: (i) => (i <= [2, 3, 4, 5, 6][k] ? 1 : 0.55),
+        i === [2, 3, 4, 5, 6][k] ? "y" : i < [2, 3, 4, 5, 6][k]! ? "n" : "m",
+      o: (i) => (i <= [2, 3, 4, 5, 6][k]! ? 1 : 0.55),
     }),
     Tx("l", 24, 94, "куча", { size: 8.5, anchor: "start" }),
     ...row("h", s.h, {
@@ -819,12 +819,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8.5,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V16 = scene({
   labels: ["Куча", "Движения", "Построение", "Паттерны", "Практика"],

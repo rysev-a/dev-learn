@@ -231,7 +231,7 @@ export const V04 = scene({
 const ringPos = (a: number) => [180 + 55 * Math.cos(a), 80 + 55 * Math.sin(a)];
 const rn = (id: string, a: number, text: string, c = "b") => {
   const [x, y] = ringPos(a);
-  return Box(id, x, y, 38, 22, text, c, { size: 8.5 });
+  return Box(id, x!, y!, 38, 22, text, c, { size: 8.5 });
 };
 export const V05 = scene({
   labels: ["Кольцо", "Новый узел", "Виртуальные узлы"],

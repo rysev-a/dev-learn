@@ -194,9 +194,9 @@ const SS = (n: number): SceneItem[] => [
     Bx(
       `b${k}`,
       55 + i * 70,
-      150 - (14 + Math.min(v, 80) * 0.9) / 2,
+      150 - (14 + Math.min(v!, 80) * 0.9) / 2,
       44,
-      14 + Math.min(v, 80) * 0.9,
+      14 + Math.min(v!, 80) * 0.9,
       `${v}`,
       i < n ? "g" : "m",
       { o: i < n ? 1 : 0.25, size: 9 },

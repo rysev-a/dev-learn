@@ -92,7 +92,7 @@ const share = (n: number): SceneItem[] => [
   ...If(
     n === 0,
     Tx("h0", 180, 24, "процессор: кванты времени", { size: 10 }),
-    ...Rw("q", QUANT, 24, 70, 24, 28, 3, (i: number) => OWN[QUANT[i]]),
+    ...Rw("q", QUANT, 24, 70, 24, 28, 3, ((i: number) => OWN[QUANT[i]!])!),
     Tx("n0", 180, 130, "A, B и C по очереди, по несколько миллисекунд", {
       size: 9,
     }),
@@ -108,7 +108,7 @@ const share = (n: number): SceneItem[] => [
       24,
       28,
       3,
-      (i: number) => OWN["ABACBCACBABC"[i]],
+      ((i: number) => OWN["ABACBCACBABC"[i]!])!,
     ),
     Tx("n1", 180, 130, "у каждой программы свой набор страниц", { size: 9 }),
   ),
@@ -226,8 +226,8 @@ const mono = (n: number): SceneItem[] => {
     ...SUB.map(([id, t], i) =>
       Bx(
         id,
-        pos[i][0],
-        pos[i][1],
+        pos[i]![0],
+        pos[i]![1],
         84,
         24,
         t,

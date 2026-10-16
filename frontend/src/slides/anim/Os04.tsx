@@ -60,7 +60,7 @@ const TF: [string, string][] = [
   ["sched_entity", "планировщик"],
 ];
 const ts = (n: number): SceneItem[] => {
-  const hot = [[0, 1, 2], [3], [4], [5]][n];
+  const hot = [[0, 1, 2], [3], [4], [5]][n]!;
   return [
     Zn("z", 126, 88, 216, 126, "task_struct"),
     ...TF.map(([t], i) =>
@@ -84,7 +84,7 @@ const ts = (n: number): SceneItem[] => {
         "описание адресного\nпространства:\nглава 9",
         "таблица открытых\nфайлов: глава 10",
         "данные для выбора\nследующей задачи:\nглава 5",
-      ][n],
+      ][n]!,
       { size: 9, c: "g" },
     ),
   ];
@@ -166,7 +166,7 @@ const cow = (n: number): SceneItem[] => [
       "fork копирует только таблицы: кадры общие, только чтение",
       "запись в общую страницу — ошибка, ядро вмешивается",
       "копия одной страницы: теперь у каждого своя",
-    ][n],
+    ][n]!,
     { size: 9, c: n === 2 ? "r" : "g" },
   ),
 ];
@@ -212,7 +212,7 @@ const ex = (n: number): SceneItem[] => [
       "старое адресное\nпространство\nвыброшено",
       "загружена\nновая программа",
       "pid и дескрипторы\nсохранились",
-    ][n],
+    ][n]!,
     { size: 9, c: n === 3 ? "b" : "y" },
   ),
 ];
@@ -237,9 +237,9 @@ const NODES: Record<string, [number, number, string]> = {
   c2: [160, 138, "grep 1202"],
 };
 const tt = (n: number): SceneItem[] => {
-  const P = (k: string) => ({ x: NODES[k][0], y: NODES[k][1] });
+  const P = (k: string) => ({ x: NODES[k]![0], y: NODES[k]![1] });
   const node = (k: string, c?: string, extra: Extra = {}) =>
-    Bx(k, NODES[k][0], NODES[k][1], 76, 22, NODES[k][2], c, {
+    Bx(k, NODES[k]![0], NODES[k]![1], 76, 22, NODES[k]![2], c, {
       size: 8.5,
       ...extra,
     });
@@ -309,12 +309,12 @@ const SUB = {
   Z: "зомби:\nждёт wait",
 };
 const sta = (n: number) => {
-  const hl = [["R"], ["R", "S", "D"], ["R", "T"], ["R", "Z"]][n];
+  const hl = [["R"], ["R", "S", "D"], ["R", "T"], ["R", "Z"]][n]!;
   const nd = (k: string, t: string) =>
     Bx(
       `s${k}`,
-      SP[k][0],
-      SP[k][1],
+      SP[k]![0],
+      SP[k]![1],
       58,
       26,
       t,
@@ -395,7 +395,7 @@ const zb = (n: number): SceneItem[] => [
       "память освобождена, запись в таблице осталась",
       "после wait запись удалена",
       "родитель не зовёт wait: зомби копятся",
-    ][n],
+    ][n]!,
     { size: 9.5, c: n === 3 ? "r" : "g" },
   ),
 ];
@@ -443,7 +443,7 @@ const sg = (n: number): SceneItem[] => [
       "ядро помечает сигнал ожидающим",
       "обработчик вызывается при возврате в пользовательский режим",
       "эти два выполняет само ядро",
-    ][n],
+    ][n]!,
     { size: 8.5, c: "y" },
   ),
 ];

@@ -23,7 +23,7 @@ export default function C8Directed({ cues }: { cues?: number[] }) {
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <Txt x={180} y={86} mono size={22} o={step === 0 ? 1 : 0} color="var(--s-accent)">a — b   или   a → b ?</Txt>
       <GraphView nodes={NODES.slice(0, 2)} edges={[{ a: 0, b: 1 }]} ec={() => "g"} o={step === 1 ? 1 : 0} />
-      <GraphView nodes={[NODES[0], NODES[2]]} edges={[{ a: 0, b: 1 }]} directed ec={() => "y"} o={step === 2 ? 1 : 0} />
+      <GraphView nodes={[NODES[0]!, NODES[2]!]} edges={[{ a: 0, b: 1 }]} directed ec={() => "y"} o={step === 2 ? 1 : 0} />
       <Txt x={180} y={130} mono size={12} o={step === 1 ? 1 : 0} color="var(--s-accent)">я — друг  =  друг — я</Txt>
       <Txt x={180} y={130} mono size={12} o={step === 2 ? 1 : 0} color="var(--s-amber)">я → блог  ≠  блог → я</Txt>
       <G o={step === 3 ? 1 : 0}>

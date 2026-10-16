@@ -596,12 +596,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V13 = scene({
   labels: ["Вращения", "АВЛ", "Красно-чёрное", "Вставка", "Практика"],

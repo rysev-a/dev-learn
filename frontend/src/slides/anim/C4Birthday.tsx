@@ -25,7 +25,7 @@ export default function C4Birthday({ cues }: { cues?: number[] }) {
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       <G o={step <= 1 ? 1 : 0}>
         {edges.map(([a, b], i) => (
-          <line key={i} className="a-t" x1={P[a][0]} y1={P[a][1]} x2={P[b][0]} y2={P[b][1]} style={{ stroke: "var(--s-accent)", strokeWidth: 0.8, opacity: step === 1 ? 0.35 : 0 }} />
+          <line key={i} className="a-t" x1={P[a]![0]} y1={P[a]![1]} x2={P[b]![0]} y2={P[b]![1]} style={{ stroke: "var(--s-accent)", strokeWidth: 0.8, opacity: step === 1 ? 0.35 : 0 }} />
         ))}
         {P.map(([x, y], i) => (
           <circle key={i} cx={x} cy={y} r="4.5" style={{ fill: "var(--s-panel2)", stroke: "var(--s-blue)", strokeWidth: 1.6 }} />

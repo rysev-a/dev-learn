@@ -24,7 +24,7 @@ const EDGES: [string, string][] = [
   ["E", "G"],
   ["F", "G"],
 ];
-const P = (k: string, nodes: Record<string, Pos> = NODES) => ({ x: nodes[k][0], y: nodes[k][1] });
+const P = (k: string, nodes: Record<string, Pos> = NODES) => ({ x: nodes[k]![0], y: nodes[k]![1] });
 // граф: colors — {вершина: цвет}, ec — {"A-B": цвет}
 function GR(
   colors: Record<string, string> = {},
@@ -49,7 +49,7 @@ function GR(
 ): SceneItem[] {
   return [
     ...edges.map(([a, b]) =>
-      edge(`${id}e${a}${b}`, P(a, nodes), P(b, nodes), {
+      edge(`${id}e${a}${b}`, P(a, nodes)!, P(b, nodes), {
         r,
         c: ec[`${a}-${b}`] ?? ec[`${b}-${a}`] ?? "m",
         arrow: directed,
@@ -59,8 +59,8 @@ function GR(
     ...Object.keys(nodes).map((k): SceneItem => ({
       t: "dot",
       id: `${id}${k}`,
-      x: nodes[k][0],
-      y: nodes[k][1],
+      x: nodes[k]![0],
+      y: nodes[k]![1],
       r,
       text: labels[k] ?? k,
       c: colors[k] ?? "m",
@@ -139,7 +139,7 @@ export const V02 = scene({
           nodes: Object.fromEntries(
             Object.entries(MN).map(([k, v]) => [
               k,
-              [v[0] * 0.6, v[1] * 0.9 + 6],
+              [v[0]! * 0.6, v[1]! * 0.9 + 6],
             ]),
           ),
           edges: [
@@ -180,7 +180,7 @@ export const V02 = scene({
           nodes: Object.fromEntries(
             Object.entries(MN).map(([k, v]) => [
               k,
-              [v[0] * 0.6, v[1] * 0.9 + 6],
+              [v[0]! * 0.6, v[1]! * 0.9 + 6],
             ]),
           ),
           edges: [
@@ -497,7 +497,7 @@ export const V07 = scene({
   frames: KS.map((s): SceneItem[] => [
     ...GR(s.c, {}, { nodes: TN, edges: TE, directed: true, labels: {} }),
     ...Object.entries(TN).map(([k, [x, y]]) =>
-      Tx(`d${k}`, x, y + 26, `вх ${s.deg[k]}`, {
+      Tx(`d${k}`, x!, y! + 26, `вх ${s.deg[k]}`, {
         mono: true,
         size: 8,
         c: s.deg[k] === 0 ? "g" : "m",
@@ -535,7 +535,7 @@ export const V08 = scene({
         Object.entries(DIST)
           .filter(([, d]) => d <= k)
           .map(([v, d]) => [v, WCOL[d]]),
-      ),
+      )!,
       {},
       {
         labels: Object.fromEntries(
@@ -549,7 +549,7 @@ export const V08 = scene({
       "t",
       180,
       160,
-      ["", "дистанция 1: B, C", "дистанция 2: D, E, F", "дистанция 3: G"][k],
+      ["", "дистанция 1: B, C", "дистанция 2: D, E, F", "дистанция 3: G"][k]!,
       { mono: true, size: 10 },
     ),
   ]),
@@ -610,9 +610,9 @@ export const V09 = scene({
 // 10. Лабиринт: глубина против ширины (пути считаются здесь же)
 const MAZE = ["S...#....", ".##.#.##.", ".#.....#.", ".#.####.#", "........G"];
 const ROWS = MAZE.length;
-const COLS = MAZE[0].length;
+const COLS = MAZE[0]!.length;
 const free = (r: number, c: number) =>
-  r >= 0 && r < ROWS && c >= 0 && c < COLS && MAZE[r][c] !== "#";
+  r >= 0 && r < ROWS && c >= 0 && c < COLS && MAZE[r]![c] !== "#";
 const DIRS: [number, number][] = [
   [0, 1],
   [1, 0],
@@ -843,15 +843,15 @@ export const V13 = scene({
 // 14. Сетка как граф: острова
 const LAND = ["11000", "11010", "00011", "00001", "10000"];
 const LR = LAND.length;
-const LC = LAND[0].length;
+const LC = LAND[0]!.length;
 function islands() {
   const id = Array.from({ length: LR }, () => Array(LC).fill(-1));
   let n = 0;
   for (let r = 0; r < LR; r++)
     for (let c = 0; c < LC; c++)
-      if (LAND[r][c] === "1" && id[r][c] < 0) {
+      if (LAND[r]![c] === "1" && id[r]![c] < 0) {
         const st: [number, number][] = [[r, c]];
-        id[r][c] = n;
+        id[r]![c] = n;
         while (st.length) {
           const [a, b] = st.pop()!;
           for (const [dr, dc] of DIRS) {
@@ -862,10 +862,10 @@ function islands() {
               x < LR &&
               y >= 0 &&
               y < LC &&
-              LAND[x][y] === "1" &&
-              id[x][y] < 0
+              LAND[x]![y] === "1" &&
+              id[x]![y] < 0
             ) {
-              id[x][y] = n;
+              id[x]![y] = n;
               st.push([x, y]);
             }
           }
@@ -916,13 +916,13 @@ export const V14 = scene({
         id: `ar${i}`,
         x1: 110 + 28 * 1,
         y1: 28 + 28 * 1,
-        x2: 110 + 28 * (1 + dc * 0.9),
-        y2: 28 + 28 * (1 + dr * 0.9),
+        x2: 110 + 28 * (1 + dc! * 0.9),
+        y2: 28 + 28 * (1 + dr! * 0.9),
         c: "y",
         arrow: true,
       })),
     ],
-    GRID((r, c) => ICOL[ISL.id[r][c] % 4]),
+    GRID((r, c) => ICOL[ISL.id[r]![c] % 4]!),
   ],
   h: 175,
   cues: [8, 18],
@@ -1037,12 +1037,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V17 = scene({
   labels: ["Хранение", "Глубина", "Ширина", "Применения", "Дальше"],

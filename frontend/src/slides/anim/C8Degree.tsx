@@ -35,7 +35,7 @@ export default function C8Degree({ cues }: { cues?: number[] }) {
   const { step } = ctl;
   const nc = (i: number) => {
     if (step === 1) return i === 0 ? "g" : i === 6 ? "r" : "m";
-    if (step === 4) return DEG[i] % 2 ? "y" : "m";
+    if (step === 4) return DEG[i]! % 2 ? "y" : "m";
     return "m";
   };
   const ec = () => (step === 3 ? "g" : "m");

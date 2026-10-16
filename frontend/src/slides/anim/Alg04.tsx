@@ -796,15 +796,15 @@ export const V13 = scene({
   ],
   frames: [
     [
-      ...byVal(HP[0], { x0: 70, cw: 40, w: 36, y: 70, c: { 9: "y" } }),
+      ...byVal(HP[0]!, { x0: 70, cw: 40, w: 36, y: 70, c: { 9: "y" } }),
       Tx("t", 180, 120, "max-куча", { mono: true, size: 11 }),
     ],
     [
-      ...byVal(HP[1], { x0: 70, cw: 40, w: 36, y: 70, c: { 9: "g", 6: "y" } }),
+      ...byVal(HP[1]!, { x0: 70, cw: 40, w: 36, y: 70, c: { 9: "g", 6: "y" } }),
       Tx("t", 180, 120, "9 — в конец", { mono: true, size: 11 }),
     ],
     [
-      ...byVal(HP[2], {
+      ...byVal(HP[2]!, {
         x0: 70,
         cw: 40,
         w: 36,
@@ -961,12 +961,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V16 = scene({
   labels: ["Поиск", "Границы", "Сортировки", "Устойчивость", "Дальше"],

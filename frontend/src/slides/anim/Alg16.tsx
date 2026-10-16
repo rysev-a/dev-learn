@@ -24,7 +24,7 @@ const EDGES: WEdge[] = [
   ["D", "T", 3],
   ["A", "D", 7],
 ];
-const P = (k: string, nodes: Record<string, Pos> = NODES) => ({ x: nodes[k][0], y: nodes[k][1] });
+const P = (k: string, nodes: Record<string, Pos> = NODES) => ({ x: nodes[k]![0], y: nodes[k]![1] });
 const ek = (a: string, b: string) => (a < b ? `${a}-${b}` : `${b}-${a}`);
 // граф с весами: colors — вершины, ec — рёбра (ключ «A-B» в алфавитном порядке)
 function WG(
@@ -82,8 +82,8 @@ function WG(
     ...Object.keys(nodes).map((k): SceneItem => ({
       t: "dot",
       id: `${id}${k}`,
-      x: nodes[k][0],
-      y: nodes[k][1],
+      x: nodes[k]![0],
+      y: nodes[k]![1],
       r,
       text: labels[k] ?? k,
       c: colors[k] ?? "m",
@@ -115,11 +115,11 @@ function dijkstraSteps(src = "S"): DijkstraStep[] {
   while (done.size < Object.keys(NODES).length) {
     const cur = Object.keys(dist)
       .filter((k) => !done.has(k))
-      .sort((x, y) => dist[x] - dist[y] || (x < y ? -1 : 1))[0];
+      .sort((x, y) => dist[x]! - dist[y]! || (x < y ? -1 : 1))[0]!;
     done.add(cur);
     for (const [nb, w] of adj[cur] ?? [])
-      if (!done.has(nb) && dist[cur] + w < dist[nb]) {
-        dist[nb] = dist[cur] + w;
+      if (!done.has(nb) && dist[cur]! + w < dist[nb]!) {
+        dist[nb] = dist[cur]! + w;
         prev[nb] = cur;
       }
     steps.push({
@@ -134,7 +134,7 @@ function dijkstraSteps(src = "S"): DijkstraStep[] {
 const DJ = dijkstraSteps();
 const fmt = (v: number) => (v === Infinity ? "∞" : v);
 const distLabels = (dist: Record<string, number>) =>
-  Object.fromEntries(Object.keys(dist).map((k) => [k, fmt(dist[k])]));
+  Object.fromEntries(Object.keys(dist).map((k) => [k, fmt(dist[k]!)]));
 const tableOf = (dist: Record<string, number>, hot?: string | null): SceneItem[] =>
   Object.keys(dist).flatMap((k, i): SceneItem[] => [
     Tx(`dk${k}`, 40 + 56 * i, 160, k, {
@@ -149,7 +149,7 @@ const tableOf = (dist: Record<string, number>, hot?: string | null): SceneItem[]
       y: 178,
       w: 36,
       h: 20,
-      text: fmt(dist[k]),
+      text: fmt(dist[k]!),
       c: hot === k ? "y" : dist[k] === Infinity ? "n" : "g",
       size: 10,
     },
@@ -198,20 +198,20 @@ export const V02 = scene({
   ],
   frames: [
     [
-      ...WG({ S: "y" }, {}, { labels: distLabels(DJ[0].dist) }),
-      ...tableOf(DJ[0].dist),
+      ...WG({ S: "y" }, {}, { labels: distLabels(DJ[0]!.dist) }),
+      ...tableOf(DJ[0]!.dist),
     ],
     [
-      ...WG({ S: "g" }, {}, { labels: distLabels(DJ[1].dist) }),
-      ...tableOf(DJ[1].dist, "S"),
+      ...WG({ S: "g" }, {}, { labels: distLabels(DJ[1]!.dist) }),
+      ...tableOf(DJ[1]!.dist, "S"),
     ],
     [
       ...WG(
         { S: "g", A: "y", B: "y" },
         { "A-S": "y", "B-S": "y" },
-        { labels: distLabels(DJ[1].dist) },
+        { labels: distLabels(DJ[1]!.dist) },
       ),
-      ...tableOf(DJ[1].dist, "A"),
+      ...tableOf(DJ[1]!.dist, "A"),
     ],
   ],
   h: 205,
@@ -638,7 +638,7 @@ const SORTED = [...EDGES].sort(
 );
 function kruskalSteps() {
   const uf = Object.fromEntries(Object.keys(NODES).map((k) => [k, k]));
-  const find = (x: string): string => (uf[x] === x ? x : (uf[x] = find(uf[x])));
+  const find = (x: string): string => (uf[x] === x ? x : (uf[x] = find(uf[x]!)));
   const taken: Record<string, string> = {};
   const rej: Record<string, string> = {};
   const steps: { taken: Record<string, string>; rej: Record<string, string>; edge: string; ok: boolean }[] = [];
@@ -678,11 +678,11 @@ export const V12 = scene({
       }),
     ],
     [
-      ...WG({}, { ...KR[2].taken }),
+      ...WG({}, { ...KR[2]!.taken }),
       Tx("t", 180, 168, "A-B, S-A, C-D", { mono: true, size: 9.5, c: "g" }),
     ],
     [
-      ...WG({}, { ...KR[3].taken }),
+      ...WG({}, { ...KR[3]!.taken }),
       Tx("t", 180, 168, "+ B-D: компонент стала одна", {
         mono: true,
         size: 9.5,
@@ -690,7 +690,7 @@ export const V12 = scene({
       }),
     ],
     [
-      ...WG({}, { ...KR[4].taken }),
+      ...WG({}, { ...KR[4]!.taken }),
       Tx("t", 180, 168, "+ D-T: готово, вес 11", {
         mono: true,
         size: 9.5,
@@ -698,7 +698,7 @@ export const V12 = scene({
       }),
     ],
     [
-      ...WG({}, { ...KR[4].taken, "A-C": "r" }),
+      ...WG({}, { ...KR[4]!.taken, "A-C": "r" }),
       Tx("t", 180, 168, "A-C — цикл ✗", { mono: true, size: 9.5, c: "r" }),
     ],
   ],
@@ -837,12 +837,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 7.5,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V16 = scene({
   labels: ["Дейкстра", "Отрицательные", "A* и Флойд", "Остов", "Дальше"],

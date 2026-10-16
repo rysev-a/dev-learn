@@ -345,7 +345,7 @@ const SERIES = (pts: number[]) =>
   pts.map((v: number, i: number) => [30 + (i * 300) / (pts.length - 1), 130 - v * 12]);
 const pathD = (pts: number[]) =>
   SERIES(pts)
-    .map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`)
+    .map(([x, y], i) => `${i ? "L" : "M"}${x!.toFixed(1)} ${y!.toFixed(1)}`)
     .join(" ");
 export const V08 = scene({
   labels: ["Положительные", "Отрицательные", "Выход"],
@@ -428,7 +428,7 @@ const DCSC = (k: number): SceneItem[] => {
   const pos = Object.fromEntries(DCN.map(([id, x, y]) => [id, { x, y }]));
   return [
     ...DCE.map(([a, b]) =>
-      edge(`${a}${b}`, pos[a], pos[b], {
+      edge(`${a}${b}`, pos[a]!, pos[b]!, {
         r: 12,
         c: k >= 1 ? "g" : "m",
         arrow: true,
@@ -561,8 +561,8 @@ export const V11 = scene({
       cw: 42,
       w: 38,
       h: 26,
-      c: (i) => (s.res.includes(LEFT[i]) ? "n" : "b"),
-      o: (i) => (s.res.includes(LEFT[i]) ? 0.3 : 1),
+      c: (i) => (s.res.includes(LEFT[i]!) ? "n" : "b"),
+      o: (i) => (s.res.includes(LEFT[i]!) ? 0.3 : 1),
     }),
     Tx("l2", 24, 76, "прав.", { size: 8.5, anchor: "start" }),
     ...row("r", RIGHT, {
@@ -571,8 +571,8 @@ export const V11 = scene({
       cw: 42,
       w: 38,
       h: 26,
-      c: (i) => (s.res.includes(RIGHT[i]) ? "n" : "y"),
-      o: (i) => (s.res.includes(RIGHT[i]) ? 0.3 : 1),
+      c: (i) => (s.res.includes(RIGHT[i]!) ? "n" : "y"),
+      o: (i) => (s.res.includes(RIGHT[i]!) ? 0.3 : 1),
     }),
     Tx("l3", 24, 124, "итог", { size: 8.5, anchor: "start" }),
     ...row("o", [1, 2, 3, 4, 5, 6], {
@@ -800,12 +800,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V15 = scene({
   labels: ["Окно", "Очередь", "Разделяй", "Дерево отрезков", "Практика"],

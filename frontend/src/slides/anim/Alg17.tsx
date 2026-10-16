@@ -67,7 +67,7 @@ export const V01 = scene({
         162,
         ["union / find", "выбрать · исследовать · отменить", "ничего лишнего"][
           k
-        ],
+        ]!,
         {
           mono: true,
           size: 10,
@@ -95,8 +95,8 @@ const conn = (groups: Tint, edges: XY[], note: string, hot: Tint = {}): SceneIte
   ...edges.map(([a, b]) =>
     edge(
       `e${a}${b}`,
-      { x: NODE[a][0], y: NODE[a][1] },
-      { x: NODE[b][0], y: NODE[b][1] },
+      { x: NODE[a]![0], y: NODE[a]![1] },
+      { x: NODE[b]![0], y: NODE[b]![1] },
       { c: "g" },
     ),
   ),
@@ -181,8 +181,8 @@ const forest = (pos: XY[], par: number[], hot: Tint, edgeHot: Tint, note: string
       : [
           edge(
             `c${i}`,
-            { x: pos[i][0], y: pos[i][1] },
-            { x: pos[p][0], y: pos[p][1] },
+            { x: pos[i]![0], y: pos[i]![1] },
+            { x: pos[p]![0], y: pos[p]![1] },
             { c: edgeHot[i] ?? "m", arrow: true },
           ),
         ],
@@ -208,23 +208,23 @@ export const V03 = scene({
     "Наивная версия может вытянуться в цепочку, и поиск корня станет линейным",
   ],
   frames: [
-    forest(FPOS["f0"], [0, 0, 0, 3, 3, 3], {}, {}, "два дерева, два корня"),
+    forest(FPOS["f0"]!, [0, 0, 0, 3, 3, 3], {}, {}, "два дерева, два корня"),
     forest(
-      FPOS["f0"],
+      FPOS["f0"]!,
       [0, 0, 0, 3, 3, 3],
       { 1: "y", 0: "g" },
       { 1: "y" },
       "find(1) = 0",
     ),
     forest(
-      FPOS["f1"],
+      FPOS["f1"]!,
       [0, 0, 0, 0, 3, 3],
       { 3: "y", 0: "g" },
       { 3: "g" },
       "parent[3] = 0",
     ),
     forest(
-      FPOS["chain"],
+      FPOS["chain"]!,
       [0, 0, 1, 2, 3, 4],
       { 5: "r" },
       { 5: "r" },
@@ -253,8 +253,8 @@ const comp = (pos: XY[], par: number[], hot: Tint, note: string): SceneItem[] =>
       : [
           edge(
             `c${i}`,
-            { x: pos[i][0], y: pos[i][1] },
-            { x: pos[p][0], y: pos[p][1] },
+            { x: pos[i]![0], y: pos[i]![1] },
+            { x: pos[p]![0], y: pos[p]![1] },
             { c: hot[i] ? "y" : "m", arrow: true },
           ),
         ],
@@ -433,8 +433,8 @@ const decide = (lv: number, path: string|string[], note: string) => {
       out.push(
         edge(
           `e${p}${q}`,
-          { x: TP[p][0], y: TP[p][1] },
-          { x: TP[q][0], y: TP[q][1] },
+          { x: TP[p][0]!, y: TP[p][1]! },
+          { x: TP[q][0]!, y: TP[q][1]! },
           { c: path.includes(q) ? "y" : "m" },
         ),
       );
@@ -454,8 +454,8 @@ const decide = (lv: number, path: string|string[], note: string) => {
       out.push(
         edge(
           `l${i}`,
-          { x: TP[p][0], y: TP[p][1] },
-          { x: LEAF[i][0], y: LEAF[i][1] },
+          { x: TP[p][0]!, y: TP[p][1]! },
+          { x: LEAF[i]![0]!, y: LEAF[i]![1]! },
           { c: path.includes(`L${i}`) ? "y" : "m" },
         ),
       ),
@@ -464,13 +464,13 @@ const decide = (lv: number, path: string|string[], note: string) => {
     const l = id === "r" ? 0 : id === "a" || id === "b" ? 1 : 2;
     if (l <= lv)
       out.push(
-        dot(`n${id}`, x, y, "", path.includes(id) ? "y" : "m", { r: 9 }),
+        dot(`n${id}`, x!, y!, "", path.includes(id) ? "y" : "m", { r: 9 }),
       );
   });
   if (lv >= 3)
     LEAF.forEach(([x, y], i) =>
       out.push(
-        dot(`L${i}`, x, y, "", path.includes(`L${i}`) ? "y" : "m", { r: 9 }),
+        dot(`L${i}`, x!, y!, "", path.includes(`L${i}`) ? "y" : "m", { r: 9 }),
       ),
     );
   out.push(Tx("n", 180, 168, note, { mono: true, size: 10, c: "y" }));
@@ -696,16 +696,16 @@ const comb = (show: string[], colors: Tint, note: string): SceneItem[] => [
   ).map(([p, q]) =>
     edge(
       `e${q}`,
-      { x: CT[p][0], y: CT[p][1] },
-      { x: CT[q][0], y: CT[q][1] },
+      { x: CT[p]![0], y: CT[p]![1] },
+      { x: CT[q]![0], y: CT[q]![1] },
       { c: colors[q] ?? "m", r: 12 },
     ),
   ),
   ...CT_E.filter(([, q]) => show.includes(q)).map(([p, q, w]) =>
     Tx(
       `w${q}`,
-      (CT[p][0] + CT[q][0]) / 2 + (CT[q][0] < CT[p][0] ? -9 : 9),
-      (CT[p][1] + CT[q][1]) / 2,
+      (CT[p]![0] + CT[q]![0]) / 2 + (CT[q]![0] < CT[p]![0] ? -9 : 9),
+      (CT[p]![1] + CT[q]![1]) / 2,
       `+${w}`,
       { mono: true, size: 8.5, c: "b" },
     ),

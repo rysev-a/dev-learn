@@ -32,13 +32,13 @@ export default function C2Function({ cues }: { cues?: number[] }) {
           <Dot key={`r${i}`} x={RX} y={y} text={[1, 2, 3][i]} stroke="var(--s-amber)" />
         ))}
         {/* функция: по одной стрелке */}
-        <Arrow x1={LX + 14} y1={Y[0]} x2={RX - 14} y2={Y[1]} c="g" o={ok ? 1 : 0} />
-        <Arrow x1={LX + 14} y1={Y[1]} x2={RX - 14} y2={Y[2]} c="g" o={ok ? 1 : 0} />
-        <Arrow x1={LX + 14} y1={Y[2]} x2={RX - 14} y2={Y[0]} c="g" o={ok ? 1 : 0} />
+        <Arrow x1={LX + 14} y1={Y[0]!} x2={RX - 14} y2={Y[1]!} c="g" o={ok ? 1 : 0} />
+        <Arrow x1={LX + 14} y1={Y[1]!} x2={RX - 14} y2={Y[2]!} c="g" o={ok ? 1 : 0} />
+        <Arrow x1={LX + 14} y1={Y[2]!} x2={RX - 14} y2={Y[0]!} c="g" o={ok ? 1 : 0} />
         {/* нарушения: у a два ответа, у c ни одного */}
-        <Arrow x1={LX + 14} y1={Y[0]} x2={RX - 14} y2={Y[0]} c="r" o={step === 2 ? 1 : 0} />
-        <Arrow x1={LX + 14} y1={Y[0]} x2={RX - 14} y2={Y[1]} c="r" o={step === 2 ? 1 : 0} />
-        <Arrow x1={LX + 14} y1={Y[1]} x2={RX - 14} y2={Y[2]} c="g" o={step === 2 ? 1 : 0} />
+        <Arrow x1={LX + 14} y1={Y[0]!} x2={RX - 14} y2={Y[0]!} c="r" o={step === 2 ? 1 : 0} />
+        <Arrow x1={LX + 14} y1={Y[0]!} x2={RX - 14} y2={Y[1]!} c="r" o={step === 2 ? 1 : 0} />
+        <Arrow x1={LX + 14} y1={Y[1]!} x2={RX - 14} y2={Y[2]!} c="g" o={step === 2 ? 1 : 0} />
         <Txt x={180} y={152} o={step === 1 ? 1 : 0} color="var(--s-accent)">ровно одна стрелка из каждого входа</Txt>
         <Txt x={180} y={152} o={step === 2 ? 1 : 0} color="var(--s-red)">у a — два ответа, у c — ни одного</Txt>
         <Txt x={52} y={128} o={step === 2 ? 1 : 0} color="var(--s-red)" mono size={13}>?</Txt>

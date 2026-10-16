@@ -64,7 +64,7 @@ export default function Subset({ cues }: { cues?: number[] }) {
             <g key={`${isIn}${i}`} className="a-t" style={{ opacity: v === vi ? 1 : 0 }}>
               <circle cx={p[0]} cy={p[1]} r="13" style={{ fill: "var(--s-panel2)", stroke: isIn ? "var(--s-amber)" : "var(--s-muted)", strokeWidth: 1.5 }} />
               <text x={p[0]} y={p[1] + 3.6} textAnchor="middle" className="a-mono" style={{ fontSize: vi === 2 ? 8.5 : 11 }}>
-                {(isIn ? inn : out)[i]}
+                {(isIn ? inn : out)![i]}
               </text>
             </g>
           ))}

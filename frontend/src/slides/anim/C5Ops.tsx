@@ -39,7 +39,7 @@ export default function C5Ops({ cues }: { cues?: number[] }) {
         ))}
       </G>
       <Table x={130} y={36} head={["p", "¬p"]} rows={[[1, 0], [0, 1]]} cw={50} rh={30} o={step === 1 ? 1 : 0} hl={(r, c) => (c === 1 ? "g" : null)} />
-      <Table x={96} y={30} head={["p", "q", step === 2 ? "p∧q" : "p∨q"]} rows={rows2} cw={52} rh={26} o={step === 2 || step === 3 ? 1 : 0} hl={(r, c) => (c === 2 ? (rows2[r][2] ? "g" : "r") : step === 3 && r === 0 && c < 2 ? "y" : null)} />
+      <Table x={96} y={30} head={["p", "q", step === 2 ? "p∧q" : "p∨q"]} rows={rows2} cw={52} rh={26} o={step === 2 || step === 3 ? 1 : 0} hl={(r, c) => (c === 2 ? (rows2[r]![2] ? "g" : "r") : step === 3 && r === 0 && c < 2 ? "y" : null)} />
       <Txt x={300} y={68} size={10} o={step === 3 ? 1 : 0} color="var(--s-amber)">обе истинны —</Txt>
       <Txt x={300} y={82} size={10} o={step === 3 ? 1 : 0} color="var(--s-amber)">тоже истина</Txt>
       <G o={step === 4 ? 1 : 0}>

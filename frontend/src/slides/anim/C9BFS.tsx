@@ -44,7 +44,7 @@ export default function C9BFS({ cues }: { cues?: number[] }) {
       {[0, 1, 2, 3].map((l) => (
         <circle key={l} className="a-t" cx="60" cy="76" r={l * 76 + 8} style={{ fill: "none", stroke: "var(--s-accent)", strokeWidth: 1.2, strokeDasharray: "3 4", opacity: wave && l > 0 ? 0.4 : 0, transitionDelay: step === 1 ? `${l * 400}ms` : "0ms" }} />
       ))}
-      <GraphView nodes={N} edges={E} nc={(i) => (step >= 1 && step <= 2 ? COL[LAYER[i]] : "m")} ec={() => (step >= 1 && step <= 2 ? "g" : "m")} o={step <= 1 ? 1 : step === 2 ? 0.35 : 0} />
+      <GraphView nodes={N} edges={E} nc={(i) => (step >= 1 && step <= 2 ? COL[LAYER[i]!] : "m")} ec={() => (step >= 1 && step <= 2 ? "g" : "m")} o={step <= 1 ? 1 : step === 2 ? 0.35 : 0} />
       <Txt x={180} y={152} mono size={11} o={step === 1 ? 1 : 0} color="var(--s-accent)">круг 0 → 1 → 2 → 3</Txt>
       <G o={step === 2 ? 1 : 0}>
         <Txt x={180} y={30} size={9.5}>очередь</Txt>

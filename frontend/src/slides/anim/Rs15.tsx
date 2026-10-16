@@ -201,7 +201,7 @@ export const V05 = scene({
   ],
   frames: [
     [
-      rs("c", 8, 30, [mvCode[0]], 0, { w: 200, size: 9.5, lh: 16 }),
+      rs("c", 8, 30, [mvCode[0]!], 0, { w: 200, size: 9.5, lh: 16 }),
       slot("s", 80, 100, "s", "ptr · len · cap", "g", {
         w: 100,
         h: 40,

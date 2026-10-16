@@ -40,7 +40,7 @@ export default function C9DFS({ cues }: { cues?: number[] }) {
       <GraphView nodes={N} edges={E} nc={() => (vis ? "g" : "m")} ec={() => (vis ? "g" : "m")} r={13} />
       {ORDER.map((v, k) => (
         <g key={k} className="a-t" style={{ opacity: vis ? 1 : 0, transitionDelay: step === 1 ? `${k * 380}ms` : "0ms" }}>
-          <text x={N[v].x + 18} y={N[v].y - 12} className="a-mono" style={{ fontSize: 10.5, fill: "var(--s-amber)" }}>{k + 1}</text>
+          <text x={N[v]!.x + 18} y={N[v]!.y - 12} className="a-mono" style={{ fontSize: 10.5, fill: "var(--s-amber)" }}>{k + 1}</text>
         </g>
       ))}
       <G o={step === 2 ? 1 : 0}>

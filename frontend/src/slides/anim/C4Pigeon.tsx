@@ -35,9 +35,9 @@ export default function C4Pigeon({ cues }: { cues?: number[] }) {
         </g>
       ))}
       {[0, 1, 2, 3, 4].map((i) => {
-        const c = arr[i];
+        const c = arr[i]!;
         const k = slotInCell(arr, i);
-        const x = placed ? CAGE[c] - 14 + (k % 2) * 28 : 40 + i * 70;
+        const x = placed ? CAGE[c]! - 14 + (k % 2) * 28 : 40 + i * 70;
         const y = placed ? 72 + Math.floor(k / 2) * 26 : 20;
         return <Dot key={i} x={x} y={y} r={10} text="🐇" size={12} stroke="var(--s-blue)" />;
       })}

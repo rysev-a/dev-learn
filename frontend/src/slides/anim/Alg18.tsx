@@ -378,13 +378,13 @@ const GR_C = 5;
 const PATHS = Array.from({ length: GR_R }, () => Array(GR_C).fill(0));
 for (let r = 0; r < GR_R; r++)
   for (let c = 0; c < GR_C; c++)
-    PATHS[r][c] = r === 0 || c === 0 ? 1 : PATHS[r - 1][c] + PATHS[r][c - 1];
+    PATHS[r]![c] = r === 0 || c === 0 ? 1 : PATHS[r - 1]![c] + PATHS[r]![c - 1];
 export const V06 = scene({
   labels: ["Края", "Внутри", "Ответ"],
   caption: [
     "Робот идёт вправо и вниз; в первой строке и первом столбце — ровно один путь",
     "В клетку можно прийти сверху или слева: paths[r][c] = paths[r−1][c] + paths[r][c−1]",
-    `В правом нижнем углу — ${PATHS[GR_R - 1][GR_C - 1]} путей; состояние — позиция`,
+    `В правом нижнем углу — ${PATHS[GR_R - 1]![GR_C - 1]} путей; состояние — позиция`,
   ],
   frames: [
     TBL("g", PATHS, {
@@ -517,7 +517,7 @@ export const V08 = scene({
       size: 8,
       anchor: "start",
     }),
-    Tx("t", 180, 150, `текущая ${KB[i][0]} · лучшая ${KB[i][1]}`, {
+    Tx("t", 180, 150, `текущая ${KB[i]![0]} · лучшая ${KB[i]![1]}`, {
       mono: true,
       size: 10.5,
       c: k === 3 ? "g" : undefined,
@@ -541,7 +541,7 @@ const KN = Array.from({ length: ITEMS.length + 1 }, () =>
 for (let i = 1; i <= ITEMS.length; i++) {
   const [w, v] = ITEMS[i - 1];
   for (let c = 0; c <= WCAP; c++)
-    KN[i][c] = Math.max(KN[i - 1][c], c >= w ? KN[i - 1][c - w] + v : 0);
+    KN[i]![c] = Math.max(KN[i - 1]![c], c >= w ? KN[i - 1]![c - w] + v : 0);
 }
 export const V09 = scene({
   labels: ["Задача", "Состояние", "Заполнение", "Ответ"],
@@ -549,7 +549,7 @@ export const V09 = scene({
     "Предметы (вес, ценность): (1,1), (3,4), (4,5), (5,7); ёмкость 7",
     "Состояние: первые i предметов и свободная ёмкость c; значение — максимум ценности",
     "Переход: взять предмет или не брать: max(dp[i−1][c], dp[i−1][c−w] + v)",
-    `Лучший ответ — ${KN[ITEMS.length][WCAP]} (предметы 3 и 4): жадность по цене за вес тут ошибается`,
+    `Лучший ответ — ${KN[ITEMS.length]![WCAP]} (предметы 3 и 4): жадность по цене за вес тут ошибается`,
   ],
   frames: [
     [
@@ -613,17 +613,17 @@ const LCS = Array.from({ length: S1.length + 1 }, () =>
 );
 for (let i = 1; i <= S1.length; i++)
   for (let j = 1; j <= S2.length; j++)
-    LCS[i][j] =
+    LCS[i]![j] =
       S1[i - 1] === S2[j - 1]
-        ? LCS[i - 1][j - 1] + 1
-        : Math.max(LCS[i - 1][j], LCS[i][j - 1]);
+        ? LCS[i - 1]![j - 1] + 1
+        : Math.max(LCS[i - 1]![j], LCS[i]![j - 1]);
 export const V10 = scene({
   labels: ["Строки", "Совпадение", "Максимум", "Ответ"],
   caption: [
     "Наибольшая общая подпоследовательность «AGCAT» и «GAC»: таблица по префиксам",
     "Символы равны — диагональ плюс один",
     "Не равны — лучший из «слева» и «сверху»",
-    `Правый нижний угол: длина ${LCS[S1.length][S2.length]}; редакционное расстояние строится так же`,
+    `Правый нижний угол: длина ${LCS[S1.length]![S2.length]}; редакционное расстояние строится так же`,
   ],
   frames: [
     TBL("l", LCS, {
@@ -686,8 +686,8 @@ const PAL = Array.from({ length: PS.length }, () => Array(PS.length).fill(""));
 for (let len = 1; len <= PS.length; len++)
   for (let i = 0; i + len <= PS.length; i++) {
     const j = i + len - 1;
-    PAL[i][j] =
-      PS[i] === PS[j] && (len <= 2 || PAL[i + 1][j - 1] === "✓") ? "✓" : "·";
+    PAL[i]![j] =
+      PS[i] === PS[j] && (len <= 2 || PAL[i + 1]![j - 1] === "✓") ? "✓" : "·";
   }
 export const V11 = scene({
   labels: ["Длина 1", "Длина 2", "Длина 3", "Длина 4"],
@@ -921,12 +921,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8.5,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V17 = scene({
   labels: ["Перекрытие", "Сверху", "Снизу", "Состояние", "Дальше"],

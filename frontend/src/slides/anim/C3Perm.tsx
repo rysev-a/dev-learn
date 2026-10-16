@@ -55,7 +55,7 @@ export default function C3Perm({ cues }: { cues?: number[] }) {
       <G o={step === 2 ? 1 : 0}>
         {CITY.map(([x, y], i) => (
           <g key={i}>
-            <line x1={x} y1={y} x2={CITY[(i + 1) % 6][0]} y2={CITY[(i + 1) % 6][1]} style={{ stroke: "var(--s-accent)", strokeWidth: 1.8, strokeDasharray: "5 3" }} />
+            <line x1={x} y1={y} x2={CITY[(i + 1) % 6]![0]} y2={CITY[(i + 1) % 6]![1]} style={{ stroke: "var(--s-accent)", strokeWidth: 1.8, strokeDasharray: "5 3" }} />
           </g>
         ))}
         {CITY.map(([x, y], i) => (

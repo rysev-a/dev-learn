@@ -29,12 +29,12 @@ export default function C4Props({ cues }: { cues?: number[] }) {
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
       {cells.map(([r, c]) => {
-        const [x, y] = triPos(r, c, 38, 20, 150, 18);
-        const m = mark(r, c);
+        const [x, y] = triPos(r!, c!, 38, 20, 150, 18);
+        const m = mark(r!, c!);
         return (
           <g key={`${r}${c}`}>
             <circle className="a-t" cx={x} cy={y} r="10" style={{ fill: m ? COLOR[m] : "var(--s-panel2)", fillOpacity: m ? 0.35 : 1, stroke: m ? COLOR[m] : "var(--s-border)", strokeWidth: m ? 2 : 1.3 }} />
-            <text x={x} y={y + 3.6} textAnchor="middle" className="a-mono" style={{ fontSize: 9.5 }}>{binom(r, c)}</text>
+            <text x={x} y={y! + 3.6} textAnchor="middle" className="a-mono" style={{ fontSize: 9.5 }}>{binom(r!, c!)}</text>
           </g>
         );
       })}

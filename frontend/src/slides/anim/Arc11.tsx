@@ -179,7 +179,7 @@ export const V02 = scene({
 const logic = (op: number) => {
   const A = 0b10;
   const B = 0b11;
-  const r = [A & B, A | B, A ^ B, ~A & 3][op];
+  const r = [A & B, A | B, A ^ B, ~A & 3][op]!;
   const names = ["A И B", "A ИЛИ B", "A XOR B", "НЕ A"];
   return [
     Tx("an", 60, 28, "A", { size: 9 }),
@@ -195,7 +195,7 @@ const logic = (op: number) => {
         Box(`b${i}`, 140 + i * 24, 52, 20, 22, x, "m", { size: 11 }),
       ),
     Box("op", 100, 100, 70, 24, `Op = ${bin(op)}`, "b", { size: 10 }),
-    Box("alu", 240, 76, 80, 50, names[op], "g", { size: 10 }),
+    Box("alu", 240, 76, 80, 50, names[op]!, "g", { size: 10 }),
     ...bin(r)
       .split("")
       .map((x, i) =>
@@ -258,7 +258,7 @@ const arith = (a: number, b: number, kind: string) => {
         Box(`r${i}`, 270 + i * 24, 60, 20, 22, x, "g", { size: 11 }),
       ),
     Box("co", 290, 110, 90, 24, `Co = ${co}`, co ? "y" : "m", { size: 10 }),
-    Tx("f", 120, 110, ops[kind][2], { size: 10, mono: true }),
+    Tx("f", 120, 110, ops[kind]![2], { size: 10, mono: true }),
     Tx(
       "n",
       180,
@@ -419,7 +419,7 @@ export const V06 = scene({
 const alu2 = (op: number) => {
   const A = 0b10;
   const B = 0b01;
-  const r = [(A + B) & 3, (A - B) & 3, A & B, A | B][op];
+  const r = [(A + B) & 3, (A - B) & 3, A & B, A | B][op]!;
   const names = ["A + B", "A − B", "A И B", "A ИЛИ B"];
   return [
     ...bin(A)
@@ -478,10 +478,10 @@ const flags = (bitsText: string, f: Record<string, number>, note: string, op: st
     .split("")
     .map((x, i) => Box(`r${i}`, 90 + i * 40, 62, 32, 28, x, "g", { size: 13 })),
   Tx("rn", 40, 62, "R", { size: 10 }),
-  ...lamp("z", 80, 118, f["z"], "Z нуль"),
-  ...lamp("n", 150, 118, f["n"], "N знак", "y"),
-  ...lamp("c", 220, 118, f["c"], "C перенос", "y"),
-  ...lamp("v", 290, 118, f["v"], "V перепол.", "r"),
+  ...lamp("z", 80, 118, f["z"]!, "Z нуль"),
+  ...lamp("n", 150, 118, f["n"]!, "N знак", "y"),
+  ...lamp("c", 220, 118, f["c"]!, "C перенос", "y"),
+  ...lamp("v", 290, 118, f["v"]!, "V перепол.", "r"),
   Tx("t", 180, 160, note, { size: 9.5 }),
 ];
 export const V08 = scene({

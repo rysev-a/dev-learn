@@ -55,10 +55,10 @@ export default function C2Partial({ cues }: { cues?: number[] }) {
       {EDGES.map(([a, b], i) => (
         <Arrow
           key={i}
-          x1={line ? PK[a][3] + 22 : PK[a][1]}
-          y1={line ? 90 : PK[a][2] - 12}
-          x2={line ? PK[b][3] - 22 : PK[b][1]}
-          y2={line ? 90 : PK[b][2] + 12}
+          x1={line ? PK[a]![3] + 22 : PK[a]![1]}
+          y1={line ? 90 : PK[a]![2] - 12}
+          x2={line ? PK[b]![3] - 22 : PK[b]![1]}
+          y2={line ? 90 : PK[b]![2] + 12}
           c="m"
           o={step === 2 ? 1 : 0}
         />
@@ -78,7 +78,7 @@ export default function C2Partial({ cues }: { cues?: number[] }) {
         <Txt key={t} x={lx} y={118} o={line ? 1 : 0} mono color="var(--s-accent)">{i + 1}</Txt>
       ))}
       {[0, 1, 2].map((i) => (
-        <Arrow key={i} x1={PK[i][3] + 30} y1={90} x2={PK[i + 1][3] - 30} y2={90} c="g" o={line ? 1 : 0} />
+        <Arrow key={i} x1={PK[i]![3] + 30} y1={90} x2={PK[i + 1]![3] - 30} y2={90} c="g" o={line ? 1 : 0} />
       ))}
       <Txt x={180} y={156} o={step === 2 ? 1 : 0} color="var(--s-red)">utils и net не упорядочены между собой</Txt>
       <Txt x={180} y={156} o={line ? 1 : 0} color="var(--s-accent)">порядок сборки: core → utils → net → app</Txt>

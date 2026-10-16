@@ -219,7 +219,7 @@ export const V04 = scene({
             ? HVAL[n]
             : n,
         ]),
-      ),
+      )!,
       colors: {
         A: k >= 3 ? "g" : "m",
         B: k >= 2 ? "g" : "m",
@@ -238,7 +238,7 @@ export const V04 = scene({
         "h(лист) = 1",
         "h(v) = 1 + max(h(l), h(r))",
         "ответ = 3",
-      ][k],
+      ][k]!,
       { mono: true, size: 11, c: "g" },
     ),
   ]),
@@ -750,8 +750,8 @@ const TR = (shown: string|string[], hot: Record<string | number, string> = {}): 
   ...TE.filter(([, b]) => shown.includes(b)).map(([a, b]) =>
     edge(
       `te${a}${b}`,
-      { x: TRIE[a][0], y: TRIE[a][1] },
-      { x: TRIE[b][0], y: TRIE[b][1] },
+      { x: TRIE[a]![0], y: TRIE[a]![1] },
+      { x: TRIE[b]![0], y: TRIE[b]![1] },
       { r: 10, c: hot[b] ? "g" : "m", arrow: false },
     ),
   ),
@@ -872,12 +872,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 8.5,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V14 = scene({
   labels: ["Термины", "Шаблон", "Обходы", "Приёмы", "Практика"],

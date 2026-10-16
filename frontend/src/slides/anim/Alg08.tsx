@@ -40,7 +40,7 @@ export const V01 = scene({
       "n",
       180,
       148,
-      ["перебор: n · m", "таблица n × m", "по длине слова"][k],
+      ["перебор: n · m", "таблица n × m", "по длине слова"][k]!,
       {
         mono: true,
         size: 10,
@@ -253,7 +253,7 @@ export const V06 = scene({
       "n",
       180,
       156,
-      ["s = abcabcabc", "π[последний] = 6", "9 − 6 = 3: «abc» × 3"][k],
+      ["s = abcabcabc", "π[последний] = 6", "9 − 6 = 3: «abc» × 3"][k]!,
       {
         mono: true,
         size: 10,
@@ -311,7 +311,7 @@ export const V07 = scene({
         "z[4] = 3: «aab» совпало с началом",
         "считаем за один проход",
         "z[5] = z[5 − 4] = z[1] = 1",
-      ][k],
+      ][k]!,
       { mono: true, size: 9.5, c: "y" },
     ),
   ]),
@@ -416,7 +416,7 @@ export const V09 = scene({
         "H: 0, 1, 12, 123, 1234",
         "23 = 123 − 1 · 100",
         "хеш совпал ⇒ сверяем символы",
-      ][k],
+      ][k]!,
       { mono: true, size: 10, c: "y" },
     ),
   ]),
@@ -490,8 +490,8 @@ const trie = (nodeC: Record<string, string>, edgeC: Record<string, string>, note
   ...TE.map(([a, b]) =>
     edge(
       `e${a}${b}`,
-      { x: TN[a][0], y: TN[a][1] },
-      { x: TN[b][0], y: TN[b][1] },
+      { x: TN[a]![0], y: TN[a]![1] },
+      { x: TN[b]![0], y: TN[b]![1] },
       { r: 11, c: edgeC[`${a}${b}`] ?? "m" },
     ),
   ),
@@ -568,7 +568,7 @@ const lev = (stage: number, note: string) => {
         y: 62 + 28 * i,
         w: 36,
         h: 24,
-        text: LV[i][j],
+        text: LV[i]![j],
         c,
         o: shown && !hide ? 1 : 0,
       });

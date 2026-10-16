@@ -18,13 +18,13 @@ const LIST = (
       h: rowH - 6,
       c: i === k ? "g" : "n",
     },
-    Tx(`a${i}`, 24, y0 + 4 + i * rowH, a, {
+    Tx(`a${i}`, 24, y0 + 4 + i * rowH, a!, {
       mono: true,
       size: 9.5,
       anchor: "start",
       c: i === k ? "g" : undefined,
     }),
-    Tx(`d${i}`, 340, y0 + 4 + i * rowH, b, {
+    Tx(`d${i}`, 340, y0 + 4 + i * rowH, b!, {
       size: 8.5,
       anchor: "end",
       o: i === k ? 1 : 0.5,
@@ -106,7 +106,7 @@ export const V01 = scene({
       "t",
       180,
       160,
-      ["", "выбираем большее 5 → 1 = 6", "оптимальный путь 3 → 9 = 12"][k],
+      ["", "выбираем большее 5 → 1 = 6", "оптимальный путь 3 → 9 = 12"][k]!,
       { mono: true, size: 10, c: k === 2 ? "y" : "g" },
     ),
   ]),
@@ -292,10 +292,10 @@ function huffSteps(): HuffStep[] {
   while (q.length > 1) {
     q.sort((a, b) => a.v - b.v);
     const [a, b] = q;
-    q = [{ k: a.k + b.k, v: a.v + b.v }, ...q.slice(2)];
+    q = [{ k: a!.k + b!.k, v: a!.v + b!.v }, ...q.slice(2)];
     steps.push({
       q: [...q].sort((x, y) => x.v - y.v),
-      t: `сливаем ${a.k}${a.v} и ${b.k}${b.v} → ${a.v + b.v}`,
+      t: `сливаем ${a!.k}${a!.v} и ${b!.k}${b!.v} → ${a!.v + b!.v}`,
     });
   }
   return steps;
@@ -603,10 +603,10 @@ const near = (() => {
   const order = [0];
   left.delete(0);
   while (left.size) {
-    const [cx, cy] = PTS[order[order.length - 1]];
+    const [cx, cy] = PTS[order[order.length - 1]!];
     let best: [number, number] | null = null;
     for (const i of left) {
-      const d = Math.hypot(PTS[i][0] - cx, PTS[i][1] - cy);
+      const d = Math.hypot(PTS[i]![0] - cx, PTS[i]![1] - cy);
       if (best === null || d < best[1]) best = [i, d];
     }
     if (!best) break;
@@ -616,8 +616,8 @@ const near = (() => {
   return order;
 })();
 const pathD = (order: number[]) =>
-  order.map((i, k) => `${k ? "L" : "M"}${PTS[i][0]} ${PTS[i][1]}`).join(" ") +
-  ` L${PTS[order[0]][0]} ${PTS[order[0]][1]}`;
+  order.map((i, k) => `${k ? "L" : "M"}${PTS[i]![0]} ${PTS[i]![1]}`).join(" ") +
+  ` L${PTS[order[0]!]![0]} ${PTS[order[0]!]![1]}`;
 export const V10 = scene({
   labels: ["Задача", "Ближайший сосед", "Хорошо, не точно"],
   caption: [

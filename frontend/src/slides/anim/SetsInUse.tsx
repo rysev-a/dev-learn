@@ -42,7 +42,7 @@ export default function SetsInUse({ cues }: { cues?: number[] }) {
           return (
             <Dot
               key={k}
-              x={to ? BUCKET[v] : 70 + k * 55}
+              x={(to ? BUCKET[v] : 70 + k * 55)!}
               y={to ? 120 : 44}
               text={v}
               stroke={dup && to ? "var(--s-amber)" : "var(--s-muted)"}

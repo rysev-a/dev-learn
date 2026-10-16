@@ -32,7 +32,7 @@ export default function C4Hash({ cues }: { cues?: number[] }) {
         {KEYS.map((c, i) => {
           const k = stack(KEYS, i);
           const placed = step >= 1;
-          const x = placed ? CELL[c] - 12 + (k % 2) * 24 : 40 + i * 56;
+          const x = placed ? CELL[c]! - 12 + (k % 2) * 24 : 40 + i * 56;
           const y = placed ? 106 + Math.floor(k / 2) * 18 : 30;
           return <Dot key={i} x={x} y={y} r={8} text={i + 1} size={8} stroke={c === 1 && placed ? "var(--s-red)" : "var(--s-accent)"} />;
         })}
@@ -81,7 +81,7 @@ export default function C4Hash({ cues }: { cues?: number[] }) {
             {[0, 1, 2, 3].map((c) => {
               const h = j === 0 ? [30, 28, 32, 30][c] : [74, 20, 18, 8][c];
               return (
-                <rect key={c} className="a-t" x={46 + j * 180 + c * 24} y={130 - (step === 3 ? h : 0)} width="18" height={step === 3 ? h : 0} rx="3" style={{ fill: j ? "var(--s-red)" : "var(--s-accent)", fillOpacity: 0.4, stroke: j ? "var(--s-red)" : "var(--s-accent)" }} />
+                <rect key={c} className="a-t" x={46 + j * 180 + c * 24} y={130 - (step === 3 ? h : 0)!} width="18" height={step === 3 ? h : 0} rx="3" style={{ fill: j ? "var(--s-red)" : "var(--s-accent)", fillOpacity: 0.4, stroke: j ? "var(--s-red)" : "var(--s-accent)" }} />
               );
             })}
           </g>

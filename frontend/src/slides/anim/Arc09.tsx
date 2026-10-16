@@ -156,8 +156,8 @@ export const V02 = scene({
           46 + i * 28,
           150,
           22,
-          `${a}  ${b}    ${a & b}    ${a ^ b}`,
-          a & b ? "g" : "m",
+          `${a}  ${b}    ${a! & b!}    ${a! ^ b!}`,
+          a! & b! ? "g" : "m",
           { size: 11 },
         ),
       ),
@@ -317,7 +317,7 @@ const ripple = (k: number, all: boolean) => {
           [xi(i) - 12, 32],
           [xi(i) - 12, 55],
         ],
-        lv(RA[i]),
+        lv(RA[i]!),
       ),
       pl(
         `wb${i}`,
@@ -325,7 +325,7 @@ const ripple = (k: number, all: boolean) => {
           [xi(i) + 12, 32],
           [xi(i) + 12, 55],
         ],
-        lv(RB[i]),
+        lv(RB[i]!),
       ),
       pl(
         `ws${i}`,
@@ -333,7 +333,7 @@ const ripple = (k: number, all: boolean) => {
           [xi(i), 97],
           [xi(i), 120],
         ],
-        done ? lv(RS[i]) : "m",
+        done ? lv(RS[i]!) : "m",
       ),
       bit(`s${i}`, xi(i), 132, RS[i], {
         w: 22,
@@ -348,7 +348,7 @@ const ripple = (k: number, all: boolean) => {
           [xi(i) + 28, 76],
           [xi(i) + 52, 76],
         ],
-        i === 0 ? "m" : i <= k || all ? lv(RIPPLE_C[i]) : "m",
+        i === 0 ? "m" : i <= k || all ? lv(RIPPLE_C[i]!) : "m",
       ),
     );
   }
@@ -636,8 +636,8 @@ export const V08 = scene({
           44 + i * 28,
           150,
           22,
-          `${a}  ${b}    ${a ^ b}     ${(1 - a) & b}`,
-          (1 - a) & b ? "y" : "m",
+          `${a}  ${b}    ${a! ^ b!}     ${(1 - a!) & b!}`,
+          (1 - a!) & b! ? "y" : "m",
           { size: 11 },
         ),
       ),

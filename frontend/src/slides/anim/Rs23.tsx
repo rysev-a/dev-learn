@@ -320,7 +320,7 @@ export const V08 = scene({
         ["Acquire / Release", "y"],
         ["SeqCst", "r"],
       ].map(([t, c], i) =>
-        Box(`o${i}`, 90, 40 + i * 36, 150, 26, t, c, { size: 9.5 }),
+        Box(`o${i}`, 90, 40 + i * 36, 150, 26, t!, c, { size: 9.5 }),
       ),
       Tx("a", 270, 52, "дёшево", { size: 9, c: "g" }),
       Tx("b", 270, 124, "дорого", { size: 9, c: "r" }),
@@ -438,7 +438,7 @@ export const V11 = scene({
           x: 50 + i * 62,
           y: 124,
           w: 34,
-          hh: s * 13,
+          hh: s! * 13,
           max: 100,
           c: "b",
           text: "",

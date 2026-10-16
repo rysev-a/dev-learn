@@ -121,7 +121,7 @@ const lat = (clk: number[], d: number[], en: number) => {
   const q: number[] = [];
   let cur = 0;
   clk.forEach((c, i) => {
-    if (c === en) cur = d[i];
+    if (c === en) cur = d[i]!;
     q.push(cur);
   });
   return q;

@@ -288,7 +288,7 @@ export const V03 = scene({
 const I = [0, 1, 1, 0];
 const m4 = (s1: number, s0: number) => {
   const sel = s1 * 2 + s0;
-  const y = I[sel];
+  const y = I[sel]!;
   const pa = Math.floor(sel / 2);
   const on = (i: number) => i === sel;
   return [
@@ -761,7 +761,7 @@ const enc = (inp: number[]) => {
           [62, 34 + i * 28],
           [138, 34 + i * 28],
         ],
-        lv(inp[3 - i]),
+        lv(inp[3 - i]!),
       ),
     ),
     pl(
@@ -810,7 +810,7 @@ export const V09 = scene({
 const lut = (a: number, b: number) => {
   const T = [0, 1, 1, 0];
   const sel = a * 2 + b;
-  const y = T[sel];
+  const y = T[sel]!;
   return [
     ...mux("m", 170, 76, 56, 112, "b", "4→1"),
     ...T.map((v, i) => bit(`t${i}`, 60, 34 + i * 28, v)),

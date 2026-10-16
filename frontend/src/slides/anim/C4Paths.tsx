@@ -35,7 +35,7 @@ export default function C4Paths({ cues }: { cues?: number[] }) {
             return (
               <g key={`${r}${c}`}>
                 <circle cx={x} cy={y} r="12" className="a-t" style={{ fill: onPath ? "var(--s-green)" : "var(--s-panel2)", stroke: onPath ? "var(--s-accent)" : "var(--s-border)", strokeWidth: onPath ? 2 : 1.3 }} />
-                <text x={x} y={y + 3.6} textAnchor="middle" className="a-mono" style={{ fontSize: 10 }}>{binom(r, c)}</text>
+                <text x={x} y={y! + 3.6} textAnchor="middle" className="a-mono" style={{ fontSize: 10 }}>{binom(r, c)}</text>
               </g>
             );
           }),

@@ -30,7 +30,7 @@ export default function C3Pairs({ cues }: { cues?: number[] }) {
 
       <G o={step === 1 ? 1 : 0}>
         {edges(10).map(([a, b], i) => (
-          <line key={i} className="a-t" x1={P10[a][0]} y1={P10[a][1]} x2={P10[b][0]} y2={P10[b][1]} style={{ stroke: "var(--s-accent)", strokeWidth: 1, opacity: step === 1 ? 0.5 : 0, transitionDelay: `${i * 25}ms` }} />
+          <line key={i} className="a-t" x1={P10[a!]![0]} y1={P10[a!]![1]} x2={P10[b!]![0]} y2={P10[b!]![1]} style={{ stroke: "var(--s-accent)", strokeWidth: 1, opacity: step === 1 ? 0.5 : 0, transitionDelay: `${i * 25}ms` }} />
         ))}
         {P10.map(([x, y], i) => (
           <circle key={i} cx={x} cy={y} r="6" style={{ fill: "var(--s-panel2)", stroke: "var(--s-blue)", strokeWidth: 1.8 }} />
@@ -50,10 +50,10 @@ export default function C3Pairs({ cues }: { cues?: number[] }) {
 
       <G o={step >= 3 ? 1 : 0}>
         {edges(7).map(([a, b], i) => (
-          <line key={i} x1={P7[a][0]} y1={P7[a][1]} x2={P7[b][0]} y2={P7[b][1]} style={{ stroke: "var(--s-amber)", strokeWidth: 1, opacity: 0.5 }} />
+          <line key={i} x1={P7[a!]![0]} y1={P7[a!]![1]} x2={P7[b!]![0]} y2={P7[b!]![1]} style={{ stroke: "var(--s-amber)", strokeWidth: 1, opacity: 0.5 }} />
         ))}
         {P7.map(([x, y], i) => (
-          <rect key={i} x={x - 6} y={y - 6} width="12" height="12" rx="3" style={{ fill: "var(--s-panel2)", stroke: "var(--s-amber)", strokeWidth: 1.8 }} />
+          <rect key={i} x={x! - 6} y={y! - 6} width="12" height="12" rx="3" style={{ fill: "var(--s-panel2)", stroke: "var(--s-amber)", strokeWidth: 1.8 }} />
         ))}
         <Txt x={62} y={86} mono size={11}>100 серверов</Txt>
         <Txt x={298} y={84} mono size={18} color="var(--s-amber)">4 950</Txt>

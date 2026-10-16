@@ -34,7 +34,7 @@ export default function C2Intro({ cues }: { cues?: number[] }) {
           <Pill key={n} x={120} y={50 + i * 40} w={52} text={n} stroke="var(--s-accent)" />
         ))}
         {LINKS.map((c, i) => (
-          <Arrow key={i} x1={58} y1={ORDERS[i][1]} x2={92} y2={50 + c * 40} c="g" />
+          <Arrow key={i} x1={58} y1={ORDERS[i]![1]} x2={92} y2={50 + c * 40} c="g" />
         ))}
       </G>
       <G o={fun * dim}>

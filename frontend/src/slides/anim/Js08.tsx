@@ -535,7 +535,7 @@ export const V11 = scene({
         ["{ value: 2, done: false }", "g"],
         ["{ value: undefined, done: true }", "y"],
       ].map(([t, c], i) =>
-        Box(`n${i}`, 180, 36 + i * 40, 230, 28, t, c, {
+        Box(`n${i}`, 180, 36 + i * 40, 230, 28, t!, c, {
           size: 9.5,
           mono: true,
         }),

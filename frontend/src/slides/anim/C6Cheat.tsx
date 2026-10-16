@@ -31,7 +31,7 @@ export default function C6Cheat({ cues }: { cues?: number[] }) {
           <g key={i} className="a-t" style={{ opacity: step === 0 ? 0.35 : row ? 1 : 0.2 }}>
             <text x="46" y={72 + i * 48} textAnchor="middle" className="a-mono" style={{ fontSize: 28, fill: "var(--s-accent)" }}>{q}</text>
             {[a, b].map((t, j) => {
-              const ch = cheap[j];
+              const ch = cheap![j];
               const hl = step >= 4;
               return (
                 <g key={j}>

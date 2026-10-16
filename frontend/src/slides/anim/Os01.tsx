@@ -27,7 +27,7 @@ const layers = (n: number): SceneItem[] => [
     ),
     ...If(i < 3, Ar(`la${i}`, 110, 41 + i * 38, 110, 49 + i * 38, "m")),
   ]),
-  Tx("side", 300, 82, LAYERS[Math.max(n - 1, 0)][1], {
+  Tx("side", 300, 82, LAYERS[Math.max(n - 1, 0)]![1], {
     size: 9,
     mono: true,
     c: "g",
@@ -571,7 +571,7 @@ const wk = (n: number): SceneItem[] => [
     Bx("d2", 160, 76, 46, 20, "dentry", "b"),
     Bx("d3", 240, 76, 74, 20, "dentry", n >= 2 ? "b" : "y", { dash: n < 2 }),
     ...[0, 1, 2, 3].map((i) =>
-      Ar(`q${i}`, [40, 98, 160, 240][i], 38, [40, 98, 160, 240][i], 65, "m"),
+      Ar(`q${i}`, [40, 98, 160, 240][i]!, 38, [40, 98, 160, 240][i]!, 65, "m"),
     ),
   ),
   ...If(

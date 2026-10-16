@@ -89,7 +89,7 @@ export const V04 = scene({
 // 5. Устройства в ядре
 const KD = (n: number): SceneItem[] => [
   Zn("kz", 110, 80, 190, 124, "ядро: быстрые устройства", "n"),
-  ...[["lapic", "LAPIC"], ["ioapic", "IOAPIC"], ["pit", "PIT"], ["efd", "ioeventfd / irqfd"]].slice(0, n + 1).map(([id, t], i) => Bx(id, 110, 50 + i * 28, 130, 22, t, "g", { size: 9 })),
+  ...[["lapic", "LAPIC"], ["ioapic", "IOAPIC"], ["pit", "PIT"], ["efd", "ioeventfd / irqfd"]].slice(0, n + 1).map(([id, t], i) => Bx(id!, 110, 50 + i * 28, 130, 22, t!, "g", { size: 9 })),
   Bx("q", 300, 80, 100, 44, "QEMU", "y"),
   ...(n === 0 ? [Ar("r", 200, 80, 250, 80, "r"), Tx("t", 180, 160, "каждое прерывание — выход в QEMU", { size: 9, c: "r" })] : []),
   ...(n === 3 ? [Tx("t", 180, 160, "в QEMU остаётся редкое и сложное", { size: 9, c: "g" })] : []),

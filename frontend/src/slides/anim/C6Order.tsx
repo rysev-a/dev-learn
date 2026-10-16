@@ -28,7 +28,7 @@ export default function C6Order({ cues }: { cues?: number[] }) {
           </g>
         ))}
         {P.map((y, i) => (
-          <Arrow key={`a${i}`} x1={94} y1={y} x2={266} y2={step === 1 ? y : P[0]} c={step === 1 ? "g" : "r"} o={show ? 1 : 0} />
+          <Arrow key={`a${i}`} x1={94} y1={y} x2={266} y2={(step === 1 ? y : P[0])!} c={step === 1 ? "g" : "r"} o={show ? 1 : 0} />
         ))}
         <Txt x={180} y={154} mono size={12} o={step === 1 ? 1 : 0} color="var(--s-accent)">у каждого — своя мама</Txt>
         <Txt x={180} y={154} mono size={12} o={step === 2 ? 1 : 0} color="var(--s-red)">одна мама у всех — абсурд</Txt>

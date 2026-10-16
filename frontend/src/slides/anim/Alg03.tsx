@@ -99,7 +99,7 @@ export const V01 = scene({
         o: 0.5,
       }),
       ...chain("ln", [4, 8, 1, 6, 3], {
-        pos: (i) => SC[i],
+        pos: ((i) => SC[i])!,
         arrows: false,
         w: 40,
         c: () => "g",
@@ -125,7 +125,7 @@ export const V01 = scene({
         o: 0.5,
       }),
       ...chain("ln", [4, 8, 1, 6, 3], {
-        pos: (i) => SC[i],
+        pos: ((i) => SC[i])!,
         w: 40,
         c: () => "g",
       }),
@@ -142,7 +142,7 @@ export const V01 = scene({
     ],
     [
       ...chain("ln", [4, 8, 1, 6, 3], {
-        pos: (i) => SC[i],
+        pos: ((i) => SC[i])!,
         w: 40,
         c: () => "m",
         o: 0.35,
@@ -399,9 +399,9 @@ const RN = (flags: boolean[]): SceneItem[] =>
 const fwd = (i: number): SceneItem => ({
   t: "line",
   id: `f${i}`,
-  x1: RX[i] + 15,
+  x1: RX[i]! + 15,
   y1: RY,
-  x2: RX[i + 1] - 24,
+  x2: RX[i + 1]! - 24,
   y2: RY,
   c: "g",
   arrow: true,
@@ -409,9 +409,9 @@ const fwd = (i: number): SceneItem => ({
 const back = (i: number): SceneItem => ({
   t: "line",
   id: `b${i}`,
-  x1: RX[i + 1] - 22,
+  x1: RX[i + 1]! - 22,
   y1: RY + 8,
-  x2: RX[i] + 20,
+  x2: RX[i]! + 20,
   y2: RY + 8,
   c: "y",
   arrow: true,
@@ -431,7 +431,7 @@ export const V05 = scene({
       ...RN([false, false, true]),
       fwd(0),
       fwd(1),
-      P("cur", RX[0], RY - 16, "cur", "y"),
+      P("cur", RX[0]!, RY - 16, "cur", "y"),
       {
         t: "text",
         id: "pv",
@@ -446,20 +446,20 @@ export const V05 = scene({
     [
       ...RN([true, false, true]),
       fwd(1),
-      P("prev", RX[0], RY - 16, "prev", "g"),
-      P("cur", RX[1], RY - 16, "cur", "y"),
+      P("prev", RX[0]!, RY - 16, "prev", "g"),
+      P("cur", RX[1]!, RY - 16, "cur", "y"),
     ],
     [
       ...RN([true, false, true]),
       back(0),
-      P("prev", RX[1], RY - 16, "prev", "g"),
-      P("cur", RX[2], RY - 16, "cur", "y"),
+      P("prev", RX[1]!, RY - 16, "prev", "g"),
+      P("cur", RX[2]!, RY - 16, "cur", "y"),
     ],
     [
       ...RN([true, false, false]),
       back(0),
       back(1),
-      P("prev", RX[2], RY - 16, "prev", "g"),
+      P("prev", RX[2]!, RY - 16, "prev", "g"),
       {
         t: "text",
         id: "cu",
@@ -474,7 +474,7 @@ export const V05 = scene({
       ...RN([true, false, false]).map((n): SceneItem => ({ ...n, c: "g" })),
       back(0),
       back(1),
-      P("head", RX[2], RY - 16, "head", "g"),
+      P("head", RX[2]!, RY - 16, "head", "g"),
       {
         t: "text",
         id: "tt",
@@ -547,7 +547,7 @@ const CP = {
 };
 const CNODES = (c: Tint = {}): SceneItem[] =>
   Object.entries(CP).map(([id, [x, y]]): SceneItem =>
-    N(id, x, y, id.slice(1), c[id] ?? "m"),
+    N(id, x!, y!, id.slice(1), c[id] ?? "m"),
   );
 const CEDGES = (): SceneItem[] => [
   Lk("e01", { x: 30, y: 44 }, { x: 90, y: 44 }),
@@ -727,14 +727,14 @@ const DX = [50, 128, 206, 284];
 const DY = 54;
 const DN = (c: Tint = {}): SceneItem[] =>
   ["A", "B", "C", "D"].map((t, i): SceneItem =>
-    N(t, DX[i], DY, t, c[t] ?? "m", { nil: false }),
+    N(t, DX[i]!, DY, t, c[t] ?? "m", { nil: false }),
   );
 const fw = (i: number, o = 1, c = "g"): SceneItem => ({
   t: "line",
   id: `fw${i}`,
-  x1: DX[i] + 14,
+  x1: DX[i]! + 14,
   y1: DY - 5,
-  x2: DX[i + 1] - 24,
+  x2: DX[i + 1]! - 24,
   y2: DY - 5,
   c,
   arrow: true,
@@ -743,9 +743,9 @@ const fw = (i: number, o = 1, c = "g"): SceneItem => ({
 const bw = (i: number, o = 1, c = "b"): SceneItem => ({
   t: "line",
   id: `bw${i}`,
-  x1: DX[i + 1] - 24,
+  x1: DX[i + 1]! - 24,
   y1: DY + 6,
-  x2: DX[i] + 20,
+  x2: DX[i]! + 20,
   y2: DY + 6,
   c,
   arrow: true,
@@ -769,7 +769,7 @@ export const V09 = scene({
       bw(0),
       bw(1),
       bw(2),
-      P("sel", DX[1], DY - 18, "node", "r"),
+      P("sel", DX[1]!, DY - 18, "node", "r"),
     ],
     [
       ...DN({ B: "r", A: "g", C: "g" }).map((n): SceneItem =>
@@ -784,9 +784,9 @@ export const V09 = scene({
       {
         t: "line",
         id: "skipf",
-        x1: DX[0] + 14,
+        x1: DX[0]! + 14,
         y1: DY - 7,
-        x2: DX[2] - 24,
+        x2: DX[2]! - 24,
         y2: DY - 7,
         c: "y",
         arrow: true,
@@ -795,9 +795,9 @@ export const V09 = scene({
       {
         t: "line",
         id: "skipb",
-        x1: DX[2] - 24,
+        x1: DX[2]! - 24,
         y1: DY + 7,
-        x2: DX[0] + 20,
+        x2: DX[0]! + 20,
         y2: DY + 7,
         c: "y",
         arrow: true,
@@ -822,9 +822,9 @@ export const V09 = scene({
       {
         t: "line",
         id: "skipf",
-        x1: DX[0] + 14,
+        x1: DX[0]! + 14,
         y1: DY - 7,
-        x2: DX[2] - 24,
+        x2: DX[2]! - 24,
         y2: DY - 7,
         c: "g",
         arrow: true,
@@ -833,9 +833,9 @@ export const V09 = scene({
       {
         t: "line",
         id: "skipb",
-        x1: DX[2] - 24,
+        x1: DX[2]! - 24,
         y1: DY + 7,
-        x2: DX[0] + 20,
+        x2: DX[0]! + 20,
         y2: DY + 7,
         c: "g",
         arrow: true,
@@ -862,7 +862,7 @@ const QX = (i: number) => 30 + 60 * i;
 const QY = 62;
 const qchain = (ids: string[], texts: Record<string, string | number>, c: Tint = {}): SceneItem[] =>
   ids.flatMap((id, i): SceneItem[] => [
-    N(id, QX(i), QY, texts[id], c[id] ?? (id[0] === "s" ? "v" : "m")),
+    N(id, QX(i), QY, texts[id]!, c[id] ?? (id[0] === "s" ? "v" : "m")),
     ...(i < ids.length - 1
       ? [
           Lk(

@@ -34,8 +34,8 @@ export default function C3Password({ cues }: { cues?: number[] }) {
         {LEN.map(([n, lg], i) => (
           <g key={n}>
             <text x="64" y={42 + i * 28} textAnchor="end" className="a-mono" style={{ fontSize: 11 }}>{n} символов</text>
-            <rect className="a-t" x="72" y={30 + i * 28} width={step === 2 ? lg * 9 : 0} height="18" rx="4" style={{ fill: "var(--s-accent)", fillOpacity: 0.35, stroke: "var(--s-accent)", transitionDelay: `${i * 160}ms` }} />
-            <text x={72 + lg * 9 + 6} y={43 + i * 28} className="a-mono" style={{ fontSize: 10, fill: "var(--s-amber)" }}>10^{lg.toFixed(0)}</text>
+            <rect className="a-t" x="72" y={30 + i * 28} width={step === 2 ? lg! * 9 : 0} height="18" rx="4" style={{ fill: "var(--s-accent)", fillOpacity: 0.35, stroke: "var(--s-accent)", transitionDelay: `${i * 160}ms` }} />
+            <text x={72 + lg! * 9 + 6} y={43 + i * 28} className="a-mono" style={{ fontSize: 10, fill: "var(--s-amber)" }}>10^{lg!.toFixed(0)}</text>
           </g>
         ))}
         <Txt x={180} y={152} size={9.5}>длина полосы — порядок числа вариантов</Txt>

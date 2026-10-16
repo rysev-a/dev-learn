@@ -54,7 +54,7 @@ const ME = (n: number) =>
     ["4  одно изменение за раз", "r"],
     ["5  запишите диагноз", "n"],
   ].map(([t, c], i) =>
-    Bx(`m${i}`, 180, 20 + i * 32, 330, 24, t, c, {
+    Bx(`m${i}`, 180, 20 + i * 32, 330, 24, t!, c, {
       size: 9,
       o: i < n ? 1 : 0.2,
     }),
@@ -330,7 +330,7 @@ const WS = (n: number): SceneItem[] => [
       45 + i * 22,
       180,
       16,
-      ["DNS  A www…", "TCP  SYN", "TLS  Client Hello", "HTTP GET /"][i],
+      ["DNS  A www…", "TCP  SYN", "TLS  Client Hello", "HTTP GET /"][i]!,
       ["y", "g", "b", "g"][i],
       { size: 7.5 },
     ),

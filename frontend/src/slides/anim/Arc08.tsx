@@ -119,9 +119,9 @@ const sr = (kind: string, top: number, bot: number, q: number, qb: number, names
     GT("g1", g, A.x, A.y, { s: 1.2, c: "b" }),
     GT("g2", g, B.x, B.y, { s: 1.2, c: "b" }),
     bit("t", 28, 40, top),
-    Tx("tl", 28, 24, names[0], { size: 8.5 }),
+    Tx("tl", 28, 24, names[0]!, { size: 8.5 }),
     bit("u", 28, 126, bot),
-    Tx("ul", 28, 142, names[1], { size: 8.5 }),
+    Tx("ul", 28, 142, names[1]!, { size: 8.5 }),
     pl(
       "wt",
       [

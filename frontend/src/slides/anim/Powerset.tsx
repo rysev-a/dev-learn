@@ -77,17 +77,17 @@ export default function Powerset({ cues }: { cues?: number[] }) {
           />
         ))}
         {NAMES.map((n, l) => (
-          <text key={n} x={(X[l] + X[l + 1]) / 2} y="12" textAnchor="middle" className="a-mono" style={{ fontSize: 10.5 }}>
+          <text key={n} x={(X[l]! + X[l + 1]!) / 2} y="12" textAnchor="middle" className="a-mono" style={{ fontSize: 10.5 }}>
             {n}?
           </text>
         ))}
         {Array.from({ length: 8 }, (_, i) => (
           <g key={i}>
             <circle cx={X[3]} cy={leafY(i)} r="3" style={{ fill: "var(--s-accent)" }} />
-            <text x={X[3] + 9} y={leafY(i) + 3.5} className="a-mono a-t" style={{ fontSize: 9.5, opacity: step === 4 ? 0 : 1 }}>
+            <text x={X[3]! + 9} y={leafY(i) + 3.5} className="a-mono a-t" style={{ fontSize: 9.5, opacity: step === 4 ? 0 : 1 }}>
               {subset(i)}
             </text>
-            <text x={X[3] + 9} y={leafY(i) + 3.5} className="a-mono a-t" style={{ fontSize: 9.5, opacity: step === 4 ? 1 : 0, fill: "var(--s-amber)" }}>
+            <text x={X[3]! + 9} y={leafY(i) + 3.5} className="a-mono a-t" style={{ fontSize: 9.5, opacity: step === 4 ? 1 : 0, fill: "var(--s-amber)" }}>
               {bits(i)} = {subset(i)}
             </text>
           </g>

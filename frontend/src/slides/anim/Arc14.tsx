@@ -274,7 +274,7 @@ const fetch = (pc: number, take: number, k: number) => {
       ],
       "m",
     ),
-    Box("cm", 290, 76, 80, 30, PROG[pc][0], "g", { size: 12 }),
+    Box("cm", 290, 76, 80, 30, PROG[pc]![0], "g", { size: 12 }),
     Tx("cl", 290, 58, "команда", { size: 8.5 }),
     pl(
       "w2",

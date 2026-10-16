@@ -30,7 +30,7 @@ const LIST = [
 export default function ListVsSet({ cues }: { cues?: number[] }) {
   const ctl = useSteps(cues || [1.8, 8.5, 13.4, 20.4], 2800);
   const { step } = ctl;
-  const shift = [0, 0, 1, 1, 2][step];
+  const shift = [0, 0, 1, 1, 2][step]!;
   const [dx, dy] = SET_SLOTS[shift % 3];
   return (
     <Steps ctl={ctl} labels={LABELS} caption={CAPTION}>
@@ -69,8 +69,8 @@ export default function ListVsSet({ cues }: { cues?: number[] }) {
       {LIST.map((it) => {
         const k = step >= 4 ? it.p[1] : it.p[0];
         return (
-          <G key={it.id} x={0} y={52 + k * 25} o={step >= 3 ? 1 : 0}>
-            <text x="28" y="3.7" textAnchor="middle" className="a-mono">{k + 1}</text>
+          <G key={it.id} x={0} y={52 + k! * 25} o={step >= 3 ? 1 : 0}>
+            <text x="28" y="3.7" textAnchor="middle" className="a-mono">{k! + 1}</text>
             <Pill x={85} y={0} w={56} text={it.n} stroke={it.n === "Аня" ? "var(--s-amber)" : "var(--s-border)"} />
           </G>
         );

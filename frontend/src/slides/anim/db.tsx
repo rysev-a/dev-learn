@@ -29,7 +29,7 @@ export const tbl = (
   const items: SceneItem[] = [];
   let cx = x;
   head.forEach((h, j) => {
-    const w = widths[j];
+    const w = widths[j]!;
     items.push(
       cell(`${id}-h${j}`, cx + w / 2, y, h, "y", { w: w - 2, h: ch, size }),
     );
@@ -38,7 +38,7 @@ export const tbl = (
   rows.forEach((r, i) => {
     let px = x;
     r.forEach((v, j) => {
-      const w = widths[j];
+      const w = widths[j]!;
       items.push(
         cell(
           `${id}-r${i}c${j}`,

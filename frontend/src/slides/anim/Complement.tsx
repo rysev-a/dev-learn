@@ -61,8 +61,8 @@ export default function Complement({ cues }: { cues?: number[] }) {
         return (
           <Dot
             key={i}
-            x={x}
-            y={y}
+            x={x!}
+            y={y!}
             r={9}
             stroke={hl ? (adm ? "var(--s-blue)" : "var(--s-amber)") : "var(--s-muted)"}
             fill={hl ? (adm ? "var(--s-blue)" : "var(--s-amber)") : "var(--s-panel2)"}

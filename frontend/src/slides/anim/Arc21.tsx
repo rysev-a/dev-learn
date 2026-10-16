@@ -115,7 +115,7 @@ export const V02 = scene({
             56 + i * 20,
             64,
             16,
-            ["GPU", "SSD", "сеть"][i],
+            ["GPU", "SSD", "сеть"][i]!,
             "b",
             { size: 8 },
           ),
@@ -425,7 +425,7 @@ const sched = (pts: number[], label: string, total: number) => [
     pl(
       `s${i}`,
       [
-        [track(pts[i]), 56 + (i % 2) * 6],
+        [track(pts[i]!), 56 + (i % 2) * 6],
         [track(t), 56 + ((i + 1) % 2) * 6],
       ],
       "g",

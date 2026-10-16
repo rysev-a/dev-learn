@@ -148,7 +148,7 @@ export const V03 = scene({
       o: (i) => (k >= 2 && i === 5 ? 0.35 : 1),
     }),
     ...[0, 1, 2, 3, 4].map((i) =>
-      Tx(`s${i}`, SX(i), 60, `${SA[i]}+11=${SA[i] + 11}`, {
+      Tx(`s${i}`, SX(i), 60, `${SA[i]}+11=${SA[i]! + 11}`, {
         size: 8,
         c: "r",
         o: k === 1 ? 1 : 0,
@@ -163,7 +163,7 @@ export const V03 = scene({
         "все суммы с 11 больше 10",
         "hi − 1: элемент 11 больше не нужен",
         "n шагов вместо n² пар",
-      ][k],
+      ][k]!,
       { mono: true, size: 11, c: k >= 2 ? "g" : "r" },
     ),
   ]),
@@ -189,9 +189,9 @@ const CNT = (lo: number, hi: number, area: number, best: number): SceneItem[] =>
     t: "box",
     id: "water",
     x: (BX(lo) + BX(hi)) / 2,
-    y: 130 - (Math.min(H[lo], H[hi]) * U) / 2,
+    y: 130 - (Math.min(H[lo]!, H[hi]!) * U) / 2,
     w: (hi - lo) * 34,
-    h: Math.min(H[lo], H[hi]) * U,
+    h: Math.min(H[lo]!, H[hi]!) * U,
     c: "b",
   },
   P("lo", BX(lo), 142, "lo", "g", "up"),
@@ -845,12 +845,12 @@ const RC = (k: number): SceneItem[] =>
       h: 66,
       c: k === i ? "g" : "n",
     },
-    Tx(`t${i}`, 36 + i * 72, 76, t, {
+    Tx(`t${i}`, 36 + i * 72, 76, t!, {
       mono: true,
       size: 7.5,
       c: k === i ? "g" : undefined,
     }),
-    Tx(`c${i}`, 36 + i * 72, 96, c, { size: 7.5, o: k === i ? 1 : 0.5 }),
+    Tx(`c${i}`, 36 + i * 72, 96, c!, { size: 7.5, o: k === i ? 1 : 0.5 }),
   ]);
 export const V14 = scene({
   labels: [

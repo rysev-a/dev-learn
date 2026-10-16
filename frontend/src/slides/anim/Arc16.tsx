@@ -120,7 +120,7 @@ const fmt = (k: string, ex: string) => {
   const items = [
     Tx("t", 180, 20, `формат ${k}: ${ex}`, { size: 10, mono: true }),
   ];
-  FM[k].forEach(([n, w], i) => {
+  FM[k]!.forEach(([n, w], i) => {
     const px = (w / 32) * 320;
     items.push(
       Box(`f${i}`, x + px / 2, 66, px - 2, 34, `${n}\n${w}`, CLR[n] ?? "m", {
@@ -384,7 +384,7 @@ const stack = (n: number): SceneItem[] => [
           "кадр fact(2): ra, n",
           "кадр fact(1): ra, n",
           "fact(0) = 1",
-        ][i],
+        ][i]!,
         i === n - 1 ? "g" : "b",
         { size: 9 },
       ),
@@ -408,7 +408,7 @@ const stack = (n: number): SceneItem[] => [
       "addi sp, sp, -16\nsw ra, 12(sp)",
       "jal fact",
       "возврат: умножаем\nи снимаем кадры",
-    ][Math.min(n, 3)],
+    ][Math.min(n, 3)]!,
     { size: 9, mono: true, anchor: "start" },
   ),
 ];

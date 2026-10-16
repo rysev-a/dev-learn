@@ -102,7 +102,7 @@ export const V02 = scene({
 const FA = [2, 5, 1, 4, 3, 6, 2, 7];
 const fsum = (i: number) => {
   let s = 0;
-  for (let j = i - (i & -i) + 1; j <= i; j++) s += FA[j - 1];
+  for (let j = i - (i & -i) + 1; j <= i; j++) s += FA[j - 1]!;
   return s;
 };
 const FX = (l: number, r: number) => 62 + 38 * ((l + r) / 2 - 1);

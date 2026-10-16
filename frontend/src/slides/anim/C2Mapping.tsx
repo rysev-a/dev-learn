@@ -36,20 +36,20 @@ export default function C2Mapping({ cues }: { cues?: number[] }) {
         <Dot key={`r${i}`} x={RX} y={y} text={[1, 2, 3, 4][i]} o={i < nr ? 1 : 0} stroke="var(--s-amber)" />
       ))}
       {[1, 2, 3].map((kk) =>
-        KIND[kk][2].map(([a, b], i) => (
+        KIND[kk]![2].map(([a, b], i) => (
           <Arrow
             key={`${kk}-${i}`}
             x1={LX + 14}
-            y1={SLOT[a]}
+            y1={SLOT[a]!}
             x2={RX - 14}
-            y2={SLOT[b]}
+            y2={SLOT[b]!}
             c={kk === 1 ? "g" : kk === 2 ? "y" : "b"}
             o={(step === 0 ? kk === 3 : step === kk) ? 1 : 0}
           />
         )),
       )}
-      {KIND[4][2].map(([a, b], i) => (
-        <Arrow key={`inv${i}`} x1={RX - 14} y1={SLOT[b]} x2={LX + 14} y2={SLOT[a]} c="g" o={step === 4 ? 1 : 0} />
+      {KIND[4]![2].map(([a, b], i) => (
+        <Arrow key={`inv${i}`} x1={RX - 14} y1={SLOT[b]!} x2={LX + 14} y2={SLOT[a]!} c="g" o={step === 4 ? 1 : 0} />
       ))}
       <Txt x={180} y={162} mono size={11} o={step === 1 ? 1 : 0} color="var(--s-accent)">число 3 никому не достаётся, но склеек нет</Txt>
       <Txt x={180} y={162} mono size={11} o={step === 2 ? 1 : 0} color="var(--s-amber)">все числа заняты, но a и b склеились</Txt>
