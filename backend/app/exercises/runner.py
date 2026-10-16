@@ -295,31 +295,31 @@ def wrap_rust_driver(driver: str) -> str:
     )
 
 
-def run_rust(task: dict, code: str) -> dict:
-    """Режим «rust»: код ученика + скрытый драйвер (fn main) компилируются
-    rustc в песочнице без сети; сравнивается построчный вывод программы.
-    Ошибка компиляции показывается ученику как результат проверки."""
-    if task.get("standalone"):
-        # ученик пишет программу целиком (своя fn main); проверяется только вывод
-        source = code.rstrip() + "\n"
-    else:
-        source = code.rstrip() + "\n\n" + wrap_rust_driver(task["driver"])
-    crates = bool(task.get("crates"))
-    image = RUST_TOKIO_IMAGE if crates else RUST_IMAGE
-    externs = ""
-    if crates:
-        externs = "-L dependency=/opt/deps/target/release/deps " + " ".join(
-            f"--extern {c}=/opt/ext/lib{c}.rlib" for c in RUST_TOKIO_CRATES
-        )
-    script = (
-        f"rustc --edition 2021 -O -C debuginfo=0 {externs} -o /tmp/prog /sandbox/main.rs 2>/tmp/err "
-        "|| { echo COMPILE_ERROR; cat /tmp/err; exit 0; }; "
-        "timeout 10 /tmp/prog 2>/tmp/run_err; code=$?; "
-        'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
-    )
-    with tempfile.TemporaryDirectory(prefix="say-rs-") as td:
+# Компилируемые и скриптовые режимы (rust, c, js) проверяются одинаково: исходник кладётся в
+# каталог песочницы, контейнер без сети собирает и запускает программу, сравнивается построчный вывод.
+_EXIT_TAIL = (
+    "timeout 10 {run} 2>/tmp/run_err; code=$?; "
+    'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
+)
+_COMPILE_OR_FAIL = "{compile} 2>/tmp/err || {{ echo COMPILE_ERROR; cat /tmp/err; exit 0; }}; "
+
+
+def _run_program(
+    task: dict,
+    *,
+    prefix: str,
+    filename: str,
+    source: str,
+    image: str,
+    script: str,
+    image_missing_hint: str | None = None,
+) -> dict:
+    """Запускает script в контейнере с каталогом песочницы /sandbox (там лежит filename) и
+    сравнивает вывод программы с task["expected"]. Ошибка компиляции, ненулевой код выхода
+    и истечение времени показываются ученику как результат проверки."""
+    with tempfile.TemporaryDirectory(prefix=prefix) as td:
         sandbox = Path(td)
-        (sandbox / "main.rs").write_text(source, encoding="utf-8")
+        (sandbox / filename).write_text(source, encoding="utf-8")
         cmd = [
             "docker", "run", "--rm", "--network", "none",
             "--memory", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
@@ -343,12 +343,8 @@ def run_rust(task: dict, code: str) -> dict:
             )
     out = proc.stdout
     if proc.returncode != 0 and not out:
-        if crates and "say-rust-tokio" in proc.stderr:
-            return _docker_failed(
-                "Образ say-rust-tokio:1 не собран. Один раз выполните: "
-                "docker build -t say-rust-tokio:1 backend/docker/rust-tokio",
-                "error",
-            )
+        if image_missing_hint and image_missing_hint.split(":")[0] in proc.stderr:
+            return _docker_failed(image_missing_hint, "error")
         return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
     expected = task["expected"]
     if out.startswith("COMPILE_ERROR"):
@@ -364,113 +360,59 @@ def run_rust(task: dict, code: str) -> dict:
         want = [line.rstrip() for line in expected]
         res = [{"ok": got == want, "got": "\n".join(got), "expected": "\n".join(want), "error": None}]
     return {"status": "ok", "results": res, "stdout": "", "stderr": ""}
+
+
+def run_rust(task: dict, code: str) -> dict:
+    """Режим «rust»: код ученика + скрытый драйвер (fn main) компилируются rustc."""
+    if task.get("standalone"):
+        # ученик пишет программу целиком (своя fn main); проверяется только вывод
+        source = code.rstrip() + "\n"
+    else:
+        source = code.rstrip() + "\n\n" + wrap_rust_driver(task["driver"])
+    crates = bool(task.get("crates"))
+    externs = ""
+    if crates:
+        externs = "-L dependency=/opt/deps/target/release/deps " + " ".join(
+            f"--extern {c}=/opt/ext/lib{c}.rlib" for c in RUST_TOKIO_CRATES
+        )
+    script = _COMPILE_OR_FAIL.format(
+        compile=f"rustc --edition 2021 -O -C debuginfo=0 {externs} -o /tmp/prog /sandbox/main.rs"
+    ) + _EXIT_TAIL.format(run="/tmp/prog")
+    return _run_program(
+        task,
+        prefix="say-rs-",
+        filename="main.rs",
+        source=source,
+        image=RUST_TOKIO_IMAGE if crates else RUST_IMAGE,
+        script=script,
+        image_missing_hint=(
+            "say-rust-tokio:1 не собран. Один раз выполните: "
+            "docker build -t say-rust-tokio:1 backend/docker/rust-tokio"
+            if crates
+            else None
+        ),
+    )
 
 
 def run_c(task: dict, code: str) -> dict:
-    """Режим «c»: код ученика + скрытый драйвер (int main) собираются в один файл
-    и компилируются gcc в песочнице без сети; сравнивается построчный вывод программы.
-    Ошибка компиляции показывается ученику как результат проверки."""
+    """Режим «c»: код ученика + скрытый драйвер (int main) собираются в один файл gcc."""
     source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
     flags = task.get("flags", C_DEFAULT_FLAGS)
-    script = (
-        f"gcc {flags} -o /tmp/prog /sandbox/main.c -lm -lpthread 2>/tmp/err "
-        "|| { echo COMPILE_ERROR; cat /tmp/err; exit 0; }; "
-        "timeout 10 /tmp/prog 2>/tmp/run_err; code=$?; "
-        'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
+    script = _COMPILE_OR_FAIL.format(
+        compile=f"gcc {flags} -o /tmp/prog /sandbox/main.c -lm -lpthread"
+    ) + _EXIT_TAIL.format(run="/tmp/prog")
+    return _run_program(
+        task, prefix="say-c-", filename="main.c", source=source, image=C_IMAGE, script=script
     )
-    with tempfile.TemporaryDirectory(prefix="say-c-") as td:
-        sandbox = Path(td)
-        (sandbox / "main.c").write_text(source, encoding="utf-8")
-        cmd = [
-            "docker", "run", "--rm", "--network", "none",
-            "--memory", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
-            "--read-only", "--tmpfs", "/tmp:rw,exec,size=256m",
-            "-e", "HOME=/tmp",
-            "-v", f"{sandbox}:/sandbox:ro", "-w", "/tmp",
-            C_IMAGE, "sh", "-c", script,
-        ]
-        try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, errors="replace", timeout=RUST_TIMEOUT_SEC
-            )
-        except subprocess.TimeoutExpired:
-            return {
-                "status": "timeout", "results": [], "stdout": "",
-                "stderr": f"Превышен лимит времени ({RUST_TIMEOUT_SEC} с).",
-            }
-        except FileNotFoundError:
-            return _docker_failed(
-                "Docker недоступен. Запустите Docker/OrbStack и попробуйте снова."
-            )
-    out = proc.stdout
-    if proc.returncode != 0 and not out:
-        return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
-    expected = task["expected"]
-    if out.startswith("COMPILE_ERROR"):
-        err = out[len("COMPILE_ERROR"):].strip()[:RUST_COMPILE_ERR_LIMIT]
-        res = [{"ok": False, "got": "", "expected": "\n".join(expected), "error": "Ошибка компиляции:\n" + err}]
-    elif "__EXIT__" in out:
-        body, _, rest = out.partition("__EXIT__")
-        code_, _, msg = rest.partition("\n")
-        res = [{"ok": False, "got": body, "expected": "\n".join(expected),
-                "error": f"Программа завершилась с кодом {code_}.\n{msg.strip()}"}]
-    else:
-        got = [line.rstrip() for line in out.strip("\n").split("\n")] if out.strip() else []
-        want = [line.rstrip() for line in expected]
-        res = [{"ok": got == want, "got": "\n".join(got), "expected": "\n".join(want), "error": None}]
-    return {"status": "ok", "results": res, "stdout": "", "stderr": ""}
 
 
 def run_js(task: dict, code: str) -> dict:
-    """Режим «js»: код ученика + скрытый драйвер собираются в один модуль (.mjs, Node 22) и
-    выполняются в песочнице без сети; сравнивается построчный вывод. Синтаксическая ошибка или
-    необработанное исключение показываются ученику вместе со стеком."""
+    """Режим «js»: код ученика + скрытый драйвер — один модуль (.mjs, Node 22)."""
     source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
-    script = (
-        "timeout 10 node --max-old-space-size=256 /sandbox/main.mjs 2>/tmp/run_err; code=$?; "
-        'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
+    script = _EXIT_TAIL.format(run="node --max-old-space-size=256 /sandbox/main.mjs")
+    return _run_program(
+        task, prefix="say-js-", filename="main.mjs", source=source, image=JS_IMAGE, script=script
     )
-    with tempfile.TemporaryDirectory(prefix="say-js-") as td:
-        sandbox = Path(td)
-        (sandbox / "main.mjs").write_text(source, encoding="utf-8")
-        cmd = [
-            "docker", "run", "--rm", "--network", "none",
-            "--memory", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
-            "--read-only", "--tmpfs", "/tmp:rw,exec,size=256m",
-            "-e", "HOME=/tmp",
-            "-v", f"{sandbox}:/sandbox:ro", "-w", "/tmp",
-            JS_IMAGE, "sh", "-c", script,
-        ]
-        try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, errors="replace", timeout=RUST_TIMEOUT_SEC
-            )
-        except subprocess.TimeoutExpired:
-            return {
-                "status": "timeout", "results": [], "stdout": "",
-                "stderr": f"Превышен лимит времени ({RUST_TIMEOUT_SEC} с).",
-            }
-        except FileNotFoundError:
-            return _docker_failed(
-                "Docker недоступен. Запустите Docker/OrbStack и попробуйте снова."
-            )
-    out = proc.stdout
-    if proc.returncode != 0 and not out:
-        return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
-    expected = task["expected"]
-    if out.startswith("COMPILE_ERROR"):
-        err = out[len("COMPILE_ERROR"):].strip()[:RUST_COMPILE_ERR_LIMIT]
-        res = [{"ok": False, "got": "", "expected": "\n".join(expected), "error": "Ошибка компиляции:\n" + err}]
-    elif "__EXIT__" in out:
-        body, _, rest = out.partition("__EXIT__")
-        code_, _, msg = rest.partition("\n")
-        res = [{"ok": False, "got": body, "expected": "\n".join(expected),
-                "error": f"Программа завершилась с кодом {code_}.\n{msg.strip()}"}]
-    else:
-        got = [line.rstrip() for line in out.strip("\n").split("\n")] if out.strip() else []
-        want = [line.rstrip() for line in expected]
-        res = [{"ok": got == want, "got": "\n".join(got), "expected": "\n".join(want), "error": None}]
-    return {"status": "ok", "results": res, "stdout": "", "stderr": ""}
 
 
 def run_task(task: dict, code: str) -> dict:

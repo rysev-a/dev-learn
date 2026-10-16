@@ -1,10 +1,10 @@
 """Упражнения с проверкой в Docker: доступ к определениям задач.
 
-Задачи лежат в пакетах по книгам: py_tasks/ («Python как первый язык», book 13),
-algo_tasks/ («Алгоритмы», book 7), arch_tasks/ («Архитектура компьютера»,
-book 14), linux_tasks/ («Linux», book 8), db_tasks/ («Базы данных», book 9) и
-rust_tasks/ («Изучаем Rust», book 10), c_tasks/ («От assembler к языку C», book 16) и
-virt_tasks/ («Виртуализация», book 17); ключ — номер главы.
+Задачи лежат в пакетах по книгам (ключ — номер главы): algo_tasks (7, «Алгоритмы»),
+linux_tasks (8, «Погружаемся в Unix»), db_tasks (9, «Базы данных»), rust_tasks (10),
+js_tasks (11, «Современный Frontend»), py_tasks (13, «Python как первый язык»),
+arch_tasks (14, лаборатория в браузере), net_tasks (15, «Компьютерные сети»),
+c_tasks (16, «От assembler к языку C»), virt_tasks (17, «Виртуализация»).
 """
 
 from app.exercises import schema_view
@@ -15,20 +15,20 @@ from app.exercises.db_tasks import DB_TASKS
 from app.exercises.js_tasks import JS_TASKS
 from app.exercises.linux_tasks import LINUX_TASKS
 from app.exercises.py_tasks import PY_TASKS
-from app.exercises.rust_tasks import RUST_TASKS
 from app.exercises.net_tasks import NET_TASKS
+from app.exercises.rust_tasks import RUST_TASKS
 from app.exercises.virt_tasks import VIRT_TASKS
 
 BOOK_TASKS: dict[int, dict[int, list[dict]]] = {
-    13: PY_TASKS,
     7: ALGO_TASKS,
     8: LINUX_TASKS,
     9: DB_TASKS,
     10: RUST_TASKS,
     11: JS_TASKS,
+    13: PY_TASKS,
     14: ARCH_TASKS,
-    16: C_TASKS,
     15: NET_TASKS,
+    16: C_TASKS,
     17: VIRT_TASKS,
 }
 
