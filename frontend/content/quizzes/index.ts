@@ -12,9 +12,11 @@ import { LINUX_QUIZZES } from "./linux.ts";
 import { PY_QUIZZES } from "./py.ts";
 import { RUST_QUIZZES } from "./rust.ts";
 import { RUST_TOKIO_QUIZZES } from "./rust-tokio.ts";
+import { RUST_CHAT_QUIZZES } from "./rust-chat.ts";
 import { C_QUIZZES } from "./c.ts";
 import { NET_QUIZZES } from "./networks.ts";
 import { VIRT_QUIZZES } from "./virtualization.ts";
+import { SYSTEM_DESIGN_QUIZZES } from "./system-design.ts";
 
 export const QUIZZES: Record<string, Quiz> = {
   ...LINUX_QUIZZES,
@@ -24,9 +26,11 @@ export const QUIZZES: Record<string, Quiz> = {
   ...DB_SQL_QUIZZES,
   ...RUST_QUIZZES,
   ...RUST_TOKIO_QUIZZES,
+  ...RUST_CHAT_QUIZZES,
   ...C_QUIZZES,
   ...NET_QUIZZES,
   ...VIRT_QUIZZES,
+  ...SYSTEM_DESIGN_QUIZZES,
   ...JS_QUIZZES,
   ...JS_MORE_QUIZZES,
   ...DM_QUIZZES,

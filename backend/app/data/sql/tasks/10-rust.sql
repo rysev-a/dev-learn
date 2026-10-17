@@ -10841,3 +10841,14439 @@ fn aggregate(rows: &[Vec<Option<String>>], key: usize, val: usize) -> BTreeMap<S
     todo!()
 }
 ', 'entry(ключ).or_insert((0, 0)) создаёт группу даже если значение не удалось разобрать; get(i) защищает от коротких строк.', '{"driver": "fn row(cells: &[Option<&str>]) -> Vec<Option<String>> {\n    cells.iter().map(|c| c.map(|s| s.to_string())).collect()\n}\n\nfn main() {\n    let rows = vec![\n        row(&[Some(\"north\"), Some(\"10\")]),\n        row(&[Some(\"south\"), Some(\"5\")]),\n        row(&[Some(\"north\"), Some(\"7\")]),\n        row(&[None, Some(\"100\")]),\n        row(&[Some(\"west\"), None]),\n        row(&[Some(\"south\"), Some(\"x\")]),\n        row(&[Some(\"south\")]),\n        row(&[Some(\"north\"), Some(\"-2\")]),\n    ];\n    println!(\"{:?}\", aggregate(&rows, 0, 1));\n    println!(\"{:?}\", aggregate(&[], 0, 1));\n    println!(\"{:?}\", aggregate(&rows, 5, 1));\n}\n", "expected": ["{\"north\": (15, 3), \"south\": (5, 1), \"west\": (0, 0)}", "{}", "{}"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-hello', 0, 'rust', 'Первый обработчик', 'Напишите роутер с одним маршрутом: GET / отвечает текстом «привет». Функция main (готова) отправляет два запроса: на «/» и на несуществующий путь «/nope».
+
+Ожидаемый вывод:
+(200, "привет")
+(404, "")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/", "").await);
+    println!("{:?}", call(&app, "GET", "/nope", "").await);
+}
+', 'Router::new().route("/", get(hello)); обработчик — async fn hello() -> &''static str.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"привет\")", "(404, \"\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-path', 1, 'rust', 'Параметр пути', 'Маршрут GET /rooms/{id} отвечает «комната N», где N — число из пути (u32). Для /rooms/abc axum сам вернёт отказ.
+
+Ожидаемый вывод:
+"комната 7"
+400', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/rooms/7", "").await.1);
+    println!("{:?}", call(&app, "GET", "/rooms/abc", "").await.0);
+}
+', 'Path(id): Path<u32>; формат — format!.', '{"crates": ["tokio"], "driver": "", "expected": ["\"комната 7\"", "400"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-two-params', 2, 'rust', 'Два параметра пути', 'Маршрут GET /rooms/{room}/msgs/{n} отвечает «room=R n=N» (оба u32). Используйте кортеж Path<(u32, u32)>.
+
+Ожидаемый вывод:
+room=3 n=15
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/rooms/3/msgs/15", "").await.1);
+    println!("{:?}", call(&app, "GET", "/rooms/3/msgs", "").await.0);
+}
+', 'Path((room, n)): Path<(u32, u32)>.', '{"crates": ["tokio"], "driver": "", "expected": ["room=3 n=15", "404"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-wildcard', 3, 'rust', 'Остаток пути', 'Маршрут GET /files/{*rest} отвечает «файл: REST», где REST — весь остаток пути (в том числе со слэшами).
+
+Ожидаемый вывод:
+файл: a.txt
+файл: docs/2026/report.pdf', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/files/a.txt", "").await.1);
+    println!("{}", call(&app, "GET", "/files/docs/2026/report.pdf", "").await.1);
+}
+', 'В пути пишется {*rest}, в обработчике — Path<String>.', '{"crates": ["tokio"], "driver": "", "expected": ["файл: a.txt", "файл: docs/2026/report.pdf"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-query-defaults', 4, 'rust', 'Query со значениями по умолчанию', 'GET /msgs принимает строку запроса: limit (u32, по умолчанию 10) и before (необязательное u64). Обработчик отвечает «limit=L before=B», где отсутствующее before печатается как «none».
+
+Ожидаемый вывод:
+limit=10 before=none
+limit=5 before=none
+limit=10 before=100
+limit=3 before=7', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Page {
+    limit: u32,
+    before: Option<u64>,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for uri in ["/msgs", "/msgs?limit=5", "/msgs?before=100", "/msgs?limit=3&before=7"] {
+        println!("{}", call(&app, "GET", uri, "").await.1);
+    }
+}
+', 'Структура с #[derive(Deserialize)], #[serde(default = "fn")] и Option<u64>; экстрактор Query<Page>.', '{"crates": ["tokio"], "driver": "", "expected": ["limit=10 before=none", "limit=5 before=none", "limit=10 before=100", "limit=3 before=7"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-bad-query', 5, 'rust', 'Некорректная строка запроса', 'Маршрут GET /page принимает ?n=число (u32, обязательное) и отвечает «n=N». Напечатайте статусы для /page?n=5, /page?n=x и /page (без параметра).
+
+Ожидаемый вывод:
+/page?n=5 -> 200 OK n=5
+/page?n=x -> 400 Bad Request
+/page -> 400 Bad Request', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for uri in ["/page?n=5", "/page?n=x", "/page"] {
+        let (s, b) = call(&app, "GET", uri, "").await;
+        println!("{uri} -> {s} {}", if s.is_success() { b } else { String::new() });
+    }
+}
+', 'Query<Params> с полем n: u32; отказ экстрактора — 400.', '{"crates": ["tokio"], "driver": "", "expected": ["/page?n=5 -> 200 OK n=5", "/page?n=x -> 400 Bad Request", "/page -> 400 Bad Request"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-405', 6, 'rust', 'Метод не разрешён', 'Маршрут /rooms принимает только GET (ответ «список») и POST (ответ «создано»). Напечатайте статусы для GET, POST, PUT и DELETE по /rooms и по /other.
+
+Ожидаемый вывод:
+GET /rooms -> 200 OK
+POST /rooms -> 200 OK
+PUT /rooms -> 405 Method Not Allowed
+DELETE /rooms -> 405 Method Not Allowed
+GET /other -> 404 Not Found', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for m in ["GET", "POST", "PUT", "DELETE"] {
+        println!("{m} /rooms -> {}", call(&app, m, "/rooms", "").await.0);
+    }
+    println!("GET /other -> {}", call(&app, "GET", "/other", "").await.0);
+}
+', 'get(list).post(create); неподходящий метод даёт 405 сам.', '{"crates": ["tokio"], "driver": "", "expected": ["GET /rooms -> 200 OK", "POST /rooms -> 200 OK", "PUT /rooms -> 405 Method Not Allowed", "DELETE /rooms -> 405 Method Not Allowed", "GET /other -> 404 Not Found"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-fallback', 7, 'rust', 'Свой ответ 404', 'Добавьте к роутеру запасной обработчик: для любого неизвестного пути статус 404 и тело {"error":"not found"} (строкой). Маршрут GET /health отвечает «ok».
+
+Ожидаемый вывод:
+(200, "ok")
+(404, "{\"error\":\"not found\"}")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/health", "").await);
+    println!("{:?}", call(&app, "GET", "/nowhere", "").await);
+}
+', 'Router::fallback(handler); кортеж (StatusCode::NOT_FOUND, текст).', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"ok\")", "(404, \"{\\\"error\\\":\\\"not found\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-created', 8, 'rust', '201 и заголовок Location', 'POST /rooms отвечает статусом 201 и заголовком Location: /rooms/42, тело — «создано». main печатает статус, заголовок Location и тело.
+
+Ожидаемый вывод:
+201 Created Some("/rooms/42") создано', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn call_full(app: &Router, uri: &str) -> (StatusCode, Option<String>, String) {
+    let req = Request::builder().method("POST").uri(uri).body(Body::empty()).unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let loc = res.headers().get("location").map(|v| v.to_str().unwrap().to_string());
+    let body = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, loc, String::from_utf8_lossy(&body).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    let (s, loc, body) = call_full(&app, "/rooms").await;
+    println!("{s} {loc:?} {body}");
+}
+', 'Кортеж (StatusCode::CREATED, [(header::LOCATION, "/rooms/42")], "создано").', '{"crates": ["tokio"], "driver": "", "expected": ["201 Created Some(\"/rooms/42\") создано"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-204', 9, 'rust', '204 без тела', 'DELETE /rooms/{id} отвечает статусом 204 No Content и пустым телом, если id — число; иначе (для нечислового id) ответ формирует сам axum. Напечатайте статус и длину тела.
+
+Ожидаемый вывод:
+/rooms/5 204 No Content длина тела 0
+/rooms/x 400 Bad Request длина тела 40', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for uri in ["/rooms/5", "/rooms/x"] {
+        let (s, b) = call(&app, "DELETE", uri, "").await;
+        println!("{uri} {s} длина тела {}", b.len());
+    }
+}
+', 'Возвращайте StatusCode::NO_CONTENT.', '{"crates": ["tokio"], "driver": "", "expected": ["/rooms/5 204 No Content длина тела 0", "/rooms/x 400 Bad Request длина тела 40"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-json-out', 10, 'rust', 'Ответ в формате JSON', 'GET /rooms/{id} возвращает JSON {"id":N,"name":"room-N"} (структура Room с Serialize). Напечатайте тело ответа для /rooms/3.
+
+Ожидаемый вывод:
+{"id":3,"name":"room-3"}', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct Room {
+    id: u32,
+    name: String,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/rooms/3", "").await.1);
+}
+', 'Json(Room { id, name }) с #[derive(Serialize)].', '{"crates": ["tokio"], "driver": "", "expected": ["{\"id\":3,\"name\":\"room-3\"}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-json-in', 11, 'rust', 'Тело запроса в формате JSON', 'POST /echo принимает JSON {"user":"имя","text":"текст"} (структура Msg с Deserialize) и отвечает «имя: текст (N символов)», где N — число символов (chars) в тексте.
+
+Ожидаемый вывод:
+аня: привет (6 символов)', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Msg {
+    user: String,
+    text: String,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "POST", "/echo", r#"{"user":"аня","text":"привет"}"#).await.1);
+}
+', 'Json(m): Json<Msg>; число символов — m.text.chars().count().', '{"crates": ["tokio"], "driver": "", "expected": ["аня: привет (6 символов)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-json-errors', 12, 'rust', 'Ошибки разбора JSON', 'POST /echo принимает JSON {"n":число}. Напечатайте статусы ответа axum на три тела: корректное, синтаксически неверное (не JSON) и с неверным типом поля (n — строка).
+
+Ожидаемый вывод:
+200 OK
+400 Bad Request
+422 Unprocessable Entity', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for body in [r#"{"n": 5}"#, "not json", r#"{"n": "five"}"#] {
+        println!("{}", call(&app, "POST", "/echo", body).await.0);
+    }
+}
+', 'Json<Num> с полем n: i64; отказы: синтаксис — 400, данные не подходят — 422.', '{"crates": ["tokio"], "driver": "", "expected": ["200 OK", "400 Bad Request", "422 Unprocessable Entity"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-into-response', 13, 'rust', 'Свой тип ответа', 'Реализуйте IntoResponse для перечисления Reply: Ok(String) → 200 и текст; Created(String) → 201 и текст; Gone → 410 с телом «удалено». Маршрут GET /r/{kind} возвращает Reply по kind: «ok», «created» или «gone» (другое — 404).
+
+Ожидаемый вывод:
+ok: 200 OK хорошо
+created: 201 Created создано
+gone: 410 Gone удалено
+zzz: 404 Not Found', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::response::{IntoResponse, Response};
+
+enum Reply {
+    Ok(String),
+    Created(String),
+    Gone,
+}
+
+impl IntoResponse for Reply {
+    fn into_response(self) -> Response {
+        todo!()
+    }
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for k in ["ok", "created", "gone", "zzz"] {
+        let (s, b) = call(&app, "GET", &format!("/r/{k}"), "").await;
+        println!("{k}: {s} {b}");
+    }
+}
+', 'impl IntoResponse for Reply { fn into_response(self) -> Response { ... } }.', '{"crates": ["tokio"], "driver": "", "expected": ["ok: 200 OK хорошо", "created: 201 Created создано", "gone: 410 Gone удалено", "zzz: 404 Not Found"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-result', 14, 'rust', 'Result как ответ', 'GET /rooms/{id}: комнаты 1 и 2 существуют (ответ «комната-1», «комната-2»), остальные — 404 с текстом «нет такой комнаты». Обработчик возвращает Result<String, (StatusCode, &''static str)>.
+
+Ожидаемый вывод:
+(200, "комната-1")
+(200, "комната-2")
+(404, "нет такой комнаты")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for id in [1, 2, 3] {
+        println!("{:?}", call(&app, "GET", &format!("/rooms/{id}"), "").await);
+    }
+}
+', 'Err((StatusCode::NOT_FOUND, "нет такой комнаты")) — кортеж умеет превращаться в ответ.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"комната-1\")", "(200, \"комната-2\")", "(404, \"нет такой комнаты\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-nest', 15, 'rust', 'Вложенный роутер', 'Функция rooms() возвращает Router с маршрутами GET / («все комнаты») и GET /{id} («комната ID»). Смонтируйте его под префиксом /api/rooms (nest). Напечатайте тела для /api/rooms, /api/rooms/9 и статус для /rooms.
+
+Ожидаемый вывод:
+все комнаты
+комната 9
+404 Not Found', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::routing::get;
+
+fn rooms() -> Router {
+    Router::new()
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/api/rooms", "").await.1);
+    println!("{}", call(&app, "GET", "/api/rooms/9", "").await.1);
+    println!("{}", call(&app, "GET", "/rooms", "").await.0);
+}
+', 'Router::new().nest("/api/rooms", rooms()).', '{"crates": ["tokio"], "driver": "", "expected": ["все комнаты", "комната 9", "404 Not Found"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-merge', 16, 'rust', 'Объединение роутеров', 'Есть два роутера: users() с GET /users («пользователи») и rooms() с GET /rooms («комнаты»). Объедините их в app() методом merge, добавив ещё GET /health («ok»). Напечатайте тела трёх путей.
+
+Ожидаемый вывод:
+/users: пользователи
+/rooms: комнаты
+/health: ok', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::routing::get;
+
+fn users() -> Router {
+    Router::new().route("/users", get(|| async { "пользователи" }))
+}
+fn rooms() -> Router {
+    Router::new().route("/rooms", get(|| async { "комнаты" }))
+}
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for p in ["/users", "/rooms", "/health"] {
+        println!("{p}: {}", call(&app, "GET", p, "").await.1);
+    }
+}
+', 'Router::new().merge(users()).merge(rooms()).route(...).', '{"crates": ["tokio"], "driver": "", "expected": ["/users: пользователи", "/rooms: комнаты", "/health: ok"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-nested-fallback', 17, 'rust', 'Запасной ответ вложенного роутера', 'API под /api отвечает на неизвестные пути своим 404 с текстом «api: нет»; всё приложение вне /api — текстом «app: нет». Маршрут GET /api/ping отвечает «pong». Напечатайте ответы для /api/ping, /api/zzz, /zzz.
+
+Ожидаемый вывод:
+/api/ping: (200, "pong")
+/api/zzz: (404, "api: нет")
+/zzz: (404, "app: нет")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for p in ["/api/ping", "/api/zzz", "/zzz"] {
+        println!("{p}: {:?}", call(&app, "GET", p, "").await);
+    }
+}
+', 'У вложенного роутера свой .fallback(..), у внешнего — свой.', '{"crates": ["tokio"], "driver": "", "expected": ["/api/ping: (200, \"pong\")", "/api/zzz: (404, \"api: нет\")", "/zzz: (404, \"app: нет\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-head', 18, 'rust', 'HEAD через GET', 'Маршрут GET /info отвечает «информация». Напечатайте статус и длину тела для запроса GET и для запроса HEAD по /info (axum обрабатывает HEAD сам).
+
+Ожидаемый вывод:
+GET: 200 OK, тело есть
+HEAD: 200 OK, тело пустое', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for m in ["GET", "HEAD"] {
+        let (s, b) = call(&app, m, "/info", "").await;
+        println!("{m}: {s}, тело {}", if b.is_empty() { "пустое" } else { "есть" });
+    }
+}
+', 'Отдельный обработчик HEAD писать не нужно.', '{"crates": ["tokio"], "driver": "", "expected": ["GET: 200 OK, тело есть", "HEAD: 200 OK, тело пустое"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-headers-out', 19, 'rust', 'Свой заголовок в ответе', 'GET /ver отвечает телом «v1» и заголовком X-Api-Version: 1. main читает заголовок из ответа.
+
+Ожидаемый вывод:
+Some("1")
+None', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn header_of(app: &Router, uri: &str, name: &str) -> Option<String> {
+    let res = app.clone().oneshot(Request::get(uri).body(Body::empty()).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", header_of(&app, "/ver", "x-api-version").await);
+    println!("{:?}", header_of(&app, "/ver", "x-other").await);
+}
+', 'Кортеж ([("x-api-version", "1")], "v1").', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"1\")", "None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-header-in', 20, 'rust', 'Заголовок запроса', 'GET /agent отвечает «agent: ...» с значением заголовка User-Agent или «agent: неизвестен», если заголовка нет. Используйте экстрактор HeaderMap.
+
+Ожидаемый вывод:
+agent: curl/8
+agent: неизвестен', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn with_agent(app: &Router, agent: Option<&str>) -> String {
+    let mut b = Request::get("/agent");
+    if let Some(a) = agent {
+        b = b.header("user-agent", a);
+    }
+    let res = app.clone().oneshot(b.body(Body::empty()).unwrap()).await.unwrap();
+    String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned()
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", with_agent(&app, Some("curl/8")).await);
+    println!("{}", with_agent(&app, None).await);
+}
+', 'headers.get("user-agent").and_then(|v| v.to_str().ok()).', '{"crates": ["tokio"], "driver": "", "expected": ["agent: curl/8", "agent: неизвестен"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-raw-request', 21, 'rust', 'Запрос целиком', 'Обработчик any-метода для пути /whoami принимает весь Request<Body> и отвечает «МЕТОД ПУТЬ», например «POST /whoami?x=1». main шлёт GET и POST.
+
+Ожидаемый вывод:
+GET /whoami
+POST /whoami?x=1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/whoami", "").await.1);
+    println!("{}", call(&app, "POST", "/whoami?x=1", "").await.1);
+}
+', 'axum::routing::any; req.method(), req.uri().', '{"crates": ["tokio"], "driver": "", "expected": ["GET /whoami", "POST /whoami?x=1"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-conflict', 22, 'rust', '409 при конфликте', 'POST /rooms/{name}: имя «general» уже занято — ответ 409 и текст «занято», любое другое — 201 и текст «создана». Проверьте общий и произвольный случаи.
+
+Ожидаемый вывод:
+general: (409, "занято")
+random: (201, "создана")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for n in ["general", "random"] {
+        println!("{n}: {:?}", call(&app, "POST", &format!("/rooms/{n}"), "").await);
+    }
+}
+', 'Возвращайте кортеж (StatusCode, &str) в обеих ветках.', '{"crates": ["tokio"], "driver": "", "expected": ["general: (409, \"занято\")", "random: (201, \"создана\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-async-handler', 23, 'rust', 'Обработчик с ожиданием', 'GET /slow/{ms} ждёт ms миллисекунд (tokio::time::sleep) и отвечает «ждал ms мс». Три запроса отправляются одновременно (tokio::join!) с ожиданиями 60, 20 и 40; main печатает ответы в порядке запросов и «всё за < 110 мс: true/false» (параллельно должно быть быстрее суммы 120 мс).
+
+Ожидаемый вывод:
+ждал 60 мс
+ждал 20 мс
+ждал 40 мс
+всё за < 110 мс: true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    let t = std::time::Instant::now();
+    let (a, b, c) = tokio::join!(
+        call(&app, "GET", "/slow/60", ""),
+        call(&app, "GET", "/slow/20", ""),
+        call(&app, "GET", "/slow/40", "")
+    );
+    println!("{}\n{}\n{}", a.1, b.1, c.1);
+    println!("всё за < 110 мс: {}", t.elapsed().as_millis() < 110);
+}
+', 'async-обработчик с sleep(Duration::from_millis(ms)).await.', '{"crates": ["tokio"], "driver": "", "expected": ["ждал 60 мс", "ждал 20 мс", "ждал 40 мс", "всё за < 110 мс: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-static-first', 24, 'rust', 'Статический путь против параметра', 'Маршруты: GET /rooms/new («форма») и GET /rooms/{id} («комната ID»). Порядок их регистрации не должен влиять на результат: статический путь выигрывает. Зарегистрируйте сначала параметрический, затем статический и напечатайте ответы для /rooms/new и /rooms/5.
+
+Ожидаемый вывод:
+форма
+комната 5', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/rooms/new", "").await.1);
+    println!("{}", call(&app, "GET", "/rooms/5", "").await.1);
+}
+', 'matchit выбирает самое конкретное совпадение независимо от порядка.', '{"crates": ["tokio"], "driver": "", "expected": ["форма", "комната 5"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-redirect', 25, 'rust', 'Перенаправление', 'GET /old отвечает перенаправлением на /new (Redirect::to — статус 303 и заголовок Location), GET /new — «новая». main печатает статус и Location для /old.
+
+Ожидаемый вывод:
+(303, Some("/new"))
+(200, None)', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn location(app: &Router, uri: &str) -> (StatusCode, Option<String>) {
+    let res = app.clone().oneshot(Request::get(uri).body(Body::empty()).unwrap()).await.unwrap();
+    let loc = res.headers().get("location").map(|v| v.to_str().unwrap().to_string());
+    (res.status(), loc)
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", location(&app, "/old").await);
+    println!("{:?}", location(&app, "/new").await);
+}
+', 'axum::response::Redirect::to("/new").', '{"crates": ["tokio"], "driver": "", "expected": ["(303, Some(\"/new\"))", "(200, None)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-method-router', 26, 'rust', 'Все методы ресурса', 'Ресурс /rooms/{id} поддерживает четыре метода: GET («читаем ID»), PUT («меняем ID»), PATCH («правим ID»), DELETE («удаляем ID»). Один вызов .route с цепочкой get().put().patch().delete(). Напечатайте ответы для всех четырёх методов по /rooms/8 и статус POST.
+
+Ожидаемый вывод:
+GET: читаем 8
+PUT: меняем 8
+PATCH: правим 8
+DELETE: удаляем 8
+POST: 405 Method Not Allowed', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for m in ["GET", "PUT", "PATCH", "DELETE"] {
+        println!("{m}: {}", call(&app, m, "/rooms/8", "").await.1);
+    }
+    println!("POST: {}", call(&app, "POST", "/rooms/8", "").await.0);
+}
+', 'get(h1).put(h2).patch(h3).delete(h4); обработчики можно писать замыканиями.', '{"crates": ["tokio"], "driver": "", "expected": ["GET: читаем 8", "PUT: меняем 8", "PATCH: правим 8", "DELETE: удаляем 8", "POST: 405 Method Not Allowed"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-real-server', 27, 'rust', 'Настоящий сервер на порту 0', 'Запустите сервер на 127.0.0.1:0 (TcpListener + axum::serve в задаче tokio), узнайте порт и отправьте обычный HTTP/1.1-запрос «GET /hi» по TcpStream с Connection: close. Обработчик отвечает «привет из axum». Напечатайте первую строку ответа (статус) и последнюю строку тела.
+
+Ожидаемый вывод:
+HTTP/1.1 200 OK
+привет из axum', 'use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+
+#[tokio::main]
+async fn main() {
+    // ваш код
+}
+', 'tokio::spawn(async move { axum::serve(listener, app).await.unwrap() }); читайте ответ read_to_string.', '{"crates": ["tokio"], "driver": "", "expected": ["HTTP/1.1 200 OK", "привет из axum"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-fix-body-order', 28, 'rust', 'Исправьте: тело не последним', 'Код не компилируется: Json читает тело и должен быть последним аргументом обработчика. Исправьте порядок аргументов, чтобы POST /rooms/5/say с телом {"text":"hi"} отвечал «5: hi».
+
+Ожидаемый вывод:
+5: hi', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::Path;
+use axum::routing::post;
+use axum::Json;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Say {
+    text: String,
+}
+
+async fn say(Json(m): Json<Say>, Path(id): Path<u32>) -> String {
+    format!("{id}: {}", m.text)
+}
+
+fn app() -> Router {
+    Router::new().route("/rooms/{id}/say", post(say))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "POST", "/rooms/5/say", r#"{"text":"hi"}"#).await.1);
+}
+', 'Path — первым, Json — последним.', '{"crates": ["tokio"], "driver": "", "expected": ["5: hi"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 44, 'r44-fix-not-send', 29, 'rust', 'Исправьте: значение не Send через await', 'Код не компилируется: std::sync::MutexGuard удерживается через .await, а будущее обработчика обязано быть Send. Исправьте так, чтобы блокировка отпускалась до await (ограничьте её область блоком); ответ — «счётчик: 1», затем «счётчик: 2».
+
+Ожидаемый вывод:
+счётчик: 1
+счётчик: 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::State;
+use axum::routing::get;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+async fn bump(State(c): State<Arc<Mutex<u32>>>) -> String {
+    let mut g = c.lock().unwrap();
+    *g += 1;
+    tokio::time::sleep(Duration::from_millis(1)).await;
+    format!("счётчик: {}", *g)
+}
+
+fn app() -> Router {
+    Router::new().route("/bump", get(bump)).with_state(Arc::new(Mutex::new(0)))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/bump", "").await.1);
+    println!("{}", call(&app, "GET", "/bump", "").await.1);
+}
+', 'Возьмите значение в отдельном блоке { let mut g = ...; *g += 1; *g } до sleep.', '{"crates": ["tokio"], "driver": "", "expected": ["счётчик: 1", "счётчик: 2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-counter', 0, 'rust', 'Счётчик запросов в состоянии', 'GET /hit отвечает «хит N», где N — порядковый номер запроса. Счётчик живёт в состоянии: Arc<AtomicUsize> (Ordering::SeqCst). main отправляет три запроса.
+
+Ожидаемый вывод:
+хит 1
+хит 2
+хит 3', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for _ in 0..3 {
+        println!("{}", call(&app, "GET", "/hit", "").await.1);
+    }
+}
+', 'State(c): State<Arc<AtomicUsize>>; fetch_add(1) + 1; роутеру — .with_state(Arc::new(AtomicUsize::new(0))).', '{"crates": ["tokio"], "driver": "", "expected": ["хит 1", "хит 2", "хит 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-log-mutex', 1, 'rust', 'Журнал в Mutex', 'POST /log/{msg} добавляет msg в общий список, GET /log возвращает все записи через запятую в порядке добавления. Состояние: Arc<Mutex<Vec<String>>> (std::sync::Mutex; блокировка не должна жить через await — тут await нет).
+
+Ожидаемый вывод:
+201 Created
+201 Created
+201 Created
+один,два,три', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for m in ["один", "два", "три"] {
+        println!("{}", call(&app, "POST", &format!("/log/{m}"), "").await.0);
+    }
+    println!("{}", call(&app, "GET", "/log", "").await.1);
+}
+', 'lock().unwrap().push(..); join(",").', '{"crates": ["tokio"], "driver": "", "expected": ["201 Created", "201 Created", "201 Created", "один,два,три"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-rwlock', 2, 'rust', 'Конфигурация в RwLock', 'Состояние — Arc<RwLock<String>> с приветствием (начально «привет»). GET /greet возвращает приветствие, PUT /greet/{text} заменяет его и отвечает 204. Проверьте до и после замены.
+
+Ожидаемый вывод:
+привет
+204 No Content
+здравствуйте', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/greet", "").await.1);
+    println!("{}", call(&app, "PUT", "/greet/здравствуйте", "").await.0);
+    println!("{}", call(&app, "GET", "/greet", "").await.1);
+}
+', 'std::sync::RwLock: read().unwrap().clone(); write().unwrap().', '{"crates": ["tokio"], "driver": "", "expected": ["привет", "204 No Content", "здравствуйте"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-tokio-mutex', 3, 'rust', 'Блокировка через await', 'Обработчик GET /add/{n} берёт мьютекс токио (tokio::sync::Mutex<Vec<u32>>), добавляет n, ждёт 5 мс (sleep) ПРИ удерживаемой блокировке и отвечает суммой всех чисел в списке на этот момент. Пять запросов приходят одновременно (join_all) — суммы должны быть строго последовательными: каждый запрос видит результат предыдущего. Напечатайте отсортированные ответы.
+
+Ожидаемый вывод:
+5
+максимум: 15
+все различны: true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    let futs = (1..=5).map(|n| {
+        let app = app.clone();
+        async move { call(&app, "GET", &format!("/add/{n}"), "").await.1.parse::<u32>().unwrap() }
+    });
+    let mut sums = futures::future::join_all(futs).await;
+    sums.sort();
+    println!("{:?}", sums.len());
+    println!("максимум: {}", sums.last().unwrap());
+    println!("все различны: {}", sums.windows(2).all(|w| w[0] < w[1]));
+}
+', 'tokio::sync::Mutex: let mut g = m.lock().await; push; sleep.await; sum.', '{"crates": ["tokio"], "driver": "", "expected": ["5", "максимум: 15", "все различны: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-fromref', 4, 'rust', 'Часть состояния через FromRef', 'AppState содержит config: Config { name: String } и hits: Arc<AtomicUsize>. Реализуйте FromRef<AppState> для Config и для Arc<AtomicUsize>. Обработчик GET /name берёт только State<Config> и отвечает именем, GET /hit — только State<Arc<AtomicUsize>> и отвечает числом хитов после увеличения.
+
+Ожидаемый вывод:
+чат
+1
+2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::FromRef;
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
+
+#[derive(Clone)]
+struct Config {
+    name: String,
+}
+
+#[derive(Clone)]
+struct AppState {
+    config: Config,
+    hits: Arc<AtomicUsize>,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/name", "").await.1);
+    println!("{}", call(&app, "GET", "/hit", "").await.1);
+    println!("{}", call(&app, "GET", "/hit", "").await.1);
+}
+', 'impl FromRef<AppState> for Config { fn from_ref(s: &AppState) -> Config { s.config.clone() } }', '{"crates": ["tokio"], "driver": "", "expected": ["чат", "1", "2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-merge-state', 5, 'rust', 'Два роутера с разным состоянием', 'Роутер a() использует состояние String («A»), роутер b() — u32 (42). Каждый вызывает .with_state(..) у себя, после чего получается Router<()>. Объедините их в app() методом merge. GET /a отвечает «a=A», GET /b — «b=42».
+
+Ожидаемый вывод:
+a=A
+b=42', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::State;
+use axum::routing::get;
+
+fn a() -> Router {
+    Router::new()
+}
+fn b() -> Router {
+    Router::new()
+}
+fn app() -> Router {
+    Router::new().merge(a()).merge(b())
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/a", "").await.1);
+    println!("{}", call(&app, "GET", "/b", "").await.1);
+}
+', 'with_state превращает Router<S> в Router<()>; merge двух Router<()> допустим.', '{"crates": ["tokio"], "driver": "", "expected": ["a=A", "b=42"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-extension', 6, 'rust', 'Extension из middleware', 'Слой (from_fn) читает заголовок x-user: если он есть и это число — кладёт UserId(n) в расширения запроса, иначе отвечает 401 без вызова обработчика. GET /me отвечает «вы: N». Проверьте запросы с заголовком, с нечисловым и без.
+
+Ожидаемый вывод:
+(200, "вы: 7")
+(401, "")
+(401, "")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+#[derive(Clone, Copy)]
+struct UserId(u32);
+
+async fn call_user(app: &Router, user: Option<&str>) -> (StatusCode, String) {
+    let mut b = Request::get("/me");
+    if let Some(u) = user {
+        b = b.header("x-user", u);
+    }
+    let res = app.clone().oneshot(b.body(Body::empty()).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call_user(&app, Some("7")).await);
+    println!("{:?}", call_user(&app, Some("abc")).await);
+    println!("{:?}", call_user(&app, None).await);
+}
+', 'req.extensions_mut().insert(UserId(n)); обработчик: Extension(UserId(n)): Extension<UserId>.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"вы: 7\")", "(401, \"\")", "(401, \"\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-from-fn-header', 7, 'rust', 'Слой добавляет заголовок', 'Напишите middleware на from_fn: после обработки он добавляет в ответ заголовок x-done: yes. Маршрут GET /a отвечает «a». Напечатайте заголовок для /a и для неизвестного пути /zzz (слой через .layer охватывает и 404).
+
+Ожидаемый вывод:
+Some("yes")
+Some("yes")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn header(app: &Router, uri: &str) -> Option<String> {
+    let res = app.clone().oneshot(Request::get(uri).body(Body::empty()).unwrap()).await.unwrap();
+    res.headers().get("x-done").map(|v| v.to_str().unwrap().to_string())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", header(&app, "/a").await);
+    println!("{:?}", header(&app, "/zzz").await);
+}
+', 'res.headers_mut().insert("x-done", HeaderValue::from_static("yes")).', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"yes\")", "Some(\"yes\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-order', 8, 'rust', 'Порядок слоёв: Router::layer', 'К маршруту GET /x подключены два слоя на from_fn_with_state с общим журналом (Arc<Mutex<Vec<String>>>): «outer» и «inner». Каждый слой пишет «имя-in» до вызова next и «имя-out» после; обработчик пишет «handler». Подключите слои методом .layer так, чтобы порядок записей был: outer-in inner-in handler inner-out outer-out. Напишите функцию слоя tag и сборку.
+
+Ожидаемый вывод:
+200 OK
+outer-in inner-in handler inner-out outer-out', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use std::sync::{Arc, Mutex};
+
+#[derive(Clone)]
+struct Tag {
+    name: &''static str,
+    log: Arc<Mutex<Vec<String>>>,
+}
+
+fn app(log: Arc<Mutex<Vec<String>>>) -> Router {
+    let _ = log;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let app = app(log.clone());
+    println!("{}", call(&app, "GET", "/x", "").await.0);
+    println!("{}", log.lock().unwrap().join(" "));
+}
+', 'Последний .layer — самый внешний: сначала .layer(inner), затем .layer(outer).', '{"crates": ["tokio"], "driver": "", "expected": ["200 OK", "outer-in inner-in handler inner-out outer-out"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-route-layer', 9, 'rust', 'route_layer и неизвестные пути', 'Слой добавляет заголовок x-seen: 1. Подключите его так, чтобы заголовок был у ответов существующих маршрутов (/ok), но НЕ был у ответа на неизвестный путь (/zzz). main печатает наличие заголовка для обоих.
+
+Ожидаемый вывод:
+/ok: true
+/zzz: false', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn seen(app: &Router, uri: &str) -> bool {
+    let res = app.clone().oneshot(Request::get(uri).body(Body::empty()).unwrap()).await.unwrap();
+    res.headers().contains_key("x-seen")
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("/ok: {}", seen(&app, "/ok").await);
+    println!("/zzz: {}", seen(&app, "/zzz").await);
+}
+', 'Используйте .route_layer(..) вместо .layer(..).', '{"crates": ["tokio"], "driver": "", "expected": ["/ok: true", "/zzz: false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-auth', 10, 'rust', 'Авторизация слоем', 'Слой проверяет заголовок Authorization: Bearer secret. Нет заголовка или токен другой — 401 и тело «нужен токен». Подключите слой только к GET /private (route_layer на отдельном роутере), а GET /public должен отвечать без проверки. Напечатайте статус и тело для трёх запросов.
+
+Ожидаемый вывод:
+(200, "открыто")
+(401, "нужен токен")
+(200, "секрет")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn with_auth(app: &Router, uri: &str, auth: Option<&str>) -> (StatusCode, String) {
+    let mut b = Request::get(uri);
+    if let Some(a) = auth {
+        b = b.header("authorization", a);
+    }
+    let res = app.clone().oneshot(b.body(Body::empty()).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", with_auth(&app, "/public", None).await);
+    println!("{:?}", with_auth(&app, "/private", None).await);
+    println!("{:?}", with_auth(&app, "/private", Some("Bearer secret")).await);
+}
+', 'Router::new().route("/private", ..).route_layer(from_fn(auth)).route("/public", ..) — слой действует на маршруты, добавленные до него.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"открыто\")", "(401, \"нужен токен\")", "(200, \"секрет\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-stats', 11, 'rust', 'Статистика по путям', 'Слой считает запросы по путям: состояние Arc<Mutex<HashMap<String, u32>>>. Слой работает на from_fn_with_state и увеличивает счётчик пути перед вызовом next. GET /stats отвечает «путь=число» через запятую по алфавиту путей (сам /stats тоже считается, до формирования ответа).
+
+Ожидаемый вывод:
+/a=3,/b=1,/stats=1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for p in ["/a", "/b", "/a", "/a"] {
+        call(&app, "GET", p, "").await;
+    }
+    println!("{}", call(&app, "GET", "/stats", "").await.1);
+}
+', 'HashMap::entry(path).or_default() += 1; в /stats — сортировка ключей.', '{"crates": ["tokio"], "driver": "", "expected": ["/a=3,/b=1,/stats=1"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-map-request', 12, 'rust', 'map_request: правим запрос', 'С помощью middleware::map_request приведите значение заголовка x-name к верхнему регистру до обработчика. Обработчик GET /hello отвечает «привет, ИМЯ». Заголовок отсутствует — «привет, незнакомец».
+
+Ожидаемый вывод:
+привет, ANNA
+привет, незнакомец', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn hello(app: &Router, name: Option<&str>) -> String {
+    let mut b = Request::get("/hello");
+    if let Some(n) = name {
+        b = b.header("x-name", n);
+    }
+    let res = app.clone().oneshot(b.body(Body::empty()).unwrap()).await.unwrap();
+    String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned()
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", hello(&app, Some("anna")).await);
+    println!("{}", hello(&app, None).await);
+}
+', 'map_request(|mut req: Request| async move { ...; req }); to_uppercase.', '{"crates": ["tokio"], "driver": "", "expected": ["привет, ANNA", "привет, незнакомец"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-map-response', 13, 'rust', 'map_response: правим ответ', 'С помощью middleware::map_response добавьте во все ответы заголовок x-powered-by: say. Напечатайте значение заголовка для ответа 200 (/a) и для 404 (/zzz).
+
+Ожидаемый вывод:
+(200, Some("say"))
+(404, Some("say"))', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn powered(app: &Router, uri: &str) -> (StatusCode, Option<String>) {
+    let res = app.clone().oneshot(Request::get(uri).body(Body::empty()).unwrap()).await.unwrap();
+    let h = res.headers().get("x-powered-by").map(|v| v.to_str().unwrap().to_string());
+    (res.status(), h)
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", powered(&app, "/a").await);
+    println!("{:?}", powered(&app, "/zzz").await);
+}
+', 'map_response(|mut res: Response| async move { ...; res }); .layer(..) охватывает и 404.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, Some(\"say\"))", "(404, Some(\"say\"))"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-request-id', 14, 'rust', 'Идентификатор запроса', 'Слой назначает каждому запросу идентификатор «req-N» (N — порядковый номер, счётчик в состоянии Arc<AtomicUsize>, начиная с 1), кладёт его в расширения запроса как RequestId(String) и в заголовок ответа x-request-id. Обработчик GET /id отвечает тем же идентификатором из расширения. Напечатайте тело и заголовок для двух запросов.
+
+Ожидаемый вывод:
+("req-1", Some("req-1"))
+("req-2", Some("req-2"))', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+#[derive(Clone)]
+struct RequestId(String);
+
+async fn get_id(app: &Router) -> (String, Option<String>) {
+    let res = app.clone().oneshot(Request::get("/id").body(Body::empty()).unwrap()).await.unwrap();
+    let h = res.headers().get("x-request-id").map(|v| v.to_str().unwrap().to_string());
+    (String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned(), h)
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", get_id(&app).await);
+    println!("{:?}", get_id(&app).await);
+}
+', 'Extension<RequestId> в обработчике; res.headers_mut().insert("x-request-id", ..).', '{"crates": ["tokio"], "driver": "", "expected": ["(\"req-1\", Some(\"req-1\"))", "(\"req-2\", Some(\"req-2\"))"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-timing', 15, 'rust', 'Время обработки в заголовке', 'Слой измеряет время обработки запроса (Instant) и добавляет заголовок x-elapsed-ms с целым числом миллисекунд. Обработчик GET /slow спит 30 мс. main печатает, что число в заголовке не меньше 30 и меньше 1000.
+
+Ожидаемый вывод:
+true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn elapsed(app: &Router) -> Option<u128> {
+    let res = app.clone().oneshot(Request::get("/slow").body(Body::empty()).unwrap()).await.unwrap();
+    res.headers().get("x-elapsed-ms").and_then(|v| v.to_str().ok()).and_then(|s| s.parse().ok())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    let ms = elapsed(&app).await;
+    println!("{}", matches!(ms, Some(n) if n >= 30 && n < 1000));
+}
+', 'let t = Instant::now(); let mut res = next.run(req).await; ... t.elapsed().as_millis().', '{"crates": ["tokio"], "driver": "", "expected": ["true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-timeout-layer', 16, 'rust', 'TimeoutLayer: 408', 'Подключите tower_http::timeout::TimeoutLayer с ограничением 50 мс и кодом 408 Request Timeout. Обработчик /slow спит 300 мс, /fast отвечает сразу. Напечатайте статусы.
+
+Ожидаемый вывод:
+200 OK
+408 Request Timeout', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/fast", "").await.0);
+    println!("{}", call(&app, "GET", "/slow", "").await.0);
+}
+', 'TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_millis(50)).', '{"crates": ["tokio"], "driver": "", "expected": ["200 OK", "408 Request Timeout"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-body-limit', 17, 'rust', 'Ограничение размера тела: 413', 'Подключите tower_http::limit::RequestBodyLimitLayer на 10 байт. POST /echo (обработчик принимает тело как String и возвращает его) должен отвечать 413 для тела длиннее лимита и эхом для короткого. Напечатайте статусы для тел из 5 и 50 символов (ASCII).
+
+Ожидаемый вывод:
+(200, "aaaaa")
+413 Payload Too Large', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    let small = "a".repeat(5);
+    let big = "a".repeat(50);
+    println!("{:?}", call(&app, "POST", "/echo", &small).await);
+    println!("{}", call(&app, "POST", "/echo", &big).await.0);
+}
+', 'RequestBodyLimitLayer::new(10); экстрактор String читает тело целиком.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"aaaaa\")", "413 Payload Too Large"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-concurrency', 18, 'rust', 'Ограничение параллелизма', 'Подключите tower::limit::ConcurrencyLimitLayer на 2. Обработчик GET /w увеличивает счётчик активных (AtomicUsize), запоминает максимум, спит 20 мс и уменьшает. Пять запросов приходят одновременно. Напечатайте максимум одновременных обработчиков.
+
+Ожидаемый вывод:
+true
+максимум: 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let (app, max) = app();
+    let futs = (0..5).map(|_| {
+        let app = app.clone();
+        async move { call(&app, "GET", "/w", "").await.0 }
+    });
+    let statuses = futures::future::join_all(futs).await;
+    println!("{}", statuses.iter().all(|s| s.is_success()));
+    println!("максимум: {}", max.load(std::sync::atomic::Ordering::SeqCst));
+}
+', 'ConcurrencyLimitLayer::new(2); максимум через fetch_max.', '{"crates": ["tokio"], "driver": "", "expected": ["true", "максимум: 2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-cors', 19, 'rust', 'Заголовки CORS', 'Подключите tower_http::cors::CorsLayer::permissive(). Запрос GET /a с заголовком Origin: http://example.com должен получить в ответе access-control-allow-origin. Напечатайте значение заголовка.
+
+Ожидаемый вывод:
+Some("*")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn allow_origin(app: &Router) -> Option<String> {
+    let req = Request::get("/a").header("origin", "http://example.com").body(Body::empty()).unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    res.headers().get("access-control-allow-origin").map(|v| v.to_str().unwrap().to_string())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", allow_origin(&app).await);
+}
+', 'CorsLayer::permissive() разрешает любой источник.', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"*\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-service-builder', 20, 'rust', 'ServiceBuilder: порядок сверху вниз', 'Соберите два слоя (from_fn_with_state с общим журналом) через tower::ServiceBuilder: «first» первым, «second» вторым. Порядок записей должен быть: first-in second-in handler second-out first-out. Подсказка: в ServiceBuilder первым перечисленный — самый внешний слой.
+
+Ожидаемый вывод:
+200 OK
+first-in second-in handler second-out first-out', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use std::sync::{Arc, Mutex};
+
+#[derive(Clone)]
+struct Tag {
+    name: &''static str,
+    log: Arc<Mutex<Vec<String>>>,
+}
+
+fn app(log: Arc<Mutex<Vec<String>>>) -> Router {
+    let _ = log;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let app = app(log.clone());
+    println!("{}", call(&app, "GET", "/x", "").await.0);
+    println!("{}", log.lock().unwrap().join(" "));
+}
+', 'Router::new().route(..).layer(ServiceBuilder::new().layer(first).layer(second)).', '{"crates": ["tokio"], "driver": "", "expected": ["200 OK", "first-in second-in handler second-out first-out"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-custom-layer', 21, 'rust', 'Свой Layer и Service', 'Реализуйте вручную слой CountLayer(Arc<AtomicUsize>) и службу Count<S>: каждый вызов службы увеличивает счётчик и передаёт запрос внутрь. Для этого нужны impl<S> Layer<S> for CountLayer и impl<S> Service<Request<Body>> for Count<S> с poll_ready (делегирует внутренней) и call (клонирует счётчик, вызывает внутреннюю службу и возвращает её будущее в Box::pin). Подключите слой методом .layer(CountLayer(..)); main посылает 4 запроса и печатает значение счётчика.
+
+Ожидаемый вывод:
+4', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::response::Response;
+use std::convert::Infallible;
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
+use std::task::{Context, Poll};
+use tower::{Layer, Service};
+
+#[derive(Clone)]
+struct CountLayer(Arc<AtomicUsize>);
+
+// TODO: структура Count<S>, impl Layer для CountLayer, impl Service для Count<S>
+
+fn app(counter: Arc<AtomicUsize>) -> Router {
+    let _ = counter;
+    Router::new().route("/a", axum::routing::get(|| async { "a" }))
+}
+
+#[tokio::main]
+async fn main() {
+    let counter = Arc::new(AtomicUsize::new(0));
+    let app = app(counter.clone());
+    for _ in 0..4 {
+        call(&app, "GET", "/a", "").await;
+    }
+    println!("{}", counter.load(std::sync::atomic::Ordering::SeqCst));
+}
+', 'type Future = Pin<Box<dyn Future<Output = Result<S::Response, S::Error>> + Send>>; не забудьте клонировать службу в call через std::mem::replace.', '{"crates": ["tokio"], "driver": "", "expected": ["4"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-token-bucket', 22, 'rust', 'Ведро жетонов', 'Реализуйте структуру Bucket { capacity, per_sec } с методом allow(now_ms: u64) -> bool. Ведро изначально полное (capacity жетонов), пополняется со скоростью per_sec жетонов в секунду (дробные жетоны накапливаются, сверх capacity не растёт). allow тратит один жетон, если он есть (≥ 1), и возвращает true; иначе false. Время монотонно неубывающее. Чистая логика: время приходит параметром.
+
+Ожидаемый вывод:
+[true, true, true, false, false, true, false, true, false, true, true, true, false]', 'struct Bucket {
+    capacity: f64,
+    per_sec: f64,
+    tokens: f64,
+    last_ms: u64,
+}
+
+impl Bucket {
+    fn new(capacity: u32, per_sec: u32) -> Bucket {
+        todo!()
+    }
+    fn allow(&mut self, now_ms: u64) -> bool {
+        todo!()
+    }
+}
+
+fn main() {
+    let mut b = Bucket::new(3, 2);
+    let r: Vec<bool> = [0, 0, 0, 0, 100, 500, 600, 1000, 1000, 10_000, 10_000, 10_000, 10_000].iter().map(|&t| b.allow(t)).collect();
+    println!("{:?}", r);
+}
+', 'Храните tokens: f64 и last_ms; перед проверкой добавляйте (now − last)/1000 · per_sec и обрезайте по capacity.', '{"crates": ["tokio"], "driver": "", "expected": ["[true, true, true, false, false, true, false, true, false, true, true, true, false]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-broadcast-state', 23, 'rust', 'Broadcast-канал в состоянии', 'Состояние содержит broadcast::Sender<String>. POST /say/{text} публикует text и отвечает числом получателей, которым доставлено (результат send, 0 если нет подписчиков — тогда send вернёт ошибку). main подписывается дважды, шлёт сообщение, печатает ответ и то, что получил каждый подписчик; затем отписывает всех и шлёт ещё раз.
+
+Ожидаемый вывод:
+доставлено: 2
+привет
+привет
+доставлено: 0', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx1) = tokio::sync::broadcast::channel::<String>(16);
+    let mut rx2 = tx.subscribe();
+    let app = app(tx.clone());
+    println!("доставлено: {}", call(&app, "POST", "/say/привет", "").await.1);
+    println!("{}", rx1.recv().await.unwrap());
+    println!("{}", rx2.recv().await.unwrap());
+    drop(rx1);
+    drop(rx2);
+    println!("доставлено: {}", call(&app, "POST", "/say/эй", "").await.1);
+}
+', 'tx.send(text).unwrap_or(0); подписчики получают через rx.recv().await.', '{"crates": ["tokio"], "driver": "", "expected": ["доставлено: 2", "привет", "привет", "доставлено: 0"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-registry', 24, 'rust', 'Реестр комнат', 'Состояние: Arc<RwLock<HashMap<String, BTreeSet<String>>>> (комната → участники). POST /rooms/{room}/join/{user} добавляет участника (создаёт комнату), GET /rooms/{room}/members возвращает участников через запятую по алфавиту, для несуществующей комнаты — 404 и текст «нет комнаты».
+
+Ожидаемый вывод:
+(200, "аня,вера")
+(200, "борис")
+(404, "нет комнаты")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for (r, u) in [("general", "вера"), ("general", "аня"), ("dev", "борис"), ("general", "аня")] {
+        call(&app, "POST", &format!("/rooms/{r}/join/{u}"), "").await;
+    }
+    println!("{:?}", call(&app, "GET", "/rooms/general/members", "").await);
+    println!("{:?}", call(&app, "GET", "/rooms/dev/members", "").await);
+    println!("{:?}", call(&app, "GET", "/rooms/none/members", "").await);
+}
+', 'BTreeSet даёт алфавитный порядок; entry().or_default().insert.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"аня,вера\")", "(200, \"борис\")", "(404, \"нет комнаты\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-fix-with-state', 25, 'rust', 'Исправьте: забыли with_state', 'Код не компилируется: роутер получился типа Router<Arc<AtomicUsize>>, а app() должен возвращать Router<()>. Добавьте недостающий вызов, чтобы GET /n отвечал «0», затем «1».
+
+Ожидаемый вывод:
+0
+1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::State;
+use axum::routing::get;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+
+async fn n(State(c): State<Arc<AtomicUsize>>) -> String {
+    c.fetch_add(1, Ordering::SeqCst).to_string()
+}
+
+fn app() -> Router {
+    Router::new().route("/n", get(n))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/n", "").await.1);
+    println!("{}", call(&app, "GET", "/n", "").await.1);
+}
+', 'Router::with_state(Arc::new(AtomicUsize::new(0))).', '{"crates": ["tokio"], "driver": "", "expected": ["0", "1"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-fix-layer-order', 26, 'rust', 'Исправьте: слой авторизации скрывает журнал', 'Есть два слоя: «log» записывает в журнал статус ответа, «auth» отвечает 401 на запросы без заголовка x-token. Сейчас запись о 401 в журнал не попадает, потому что log оказался внутри auth. Поменяйте порядок подключения, чтобы журнал видел и 401. main печатает журнал после запроса без токена и после запроса с токеном.
+
+Ожидаемый вывод:
+401,200', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::State;
+use axum::middleware::{self, Next};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use std::sync::{Arc, Mutex};
+
+type Log = Arc<Mutex<Vec<String>>>;
+
+async fn log(State(l): State<Log>, req: axum::extract::Request, next: Next) -> Response {
+    let res = next.run(req).await;
+    l.lock().unwrap().push(res.status().as_u16().to_string());
+    res
+}
+
+async fn auth(req: axum::extract::Request, next: Next) -> Response {
+    if req.headers().contains_key("x-token") {
+        next.run(req).await
+    } else {
+        StatusCode::UNAUTHORIZED.into_response()
+    }
+}
+
+fn app(l: Log) -> Router {
+    Router::new()
+        .route("/a", get(|| async { "a" }))
+        .layer(middleware::from_fn_with_state(l, log))
+        .layer(middleware::from_fn(auth))
+}
+
+#[tokio::main]
+async fn main() {
+    let l: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let app = app(l.clone());
+    call(&app, "GET", "/a", "").await;
+    let req = Request::get("/a").header("x-token", "1").body(Body::empty()).unwrap();
+    app.clone().oneshot(req).await.unwrap();
+    println!("{}", l.lock().unwrap().join(","));
+}
+', 'Слой, добавленный последним, — самый внешний: log должен идти после auth.', '{"crates": ["tokio"], "driver": "", "expected": ["401,200"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-config-arc', 27, 'rust', 'Конфигурация в Arc', 'Config { name: String, max_users: u32 } хранится в состоянии как Arc<Config>. GET /config отвечает «имя: NAME, лимит: N». GET /admit/{n}: n не больше max_users — «принят», иначе 429 и «лимит исчерпан».
+
+Ожидаемый вывод:
+имя: чат, лимит: 100
+(200, "принят")
+(429, "лимит исчерпан")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+struct Config {
+    name: String,
+    max_users: u32,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", call(&app, "GET", "/config", "").await.1);
+    println!("{:?}", call(&app, "GET", "/admit/50", "").await);
+    println!("{:?}", call(&app, "GET", "/admit/101", "").await);
+}
+', 'State(cfg): State<Arc<Config>>; ответ-кортеж для 429.', '{"crates": ["tokio"], "driver": "", "expected": ["имя: чат, лимит: 100", "(200, \"принят\")", "(429, \"лимит исчерпан\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-missing-extension', 28, 'rust', 'Отсутствующее расширение', 'Обработчик GET /me требует Extension<UserId>, но слой, который его кладёт, подключён только к /secure/me. Напечатайте статус GET /secure/me и GET /me: при отсутствии расширения axum отвечает 500 и обработчик не вызывается. Слой кладёт UserId(1) без проверок.
+
+Ожидаемый вывод:
+(200, "пользователь 1")
+500 Internal Server Error', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+#[derive(Clone, Copy)]
+struct UserId(u32);
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/secure/me", "").await);
+    println!("{}", call(&app, "GET", "/me", "").await.0);
+}
+', 'route_layer на отдельном маршруте; Extension<UserId> без слоя даёт 500.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"пользователь 1\")", "500 Internal Server Error"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 45, 'r45-own-timeout', 29, 'rust', 'Свой таймаут в from_fn', 'Напишите слой на from_fn, который ограничивает обработку 30 мс через tokio::time::timeout: если время вышло — ответ 504 и «шлюз: таймаут», иначе обычный ответ. GET /slow спит 200 мс, GET /fast отвечает сразу. Напечатайте статусы и тела.
+
+Ожидаемый вывод:
+(200, "быстро")
+(504, "шлюз: таймаут")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/fast", "").await);
+    println!("{:?}", call(&app, "GET", "/slow", "").await);
+}
+', 'match tokio::time::timeout(Duration::from_millis(30), next.run(req)).await { Ok(r) => r, Err(_) => ... }', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"быстро\")", "(504, \"шлюз: таймаут\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-roundtrip', 0, 'rust', 'Туда и обратно', 'Структура Room { id: u32, name: String } должна превращаться в JSON-строку и обратно. Напечатайте строку для Room { id: 7, name: "общий" } и результат разбора строки {"id":9,"name":"dev"} в виде Debug.
+
+Ожидаемый вывод:
+{"id":7,"name":"общий"}
+Room { id: 9, name: "dev" }', 'use serde::{Deserialize, Serialize};
+
+struct Room {
+    id: u32,
+    name: String,
+}
+
+fn main() {
+    let s = serde_json::to_string(&Room { id: 7, name: "общий".into() }).unwrap();
+    println!("{s}");
+    let r: Room = serde_json::from_str(r#"{"id":9,"name":"dev"}"#).unwrap();
+    println!("{r:?}");
+}
+', '#[derive(Serialize, Deserialize, Debug)]; serde_json::to_string и from_str.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"id\":7,\"name\":\"общий\"}", "Room { id: 9, name: \"dev\" }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-camel', 1, 'rust', 'camelCase для клиентов', 'Структура Msg { room_id: u32, sent_at: u64, author_name: String } должна сериализоваться с ключами roomId, sentAt, authorName и так же разбираться. Напечатайте JSON и разбор строки {"roomId":2,"sentAt":5,"authorName":"аня"}.
+
+Ожидаемый вывод:
+{"roomId":1,"sentAt":100,"authorName":"боря"}
+Msg { room_id: 2, sent_at: 5, author_name: "аня" }', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Msg {
+    room_id: u32,
+    sent_at: u64,
+    author_name: String,
+}
+
+fn main() {
+    println!("{}", serde_json::to_string(&Msg { room_id: 1, sent_at: 100, author_name: "боря".into() }).unwrap());
+    let m: Msg = serde_json::from_str(r#"{"roomId":2,"sentAt":5,"authorName":"аня"}"#).unwrap();
+    println!("{m:?}");
+}
+', '#[serde(rename_all = "camelCase")] на структуре.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"roomId\":1,\"sentAt\":100,\"authorName\":\"боря\"}", "Msg { room_id: 2, sent_at: 5, author_name: \"аня\" }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-skip-none', 2, 'rust', 'Пропуск пустых полей', 'Структура Out { id: u32, reply_to: Option<u64>, edited: Option<String> } сериализуется без полей, равных None. Напечатайте JSON для трёх значений: оба поля пусты, одно задано, оба заданы.
+
+Ожидаемый вывод:
+{"id":1}
+{"id":2,"reply_to":1}
+{"id":3,"reply_to":2,"edited":"правка"}', 'use serde::Serialize;
+
+#[derive(Serialize)]
+struct Out {
+    id: u32,
+    reply_to: Option<u64>,
+    edited: Option<String>,
+}
+
+fn main() {
+    for o in [Out { id: 1, reply_to: None, edited: None }, Out { id: 2, reply_to: Some(1), edited: None }, Out { id: 3, reply_to: Some(2), edited: Some("правка".into()) }] {
+        println!("{}", serde_json::to_string(&o).unwrap());
+    }
+}
+', '#[serde(skip_serializing_if = "Option::is_none")] на каждом необязательном поле.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"id\":1}", "{\"id\":2,\"reply_to\":1}", "{\"id\":3,\"reply_to\":2,\"edited\":\"правка\"}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-defaults', 3, 'rust', 'Значения по умолчанию', 'Структура Query { text: String, limit: u32, exact: bool } разбирается из JSON, в котором limit и exact можно не указывать: limit по умолчанию 20, exact — false. Напечатайте разбор трёх строк: {"text":"a"}, {"text":"b","limit":5}, {"text":"c","exact":true,"limit":1}.
+
+Ожидаемый вывод:
+Query { text: "a", limit: 20, exact: false }
+Query { text: "b", limit: 5, exact: false }
+Query { text: "c", limit: 1, exact: true }', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Query {
+    text: String,
+    limit: u32,
+    exact: bool,
+}
+
+fn main() {
+    for s in [r#"{"text":"a"}"#, r#"{"text":"b","limit":5}"#, r#"{"text":"c","exact":true,"limit":1}"#] {
+        println!("{:?}", serde_json::from_str::<Query>(s).unwrap());
+    }
+}
+', '#[serde(default = "twenty")] для limit и #[serde(default)] для exact.', '{"crates": ["tokio"], "driver": "", "expected": ["Query { text: \"a\", limit: 20, exact: false }", "Query { text: \"b\", limit: 5, exact: false }", "Query { text: \"c\", limit: 1, exact: true }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-deny-unknown', 4, 'rust', 'Запрет неизвестных полей', 'Структура Login { user: String, pass: String } отвергает JSON с лишними полями. Напечатайте, успешен ли разбор для {"user":"a","pass":"b"}, для {"user":"a","pass":"b","admin":true} и содержит ли текст ошибки второго случая слова «unknown field».
+
+Ожидаемый вывод:
+true
+false
+true', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Login {
+    user: String,
+    pass: String,
+}
+
+fn main() {
+    println!("{}", serde_json::from_str::<Login>(r#"{"user":"a","pass":"b"}"#).is_ok());
+    let e = serde_json::from_str::<Login>(r#"{"user":"a","pass":"b","admin":true}"#);
+    println!("{}", e.is_ok());
+    println!("{}", e.unwrap_err().to_string().contains("unknown field"));
+}
+', '#[serde(deny_unknown_fields)].', '{"crates": ["tokio"], "driver": "", "expected": ["true", "false", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-alias', 5, 'rust', 'Переименование через alias', 'Структура Join { room: u32 } раньше называлась {"room_id": ...}. Клиенты шлют и {"room":1}, и старое {"room_id":2}; сервер отдаёт только новое имя. Напечатайте разбор обоих вариантов и сериализацию.
+
+Ожидаемый вывод:
+Join { room: 1 }
+Join { room: 2 }
+{"room":3}', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Join {
+    room: u32,
+}
+
+fn main() {
+    println!("{:?}", serde_json::from_str::<Join>(r#"{"room":1}"#).unwrap());
+    println!("{:?}", serde_json::from_str::<Join>(r#"{"room_id":2}"#).unwrap());
+    println!("{}", serde_json::to_string(&Join { room: 3 }).unwrap());
+}
+', '#[serde(alias = "room_id")].', '{"crates": ["tokio"], "driver": "", "expected": ["Join { room: 1 }", "Join { room: 2 }", "{\"room\":3}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-flatten', 6, 'rust', 'Вложение полей: flatten', 'Структура Msg { text: String, meta: Meta } сериализуется плоско: поля Meta { id: u32, at: u64 } лежат на одном уровне с text. Напечатайте JSON и разбор строки {"text":"привет","id":4,"at":99}.
+
+Ожидаемый вывод:
+{"text":"привет","id":4,"at":99}
+Msg { text: "привет", meta: Meta { id: 4, at: 99 } }', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Meta {
+    id: u32,
+    at: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Msg {
+    text: String,
+    meta: Meta,
+}
+
+fn main() {
+    println!("{}", serde_json::to_string(&Msg { text: "привет".into(), meta: Meta { id: 4, at: 99 } }).unwrap());
+    println!("{:?}", serde_json::from_str::<Msg>(r#"{"text":"привет","id":4,"at":99}"#).unwrap());
+}
+', '#[serde(flatten)] на поле meta.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"text\":\"привет\",\"id\":4,\"at\":99}", "Msg { text: \"привет\", meta: Meta { id: 4, at: 99 } }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-tagged-enum', 7, 'rust', 'Событие с внутренним тегом', 'Перечисление Event сериализуется с полем type в snake_case: Message { room: u32, text: String }, Join { user: String }, Leave { user: String }. Напечатайте JSON каждого варианта и разбор строки {"type":"join","user":"аня"}.
+
+Ожидаемый вывод:
+{"type":"message","room":1,"text":"привет"}
+{"type":"join","user":"аня"}
+{"type":"leave","user":"боря"}
+Join { user: "аня" }', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+enum Event {
+    Message { room: u32, text: String },
+    Join { user: String },
+    Leave { user: String },
+}
+
+fn main() {
+    for e in [Event::Message { room: 1, text: "привет".into() }, Event::Join { user: "аня".into() }, Event::Leave { user: "боря".into() }] {
+        println!("{}", serde_json::to_string(&e).unwrap());
+    }
+    println!("{:?}", serde_json::from_str::<Event>(r#"{"type":"join","user":"аня"}"#).unwrap());
+}
+', '#[serde(tag = "type", rename_all = "snake_case")].', '{"crates": ["tokio"], "driver": "", "expected": ["{\"type\":\"message\",\"room\":1,\"text\":\"привет\"}", "{\"type\":\"join\",\"user\":\"аня\"}", "{\"type\":\"leave\",\"user\":\"боря\"}", "Join { user: \"аня\" }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-untagged', 8, 'rust', 'Число или строка', 'Идентификатор может прийти как число или как строка. Перечисление Id { Num(u64), Text(String) } без тега принимает и то и другое. Напечатайте разбор значений 42, "abc", "7" и результат разбора true (ошибка).
+
+Ожидаемый вывод:
+42 -> Num(42)
+"abc" -> Text("abc")
+"7" -> Text("7")
+true -> ошибка', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+enum Id {
+    Num(u64),
+    Text(String),
+}
+
+fn main() {
+    for s in ["42", "\"abc\"", "\"7\"", "true"] {
+        match serde_json::from_str::<Id>(s) {
+            Ok(id) => println!("{s} -> {id:?}"),
+            Err(_) => println!("{s} -> ошибка"),
+        }
+    }
+}
+', '#[serde(untagged)] на перечислении.', '{"crates": ["tokio"], "driver": "", "expected": ["42 -> Num(42)", "\"abc\" -> Text(\"abc\")", "\"7\" -> Text(\"7\")", "true -> ошибка"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-trim', 9, 'rust', 'Очистка строк при разборе', 'Поле text структуры Say должно очищаться от пробелов по краям уже при разборе JSON. Напишите функцию trimmed(deserializer) и подключите её через deserialize_with. Напечатайте разбор строки {"text":"   привет  "} в виде Debug.
+
+Ожидаемый вывод:
+Say { text: "привет" }', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Say {
+    text: String,
+}
+
+fn main() {
+    println!("{:?}", serde_json::from_str::<Say>(r#"{"text":"   привет  "}"#).unwrap());
+}
+', 'fn trimmed<''de, D: Deserializer<''de>>(d: D) -> Result<String, D::Error> { let s = String::deserialize(d)?; Ok(s.trim().to_string()) }', '{"crates": ["tokio"], "driver": "", "expected": ["Say { text: \"привет\" }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-username', 10, 'rust', 'Имя пользователя как тип', 'Тип Username (от 3 до 16 символов, только латинские буквы и цифры) создаётся функцией Username::parse(&str) -> Result<Username, String> (ошибка — текст причины: «короткое», «длинное» или «недопустимый символ»). Подключите разбор из JSON через #[serde(try_from = "String")]. Напечатайте разбор строк "anna", "ab", "a_very_long_username_here", "a b".
+
+Ожидаемый вывод:
+"anna": Ok(Username("anna"))
+"ab": Err("короткое")
+"a_very_long_username_here": Err("длинное")
+"a b": Err("недопустимый символ")
+true
+true', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Username(String);
+
+impl Username {
+    fn parse(s: &str) -> Result<Username, String> {
+        todo!()
+    }
+}
+
+fn main() {
+    for s in ["anna", "ab", "a_very_long_username_here", "a b"] {
+        println!("{s:?}: {:?}", Username::parse(s));
+    }
+    println!("{:?}", serde_json::from_str::<Username>("\"boris\"").is_ok());
+    println!("{:?}", serde_json::from_str::<Username>("\"x\"").is_err());
+}
+', 'impl TryFrom<String> for Username { type Error = String; ... } — serde вызывает его при разборе.', '{"crates": ["tokio"], "driver": "", "expected": ["\"anna\": Ok(Username(\"anna\"))", "\"ab\": Err(\"короткое\")", "\"a_very_long_username_here\": Err(\"длинное\")", "\"a b\": Err(\"недопустимый символ\")", "true", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-json-macro', 11, 'rust', 'Сборка JSON макросом', 'Макрос serde_json::json! собирает значение: постройте ответ {"ok":true,"room":{"id":3,"name":"dev"},"members":["аня","боря"],"topic":null} и напечатайте его (ключи объектов выводятся в алфавитном порядке). Затем добавьте в объект поле count равное числу участников и напечатайте ещё раз.
+
+Ожидаемый вывод:
+{"members":["аня","боря"],"ok":true,"room":{"id":3,"name":"dev"},"topic":null}
+{"count":2,"members":["аня","боря"],"ok":true,"room":{"id":3,"name":"dev"},"topic":null}', 'fn main() {
+    // ваш код
+}
+', 'let mut v = json!({..}); v["count"] = json!(2).', '{"crates": ["tokio"], "driver": "", "expected": ["{\"members\":[\"аня\",\"боря\"],\"ok\":true,\"room\":{\"id\":3,\"name\":\"dev\"},\"topic\":null}", "{\"count\":2,\"members\":[\"аня\",\"боря\"],\"ok\":true,\"room\":{\"id\":3,\"name\":\"dev\"},\"topic\":null}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-value-nav', 12, 'rust', 'Разбор JSON без структуры', 'Разберите строку {"room":{"id":5,"tags":["a","b"],"owner":{"name":"аня"}},"n":3.5} в serde_json::Value и напечатайте: имя владельца (pointer), второй тег, id как u64, поле n как f64, и что на отсутствующем пути /room/zzz вернётся None.
+
+Ожидаемый вывод:
+аня
+b
+5
+3.5
+None', 'fn main() {
+    let v: serde_json::Value = serde_json::from_str(r#"{"room":{"id":5,"tags":["a","b"],"owner":{"name":"аня"}},"n":3.5}"#).unwrap();
+    // ваш код
+    let _ = v;
+}
+', 'v.pointer("/room/owner/name").and_then(|x| x.as_str()).', '{"crates": ["tokio"], "driver": "", "expected": ["аня", "b", "5", "3.5", "None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-double-option', 13, 'rust', 'Отсутствует или null', 'В запросе PATCH поле topic может: отсутствовать (не менять), быть null (очистить), быть строкой (записать). Структура Patch { topic: Option<Option<String>> } различает три случая: напишите функцию double_option для deserialize_with и #[serde(default)]. Напечатайте разбор {}, {"topic":null} и {"topic":"новая"}.
+
+Ожидаемый вывод:
+{} -> Patch { topic: None }
+{"topic":null} -> Patch { topic: Some(None) }
+{"topic":"новая"} -> Patch { topic: Some(Some("новая")) }', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Patch {
+    topic: Option<Option<String>>,
+}
+
+fn main() {
+    for s in ["{}", r#"{"topic":null}"#, r#"{"topic":"новая"}"#] {
+        println!("{s} -> {:?}", serde_json::from_str::<Patch>(s).unwrap());
+    }
+}
+', 'fn double_option<''de, T, D>(d: D) -> Result<Option<Option<T>>, D::Error> { Option::<T>::deserialize(d).map(Some) } с #[serde(default, deserialize_with = ...)].', '{"crates": ["tokio"], "driver": "", "expected": ["{} -> Patch { topic: None }", "{\"topic\":null} -> Patch { topic: Some(None) }", "{\"topic\":\"новая\"} -> Patch { topic: Some(Some(\"новая\")) }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-u64-string', 14, 'rust', 'Большое число строкой', 'Идентификаторы u64 бывают больше 2^53 — JavaScript теряет точность. Структура Item { id: u64 } должна сериализовать id строкой, а разбирать и строку, и число. Реализуйте модуль as_string с функциями serialize и deserialize (или любые две функции) и подключите через #[serde(with = "as_string")]. Напечатайте JSON для id = 9007199254740993 и разбор {"id":"18446744073709551615"}.
+
+Ожидаемый вывод:
+{"id":"9007199254740993"}
+Item { id: 18446744073709551615 }', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Item {
+    id: u64,
+}
+
+fn main() {
+    println!("{}", serde_json::to_string(&Item { id: 9007199254740993 }).unwrap());
+    println!("{:?}", serde_json::from_str::<Item>(r#"{"id":"18446744073709551615"}"#).unwrap());
+}
+', 'serialize: s.collect_str(&v); deserialize: String::deserialize(d)?.parse().map_err(D::Error::custom).', '{"crates": ["tokio"], "driver": "", "expected": ["{\"id\":\"9007199254740993\"}", "Item { id: 18446744073709551615 }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-lowercase-enum', 15, 'rust', 'Перечисление строкой', 'Роль Role { Admin, Member, Guest } сериализуется строками «admin», «member», «guest». Структура Who { name: String, role: Role }. Напечатайте JSON и разбор {"name":"аня","role":"guest"}; а также результат разбора роли "owner" (ошибка).
+
+Ожидаемый вывод:
+{"name":"боря","role":"admin"}
+Who { name: "аня", role: Guest }
+true', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+enum Role {
+    Admin,
+    Member,
+    Guest,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Who {
+    name: String,
+    role: Role,
+}
+
+fn main() {
+    println!("{}", serde_json::to_string(&Who { name: "боря".into(), role: Role::Admin }).unwrap());
+    println!("{:?}", serde_json::from_str::<Who>(r#"{"name":"аня","role":"guest"}"#).unwrap());
+    println!("{}", serde_json::from_str::<Role>("\"owner\"").is_err());
+}
+', '#[serde(rename_all = "lowercase")] на перечислении.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"name\":\"боря\",\"role\":\"admin\"}", "Who { name: \"аня\", role: Guest }", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-page', 16, 'rust', 'Обобщённая страница ответа', 'Структура Page<T> { items: Vec<T>, next: Option<u64> } сериализуется как {"items":[..],"next":N}, а поле next при None пропускается. Напечатайте JSON страницы строк ["a","b"] с next = Some(10) и страницы чисел [1,2,3] без next.
+
+Ожидаемый вывод:
+{"items":["a","b"],"next":10}
+{"items":[1,2,3]}', 'use serde::Serialize;
+
+struct Page<T> {
+    items: Vec<T>,
+    next: Option<u64>,
+}
+
+fn main() {
+    println!("{}", serde_json::to_string(&Page { items: vec!["a", "b"], next: Some(10) }).unwrap());
+    println!("{}", serde_json::to_string(&Page { items: vec![1, 2, 3], next: None }).unwrap());
+}
+', '#[derive(Serialize)] struct Page<T> с ограничением T: Serialize (derive добавит само).', '{"crates": ["tokio"], "driver": "", "expected": ["{\"items\":[\"a\",\"b\"],\"next\":10}", "{\"items\":[1,2,3]}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-app-error', 17, 'rust', 'Ошибки приложения: статус и код', 'Заготовка содержит перечисление AppError. Реализуйте методы status() -> StatusCode (NotFound → 404, Conflict → 409, Invalid → 422, Unauthorized → 401, Internal → 500) и code() -> &''static str («not_found», «conflict», «invalid», «unauthorized», «internal»). main печатает пары для всех вариантов.
+
+Ожидаемый вывод:
+404 not_found
+409 conflict
+422 invalid
+401 unauthorized
+500 internal', 'use axum::http::StatusCode;
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Conflict(String),
+    Invalid(Vec<String>),
+    Unauthorized,
+    Internal(String),
+}
+
+impl AppError {
+    fn status(&self) -> StatusCode {
+        todo!()
+    }
+    fn code(&self) -> &''static str {
+        todo!()
+    }
+}
+
+fn main() {
+    let all = [AppError::NotFound, AppError::Conflict("x".into()), AppError::Invalid(vec![]), AppError::Unauthorized, AppError::Internal("y".into())];
+    for e in &all {
+        println!("{} {}", e.status().as_u16(), e.code());
+    }
+}
+', 'match self { AppError::NotFound => .., ... }.', '{"crates": ["tokio"], "driver": "", "expected": ["404 not_found", "409 conflict", "422 invalid", "401 unauthorized", "500 internal"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-into-response', 18, 'rust', 'AppError как ответ', 'Реализуйте IntoResponse для AppError (заготовка уже содержит методы status() и code()): статус по варианту, тело — JSON {"error":{"code":..., "message":...}}; сообщения: NotFound — «не найдено», Conflict(m) — m, Invalid — «данные не годятся» (дополнительно в error добавляется массив fields), Unauthorized — «нужна авторизация», Internal — «внутренняя ошибка». Обработчики GET /e/{kind} возвращают нужную ошибку (kind: nf, conflict, invalid, auth, boom).
+
+Ожидаемый вывод:
+404 {"error":{"code":"not_found","message":"не найдено"}}
+409 {"error":{"code":"conflict","message":"имя занято"}}
+422 {"error":{"code":"invalid","fields":[{"name":"name","why":"короткое"}],"message":"данные не годятся"}}
+401 {"error":{"code":"unauthorized","message":"нужна авторизация"}}
+500 {"error":{"code":"internal","message":"внутренняя ошибка"}}', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use serde::Serialize;
+
+#[derive(Serialize, Clone, Debug, PartialEq)]
+struct FieldError {
+    name: String,
+    why: String,
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Conflict(String),
+    Invalid(Vec<FieldError>),
+    Unauthorized,
+    Internal(String),
+}
+
+impl AppError {
+    fn status(&self) -> StatusCode {
+        match self {
+            AppError::NotFound => StatusCode::NOT_FOUND,
+            AppError::Conflict(_) => StatusCode::CONFLICT,
+            AppError::Invalid(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            AppError::Unauthorized => StatusCode::UNAUTHORIZED,
+            AppError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+    fn code(&self) -> &''static str {
+        match self {
+            AppError::NotFound => "not_found",
+            AppError::Conflict(_) => "conflict",
+            AppError::Invalid(_) => "invalid",
+            AppError::Unauthorized => "unauthorized",
+            AppError::Internal(_) => "internal",
+        }
+    }
+}
+
+use axum::extract::Path;
+use axum::routing::get;
+
+async fn boom(Path(kind): Path<String>) -> Result<&''static str, AppError> {
+    Err(match kind.as_str() {
+        "nf" => AppError::NotFound,
+        "conflict" => AppError::Conflict("имя занято".into()),
+        "invalid" => AppError::Invalid(vec![FieldError { name: "name".into(), why: "короткое".into() }]),
+        "auth" => AppError::Unauthorized,
+        _ => AppError::Internal("sql: boom at db.rs:12".into()),
+    })
+}
+
+fn app() -> Router {
+    Router::new().route("/e/{kind}", get(boom))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for k in ["nf", "conflict", "invalid", "auth", "boom"] {
+        let (s, b) = call(&app, "GET", &format!("/e/{k}"), "").await;
+        println!("{} {b}", s.as_u16());
+    }
+}
+', '(status, Json(json!({ "error": ... }))).into_response(); fields — serde_json::to_value(fields).', '{"crates": ["tokio"], "driver": "", "expected": ["404 {\"error\":{\"code\":\"not_found\",\"message\":\"не найдено\"}}", "409 {\"error\":{\"code\":\"conflict\",\"message\":\"имя занято\"}}", "422 {\"error\":{\"code\":\"invalid\",\"fields\":[{\"name\":\"name\",\"why\":\"короткое\"}],\"message\":\"данные не годятся\"}}", "401 {\"error\":{\"code\":\"unauthorized\",\"message\":\"нужна авторизация\"}}", "500 {\"error\":{\"code\":\"internal\",\"message\":\"внутренняя ошибка\"}}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-from-parse', 19, 'rust', 'Оператор ? и From', 'Реализуйте From<std::num::ParseIntError> для AppError (вариант Invalid с одним текстом) и обработчик GET /double/{n} с Path<String>: разбирает n как i64 оператором ? и отвечает удвоенным числом; неверный текст даёт 422 с телом «invalid: не число». Заготовка содержит AppError с IntoResponse (Invalid(String)).
+
+Ожидаемый вывод:
+(200, "42")
+(200, "-8")
+(422, "invalid: не число")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::Path;
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+
+enum AppError {
+    Invalid(String),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        match self {
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, format!("invalid: {m}")).into_response(),
+        }
+    }
+}
+
+async fn double(Path(n): Path<String>) -> Result<String, AppError> {
+    let n: i64 = n.parse().unwrap();
+    Ok((n * 2).to_string())
+}
+
+fn app() -> Router {
+    Router::new().route("/double/{n}", get(double))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for n in ["21", "-4", "abc"] {
+        println!("{:?}", call(&app, "GET", &format!("/double/{n}"), "").await);
+    }
+}
+', 'impl From<ParseIntError> for AppError { fn from(_: ParseIntError) -> Self { AppError::Invalid(..) } }.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"42\")", "(200, \"-8\")", "(422, \"invalid: не число\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-validate-fields', 20, 'rust', 'Валидация с перечнем полей', 'POST /users принимает JSON {"name":..., "password":...}. Правила: name — от 3 до 16 символов, password — не короче 8 символов. Если нарушено любое правило, ответ — 422 и JSON {"error":{"code":"invalid","fields":[{"name":..,"why":..}]}} со ВСЕМИ нарушениями (why: «короткое имя», «длинное имя», «короткий пароль»); успех — 201 и «создан NAME». Порядок полей: name, затем password.
+
+Ожидаемый вывод:
+201 создан anna
+422 {"error":{"code":"invalid","fields":[{"name":"name","why":"короткое имя"},{"name":"password","why":"короткий пароль"}]}}
+422 {"error":{"code":"invalid","fields":[{"name":"name","why":"длинное имя"}]}}
+422 {"error":{"code":"invalid","fields":[{"name":"password","why":"короткий пароль"}]}}', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use serde::Serialize;
+
+#[derive(Serialize, Clone, Debug, PartialEq)]
+struct FieldError {
+    name: String,
+    why: String,
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Conflict(String),
+    Invalid(Vec<FieldError>),
+    Unauthorized,
+    Internal(String),
+}
+
+use axum::routing::post;
+
+#[derive(serde::Deserialize)]
+struct NewUser {
+    name: String,
+    password: String,
+}
+
+async fn create(Json(u): Json<NewUser>) -> Result<(StatusCode, String), AppError> {
+    Ok((StatusCode::CREATED, format!("создан {}", u.name)))
+}
+
+fn app() -> Router {
+    Router::new().route("/users", post(create))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for body in [r#"{"name":"anna","password":"longenough"}"#, r#"{"name":"ab","password":"short"}"#, r#"{"name":"a_very_long_name_indeed","password":"12345678"}"#, r#"{"name":"bob","password":"1234567"}"#] {
+        let (s, b) = call(&app, "POST", "/users", body).await;
+        println!("{} {b}", s.as_u16());
+    }
+}
+', 'Соберите Vec<FieldError>; если не пуст — верните Err(AppError::Invalid(..)).', '{"crates": ["tokio"], "driver": "", "expected": ["201 создан anna", "422 {\"error\":{\"code\":\"invalid\",\"fields\":[{\"name\":\"name\",\"why\":\"короткое имя\"},{\"name\":\"password\",\"why\":\"короткий пароль\"}]}}", "422 {\"error\":{\"code\":\"invalid\",\"fields\":[{\"name\":\"name\",\"why\":\"длинное имя\"}]}}", "422 {\"error\":{\"code\":\"invalid\",\"fields\":[{\"name\":\"password\",\"why\":\"короткий пароль\"}]}}"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-api-json', 21, 'rust', 'Свой экстрактор ApiJson', 'Заготовка содержит AppError (BadRequest(String) → 400 code bad_request, Unsupported → 415 code unsupported, Invalid(String) → 422 code invalid; IntoResponse выдаёт {"error":{"code":..,"message":..}}). Реализуйте экстрактор ApiJson<T>: FromRequest, который вызывает Json<T>, а JsonRejection превращает в AppError по статусу отказа (400, 415, иначе 422), с сообщением rejection.body_text(). Обработчик POST /n принимает ApiJson<Num> с полем n: i64 и отвечает числом. Проверьте корректное тело, не-JSON, неверный тип и запрос без заголовка content-type.
+
+Ожидаемый вывод:
+200 5
+400 bad_request
+422 invalid
+415 unsupported', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::FromRequest;
+use axum::response::{IntoResponse, Response};
+use axum::routing::post;
+use axum::Json;
+use serde::de::DeserializeOwned;
+
+enum AppError {
+    BadRequest(String),
+    Unsupported(String),
+    Invalid(String),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (s, code, m) = match self {
+            AppError::BadRequest(m) => (StatusCode::BAD_REQUEST, "bad_request", m),
+            AppError::Unsupported(m) => (StatusCode::UNSUPPORTED_MEDIA_TYPE, "unsupported", m),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m),
+        };
+        (s, Json(serde_json::json!({ "error": { "code": code, "message": m } }))).into_response()
+    }
+}
+
+struct ApiJson<T>(T);
+
+// TODO: impl FromRequest<S> for ApiJson<T>
+
+#[derive(serde::Deserialize)]
+struct Num {
+    n: i64,
+}
+
+async fn handler(ApiJson(v): ApiJson<Num>) -> String {
+    v.n.to_string()
+}
+
+fn app() -> Router {
+    Router::new().route("/n", post(handler))
+}
+
+async fn code_of(app: &Router, content_type: Option<&str>, body: &str) -> String {
+    let mut b = Request::post("/n");
+    if let Some(ct) = content_type {
+        b = b.header("content-type", ct);
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap_or(serde_json::Value::Null);
+    format!("{s} {}", v.pointer("/error/code").and_then(|c| c.as_str()).unwrap_or(&String::from_utf8_lossy(&bytes)))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", code_of(&app, Some("application/json"), r#"{"n": 5}"#).await);
+    println!("{}", code_of(&app, Some("application/json"), "not json").await);
+    println!("{}", code_of(&app, Some("application/json"), r#"{"n": "x"}"#).await);
+    println!("{}", code_of(&app, None, r#"{"n": 5}"#).await);
+}
+', 'impl<S, T> FromRequest<S> for ApiJson<T> where T: DeserializeOwned, S: Send + Sync { type Rejection = AppError; async fn from_request(req: Request<Body>, state: &S) -> Result<Self, AppError> { ... } }', '{"crates": ["tokio"], "driver": "", "expected": ["200 5", "400 bad_request", "422 invalid", "415 unsupported"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-json-fallback', 22, 'rust', '404 и 405 в формате JSON', 'Роутер с маршрутом GET /ping («pong») должен отвечать на неизвестные пути 404 с телом {"error":{"code":"not_found"}} и на неверный метод — 405 с телом {"error":{"code":"method_not_allowed"}}. Используйте .fallback(..) и .method_not_allowed_fallback(..). Напечатайте ответы на GET /ping, GET /x, POST /ping.
+
+Ожидаемый вывод:
+(200, "pong")
+(404, "{\"error\":{\"code\":\"not_found\"}}")
+(405, "{\"error\":{\"code\":\"method_not_allowed\"}}")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/ping", "").await);
+    println!("{:?}", call(&app, "GET", "/x", "").await);
+    println!("{:?}", call(&app, "POST", "/ping", "").await);
+}
+', 'Router::new().route(..).fallback(h404).method_not_allowed_fallback(h405).', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"pong\")", "(404, \"{\\\"error\\\":{\\\"code\\\":\\\"not_found\\\"}}\")", "(405, \"{\\\"error\\\":{\\\"code\\\":\\\"method_not_allowed\\\"}}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-hide-internal', 23, 'rust', 'Внутренние детали — в журнал', 'Обработчик GET /boom завершается ошибкой Internal("sql: syntax error near ''FORM'' at db.rs:12"). Клиент должен получить 500 и тело «внутренняя ошибка», а подробности — попасть в журнал (Arc<Mutex<Vec<String>>> из состояния). Напишите обработчик так, чтобы он сам записывал деталь в журнал и возвращал общую ошибку; main печатает ответ клиенту и журнал.
+
+Ожидаемый вывод:
+(500, "внутренняя ошибка")
+["sql: syntax error near ''FORM'' at db.rs:12"]', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use std::sync::{Arc, Mutex};
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let app = app(log.clone());
+    println!("{:?}", call(&app, "GET", "/boom", "").await);
+    println!("{:?}", log.lock().unwrap());
+}
+', 'Запишите деталь в журнал перед возвратом (StatusCode::INTERNAL_SERVER_ERROR, "внутренняя ошибка").', '{"crates": ["tokio"], "driver": "", "expected": ["(500, \"внутренняя ошибка\")", "[\"sql: syntax error near ''FORM'' at db.rs:12\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-dto', 24, 'rust', 'Запрос, строка и ответ', 'Есть три типа: CreateRoom { name } (запрос), RoomRow { id, name, secret_key } (строка базы), RoomOut { id, name } (ответ). Реализуйте From<RoomRow> для RoomOut и обработчик POST /rooms: разбирает CreateRoom, «сохраняет» строку (id = число символов имени, secret_key = "k-" + имя) и отвечает RoomOut в JSON со статусом 201. Секретный ключ в ответ попадать не должен.
+
+Ожидаемый вывод:
+(201, "{\"id\":5,\"name\":\"общая\"}")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::routing::post;
+use axum::Json;
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize)]
+struct CreateRoom {
+    name: String,
+}
+struct RoomRow {
+    id: u32,
+    name: String,
+    secret_key: String,
+}
+#[derive(Serialize)]
+struct RoomOut {
+    id: u32,
+    name: String,
+}
+
+async fn create(Json(req): Json<CreateRoom>) -> (StatusCode, Json<RoomOut>) {
+    let row = RoomRow { id: req.name.chars().count() as u32, name: req.name.clone(), secret_key: format!("k-{}", req.name) };
+    let _ = row.secret_key;
+    (StatusCode::CREATED, Json(RoomOut { id: 0, name: String::new() }))
+}
+
+fn app() -> Router {
+    Router::new().route("/rooms", post(create))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "POST", "/rooms", r#"{"name":"общая"}"#).await);
+}
+', 'Json((StatusCode::CREATED, Json(RoomOut::from(row)))) — кортеж (StatusCode, Json<T>).', '{"crates": ["tokio"], "driver": "", "expected": ["(201, \"{\\\"id\\\":5,\\\"name\\\":\\\"общая\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-error-chain', 25, 'rust', 'Цепочка причин ошибки', 'Реализуйте для AppError (Display и std::error::Error) цепочку причин: AppError::Db(DbError) — source() возвращает внутреннюю ошибку; AppError::NotFound — без причины. Display: «база недоступна» для Db и «не найдено» для NotFound. DbError реализует Display («соединение разорвано») и Error. Функция chain(&dyn Error) -> Vec<String> собирает тексты всей цепочки от внешней ошибки к самой глубокой.
+
+Ожидаемый вывод:
+["база недоступна", "соединение разорвано"]
+["не найдено"]', 'use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+struct DbError;
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Db(DbError),
+}
+
+fn chain(e: &dyn Error) -> Vec<String> {
+    todo!()
+}
+
+fn main() {
+    println!("{:?}", chain(&AppError::Db(DbError)));
+    println!("{:?}", chain(&AppError::NotFound));
+}
+', 'fn source(&self) -> Option<&(dyn Error + ''static)>; цикл while let Some(e) = cur { ...; cur = e.source(); }', '{"crates": ["tokio"], "driver": "", "expected": ["[\"база недоступна\", \"соединение разорвано\"]", "[\"не найдено\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-rename-keyword', 26, 'rust', 'Поле с зарезервированным именем', 'В JSON поле называется type, но в Rust это ключевое слово. Структура Shape { kind: String, sides: u32 } должна сериализоваться как {"type":"..","sides":N} и так же разбираться. Напечатайте JSON и разбор {"type":"квадрат","sides":4}.
+
+Ожидаемый вывод:
+{"type":"треугольник","sides":3}
+Shape { kind: "квадрат", sides: 4 }', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Shape {
+    kind: String,
+    sides: u32,
+}
+
+fn main() {
+    println!("{}", serde_json::to_string(&Shape { kind: "треугольник".into(), sides: 3 }).unwrap());
+    println!("{:?}", serde_json::from_str::<Shape>(r#"{"type":"квадрат","sides":4}"#).unwrap());
+}
+', '#[serde(rename = "type")] на поле kind.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"type\":\"треугольник\",\"sides\":3}", "Shape { kind: \"квадрат\", sides: 4 }"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-custom-error', 27, 'rust', 'Своё сообщение при разборе', 'Цвет Color(u8, u8, u8) разбирается из строки «#rrggbb» (hex). Реализуйте Deserialize вручную (impl<''de> Deserialize<''de>): строка должна начинаться с «#» и содержать ровно 6 hex-символов, иначе ошибка serde::de::Error::custom с текстом «неверный цвет: СТРОКА». Напечатайте разбор "#ff8000", "#00ff7f", "ff8000", "#12".
+
+Ожидаемый вывод:
+"#ff8000": Color(255, 128, 0)
+"#00ff7f": Color(0, 255, 127)
+"ff8000": неверный цвет: ff8000
+"#12": неверный цвет: #12', 'use serde::{Deserialize, Deserializer};
+
+#[derive(Debug)]
+struct Color(u8, u8, u8);
+
+impl<''de> Deserialize<''de> for Color {
+    fn deserialize<D: Deserializer<''de>>(d: D) -> Result<Color, D::Error> {
+        todo!()
+    }
+}
+
+fn main() {
+    for s in ["\"#ff8000\"", "\"#00ff7f\"", "\"ff8000\"", "\"#12\""] {
+        match serde_json::from_str::<Color>(s) {
+            Ok(c) => println!("{s}: {c:?}"),
+            Err(e) => println!("{s}: {}", e.to_string().split(" at line").next().unwrap()),
+        }
+    }
+}
+', 'let s = String::deserialize(d)?; u8::from_str_radix(&s[1..3], 16) для каждого канала.', '{"crates": ["tokio"], "driver": "", "expected": ["\"#ff8000\": Color(255, 128, 0)", "\"#00ff7f\": Color(0, 255, 127)", "\"ff8000\": неверный цвет: ff8000", "\"#12\": неверный цвет: #12"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-fix-derive', 28, 'rust', 'Исправьте: нет derive', 'Код не компилируется: структура Out не умеет сериализоваться, а Json<Out> требует этого. Добавьте нужный derive, чтобы GET /out отвечал {"id":1,"name":"общая"}.
+
+Ожидаемый вывод:
+(200, "{\"id\":1,\"name\":\"общая\"}")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::routing::get;
+use axum::Json;
+
+struct Out {
+    id: u32,
+    name: String,
+}
+
+async fn out() -> Json<Out> {
+    Json(Out { id: 1, name: "общая".into() })
+}
+
+fn app() -> Router {
+    Router::new().route("/out", get(out))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{:?}", call(&app, "GET", "/out", "").await);
+}
+', '#[derive(serde::Serialize)].', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"{\\\"id\\\":1,\\\"name\\\":\\\"общая\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 46, 'r46-cursor', 29, 'rust', 'Курсор в строке запроса', 'GET /msgs?cursor=c123 принимает необязательный курсор формата «c» + число. Тип Cursor(u64) разбирается из строки через #[serde(try_from = "String")] (ошибка: «неверный курсор»). Обработчик отвечает «после N» (или «с начала», если курсора нет). Для неверного курсора axum вернёт 400. Напечатайте ответы для /msgs, /msgs?cursor=c42, /msgs?cursor=x1 и /msgs?cursor=c.
+
+Ожидаемый вывод:
+/msgs -> 200 с начала
+/msgs?cursor=c42 -> 200 после 42
+/msgs?cursor=x1 -> 400
+/msgs?cursor=c -> 400', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use axum::extract::Query;
+use axum::routing::get;
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Cursor(u64);
+
+#[derive(Deserialize)]
+struct Params {
+    cursor: Option<Cursor>,
+}
+
+async fn msgs(Query(p): Query<Params>) -> String {
+    match p.cursor {
+        Some(c) => format!("после {}", c.0),
+        None => "с начала".into(),
+    }
+}
+
+fn app() -> Router {
+    Router::new().route("/msgs", get(msgs))
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for uri in ["/msgs", "/msgs?cursor=c42", "/msgs?cursor=x1", "/msgs?cursor=c"] {
+        let (s, b) = call(&app, "GET", uri, "").await;
+        println!("{uri} -> {} {}", s.as_u16(), if s.is_success() { b } else { String::new() });
+    }
+}
+', 'impl TryFrom<String> for Cursor: strip_prefix(''c'') и parse::<u64>().', '{"crates": ["tokio"], "driver": "", "expected": ["/msgs -> 200 с начала", "/msgs?cursor=c42 -> 200 после 42", "/msgs?cursor=x1 -> 400", "/msgs?cursor=c -> 400"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-select-one', 0, 'rust', 'Первое подключение', 'Подключитесь к базе (функция pool() уже есть) и напечатайте: результат запроса SELECT 20 + 22 через query_scalar::<_, i32>, а затем «версия сервера >= 14: true/false» (SHOW server_version_num возвращает строку с числом).
+
+Ожидаемый вывод:
+42
+версия сервера >= 14: true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'sqlx::query_scalar::<_, i32>("SELECT 20 + 22").fetch_one(&pool).await.unwrap().', '{"crates": ["tokio"], "driver": "", "expected": ["42", "версия сервера >= 14: true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-users-table', 1, 'rust', 'Таблица и FromRow', 'Создайте таблицу users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, bio TEXT), вставьте «аня» (без bio) и «боря» (bio «привет»), прочитайте обе строки структурой User (derive FromRow) в порядке id и напечатайте их Debug.
+
+Ожидаемый вывод:
+User { id: 1, name: "аня", bio: None }
+User { id: 2, name: "боря", bio: Some("привет") }', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[derive(FromRow, Debug)]
+struct User {
+    id: i64,
+    name: String,
+    bio: Option<String>,
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'query("CREATE TABLE ...").execute(&pool); query_as::<_, User>("SELECT * FROM users ORDER BY id").fetch_all.', '{"crates": ["tokio"], "driver": "", "expected": ["User { id: 1, name: \"аня\", bio: None }", "User { id: 2, name: \"боря\", bio: Some(\"привет\") }"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-bind-safe', 2, 'rust', 'Параметры вместо подстановки', 'Вставьте в таблицу notes(text TEXT) строку «x''); DROP TABLE notes;--» через bind, затем прочитайте её обратно и напечатайте, а также число строк в таблице (таблица должна уцелеть).
+
+Ожидаемый вывод:
+x''); DROP TABLE notes;--
+строк: 1', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'bind передаёт значение отдельно от текста запроса — оно не исполняется как SQL.', '{"crates": ["tokio"], "driver": "", "expected": ["x''); DROP TABLE notes;--", "строк: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-optional', 3, 'rust', 'Нет строки: Option и ошибка', 'В таблице rooms(id BIGSERIAL, name TEXT) одна строка «общая». Найдите комнату с id = 1 (fetch_optional → Some), с id = 99 (None) и покажите, что fetch_one для id = 99 возвращает ошибку sqlx::Error::RowNotFound (напечатайте true).
+
+Ожидаемый вывод:
+1: Some("общая")
+99: None
+true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'fetch_optional даёт Option; matches!(err, sqlx::Error::RowNotFound).', '{"crates": ["tokio"], "driver": "", "expected": ["1: Some(\"общая\")", "99: None", "true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-returning', 4, 'rust', 'INSERT … RETURNING', 'Создайте rooms(id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL) и функцию create_room(&PgPool, &str) -> i64, которая вставляет комнату и возвращает её id одним запросом (RETURNING id). Создайте три комнаты и напечатайте их id.
+
+Ожидаемый вывод:
+1
+2
+3', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn create_room(pool: &PgPool, name: &str) -> i64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)").execute(&pool).await.unwrap();
+    for n in ["общая", "dev", "random"] {
+        println!("{}", create_room(&pool, n).await);
+    }
+}
+', 'query_scalar("INSERT ... RETURNING id").bind(name).fetch_one(pool).', '{"crates": ["tokio"], "driver": "", "expected": ["1", "2", "3"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-on-conflict-nothing', 5, 'rust', 'Идемпотентное создание', 'Таблица rooms(name TEXT PRIMARY KEY). Функция ensure_room(&PgPool, &str) -> bool вставляет комнату с ON CONFLICT DO NOTHING и возвращает true, если комната создана сейчас (rows_affected() == 1). Вызовите её для «a», «b», «a», «b», «c».
+
+Ожидаемый вывод:
+a: true
+b: true
+a: false
+b: false
+c: true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn ensure_room(pool: &PgPool, name: &str) -> bool {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (name TEXT PRIMARY KEY)").execute(&pool).await.unwrap();
+    for n in ["a", "b", "a", "b", "c"] {
+        println!("{n}: {}", ensure_room(&pool, n).await);
+    }
+}
+', 'INSERT ... ON CONFLICT (name) DO NOTHING; res.rows_affected() == 1.', '{"crates": ["tokio"], "driver": "", "expected": ["a: true", "b: true", "a: false", "b: false", "c: true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-on-conflict-update', 6, 'rust', 'Счётчик одним запросом', 'Таблица hits(path TEXT PRIMARY KEY, n BIGINT NOT NULL). Функция hit(&PgPool, &str) -> i64 увеличивает счётчик пути одним запросом (INSERT … ON CONFLICT DO UPDATE … RETURNING n) и возвращает новое значение. Вызовите hit для /a, /a, /b, /a, /b.
+
+Ожидаемый вывод:
+/a: 1
+/a: 2
+/b: 1
+/a: 3
+/b: 2', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn hit(pool: &PgPool, path: &str) -> i64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE hits (path TEXT PRIMARY KEY, n BIGINT NOT NULL)").execute(&pool).await.unwrap();
+    for p in ["/a", "/a", "/b", "/a", "/b"] {
+        println!("{p}: {}", hit(&pool, p).await);
+    }
+}
+', 'ON CONFLICT (path) DO UPDATE SET n = hits.n + 1 RETURNING n.', '{"crates": ["tokio"], "driver": "", "expected": ["/a: 1", "/a: 2", "/b: 1", "/a: 3", "/b: 2"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-null', 7, 'rust', 'NULL и Option', 'Таблица profiles(user_name TEXT, city TEXT) со строками («аня», NULL) и («боря», «Тверь»). Прочитайте обе строки кортежем (String, Option<String>) через query_as и напечатайте «аня: ?» / «боря: Тверь» (неизвестный город — «?»).
+
+Ожидаемый вывод:
+аня: ?
+боря: Тверь', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'query_as::<_, (String, Option<String>)>; unwrap_or("?".into()).', '{"crates": ["tokio"], "driver": "", "expected": ["аня: ?", "боря: Тверь"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-timestamptz', 8, 'rust', 'Время создания', 'Таблица events(id BIGSERIAL, at TIMESTAMPTZ NOT NULL DEFAULT now()). Вставьте два события с паузой 20 мс между ними, прочитайте at как chrono::DateTime<Utc> и напечатайте: «второе позже первого: true», «разница не меньше 20 мс: true», «время не из будущего: true» (сравнение с Utc::now()).
+
+Ожидаемый вывод:
+второе позже первого: true
+разница не меньше 20 мс: true
+время не из будущего: true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'Столбец TIMESTAMPTZ ↔ chrono::DateTime<chrono::Utc>.', '{"crates": ["tokio"], "driver": "", "expected": ["второе позже первого: true", "разница не меньше 20 мс: true", "время не из будущего: true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-uuid', 9, 'rust', 'UUID как ключ', 'Таблица tokens(id UUID PRIMARY KEY DEFAULT gen_random_uuid(), owner TEXT). Вставьте две строки с RETURNING id (тип uuid::Uuid). Напечатайте: идентификаторы различны, версия каждого равна 4 (get_version_num()), и выбор по id возвращает владельца.
+
+Ожидаемый вывод:
+различны: true
+версия 4: true
+боря', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'query_scalar::<_, uuid::Uuid>("INSERT ... RETURNING id").', '{"crates": ["tokio"], "driver": "", "expected": ["различны: true", "версия 4: true", "боря"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-jsonb', 10, 'rust', 'JSONB-столбец', 'Таблица settings(user_name TEXT, prefs JSONB). Вставьте prefs как sqlx::types::Json<Prefs> (структура Prefs { theme: String, sound: bool } с Serialize/Deserialize), затем прочитайте обратно Json<Prefs> и достаньте theme прямо в SQL оператором ->> (query_scalar). Напечатайте оба результата.
+
+Ожидаемый вывод:
+Prefs { theme: "тёмная", sound: true }
+тёмная', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Prefs {
+    theme: String,
+    sound: bool,
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'sqlx::types::Json(prefs) в bind; Json<Prefs> при чтении; SELECT prefs->>''theme''.', '{"crates": ["tokio"], "driver": "", "expected": ["Prefs { theme: \"тёмная\", sound: true }", "тёмная"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-tx-commit', 11, 'rust', 'Транзакция: комната и участник', 'Таблицы rooms(id BIGSERIAL PK, name TEXT) и members(room_id BIGINT, user_name TEXT). Функция create_with_owner(&PgPool, room, owner) -> i64 в одной транзакции вставляет комнату (RETURNING id) и участника-владельца, затем фиксирует. Создайте две комнаты и напечатайте число строк в обеих таблицах.
+
+Ожидаемый вывод:
+rooms: 2
+members: 2', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn create_with_owner(pool: &PgPool, room: &str, owner: &str) -> i64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE members (room_id BIGINT, user_name TEXT)").execute(&pool).await.unwrap();
+    create_with_owner(&pool, "общая", "аня").await;
+    create_with_owner(&pool, "dev", "боря").await;
+    let r: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM rooms").fetch_one(&pool).await.unwrap();
+    let m: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    println!("rooms: {r}\nmembers: {m}");
+}
+', 'let mut tx = pool.begin().await?; ... .execute(&mut *tx) ... tx.commit().', '{"crates": ["tokio"], "driver": "", "expected": ["rooms: 2", "members: 2"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-tx-drop', 12, 'rust', 'Откат при уничтожении', 'Таблица log(msg TEXT). Откройте транзакцию, вставьте строку «в транзакции», напечатайте число строк внутри транзакции, затем уничтожьте транзакцию без commit (drop) и напечатайте число строк снаружи (должно быть 0). Затем повторите с commit — число снаружи 1.
+
+Ожидаемый вывод:
+внутри: 1
+снаружи после drop: 0
+снаружи после commit: 1', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'tx.commit() фиксирует; drop(tx) откатывает.', '{"crates": ["tokio"], "driver": "", "expected": ["внутри: 1", "снаружи после drop: 0", "снаружи после commit: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-transfer', 13, 'rust', 'Перевод между счетами', 'Таблица accounts(name TEXT PK, balance BIGINT CHECK (balance >= 0)) со счетами «аня» 100 и «боря» 50. Функция transfer(&PgPool, from, to, amount) -> Result<(), sqlx::Error> в транзакции списывает и зачисляет. Переведите 30 от ани к боре (успех), затем 500 от ани к боре (ограничение CHECK нарушено — вся транзакция откатывается). Напечатайте результаты и итоговые балансы.
+
+Ожидаемый вывод:
+true
+false
+[("аня", 70), ("боря", 80)]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn transfer(pool: &PgPool, from: &str, to: &str, amount: i64) -> Result<(), sqlx::Error> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE accounts (name TEXT PRIMARY KEY, balance BIGINT CHECK (balance >= 0))").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO accounts VALUES (''аня'', 100), (''боря'', 50)").execute(&pool).await.unwrap();
+    println!("{:?}", transfer(&pool, "аня", "боря", 30).await.is_ok());
+    println!("{:?}", transfer(&pool, "аня", "боря", 500).await.is_ok());
+    let rows: Vec<(String, i64)> = sqlx::query_as("SELECT name, balance FROM accounts ORDER BY name").fetch_all(&pool).await.unwrap();
+    println!("{rows:?}");
+}
+', 'Два UPDATE в одной транзакции; Err на первом — ранний возврат через ? и откат при drop.', '{"crates": ["tokio"], "driver": "", "expected": ["true", "false", "[(\"аня\", 70), (\"боря\", 80)]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-unique-violation', 14, 'rust', 'Нарушение уникальности', 'Таблица users(name TEXT UNIQUE). Функция add_user(&PgPool, &str) -> Result<(), String>: успех — Ok, нарушение уникальности (SQLSTATE 23505) — Err("имя занято"), любая другая ошибка — Err(текст ошибки). Добавьте «аня», «боря», «аня» и напечатайте результаты.
+
+Ожидаемый вывод:
+аня: Ok(())
+боря: Ok(())
+аня: Err("имя занято")', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn add_user(pool: &PgPool, name: &str) -> Result<(), String> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (name TEXT UNIQUE)").execute(&pool).await.unwrap();
+    for n in ["аня", "боря", "аня"] {
+        println!("{n}: {:?}", add_user(&pool, n).await);
+    }
+}
+', 'e.as_database_error().and_then(|d| d.code()) — сравните с "23505" (или d.is_unique_violation()).', '{"crates": ["tokio"], "driver": "", "expected": ["аня: Ok(())", "боря: Ok(())", "аня: Err(\"имя занято\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-fk-violation', 15, 'rust', 'Нарушение внешнего ключа', 'Таблицы rooms(id BIGSERIAL PK, name TEXT) и messages(id BIGSERIAL PK, room_id BIGINT REFERENCES rooms(id), text TEXT). Функция post(&PgPool, room_id, text) -> &''static str возвращает «ок», если вставка прошла, «нет комнаты» при нарушении внешнего ключа (SQLSTATE 23503) и «сбой» иначе. Опубликуйте в комнату 1 (создана), и в комнату 2 (нет).
+
+Ожидаемый вывод:
+ок
+нет комнаты', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn post(pool: &PgPool, room_id: i64, text: &str) -> &''static str {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT REFERENCES rooms(id), text TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (name) VALUES (''общая'')").execute(&pool).await.unwrap();
+    println!("{}", post(&pool, 1, "привет").await);
+    println!("{}", post(&pool, 2, "эй").await);
+}
+', 'Код 23503 — foreign_key_violation.', '{"crates": ["tokio"], "driver": "", "expected": ["ок", "нет комнаты"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-check-violation', 16, 'rust', 'Ограничение CHECK', 'Таблица messages(text TEXT NOT NULL CHECK (length(trim(text)) > 0)). Напечатайте SQLSTATE кода ошибки при вставке «   » (пробелы) и при вставке NULL, а также «ок» для нормального текста.
+
+Ожидаемый вывод:
+23514
+23502
+ок', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'Пустой текст — 23514 (check_violation), NULL — 23502 (not_null_violation).', '{"crates": ["tokio"], "driver": "", "expected": ["23514", "23502", "ок"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-rename', 17, 'rust', 'Переименование столбца', 'Запрос SELECT id, name AS room_name FROM rooms должен собираться в структуру Room { id: i64, title: String } — свяжите поле title со столбцом room_name атрибутом #[sqlx(rename = ...)]. Выведите комнаты в порядке id.
+
+Ожидаемый вывод:
+Room { id: 1, title: "общая" }
+Room { id: 2, title: "dev" }', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[derive(FromRow, Debug)]
+struct Room {
+    id: i64,
+    title: String,
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (name) VALUES (''общая''), (''dev'')").execute(&pool).await.unwrap();
+    let rooms: Vec<Room> = sqlx::query_as("SELECT id, name AS room_name FROM rooms ORDER BY id").fetch_all(&pool).await.unwrap();
+    for r in rooms {
+        println!("{r:?}");
+    }
+}
+', '#[sqlx(rename = "room_name")] на поле title.', '{"crates": ["tokio"], "driver": "", "expected": ["Room { id: 1, title: \"общая\" }", "Room { id: 2, title: \"dev\" }"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-keyset', 18, 'rust', 'Пагинация по ключу', 'В таблице messages(id BIGSERIAL PK, text TEXT) двенадцать сообщений «m1»…«m12». Напишите функцию page(&PgPool, before: Option<i64>, limit: i64) -> Vec<(i64, String)>: сообщения с id меньше before (или все, если None) от новых к старым, не больше limit. Напечатайте id страниц по 5 сообщений, пока страницы не закончатся.
+
+Ожидаемый вывод:
+[12, 11, 10, 9, 8]
+[7, 6, 5, 4, 3]
+[2, 1]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn page(pool: &PgPool, before: Option<i64>, limit: i64) -> Vec<(i64, String)> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, text TEXT)").execute(&pool).await.unwrap();
+    for i in 1..=12 {
+        sqlx::query("INSERT INTO messages (text) VALUES ($1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    let mut before = None;
+    loop {
+        let p = page(&pool, before, 5).await;
+        if p.is_empty() {
+            break;
+        }
+        println!("{:?}", p.iter().map(|(id, _)| *id).collect::<Vec<_>>());
+        before = p.last().map(|(id, _)| *id);
+    }
+}
+', 'WHERE ($1::bigint IS NULL OR id < $1) ORDER BY id DESC LIMIT $2.', '{"crates": ["tokio"], "driver": "", "expected": ["[12, 11, 10, 9, 8]", "[7, 6, 5, 4, 3]", "[2, 1]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-stream', 19, 'rust', 'Потоковое чтение', 'Таблица nums(n INT) со значениями 1…10. Прочитайте её потоком (fetch и TryStreamExt::try_next) и накапливайте сумму, останавливаясь, как только сумма превысит 20. Напечатайте, сколько строк прочитано и итоговую сумму.
+
+Ожидаемый вывод:
+прочитано 6, сумма 21', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'use futures::TryStreamExt; let mut s = query_scalar::<_, i32>(..).fetch(&pool); while let Some(n) = s.try_next().await.unwrap() { .. }', '{"crates": ["tokio"], "driver": "", "expected": ["прочитано 6, сумма 21"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-unnest', 20, 'rust', 'Массовая вставка', 'Таблица users(name TEXT UNIQUE). Функция add_many(&PgPool, &[String]) -> u64 вставляет все имена ОДНИМ запросом через UNNEST($1::text[]) с ON CONFLICT DO NOTHING и возвращает число реально добавленных. Вызовите для ["a","b","c"], затем для ["b","c","d","e"] и напечатайте результаты и итоговое число строк.
+
+Ожидаемый вывод:
+3
+2
+итого 5', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn add_many(pool: &PgPool, names: &[String]) -> u64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (name TEXT UNIQUE)").execute(&pool).await.unwrap();
+    let a: Vec<String> = ["a", "b", "c"].iter().map(|s| s.to_string()).collect();
+    let b: Vec<String> = ["b", "c", "d", "e"].iter().map(|s| s.to_string()).collect();
+    println!("{}", add_many(&pool, &a).await);
+    println!("{}", add_many(&pool, &b).await);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users").fetch_one(&pool).await.unwrap();
+    println!("итого {n}");
+}
+', 'INSERT INTO users (name) SELECT * FROM UNNEST($1::text[]) ON CONFLICT DO NOTHING; bind(&[String]).', '{"crates": ["tokio"], "driver": "", "expected": ["3", "2", "итого 5"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-any-array', 21, 'rust', 'Выбор по массиву идентификаторов', 'Таблица users(id BIGSERIAL PK, name TEXT) с шестью пользователями u1…u6. Функция names_of(&PgPool, &[i64]) -> Vec<String> одним запросом возвращает имена для заданных id (WHERE id = ANY($1)) в порядке возрастания id. Проверьте для [5, 2, 99, 2].
+
+Ожидаемый вывод:
+["u2", "u5"]
+[]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn names_of(pool: &PgPool, ids: &[i64]) -> Vec<String> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)").execute(&pool).await.unwrap();
+    for i in 1..=6 {
+        sqlx::query("INSERT INTO users (name) VALUES ($1)").bind(format!("u{i}")).execute(&pool).await.unwrap();
+    }
+    println!("{:?}", names_of(&pool, &[5, 2, 99, 2]).await);
+    println!("{:?}", names_of(&pool, &[]).await);
+}
+', 'bind(ids) для &[i64]; id = ANY($1) ORDER BY id.', '{"crates": ["tokio"], "driver": "", "expected": ["[\"u2\", \"u5\"]", "[]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-join-group', 22, 'rust', 'Один запрос вместо цикла', 'Таблицы rooms(id BIGSERIAL PK, name TEXT) и members(room_id BIGINT, user_name TEXT): комнаты «a», «b», «c»; в a два участника, в b ни одного, в c три. Одним запросом (LEFT JOIN + GROUP BY) получите (название, число участников) для всех комнат по названию.
+
+Ожидаемый вывод:
+[("a", 2), ("b", 0), ("c", 3)]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'SELECT r.name, COUNT(m.user_name) FROM rooms r LEFT JOIN members m ON m.room_id = r.id GROUP BY r.name ORDER BY r.name.', '{"crates": ["tokio"], "driver": "", "expected": ["[(\"a\", 2), (\"b\", 0), (\"c\", 3)]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-migrator', 23, 'rust', 'Свой исполнитель миграций', 'Напишите функцию migrate(&PgPool, &[(i32, &str)]) -> Vec<i32>: создаёт служебную таблицу _migrations(version INT PRIMARY KEY), затем для каждой миграции в порядке версий применяет SQL (в sqlx 0.9 текст запроса, не являющийся литералом, оборачивают в sqlx::AssertSqlSafe(String) — мы сами отвечаем за его безопасность) в транзакции вместе с записью версии, пропуская уже применённые; возвращает версии, применённые в этом вызове. Вызовите дважды: сначала с миграциями 1 и 2, затем с 1, 2, 3 — второй вызов должен применить только 3. Напечатайте результаты и список столбцов таблицы users.
+
+Ожидаемый вывод:
+[1, 2]
+[3]
+[]
+["id", "name", "bio", "city"]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn migrate(pool: &PgPool, migrations: &[(i32, &str)]) -> Vec<i32> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let m1 = [(1, "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)"), (2, "ALTER TABLE users ADD COLUMN bio TEXT")];
+    println!("{:?}", migrate(&pool, &m1).await);
+    let m2 = [(1, "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)"), (2, "ALTER TABLE users ADD COLUMN bio TEXT"), (3, "ALTER TABLE users ADD COLUMN city TEXT")];
+    println!("{:?}", migrate(&pool, &m2).await);
+    println!("{:?}", migrate(&pool, &m2).await);
+    let cols: Vec<String> = sqlx::query_scalar("SELECT column_name::text FROM information_schema.columns WHERE table_name = ''users'' ORDER BY ordinal_position").fetch_all(&pool).await.unwrap();
+    println!("{cols:?}");
+}
+', 'Сначала SELECT version FROM _migrations; для новых — begin, execute(sql), INSERT версию, commit.', '{"crates": ["tokio"], "driver": "", "expected": ["[1, 2]", "[3]", "[]", "[\"id\", \"name\", \"bio\", \"city\"]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-pool-timeout', 24, 'rust', 'Исчерпание пула', 'Создайте пул на одно соединение с acquire_timeout 100 мс (PgPoolOptions::new().max_connections(1).acquire_timeout(...).connect(...)). Захватите соединение (acquire) и держите, пока второй acquire не завершится ошибкой: напечатайте «пул исчерпан: true» (sqlx::Error::PoolTimedOut). Освободите первое соединение и убедитесь, что запрос SELECT 1 снова работает.
+
+Ожидаемый вывод:
+пул исчерпан: true
+после освобождения: 1', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'matches!(err, sqlx::Error::PoolTimedOut); drop(conn) возвращает соединение в пул.', '{"crates": ["tokio"], "driver": "", "expected": ["пул исчерпан: true", "после освобождения: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-parallel', 25, 'rust', 'Параллельные вставки', 'Таблица counters(id INT PRIMARY KEY, n BIGINT). В одной строке (id = 1, n = 0) пятьдесят задач (tokio::spawn) параллельно выполняют UPDATE counters SET n = n + 1 WHERE id = 1 через пул из 5 соединений. После всех напечатайте итоговое значение n (должно быть 50 — база сериализует обновления строки).
+
+Ожидаемый вывод:
+50', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'Клонируйте пул в каждую задачу; дождитесь JoinHandle.', '{"crates": ["tokio"], "driver": "", "expected": ["50"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-skip-locked', 26, 'rust', 'Очередь заданий: SKIP LOCKED', 'Таблица jobs(id SERIAL PK, done BOOLEAN DEFAULT false) с шестью заданиями. Функция claim(&PgPool) -> Option<i32> в транзакции выбирает свободное задание с FOR UPDATE SKIP LOCKED, помечает его выполненным и возвращает id; None, если свободных нет. Четыре исполнителя (spawn) по два раза вызывают claim — все полученные id должны быть различны. Напечатайте отсортированный список полученных id и число оставшихся.
+
+Ожидаемый вывод:
+[1, 2, 3, 4, 5, 6]
+осталось 0', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn claim(pool: &PgPool) -> Option<i32> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE jobs (id SERIAL PRIMARY KEY, done BOOLEAN NOT NULL DEFAULT false)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO jobs SELECT FROM generate_series(1, 6)").execute(&pool).await.unwrap();
+    let handles: Vec<_> = (0..4)
+        .map(|_| {
+            let pool = pool.clone();
+            tokio::spawn(async move {
+                let mut got = Vec::new();
+                for _ in 0..2 {
+                    if let Some(id) = claim(&pool).await {
+                        got.push(id);
+                    }
+                }
+                got
+            })
+        })
+        .collect();
+    let mut all = Vec::new();
+    for h in handles {
+        all.extend(h.await.unwrap());
+    }
+    all.sort();
+    println!("{all:?}");
+    let left: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM jobs WHERE NOT done").fetch_one(&pool).await.unwrap();
+    println!("осталось {left}");
+}
+', 'SELECT id FROM jobs WHERE NOT done ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED; затем UPDATE; commit.', '{"crates": ["tokio"], "driver": "", "expected": ["[1, 2, 3, 4, 5, 6]", "осталось 0"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-listen-notify', 27, 'rust', 'LISTEN / NOTIFY', 'Подпишитесь на канал «chat» через sqlx::postgres::PgListener (listener.listen("chat")), затем из пула выполните SELECT pg_notify(''chat'', $1) с полезной нагрузкой «привет из базы» и ещё одной «второе». Напечатайте канал и нагрузку двух полученных уведомлений (listener.recv()).
+
+Ожидаемый вывод:
+chat: привет из базы
+chat: второе', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    // ваш код
+    let _ = pool;
+}
+', 'PgListener::connect_with(&pool).await?; listener.listen("chat"); n.channel(), n.payload().', '{"crates": ["tokio"], "driver": "", "expected": ["chat: привет из базы", "chat: второе"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-fix-placeholder', 28, 'rust', 'Исправьте: плейсхолдеры', 'Программа падает при выполнении: в запросах использованы «?» вместо параметров PostgreSQL. Исправьте запросы ($1, $2), чтобы программа печатала «добавлена аня» и «найдена: аня».
+
+Ожидаемый вывод:
+добавлена аня
+найдена: аня', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO users (name) VALUES (?)").bind("аня").execute(&pool).await.unwrap();
+    println!("добавлена аня");
+    let n: String = sqlx::query_scalar("SELECT name FROM users WHERE id = ?").bind(1i64).fetch_one(&pool).await.unwrap();
+    println!("найдена: {n}");
+}
+', 'В PostgreSQL параметры нумеруются: $1, $2, …', '{"crates": ["tokio"], "driver": "", "expected": ["добавлена аня", "найдена: аня"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 47, 'r47-http-rooms', 29, 'rust', 'Комнаты по HTTP из базы', 'Состояние приложения — PgPool (таблица rooms(id BIGSERIAL PK, name TEXT UNIQUE NOT NULL) создаётся в main до запросов). POST /rooms/{name} создаёт комнату и отвечает 201 и JSON {"id":N,"name":".."} (RETURNING); повтор — 409 и текст «имя занято» (нарушение уникальности 23505). GET /rooms отвечает JSON-массивом комнат по id. Заготовка содержит пустой app(pool). Напечатайте ответы на три POST (общая, dev, общая) и GET.
+
+Ожидаемый вывод:
+(201, "{\"id\":1,\"name\":\"общая\"}")
+(201, "{\"id\":2,\"name\":\"dev\"}")
+(409, "имя занято")
+(200, "[{\"id\":1,\"name\":\"общая\"},{\"id\":2,\"name\":\"dev\"}]")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::Router;
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)").execute(&pool).await.unwrap();
+    let app = app(pool);
+    for n in ["общая", "dev", "общая"] {
+        println!("{:?}", call(&app, "POST", &format!("/rooms/{n}"), "").await);
+    }
+    println!("{:?}", call(&app, "GET", "/rooms", "").await);
+}
+', 'Handler с State<PgPool>, Result<(StatusCode, Json<Room>), (StatusCode, &''static str)>; query_as::<_, Room> с #[derive(FromRow, Serialize)].', '{"crates": ["tokio"], "driver": "", "expected": ["(201, \"{\\\"id\\\":1,\\\"name\\\":\\\"общая\\\"}\")", "(201, \"{\\\"id\\\":2,\\\"name\\\":\\\"dev\\\"}\")", "(409, \"имя занято\")", "(200, \"[{\\\"id\\\":1,\\\"name\\\":\\\"общая\\\"},{\\\"id\\\":2,\\\"name\\\":\\\"dev\\\"}]\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-hash-verify', 0, 'rust', 'Хеш и проверка пароля', 'Напишите функции hash_password(&str) -> String (Argon2 по умолчанию, результат — строка PHC) и verify_password(&str, &str) -> bool (пароль, хеш). Напечатайте: хеш начинается с «$argon2id$», верный пароль проходит, неверный — нет, а хеши одного пароля, посчитанные дважды, различаются (соль).
+
+Ожидаемый вывод:
+true
+true
+false
+true', 'use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+
+fn hash_password(pw: &str) -> String {
+    todo!()
+}
+fn verify_password(pw: &str, hash: &str) -> bool {
+    todo!()
+}
+
+fn main() {
+    let h = hash_password("секрет-123");
+    println!("{}", h.starts_with("$argon2id$"));
+    println!("{}", verify_password("секрет-123", &h));
+    println!("{}", verify_password("секрет-124", &h));
+    println!("{}", hash_password("секрет-123") != h);
+}
+', 'Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string(); verify_password(pw.as_bytes(), hash_str).is_ok(); нужны трейты PasswordHasher и PasswordVerifier.', '{"crates": ["tokio"], "driver": "", "expected": ["true", "true", "false", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-fix-trait', 1, 'rust', 'Исправьте: нет трейта PasswordVerifier', 'Код не компилируется: метод verify_password принадлежит трейту, который не подключён. Исправьте импорты так, чтобы программа печатала «верно: true» и «неверно: false».
+
+Ожидаемый вывод:
+верно: true
+неверно: false', 'use argon2::password_hash::PasswordHasher;
+use argon2::Argon2;
+
+fn main() {
+    let h = Argon2::default().hash_password(b"pw-12345").unwrap().to_string();
+    println!("верно: {}", Argon2::default().verify_password(b"pw-12345", h.as_str()).is_ok());
+    println!("неверно: {}", Argon2::default().verify_password(b"other", h.as_str()).is_ok());
+}
+', 'use argon2::password_hash::{PasswordHasher, PasswordVerifier};', '{"crates": ["tokio"], "driver": "", "expected": ["верно: true", "неверно: false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-policy', 2, 'rust', 'Правила пароля', 'Напишите validate_password(pw, username) -> Vec<&''static str> со списком нарушений в порядке проверки: «короткий» (меньше 8 символов), «нет цифры», «нет буквы», «совпадает с именем» (без учёта регистра). Пустой список — пароль подходит. Символы считайте по chars().
+
+Ожидаемый вывод:
+"secret123": []
+"short1": ["короткий"]
+"onlyletters": ["нет цифры"]
+"12345678": ["нет буквы"]
+"Anna2026!": ["совпадает с именем"]
+"пароль-123": []
+"": ["короткий", "нет цифры", "нет буквы"]', 'fn validate_password(pw: &str, username: &str) -> Vec<&''static str> {
+    todo!()
+}
+
+fn main() {
+    for (pw, user) in [("secret123", "anna"), ("short1", "anna"), ("onlyletters", "anna"), ("12345678", "anna"), ("Anna2026!", "anna2026!"), ("пароль-123", "x"), ("", "x")] {
+        println!("{pw:?}: {:?}", validate_password(pw, user));
+    }
+}
+', 'chars().count(), chars().any(|c| c.is_ascii_digit()), c.is_alphabetic(), eq_ignore_ascii_case / to_lowercase.', '{"crates": ["tokio"], "driver": "", "expected": ["\"secret123\": []", "\"short1\": [\"короткий\"]", "\"onlyletters\": [\"нет цифры\"]", "\"12345678\": [\"нет буквы\"]", "\"Anna2026!\": [\"совпадает с именем\"]", "\"пароль-123\": []", "\"\": [\"короткий\", \"нет цифры\", \"нет буквы\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-ct-eq', 3, 'rust', 'Сравнение за постоянное время', 'Напишите tokens_equal(a: &str, b: &str) -> bool, которая сравнивает секреты за время, не зависящее от места первого различия: используйте subtle::ConstantTimeEq (строки разной длины — false). Напечатайте результаты для пар, включая пустые строки.
+
+Ожидаемый вывод:
+"abc" "abc" true
+"abc" "abd" false
+"abc" "abcd" false
+"" "" true
+"x" "" false', 'fn tokens_equal(a: &str, b: &str) -> bool {
+    todo!()
+}
+
+fn main() {
+    for (a, b) in [("abc", "abc"), ("abc", "abd"), ("abc", "abcd"), ("", ""), ("x", "")] {
+        println!("{a:?} {b:?} {}", tokens_equal(a, b));
+    }
+}
+', 'use subtle::ConstantTimeEq; bool::from(a.as_bytes().ct_eq(b.as_bytes())).', '{"crates": ["tokio"], "driver": "", "expected": ["\"abc\" \"abc\" true", "\"abc\" \"abd\" false", "\"abc\" \"abcd\" false", "\"\" \"\" true", "\"x\" \"\" false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-token-gen', 4, 'rust', 'Случайный токен сессии', 'Напишите new_token() -> String: 32 случайных байта (rand::random::<[u8; 32]>()), записанные строчными шестнадцатеричными цифрами (hex::encode). Напечатайте длину токена, что все символы — hex-цифры в нижнем регистре и что тысяча токенов все различны.
+
+Ожидаемый вывод:
+64
+true
+1000', 'use std::collections::HashSet;
+
+fn new_token() -> String {
+    todo!()
+}
+
+fn main() {
+    let t = new_token();
+    println!("{}", t.len());
+    println!("{}", t.chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
+    let set: HashSet<String> = (0..1000).map(|_| new_token()).collect();
+    println!("{}", set.len());
+}
+', 'let b: [u8; 32] = rand::random(); hex::encode(b).', '{"crates": ["tokio"], "driver": "", "expected": ["64", "true", "1000"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-sha-token', 5, 'rust', 'Хеш токена', 'Напишите token_hash(&str) -> String: SHA-256 токена в виде 64 строчных hex-символов. Проверьте на известных значениях: хеш пустой строки и хеш «abc», а также что хеш одного токена стабилен и различается у разных токенов.
+
+Ожидаемый вывод:
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+true
+true', 'fn token_hash(token: &str) -> String {
+    todo!()
+}
+
+fn main() {
+    println!("{}", token_hash(""));
+    println!("{}", token_hash("abc"));
+    println!("{}", token_hash("t1") == token_hash("t1"));
+    println!("{}", token_hash("t1") != token_hash("t2"));
+}
+', 'use sha2::{Digest, Sha256}; hex::encode(Sha256::digest(token.as_bytes())).', '{"crates": ["tokio"], "driver": "", "expected": ["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "true", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-base64url', 6, 'rust', 'Base64 для токенов', 'Напишите encode(&[u8]) -> String (base64 URL-safe без выравнивания) и decode(&str) -> Option<Vec<u8>>. Проверьте на байтах [0xfb, 0xff, 0xfe] (результат использует «-» и «_»), на пустом массиве, и что некорректная строка «a$b» не декодируется.
+
+Ожидаемый вывод:
+-__-
+Some([251, 255, 254])
+""
+None
+0L_RgNC40LLQtdGC', 'fn encode(bytes: &[u8]) -> String {
+    todo!()
+}
+fn decode(s: &str) -> Option<Vec<u8>> {
+    todo!()
+}
+
+fn main() {
+    let e = encode(&[0xfb, 0xff, 0xfe]);
+    println!("{e}");
+    println!("{:?}", decode(&e));
+    println!("{:?}", encode(&[]));
+    println!("{:?}", decode("a$b"));
+    println!("{}", encode("привет".as_bytes()));
+}
+', 'use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine}; URL_SAFE_NO_PAD.encode(..), .decode(..).ok().', '{"crates": ["tokio"], "driver": "", "expected": ["-__-", "Some([251, 255, 254])", "\"\"", "None", "0L_RgNC40LLQtdGC"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-hmac-token', 7, 'rust', 'Подписанный токен', 'Напишите sign(key: &[u8], user: u64, exp: u64) -> String вида «user.exp.подпись», где подпись — HMAC-SHA256 от строки «user.exp» в base64url без выравнивания. И verify(key, token, now: u64) -> Result<u64, &''static str>: «формат» — не три части или числа не разбираются; «подпись» — подпись неверна (используйте mac.verify_slice, сравнение за постоянное время); «срок» — exp <= now. Успех — Ok(user).
+
+Ожидаемый вывод:
+3
+Ok(42)
+Err("срок")
+Err("подпись")
+Err("подпись")
+Err("формат")
+Err("формат")', 'use hmac::{Hmac, KeyInit, Mac};
+use sha2::Sha256;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+
+fn sign(key: &[u8], user: u64, exp: u64) -> String {
+    todo!()
+}
+fn verify(key: &[u8], token: &str, now: u64) -> Result<u64, &''static str> {
+    todo!()
+}
+
+fn main() {
+    let key = b"server-secret";
+    let t = sign(key, 42, 1000);
+    println!("{}", t.split(''.'').count());
+    println!("{:?}", verify(key, &t, 999));
+    println!("{:?}", verify(key, &t, 1000));
+    println!("{:?}", verify(b"other-key", &t, 1));
+    let forged = t.replacen("42", "43", 1);
+    println!("{:?}", verify(key, &forged, 1));
+    println!("{:?}", verify(key, "a.b", 1));
+    println!("{:?}", verify(key, "x.y.z", 1));
+}
+', 'Hmac::<Sha256>::new_from_slice(key) (нужен трейт KeyInit); mac.update(payload.as_bytes()); finalize().into_bytes(); verify_slice.', '{"crates": ["tokio"], "driver": "", "expected": ["3", "Ok(42)", "Err(\"срок\")", "Err(\"подпись\")", "Err(\"подпись\")", "Err(\"формат\")", "Err(\"формат\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-bearer-parse', 8, 'rust', 'Разбор заголовка Authorization', 'Напишите parse_bearer(header: Option<&str>) -> Option<&str>: возвращает токен для «Bearer <токен>» (схема без учёта регистра, ровно один пробел-разделитель, токен непустой и без пробелов); во всех остальных случаях None. Проверьте на наборе заголовков.
+
+Ожидаемый вывод:
+Some("Bearer abc123") -> Some("abc123")
+Some("bearer abc123") -> Some("abc123")
+Some("BEARER x") -> Some("x")
+Some("Basic abc") -> None
+Some("Bearer") -> None
+Some("Bearer ") -> None
+Some("Bearer a b") -> None
+Some("Bearerabc") -> None
+Some("") -> None
+None -> None', 'fn parse_bearer(header: Option<&str>) -> Option<&str> {
+    todo!()
+}
+
+fn main() {
+    for h in [Some("Bearer abc123"), Some("bearer abc123"), Some("BEARER x"), Some("Basic abc"), Some("Bearer"), Some("Bearer "), Some("Bearer a b"), Some("Bearerabc"), Some(""), None] {
+        println!("{h:?} -> {:?}", parse_bearer(h));
+    }
+}
+', 'split_once('' '') и eq_ignore_ascii_case("bearer").', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"Bearer abc123\") -> Some(\"abc123\")", "Some(\"bearer abc123\") -> Some(\"abc123\")", "Some(\"BEARER x\") -> Some(\"x\")", "Some(\"Basic abc\") -> None", "Some(\"Bearer\") -> None", "Some(\"Bearer \") -> None", "Some(\"Bearer a b\") -> None", "Some(\"Bearerabc\") -> None", "Some(\"\") -> None", "None -> None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-login-limiter', 9, 'rust', 'Ограничение попыток входа', 'Реализуйте Limiter { max: usize, window_ms: u64 } с методом attempt(&mut self, name: &str, now_ms: u64) -> Result<(), u64>. Для каждого имени ведётся список моментов недавних попыток. Попытка разрешена (Ok), если за последние window_ms (включая только моменты строго после now − window_ms) их меньше max; тогда момент записывается. Иначе — Err(через сколько миллисекунд освободится самое старое окно): oldest + window_ms − now. Отказы не записываются. Имена независимы.
+
+Ожидаемый вывод:
+anna 0: Ok(())
+anna 100: Ok(())
+anna 200: Ok(())
+anna 300: Err(700)
+boris 300: Ok(())
+anna 999: Err(1)
+anna 1000: Ok(())
+anna 1100: Ok(())
+anna 1150: Err(50)
+anna 1200: Ok(())
+anna 2200: Ok(())', 'use std::collections::HashMap;
+
+struct Limiter {
+    max: usize,
+    window_ms: u64,
+    attempts: HashMap<String, Vec<u64>>,
+}
+
+impl Limiter {
+    fn new(max: usize, window_ms: u64) -> Limiter {
+        Limiter { max, window_ms, attempts: HashMap::new() }
+    }
+    fn attempt(&mut self, name: &str, now_ms: u64) -> Result<(), u64> {
+        todo!()
+    }
+}
+
+fn main() {
+    let mut l = Limiter::new(3, 1000);
+    let steps = [("anna", 0), ("anna", 100), ("anna", 200), ("anna", 300), ("boris", 300), ("anna", 999), ("anna", 1000), ("anna", 1100), ("anna", 1150), ("anna", 1200), ("anna", 2200)];
+    for (n, t) in steps {
+        println!("{n} {t}: {:?}", l.attempt(n, t));
+    }
+}
+', 'HashMap<String, Vec<u64>>; retain(|&t| t + window > now); oldest = v[0].', '{"crates": ["tokio"], "driver": "", "expected": ["anna 0: Ok(())", "anna 100: Ok(())", "anna 200: Ok(())", "anna 300: Err(700)", "boris 300: Ok(())", "anna 999: Err(1)", "anna 1000: Ok(())", "anna 1100: Ok(())", "anna 1150: Err(50)", "anna 1200: Ok(())", "anna 2200: Ok(())"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-cookies', 10, 'rust', 'Куки сессии', 'Напишите parse_cookies(header: &str) -> BTreeMap<String, String> (пары «имя=значение», разделённые «; », пробелы по краям обрезаются, пары без «=» пропускаются, при повторе имени побеждает первое значение) и session_cookie(token: &str, max_age: u64) -> String вида «session=ТОКЕН; HttpOnly; Secure; SameSite=Strict; Max-Age=N; Path=/».
+
+Ожидаемый вывод:
+{"lang": "ru", "session": "abc", "theme": "dark"}
+{}
+session=tok123; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/', 'use std::collections::BTreeMap;
+
+fn parse_cookies(header: &str) -> BTreeMap<String, String> {
+    todo!()
+}
+fn session_cookie(token: &str, max_age: u64) -> String {
+    todo!()
+}
+
+fn main() {
+    println!("{:?}", parse_cookies("session=abc; theme=dark;  lang = ru ; broken; session=zzz"));
+    println!("{:?}", parse_cookies(""));
+    println!("{}", session_cookie("tok123", 86400));
+}
+', 'split('';''), trim, split_once(''=''); entry().or_insert.', '{"crates": ["tokio"], "driver": "", "expected": ["{\"lang\": \"ru\", \"session\": \"abc\", \"theme\": \"dark\"}", "{}", "session=tok123; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-csrf', 11, 'rust', 'Защита от CSRF: парный токен', 'Напишите csrf_ok(cookie: Option<&str>, header: Option<&str>) -> bool: проверка проходит, только если оба значения есть, непусты и равны (сравнение за постоянное время, subtle). Проверьте набор вариантов.
+
+Ожидаемый вывод:
+Some("t1") Some("t1") true
+Some("t1") Some("t2") false
+None Some("t1") false
+Some("t1") None false
+None None false
+Some("") Some("") false
+Some("abc") Some("abcd") false', 'fn csrf_ok(cookie: Option<&str>, header: Option<&str>) -> bool {
+    todo!()
+}
+
+fn main() {
+    for (c, h) in [(Some("t1"), Some("t1")), (Some("t1"), Some("t2")), (None, Some("t1")), (Some("t1"), None), (None, None), (Some(""), Some("")), (Some("abc"), Some("abcd"))] {
+        println!("{c:?} {h:?} {}", csrf_ok(c, h));
+    }
+}
+', 'match (cookie, header) { (Some(a), Some(b)) if !a.is_empty() && ... }', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"t1\") Some(\"t1\") true", "Some(\"t1\") Some(\"t2\") false", "None Some(\"t1\") false", "Some(\"t1\") None false", "None None false", "Some(\"\") Some(\"\") false", "Some(\"abc\") Some(\"abcd\") false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-jwt-decode', 12, 'rust', 'Разбор подписанного JWT-подобного токена', 'Функция make_token(key, sub, exp) -> String уже есть (header.payload.signature, подпись — HMAC-SHA256 от «header.payload», все части base64url без выравнивания, payload — JSON {"sub":..,"exp":..}). Напишите decode_claims(key, token, now) -> Result<(String, u64), &''static str>: «формат» — не три части, base64 или JSON не разбираются, нет полей; «подпись» — подпись неверна (verify_slice); «срок» — exp <= now. Успех — (sub, exp).
+
+Ожидаемый вывод:
+Ok(("anna", 500))
+Err("срок")
+Err("подпись")
+Err("формат")
+Err("формат")
+Err("подпись")', 'use base64::{engine::general_purpose::URL_SAFE_NO_PAD as B64, Engine};
+use hmac::{Hmac, KeyInit, Mac};
+use sha2::Sha256;
+
+// Готово: выпуск токена
+fn make_token(key: &[u8], sub: &str, exp: u64) -> String {
+    let head = B64.encode(r#"{"alg":"HS256"}"#);
+    let payload = B64.encode(serde_json::json!({ "sub": sub, "exp": exp }).to_string());
+    let mut mac = Hmac::<Sha256>::new_from_slice(key).unwrap();
+    mac.update(format!("{head}.{payload}").as_bytes());
+    format!("{head}.{payload}.{}", B64.encode(mac.finalize().into_bytes()))
+}
+
+fn decode_claims(key: &[u8], token: &str, now: u64) -> Result<(String, u64), &''static str> {
+    todo!()
+}
+
+fn main() {
+    let key = b"k";
+    let t = make_token(key, "anna", 500);
+    println!("{:?}", decode_claims(key, &t, 100));
+    println!("{:?}", decode_claims(key, &t, 500));
+    println!("{:?}", decode_claims(b"x", &t, 100));
+    println!("{:?}", decode_claims(key, "a.b", 100));
+    println!("{:?}", decode_claims(key, "@@.@@.@@", 100));
+    let parts: Vec<&str> = t.split(''.'').collect();
+    let evil = format!("{}.{}.{}", parts[0], B64.encode(r#"{"sub":"admin","exp":999999}"#), parts[2]);
+    println!("{:?}", decode_claims(key, &evil, 100));
+}
+', 'Подпись проверяйте до разбора payload как JSON; поля через serde_json::Value.', '{"crates": ["tokio"], "driver": "", "expected": ["Ok((\"anna\", 500))", "Err(\"срок\")", "Err(\"подпись\")", "Err(\"формат\")", "Err(\"формат\")", "Err(\"подпись\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-needs-rehash', 13, 'rust', 'Пора пересчитать хеш?', 'Напишите needs_rehash(phc: &str, target_m_cost: u32) -> bool: из строки PHC достаньте параметр m (память в КиБ) — это начало четвёртого сегмента после «$» (…$m=19456,t=2,p=1$…) — и верните true, если m меньше target или строку не удалось разобрать. Проверьте на хеше, полученном Argon2 по умолчанию (m = 19456), и на нескольких строках.
+
+Ожидаемый вывод:
+false true
+false
+true
+true
+true', 'use argon2::password_hash::PasswordHasher;
+use argon2::Argon2;
+
+fn needs_rehash(phc: &str, target_m_cost: u32) -> bool {
+    todo!()
+}
+
+fn main() {
+    let h = Argon2::default().hash_password(b"pw-12345").unwrap().to_string();
+    println!("{} {}", needs_rehash(&h, 19456), needs_rehash(&h, 65536));
+    println!("{}", needs_rehash("$argon2id$v=19$m=65536,t=3,p=4$c2FsdA$aGFzaA", 19456));
+    println!("{}", needs_rehash("garbage", 1));
+    println!("{}", needs_rehash("$argon2id$v=19$t=2,p=1$c2FsdA$aGFzaA", 1));
+    println!("{}", needs_rehash("$argon2id$v=19$m=xx,t=2,p=1$c2FsdA$aGFzaA", 1));
+}
+', 'phc.split(''$'').nth(3) → "m=19456,t=2,p=1"; split('','').find_map(|p| p.strip_prefix("m=")).', '{"crates": ["tokio"], "driver": "", "expected": ["false true", "false", "true", "true", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-dummy-verify', 14, 'rust', 'Фиктивная проверка для неизвестного имени', 'Напишите check_login(stored: Option<&str>, password: &str, calls: &AtomicUsize) -> bool. Для известного пользователя проверьте пароль по сохранённому хешу. Для неизвестного (None) тоже выполните проверку — против заготовленного фиктивного хеша DUMMY (нужна функция dummy_hash() через OnceLock: хеш считается один раз) — и верните false. Каждый вызов Argon2-проверки увеличивает calls. После трёх попыток (известный верный, известный неверный, неизвестный) счётчик должен быть 3.
+
+Ожидаемый вывод:
+true
+false
+false
+проверок: 3', 'use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::OnceLock;
+
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+
+fn check_login(stored: Option<&str>, password: &str, calls: &AtomicUsize) -> bool {
+    todo!()
+}
+
+fn main() {
+    let calls = AtomicUsize::new(0);
+    let stored = hash_pw("secret123");
+    println!("{}", check_login(Some(&stored), "secret123", &calls));
+    println!("{}", check_login(Some(&stored), "wrong", &calls));
+    println!("{}", check_login(None, "secret123", &calls));
+    println!("проверок: {}", calls.load(Ordering::SeqCst));
+}
+', 'static DUMMY: OnceLock<String>; calls.fetch_add(1, Ordering::SeqCst) перед каждой проверкой.', '{"crates": ["tokio"], "driver": "", "expected": ["true", "false", "false", "проверок: 3"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-register', 15, 'rust', 'Регистрация: обработчик', 'POST /register принимает JSON {"name":..,"password":..}. Правила: имя 3–16 символов, пароль не короче 8 — иначе 422 и текст «данные не годятся». Успех: пароль хешируется (hash_pw), запись вставляется, ответ 201 и «ок». Повтор имени (нарушение UNIQUE, код 23505) — 409 и «имя занято». Заготовка содержит пустой app(pool); main печатает результаты и проверяет сохранённый хеш.
+
+Ожидаемый вывод:
+201 ок
+409 имя занято
+422 данные не годятся
+422 данные не годятся
+true true false
+пользователей: 1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    let app = app(pool.clone());
+    for body in [r#"{"name":"anna","password":"secret123"}"#, r#"{"name":"anna","password":"other-pass1"}"#, r#"{"name":"ab","password":"secret123"}"#, r#"{"name":"boris","password":"short"}"#] {
+        let (s, b) = call(&app, "POST", "/register", body).await;
+        println!("{} {b}", s.as_u16());
+    }
+    let h: String = sqlx::query_scalar("SELECT pass_hash FROM users WHERE name = ''anna''").fetch_one(&pool).await.unwrap();
+    println!("{} {} {}", h.starts_with("$argon2id$"), check_pw("secret123", &h), check_pw("other-pass1", &h));
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users").fetch_one(&pool).await.unwrap();
+    println!("пользователей: {n}");
+}
+', 'Json<NewUser>; INSERT ... и разбор e.as_database_error().and_then(|d| d.code()) == Some("23505"); State<PgPool>.', '{"crates": ["tokio"], "driver": "", "expected": ["201 ок", "409 имя занято", "422 данные не годятся", "422 данные не годятся", "true true false", "пользователей: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-login', 16, 'rust', 'Вход и выдача токена', 'POST /login принимает {"name":..,"password":..}. Успех: создаётся токен (new_token()), в таблицу sessions пишется token_hash(токен) и срок 24 часа, ответ 200 и сам токен. Неизвестное имя и неверный пароль дают ОДИНАКОВЫЙ ответ: 401 и «неверное имя или пароль». main регистрирует anna / secret123 заранее и печатает статусы, совпадение текстов ошибок, длину токена и что в базе нет самого токена, а есть его хеш.
+
+Ожидаемый вывод:
+200 401 401
+тексты ошибок совпадают: true
+неверное имя или пароль
+длина токена: 64
+хранится хеш: true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO users (name, pass_hash) VALUES (''anna'', $1)").bind(hash_pw("secret123")).execute(&pool).await.unwrap();
+    let app = app(pool.clone());
+    let ok = call(&app, "POST", "/login", r#"{"name":"anna","password":"secret123"}"#).await;
+    let wrong = call(&app, "POST", "/login", r#"{"name":"anna","password":"nope"}"#).await;
+    let unknown = call(&app, "POST", "/login", r#"{"name":"zzz","password":"secret123"}"#).await;
+    println!("{} {} {}", ok.0.as_u16(), wrong.0.as_u16(), unknown.0.as_u16());
+    println!("тексты ошибок совпадают: {}", wrong.1 == unknown.1);
+    println!("{}", wrong.1);
+    println!("длина токена: {}", ok.1.len());
+    let stored: String = sqlx::query_scalar("SELECT token_hash FROM sessions").fetch_one(&pool).await.unwrap();
+    println!("хранится хеш: {}", stored == token_hash(&ok.1) && stored != ok.1);
+}
+', 'SELECT id, pass_hash FROM users WHERE name = $1 (fetch_optional); check_pw; INSERT INTO sessions ... now() + interval ''24 hours''.', '{"crates": ["tokio"], "driver": "", "expected": ["200 401 401", "тексты ошибок совпадают: true", "неверное имя или пароль", "длина токена: 64", "хранится хеш: true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-session-lookup', 17, 'rust', 'Создание сессии и поиск', 'Напишите create_session(&PgPool, user_id: i64) -> String (создаёт токен, пишет хеш и срок 1 час, возвращает токен) и find_user(&PgPool, &str) -> Option<i64> (по токену находит id пользователя через хеш). main создаёт двух пользователей и сессию для второго; печатает Some(2) для верного токена, None для случайного и None для пустого.
+
+Ожидаемый вывод:
+Some(2)
+None
+None
+true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+async fn create_session(pool: &PgPool, user_id: i64) -> String {
+    todo!()
+}
+async fn find_user(pool: &PgPool, token: &str) -> Option<i64> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for n in ["anna", "boris"] {
+        sqlx::query("INSERT INTO users (name, pass_hash) VALUES ($1, ''x'')").bind(n).execute(&pool).await.unwrap();
+    }
+    let t = create_session(&pool, 2).await;
+    println!("{:?}", find_user(&pool, &t).await);
+    println!("{:?}", find_user(&pool, &new_token()).await);
+    println!("{:?}", find_user(&pool, "").await);
+    let stored: String = sqlx::query_scalar("SELECT token_hash FROM sessions").fetch_one(&pool).await.unwrap();
+    println!("{}", stored != t);
+}
+', 'sessions.token_hash — хеш; SELECT user_id FROM sessions WHERE token_hash = $1.', '{"crates": ["tokio"], "driver": "", "expected": ["Some(2)", "None", "None", "true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-expiry', 18, 'rust', 'Исправьте: просроченные сессии', 'Сейчас find_user находит и просроченные сессии. Исправьте запрос так, чтобы учитывались только записи с expires_at в будущем. main создаёт сессию на час и уже просроченную (срок −1 секунда) и печатает результаты поиска: Some(1) и None.
+
+Ожидаемый вывод:
+Some(1)
+None', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+async fn create_session(pool: &PgPool, user_id: i64, ttl_secs: i64) -> String {
+    let t = new_token();
+    sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + make_interval(secs => $3::double precision))").bind(token_hash(&t)).bind(user_id).bind(ttl_secs as f64).execute(pool).await.unwrap();
+    t
+}
+async fn find_user(pool: &PgPool, token: &str) -> Option<i64> {
+    sqlx::query_scalar("SELECT user_id FROM sessions WHERE token_hash = $1").bind(token_hash(token)).fetch_optional(pool).await.unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO users (name, pass_hash) VALUES (''anna'', ''x'')").execute(&pool).await.unwrap();
+    let fresh = create_session(&pool, 1, 3600).await;
+    let old = create_session(&pool, 1, -1).await;
+    println!("{:?}", find_user(&pool, &fresh).await);
+    println!("{:?}", find_user(&pool, &old).await);
+}
+', 'AND expires_at > now().', '{"crates": ["tokio"], "driver": "", "expected": ["Some(1)", "None"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-current-user', 19, 'rust', 'Экстрактор CurrentUser', 'Реализуйте для структуры CurrentUser { id, name, role, token_hash } трейт FromRequestParts<S> (где PgPool: FromRef<S>): вытащите токен из заголовка Authorization (функция bearer(&HeaderMap) -> Option<String> уже есть), найдите живую сессию вместе с пользователем (JOIN sessions и users, expires_at > now()), иначе верните отказ (StatusCode::UNAUTHORIZED, "нужен вход"). Обработчик GET /me отвечает «вы: ИМЯ (РОЛЬ)». Проверьте: верный токен, отсутствие заголовка, неверный токен, неверная схема.
+
+Ожидаемый вывод:
+(200, "вы: vera (admin)")
+(401, "нужен токен")
+(401, "сессия недействительна")
+401 Unauthorized', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+use axum::extract::{FromRef, FromRequestParts};
+use axum::http::request::Parts;
+use axum::routing::get;
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+    role: String,
+    token_hash: String,
+}
+
+// Готово
+fn bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let v = headers.get("authorization")?.to_str().ok()?;
+    let (scheme, token) = v.split_once('' '')?;
+    if scheme.eq_ignore_ascii_case("bearer") && !token.is_empty() && !token.contains('' '') {
+        Some(token.to_string())
+    } else {
+        None
+    }
+}
+
+// TODO: impl<S> FromRequestParts<S> for CurrentUser
+
+async fn me(user: CurrentUser) -> String {
+    format!("вы: {} ({})", user.name, user.role)
+}
+
+fn app(pool: PgPool) -> Router {
+    Router::new().route("/me", get(me)).with_state(pool)
+}
+
+async fn call_auth(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> (StatusCode, String) {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let t = session_for(&pool, 3).await;
+    let app = app(pool.clone());
+    println!("{:?}", call_auth(&app, "GET", "/me", Some(&t), "").await);
+    println!("{:?}", call_auth(&app, "GET", "/me", None, "").await);
+    println!("{:?}", call_auth(&app, "GET", "/me", Some(&new_token()), "").await);
+    let req = Request::get("/me").header("authorization", format!("Basic {t}")).body(Body::empty()).unwrap();
+    println!("{}", app.clone().oneshot(req).await.unwrap().status());
+}
+', 'type Rejection = (StatusCode, &''static str); async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection>; PgPool::from_ref(state).', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"вы: vera (admin)\")", "(401, \"нужен токен\")", "(401, \"сессия недействительна\")", "401 Unauthorized"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-logout', 20, 'rust', 'Выход из системы', 'Расширитель CurrentUser, функции bearer и токен-хеша уже подготовлены. Напишите обработчик POST /logout: он удаляет сессию текущего токена (DELETE FROM sessions WHERE token_hash = $1 — хеш берётся из CurrentUser) и отвечает 204. Проверьте: /me с токеном — 200, после выхода — 401, повторный выход — 401, а вторая сессия того же пользователя продолжает работать.
+
+Ожидаемый вывод:
+200
+204
+401
+401
+200', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+use axum::routing::{get, post};
+use axum::extract::{FromRef, FromRequestParts};
+use axum::http::request::Parts;
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+    role: String,
+    token_hash: String,
+}
+
+fn bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let v = headers.get("authorization")?.to_str().ok()?;
+    let (scheme, token) = v.split_once('' '')?;
+    if scheme.eq_ignore_ascii_case("bearer") && !token.is_empty() && !token.contains('' '') {
+        Some(token.to_string())
+    } else {
+        None
+    }
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, &''static str);
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = PgPool::from_ref(state);
+        let token = bearer(&parts.headers).ok_or((StatusCode::UNAUTHORIZED, "нужен токен"))?;
+        let th = token_hash(&token);
+        let row: Option<(i64, String, String)> = sqlx::query_as(
+            "SELECT u.id, u.name, u.role FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(&th)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "ошибка"))?;
+        match row {
+            Some((id, name, role)) => Ok(CurrentUser { id, name, role, token_hash: th }),
+            None => Err((StatusCode::UNAUTHORIZED, "сессия недействительна")),
+        }
+    }
+}
+
+async fn me(user: CurrentUser) -> String {
+    user.name
+}
+
+fn app(pool: PgPool) -> Router {
+    Router::new().route("/me", get(me)).with_state(pool)
+}
+
+async fn call_auth(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> (StatusCode, String) {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let t1 = session_for(&pool, 1).await;
+    let t2 = session_for(&pool, 1).await;
+    let app = app(pool.clone());
+    println!("{}", call_auth(&app, "GET", "/me", Some(&t1), "").await.0.as_u16());
+    println!("{}", call_auth(&app, "POST", "/logout", Some(&t1), "").await.0.as_u16());
+    println!("{}", call_auth(&app, "GET", "/me", Some(&t1), "").await.0.as_u16());
+    println!("{}", call_auth(&app, "POST", "/logout", Some(&t1), "").await.0.as_u16());
+    println!("{}", call_auth(&app, "GET", "/me", Some(&t2), "").await.0.as_u16());
+}
+', 'Параметр user: CurrentUser; user.token_hash.', '{"crates": ["tokio"], "driver": "", "expected": ["200", "204", "401", "401", "200"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-logout-all', 21, 'rust', 'Выход со всех устройств', 'Напишите logout_all(&PgPool, user_id: i64) -> u64 — удаляет все сессии пользователя и возвращает их число. main создаёт три сессии для пользователя 1 и одну для пользователя 2; напечатайте удалённое число и сколько сессий осталось у каждого.
+
+Ожидаемый вывод:
+удалено: 3
+у пользователя 1: 0
+у пользователя 2: 1
+повторно: 0', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+async fn logout_all(pool: &PgPool, user_id: i64) -> u64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    for _ in 0..3 {
+        session_for(&pool, 1).await;
+    }
+    session_for(&pool, 2).await;
+    println!("удалено: {}", logout_all(&pool, 1).await);
+    for u in [1i64, 2] {
+        let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE user_id = $1").bind(u).fetch_one(&pool).await.unwrap();
+        println!("у пользователя {u}: {n}");
+    }
+    println!("повторно: {}", logout_all(&pool, 1).await);
+}
+', 'DELETE FROM sessions WHERE user_id = $1; rows_affected().', '{"crates": ["tokio"], "driver": "", "expected": ["удалено: 3", "у пользователя 1: 0", "у пользователя 2: 1", "повторно: 0"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-session-limit', 22, 'rust', 'Не больше трёх сессий', 'Напишите create_limited(&PgPool, user_id, max: i64) -> String: создаёт сессию (токен, хеш, срок час) и сразу удаляет самые старые сессии этого пользователя, оставляя не больше max (порядок по id таблицы sessions). Создайте пять сессий подряд при max = 3 и напечатайте: сколько осталось, какие из пяти токенов ещё действуют (по порядку создания).
+
+Ожидаемый вывод:
+осталось: 3
+[false, false, true, true, true]
+чужая сессия цела: true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+async fn create_limited(pool: &PgPool, user_id: i64, max: i64) -> String {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let mut tokens = Vec::new();
+    for _ in 0..5 {
+        tokens.push(create_limited(&pool, 1, 3).await);
+    }
+    let other = create_limited(&pool, 2, 3).await;
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE user_id = 1").fetch_one(&pool).await.unwrap();
+    println!("осталось: {n}");
+    let mut alive = Vec::new();
+    for t in &tokens {
+        let c: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE token_hash = $1").bind(token_hash(t)).fetch_one(&pool).await.unwrap();
+        alive.push(c == 1);
+    }
+    println!("{alive:?}");
+    let c: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE token_hash = $1").bind(token_hash(&other)).fetch_one(&pool).await.unwrap();
+    println!("чужая сессия цела: {}", c == 1);
+}
+', 'После вставки: DELETE FROM sessions WHERE user_id = $1 AND id NOT IN (SELECT id FROM sessions WHERE user_id = $1 ORDER BY id DESC LIMIT $2).', '{"crates": ["tokio"], "driver": "", "expected": ["осталось: 3", "[false, false, true, true, true]", "чужая сессия цела: true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-admin-user', 23, 'rust', 'Экстрактор AdminUser', 'Экстрактор CurrentUser готов. Напишите AdminUser(CurrentUser): FromRequestParts, который сначала получает CurrentUser (его отказ пробрасывается), затем проверяет role == "admin" и иначе отвечает (StatusCode::FORBIDDEN, "нужны права администратора"). Обработчик GET /admin отвечает «админ ИМЯ». Проверьте: администратор (vera), обычный пользователь (anna), без токена.
+
+Ожидаемый вывод:
+(200, "админ vera")
+(403, "нужны права администратора")
+(401, "нужен токен")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+use axum::extract::{FromRef, FromRequestParts};
+use axum::http::request::Parts;
+use axum::routing::get;
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+    role: String,
+    token_hash: String,
+}
+
+fn bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let v = headers.get("authorization")?.to_str().ok()?;
+    let (scheme, token) = v.split_once('' '')?;
+    if scheme.eq_ignore_ascii_case("bearer") && !token.is_empty() && !token.contains('' '') {
+        Some(token.to_string())
+    } else {
+        None
+    }
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, &''static str);
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = PgPool::from_ref(state);
+        let token = bearer(&parts.headers).ok_or((StatusCode::UNAUTHORIZED, "нужен токен"))?;
+        let th = token_hash(&token);
+        let row: Option<(i64, String, String)> = sqlx::query_as(
+            "SELECT u.id, u.name, u.role FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(&th)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "ошибка"))?;
+        match row {
+            Some((id, name, role)) => Ok(CurrentUser { id, name, role, token_hash: th }),
+            None => Err((StatusCode::UNAUTHORIZED, "сессия недействительна")),
+        }
+    }
+}
+
+struct AdminUser(CurrentUser);
+
+// TODO: impl<S> FromRequestParts<S> for AdminUser
+
+async fn admin(AdminUser(u): AdminUser) -> String {
+    format!("админ {}", u.name)
+}
+
+fn app(pool: PgPool) -> Router {
+    Router::new().route("/admin", get(admin)).with_state(pool)
+}
+
+async fn call_auth(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> (StatusCode, String) {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let (anna, vera) = (session_for(&pool, 1).await, session_for(&pool, 3).await);
+    let app = app(pool.clone());
+    println!("{:?}", call_auth(&app, "GET", "/admin", Some(&vera), "").await);
+    println!("{:?}", call_auth(&app, "GET", "/admin", Some(&anna), "").await);
+    println!("{:?}", call_auth(&app, "GET", "/admin", None, "").await);
+}
+', 'CurrentUser::from_request_parts(parts, state).await? затем проверка роли.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"админ vera\")", "(403, \"нужны права администратора\")", "(401, \"нужен токен\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-owner-only', 24, 'rust', 'Тему меняет только владелец', 'Экстрактор CurrentUser готов. Напишите обработчик PUT /rooms/{id}/topic/{text}: обновление темы одним запросом с условием владельца (UPDATE rooms SET topic = $1 WHERE id = $2 AND owner_id = $3). Если затронута 1 строка — 204. Если 0 — различите: комнаты нет (404 «нет комнаты») или она чужая (403 «только владелец»). Проверьте: владелец (anna), чужой (boris), неизвестная комната, без токена, а затем прочитайте тему из базы.
+
+Ожидаемый вывод:
+(403, "только владелец")
+204
+(404, "нет комнаты")
+401
+тема: привет', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+use axum::routing::put;
+use axum::extract::{FromRef, FromRequestParts};
+use axum::http::request::Parts;
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+    role: String,
+    token_hash: String,
+}
+
+fn bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let v = headers.get("authorization")?.to_str().ok()?;
+    let (scheme, token) = v.split_once('' '')?;
+    if scheme.eq_ignore_ascii_case("bearer") && !token.is_empty() && !token.contains('' '') {
+        Some(token.to_string())
+    } else {
+        None
+    }
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, &''static str);
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = PgPool::from_ref(state);
+        let token = bearer(&parts.headers).ok_or((StatusCode::UNAUTHORIZED, "нужен токен"))?;
+        let th = token_hash(&token);
+        let row: Option<(i64, String, String)> = sqlx::query_as(
+            "SELECT u.id, u.name, u.role FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(&th)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "ошибка"))?;
+        match row {
+            Some((id, name, role)) => Ok(CurrentUser { id, name, role, token_hash: th }),
+            None => Err((StatusCode::UNAUTHORIZED, "сессия недействительна")),
+        }
+    }
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+async fn call_auth(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> (StatusCode, String) {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, owner_id BIGINT NOT NULL REFERENCES users(id), topic TEXT NOT NULL DEFAULT '''')").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    let (anna, boris) = (session_for(&pool, 1).await, session_for(&pool, 2).await);
+    let app = app(pool.clone());
+    println!("{:?}", call_auth(&app, "PUT", "/rooms/1/topic/привет", Some(&boris), "").await);
+    println!("{:?}", call_auth(&app, "PUT", "/rooms/1/topic/привет", Some(&anna), "").await.0);
+    println!("{:?}", call_auth(&app, "PUT", "/rooms/99/topic/x", Some(&anna), "").await);
+    println!("{:?}", call_auth(&app, "PUT", "/rooms/1/topic/x", None, "").await.0);
+    let t: String = sqlx::query_scalar("SELECT topic FROM rooms WHERE id = 1").fetch_one(&pool).await.unwrap();
+    println!("тема: {t}");
+}
+', 'Path((id, text)): Path<(i64, String)>; rows_affected(); при 0 — SELECT 1 FROM rooms WHERE id = $1.', '{"crates": ["tokio"], "driver": "", "expected": ["(403, \"только владелец\")", "204", "(404, \"нет комнаты\")", "401", "тема: привет"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-change-password', 25, 'rust', 'Смена пароля и отзыв других сессий', 'Экстрактор CurrentUser (с полем token_hash) готов. Напишите POST /password с JSON {"old":..,"new":..}: проверьте старый пароль (check_pw по хешу из базы) — иначе 403 «неверный старый пароль»; новый пароль короче 8 символов — 422; успех — в транзакции обновите хеш и удалите все ДРУГИЕ сессии пользователя (token_hash <> текущего), ответ 204. Проверьте: неверный старый, короткий новый, успех; затем что вторая сессия отозвана, текущая жива, а вход со старым паролем невозможен (check_pw).
+
+Ожидаемый вывод:
+403
+422
+204
+текущая жива: 200
+вторая отозвана: 401
+false true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+use axum::routing::{get, post};
+use axum::extract::{FromRef, FromRequestParts};
+use axum::http::request::Parts;
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+    role: String,
+    token_hash: String,
+}
+
+fn bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let v = headers.get("authorization")?.to_str().ok()?;
+    let (scheme, token) = v.split_once('' '')?;
+    if scheme.eq_ignore_ascii_case("bearer") && !token.is_empty() && !token.contains('' '') {
+        Some(token.to_string())
+    } else {
+        None
+    }
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, &''static str);
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = PgPool::from_ref(state);
+        let token = bearer(&parts.headers).ok_or((StatusCode::UNAUTHORIZED, "нужен токен"))?;
+        let th = token_hash(&token);
+        let row: Option<(i64, String, String)> = sqlx::query_as(
+            "SELECT u.id, u.name, u.role FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(&th)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "ошибка"))?;
+        match row {
+            Some((id, name, role)) => Ok(CurrentUser { id, name, role, token_hash: th }),
+            None => Err((StatusCode::UNAUTHORIZED, "сессия недействительна")),
+        }
+    }
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new().route("/me", get(|u: CurrentUser| async move { u.name }))
+}
+
+async fn call_auth(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> (StatusCode, String) {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let t1 = session_for(&pool, 1).await;
+    let t2 = session_for(&pool, 1).await;
+    let app = app(pool.clone());
+    println!("{}", call_auth(&app, "POST", "/password", Some(&t1), r#"{"old":"wrong","new":"brand-new-pass"}"#).await.0.as_u16());
+    println!("{}", call_auth(&app, "POST", "/password", Some(&t1), r#"{"old":"secret123","new":"short"}"#).await.0.as_u16());
+    println!("{}", call_auth(&app, "POST", "/password", Some(&t1), r#"{"old":"secret123","new":"brand-new-pass"}"#).await.0.as_u16());
+    println!("текущая жива: {}", call_auth(&app, "GET", "/me", Some(&t1), "").await.0.as_u16());
+    println!("вторая отозвана: {}", call_auth(&app, "GET", "/me", Some(&t2), "").await.0.as_u16());
+    let h: String = sqlx::query_scalar("SELECT pass_hash FROM users WHERE id = 1").fetch_one(&pool).await.unwrap();
+    println!("{} {}", check_pw("secret123", &h), check_pw("brand-new-pass", &h));
+}
+', 'UPDATE users SET pass_hash = $1 WHERE id = $2; DELETE FROM sessions WHERE user_id = $2 AND token_hash <> $3; всё в одной транзакции.', '{"crates": ["tokio"], "driver": "", "expected": ["403", "422", "204", "текущая жива: 200", "вторая отозвана: 401", "false true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-forgot', 26, 'rust', 'Забыл пароль: не раскрывать наличие', 'POST /forgot принимает {"name":..}. Для ЛЮБОГО имени (есть такой пользователь или нет) ответ одинаков: 202 и «если пользователь существует, мы отправили письмо». Для существующего пользователя при этом в таблицу outbox(user_id BIGINT, kind TEXT) добавляется строка kind = ''reset''. Проверьте: ответы для anna и неизвестного совпадают побайтно, а в outbox ровно одна строка.
+
+Ожидаемый вывод:
+202 202
+совпадают: true
+если пользователь существует, мы отправили письмо
+писем в очереди: 1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    sqlx::query("CREATE TABLE outbox (user_id BIGINT, kind TEXT)").execute(&pool).await.unwrap();
+    let app = app(pool.clone());
+    let known = call(&app, "POST", "/forgot", r#"{"name":"anna"}"#).await;
+    let unknown = call(&app, "POST", "/forgot", r#"{"name":"nobody"}"#).await;
+    println!("{} {}", known.0.as_u16(), unknown.0.as_u16());
+    println!("совпадают: {}", known == unknown);
+    println!("{}", known.1);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM outbox").fetch_one(&pool).await.unwrap();
+    println!("писем в очереди: {n}");
+}
+', 'Выполните вставку только если найден пользователь, но ответ формируйте до/независимо от результата.', '{"crates": ["tokio"], "driver": "", "expected": ["202 202", "совпадают: true", "если пользователь существует, мы отправили письмо", "писем в очереди: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-auth-layer', 27, 'rust', 'Слой авторизации с Extension', 'Напишите слой на from_fn_with_state(pool, auth), который достаёт токен (bearer(&HeaderMap) готова), находит пользователя по хешу токена и живой сессии (SELECT s.user_id ...) и кладёт UserId(i64) в расширения запроса; иначе отвечает 401 и JSON {"error":{"code":"unauthorized"}} без вызова обработчика. Слой подключите только к GET /api/me (route_layer), обработчик отвечает «id: N». GET /health остаётся открытым. Проверьте токен, отсутствие токена, /health без токена.
+
+Ожидаемый вывод:
+(200, "id: 2")
+(401, "{\"error\":{\"code\":\"unauthorized\"}}")
+401
+(200, "ok")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+#[derive(Clone, Copy)]
+struct UserId(i64);
+
+fn bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let v = headers.get("authorization")?.to_str().ok()?;
+    let (scheme, token) = v.split_once('' '')?;
+    if scheme.eq_ignore_ascii_case("bearer") && !token.is_empty() && !token.contains('' '') {
+        Some(token.to_string())
+    } else {
+        None
+    }
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+async fn call_auth(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> (StatusCode, String) {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status();
+    (s, String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).into_owned())
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let t = session_for(&pool, 2).await;
+    let app = app(pool.clone());
+    println!("{:?}", call_auth(&app, "GET", "/api/me", Some(&t), "").await);
+    println!("{:?}", call_auth(&app, "GET", "/api/me", None, "").await);
+    println!("{:?}", call_auth(&app, "GET", "/api/me", Some(&new_token()), "").await.0);
+    println!("{:?}", call_auth(&app, "GET", "/health", None, "").await);
+}
+', 'req.extensions_mut().insert(UserId(id)); route_layer действует только на маршруты, добавленные до него.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"id: 2\")", "(401, \"{\\\"error\\\":{\\\"code\\\":\\\"unauthorized\\\"}}\")", "401", "(200, \"ok\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-ws-token', 28, 'rust', 'Токен веб-сокета в адресе', 'Браузер не позволяет задать заголовок при подключении по веб-сокету, поэтому токен передают параметром ?token=. Напишите обработчик GET /ws (пока без настоящего апгрейда): параметр token из строки запроса (Query<WsQuery> с Option<String>) → если сессия живая — 200 и «ws: ИМЯ», иначе 401 и «нужен токен». Проверьте: верный токен, неверный, без параметра.
+
+Ожидаемый вывод:
+(200, "ws: boris")
+(401, "нужен токен")
+(401, "нужен токен")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    let t = session_for(&pool, 2).await;
+    let app = app(pool.clone());
+    println!("{:?}", call(&app, "GET", &format!("/ws?token={t}"), "").await);
+    println!("{:?}", call(&app, "GET", &format!("/ws?token={}", new_token()), "").await);
+    println!("{:?}", call(&app, "GET", "/ws", "").await);
+}
+', 'query_scalar по JOIN sessions/users с expires_at > now(); Option<String> в Query.', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"ws: boris\")", "(401, \"нужен токен\")", "(401, \"нужен токен\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 48, 'r48-cleanup-expired', 29, 'rust', 'Очистка просроченных сессий', 'Напишите cleanup_expired(&PgPool) -> u64: удаляет все сессии со сроком в прошлом и возвращает их число. main создаёт две живые и три просроченные сессии (сроки +1 час и −1 секунда напрямую через INSERT), вызывает очистку, печатает удалённое число и остаток; повторный вызов удаляет 0.
+
+Ожидаемый вывод:
+удалено: 3
+осталось: 2
+повторно: 0', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sha2::{Digest, Sha256};
+
+// Готово: помощники для паролей и токенов
+fn hash_pw(pw: &str) -> String {
+    Argon2::default().hash_password(pw.as_bytes()).unwrap().to_string()
+}
+fn check_pw(pw: &str, hash: &str) -> bool {
+    Argon2::default().verify_password(pw.as_bytes(), hash).is_ok()
+}
+fn new_token() -> String {
+    let b: [u8; 32] = rand::random();
+    hex::encode(b)
+}
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+async fn cleanup_expired(pool: &PgPool) -> u64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT ''member'')").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE sessions (id BIGSERIAL PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), expires_at TIMESTAMPTZ NOT NULL)").execute(&pool).await.unwrap();
+    for (n, r) in [("anna", "member"), ("boris", "member"), ("vera", "admin")] {
+        sqlx::query("INSERT INTO users (name, pass_hash, role) VALUES ($1, $2, $3)").bind(n).bind(hash_pw("secret123")).bind(r).execute(&pool).await.unwrap();
+    }
+    async fn session_for(pool: &PgPool, user: i64) -> String {
+        let t = new_token();
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')").bind(token_hash(&t)).bind(user).execute(pool).await.unwrap();
+        t
+    }
+    for _ in 0..2 {
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, 1, now() + interval ''1 hour'')").bind(new_token()).execute(&pool).await.unwrap();
+    }
+    for _ in 0..3 {
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, 1, now() - interval ''1 second'')").bind(new_token()).execute(&pool).await.unwrap();
+    }
+    println!("удалено: {}", cleanup_expired(&pool).await);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sessions").fetch_one(&pool).await.unwrap();
+    println!("осталось: {n}");
+    println!("повторно: {}", cleanup_expired(&pool).await);
+}
+', 'DELETE FROM sessions WHERE expires_at <= now(); rows_affected().', '{"crates": ["tokio"], "driver": "", "expected": ["удалено: 3", "осталось: 2", "повторно: 0"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-create-room', 0, 'rust', 'Создание комнаты', 'POST /rooms {"name":..}: имя очищается от пробелов, длина 1–32 символа (иначе 422), повтор имени — 409 (AppError::from(sqlx::Error) уже переводит 23505). В ОДНОЙ транзакции вставляются комната (владелец — текущий пользователь) и запись участника. Ответ: 201, заголовок Location: /rooms/ID и JSON {"id":..,"name":..}. main проверяет успех, заголовок, повтор, пустое и слишком длинное имя, отсутствие токена и число участников.
+
+Ожидаемый вывод:
+201 {"id":1,"name":"dev"}
+Some("/rooms/2")
+409 {"error":{"code":"conflict","message":"уже существует"}}
+422
+422
+401
+участников: 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct NewRoom {
+    name: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    println!("{}", show(&app, "POST", "/rooms", Some(anna), r#"{"name":"  dev  "}"#).await);
+    println!("{:?}", header_of(&app, "POST", "/rooms", boris, r#"{"name":"random"}"#, "location").await);
+    println!("{}", show(&app, "POST", "/rooms", Some(boris), r#"{"name":"dev"}"#).await);
+    println!("{}", show(&app, "POST", "/rooms", Some(anna), r#"{"name":"   "}"#).await.split('' '').next().unwrap());
+    let long = format!(r#"{{"name":"{}"}}"#, "x".repeat(33));
+    println!("{}", show(&app, "POST", "/rooms", Some(anna), &long).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms", None, r#"{"name":"z"}"#).await.split('' '').next().unwrap());
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    println!("участников: {n}");
+}
+', 'pool.begin(); fetch_one(&mut *tx); tx.commit(); кортеж (StatusCode, [(LOCATION, ..)], Json(..)).', '{"crates": ["tokio"], "driver": "", "expected": ["201 {\"id\":1,\"name\":\"dev\"}", "Some(\"/rooms/2\")", "409 {\"error\":{\"code\":\"conflict\",\"message\":\"уже существует\"}}", "422", "422", "401", "участников: 2"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-list-rooms', 1, 'rust', 'Мои комнаты', 'GET /rooms отвечает JSON-массивом комнат, где текущий пользователь — участник: [{"id","name","members"}] по названию, members — число участников комнаты (одним запросом, GROUP BY). Комнаты других пользователей не показываются. main создаёт комнаты вручную через SQL.
+
+Ожидаемый вывод:
+200 [{"id":2,"name":"dev","members":2},{"id":1,"name":"general","members":3}]
+200 [{"id":1,"name":"general","members":3},{"id":3,"name":"secret","members":1}]
+401', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct RoomOut {
+    id: i64,
+    name: String,
+    members: i64,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1), (''dev'', 2), (''secret'', 3)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3), (2, 2), (2, 1), (3, 3)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms", Some(vera), "").await);
+    println!("{}", show(&app, "GET", "/rooms", None, "").await.split('' '').next().unwrap());
+}
+', 'JOIN members me ON me.room_id = r.id AND me.user_id = $1 JOIN members m ON m.room_id = r.id; GROUP BY r.id.', '{"crates": ["tokio"], "driver": "", "expected": ["200 [{\"id\":2,\"name\":\"dev\",\"members\":2},{\"id\":1,\"name\":\"general\",\"members\":3}]", "200 [{\"id\":1,\"name\":\"general\",\"members\":3},{\"id\":3,\"name\":\"secret\",\"members\":1}]", "401"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-hide-room', 2, 'rust', 'Закрытая комната неотличима от несуществующей', 'GET /rooms/{id}: для участника — JSON {"id","name"}; для не-участника И для несуществующей комнаты ответ ОДИНАКОВ: 404 (тело — стандартное AppError::NotFound). Проверку членства сделайте в самом запросе.
+
+Ожидаемый вывод:
+200 {"id":1,"name":"secret"}
+404 {"error":{"code":"not_found","message":"не найдено"}}
+посторонний == несуществующая: true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct RoomOut {
+    id: i64,
+    name: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''secret'', 3)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 3)").execute(&pool).await.unwrap();
+    let member = show(&app, "GET", "/rooms/1", Some(vera), "").await;
+    let stranger = show(&app, "GET", "/rooms/1", Some(anna), "").await;
+    let missing = show(&app, "GET", "/rooms/99", Some(anna), "").await;
+    println!("{member}");
+    println!("{stranger}");
+    println!("посторонний == несуществующая: {}", stranger == missing);
+}
+', 'SELECT r.id, r.name FROM rooms r JOIN members m ON ... WHERE r.id = $1 AND m.user_id = $2; fetch_one → RowNotFound → NotFound.', '{"crates": ["tokio"], "driver": "", "expected": ["200 {\"id\":1,\"name\":\"secret\"}", "404 {\"error\":{\"code\":\"not_found\",\"message\":\"не найдено\"}}", "посторонний == несуществующая: true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-join', 3, 'rust', 'Вступление идемпотентно', 'PUT /rooms/{id}/members/me делает текущего пользователя участником. Повтор безвреден: статус 204 и в первый раз, и в последующие, строка в members одна (ON CONFLICT DO NOTHING). Несуществующая комната — 404 (внешний ключ 23503 переводится AppError::from).
+
+Ожидаемый вывод:
+204
+204
+204
+404
+строк: 1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    for _ in 0..3 {
+        println!("{}", show(&app, "PUT", "/rooms/1/members/me", Some(boris), "").await.trim());
+    }
+    println!("{}", show(&app, "PUT", "/rooms/99/members/me", Some(boris), "").await.split('' '').next().unwrap());
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members WHERE user_id = 2").fetch_one(&pool).await.unwrap();
+    println!("строк: {n}");
+}
+', 'INSERT INTO members (room_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING; ? преобразует ошибку базы.', '{"crates": ["tokio"], "driver": "", "expected": ["204", "204", "204", "404", "строк: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-leave', 4, 'rust', 'Выход из комнаты', 'DELETE /rooms/{id}/members/me: участник выходит — 204. Повторный выход тоже 204 (идемпотентно). Владелец комнаты выйти не может: 409 с AppError::Conflict("владелец не может выйти"). Проверяйте владельца запросом до удаления.
+
+Ожидаемый вывод:
+204
+204
+409 {"error":{"code":"conflict","message":"владелец не может выйти"}}
+участников: 1', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/me", Some(boris), "").await.trim());
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/me", Some(boris), "").await.trim());
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/me", Some(anna), "").await);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    println!("участников: {n}");
+}
+', 'SELECT owner_id FROM rooms WHERE id = $1 (fetch_optional); если владелец — Conflict; затем DELETE.', '{"crates": ["tokio"], "driver": "", "expected": ["204", "204", "409 {\"error\":{\"code\":\"conflict\",\"message\":\"владелец не может выйти\"}}", "участников: 1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-members', 5, 'rust', 'Список участников', 'GET /rooms/{id}/members отвечает JSON-массивом имён участников по алфавиту — но только участникам комнаты; остальным и при несуществующей комнате — 404. Проверку членства сделайте отдельным запросом перед выборкой.
+
+Ожидаемый вывод:
+200 ["anna","vera"]
+404
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 3)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 3), (1, 1)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms/1/members", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/1/members", Some(boris), "").await.split('' '').next().unwrap());
+    println!("{}", show(&app, "GET", "/rooms/9/members", Some(anna), "").await.split('' '').next().unwrap());
+}
+', 'SELECT 1 FROM members WHERE room_id = $1 AND user_id = $2; затем SELECT u.name ... ORDER BY u.name.', '{"crates": ["tokio"], "driver": "", "expected": ["200 [\"anna\",\"vera\"]", "404", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-post', 6, 'rust', 'Публикация сообщения', 'POST /rooms/{id}/messages {"text":..}: автор должен быть участником (иначе 404 как у закрытой комнаты); текст очищается от пробелов, длина 1–2000 СИМВОЛОВ (иначе 422). Вставка RETURNING id; ответ 201 и JSON {"id","author":имя,"text":очищенный}. Проверьте участника, постороннего, пустое и слишком длинное сообщения, русский текст ровно на пределе.
+
+Ожидаемый вывод:
+201 {"author":"anna","id":1,"text":"привет, мир"}
+404
+422
+201
+422', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct NewMsg {
+    text: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "POST", "/rooms/1/messages", Some(anna), r#"{"text":"  привет, мир  "}"#).await);
+    println!("{}", show(&app, "POST", "/rooms/1/messages", Some(boris), r#"{"text":"я чужой"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms/1/messages", Some(anna), r#"{"text":"   "}"#).await.split('' '').next().unwrap());
+    let ok = format!(r#"{{"text":"{}"}}"#, "я".repeat(2000));
+    let big = format!(r#"{{"text":"{}"}}"#, "я".repeat(2001));
+    println!("{}", show(&app, "POST", "/rooms/1/messages", Some(anna), &ok).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms/1/messages", Some(anna), &big).await.split('' '').next().unwrap());
+}
+', 'chars().count(); сначала проверка членства (fetch_optional), потом INSERT ... RETURNING id.', '{"crates": ["tokio"], "driver": "", "expected": ["201 {\"author\":\"anna\",\"id\":1,\"text\":\"привет, мир\"}", "404", "422", "201", "422"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-validate-text', 7, 'rust', 'Проверка текста сообщения', 'Напишите чистую функцию validate_text(raw: &str, max_chars: usize) -> Result<String, &''static str>: удаляет управляющие символы (кроме \n), очищает пробелы по краям, схлопывает три и более перевода строки подряд в два, возвращает «пусто», если ничего не осталось, и «длинно», если символов (chars) больше max_chars; иначе Ok(очищенный текст). Проверьте на наборе строк.
+
+Ожидаемый вывод:
+"  привет  " -> Err("длинно")
+"" -> Err("пусто")
+"   \n  " -> Err("пусто")
+"a\n\n\n\nb" -> Ok("a\n\nb")
+"tab\there" -> Err("длинно")
+"ёёёёё" -> Ok("ёёёёё")
+"ёёёёёё" -> Err("длинно")
+"  x\u{7}y  " -> Ok("xy")', 'fn validate_text(raw: &str, max_chars: usize) -> Result<String, &''static str> {
+    todo!()
+}
+
+fn main() {
+    for s in ["  привет  ", "", "   \n  ", "a\n\n\n\nb", "tab\there", "ёёёёё", "ёёёёёё", "  x\u{7}y  "] {
+        println!("{s:?} -> {:?}", validate_text(s, 5));
+    }
+}
+', 'filter(|c| !c.is_control() || *c == ''\n''); trim(); повторяйте replace("\n\n\n", "\n\n").', '{"crates": ["tokio"], "driver": "", "expected": ["\"  привет  \" -> Err(\"длинно\")", "\"\" -> Err(\"пусто\")", "\"   \\n  \" -> Err(\"пусто\")", "\"a\\n\\n\\n\\nb\" -> Ok(\"a\\n\\nb\")", "\"tab\\there\" -> Err(\"длинно\")", "\"ёёёёё\" -> Ok(\"ёёёёё\")", "\"ёёёёёё\" -> Err(\"длинно\")", "\"  x\\u{7}y  \" -> Ok(\"xy\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-history', 8, 'rust', 'История: before и limit', 'GET /rooms/{id}/messages?before=&limit=: сообщения комнаты от новых к старым. before — необязательный курсор (id < before), limit — по умолчанию 20, не меньше 1 и не больше 100 (значение за пределами подрезается). Ответ JSON {"items":[{"id","text"}..],"next_before":id самого старого в странице} — поле next_before есть только если страница заполнена полностью (items.len() == limit). Члены комнаты: проверку членства делайте запросом (не-участнику 404).
+
+Ожидаемый вывод:
+200 {"items":[{"id":7,"text":"m7"},{"id":6,"text":"m6"},{"id":5,"text":"m5"}],"next_before":5}
+200 {"items":[{"id":4,"text":"m4"},{"id":3,"text":"m3"},{"id":2,"text":"m2"}],"next_before":2}
+200 {"items":[{"id":2,"text":"m2"},{"id":1,"text":"m1"}]}
+200 {"items":[{"id":2,"text":"m2"}],"next_before":2}
+7
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct MsgOut {
+    id: i64,
+    text: String,
+}
+
+#[derive(Deserialize)]
+struct Page {
+    before: Option<i64>,
+    limit: Option<i64>,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=7 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    println!("{}", show(&app, "GET", "/rooms/1/messages?limit=3", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/1/messages?limit=3&before=5", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/1/messages?limit=3&before=3", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/1/messages?limit=0&before=3", Some(anna), "").await);
+    let all = show(&app, "GET", "/rooms/1/messages?limit=1000", Some(anna), "").await;
+    println!("{}", all.matches("\"id\"").count());
+    sqlx::query("INSERT INTO users (name) VALUES (''zed'')").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms/9/messages", Some(anna), "").await.split('' '').next().unwrap());
+}
+', 'WHERE room_id = $1 AND ($2::bigint IS NULL OR id < $2) ORDER BY id DESC LIMIT $3; next_before — serde_json::json! с условным полем.', '{"crates": ["tokio"], "driver": "", "expected": ["200 {\"items\":[{\"id\":7,\"text\":\"m7\"},{\"id\":6,\"text\":\"m6\"},{\"id\":5,\"text\":\"m5\"}],\"next_before\":5}", "200 {\"items\":[{\"id\":4,\"text\":\"m4\"},{\"id\":3,\"text\":\"m3\"},{\"id\":2,\"text\":\"m2\"}],\"next_before\":2}", "200 {\"items\":[{\"id\":2,\"text\":\"m2\"},{\"id\":1,\"text\":\"m1\"}]}", "200 {\"items\":[{\"id\":2,\"text\":\"m2\"}],\"next_before\":2}", "7", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-since', 9, 'rust', 'Догоняющее чтение: after', 'GET /rooms/{id}/messages/after/{n}: все сообщения новее n в порядке возрастания id, не больше 50 за раз. Ответ — JSON-массив [{"id","text"}]. Сообщений нет — пустой массив. Не-участнику — 404.
+
+Ожидаемый вывод:
+200 [{"id":58,"text":"m58"},{"id":59,"text":"m59"},{"id":60,"text":"m60"}]
+200 []
+50
+true
+false
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct MsgOut {
+    id: i64,
+    text: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=60 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    let first = show(&app, "GET", "/rooms/1/messages/after/57", Some(anna), "").await;
+    println!("{first}");
+    println!("{}", show(&app, "GET", "/rooms/1/messages/after/60", Some(anna), "").await);
+    let big = show(&app, "GET", "/rooms/1/messages/after/0", Some(anna), "").await;
+    println!("{}", big.matches("\"id\"").count());
+    println!("{}", big.contains("\"id\":1,"));
+    println!("{}", big.contains("\"id\":51"));
+    sqlx::query("DELETE FROM members WHERE user_id = 3").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms/1/messages/after/0", Some(vera), "").await.split('' '').next().unwrap());
+}
+', 'WHERE room_id = $1 AND id > $2 ORDER BY id ASC LIMIT 50.', '{"crates": ["tokio"], "driver": "", "expected": ["200 [{\"id\":58,\"text\":\"m58\"},{\"id\":59,\"text\":\"m59\"},{\"id\":60,\"text\":\"m60\"}]", "200 []", "50", "true", "false", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-idempotent', 10, 'rust', 'Идемпотентная отправка', 'POST /rooms/{id}/messages с заголовком Idempotency-Key: первый запрос создаёт сообщение и отвечает 201 с {"id","text"}; повтор с тем же ключом (тот же автор и комната) НЕ создаёт дубликат и отвечает 200 с тем же id. Без заголовка ключ не используется (каждый запрос — новое сообщение, 201). Опирайтесь на UNIQUE (room_id, author_id, client_id): INSERT ... ON CONFLICT DO NOTHING RETURNING id, при пустом результате — SELECT существующего.
+
+Ожидаемый вывод:
+201 {"id":1,"text":"привет"}
+200 {"id":1,"text":"привет"}
+200 {"id":1,"text":"привет"}
+201 {"id":4,"text":"второе"}
+201 {"id":5,"text":"у бориса свой k1"}
+201 {"id":6,"text":"без ключа"}
+201 {"id":7,"text":"без ключа"}
+всего: 5', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct NewMsg {
+    text: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    async fn post_key(app: &Router, token: &str, key: Option<&str>, text: &str) -> String {
+        let mut b = Request::post("/rooms/1/messages").header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+        if let Some(k) = key {
+            b = b.header("idempotency-key", k);
+        }
+        let res = app.clone().oneshot(b.body(Body::from(format!(r#"{{"text":"{text}"}}"#))).unwrap()).await.unwrap();
+        let s = res.status().as_u16();
+        format!("{s} {}", String::from_utf8_lossy(&to_bytes(res.into_body(), 1 << 20).await.unwrap()))
+    }
+    println!("{}", post_key(&app, anna, Some("k1"), "привет").await);
+    println!("{}", post_key(&app, anna, Some("k1"), "привет").await);
+    println!("{}", post_key(&app, anna, Some("k1"), "привет").await);
+    println!("{}", post_key(&app, anna, Some("k2"), "второе").await);
+    println!("{}", post_key(&app, boris, Some("k1"), "у бориса свой k1").await);
+    println!("{}", post_key(&app, anna, None, "без ключа").await);
+    println!("{}", post_key(&app, anna, None, "без ключа").await);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM messages").fetch_one(&pool).await.unwrap();
+    println!("всего: {n}");
+}
+', 'HeaderMap для чтения ключа; fetch_optional после DO NOTHING; в таблице NULL ключи не конфликтуют. Заметьте: BIGSERIAL при конфликте всё равно продвигается — в id бывают пропуски.', '{"crates": ["tokio"], "driver": "", "expected": ["201 {\"id\":1,\"text\":\"привет\"}", "200 {\"id\":1,\"text\":\"привет\"}", "200 {\"id\":1,\"text\":\"привет\"}", "201 {\"id\":4,\"text\":\"второе\"}", "201 {\"id\":5,\"text\":\"у бориса свой k1\"}", "201 {\"id\":6,\"text\":\"без ключа\"}", "201 {\"id\":7,\"text\":\"без ключа\"}", "всего: 5"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-unread', 11, 'rust', 'Счётчик непрочитанных', 'GET /rooms отвечает JSON-массивом [{"id","name","unread"}] по названию для комнат текущего пользователя: unread — число сообщений комнаты с id больше его last_read, написанных НЕ им самим. Всё одним запросом (JOIN + GROUP BY + COUNT FILTER). Затем POST /rooms/{id}/read {"upto":N} выставляет last_read = GREATEST(last_read, N) и отвечает 204.
+
+Ожидаемый вывод:
+200 [{"id":2,"name":"empty","unread":0},{"id":1,"name":"general","unread":1}]
+200 [{"id":1,"name":"general","unread":5}]
+204
+200 [{"id":1,"name":"general","unread":1}]
+204
+200 [{"id":1,"name":"general","unread":1}]', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct RoomOut {
+    id: i64,
+    name: String,
+    unread: i64,
+}
+
+#[derive(Deserialize)]
+struct Read {
+    upto: i64,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=5 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 2, ''от бориса'')").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''empty'', 2)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (2, 1)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms", Some(boris), "").await);
+    println!("{}", show(&app, "POST", "/rooms/1/read", Some(boris), r#"{"upto":4}"#).await.trim());
+    println!("{}", show(&app, "GET", "/rooms", Some(boris), "").await);
+    println!("{}", show(&app, "POST", "/rooms/1/read", Some(boris), r#"{"upto":2}"#).await.trim());
+    println!("{}", show(&app, "GET", "/rooms", Some(boris), "").await);
+}
+', 'COUNT(msg.id) FILTER (WHERE msg.id > me.last_read AND msg.author_id <> me.user_id).', '{"crates": ["tokio"], "driver": "", "expected": ["200 [{\"id\":2,\"name\":\"empty\",\"unread\":0},{\"id\":1,\"name\":\"general\",\"unread\":1}]", "200 [{\"id\":1,\"name\":\"general\",\"unread\":5}]", "204", "200 [{\"id\":1,\"name\":\"general\",\"unread\":1}]", "204", "200 [{\"id\":1,\"name\":\"general\",\"unread\":1}]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-read-monotonic', 12, 'rust', 'Метка прочтения не убывает', 'Напишите mark_read(&PgPool, room: i64, user: i64, upto: i64) -> i64: одним запросом (UPDATE ... SET last_read = GREATEST(last_read, $3) ... RETURNING last_read) обновляет метку и возвращает её новое значение. Для отсутствующего участника верните -1 (fetch_optional). main вызывает последовательность 5, 3, 8, 8, 2 для существующего и один раз для чужого пользователя.
+
+Ожидаемый вывод:
+5
+5
+8
+8
+8
+-1', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn mark_read(pool: &PgPool, room: i64, user: i64, upto: i64) -> i64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE members (room_id BIGINT, user_id BIGINT, last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1)").execute(&pool).await.unwrap();
+    for n in [5, 3, 8, 8, 2] {
+        println!("{}", mark_read(&pool, 1, 1, n).await);
+    }
+    println!("{}", mark_read(&pool, 1, 9, 5).await);
+}
+', 'fetch_optional::<i64> → unwrap_or(-1).', '{"crates": ["tokio"], "driver": "", "expected": ["5", "5", "8", "8", "8", "-1"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-edit', 13, 'rust', 'Правка сообщения', 'PATCH /messages/{id} {"text":..}: правит только автор (чужое — 403 «только автор»), удалённое или несуществующее — 404; текст очищается и проверяется как раньше (1–2000 символов, иначе 422). Обновление ставит edited_at = now(). Ответ 200 и JSON {"id","text","edited":true}. Права проверяйте самим UPDATE (… AND author_id = $3 AND NOT deleted RETURNING …), а различие 403/404 делайте вторым запросом.
+
+Ожидаемый вывод:
+200 {"edited":true,"id":1,"text":"исправлено"}
+403 {"error":{"code":"forbidden","message":"только автор"}}
+404
+404
+422
+исправлено true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct Edit {
+    text: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=2 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    sqlx::query("UPDATE messages SET deleted = true WHERE id = 2").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "PATCH", "/messages/1", Some(anna), r#"{"text":"  исправлено  "}"#).await);
+    println!("{}", show(&app, "PATCH", "/messages/1", Some(boris), r#"{"text":"чужое"}"#).await);
+    println!("{}", show(&app, "PATCH", "/messages/2", Some(anna), r#"{"text":"удалённое"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "PATCH", "/messages/99", Some(anna), r#"{"text":"нет"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "PATCH", "/messages/1", Some(anna), r#"{"text":"  "}"#).await.split('' '').next().unwrap());
+    let (t, e): (String, bool) = sqlx::query_as("SELECT text, edited_at IS NOT NULL FROM messages WHERE id = 1").fetch_one(&pool).await.unwrap();
+    println!("{t} {e}");
+}
+', 'UPDATE ... RETURNING id; fetch_optional; если None — SELECT author_id, deleted по id.', '{"crates": ["tokio"], "driver": "", "expected": ["200 {\"edited\":true,\"id\":1,\"text\":\"исправлено\"}", "403 {\"error\":{\"code\":\"forbidden\",\"message\":\"только автор\"}}", "404", "404", "422", "исправлено true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-soft-delete', 14, 'rust', 'Мягкое удаление', 'DELETE /messages/{id}: помечает сообщение deleted = true. Удалить может автор или владелец комнаты (иначе 403 «нельзя»), несуществующее или уже удалённое — 404. Права проверяйте прямо в UPDATE: … WHERE id = $1 AND NOT deleted AND (author_id = $2 OR room_id IN (SELECT id FROM rooms WHERE owner_id = $2)). Ответ 204. Различие 403/404 — вторым запросом.
+
+Ожидаемый вывод:
+204
+404
+403
+204
+404
+удалено: 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for (a, t) in [(2, "борис 1"), (2, "борис 2"), (3, "вера"), (1, "анна")] {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, $1, $2)").bind(a).bind(t).execute(&pool).await.unwrap();
+    }
+    println!("{}", show(&app, "DELETE", "/messages/1", Some(boris), "").await.trim());
+    println!("{}", show(&app, "DELETE", "/messages/1", Some(boris), "").await.split('' '').next().unwrap());
+    println!("{}", show(&app, "DELETE", "/messages/3", Some(boris), "").await.split('' '').next().unwrap());
+    println!("{}", show(&app, "DELETE", "/messages/2", Some(anna), "").await.trim());
+    println!("{}", show(&app, "DELETE", "/messages/99", Some(anna), "").await.split('' '').next().unwrap());
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM messages WHERE deleted").fetch_one(&pool).await.unwrap();
+    println!("удалено: {n}");
+}
+', 'UPDATE ... RETURNING id; fetch_optional; при None — существует ли неудалённое сообщение.', '{"crates": ["tokio"], "driver": "", "expected": ["204", "404", "403", "204", "404", "удалено: 2"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-mask-deleted', 15, 'rust', 'Исправьте: история показывает удалённое', 'История GET /rooms/{id}/messages отдаёт текст удалённых сообщений. Исправьте запрос: для строк с deleted = true в поле text должна возвращаться заглушка «[сообщение удалено]», а сами строки остаются в выдаче. Подсказка: CASE WHEN deleted THEN ... ELSE text END AS text.
+
+Ожидаемый вывод:
+200 [{"id":1,"text":"m1"},{"id":2,"text":"[сообщение удалено]"},{"id":3,"text":"[сообщение удалено]"},{"id":4,"text":"m4"}]', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct MsgOut {
+    id: i64,
+    text: String,
+}
+
+async fn history(State(pool): State<PgPool>, user: CurrentUser, Path(room): Path<i64>) -> Result<Json<Vec<MsgOut>>, AppError> {
+    let me: Option<i32> = sqlx::query_scalar("SELECT 1 FROM members WHERE room_id = $1 AND user_id = $2").bind(room).bind(user.id).fetch_optional(&pool).await?;
+    if me.is_none() {
+        return Err(AppError::NotFound);
+    }
+    Ok(Json(sqlx::query_as("SELECT id, text FROM messages WHERE room_id = $1 ORDER BY id").bind(room).fetch_all(&pool).await?))
+}
+
+fn app(pool: PgPool) -> Router {
+    Router::new().route("/rooms/{id}/messages", get(history)).with_state(pool)
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=4 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    sqlx::query("UPDATE messages SET deleted = true WHERE id IN (2, 3)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms/1/messages", Some(anna), "").await);
+}
+', 'CASE WHEN deleted THEN ''[сообщение удалено]'' ELSE text END AS text.', '{"crates": ["tokio"], "driver": "", "expected": ["200 [{\"id\":1,\"text\":\"m1\"},{\"id\":2,\"text\":\"[сообщение удалено]\"},{\"id\":3,\"text\":\"[сообщение удалено]\"},{\"id\":4,\"text\":\"m4\"}]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-search-ilike', 16, 'rust', 'Поиск подстроки', 'GET /rooms/{id}/messages/search?q=: до 20 неудалённых сообщений комнаты, содержащих q без учёта регистра, от новых к старым ([{"id","text"}]). Символы %, _ и \ в q должны искаться буквально — экранируйте их (replace) и используйте ILIKE ... ESCAPE ''\''. Пустой q — 422. Не-участнику — 404.
+
+Ожидаемый вывод:
+привет: 200 [{"id":4,"text":"ПРИВЕТСТВИЕ"},{"id":1,"text":"Привет, мир"}]
+100%: 200 [{"id":2,"text":"скидка 100% сегодня"}]
+_: 200 [{"id":3,"text":"под_черкивание"}]
+%: 200 [{"id":2,"text":"скидка 100% сегодня"}]
+ТЕКСТ: 200 [{"id":5,"text":"обычный текст"}]
+422', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct MsgOut {
+    id: i64,
+    text: String,
+}
+
+#[derive(Deserialize)]
+struct Q {
+    q: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for t in ["Привет, мир", "скидка 100% сегодня", "под_черкивание", "ПРИВЕТСТВИЕ", "обычный текст", "удалённый привет"] {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(t).execute(&pool).await.unwrap();
+    }
+    sqlx::query("UPDATE messages SET deleted = true WHERE id = 6").execute(&pool).await.unwrap();
+    for q in ["привет", "100%", "_", "%", "ТЕКСТ"] {
+        let r = show(&app, "GET", &format!("/rooms/1/messages/search?q={}", q.replace(''%'', "%25")), Some(anna), "").await;
+        println!("{q}: {r}");
+    }
+    println!("{}", show(&app, "GET", "/rooms/1/messages/search?q=", Some(anna), "").await.split('' '').next().unwrap());
+}
+', 'let pattern = format!("%{}%", q.replace(''\\'', "\\\\").replace(''%'', "\\%").replace(''_'', "\\_")); ... ILIKE $2 ESCAPE ''\\''.', '{"crates": ["tokio"], "driver": "", "expected": ["привет: 200 [{\"id\":4,\"text\":\"ПРИВЕТСТВИЕ\"},{\"id\":1,\"text\":\"Привет, мир\"}]", "100%: 200 [{\"id\":2,\"text\":\"скидка 100% сегодня\"}]", "_: 200 [{\"id\":3,\"text\":\"под_черкивание\"}]", "%: 200 [{\"id\":2,\"text\":\"скидка 100% сегодня\"}]", "ТЕКСТ: 200 [{\"id\":5,\"text\":\"обычный текст\"}]", "422"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-search-fts', 17, 'rust', 'Полнотекстовый поиск', 'GET /rooms/{id}/messages/find?q=: полнотекстовый поиск по неудалённым сообщениям комнаты — to_tsvector(''russian'', text) @@ plainto_tsquery(''russian'', $2), результаты по убыванию id, не больше 20: [{"id","text"}]. Благодаря морфологии поиск по слову «собака» находит сообщения со словами «собака», «собаки», «собаками», но не «собрание». Пустой запрос — 422.
+
+Ожидаемый вывод:
+200 [{"id":6,"text":"Собаками не кормить"},{"id":4,"text":"три собаки"},{"id":2,"text":"собаки лают"},{"id":1,"text":"Собака лает"}]
+200 [{"id":3,"text":"кошка спит"}]
+422', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct MsgOut {
+    id: i64,
+    text: String,
+}
+
+#[derive(Deserialize)]
+struct Q {
+    q: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for t in ["Собака лает", "собаки лают", "кошка спит", "три собаки", "собрание в пять", "Собаками не кормить"] {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(t).execute(&pool).await.unwrap();
+    }
+    println!("{}", show(&app, "GET", "/rooms/1/messages/find?q=%D1%81%D0%BE%D0%B1%D0%B0%D0%BA%D0%B0", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/1/messages/find?q=%D0%BA%D0%BE%D1%88%D0%BA%D0%B8", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/1/messages/find?q=", Some(anna), "").await.split('' '').next().unwrap());
+}
+', 'В SQL: WHERE room_id = $1 AND NOT deleted AND to_tsvector(''russian'', text) @@ plainto_tsquery(''russian'', $2).', '{"crates": ["tokio"], "driver": "", "expected": ["200 [{\"id\":6,\"text\":\"Собаками не кормить\"},{\"id\":4,\"text\":\"три собаки\"},{\"id\":2,\"text\":\"собаки лают\"},{\"id\":1,\"text\":\"Собака лает\"}]", "200 [{\"id\":3,\"text\":\"кошка спит\"}]", "422"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-post-limit', 18, 'rust', 'Ограничение частоты публикации', 'POST /rooms/{id}/messages {"text":..}: пользователю можно публиковать не более 5 сообщений за последние 10 секунд (считайте по created_at в базе: COUNT(*) WHERE author_id = $1 AND created_at > now() - interval ''10 seconds''). Шестое подряд — 429 (AppError::TooMany), в ответе заголовок Retry-After: 10 (ровно число секунд окна). Успешное — 201 и «ок». Сначала проверка членства (404 для чужих). Проверьте шесть подряд от anna и одно от boris.
+
+Ожидаемый вывод:
+anna 1: 201
+anna 2: 201
+anna 3: 201
+anna 4: 201
+anna 5: 201
+anna 6: 429
+Some("10")
+boris: 201', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct NewMsg {
+    text: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=6 {
+        println!("anna {i}: {}", show(&app, "POST", "/rooms/1/messages", Some(anna), r#"{"text":"привет"}"#).await.split('' '').next().unwrap());
+    }
+    println!("{:?}", header_of(&app, "POST", "/rooms/1/messages", anna, r#"{"text":"ещё"}"#, "retry-after").await);
+    println!("boris: {}", show(&app, "POST", "/rooms/1/messages", Some(boris), r#"{"text":"привет"}"#).await.split('' '').next().unwrap());
+}
+', 'Вернуть Response с заголовком: (StatusCode::TOO_MANY_REQUESTS, [(RETRY_AFTER, "10")], body).into_response().', '{"crates": ["tokio"], "driver": "", "expected": ["anna 1: 201", "anna 2: 201", "anna 3: 201", "anna 4: 201", "anna 5: 201", "anna 6: 429", "Some(\"10\")", "boris: 201"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-next-link', 19, 'rust', 'Ссылка на следующую страницу', 'Напишите next_link(room: i64, items: &[i64], limit: usize, extra: &[(&str, &str)]) -> Option<String>: items — id сообщений страницы от новых к старым. Если страница не полная (items.len() < limit) или пуста — None. Иначе — «/rooms/ROOM/messages?before=ID&limit=N», где ID — последний (самый старый) элемент; пары из extra добавляются в конец запроса как «&ключ=значение», значения процентно кодируются: пробел → %20, остальное, кроме букв, цифр и «-_.~», — %XX по байтам UTF-8.
+
+Ожидаемый вывод:
+Some("/rooms/7/messages?before=28&limit=3")
+None
+None
+Some("/rooms/1/messages?before=4&limit=2&q=hello%20world&from=%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82")
+Some("/rooms/1/messages?before=9&limit=1&a=x%26y%3Dz%2F~-_.")', 'fn next_link(room: i64, items: &[i64], limit: usize, extra: &[(&str, &str)]) -> Option<String> {
+    todo!()
+}
+
+fn main() {
+    println!("{:?}", next_link(7, &[30, 29, 28], 3, &[]));
+    println!("{:?}", next_link(7, &[30, 29], 3, &[]));
+    println!("{:?}", next_link(7, &[], 3, &[]));
+    println!("{:?}", next_link(1, &[5, 4], 2, &[("q", "hello world"), ("from", "привет")]));
+    println!("{:?}", next_link(1, &[9], 1, &[("a", "x&y=z/~-_.")]));
+}
+', 'Функцию encode(&str) напишите сами: for b in s.bytes() ... format!("%{b:02X}").', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"/rooms/7/messages?before=28&limit=3\")", "None", "None", "Some(\"/rooms/1/messages?before=4&limit=2&q=hello%20world&from=%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82\")", "Some(\"/rooms/1/messages?before=9&limit=1&a=x%26y%3Dz%2F~-_.\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-stats', 20, 'rust', 'Статистика комнаты одним запросом', 'GET /rooms/{id}/stats (для участников): JSON {"messages":число неудалённых сообщений,"authors":число различных авторов,"first_id":наименьший id или null,"last_id":наибольший id или null}. Всё — ОДНИМ запросом с агрегатами (COUNT, COUNT(DISTINCT), MIN, MAX по неудалённым). Не-участнику — 404.
+
+Ожидаемый вывод:
+200 {"authors":2,"first_id":1,"last_id":3,"messages":3}
+200 {"authors":0,"first_id":null,"last_id":null,"messages":0}
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''quiet'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (2, 1)").execute(&pool).await.unwrap();
+    for (a, t) in [(1, "a"), (2, "b"), (1, "c"), (3, "d")] {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, $1, $2)").bind(a).bind(t).execute(&pool).await.unwrap();
+    }
+    sqlx::query("UPDATE messages SET deleted = true WHERE id = 4").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms/1/stats", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/2/stats", Some(anna), "").await);
+    println!("{}", show(&app, "GET", "/rooms/2/stats", Some(boris), "").await.split('' '').next().unwrap());
+}
+', 'query_as::<_, (i64, i64, Option<i64>, Option<i64>)>; serde_json::json!.', '{"crates": ["tokio"], "driver": "", "expected": ["200 {\"authors\":2,\"first_id\":1,\"last_id\":3,\"messages\":3}", "200 {\"authors\":0,\"first_id\":null,\"last_id\":null,\"messages\":0}", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-transfer-owner', 21, 'rust', 'Передача владения', 'POST /rooms/{id}/owner {"user":"имя"}: только текущий владелец (иначе 403 «только владелец»; для не-участников и несуществующих комнат 404). Новый владелец должен быть участником комнаты — иначе 422 «не участник»; неизвестное имя — 404. Успех: owner_id обновляется, ответ 204. После передачи прежний владелец (если он не последний участник) может выйти из комнаты — проверьте это запросом DELETE ... members/me (обработчик выхода готов: он запрещает выход только владельцу).
+
+Ожидаемый вывод:
+403
+404
+422
+404
+выход владельца: 409
+204
+выход прежнего: 204
+владелец: 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct NewOwner {
+    user: String,
+}
+
+async fn leave(State(pool): State<PgPool>, user: CurrentUser, Path(id): Path<i64>) -> Result<StatusCode, AppError> {
+    let owner: Option<i64> = sqlx::query_scalar("SELECT owner_id FROM rooms WHERE id = $1").bind(id).fetch_optional(&pool).await?;
+    if owner == Some(user.id) {
+        return Err(AppError::Conflict("владелец не может выйти"));
+    }
+    sqlx::query("DELETE FROM members WHERE room_id = $1 AND user_id = $2").bind(id).bind(user.id).execute(&pool).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "POST", "/rooms/1/owner", Some(boris), r#"{"user":"anna"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms/1/owner", Some(vera), r#"{"user":"vera"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms/1/owner", Some(anna), r#"{"user":"vera"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms/1/owner", Some(anna), r#"{"user":"nobody"}"#).await.split('' '').next().unwrap());
+    println!("выход владельца: {}", show(&app, "DELETE", "/rooms/1/members/me", Some(anna), "").await.split('' '').next().unwrap());
+    println!("{}", show(&app, "POST", "/rooms/1/owner", Some(anna), r#"{"user":"boris"}"#).await.trim());
+    println!("выход прежнего: {}", show(&app, "DELETE", "/rooms/1/members/me", Some(anna), "").await.trim());
+    let o: i64 = sqlx::query_scalar("SELECT owner_id FROM rooms WHERE id = 1").fetch_one(&pool).await.unwrap();
+    println!("владелец: {o}");
+}
+', 'SELECT owner_id; SELECT id FROM users WHERE name = $1; проверка в members; UPDATE rooms SET owner_id.', '{"crates": ["tokio"], "driver": "", "expected": ["403", "404", "422", "404", "выход владельца: 409", "204", "выход прежнего: 204", "владелец: 2"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-kick', 22, 'rust', 'Исключение участника', 'DELETE /rooms/{id}/members/{user_id}: исключает участника — только владелец комнаты (иначе 403 «только владелец»; не-участникам и для несуществующих комнат 404). Владельца исключить нельзя (409 «нельзя исключить владельца»). Повторное исключение уже отсутствующего участника — 204 (идемпотентно). Успех — 204.
+
+Ожидаемый вывод:
+403
+409 {"error":{"code":"conflict","message":"нельзя исключить владельца"}}
+204
+204
+404
+участников: 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/3", Some(boris), "").await.split('' '').next().unwrap());
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/1", Some(anna), "").await);
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/3", Some(anna), "").await.trim());
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/3", Some(anna), "").await.trim());
+    println!("{}", show(&app, "DELETE", "/rooms/1/members/2", Some(vera), "").await.split('' '').next().unwrap());
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    println!("участников: {n}");
+}
+', 'Проверьте владельца запросом SELECT owner_id; сравните цель с владельцем до DELETE.', '{"crates": ["tokio"], "driver": "", "expected": ["403", "409 {\"error\":{\"code\":\"conflict\",\"message\":\"нельзя исключить владельца\"}}", "204", "204", "404", "участников: 2"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-rename-room', 23, 'rust', 'Переименование комнаты', 'PATCH /rooms/{id} {"name":..}: переименовывает комнату. Только владелец (403 «только владелец»), не-участникам и несуществующим 404. Имя очищается, 1–32 символа (422). Занятое имя — 409 (23505 переводит AppError::from). Ответ 200 и JSON {"id","name"}.
+
+Ожидаемый вывод:
+200 {"id":1,"name":"главная"}
+403
+409
+422
+404
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct Rename {
+    name: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''taken'', 2)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "PATCH", "/rooms/1", Some(anna), r#"{"name":"  главная  "}"#).await);
+    println!("{}", show(&app, "PATCH", "/rooms/1", Some(boris), r#"{"name":"взлом"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "PATCH", "/rooms/1", Some(anna), r#"{"name":"taken"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "PATCH", "/rooms/1", Some(anna), r#"{"name":""}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "PATCH", "/rooms/2", Some(anna), r#"{"name":"чужая"}"#).await.split('' '').next().unwrap());
+    println!("{}", show(&app, "PATCH", "/rooms/99", Some(anna), r#"{"name":"нет"}"#).await.split('' '').next().unwrap());
+}
+', 'UPDATE rooms SET name = $1 WHERE id = $2 AND owner_id = $3 RETURNING id; различайте 403/404 вторым запросом.', '{"crates": ["tokio"], "driver": "", "expected": ["200 {\"id\":1,\"name\":\"главная\"}", "403", "409", "422", "404", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-delete-room', 24, 'rust', 'Удаление комнаты каскадом', 'DELETE /rooms/{id}: удаляет комнату только для владельца (403 «только владелец», не-участникам и несуществующим 404). Участники и сообщения исчезают сами (ON DELETE CASCADE). Ответ 204. main проверяет число строк в members и messages до и после.
+
+Ожидаемый вывод:
+до: (2, 4, 6)
+403
+204
+после: (1, 1, 1)
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=5 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''other'', 2)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (2, 2)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (2, 2, ''жива'')").execute(&pool).await.unwrap();
+    async fn counts(pool: &PgPool) -> (i64, i64, i64) {
+        let r: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM rooms").fetch_one(pool).await.unwrap();
+        let m: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(pool).await.unwrap();
+        let g: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM messages").fetch_one(pool).await.unwrap();
+        (r, m, g)
+    }
+    println!("до: {:?}", counts(&pool).await);
+    println!("{}", show(&app, "DELETE", "/rooms/1", Some(boris), "").await.split('' '').next().unwrap());
+    println!("{}", show(&app, "DELETE", "/rooms/1", Some(anna), "").await.trim());
+    println!("после: {:?}", counts(&pool).await);
+    println!("{}", show(&app, "DELETE", "/rooms/1", Some(anna), "").await.split('' '').next().unwrap());
+}
+', 'DELETE FROM rooms WHERE id = $1 AND owner_id = $2 RETURNING id; различие 403/404 — отдельным запросом.', '{"crates": ["tokio"], "driver": "", "expected": ["до: (2, 4, 6)", "403", "204", "после: (1, 1, 1)", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-batch-members', 25, 'rust', 'Пакетное добавление участников', 'POST /rooms/{id}/members {"names":[..]}: владелец добавляет сразу нескольких пользователей по именам ОДНИМ запросом INSERT ... SELECT id FROM users WHERE name = ANY($2) ON CONFLICT DO NOTHING. Ответ 200 и JSON {"added":число реально добавленных,"unknown":[имена, которых нет среди пользователей, по алфавиту]}. Не владельцу — 403, не-участнику и несуществующей комнате — 404. Не больше 50 имён за раз (иначе 422).
+
+Ожидаемый вывод:
+200 {"added":1,"unknown":["amy","zed"]}
+200 {"added":0,"unknown":[]}
+403
+403
+422
+участников: 3', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Deserialize)]
+struct Names {
+    names: Vec<String>,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2)").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "POST", "/rooms/1/members", Some(anna), r#"{"names":["boris","vera","zed","amy","vera"]}"#).await);
+    println!("{}", show(&app, "POST", "/rooms/1/members", Some(anna), r#"{"names":["vera"]}"#).await);
+    println!("{}", status_of(&show(&app, "POST", "/rooms/1/members", Some(boris), r#"{"names":["vera"]}"#).await));
+    println!("{}", status_of(&show(&app, "POST", "/rooms/1/members", Some(vera), r#"{"names":["vera"]}"#).await));
+    let many: Vec<String> = (0..51).map(|i| format!("\"u{i}\"")).collect();
+    println!("{}", status_of(&show(&app, "POST", "/rooms/1/members", Some(anna), &format!("{{\"names\":[{}]}}", many.join(","))).await));
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    println!("участников: {n}");
+}
+', 'rows_affected() для added; для unknown — SELECT name FROM users WHERE name = ANY($1), затем разность множеств.', '{"crates": ["tokio"], "driver": "", "expected": ["200 {\"added\":1,\"unknown\":[\"amy\",\"zed\"]}", "200 {\"added\":0,\"unknown\":[]}", "403", "403", "422", "участников: 3"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-dm-room', 26, 'rust', 'Личный диалог как комната', 'Напишите get_or_create_dm(&PgPool, a: i64, b: i64) -> i64: личная комната двух пользователей. Название детерминировано: «dm:МЕНЬШИЙ-БОЛЬШИЙ» (по id). Если комната есть — возвращается её id, иначе создаётся (владелец — меньший id) вместе с двумя участниками в одной транзакции. Вызов get_or_create_dm(1,2) и get_or_create_dm(2,1) должен давать одну комнату; повторные вызовы не плодят строк. Гонку двух одновременных создателей решите через INSERT ... ON CONFLICT (name) DO NOTHING и повторный SELECT. Пять параллельных вызовов должны дать один id.
+
+Ожидаемый вывод:
+1 1 true
+другая пара: true
+параллельно один id: true
+[("dm:1-2", 1), ("dm:1-3", 1), ("dm:7-8", 7)]
+участников: 6', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn get_or_create_dm(pool: &PgPool, a: i64, b: i64) -> i64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, owner_id BIGINT NOT NULL)").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id), user_id BIGINT NOT NULL, PRIMARY KEY (room_id, user_id))").execute(&pool).await.unwrap();
+    let x = get_or_create_dm(&pool, 1, 2).await;
+    let y = get_or_create_dm(&pool, 2, 1).await;
+    println!("{x} {y} {}", x == y);
+    let z = get_or_create_dm(&pool, 1, 3).await;
+    println!("другая пара: {}", z != x);
+    let handles: Vec<_> = (0..5).map(|_| { let pool = pool.clone(); tokio::spawn(async move { get_or_create_dm(&pool, 7, 8).await }) }).collect();
+    let mut ids = Vec::new();
+    for h in handles {
+        ids.push(h.await.unwrap());
+    }
+    ids.dedup();
+    println!("параллельно один id: {}", ids.len() == 1);
+    let rooms: Vec<(String, i64)> = sqlx::query_as("SELECT name, owner_id FROM rooms ORDER BY id").fetch_all(&pool).await.unwrap();
+    println!("{rooms:?}");
+    let m: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    println!("участников: {m}");
+}
+', 'INSERT ... ON CONFLICT (name) DO NOTHING; затем SELECT id FROM rooms WHERE name = $1; участники — INSERT ... ON CONFLICT DO NOTHING.', '{"crates": ["tokio"], "driver": "", "expected": ["1 1 true", "другая пара: true", "параллельно один id: true", "[(\"dm:1-2\", 1), (\"dm:1-3\", 1), (\"dm:7-8\", 7)]", "участников: 6"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-pin', 27, 'rust', 'Закреплённое сообщение', 'PUT /rooms/{id}/pin/{msg}: владелец закрепляет сообщение — rooms.pinned = msg. Сообщение должно принадлежать ЭТОЙ комнате и быть неудалённым, иначе 404. Не владельцу — 403, не-участнику — 404. Ответ 204. GET /rooms/{id}/pin: для участников возвращает JSON {"id","text"} закреплённого или 404, если закрепа нет.
+
+Ожидаемый вывод:
+404 {"error":{"code":"not_found","message":"не найдено"}}
+403
+204
+200 {"id":2,"text":"m2"}
+404
+404
+404', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+#[derive(Serialize, FromRow)]
+struct MsgOut {
+    id: i64,
+    text: String,
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let (anna, boris, vera) = (t[0].as_str(), t[1].as_str(), t[2].as_str());
+    let _ = (anna, boris, vera);
+    let app = app(pool.clone());
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''general'', 1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (1, 1), (1, 2), (1, 3)").execute(&pool).await.unwrap();
+    for i in 1..=3 {
+        sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, $1)").bind(format!("m{i}")).execute(&pool).await.unwrap();
+    }
+    sqlx::query("INSERT INTO rooms (name, owner_id) VALUES (''other'', 2)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES (2, 2)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (2, 2, ''чужая комната'')").execute(&pool).await.unwrap();
+    sqlx::query("UPDATE messages SET deleted = true WHERE id = 3").execute(&pool).await.unwrap();
+    println!("{}", show(&app, "GET", "/rooms/1/pin", Some(anna), "").await);
+    println!("{}", status_of(&show(&app, "PUT", "/rooms/1/pin/2", Some(boris), "").await));
+    println!("{}", show(&app, "PUT", "/rooms/1/pin/2", Some(anna), "").await.trim());
+    println!("{}", show(&app, "GET", "/rooms/1/pin", Some(boris), "").await);
+    println!("{}", status_of(&show(&app, "PUT", "/rooms/1/pin/4", Some(anna), "").await));
+    println!("{}", status_of(&show(&app, "PUT", "/rooms/1/pin/3", Some(anna), "").await));
+    println!("{}", status_of(&show(&app, "GET", "/rooms/2/pin", Some(anna), "").await));
+}
+', 'UPDATE rooms SET pinned = (SELECT id FROM messages WHERE id = $2 AND room_id = $1 AND NOT deleted) — NULL при отсутствии; сначала проверьте существование.', '{"crates": ["tokio"], "driver": "", "expected": ["404 {\"error\":{\"code\":\"not_found\",\"message\":\"не найдено\"}}", "403", "204", "200 {\"id\":2,\"text\":\"m2\"}", "404", "404", "404"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-typing', 28, 'rust', 'Индикатор «печатает…»', 'Реализуйте структуру Typing { ttl_ms } (хранит в памяти для каждой комнаты, кто и когда последний раз печатал): метод ping(&mut self, room: u32, user: &str, now_ms: u64) отмечает набор текста; who(&mut self, room: u32, now_ms: u64) -> Vec<String> возвращает имена тех, чей последний ping не старше ttl_ms (строго: now − t < ttl), по алфавиту; устаревшие записи при этом удаляются. Комнаты независимы; пустая комната вовсе исчезает из памяти (метод rooms_tracked() -> usize показывает число комнат с записями).
+
+Ожидаемый вывод:
+["anna", "vera"]
+["anna"]
+["anna"]
+[]
+1
+["anna"]
+["boris"] []
+1
+[]', 'use std::collections::HashMap;
+
+struct Typing {
+    ttl_ms: u64,
+    rooms: HashMap<u32, HashMap<String, u64>>,
+}
+
+impl Typing {
+    fn new(ttl_ms: u64) -> Typing {
+        Typing { ttl_ms, rooms: HashMap::new() }
+    }
+    fn ping(&mut self, room: u32, user: &str, now_ms: u64) {
+        todo!()
+    }
+    fn who(&mut self, room: u32, now_ms: u64) -> Vec<String> {
+        todo!()
+    }
+    fn rooms_tracked(&self) -> usize {
+        self.rooms.len()
+    }
+}
+
+fn main() {
+    let mut t = Typing::new(3000);
+    t.ping(1, "vera", 0);
+    t.ping(1, "anna", 1000);
+    t.ping(2, "boris", 1500);
+    println!("{:?}", t.who(1, 2000));
+    println!("{:?}", t.who(1, 3000));
+    println!("{:?}", t.who(1, 3999));
+    println!("{:?}", t.who(1, 4000));
+    println!("{}", t.rooms_tracked());
+    t.ping(1, "anna", 5000);
+    t.ping(1, "anna", 6000);
+    println!("{:?}", t.who(1, 8999));
+    println!("{:?} {:?}", t.who(2, 4499), t.who(2, 4500));
+    println!("{}", t.rooms_tracked());
+    println!("{:?}", t.who(9, 0));
+}
+', 'HashMap<u32, HashMap<String, u64>>; retain; remove пустых комнат.', '{"crates": ["tokio"], "driver": "", "expected": ["[\"anna\", \"vera\"]", "[\"anna\"]", "[\"anna\"]", "[]", "1", "[\"anna\"]", "[\"boris\"] []", "1", "[]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 49, 'r49-message-dto', 29, 'rust', 'Формат сообщения в JSON', 'Структура MessageOut { id: i64, room_id: i64, author: String, text: String, created_at: DateTime<Utc>, edited_at: Option<DateTime<Utc>> } сериализуется в JSON: ключи в camelCase (roomId, createdAt, editedAt), edited_at при None пропускается, время — строка RFC 3339 в UTC. Прочитайте из базы (query_as, нужен derive FromRow; поля author — через JOIN users) сообщение без правок и сообщение после UPDATE edited_at = now(), сериализуйте и напечатайте: ключи каждого по алфавиту, и проверьте, что createdAt разбирается как RFC 3339 (DateTime::parse_from_rfc3339).
+
+Ожидаемый вывод:
+["author", "createdAt", "id", "roomId", "text"]
+true
+["author", "createdAt", "editedAt", "id", "roomId", "text"]
+true', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use chrono::{DateTime, Utc};
+use serde::Serialize;
+
+#[derive(Serialize, FromRow)]
+struct MessageOut {
+    id: i64,
+    room_id: i64,
+    author: String,
+    text: String,
+    created_at: DateTime<Utc>,
+    edited_at: Option<DateTime<Utc>>,
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT, author_id BIGINT, text TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO users (name) VALUES (''anna'')").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO messages (room_id, author_id, text) VALUES (1, 1, ''привет''), (1, 1, ''правка'')").execute(&pool).await.unwrap();
+    sqlx::query("UPDATE messages SET edited_at = now() WHERE id = 2").execute(&pool).await.unwrap();
+    let rows: Vec<MessageOut> = sqlx::query_as("SELECT m.id, m.room_id, u.name AS author, m.text, m.created_at, m.edited_at FROM messages m JOIN users u ON u.id = m.author_id ORDER BY m.id").fetch_all(&pool).await.unwrap();
+    for r in rows {
+        let v = serde_json::to_value(&r).unwrap();
+        let mut keys: Vec<&String> = v.as_object().unwrap().keys().collect();
+        keys.sort();
+        println!("{keys:?}");
+        println!("{}", DateTime::parse_from_rfc3339(v["createdAt"].as_str().unwrap()).is_ok());
+    }
+}
+', '#[derive(Serialize, FromRow)] #[serde(rename_all = "camelCase")] #[serde(skip_serializing_if = "Option::is_none")].', '{"crates": ["tokio"], "driver": "", "expected": ["[\"author\", \"createdAt\", \"id\", \"roomId\", \"text\"]", "true", "[\"author\", \"createdAt\", \"editedAt\", \"id\", \"roomId\", \"text\"]", "true"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-echo', 0, 'rust', 'Эхо-сервер', 'Напишите обработчик GET /ws: после апгрейда читает текстовые сообщения и отвечает на каждое «эхо: ТЕКСТ». Закрытие клиента завершает обработчик. main (готова) подключает клиента, отправляет два сообщения и печатает ответы.
+
+Ожидаемый вывод:
+Some("эхо: привет")
+Some("эхо: как дела")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    say(&mut c, "привет").await;
+    println!("{:?}", hear(&mut c).await);
+    say(&mut c, "как дела").await;
+    println!("{:?}", hear(&mut c).await);
+}
+', 'upgrade.on_upgrade(handle); while let Some(Ok(msg)) = socket.recv().await { if let Message::Text(t) = msg { socket.send(Message::Text(format!(..).into())) } }', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"эхо: привет\")", "Some(\"эхо: как дела\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-handshake', 1, 'rust', 'Рукопожатие: 101 и отказ', 'Маршрут GET /ws выполняет апгрейд (достаточно пустого on_upgrade-обработчика, который ничего не делает), а GET /plain отвечает обычным текстом «не сокет». main подключается к /ws и печатает статус рукопожатия, затем пытается подключиться к /plain и печатает, удалось ли это (нет — рукопожатие не 101). Напишите только роутер и обработчики.
+
+Ожидаемый вывод:
+101 Switching Protocols
+подключились к /plain: false', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let (_c, resp) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
+    println!("{}", resp.status());
+    let plain = connect_async(format!("ws://{addr}/plain")).await;
+    println!("подключились к /plain: {}", plain.is_ok());
+}
+', 'Response от on_upgrade; /plain — async fn возвращающая &''static str.', '{"crates": ["tokio"], "driver": "", "expected": ["101 Switching Protocols", "подключились к /plain: false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-close', 2, 'rust', 'Закрытие по команде', 'GET /ws: читает сообщения; получив текст «bye», отвечает «до свидания» и закрывает сокет (socket.close()). Другие тексты отвечают «ок». Клиент в main отправляет «привет», «bye» и затем пытается прочитать ещё одно сообщение — после закрытия сервером приходит None.
+
+Ожидаемый вывод:
+Some("ок")
+Some("до свидания")
+None', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    say(&mut c, "привет").await;
+    println!("{:?}", hear(&mut c).await);
+    say(&mut c, "bye").await;
+    println!("{:?}", hear(&mut c).await);
+    println!("{:?}", hear(&mut c).await);
+}
+', 'if t.as_str() == "bye" { send; socket.close().await; break; }', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"ок\")", "Some(\"до свидания\")", "None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-binary', 3, 'rust', 'Двоичные кадры', 'GET /ws: текстовое сообщение возвращается в верхнем регистре, а двоичное — в обратном порядке байт. Клиент в main отправляет «abc», двоичные [1, 2, 3, 4] и ещё «xyz» и печатает все три ответа.
+
+Ожидаемый вывод:
+текст ABC
+двоичное [4, 3, 2, 1]
+текст XYZ', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    c.send(CMsg::Text("abc".into())).await.unwrap();
+    c.send(CMsg::Binary(vec![1u8, 2, 3, 4].into())).await.unwrap();
+    c.send(CMsg::Text("xyz".into())).await.unwrap();
+    for _ in 0..3 {
+        match c.next().await.unwrap().unwrap() {
+            CMsg::Text(t) => println!("текст {}", t.as_str()),
+            CMsg::Binary(b) => println!("двоичное {:?}", b.to_vec()),
+            other => println!("{other:?}"),
+        }
+    }
+}
+', 'Message::Binary(bytes): bytes — Bytes; to_vec(); reverse(); Message::Binary(v.into()).', '{"crates": ["tokio"], "driver": "", "expected": ["текст ABC", "двоичное [4, 3, 2, 1]", "текст XYZ"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-ping', 4, 'rust', 'Сервер проверяет живость', 'GET /ws: сразу после апгрейда сервер отправляет Ping с данными «hi», ждёт Pong (клиентская библиотека отвечает на Ping сама, пока читает сокет) и после получения Pong с теми же данными отправляет текст «pong получен». main читает сообщения клиента, пока не придёт текст, и печатает его.
+
+Ожидаемый вывод:
+Some("pong получен")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    println!("{:?}", hear(&mut c).await);
+}
+', 'socket.send(Message::Ping("hi".into())); затем recv() до Message::Pong(data).', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"pong получен\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-split', 5, 'rust', 'split: чтение и запись в разных задачах', 'GET /ws: после апгрейда разделите сокет (socket.split()). Читающая задача принимает текст и переводит его в верхний регистр, отправляя в очередь mpsc; пишущая задача берёт из очереди и пишет в сокет. Ответы должны приходить в том же порядке. Клиент в main отправляет пять сообщений подряд и печатает пять ответов.
+
+Ожидаемый вывод:
+Some("РАЗ")
+Some("ДВА")
+Some("ТРИ")
+Some("ЧЕТЫРЕ")
+Some("ПЯТЬ")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    for w in ["раз", "два", "три", "четыре", "пять"] {
+        say(&mut c, w).await;
+    }
+    for _ in 0..5 {
+        println!("{:?}", hear(&mut c).await);
+    }
+}
+', 'let (mut tx, mut rx) = socket.split(); tokio::spawn для писателя; читатель — в самой функции; mpsc::channel(16).', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"РАЗ\")", "Some(\"ДВА\")", "Some(\"ТРИ\")", "Some(\"ЧЕТЫРЕ\")", "Some(\"ПЯТЬ\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-broadcast-all', 6, 'rust', 'Общий чат: всем подключённым', 'Состояние приложения — broadcast::Sender<String>. GET /ws: каждое полученное от клиента текстовое сообщение рассылается всем подключённым (включая отправителя); каждый клиент получает рассылку по своему приёмнику (subscribe). Пишущая и читающая части — отдельные задачи. main подключает двух клиентов, шлёт сообщение от первого и печатает, что получили оба.
+
+Ожидаемый вывод:
+a: Some("привет всем")
+b: Some("привет всем")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut a = connect(addr, "/ws").await;
+    let mut b = connect(addr, "/ws").await;
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    say(&mut a, "привет всем").await;
+    println!("a: {:?}", hear(&mut a).await);
+    println!("b: {:?}", hear(&mut b).await);
+}
+', 'Подписку (tx.subscribe()) оформляйте до начала чтения клиента; select! между recv() канала и next() сокета.', '{"crates": ["tokio"], "driver": "", "expected": ["a: Some(\"привет всем\")", "b: Some(\"привет всем\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-hub', 7, 'rust', 'Hub: подписка и публикация по комнатам', 'Реализуйте Hub: new(), subscribe(room) -> broadcast::Receiver<Event> (канал комнаты создаётся лениво с ёмкостью 16) и publish(room, text) -> usize (число доставленных; 0, если комнаты нет или никто не подписан). Блокировку держите только на время доступа к карте. main проверяет: две комнаты независимы, число получателей, публикация в пустую комнату.
+
+Ожидаемый вывод:
+0
+2
+1
+Event { room: 1, text: "привет" }
+Event { room: 1, text: "привет" }
+Event { room: 2, text: "в другую" }
+true
+0', 'use std::collections::HashMap;
+use std::sync::RwLock;
+use tokio::sync::broadcast;
+
+#[derive(Clone, Debug, PartialEq)]
+struct Event {
+    room: i64,
+    text: String,
+}
+
+struct Hub {
+    rooms: RwLock<HashMap<i64, broadcast::Sender<Event>>>,
+}
+
+impl Hub {
+    fn new() -> Hub {
+        Hub { rooms: RwLock::new(HashMap::new()) }
+    }
+    fn subscribe(&self, room: i64) -> broadcast::Receiver<Event> {
+        todo!()
+    }
+    fn publish(&self, room: i64, text: &str) -> usize {
+        todo!()
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let hub = Hub::new();
+    println!("{}", hub.publish(1, "никого"));
+    let mut a = hub.subscribe(1);
+    let mut b = hub.subscribe(1);
+    let mut c = hub.subscribe(2);
+    println!("{}", hub.publish(1, "привет"));
+    println!("{}", hub.publish(2, "в другую"));
+    println!("{:?}", a.recv().await.unwrap());
+    println!("{:?}", b.recv().await.unwrap());
+    println!("{:?}", c.recv().await.unwrap());
+    println!("{:?}", c.try_recv().is_err());
+    println!("{}", hub.publish(3, "нет такой"));
+}
+', 'entry(room).or_insert_with(|| broadcast::channel(16).0).subscribe(); publish: клонируйте Sender под read-замком, send после.', '{"crates": ["tokio"], "driver": "", "expected": ["0", "2", "1", "Event { room: 1, text: \"привет\" }", "Event { room: 1, text: \"привет\" }", "Event { room: 2, text: \"в другую\" }", "true", "0"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-hub-gc', 8, 'rust', 'Очистка опустевших комнат', 'К Hub из предыдущей задачи добавьте gc(&self) -> usize: удаляет комнаты, у которых нет ни одного получателя (Sender::receiver_count() == 0), и возвращает число удалённых; и rooms_count(&self) -> usize. Проверьте: после отписки (drop приёмников) gc убирает пустые комнаты, но не трогает занятые.
+
+Ожидаемый вывод:
+3
+gc: 0
+gc: 2 осталось 1
+gc: 0 осталось 1
+gc: 1 осталось 0
+gc: 0', 'use std::collections::HashMap;
+use std::sync::RwLock;
+use tokio::sync::broadcast;
+
+#[derive(Clone, Debug, PartialEq)]
+struct Event {
+    room: i64,
+    text: String,
+}
+
+struct Hub {
+    rooms: RwLock<HashMap<i64, broadcast::Sender<Event>>>,
+}
+
+impl Hub {
+    fn new() -> Hub {
+        Hub { rooms: RwLock::new(HashMap::new()) }
+    }
+    fn subscribe(&self, room: i64) -> broadcast::Receiver<Event> {
+        let mut m = self.rooms.write().unwrap();
+        m.entry(room).or_insert_with(|| broadcast::channel(16).0).subscribe()
+    }
+    fn rooms_count(&self) -> usize {
+        todo!()
+    }
+    fn gc(&self) -> usize {
+        todo!()
+    }
+}
+
+fn main() {
+    let hub = Hub::new();
+    let a = hub.subscribe(1);
+    let b = hub.subscribe(2);
+    let c = hub.subscribe(2);
+    let d = hub.subscribe(3);
+    println!("{}", hub.rooms_count());
+    println!("gc: {}", hub.gc());
+    drop(a);
+    drop(d);
+    println!("gc: {} осталось {}", hub.gc(), hub.rooms_count());
+    drop(b);
+    println!("gc: {} осталось {}", hub.gc(), hub.rooms_count());
+    drop(c);
+    println!("gc: {} осталось {}", hub.gc(), hub.rooms_count());
+    println!("gc: {}", hub.gc());
+}
+', 'map.retain(|_, tx| tx.receiver_count() > 0); число удалённых — разность размеров.', '{"crates": ["tokio"], "driver": "", "expected": ["3", "gc: 0", "gc: 2 осталось 1", "gc: 0 осталось 1", "gc: 1 осталось 0", "gc: 0"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-protocol', 9, 'rust', 'Разбор команд протокола', 'Клиент шлёт JSON-команды: {"type":"subscribe","room":N}, {"type":"send","room":N,"text":..}, {"type":"typing","room":N}. Опишите перечисление Command (serde, tag = "type", snake_case) и функцию parse(text: &str) -> Result<Command, String>, где ошибка — готовый JSON события {"type":"error","message":..}: «не JSON» для синтаксической ошибки, «неизвестная команда» для неизвестного type или неверных полей, «слишком длинно» для send с текстом больше 20 символов (chars) и «пустой текст» для пустого после trim. Остальное — Ok.
+
+Ожидаемый вывод:
+Ok(Subscribe { room: 3 })
+Ok(Send { room: 3, text: "привет" })
+Ok(Typing { room: 1 })
+Err("{\"message\":\"не JSON\",\"type\":\"error\"}")
+Err("{\"message\":\"неизвестная команда\",\"type\":\"error\"}")
+Err("{\"message\":\"неизвестная команда\",\"type\":\"error\"}")
+Err("{\"message\":\"слишком длинно\",\"type\":\"error\"}")
+Err("{\"message\":\"пустой текст\",\"type\":\"error\"}")
+Err("{\"message\":\"неизвестная команда\",\"type\":\"error\"}")', 'use serde::Deserialize;
+
+#[derive(Deserialize, Debug, PartialEq)]
+enum Command {
+    Subscribe { room: i64 },
+    Send { room: i64, text: String },
+    Typing { room: i64 },
+}
+
+fn parse(text: &str) -> Result<Command, String> {
+    todo!()
+}
+
+fn main() {
+    for s in [r#"{"type":"subscribe","room":3}"#, r#"{"type":"send","room":3,"text":"привет"}"#, r#"{"type":"typing","room":1}"#, "not json", r#"{"type":"dance","room":1}"#, r#"{"type":"send","room":"x","text":"a"}"#, r#"{"type":"send","room":1,"text":"ёёёёёёёёёёёёёёёёёёёёё"}"#, r#"{"type":"send","room":1,"text":"   "}"#, r#"{"room":1}"#] {
+        println!("{:?}", parse(s));
+    }
+}
+', 'serde_json::from_str::<Command>; различайте e.is_syntax() и e.is_data().', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(Subscribe { room: 3 })", "Ok(Send { room: 3, text: \"привет\" })", "Ok(Typing { room: 1 })", "Err(\"{\\\"message\\\":\\\"не JSON\\\",\\\"type\\\":\\\"error\\\"}\")", "Err(\"{\\\"message\\\":\\\"неизвестная команда\\\",\\\"type\\\":\\\"error\\\"}\")", "Err(\"{\\\"message\\\":\\\"неизвестная команда\\\",\\\"type\\\":\\\"error\\\"}\")", "Err(\"{\\\"message\\\":\\\"слишком длинно\\\",\\\"type\\\":\\\"error\\\"}\")", "Err(\"{\\\"message\\\":\\\"пустой текст\\\",\\\"type\\\":\\\"error\\\"}\")", "Err(\"{\\\"message\\\":\\\"неизвестная команда\\\",\\\"type\\\":\\\"error\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-event-shapes', 10, 'rust', 'Формат событий сервера', 'Опишите перечисление Event для сервера с внутренним тегом type (snake_case): Message { id: i64, room: i64, author: String, text: String }, Join { room: i64, user: String }, Leave { room: i64, user: String }, Typing { room: i64, user: String }, Error { message: String }, Resync { room: i64 }. Напечатайте JSON каждого варианта и проверьте обратный разбор одного из них.
+
+Ожидаемый вывод:
+{"type":"message","id":42,"room":1,"author":"anna","text":"привет"}
+{"type":"join","room":1,"user":"boris"}
+{"type":"leave","room":1,"user":"boris"}
+{"type":"typing","room":2,"user":"vera"}
+{"type":"error","message":"не JSON"}
+{"type":"resync","room":1}
+Join { room: 5, user: "zed" } true', 'use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+enum Event {
+    Message { id: i64, room: i64, author: String, text: String },
+    Join { room: i64, user: String },
+    Leave { room: i64, user: String },
+    Typing { room: i64, user: String },
+    Error { message: String },
+    Resync { room: i64 },
+}
+
+fn main() {
+    let all = [
+        Event::Message { id: 42, room: 1, author: "anna".into(), text: "привет".into() },
+        Event::Join { room: 1, user: "boris".into() },
+        Event::Leave { room: 1, user: "boris".into() },
+        Event::Typing { room: 2, user: "vera".into() },
+        Event::Error { message: "не JSON".into() },
+        Event::Resync { room: 1 },
+    ];
+    for e in &all {
+        println!("{}", serde_json::to_string(e).unwrap());
+    }
+    let back: Event = serde_json::from_str(r#"{"type":"join","room":5,"user":"zed"}"#).unwrap();
+    println!("{back:?} {}", back == Event::Join { room: 5, user: "zed".into() });
+}
+', '#[derive(Serialize, Deserialize)] #[serde(tag = "type", rename_all = "snake_case")].', '{"crates": ["tokio"], "driver": "", "expected": ["{\"type\":\"message\",\"id\":42,\"room\":1,\"author\":\"anna\",\"text\":\"привет\"}", "{\"type\":\"join\",\"room\":1,\"user\":\"boris\"}", "{\"type\":\"leave\",\"room\":1,\"user\":\"boris\"}", "{\"type\":\"typing\",\"room\":2,\"user\":\"vera\"}", "{\"type\":\"error\",\"message\":\"не JSON\"}", "{\"type\":\"resync\",\"room\":1}", "Join { room: 5, user: \"zed\" } true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-rooms-ws', 11, 'rust', 'Комнаты по сокету', 'Состояние — Hub (в заготовке: Arc<Mutex<HashMap<i64, broadcast::Sender<String>>>>, метод room(id) -> Sender уже есть). GET /ws: протокол — текст «sub N» подписывает соединение на комнату N (ответ «ok N»), текст «say N ТЕКСТ» публикует ТЕКСТ в комнату N (подписчикам приходит «[N] ТЕКСТ»). Подписчик получает события только своих комнат. Для пересылки событий из каналов в сокет используйте задачу на соединение (mpsc очередь исходящих). Клиент A подписан на 1, B — на 1 и 2, C — на 2; публикации в комнаты 1 и 2.
+
+Ожидаемый вывод:
+Some("ok 1") Some("ok 1") Some("ok 2") Some("ok 2")
+A: Some("[1] привет первой")
+B: [Some("[1] привет первой"), Some("[2] привет второй")]
+C: Some("[2] привет второй")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+#[derive(Clone, Default)]
+struct Hub {
+    rooms: Arc<Mutex<std::collections::HashMap<i64, broadcast::Sender<String>>>>,
+}
+
+impl Hub {
+    fn room(&self, id: i64) -> broadcast::Sender<String> {
+        self.rooms.lock().unwrap().entry(id).or_insert_with(|| broadcast::channel(64).0).clone()
+    }
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let (mut a, mut b, mut c) = (connect(addr, "/ws").await, connect(addr, "/ws").await, connect(addr, "/ws").await);
+    say(&mut a, "sub 1").await;
+    say(&mut b, "sub 1").await;
+    say(&mut b, "sub 2").await;
+    say(&mut c, "sub 2").await;
+    println!("{:?} {:?} {:?} {:?}", hear(&mut a).await, hear(&mut b).await, hear(&mut b).await, hear(&mut c).await);
+    say(&mut a, "say 1 привет первой").await;
+    say(&mut c, "say 2 привет второй").await;
+    println!("A: {:?}", hear(&mut a).await);
+    let mut bs = vec![hear(&mut b).await, hear(&mut b).await];
+    bs.sort();
+    println!("B: {bs:?}");
+    println!("C: {:?}", hear(&mut c).await);
+}
+', 'На каждую подписку — spawn задача, читающая broadcast::Receiver и кладущая строки в mpsc::Sender<String>; пишущая часть сокета читает mpsc.', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"ok 1\") Some(\"ok 1\") Some(\"ok 2\") Some(\"ok 2\")", "A: Some(\"[1] привет первой\")", "B: [Some(\"[1] привет первой\"), Some(\"[2] привет второй\")]", "C: Some(\"[2] привет второй\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-auth-upgrade', 12, 'rust', 'Токен до апгрейда', 'GET /ws?token=T: токены «t-anna» → anna и «t-boris» → boris (простая таблица в обработчике). Неверный или отсутствующий токен — ответ 401 ДО апгрейда (подключение клиента завершится ошибкой Http со статусом 401). Верный — апгрейд и первое сообщение от сервера: «привет, ИМЯ». main подключается с тремя вариантами.
+
+Ожидаемый вывод:
+/ws?token=t-anna: Some("привет, anna")
+/ws?token=bad: отказ 401
+/ws: отказ 401
+/ws?token=t-boris: Some("привет, boris")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    for path in ["/ws?token=t-anna", "/ws?token=bad", "/ws", "/ws?token=t-boris"] {
+        match connect_async(format!("ws://{addr}{path}")).await {
+            Ok((mut c, _)) => println!("{path}: {:?}", hear(&mut c).await),
+            Err(tokio_tungstenite::tungstenite::Error::Http(r)) => println!("{path}: отказ {}", r.status().as_u16()),
+            Err(e) => println!("{path}: другая ошибка {e}"),
+        }
+    }
+}
+', 'Query<Q> с Option<String>; верните (StatusCode::UNAUTHORIZED, ..).into_response() вместо on_upgrade.', '{"crates": ["tokio"], "driver": "", "expected": ["/ws?token=t-anna: Some(\"привет, anna\")", "/ws?token=bad: отказ 401", "/ws: отказ 401", "/ws?token=t-boris: Some(\"привет, boris\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-subscribe-check', 13, 'rust', 'Членство при подписке', 'Заготовка хранит членство в памяти: anna состоит в комнатах 1 и 2, boris — только в 2. GET /ws?user=ИМЯ (проверку токена опустим): текст «sub N» отвечает «ok N», если пользователь участник комнаты N, и JSON-ошибкой {"type":"error","message":"нет доступа"}, если нет (в том числе для комнат, которых нет совсем — они неотличимы). Остальные тексты игнорируются. Проверьте anna и boris.
+
+Ожидаемый вывод:
+anna 1: Some("ok 1")
+anna 2: Some("ok 2")
+anna 3: Some("{\"type\":\"error\",\"message\":\"нет доступа\"}")
+boris 1: Some("{\"type\":\"error\",\"message\":\"нет доступа\"}")
+boris 2: Some("ok 2")
+boris 3: Some("{\"type\":\"error\",\"message\":\"нет доступа\"}")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn is_member(user: &str, room: i64) -> bool {
+    matches!((user, room), ("anna", 1) | ("anna", 2) | ("boris", 2))
+}
+
+#[derive(Deserialize)]
+struct Q {
+    user: String,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    for (user, rooms) in [("anna", [1, 2, 3]), ("boris", [1, 2, 3])] {
+        let mut c = connect(addr, &format!("/ws?user={user}")).await;
+        for r in rooms {
+            say(&mut c, &format!("sub {r}")).await;
+            println!("{user} {r}: {:?}", hear(&mut c).await);
+        }
+    }
+}
+', 'Таблица: fn members(room: i64) -> &''static [&''static str]; сравнение с именем.', '{"crates": ["tokio"], "driver": "", "expected": ["anna 1: Some(\"ok 1\")", "anna 2: Some(\"ok 2\")", "anna 3: Some(\"{\\\"type\\\":\\\"error\\\",\\\"message\\\":\\\"нет доступа\\\"}\")", "boris 1: Some(\"{\\\"type\\\":\\\"error\\\",\\\"message\\\":\\\"нет доступа\\\"}\")", "boris 2: Some(\"ok 2\")", "boris 3: Some(\"{\\\"type\\\":\\\"error\\\",\\\"message\\\":\\\"нет доступа\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-author-stamp', 14, 'rust', 'Автор берётся из сессии', 'GET /ws?user=ИМЯ (имя — из «сессии», считаем проверенным). Клиент шлёт JSON {"text":..,"author":..} — поле author клиента ИГНОРИРУЕТСЯ (может быть чужим). Сервер отвечает JSON {"author":ИМЯ_ИЗ_СЕССИИ,"text":..}. Некорректный JSON — {"error":"не JSON"}. Проверьте попытку подменить автора.
+
+Ожидаемый вывод:
+Some("{\"author\":\"anna\",\"text\":\"привет\"}")
+Some("{\"error\":\"не JSON\"}")
+Some("{\"author\":\"anna\",\"text\":\"ещё\"}")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+#[derive(Deserialize)]
+struct Q {
+    user: String,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws?user=anna").await;
+    say(&mut c, r#"{"text":"привет","author":"mallory"}"#).await;
+    println!("{:?}", hear(&mut c).await);
+    say(&mut c, "сломано").await;
+    println!("{:?}", hear(&mut c).await);
+    say(&mut c, r#"{"text":"ещё"}"#).await;
+    println!("{:?}", hear(&mut c).await);
+}
+', 'Структура In { text: String } без поля author (serde по умолчанию пропускает неизвестные).', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"{\\\"author\\\":\\\"anna\\\",\\\"text\\\":\\\"привет\\\"}\")", "Some(\"{\\\"error\\\":\\\"не JSON\\\"}\")", "Some(\"{\\\"author\\\":\\\"anna\\\",\\\"text\\\":\\\"ещё\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-lagged', 15, 'rust', 'Отставший получатель', 'Создайте broadcast-канал ёмкостью 2, подписчика rx и отправьте 5 событий (1…5), ничего не читая. Затем читайте rx.recv() в цикле: напечатайте первую ошибку Lagged(n) (какое n пропущено), а затем оставшиеся значения, пока канал не опустеет (try_recv вернёт Empty). После этого отправьте ещё одно событие и убедитесь, что оно приходит без ошибок. Опишите функцию next_event(&mut Receiver<i32>) -> String, превращающую результат чтения в «событие N» или «resync (пропущено K)».
+
+Ожидаемый вывод:
+resync (пропущено 3)
+событие 4
+событие 5
+true
+событие 6
+канал закрыт', 'use tokio::sync::broadcast::{self, error::RecvError, Receiver};
+
+async fn next_event(rx: &mut Receiver<i32>) -> String {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = broadcast::channel::<i32>(2);
+    for i in 1..=5 {
+        tx.send(i).unwrap();
+    }
+    for _ in 0..3 {
+        println!("{}", next_event(&mut rx).await);
+    }
+    println!("{:?}", rx.try_recv().is_err());
+    tx.send(6).unwrap();
+    println!("{}", next_event(&mut rx).await);
+    drop(tx);
+    println!("{}", next_event(&mut rx).await);
+}
+', 'match rx.recv().await { Ok(v) => .., Err(RecvError::Lagged(k)) => .., Err(RecvError::Closed) => .. }', '{"crates": ["tokio"], "driver": "", "expected": ["resync (пропущено 3)", "событие 4", "событие 5", "true", "событие 6", "канал закрыт"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-bounded-out', 16, 'rust', 'Ограниченная исходящая очередь', 'Функция push(tx: &mpsc::Sender<String>, msg: String) -> Push должна неблокирующе (try_send) положить сообщение в очередь клиента и вернуть Push::Queued, Push::Slow (очередь заполнена — клиента надо отключить) или Push::Gone (получатель уже закрыт). Очередь ёмкостью 3: напечатайте результат пяти отправок без чтения, затем прочитайте одно сообщение и ещё одна отправка проходит; затем закройте получателя.
+
+Ожидаемый вывод:
+1: Queued
+2: Queued
+3: Queued
+4: Slow
+5: Slow
+Some("m1")
+Queued
+Gone', 'use tokio::sync::mpsc::{self, error::TrySendError};
+
+#[derive(Debug, PartialEq)]
+enum Push {
+    Queued,
+    Slow,
+    Gone,
+}
+
+fn push(tx: &mpsc::Sender<String>, msg: String) -> Push {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = mpsc::channel::<String>(3);
+    for i in 1..=5 {
+        println!("{i}: {:?}", push(&tx, format!("m{i}")));
+    }
+    println!("{:?}", rx.recv().await);
+    println!("{:?}", push(&tx, "m6".into()));
+    drop(rx);
+    println!("{:?}", push(&tx, "m7".into()));
+}
+', 'TrySendError::Full / TrySendError::Closed.', '{"crates": ["tokio"], "driver": "", "expected": ["1: Queued", "2: Queued", "3: Queued", "4: Slow", "5: Slow", "Some(\"m1\")", "Queued", "Gone"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-idle-timeout', 17, 'rust', 'Закрытие молчащих', 'GET /ws: если от клиента не приходило ни одного кадра (текст, двоичные или Pong) дольше 150 мс, сервер закрывает соединение (после закрытия клиентское чтение возвращает None). Каждое сообщение клиента сбрасывает таймер. main: клиент 1 шлёт сообщения каждые 60 мс четыре раза (отвечает «ок» на каждое) и остаётся живым; клиент 2 молчит и должен быть закрыт.
+
+Ожидаемый вывод:
+active: Some("ок")
+active: Some("ок")
+active: Some("ок")
+active: Some("ок")
+silent закрыт: true', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut active = connect(addr, "/ws").await;
+    let mut silent = connect(addr, "/ws").await;
+    for i in 1..=4 {
+        tokio::time::sleep(Duration::from_millis(60)).await;
+        say(&mut active, &format!("сообщение {i}")).await;
+        println!("active: {:?}", hear(&mut active).await);
+    }
+    println!("silent закрыт: {}", hear(&mut silent).await.is_none());
+}
+', 'tokio::time::timeout(Duration::from_millis(150), socket.recv()) в цикле; Err(_) — таймаут → break.', '{"crates": ["tokio"], "driver": "", "expected": ["active: Some(\"ок\")", "active: Some(\"ок\")", "active: Some(\"ок\")", "active: Some(\"ок\")", "silent закрыт: true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-ping-timer', 18, 'rust', 'Ping по таймеру', 'GET /ws: каждые 50 мс сервер шлёт Ping (в первый раз — сразу после апгрейда) и останавливается после 3 пингов, затем отправляет текст «пингов: 3» и ждёт, пока клиент закроет соединение (читайте socket.recv() до конца), иначе соединение оборвётся сбросом, пока клиент ещё отвечает на пинги. Клиент в main считает Ping до получения текста; в готовой main это уже есть.
+
+Ожидаемый вывод:
+получено пингов 3, текст "пингов: 3"', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    let mut pings = 0;
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Ping(_)))) => pings += 1,
+            Ok(Some(Ok(CMsg::Text(t)))) => {
+                println!("получено пингов {pings}, текст {:?}", t.as_str());
+                break;
+            }
+            other => {
+                println!("неожиданно {other:?}");
+                break;
+            }
+        }
+    }
+}
+', 'tokio::time::interval(Duration::from_millis(50)); первый tick срабатывает сразу.', '{"crates": ["tokio"], "driver": "", "expected": ["получено пингов 3, текст \"пингов: 3\""], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-presence', 19, 'rust', 'Присутствие по числу соединений', 'Реализуйте Presence: connect(&mut self, user: &str) -> bool (true, если пользователь только что стал онлайн — было 0 соединений), disconnect(&mut self, user: &str) -> bool (true, если стал офлайн — соединений не осталось; лишний disconnect для неизвестного пользователя — false и ничего не ломает), is_online(&self, user: &str) -> bool, online(&self) -> Vec<String> по алфавиту.
+
+Ожидаемый вывод:
+true
+false
+true
+["anna", "boris"]
+false
+true true
+true
+false
+false
+["boris"]', 'use std::collections::HashMap;
+
+#[derive(Default)]
+struct Presence {
+    conns: HashMap<String, usize>,
+}
+
+impl Presence {
+    fn connect(&mut self, user: &str) -> bool {
+        todo!()
+    }
+    fn disconnect(&mut self, user: &str) -> bool {
+        todo!()
+    }
+    fn is_online(&self, user: &str) -> bool {
+        todo!()
+    }
+    fn online(&self) -> Vec<String> {
+        todo!()
+    }
+}
+
+fn main() {
+    let mut p = Presence::default();
+    println!("{}", p.connect("anna"));
+    println!("{}", p.connect("anna"));
+    println!("{}", p.connect("boris"));
+    println!("{:?}", p.online());
+    println!("{}", p.disconnect("anna"));
+    println!("{} {}", p.is_online("anna"), p.is_online("boris"));
+    println!("{}", p.disconnect("anna"));
+    println!("{}", p.is_online("anna"));
+    println!("{}", p.disconnect("nobody"));
+    println!("{:?}", p.online());
+}
+', 'HashMap<String, usize>; при нуле запись удаляйте.', '{"crates": ["tokio"], "driver": "", "expected": ["true", "false", "true", "[\"anna\", \"boris\"]", "false", "true true", "true", "false", "false", "[\"boris\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-cleanup-guard', 20, 'rust', 'Очистка при любом завершении', 'Состояние содержит журнал Arc<Mutex<Vec<String>>>. GET /ws?user=ИМЯ: при подключении в журнал пишется «вошёл ИМЯ», при завершении соединения ЛЮБЫМ способом (штатное закрытие, обрыв, ошибка) — «вышел ИМЯ». Реализуйте это через структуру-охранник с Drop, живущую в обработчике соединения. main подключает клиента, затем резко уничтожает клиента (drop без Close) и через 200 мс печатает журнал.
+
+Ожидаемый вывод:
+["вошёл anna"]
+["вошёл anna", "вышел anna"]', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+#[derive(Deserialize)]
+struct Q {
+    user: String,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let addr = serve(app(log.clone())).await;
+    let c = connect(addr, "/ws?user=anna").await;
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    println!("{:?}", log.lock().unwrap());
+    drop(c);
+    tokio::time::sleep(Duration::from_millis(200)).await;
+    println!("{:?}", log.lock().unwrap());
+}
+', 'struct Cleanup { user: String, log: Arc<Mutex<Vec<String>>> } impl Drop { fn drop(&mut self) { push("вышел ..") } } — создаётся в начале handle.', '{"crates": ["tokio"], "driver": "", "expected": ["[\"вошёл anna\"]", "[\"вошёл anna\", \"вышел anna\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-leave-event', 21, 'rust', 'Событие о выходе', 'Общий чат на broadcast::Sender<String>. GET /ws?user=ИМЯ: при подключении всем (включая нового) рассылается JSON {"type":"join","user":ИМЯ}, при отключении — {"type":"leave","user":ИМЯ}. Клиент получает события через собственный приёмник. main подключает anna, затем boris; anna читает их join; boris закрывается корректно — anna получает leave boris. Печатайте то, что видит anna.
+
+Ожидаемый вывод:
+anna видит: Some("{\"type\":\"join\",\"user\":\"anna\"}")
+anna видит: Some("{\"type\":\"join\",\"user\":\"boris\"}")
+boris видит: Some("{\"type\":\"join\",\"user\":\"boris\"}")
+anna видит: Some("{\"type\":\"leave\",\"user\":\"boris\"}")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+#[derive(Deserialize)]
+struct Q {
+    user: String,
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut anna = connect(addr, "/ws?user=anna").await;
+    println!("anna видит: {:?}", hear(&mut anna).await);
+    let mut boris = connect(addr, "/ws?user=boris").await;
+    println!("anna видит: {:?}", hear(&mut anna).await);
+    println!("boris видит: {:?}", hear(&mut boris).await);
+    boris.close(None).await.unwrap();
+    println!("anna видит: {:?}", hear(&mut anna).await);
+}
+', 'Подписку на broadcast оформляйте ДО рассылки join; leave — из охранника Drop или после цикла чтения.', '{"crates": ["tokio"], "driver": "", "expected": ["anna видит: Some(\"{\\\"type\\\":\\\"join\\\",\\\"user\\\":\\\"anna\\\"}\")", "anna видит: Some(\"{\\\"type\\\":\\\"join\\\",\\\"user\\\":\\\"boris\\\"}\")", "boris видит: Some(\"{\\\"type\\\":\\\"join\\\",\\\"user\\\":\\\"boris\\\"}\")", "anna видит: Some(\"{\\\"type\\\":\\\"leave\\\",\\\"user\\\":\\\"boris\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-typing-skip-self', 22, 'rust', '«Печатает…» не себе', 'Общий чат: события рассылаются в broadcast::Sender<(u32, String)> (идентификатор соединения, JSON). GET /ws: каждому соединению присваивается номер (счётчик AtomicU32 с 1). Клиент шлёт текст «typing» — остальные получают {"type":"typing","conn":N}, но НЕ он сам; прочие тексты рассылаются всем, включая отправителя, как {"type":"say","conn":N,"text":..}. Три клиента: второй печатает, затем первый говорит.
+
+Ожидаемый вывод:
+a: Some("{\"conn\":2,\"type\":\"typing\"}")
+c: Some("{\"conn\":2,\"type\":\"typing\"}")
+a: Some("{\"conn\":1,\"text\":\"привет\",\"type\":\"say\"}")
+b: Some("{\"conn\":1,\"text\":\"привет\",\"type\":\"say\"}")
+c: Some("{\"conn\":1,\"text\":\"привет\",\"type\":\"say\"}")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut a = connect(addr, "/ws").await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    let mut b = connect(addr, "/ws").await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    let mut c = connect(addr, "/ws").await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    say(&mut b, "typing").await;
+    println!("a: {:?}", hear(&mut a).await);
+    println!("c: {:?}", hear(&mut c).await);
+    say(&mut a, "привет").await;
+    println!("a: {:?}", hear(&mut a).await);
+    println!("b: {:?}", hear(&mut b).await);
+    println!("c: {:?}", hear(&mut c).await);
+}
+', 'При чтении из канала пропускайте события, у которых (conn == свой номер && это typing). Для различения храните в событии флаг: (conn, kind, json).', '{"crates": ["tokio"], "driver": "", "expected": ["a: Some(\"{\\\"conn\\\":2,\\\"type\\\":\\\"typing\\\"}\")", "c: Some(\"{\\\"conn\\\":2,\\\"type\\\":\\\"typing\\\"}\")", "a: Some(\"{\\\"conn\\\":1,\\\"text\\\":\\\"привет\\\",\\\"type\\\":\\\"say\\\"}\")", "b: Some(\"{\\\"conn\\\":1,\\\"text\\\":\\\"привет\\\",\\\"type\\\":\\\"say\\\"}\")", "c: Some(\"{\\\"conn\\\":1,\\\"text\\\":\\\"привет\\\",\\\"type\\\":\\\"say\\\"}\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-db-then-broadcast', 23, 'rust', 'Сначала база, потом рассылка', 'Напишите post(&PgPool, &broadcast::Sender<Event>, user, text) -> Result<i64, sqlx::Error>: вставляет сообщение (таблица messages(id BIGSERIAL, author TEXT, text TEXT CHECK (length(text) > 0))) с RETURNING id и ТОЛЬКО ПОСЛЕ успешной вставки отправляет в канал Event { id, user, text }. При ошибке вставки (пустой текст нарушает CHECK) в канал ничего не уходит. main запускает приёмник, который для каждого события проверяет по базе, что строка с таким id уже существует, и печатает результат. Опубликуйте три сообщения и одно с пустым текстом.
+
+Ожидаемый вывод:
+anna: Ok(1)
+boris: Ok(2)
+anna: Err(Some("23514"))
+vera: Ok(4)
+[(1, true), (2, true), (4, true)]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct Event {
+    id: i64,
+    user: String,
+    text: String,
+}
+
+async fn post(pool: &PgPool, hub: &tokio::sync::broadcast::Sender<Event>, user: &str, text: &str) -> Result<i64, sqlx::Error> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, author TEXT, text TEXT CHECK (length(text) > 0))").execute(&pool).await.unwrap();
+    let (hub, mut rx) = tokio::sync::broadcast::channel::<Event>(16);
+    let pool2 = pool.clone();
+    let listener = tokio::spawn(async move {
+        let mut seen = Vec::new();
+        while let Ok(e) = rx.recv().await {
+            let exists: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM messages WHERE id = $1").bind(e.id).fetch_one(&pool2).await.unwrap();
+            seen.push((e.id, exists == 1));
+        }
+        seen
+    });
+    for (u, t) in [("anna", "раз"), ("boris", "два"), ("anna", ""), ("vera", "три")] {
+        println!("{u}: {:?}", post(&pool, &hub, u, t).await.map_err(|e| e.as_database_error().and_then(|d| d.code()).map(|c| c.to_string())));
+    }
+    drop(hub);
+    println!("{:?}", listener.await.unwrap());
+}
+', 'let id = query_scalar(...RETURNING id).fetch_one(pool).await?; let _ = tx.send(...); Ok(id)', '{"crates": ["tokio"], "driver": "", "expected": ["anna: Ok(1)", "boris: Ok(2)", "anna: Err(Some(\"23514\"))", "vera: Ok(4)", "[(1, true), (2, true), (4, true)]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-dedupe', 24, 'rust', 'Клиент отбрасывает дубликаты', 'Клиент получает события Event { id, text } и по сокету, и из догоняющих запросов, поэтому возможны повторы и разный порядок. Напишите Inbox { seen: BTreeSet<i64> } с методом accept(&mut self, incoming: Vec<Event>) -> Vec<Event>: возвращает только новые события (id ещё не встречался; повторы внутри самого incoming тоже отбрасываются, остаётся первое вхождение), отсортированные по id, и запоминает их. Метод last_id(&self) -> Option<i64> — наибольший виденный id.
+
+Ожидаемый вывод:
+None
+[Event { id: 1, text: "a" }, Event { id: 2, text: "b" }, Event { id: 3, text: "c" }]
+[Event { id: 4, text: "d" }]
+[]
+[]
+Some(4)', 'use std::collections::BTreeSet;
+
+#[derive(Clone, Debug, PartialEq)]
+struct Event {
+    id: i64,
+    text: String,
+}
+
+#[derive(Default)]
+struct Inbox {
+    seen: BTreeSet<i64>,
+}
+
+impl Inbox {
+    fn accept(&mut self, incoming: Vec<Event>) -> Vec<Event> {
+        todo!()
+    }
+    fn last_id(&self) -> Option<i64> {
+        todo!()
+    }
+}
+
+fn ev(id: i64, t: &str) -> Event {
+    Event { id, text: t.to_string() }
+}
+
+fn main() {
+    let mut inbox = Inbox::default();
+    println!("{:?}", inbox.last_id());
+    println!("{:?}", inbox.accept(vec![ev(3, "c"), ev(1, "a"), ev(3, "c-повтор"), ev(2, "b")]));
+    println!("{:?}", inbox.accept(vec![ev(2, "b"), ev(4, "d")]));
+    println!("{:?}", inbox.accept(vec![ev(1, "a"), ev(4, "d")]));
+    println!("{:?}", inbox.accept(vec![]));
+    println!("{:?}", inbox.last_id());
+}
+', 'BTreeSet::insert возвращает true для нового; сортировка результата по id.', '{"crates": ["tokio"], "driver": "", "expected": ["None", "[Event { id: 1, text: \"a\" }, Event { id: 2, text: \"b\" }, Event { id: 3, text: \"c\" }]", "[Event { id: 4, text: \"d\" }]", "[]", "[]", "Some(4)"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-reconnect', 25, 'rust', 'Переподключение и догон', 'Клиент хранит last_id и после обрыва запрашивает пропущенное. Напишите функцию plan_catch_up(last_id: Option<i64>, first_live_id: i64) -> CatchUp: если last_id нет — CatchUp::History { limit: 50 } (загрузить последние); если first_live_id <= last_id + 1 — CatchUp::None (по сокету уже идёт непрерывно); иначе — CatchUp::After { id: last_id, gap: first_live_id - last_id - 1 }, но когда пропуск gap больше 200 — CatchUp::Reload (проще перезагрузить историю). Живой поток начинается с события first_live_id.
+
+Ожидаемый вывод:
+None 10: History { limit: 50 }
+Some(9) 10: None
+Some(10) 10: None
+Some(15) 10: None
+Some(5) 10: After { id: 5, gap: 4 }
+Some(5) 206: After { id: 5, gap: 200 }
+Some(5) 207: Reload
+Some(0) 1: None', '#[derive(Debug, PartialEq)]
+enum CatchUp {
+    History { limit: u32 },
+    None,
+    After { id: i64, gap: i64 },
+    Reload,
+}
+
+fn plan_catch_up(last_id: Option<i64>, first_live_id: i64) -> CatchUp {
+    todo!()
+}
+
+fn main() {
+    for (last, live) in [(None, 10), (Some(9), 10), (Some(10), 10), (Some(15), 10), (Some(5), 10), (Some(5), 206), (Some(5), 207), (Some(0), 1)] {
+        println!("{last:?} {live}: {:?}", plan_catch_up(last, live));
+    }
+}
+', 'Порядок проверок: None-случай, затем gap > 200, затем After.', '{"crates": ["tokio"], "driver": "", "expected": ["None 10: History { limit: 50 }", "Some(9) 10: None", "Some(10) 10: None", "Some(15) 10: None", "Some(5) 10: After { id: 5, gap: 4 }", "Some(5) 206: After { id: 5, gap: 200 }", "Some(5) 207: Reload", "Some(0) 1: None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-notify-bridge', 26, 'rust', 'Мост LISTEN/NOTIFY в хаб', 'Несколько экземпляров сервера передают события через базу. Напишите bridge(pool: PgPool, hub: broadcast::Sender<String>) — задачу, которая подписывается на канал «chat» (PgListener) и каждую полезную нагрузку NOTIFY публикует в локальный broadcast. main запускает bridge, подписывается на хаб, отправляет два NOTIFY через SELECT pg_notify(''chat'', $1) из пула (имитация другого экземпляра) и печатает то, что пришло в хаб. Сначала убедитесь, что подписка на канал уже оформлена, а затем отправляйте (в main это сделано через небольшую паузу).
+
+Ожидаемый вывод:
+Ok(Ok("первое с другого сервера"))
+Ok(Ok("второе"))', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use sqlx::postgres::PgListener;
+use tokio::sync::broadcast;
+
+async fn bridge(pool: PgPool, hub: broadcast::Sender<String>) {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let (hub, mut rx) = broadcast::channel::<String>(16);
+    tokio::spawn(bridge(pool.clone(), hub.clone()));
+    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+    for text in ["первое с другого сервера", "второе"] {
+        sqlx::query("SELECT pg_notify(''chat'', $1)").bind(text).execute(&pool).await.unwrap();
+    }
+    for _ in 0..2 {
+        let got = tokio::time::timeout(std::time::Duration::from_secs(3), rx.recv()).await;
+        println!("{got:?}");
+    }
+}
+', 'PgListener::connect_with(&pool).await?; listener.listen("chat"); loop { let n = listener.recv().await?; let _ = hub.send(n.payload().to_string()); }', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(Ok(\"первое с другого сервера\"))", "Ok(Ok(\"второе\"))"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-max-message', 27, 'rust', 'Ограничение размера сообщения', 'GET /ws: эхо-сервер (отвечает «эхо: ТЕКСТ»), но размер входящего сообщения ограничен 64 байтами — настройте это у WebSocketUpgrade (max_message_size). Клиент шлёт короткое сообщение (получает ответ), затем слишком длинное (200 символов): соединение должно быть закрыто сервером, и следующее чтение возвращает None.
+
+Ожидаемый вывод:
+Some("эхо: коротко")
+None', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(app()).await;
+    let mut c = connect(addr, "/ws").await;
+    say(&mut c, "коротко").await;
+    println!("{:?}", hear(&mut c).await);
+    say(&mut c, &"x".repeat(200)).await;
+    println!("{:?}", hear(&mut c).await);
+}
+', 'upgrade.max_message_size(64).on_upgrade(handle).', '{"crates": ["tokio"], "driver": "", "expected": ["Some(\"эхо: коротко\")", "None"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-conn-limiter', 28, 'rust', 'Ограничение сообщений на соединение', 'Реализуйте ConnLimiter { max: usize, window_ms: u64 }: метод check(&mut self, now_ms: u64) -> Verdict. В скользящем окне window_ms (учитываются моменты строго новее now − window_ms) допускается не более max сообщений: Verdict::Ok — разрешено (момент запоминается); Verdict::Slow(wait_ms) — превышено, подождите wait_ms (когда самое старое выйдет из окна), сообщение не учитывается; если за окно подряд отклонено 3 сообщения — Verdict::Disconnect (после этого любой вызов тоже Disconnect). Счётчик отклонённых подряд сбрасывается успешным сообщением.
+
+Ожидаемый вывод:
+0: Ok
+100: Ok
+200: Slow(800)
+300: Slow(700)
+1000: Ok
+1100: Ok
+1150: Slow(850)
+1160: Slow(840)
+1170: Disconnect
+1180: Disconnect
+5000: Disconnect
+0: Ok
+10: Slow(90)
+20: Slow(80)
+150: Ok
+160: Slow(90)
+170: Slow(80)
+180: Disconnect', '#[derive(Debug, PartialEq)]
+enum Verdict {
+    Ok,
+    Slow(u64),
+    Disconnect,
+}
+
+struct ConnLimiter {
+    max: usize,
+    window_ms: u64,
+    times: Vec<u64>,
+    strikes: u32,
+    dead: bool,
+}
+
+impl ConnLimiter {
+    fn new(max: usize, window_ms: u64) -> ConnLimiter {
+        ConnLimiter { max, window_ms, times: Vec::new(), strikes: 0, dead: false }
+    }
+    fn check(&mut self, now_ms: u64) -> Verdict {
+        todo!()
+    }
+}
+
+fn main() {
+    let mut l = ConnLimiter::new(2, 1000);
+    for t in [0, 100, 200, 300, 1000, 1100, 1150, 1160, 1170, 1180, 5000] {
+        println!("{t}: {:?}", l.check(t));
+    }
+    let mut k = ConnLimiter::new(1, 100);
+    for t in [0, 10, 20, 150, 160, 170, 180] {
+        println!("{t}: {:?}", k.check(t));
+    }
+}
+', 'Vec<u64> моментов, счётчик strikes; retain по окну.', '{"crates": ["tokio"], "driver": "", "expected": ["0: Ok", "100: Ok", "200: Slow(800)", "300: Slow(700)", "1000: Ok", "1100: Ok", "1150: Slow(850)", "1160: Slow(840)", "1170: Disconnect", "1180: Disconnect", "5000: Disconnect", "0: Ok", "10: Slow(90)", "20: Slow(80)", "150: Ok", "160: Slow(90)", "170: Slow(80)", "180: Disconnect"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 50, 'r50-graceful-close', 29, 'rust', 'Корректное закрытие при остановке', 'Состояние — watch::Receiver<bool> (флаг остановки). GET /ws: цикл select! между socket.recv() и shutdown.changed(); при остановке сервер отправляет кадр Close с кодом 1001 («going away») и причиной «сервер останавливается» и завершает обработчик. main подключает клиента, ждёт 100 мс, выставляет флаг остановки и печатает полученный кадр Close: код и причину.
+
+Ожидаемый вывод:
+код 1001, причина «сервер останавливается»', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+fn app(shutdown: tokio::sync::watch::Receiver<bool>) -> Router {
+    let _ = shutdown;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let (stop, shutdown) = tokio::sync::watch::channel(false);
+    let addr = serve(app(shutdown)).await;
+    let mut c = connect(addr, "/ws").await;
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    stop.send(true).unwrap();
+    match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+        Ok(Some(Ok(CMsg::Close(Some(frame))))) => println!("код {}, причина «{}»", u16::from(frame.code), frame.reason),
+        other => println!("неожиданно {other:?}"),
+    }
+}
+', 'Message::Close(Some(CloseFrame { code: 1001, reason: "..".into() })); клиент: CMsg::Close(Some(frame)), u16::from(frame.code).', '{"crates": ["tokio"], "driver": "", "expected": ["код 1001, причина «сервер останавливается»"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-config', 0, 'rust', 'Конфигурация из окружения: все ошибки сразу', 'Напишите parse_config(env: &HashMap<String, String>) -> Result<Config, Vec<String>>. Переменные: DATABASE_URL (обязательная, должна начинаться с «postgres://» или «postgresql://»), PORT (u16, 1–65535, по умолчанию 8080), LOG_LEVEL (error|warn|info|debug|trace, по умолчанию info), MAX_CONNECTIONS (1–100, по умолчанию 10), SESSION_TTL_HOURS (1–720, по умолчанию 24). Ошибки собираются ВСЕ, в порядке полей, в формате «ИМЯ: причина» (is required / must start with postgres:// / must be a port (1-65535) / must be one of error, warn, info, debug, trace / must be between 1 and 100 (для SESSION_TTL_HOURS — must be between 1 and 720) / must be a number). Пустая строка = не задано.
+
+Ожидаемый вывод:
+Ok(Config { port: 8080, database_url: "postgres://u:p@h/db", log_level: "info", max_connections: 10, session_ttl_hours: 24 })
+Ok(Config { port: 9000, database_url: "postgresql://u:p@h/db", log_level: "debug", max_connections: 50, session_ttl_hours: 12 })
+Err(["DATABASE_URL: is required"])
+Err(["DATABASE_URL: must start with postgres://", "PORT: must be a port (1-65535)", "LOG_LEVEL: must be one of error, warn, info, debug, trace", "MAX_CONNECTIONS: must be between 1 and 100", "SESSION_TTL_HOURS: must be a number"])
+Err(["PORT: must be a port (1-65535)", "SESSION_TTL_HOURS: must be between 1 and 720"])', 'use std::collections::HashMap;
+
+#[derive(Debug, PartialEq)]
+struct Config {
+    port: u16,
+    database_url: String,
+    log_level: String,
+    max_connections: u32,
+    session_ttl_hours: u32,
+}
+
+fn to_map(pairs: &[(&str, &str)]) -> HashMap<String, String> {
+    pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+}
+
+fn parse_config(env: &HashMap<String, String>) -> Result<Config, Vec<String>> {
+    todo!()
+}
+
+fn main() {
+    let ok: &[(&str, &str)] = &[("DATABASE_URL", "postgres://u:p@h/db")];
+    println!("{:?}", parse_config(&to_map(ok)));
+    let full: &[(&str, &str)] = &[("DATABASE_URL", "postgresql://u:p@h/db"), ("PORT", "9000"), ("LOG_LEVEL", "debug"), ("MAX_CONNECTIONS", "50"), ("SESSION_TTL_HOURS", "12")];
+    println!("{:?}", parse_config(&to_map(full)));
+    println!("{:?}", parse_config(&to_map(&[])));
+    let bad: &[(&str, &str)] = &[("DATABASE_URL", "mysql://x"), ("PORT", "70000"), ("LOG_LEVEL", "loud"), ("MAX_CONNECTIONS", "0"), ("SESSION_TTL_HOURS", "abc")];
+    println!("{:?}", parse_config(&to_map(bad)));
+    let edge: &[(&str, &str)] = &[("DATABASE_URL", "postgres://x"), ("PORT", "0"), ("MAX_CONNECTIONS", "100"), ("SESSION_TTL_HOURS", "0")];
+    println!("{:?}", parse_config(&to_map(edge)));
+}
+', 'Для каждой переменной: raw = env.get(..).filter(|s| !s.is_empty()); разбор → Result<значение, &str>; накапливайте Vec<String>.', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(Config { port: 8080, database_url: \"postgres://u:p@h/db\", log_level: \"info\", max_connections: 10, session_ttl_hours: 24 })", "Ok(Config { port: 9000, database_url: \"postgresql://u:p@h/db\", log_level: \"debug\", max_connections: 50, session_ttl_hours: 12 })", "Err([\"DATABASE_URL: is required\"])", "Err([\"DATABASE_URL: must start with postgres://\", \"PORT: must be a port (1-65535)\", \"LOG_LEVEL: must be one of error, warn, info, debug, trace\", \"MAX_CONNECTIONS: must be between 1 and 100\", \"SESSION_TTL_HOURS: must be a number\"])", "Err([\"PORT: must be a port (1-65535)\", \"SESSION_TTL_HOURS: must be between 1 and 720\"])"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-redact', 1, 'rust', 'Скрыть пароль в строке подключения', 'Напишите redact_url(url: &str) -> String: в строке вида схема://пользователь:пароль@хост/путь заменяет пароль на «***» (если пароля нет — строка без изменений; если нет «@» — без изменений). Пароль может содержать «:» и «%»-последовательности; граница — последний «@» перед хостом (хост не содержит «@»). Схема и пользователь сохраняются.
+
+Ожидаемый вывод:
+postgres://app:s3cret@db:5432/chat -> postgres://app:***@db:5432/chat
+postgres://app@db/chat -> postgres://app@db/chat
+postgres://db/chat -> postgres://db/chat
+postgres://app:p:a@ss%40@db/chat -> postgres://app:***@db/chat
+postgres://:onlypass@db/x -> postgres://:***@db/x
+plain text -> plain text
+redis://u:p@h:6379 -> redis://u:***@h:6379', 'fn redact_url(url: &str) -> String {
+    todo!()
+}
+
+fn main() {
+    for u in ["postgres://app:s3cret@db:5432/chat", "postgres://app@db/chat", "postgres://db/chat", "postgres://app:p:a@ss%40@db/chat", "postgres://:onlypass@db/x", "plain text", "redis://u:p@h:6379"] {
+        println!("{u} -> {}", redact_url(u));
+    }
+}
+', 'Найдите «://», затем rfind(''@'') в оставшейся части; внутри — первый '':'' отделяет пользователя.', '{"crates": ["tokio"], "driver": "", "expected": ["postgres://app:s3cret@db:5432/chat -> postgres://app:***@db:5432/chat", "postgres://app@db/chat -> postgres://app@db/chat", "postgres://db/chat -> postgres://db/chat", "postgres://app:p:a@ss%40@db/chat -> postgres://app:***@db/chat", "postgres://:onlypass@db/x -> postgres://:***@db/x", "plain text -> plain text", "redis://u:p@h:6379 -> redis://u:***@h:6379"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-secret-debug', 2, 'rust', 'Debug, не раскрывающий секрет', 'Структура DbConfig { host: String, user: String, password: String } должна печататься через {:?} так: DbConfig { host: "..", user: "..", password: "***" } — пароль скрыт. Реализуйте Debug вручную (debug_struct). Обёртка Secret(String) с Debug «***» и методом expose(&self) -> &str — второй вариант: DbConfig2 { password: Secret } с автоматическим #[derive(Debug)] тоже скрывает пароль. Напечатайте оба и убедитесь, что expose возвращает настоящее значение.
+
+Ожидаемый вывод:
+DbConfig { host: "db", user: "app", password: "***" }
+DbConfig2 { host: "db", password: *** }
+s3cret
+true', 'use std::fmt;
+
+struct DbConfig {
+    host: String,
+    user: String,
+    password: String,
+}
+
+struct Secret(String);
+
+impl Secret {
+    fn expose(&self) -> &str {
+        &self.0
+    }
+}
+
+#[derive(Debug)]
+struct DbConfig2 {
+    host: String,
+    password: Secret,
+}
+
+fn main() {
+    let c = DbConfig { host: "db".into(), user: "app".into(), password: "s3cret".into() };
+    println!("{:?}", c);
+    let c2 = DbConfig2 { host: "db".into(), password: Secret("s3cret".into()) };
+    println!("{:?}", c2);
+    println!("{}", c2.password.expose());
+    println!("{}", !format!("{:?} {:?}", c, c2).contains("s3cret"));
+}
+', 'f.debug_struct("DbConfig").field("password", &"***").finish(); для Secret — impl Debug с write!(f, "***").', '{"crates": ["tokio"], "driver": "", "expected": ["DbConfig { host: \"db\", user: \"app\", password: \"***\" }", "DbConfig2 { host: \"db\", password: *** }", "s3cret", "true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-log-line', 3, 'rust', 'Структурная строка журнала', 'Напишите format_log(level: &str, msg: &str, fields: &[(&str, &str)]) -> String: «LEVEL msg k1=v1 k2=v2» — уровень в верхнем регистре, поля отсортированы по ключу; значение с пробелом или знаком «=» или кавычкой берётся в двойные кавычки (внутренние кавычки и обратные косые черты экранируются обратной косой), пустое значение — «""». Пустой набор полей — без хвоста.
+
+Ожидаемый вывод:
+INFO запрос
+WARN медленно ms=250 path=/rooms
+ERROR сбой empty="" eq="a=b" err="connection refused" id=7 q="say \"hi\""', 'fn format_log(level: &str, msg: &str, fields: &[(&str, &str)]) -> String {
+    todo!()
+}
+
+fn main() {
+    println!("{}", format_log("info", "запрос", &[]));
+    println!("{}", format_log("warn", "медленно", &[("path", "/rooms"), ("ms", "250")]));
+    println!("{}", format_log("error", "сбой", &[("err", "connection refused"), ("id", "7"), ("empty", ""), ("eq", "a=b"), ("q", "say \"hi\"")]));
+}
+', 'Функция quote(v): нужны ли кавычки — v.is_empty() || v.contains(['' '', ''='', ''"'']).', '{"crates": ["tokio"], "driver": "", "expected": ["INFO запрос", "WARN медленно ms=250 path=/rooms", "ERROR сбой empty=\"\" eq=\"a=b\" err=\"connection refused\" id=7 q=\"say \\\"hi\\\"\""], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-log-filter', 4, 'rust', 'Фильтр уровней по целям', 'Напишите Filter::parse(spec: &str) -> Filter и метод enabled(&self, target: &str, level: &str) -> bool. spec — как RUST_LOG: «info,sqlx=warn,axum::routing=debug»: элементы через запятую; элемент без «=» — уровень по умолчанию (если он не задан — error); «цель=уровень» — для цели и её подмодулей (цель совпадает, если target == цель или начинается с «цель::»). Побеждает самое длинное совпадающее правило. Уровни по возрастанию подробности: error < warn < info < debug < trace; сообщение разрешено, если его уровень не подробнее порога.
+
+Ожидаемый вывод:
+chat::rooms info: true
+chat::rooms debug: false
+sqlx::query info: false
+sqlx::query warn: true
+axum::routing::router debug: true
+axum::serve warn: false
+axum::serve error: true
+axumx info: true
+true false', 'struct Filter {
+    default: usize,
+    rules: Vec<(String, usize)>,
+}
+
+const LEVELS: [&str; 5] = ["error", "warn", "info", "debug", "trace"];
+
+impl Filter {
+    fn parse(spec: &str) -> Filter {
+        todo!()
+    }
+    fn enabled(&self, target: &str, level: &str) -> bool {
+        todo!()
+    }
+}
+
+fn main() {
+    let f = Filter::parse("info,sqlx=warn,axum::routing=debug,axum=error");
+    for (t, l) in [("chat::rooms", "info"), ("chat::rooms", "debug"), ("sqlx::query", "info"), ("sqlx::query", "warn"), ("axum::routing::router", "debug"), ("axum::serve", "warn"), ("axum::serve", "error"), ("axumx", "info")] {
+        println!("{t} {l}: {}", f.enabled(t, l));
+    }
+    let e = Filter::parse("");
+    println!("{} {}", e.enabled("x", "error"), e.enabled("x", "warn"));
+}
+', 'Порядок уровней — массив; правила: Vec<(String, usize)>; выбор по max длине префикса.', '{"crates": ["tokio"], "driver": "", "expected": ["chat::rooms info: true", "chat::rooms debug: false", "sqlx::query info: false", "sqlx::query warn: true", "axum::routing::router debug: true", "axum::serve warn: false", "axum::serve error: true", "axumx info: true", "true false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-ready', 5, 'rust', '/health и /ready', 'GET /health отвечает «ok» без обращения к базе. GET /ready выполняет SELECT 1 через пул: успех — 200 «ready», ошибка — 503 «db unavailable». Роутер строится функцией app(pool). main проверяет оба маршрута, затем закрывает пул (pool.close().await) и проверяет снова: /health остаётся 200, /ready становится 503.
+
+Ожидаемый вывод:
+(200, "ok")
+(200, "ready")
+(200, "ok")
+(503, "db unavailable")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let app = app(pool.clone());
+    println!("{:?}", call(&app, "GET", "/health", "").await);
+    println!("{:?}", call(&app, "GET", "/ready", "").await);
+    pool.close().await;
+    println!("{:?}", call(&app, "GET", "/health", "").await);
+    println!("{:?}", call(&app, "GET", "/ready", "").await);
+}
+', 'State(pool); query_scalar::<_, i32>("SELECT 1").fetch_one(&pool).await.is_ok().', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"ok\")", "(200, \"ready\")", "(200, \"ok\")", "(503, \"db unavailable\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-metrics', 6, 'rust', 'Метрики по путям', 'Слой (from_fn_with_state) считает ответы по паре (путь, код статуса) в Arc<Mutex<BTreeMap<(String, u16), u64>>>. GET /metrics возвращает текст: по строке на пару, в порядке сортировки ключей: http_requests_total{path="ПУТЬ",code="КОД"} N. Сам запрос /metrics в счёт не входит (слой подключайте только к остальным маршрутам route_layer). Маршруты: GET /a → 200, GET /b → 404 (StatusCode::NOT_FOUND). main делает несколько запросов и печатает /metrics.
+
+Ожидаемый вывод:
+http_requests_total{path="/a",code="200"} 4
+http_requests_total{path="/b",code="404"} 2
+http_requests_total{path="/a",code="200"} 4
+http_requests_total{path="/b",code="404"} 2', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for p in ["/a", "/a", "/b", "/a", "/a", "/b"] {
+        call(&app, "GET", p, "").await;
+    }
+    print!("{}", call(&app, "GET", "/metrics", "").await.1);
+    print!("{}", call(&app, "GET", "/metrics", "").await.1);
+}
+', 'after next.run(req): res.status().as_u16(); счётчик в BTreeMap; /metrics — маршрут после route_layer.', '{"crates": ["tokio"], "driver": "", "expected": ["http_requests_total{path=\"/a\",code=\"200\"} 4", "http_requests_total{path=\"/b\",code=\"404\"} 2", "http_requests_total{path=\"/a\",code=\"200\"} 4", "http_requests_total{path=\"/b\",code=\"404\"} 2"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-graceful-serve', 7, 'rust', 'Корректная остановка сервера', 'Запустите axum::serve на порту 0 с with_graceful_shutdown: будущее завершается, когда в oneshot-канал придёт сигнал. Обработчик GET /slow спит 200 мс и отвечает «готово». Клиент (сырой TCP/HTTP) отправляет запрос; через 50 мс отправляется сигнал остановки; запрос ОБЯЗАН завершиться успешно (200), а затем задача сервера должна завершиться сама. После этого новое подключение невозможно (connect → ошибка). Напишите функцию start(shutdown: oneshot::Receiver<()>) -> (SocketAddr, JoinHandle<()>); main готова.
+
+Ожидаемый вывод:
+("HTTP/1.1 200 OK", "готово")
+сервер остановился: true
+новое подключение: false', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+use tokio::sync::oneshot;
+use tokio::task::JoinHandle;
+
+async fn start(shutdown: oneshot::Receiver<()>) -> (SocketAddr, JoinHandle<()>) {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let (stop, rx) = oneshot::channel();
+    let (addr, server) = start(rx).await;
+    let client = tokio::spawn(async move {
+        let mut s = tokio::net::TcpStream::connect(addr).await.unwrap();
+        s.write_all(b"GET /slow HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n").await.unwrap();
+        let mut out = String::new();
+        s.read_to_string(&mut out).await.unwrap();
+        (out.lines().next().unwrap().to_string(), out.lines().last().unwrap().to_string())
+    });
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    stop.send(()).unwrap();
+    println!("{:?}", client.await.unwrap());
+    let finished = tokio::time::timeout(std::time::Duration::from_secs(3), server).await;
+    println!("сервер остановился: {}", finished.is_ok());
+    println!("новое подключение: {}", tokio::net::TcpStream::connect(addr).await.is_ok());
+}
+', 'axum::serve(listener, app).with_graceful_shutdown(async move { let _ = shutdown.await; }).await.unwrap().', '{"crates": ["tokio"], "driver": "", "expected": ["(\"HTTP/1.1 200 OK\", \"готово\")", "сервер остановился: true", "новое подключение: false"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-catch-panic', 8, 'rust', 'Слой, перехватывающий панику', 'Напишите слой на from_fn: ловит панику в будущем обработчика (futures::FutureExt::catch_unwind, оборачивая будущее в AssertUnwindSafe) и вместо обрыва соединения отвечает 500 с телом «внутренняя ошибка», записывая причину в журнал Arc<Mutex<Vec<String>>> из состояния («паника: СООБЩЕНИЕ»). Остальные запросы работают как обычно. GET /boom паникует с сообщением «бум», GET /ok отвечает «ок». Проверьте оба маршрута дважды.
+
+Ожидаемый вывод:
+/boom: (500, "внутренняя ошибка")
+/ok: (200, "ок")
+/boom: (500, "внутренняя ошибка")
+/ok: (200, "ок")
+(200, "паника: бум;паника: бум")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    for p in ["/boom", "/ok", "/boom", "/ok"] {
+        println!("{p}: {:?}", call(&app, "GET", p, "").await);
+    }
+    println!("{:?}", call(&app, "GET", "/log", "").await);
+}
+', 'AssertUnwindSafe(next.run(req)).catch_unwind().await; сообщение: payload.downcast_ref::<&str>().', '{"crates": ["tokio"], "driver": "", "expected": ["/boom: (500, \"внутренняя ошибка\")", "/ok: (200, \"ок\")", "/boom: (500, \"внутренняя ошибка\")", "/ok: (200, \"ок\")", "(200, \"паника: бум;паника: бум\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-retry', 9, 'rust', 'Повтор с растущей паузой', 'Напишите async fn retry<F, Fut, T, E>(attempts: u32, base_ms: u64, mut op: F, sleep: impl FnMut(u64)) -> Result<T, E>, где op вызывается заново при ошибке, а между попытками вызывается sleep(пауза) — пауза удваивается: base, 2·base, 4·base… (последняя неудача паузы не вызывает). Успех возвращается сразу. После всех attempts неудач возвращается последняя ошибка. Проверьте: успех со второй попытки, провал всех попыток, успех с первой.
+
+Ожидаемый вывод:
+Ok("успех") [100, 200]
+Err("сбой 3") [50, 100, 200]
+Ok(7) []', 'async fn retry<F, Fut, T, E>(attempts: u32, base_ms: u64, mut op: F, mut sleep: impl FnMut(u64)) -> Result<T, E>
+where
+    F: FnMut(u32) -> Fut,
+    Fut: std::future::Future<Output = Result<T, E>>,
+{
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let mut pauses = Vec::new();
+    let r: Result<&str, String> = retry(5, 100, |i| async move { if i < 2 { Err(format!("сбой {i}")) } else { Ok("успех") } }, |ms| pauses.push(ms)).await;
+    println!("{r:?} {pauses:?}");
+    let mut pauses = Vec::new();
+    let r: Result<(), String> = retry(4, 50, |i| async move { Err(format!("сбой {i}")) }, |ms| pauses.push(ms)).await;
+    println!("{r:?} {pauses:?}");
+    let mut pauses = Vec::new();
+    let r: Result<u8, ()> = retry(3, 10, |_| async { Ok(7) }, |ms| pauses.push(ms)).await;
+    println!("{r:?} {pauses:?}");
+}
+', 'Цикл по попыткам; sleep(base << i) между попытками; не вызывайте sleep после последней.', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(\"успех\") [100, 200]", "Err(\"сбой 3\") [50, 100, 200]", "Ok(7) []"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-breaker', 10, 'rust', 'Автомат разрыва цепи', 'Реализуйте Breaker { threshold, cooldown_ms }: состояния Closed → Open → HalfOpen. allow(now_ms) -> bool: Closed — всегда true; Open — false, пока не прошло cooldown_ms с момента открытия; после этого переходит в HalfOpen и пропускает ровно ОДИН пробный запрос (true), пока он не завершился (повторный allow в HalfOpen — false). record(ok: bool, now_ms): в Closed — подряд threshold неудач открывают автомат (счётчик сбрасывается успехом); в HalfOpen успех закрывает, неудача снова открывает (время открытия — now_ms). state(&self) -> &''static str: «closed», «open», «half-open».
+
+Ожидаемый вывод:
+0: allow=true -> closed
+10: allow=true -> closed
+20: allow=true -> closed
+30: allow=true -> closed
+40: allow=true -> closed
+50: allow=true -> open
+false open
+true half-open
+false half-open
+false open
+true half-open
+true closed', '#[derive(Clone, Copy)]
+enum State {
+    Closed,
+    Open(u64),
+    HalfOpen { probing: bool },
+}
+
+struct Breaker {
+    threshold: u32,
+    cooldown_ms: u64,
+    state: State,
+    fails: u32,
+}
+
+impl Breaker {
+    fn new(threshold: u32, cooldown_ms: u64) -> Breaker {
+        Breaker { threshold, cooldown_ms, state: State::Closed, fails: 0 }
+    }
+    fn allow(&mut self, now_ms: u64) -> bool {
+        todo!()
+    }
+    fn record(&mut self, ok: bool, now_ms: u64) {
+        todo!()
+    }
+    fn state(&self) -> &''static str {
+        match self.state {
+            State::Closed => "closed",
+            State::Open(_) => "open",
+            State::HalfOpen { .. } => "half-open",
+        }
+    }
+}
+
+fn main() {
+    let mut b = Breaker::new(3, 1000);
+    let calls = [(0, false), (10, false), (20, true), (30, false), (40, false), (50, false)];
+    for (t, ok) in calls {
+        let allowed = b.allow(t);
+        if allowed {
+            b.record(ok, t);
+        }
+        println!("{t}: allow={allowed} -> {}", b.state());
+    }
+    println!("{} {}", b.allow(500), b.state());
+    println!("{} {}", b.allow(1050), b.state());
+    println!("{} {}", b.allow(1060), b.state());
+    b.record(false, 1100);
+    println!("{} {}", b.allow(1200), b.state());
+    println!("{} {}", b.allow(2100), b.state());
+    b.record(true, 2100);
+    println!("{} {}", b.allow(2110), b.state());
+}
+', 'enum State { Closed, Open(u64), HalfOpen { probing: bool } }; счётчик неудач подряд.', '{"crates": ["tokio"], "driver": "", "expected": ["0: allow=true -> closed", "10: allow=true -> closed", "20: allow=true -> closed", "30: allow=true -> closed", "40: allow=true -> closed", "50: allow=true -> open", "false open", "true half-open", "false half-open", "false open", "true half-open", "true closed"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-shutdown-order', 11, 'rust', 'Порядок корректной остановки', 'Структура Shutdown хранит шаги остановки: add(name, step) добавляет (имя и замыкание, возвращающее Result<(), String>). run(&mut self, log: &mut Vec<String>) -> bool выполняет шаги в порядке ОБРАТНОМ добавлению (последним запущенное — первым остановить), пишет в журнал «стоп ИМЯ» перед шагом и «ошибка ИМЯ: ПРИЧИНА» при неудаче; сбой шага НЕ прерывает остановку остальных. Возвращает true, если все шаги прошли успешно. Повторный run ничего не делает (шаги выполняются один раз) и возвращает true.
+
+Ожидаемый вывод:
+false
+["стоп приём соединений", "стоп веб-сокеты", "ошибка веб-сокеты: таймаут", "стоп база"]
+true []
+true ["стоп a"]', 'struct Shutdown {
+    steps: Vec<(String, Box<dyn FnOnce() -> Result<(), String>>)>,
+}
+
+impl Shutdown {
+    fn new() -> Shutdown {
+        Shutdown { steps: Vec::new() }
+    }
+    fn add(&mut self, name: &str, step: impl FnOnce() -> Result<(), String> + ''static) {
+        todo!()
+    }
+    fn run(&mut self, log: &mut Vec<String>) -> bool {
+        todo!()
+    }
+}
+
+fn main() {
+    let mut s = Shutdown::new();
+    s.add("база", || Ok(()));
+    s.add("веб-сокеты", || Err("таймаут".to_string()));
+    s.add("приём соединений", || Ok(()));
+    let mut log = Vec::new();
+    println!("{}", s.run(&mut log));
+    println!("{log:?}");
+    let mut again = Vec::new();
+    println!("{} {again:?}", s.run(&mut again));
+    let mut ok = Shutdown::new();
+    ok.add("a", || Ok(()));
+    let mut l2 = Vec::new();
+    println!("{} {l2:?}", ok.run(&mut l2));
+}
+', 'Vec<(String, Box<dyn FnOnce() -> Result<(), String>>)>; while let Some(..) = steps.pop().', '{"crates": ["tokio"], "driver": "", "expected": ["false", "[\"стоп приём соединений\", \"стоп веб-сокеты\", \"ошибка веб-сокеты: таймаут\", \"стоп база\"]", "true []", "true [\"стоп a\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-migration-checksum', 12, 'rust', 'Миграции: контрольная сумма', 'Напишите migrate(&PgPool, &[(i32, &str)]) -> Result<Vec<i32>, String>. Служебная таблица _migrations(version INT PRIMARY KEY, checksum TEXT NOT NULL). Для каждой миграции по возрастанию версии: если версия уже применена, сравните сохранённую контрольную сумму (SHA-256 от текста SQL в hex) с текущей — несовпадение даёт Err("изменена применённая миграция N") и остановку; новую миграцию выполните вместе с записью версии и суммы в одной транзакции (текст SQL — через sqlx::AssertSqlSafe). Верните версии, применённые в этом вызове. Проверьте обычный запуск, повтор, изменённую миграцию и добавление новой.
+
+Ожидаемый вывод:
+Ok([1, 2])
+Ok([])
+Err("изменена применённая миграция 2")
+Ok([3])
+применено: 3', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn migrate(pool: &PgPool, migrations: &[(i32, &str)]) -> Result<Vec<i32>, String> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let m1 = [(1, "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)"), (2, "ALTER TABLE users ADD COLUMN bio TEXT")];
+    println!("{:?}", migrate(&pool, &m1).await);
+    println!("{:?}", migrate(&pool, &m1).await);
+    let mut m2 = m1;
+    m2[1].1 = "ALTER TABLE users ADD COLUMN biography TEXT";
+    println!("{:?}", migrate(&pool, &m2).await);
+    let m3 = [m1[0], m1[1], (3, "CREATE INDEX users_name ON users (name)")];
+    println!("{:?}", migrate(&pool, &m3).await);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM _migrations").fetch_one(&pool).await.unwrap();
+    println!("применено: {n}");
+}
+', 'sha2::{Digest, Sha256}; hex::encode(Sha256::digest(sql.as_bytes())); sqlx::query(sqlx::AssertSqlSafe(sql.to_string())).', '{"crates": ["tokio"], "driver": "", "expected": ["Ok([1, 2])", "Ok([])", "Err(\"изменена применённая миграция 2\")", "Ok([3])", "применено: 3"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-sql-safety', 13, 'rust', 'Безопасна ли миграция без простоя', 'Напишите classify(sql: &str) -> Vec<&''static str> — список замечаний о небезопасных для выкладки без простоя конструкциях (без учёта регистра, пробелы схлопывайте): «drop column» → «удаление столбца ломает старый код»; «drop table» → «удаление таблицы»; «rename column» / «rename to» → «переименование ломает старый код»; «add column» с «not null» без «default» → «обязательный столбец без значения по умолчанию»; «create index» без «concurrently» → «индекс блокирует запись»; «alter column» с «type» → «смена типа перезаписывает таблицу». Пустой список — безопасно. Замечания в порядке перечисленных правил.
+
+Ожидаемый вывод:
+ALTER TABLE users ADD COLUMN bio TEXT
+   []
+alter table users add column age int not null
+   ["обязательный столбец без значения по умолчанию"]
+ALTER TABLE users ADD COLUMN age INT NOT NULL DEFAULT 0
+   []
+CREATE INDEX users_name ON users (name)
+   ["индекс блокирует запись"]
+create   index   concurrently users_name on users (name)
+   []
+ALTER TABLE users DROP COLUMN bio
+   ["удаление столбца ломает старый код"]
+ALTER TABLE users RENAME COLUMN name TO login
+   ["переименование ломает старый код"]
+ALTER TABLE users ALTER COLUMN age TYPE BIGINT
+   ["смена типа перезаписывает таблицу"]
+DROP TABLE users
+   ["удаление таблицы"]
+ALTER TABLE a RENAME TO b
+   ["переименование ломает старый код"]
+INSERT INTO t VALUES (1)
+   []', 'fn classify(sql: &str) -> Vec<&''static str> {
+    todo!()
+}
+
+fn main() {
+    for q in ["ALTER TABLE users ADD COLUMN bio TEXT", "alter table users add column age int not null", "ALTER TABLE users ADD COLUMN age INT NOT NULL DEFAULT 0", "CREATE INDEX users_name ON users (name)", "create   index   concurrently users_name on users (name)", "ALTER TABLE users DROP COLUMN bio", "ALTER TABLE users RENAME COLUMN name TO login", "ALTER TABLE users ALTER COLUMN age TYPE BIGINT", "DROP TABLE users", "ALTER TABLE a RENAME TO b", "INSERT INTO t VALUES (1)"] {
+        println!("{q}\n   {:?}", classify(q));
+    }
+}
+', 'Приведите к нижнему регистру, схлопните пробелы split_whitespace().join(" "); проверяйте contains.', '{"crates": ["tokio"], "driver": "", "expected": ["ALTER TABLE users ADD COLUMN bio TEXT", "   []", "alter table users add column age int not null", "   [\"обязательный столбец без значения по умолчанию\"]", "ALTER TABLE users ADD COLUMN age INT NOT NULL DEFAULT 0", "   []", "CREATE INDEX users_name ON users (name)", "   [\"индекс блокирует запись\"]", "create   index   concurrently users_name on users (name)", "   []", "ALTER TABLE users DROP COLUMN bio", "   [\"удаление столбца ломает старый код\"]", "ALTER TABLE users RENAME COLUMN name TO login", "   [\"переименование ломает старый код\"]", "ALTER TABLE users ALTER COLUMN age TYPE BIGINT", "   [\"смена типа перезаписывает таблицу\"]", "DROP TABLE users", "   [\"удаление таблицы\"]", "ALTER TABLE a RENAME TO b", "   [\"переименование ломает старый код\"]", "INSERT INTO t VALUES (1)", "   []"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-schema-per-test', 14, 'rust', 'Своя схема на каждый тест', 'Напишите функцию isolated(&PgPool, name) -> PgPool: создаёт схему t_NAME и возвращает НОВЫЙ пул, каждое соединение которого при подключении выполняет SET search_path TO t_NAME (PgPoolOptions::after_connect, max_connections(2)). Тогда два «теста», создающие таблицу с одним и тем же именем items, не конфликтуют. main запускает два таких теста параллельно (tokio::spawn), каждый создаёт items, вставляет свои значения и считает строки; печатаются результаты и список схем t_*.
+
+Ожидаемый вывод:
+3 5
+["t_alpha", "t_beta"]', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn isolated(admin: &PgPool, name: &str) -> PgPool {
+    todo!()
+}
+
+async fn test_body(admin: PgPool, name: &''static str, n: i32) -> i64 {
+    let pool = isolated(&admin, name).await;
+    sqlx::query("CREATE TABLE items (v INT)").execute(&pool).await.unwrap();
+    for i in 0..n {
+        sqlx::query("INSERT INTO items VALUES ($1)").bind(i).execute(&pool).await.unwrap();
+    }
+    sqlx::query_scalar("SELECT COUNT(*) FROM items").fetch_one(&pool).await.unwrap()
+}
+
+#[tokio::main]
+async fn main() {
+    let admin = pool().await;
+    let a = tokio::spawn(test_body(admin.clone(), "alpha", 3));
+    let b = tokio::spawn(test_body(admin.clone(), "beta", 5));
+    println!("{} {}", a.await.unwrap(), b.await.unwrap());
+    let schemas: Vec<String> = sqlx::query_scalar("SELECT schema_name::text FROM information_schema.schemata WHERE schema_name LIKE ''t\\_%'' ORDER BY 1").fetch_all(&admin).await.unwrap();
+    println!("{schemas:?}");
+}
+', 'after_connect(|conn, _meta| Box::pin(async move { sqlx::query(AssertSqlSafe(format!("SET search_path TO t_{name}"))).execute(conn).await?; Ok(()) })).', '{"crates": ["tokio"], "driver": "", "expected": ["3 5", "[\"t_alpha\", \"t_beta\"]"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-statement-timeout', 15, 'rust', 'Предел времени запроса в базе', 'Напишите функцию slow_query(&PgPool, ms: u64) -> Result<(), &''static str>: выполняет SELECT pg_sleep(ms/1000.0) под ограничением SET LOCAL statement_timeout = 100 (миллисекунд) внутри транзакции. Если запрос оборвался по времени (SQLSTATE 57014) — Err("таймаут"), другая ошибка — Err("сбой"). Вызовите с 10 мс (успех) и с 1000 мс (таймаут) и напечатайте результаты и затраченное время второго вызова меньше 500 мс.
+
+Ожидаемый вывод:
+Ok(())
+Err("таймаут")
+быстро: true
+Ok(())', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn slow_query(pool: &PgPool, ms: u64) -> Result<(), &''static str> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    println!("{:?}", slow_query(&pool, 10).await);
+    let t = std::time::Instant::now();
+    println!("{:?}", slow_query(&pool, 1000).await);
+    println!("быстро: {}", t.elapsed().as_millis() < 500);
+    println!("{:?}", slow_query(&pool, 20).await);
+}
+', 'begin; query("SET LOCAL statement_timeout = 100"); затем query("SELECT pg_sleep($1)").bind(f64) — код ошибки 57014.', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(())", "Err(\"таймаут\")", "быстро: true", "Ok(())"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-pool-503', 16, 'rust', 'Исчерпание пула — 503', 'Приложение использует пул из ОДНОГО соединения с acquire_timeout 100 мс (в заготовке app_with_pool создаёт его). GET /slow занимает соединение на 400 мс (держит PoolConnection и спит), GET /quick выполняет SELECT 1. Пока выполняется /slow, запрос /quick не может получить соединение: обработчик /quick должен превратить ошибку sqlx::Error::PoolTimedOut в ответ 503 с текстом «перегрузка» (а не 500). После завершения /slow /quick снова отвечает 200 «ok». Проверьте: параллельно /slow и (через 50 мс) /quick, затем /quick после паузы.
+
+Ожидаемый вывод:
+(503, "перегрузка")
+(200, "медленно")
+(200, "ok")', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+fn app_with_pool(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = PgPoolOptions::new().max_connections(1).acquire_timeout(std::time::Duration::from_millis(100)).connect("postgres://postgres@127.0.0.1/chat").await.unwrap();
+    let app = app_with_pool(pool);
+    let slow = { let app = app.clone(); tokio::spawn(async move { call(&app, "GET", "/slow", "").await }) };
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    println!("{:?}", call(&app, "GET", "/quick", "").await);
+    println!("{:?}", slow.await.unwrap());
+    println!("{:?}", call(&app, "GET", "/quick", "").await);
+}
+', 'match sqlx::query_scalar(..).fetch_one(&pool).await { Err(sqlx::Error::PoolTimedOut) => 503, ... }', '{"crates": ["tokio"], "driver": "", "expected": ["(503, \"перегрузка\")", "(200, \"медленно\")", "(200, \"ok\")"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-e2e-http', 17, 'rust', 'Сквозной тест по сети', 'Приложение (обработчики и app(pool) в заготовке готовы) запускается на порту 0. Напишите http(addr, method, path, token, body) -> (u16, String): простой HTTP/1.1-клиент по TcpStream (Connection: close, Content-Length для тела, заголовок Authorization: Bearer при токене), возвращающий статус и тело (всё после пустой строки). main проходит сценарий: создать комнату от anna, написать сообщение, прочитать историю, попытка boris прочитать историю чужой комнаты (404), запрос без токена (401).
+
+Ожидаемый вывод:
+(201, "{\"id\":1,\"name\":\"общая\"}")
+(201, "{\"author\":\"anna\",\"id\":1,\"text\":\"привет по сети\"}")
+(200, "[{\"id\":1,\"text\":\"привет по сети\"}]")
+404
+401', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+// ================= Готово: обработчики API =================
+#[derive(Deserialize)]
+struct NewRoom {
+    name: String,
+}
+
+async fn create_room(State(pool): State<PgPool>, user: CurrentUser, Json(n): Json<NewRoom>) -> Result<(StatusCode, Json<serde_json::Value>), AppError> {
+    let name = n.name.trim().to_string();
+    if name.is_empty() || name.chars().count() > 32 {
+        return Err(AppError::Invalid("имя 1–32 символа"));
+    }
+    let mut tx = pool.begin().await?;
+    let id: i64 = sqlx::query_scalar("INSERT INTO rooms (name, owner_id) VALUES ($1, $2) RETURNING id").bind(&name).bind(user.id).fetch_one(&mut *tx).await?;
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES ($1, $2)").bind(id).bind(user.id).execute(&mut *tx).await?;
+    tx.commit().await?;
+    Ok((StatusCode::CREATED, Json(serde_json::json!({ "id": id, "name": name }))))
+}
+
+#[derive(Deserialize)]
+struct NewMsg {
+    text: String,
+}
+
+async fn post_message(State(pool): State<PgPool>, user: CurrentUser, Path(room): Path<i64>, Json(m): Json<NewMsg>) -> Result<(StatusCode, Json<serde_json::Value>), AppError> {
+    let me: Option<i32> = sqlx::query_scalar("SELECT 1 FROM members WHERE room_id = $1 AND user_id = $2").bind(room).bind(user.id).fetch_optional(&pool).await?;
+    if me.is_none() {
+        return Err(AppError::NotFound);
+    }
+    let text = m.text.trim().to_string();
+    if text.is_empty() || text.chars().count() > 2000 {
+        return Err(AppError::Invalid("текст 1–2000 символов"));
+    }
+    let id: i64 = sqlx::query_scalar("INSERT INTO messages (room_id, author_id, text) VALUES ($1, $2, $3) RETURNING id").bind(room).bind(user.id).bind(&text).fetch_one(&pool).await?;
+    Ok((StatusCode::CREATED, Json(serde_json::json!({ "id": id, "author": user.name, "text": text }))))
+}
+
+async fn history(State(pool): State<PgPool>, user: CurrentUser, Path(room): Path<i64>) -> Result<Json<Vec<serde_json::Value>>, AppError> {
+    let me: Option<i32> = sqlx::query_scalar("SELECT 1 FROM members WHERE room_id = $1 AND user_id = $2").bind(room).bind(user.id).fetch_optional(&pool).await?;
+    if me.is_none() {
+        return Err(AppError::NotFound);
+    }
+    let rows: Vec<(i64, String)> = sqlx::query_as("SELECT id, text FROM messages WHERE room_id = $1 ORDER BY id DESC LIMIT 50").bind(room).fetch_all(&pool).await?;
+    Ok(Json(rows.into_iter().map(|(id, text)| serde_json::json!({ "id": id, "text": text })).collect()))
+}
+// ===========================================================
+
+fn app(pool: PgPool) -> Router {
+    Router::new()
+        .route("/rooms", post(create_room))
+        .route("/rooms/{id}/messages", post(post_message).get(history))
+        .with_state(pool)
+}
+
+async fn http(addr: std::net::SocketAddr, method: &str, path: &str, token: Option<&str>, body: &str) -> (u16, String) {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let l = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    let server = app(pool.clone());
+    tokio::spawn(async move { axum::serve(l, server).await.unwrap() });
+    println!("{:?}", http(addr, "POST", "/rooms", Some(&t[0]), r#"{"name":"общая"}"#).await);
+    println!("{:?}", http(addr, "POST", "/rooms/1/messages", Some(&t[0]), r#"{"text":"привет по сети"}"#).await);
+    println!("{:?}", http(addr, "GET", "/rooms/1/messages", Some(&t[0]), "").await);
+    println!("{}", http(addr, "GET", "/rooms/1/messages", Some(&t[1]), "").await.0);
+    println!("{}", http(addr, "GET", "/rooms/1/messages", None, "").await.0);
+}
+', 'Формируйте запрос строкой: "{method} {path} HTTP/1.1\r\nHost: x\r\nConnection: close\r\nContent-Length: {n}\r\n..."; read_to_string; split_once("\r\n\r\n").', '{"crates": ["tokio"], "driver": "", "expected": ["(201, \"{\\\"id\\\":1,\\\"name\\\":\\\"общая\\\"}\")", "(201, \"{\\\"author\\\":\\\"anna\\\",\\\"id\\\":1,\\\"text\\\":\\\"привет по сети\\\"}\")", "(200, \"[{\\\"id\\\":1,\\\"text\\\":\\\"привет по сети\\\"}]\")", "404", "401"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-dockerfile-lint', 18, 'rust', 'Проверка Dockerfile', 'Напишите lint_dockerfile(text: &str) -> Vec<&''static str> — замечания в порядке правил: «нет многоступенчатой сборки» (меньше двух инструкций FROM); «образ без тега или latest» (любая инструкция FROM без «:» в имени образа или с «:latest»; псевдоним после AS не часть образа; --from=... в COPY не считается); «нет непривилегированного пользователя» (нет USER или последний USER — root); «нет HEALTHCHECK»; «зависимости не кэшируются» (нет COPY Cargo.toml/Cargo.lock до COPY . или COPY src). Инструкции — строки, начинающиеся с ключевого слова без учёта регистра. Пустой текст даёт все пять замечаний.
+
+Ожидаемый вывод:
+[]
+["нет многоступенчатой сборки", "образ без тега или latest", "нет непривилегированного пользователя", "нет HEALTHCHECK", "зависимости не кэшируются"]
+["образ без тега или latest", "нет непривилегированного пользователя", "нет HEALTHCHECK", "зависимости не кэшируются"]
+["нет многоступенчатой сборки", "образ без тега или latest", "нет непривилегированного пользователя", "нет HEALTHCHECK", "зависимости не кэшируются"]', 'fn lint_dockerfile(text: &str) -> Vec<&''static str> {
+    todo!()
+}
+
+fn main() {
+    let good = "FROM rust:1.97 AS build\nWORKDIR /app\nCOPY Cargo.toml Cargo.lock ./\nRUN cargo build --release\nFROM debian:stable-slim\nRUN useradd -m app\nCOPY --from=build /app/target/release/chat /chat\nUSER app\nHEALTHCHECK CMD [\"/chat\", \"--health\"]\nCMD [\"/chat\"]\n";
+    println!("{:?}", lint_dockerfile(good));
+    let bad = "FROM rust:latest\nCOPY . .\nRUN cargo build --release\nCMD [\"./target/release/chat\"]\n";
+    println!("{:?}", lint_dockerfile(bad));
+    let mid = "FROM rust AS build\nRUN cargo build --release\nFROM debian:12\nCOPY --from=build /x /x\nUSER root\nCMD [\"/x\"]\n";
+    println!("{:?}", lint_dockerfile(mid));
+    println!("{:?}", lint_dockerfile(""));
+}
+', 'Разберите строки: split_whitespace, первое слово в верхнем регистре; для FROM — второе слово.', '{"crates": ["tokio"], "driver": "", "expected": ["[]", "[\"нет многоступенчатой сборки\", \"образ без тега или latest\", \"нет непривилегированного пользователя\", \"нет HEALTHCHECK\", \"зависимости не кэшируются\"]", "[\"образ без тега или latest\", \"нет непривилегированного пользователя\", \"нет HEALTHCHECK\", \"зависимости не кэшируются\"]", "[\"нет многоступенчатой сборки\", \"образ без тега или latest\", \"нет непривилегированного пользователя\", \"нет HEALTHCHECK\", \"зависимости не кэшируются\"]"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-config-merge', 19, 'rust', 'Приоритет источников конфигурации', 'Напишите resolve(key: &str, cli: &HashMap<String, String>, env: &HashMap<String, String>, file: &HashMap<String, String>, default: Option<&str>) -> Option<(String, &''static str)>: возвращает значение и источник по приоритету «cli» > «env» > «file» > «default». Пустое значение (пустая строка) считается незаданным и пропускается. Ключ в env ищется в верхнем регистре с префиксом «CHAT_» (key="port" → CHAT_PORT), в cli и file — как есть. Нет нигде — None. Проверьте таблицу случаев.
+
+Ожидаемый вывод:
+port: Some(("9000", "cli"))
+name: Some(("из-окружения", "env"))
+mode: Some(("prod", "file"))
+theme: Some(("dark", "file"))
+missing: None
+Some(("d", "default"))', 'use std::collections::HashMap;
+
+fn resolve(key: &str, cli: &HashMap<String, String>, env: &HashMap<String, String>, file: &HashMap<String, String>, default: Option<&str>) -> Option<(String, &''static str)> {
+    todo!()
+}
+
+fn m(pairs: &[(&str, &str)]) -> HashMap<String, String> {
+    pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+}
+
+fn main() {
+    let cli = m(&[("port", "9000"), ("name", "")]);
+    let env = m(&[("CHAT_PORT", "8000"), ("CHAT_NAME", "из-окружения"), ("CHAT_MODE", "")]);
+    let file = m(&[("port", "7000"), ("name", "из-файла"), ("mode", "prod"), ("theme", "dark")]);
+    for k in ["port", "name", "mode", "theme", "missing"] {
+        println!("{k}: {:?}", resolve(k, &cli, &env, &file, if k == "missing" { None } else { Some("умолчание") }));
+    }
+    println!("{:?}", resolve("missing", &cli, &env, &file, Some("d")));
+}
+', 'Функция pick(map, name) -> Option<&String>, фильтрующая пустые.', '{"crates": ["tokio"], "driver": "", "expected": ["port: Some((\"9000\", \"cli\"))", "name: Some((\"из-окружения\", \"env\"))", "mode: Some((\"prod\", \"file\"))", "theme: Some((\"dark\", \"file\"))", "missing: None", "Some((\"d\", \"default\"))"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-seed', 20, 'rust', 'Идемпотентное заполнение при старте', 'Напишите seed(&PgPool) -> u64: при каждом запуске приложения создаёт таблицу roles(name TEXT PRIMARY KEY, level INT NOT NULL) (IF NOT EXISTS) и вставляет роли admin (100), moderator (50), member (10) так, чтобы повторный вызов не создавал дубликатов и не затирал изменённый вручную уровень (ON CONFLICT DO NOTHING). Возвращает число реально добавленных строк. Проверьте: первый вызов 3, повторный 0, после ручной правки уровня и ещё одного вызова значение сохраняется, после удаления одной роли вызов добавляет 1.
+
+Ожидаемый вывод:
+3
+0
+0
+moderator: 75
+1
+ролей: 3', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn seed(pool: &PgPool) -> u64 {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    println!("{}", seed(&pool).await);
+    println!("{}", seed(&pool).await);
+    sqlx::query("UPDATE roles SET level = 75 WHERE name = ''moderator''").execute(&pool).await.unwrap();
+    println!("{}", seed(&pool).await);
+    let lv: i32 = sqlx::query_scalar("SELECT level FROM roles WHERE name = ''moderator''").fetch_one(&pool).await.unwrap();
+    println!("moderator: {lv}");
+    sqlx::query("DELETE FROM roles WHERE name = ''member''").execute(&pool).await.unwrap();
+    println!("{}", seed(&pool).await);
+    let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM roles").fetch_one(&pool).await.unwrap();
+    println!("ролей: {n}");
+}
+', 'INSERT INTO roles SELECT * FROM UNNEST(..) ON CONFLICT DO NOTHING — либо три отдельных INSERT с суммой rows_affected.', '{"crates": ["tokio"], "driver": "", "expected": ["3", "0", "0", "moderator: 75", "1", "ролей: 3"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-batch-cleanup', 21, 'rust', 'Очистка старых данных пачками', 'Таблица events(id BIGSERIAL, at TIMESTAMPTZ, kind TEXT) содержит 25 строк «старше недели» (at = now() − 10 дней) и 5 свежих. Напишите purge(&PgPool, older_than_days: i32, batch: i64) -> (u64, u32): удаляет старые строки ПАЧКАМИ по batch (DELETE ... WHERE id IN (SELECT id ... WHERE at < now() - interval ... LIMIT batch)), пока удалять нечего, и возвращает (всего удалено, число запросов DELETE, включая последний пустой). Пачки нужны, чтобы не держать долгих блокировок.
+
+Ожидаемый вывод:
+(25, 4)
+[("fresh", 5)]
+(0, 1)', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+async fn purge(pool: &PgPool, older_than_days: i32, batch: i64) -> (u64, u32) {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    sqlx::query("CREATE TABLE events (id BIGSERIAL PRIMARY KEY, at TIMESTAMPTZ NOT NULL, kind TEXT)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO events (at, kind) SELECT now() - interval ''10 days'', ''old'' FROM generate_series(1, 25)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO events (at, kind) SELECT now(), ''fresh'' FROM generate_series(1, 5)").execute(&pool).await.unwrap();
+    println!("{:?}", purge(&pool, 7, 10).await);
+    let left: Vec<(String, i64)> = sqlx::query_as("SELECT kind, COUNT(*) FROM events GROUP BY kind ORDER BY kind").fetch_all(&pool).await.unwrap();
+    println!("{left:?}");
+    println!("{:?}", purge(&pool, 7, 10).await);
+}
+', 'Цикл: let n = delete(...).rows_affected(); calls += 1; total += n; if n == 0 { break }.', '{"crates": ["tokio"], "driver": "", "expected": ["(25, 4)", "[(\"fresh\", 5)]", "(0, 1)"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-pool-size', 22, 'rust', 'Сколько соединений в пуле', 'Напишите pool_size(db_max: u32, instances: u32, reserve: u32, cpus: u32, per_cpu: u32) -> u32: размер пула одного экземпляра — это min(доступные соединения базы на экземпляр, cpus·per_cpu), но не меньше 1 (если доступных нет, всё равно 1). Доступные соединения базы на экземпляр = (db_max − reserve) / instances (целочисленное деление; reserve — резерв для администраторов и миграций; не уходит в минус). instances = 0 считайте ошибкой: верните 0. Проверьте таблицу случаев.
+
+Ожидаемый вывод:
+100 4 10 8 4 -> 22
+100 1 10 2 4 -> 8
+100 10 10 16 4 -> 9
+20 4 10 8 4 -> 2
+10 4 10 8 4 -> 1
+5 4 10 8 4 -> 1
+100 0 10 8 4 -> 0
+100 3 0 4 2 -> 8
+50 5 0 1 1 -> 1', 'fn pool_size(db_max: u32, instances: u32, reserve: u32, cpus: u32, per_cpu: u32) -> u32 {
+    todo!()
+}
+
+fn main() {
+    for (db, n, r, c, p) in [(100, 4, 10, 8, 4), (100, 1, 10, 2, 4), (100, 10, 10, 16, 4), (20, 4, 10, 8, 4), (10, 4, 10, 8, 4), (5, 4, 10, 8, 4), (100, 0, 10, 8, 4), (100, 3, 0, 4, 2), (50, 5, 0, 1, 1)] {
+        println!("{db} {n} {r} {c} {p} -> {}", pool_size(db, n, r, c, p));
+    }
+}
+', 'saturating_sub, деление, min, max(1).', '{"crates": ["tokio"], "driver": "", "expected": ["100 4 10 8 4 -> 22", "100 1 10 2 4 -> 8", "100 10 10 16 4 -> 9", "20 4 10 8 4 -> 2", "10 4 10 8 4 -> 1", "5 4 10 8 4 -> 1", "100 0 10 8 4 -> 0", "100 3 0 4 2 -> 8", "50 5 0 1 1 -> 1"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-ready-aggregate', 23, 'rust', 'Сводная готовность', 'Напишите readiness(checks: &[(&str, Result<(), &str>)]) -> (u16, String): проверки зависимостей (имя, результат). Если все успешны — (200, «ready»). Иначе — (503, строка «not ready: имя1 (причина1), имя2 (причина2)» в порядке проверок). Пустой список проверок — готов.
+
+Ожидаемый вывод:
+(200, "ready")
+(503, "not ready: db (connection refused)")
+(503, "not ready: db (timeout), queue (down)")
+(200, "ready")', 'fn readiness(checks: &[(&str, Result<(), &str>)]) -> (u16, String) {
+    todo!()
+}
+
+fn main() {
+    println!("{:?}", readiness(&[("db", Ok(())), ("cache", Ok(()))]));
+    println!("{:?}", readiness(&[("db", Err("connection refused")), ("cache", Ok(()))]));
+    println!("{:?}", readiness(&[("db", Err("timeout")), ("cache", Ok(())), ("queue", Err("down"))]));
+    println!("{:?}", readiness(&[]));
+}
+', 'Соберите неуспешные в Vec<String>, join(", ").', '{"crates": ["tokio"], "driver": "", "expected": ["(200, \"ready\")", "(503, \"not ready: db (connection refused)\")", "(503, \"not ready: db (timeout), queue (down)\")", "(200, \"ready\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-e2e-expect', 24, 'rust', 'Сквозной тест: ожидание события', 'Сервер (в заготовке) шлёт клиенту события JSON вперемешку: «typing», «message» с разными text, «join». Напишите вспомогательную функцию expect_event(c, pred, timeout_ms) -> Result<String, String>: читает текстовые сообщения клиента, пропуская те, для которых pred(&str) == false (Ping/Pong тоже пропускайте), и возвращает первое подходящее; если за общий таймаут timeout_ms подходящего не пришло — Err("таймаут"), если соединение закрыто — Err("закрыто"). Проверьте поиск message с text=«нужное», поиск несуществующего события (таймаут 300 мс), и закрытие.
+
+Ожидаемый вывод:
+Ok("{\"type\":\"message\",\"text\":\"нужное\"}")
+Err("таймаут")
+Err("закрыто")', 'use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, Query, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as CMsg;
+
+// ================= Готово: сервер на свободном порту и клиент =================
+type Client = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+async fn serve(app: Router) -> std::net::SocketAddr {
+    let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = l.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    addr
+}
+
+async fn connect(addr: std::net::SocketAddr, path: &str) -> Client {
+    connect_async(format!("ws://{addr}{path}")).await.unwrap().0
+}
+
+async fn say(c: &mut Client, text: &str) {
+    c.send(CMsg::Text(text.into())).await.unwrap();
+}
+
+// следующее текстовое сообщение (2 секунды максимум); None — закрытие, ошибка или тишина
+async fn hear(c: &mut Client) -> Option<String> {
+    loop {
+        match tokio::time::timeout(Duration::from_secs(2), c.next()).await {
+            Ok(Some(Ok(CMsg::Text(t)))) => return Some(t.as_str().to_string()),
+            Ok(Some(Ok(CMsg::Ping(_)))) | Ok(Some(Ok(CMsg::Pong(_)))) => continue,
+            _ => return None,
+        }
+    }
+}
+// =============================================================================
+
+async fn expect_event(c: &mut Client, pred: impl Fn(&str) -> bool, timeout_ms: u64) -> Result<String, String> {
+    todo!()
+}
+
+async fn noisy(upgrade: WebSocketUpgrade) -> Response {
+    upgrade.on_upgrade(|mut socket| async move {
+        for text in [r#"{"type":"join","user":"anna"}"#, r#"{"type":"typing"}"#, r#"{"type":"message","text":"не то"}"#, r#"{"type":"message","text":"нужное"}"#, r#"{"type":"typing"}"#] {
+            let _ = socket.send(Message::Text(text.into())).await;
+        }
+        tokio::time::sleep(Duration::from_millis(600)).await;
+        let _ = socket.close().await;
+    })
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = serve(Router::new().route("/ws", get(noisy))).await;
+    let mut c = connect(addr, "/ws").await;
+    println!("{:?}", expect_event(&mut c, |t| t.contains("нужное"), 2000).await);
+    println!("{:?}", expect_event(&mut c, |t| t.contains("leave"), 300).await);
+    println!("{:?}", expect_event(&mut c, |t| t.contains("leave"), 2000).await);
+}
+', 'tokio::time::timeout по оставшемуся времени (deadline = Instant::now() + timeout); цикл: next().await → Text/Ping/Close.', '{"crates": ["tokio"], "driver": "", "expected": ["Ok(\"{\\\"type\\\":\\\"message\\\",\\\"text\\\":\\\"нужное\\\"}\")", "Err(\"таймаут\")", "Err(\"закрыто\")"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-production-stack', 25, 'rust', 'Боевой набор слоёв', 'Соберите app() с маршрутами: GET /ok → «ок», POST /echo (принимает тело как String и возвращает его), GET /slow (спит 400 мс и отвечает «медленно»). Слои для ВСЕХ маршрутов (включая 404): заголовок ответа x-request-id вида «req-N» (N — счётчик AtomicU64 с 1; слой на from_fn_with_state), таймаут запроса 200 мс со статусом 408 (TimeoutLayer::with_status_code), лимит тела 16 байт (RequestBodyLimitLayer), CORS permissive. Запасной обработчик — 404 с JSON {"error":"нет такого пути"}. Порядок слоёв выберите так, чтобы и ответы 408 и 413 получали x-request-id. main печатает статусы и заголовки.
+
+Ожидаемый вывод:
+200 id=Some("req-1") cors=true
+404 id=Some("req-2") cors=true
+{"error":"нет такого пути"}
+200 id=Some("req-4") cors=true
+413 id=Some("req-5") cors=true
+408 id=Some("req-6") cors=true', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+async fn info(app: &Router, method: &str, uri: &str, body: &str) -> String {
+    let req = Request::builder().method(method).uri(uri).body(Body::from(body.to_string())).unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let id = res.headers().get("x-request-id").map(|v| v.to_str().unwrap().to_string());
+    let cors = res.headers().get("access-control-allow-origin").is_some();
+    format!("{} id={:?} cors={}", res.status().as_u16(), id, cors)
+}
+
+fn app() -> Router {
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = app();
+    println!("{}", info(&app, "GET", "/ok", "").await);
+    println!("{}", info(&app, "GET", "/nope", "").await);
+    println!("{}", call(&app, "GET", "/nope", "").await.1);
+    println!("{}", info(&app, "POST", "/echo", "коротко").await);
+    println!("{}", info(&app, "POST", "/echo", &"x".repeat(100)).await);
+    println!("{}", info(&app, "GET", "/slow", "").await);
+}
+', 'Последним .layer добавляется самый внешний слой: x-request-id — последним, тогда он оборачивает и таймаут, и лимит.', '{"crates": ["tokio"], "driver": "", "expected": ["200 id=Some(\"req-1\") cors=true", "404 id=Some(\"req-2\") cors=true", "{\"error\":\"нет такого пути\"}", "200 id=Some(\"req-4\") cors=true", "413 id=Some(\"req-5\") cors=true", "408 id=Some(\"req-6\") cors=true"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-final-wiring', 26, 'rust', 'Финальная сборка приложения', 'Обработчики API (создать комнату, опубликовать сообщение, история) и каркас с пользователями готовы. Напишите app(pool): маршруты POST /rooms, POST /rooms/{id}/messages, GET /rooms/{id}/messages, GET /health («ok»), состояние пула; запасной обработчик — 404 в формате AppError::NotFound (JSON), а ответ 405 неверному методу — JSON {"error":{"code":"method_not_allowed","message":"метод не поддерживается"}} (method_not_allowed_fallback). main проходит смоук-сценарий: здоровье, создание комнаты, сообщение, история, неверный метод, неизвестный путь, запрос без токена.
+
+Ожидаемый вывод:
+200 ok
+201 {"id":1,"name":"общая"}
+201 {"author":"anna","id":1,"text":"всё работает"}
+200 [{"id":1,"text":"всё работает"}]
+405 {"error":{"code":"method_not_allowed","message":"метод не поддерживается"}}
+404 {"error":{"code":"not_found","message":"не найдено"}}
+401', 'use axum::body::{to_bytes, Body};
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use tower::ServiceExt;
+
+// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)
+async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {
+    let req = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use axum::extract::{FromRef, FromRequestParts, Path, Query, State};
+use axum::http::request::Parts;
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{delete, get, patch, post, put};
+use axum::Json;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+// ================= Готово: схема, пользователи, ошибки =================
+const SCHEMA: &[&str] = &[
+    "CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+    "CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id), expires_at TIMESTAMPTZ NOT NULL)",
+    "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE CHECK (length(name) BETWEEN 1 AND 32), owner_id BIGINT NOT NULL REFERENCES users(id), pinned BIGINT)",
+    "CREATE TABLE members (room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id BIGINT NOT NULL REFERENCES users(id), last_read BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (room_id, user_id))",
+    "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, author_id BIGINT NOT NULL REFERENCES users(id), text TEXT NOT NULL CHECK (length(text) > 0), client_id TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), edited_at TIMESTAMPTZ, deleted BOOLEAN NOT NULL DEFAULT false, UNIQUE (room_id, author_id, client_id))",
+    "CREATE INDEX messages_room_id ON messages (room_id, id DESC)",
+];
+
+// создаёт схему и трёх пользователей (anna=1, boris=2, vera=3), возвращает их токены
+async fn setup(pool: &PgPool) -> Vec<String> {
+    for s in SCHEMA {
+        sqlx::query(*s).execute(pool).await.unwrap();
+    }
+    let mut tokens = Vec::new();
+    for n in ["anna", "boris", "vera"] {
+        let id: i64 = sqlx::query_scalar("INSERT INTO users (name) VALUES ($1) RETURNING id").bind(n).fetch_one(pool).await.unwrap();
+        let t = format!("token-{n}");
+        sqlx::query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval ''1 hour'')")
+            .bind(hex::encode(Sha256::digest(t.as_bytes())))
+            .bind(id)
+            .execute(pool)
+            .await
+            .unwrap();
+        tokens.push(t);
+    }
+    tokens
+}
+
+#[derive(Debug)]
+enum AppError {
+    NotFound,
+    Forbidden(&''static str),
+    Conflict(&''static str),
+    Invalid(&''static str),
+    Unauthorized,
+    TooMany,
+    Internal(String),
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(e: sqlx::Error) -> AppError {
+        if matches!(e, sqlx::Error::RowNotFound) {
+            return AppError::NotFound;
+        }
+        match e.as_database_error().and_then(|d| d.code()).as_deref() {
+            Some("23505") => AppError::Conflict("уже существует"),
+            Some("23503") => AppError::NotFound,
+            Some("23514") => AppError::Invalid("не прошло проверку"),
+            _ => AppError::Internal(e.to_string()),
+        }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", "не найдено".to_string()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.to_string()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.to_string()),
+            AppError::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, "invalid", m.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "нужен вход".to_string()),
+            AppError::TooMany => (StatusCode::TOO_MANY_REQUESTS, "too_many", "слишком часто".to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal", "внутренняя ошибка".to_string()),
+        };
+        (status, Json(serde_json::json!({ "error": { "code": code, "message": message } }))).into_response()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CurrentUser {
+    id: i64,
+    name: String,
+}
+
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, AppError> {
+        let pool = PgPool::from_ref(state);
+        let token = parts
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or(AppError::Unauthorized)?;
+        let row: Option<(i64, String)> = sqlx::query_as(
+            "SELECT u.id, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()",
+        )
+        .bind(hex::encode(Sha256::digest(token.as_bytes())))
+        .fetch_optional(&pool)
+        .await?;
+        row.map(|(id, name)| CurrentUser { id, name }).ok_or(AppError::Unauthorized)
+    }
+}
+
+// отправляет запрос с токеном и возвращает «СТАТУС тело»
+async fn show(app: &Router, method: &str, uri: &str, token: Option<&str>, body: &str) -> String {
+    let mut b = Request::builder().method(method).uri(uri).header("content-type", "application/json");
+    if let Some(t) = token {
+        b = b.header("authorization", format!("Bearer {t}"));
+    }
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let s = res.status().as_u16();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    format!("{s} {}", String::from_utf8_lossy(&bytes))
+}
+
+// только статус из строки «СТАТУС тело»
+fn status_of(s: &str) -> &str {
+    s.split('' '').next().unwrap()
+}
+
+// возвращает значение заголовка ответа
+async fn header_of(app: &Router, method: &str, uri: &str, token: &str, body: &str, name: &str) -> Option<String> {
+    let b = Request::builder().method(method).uri(uri).header("content-type", "application/json").header("authorization", format!("Bearer {token}"));
+    let res = app.clone().oneshot(b.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    res.headers().get(name).map(|v| v.to_str().unwrap().to_string())
+}
+
+// ======================================================================
+
+// ================= Готово: обработчики API =================
+#[derive(Deserialize)]
+struct NewRoom {
+    name: String,
+}
+
+async fn create_room(State(pool): State<PgPool>, user: CurrentUser, Json(n): Json<NewRoom>) -> Result<(StatusCode, Json<serde_json::Value>), AppError> {
+    let name = n.name.trim().to_string();
+    if name.is_empty() || name.chars().count() > 32 {
+        return Err(AppError::Invalid("имя 1–32 символа"));
+    }
+    let mut tx = pool.begin().await?;
+    let id: i64 = sqlx::query_scalar("INSERT INTO rooms (name, owner_id) VALUES ($1, $2) RETURNING id").bind(&name).bind(user.id).fetch_one(&mut *tx).await?;
+    sqlx::query("INSERT INTO members (room_id, user_id) VALUES ($1, $2)").bind(id).bind(user.id).execute(&mut *tx).await?;
+    tx.commit().await?;
+    Ok((StatusCode::CREATED, Json(serde_json::json!({ "id": id, "name": name }))))
+}
+
+#[derive(Deserialize)]
+struct NewMsg {
+    text: String,
+}
+
+async fn post_message(State(pool): State<PgPool>, user: CurrentUser, Path(room): Path<i64>, Json(m): Json<NewMsg>) -> Result<(StatusCode, Json<serde_json::Value>), AppError> {
+    let me: Option<i32> = sqlx::query_scalar("SELECT 1 FROM members WHERE room_id = $1 AND user_id = $2").bind(room).bind(user.id).fetch_optional(&pool).await?;
+    if me.is_none() {
+        return Err(AppError::NotFound);
+    }
+    let text = m.text.trim().to_string();
+    if text.is_empty() || text.chars().count() > 2000 {
+        return Err(AppError::Invalid("текст 1–2000 символов"));
+    }
+    let id: i64 = sqlx::query_scalar("INSERT INTO messages (room_id, author_id, text) VALUES ($1, $2, $3) RETURNING id").bind(room).bind(user.id).bind(&text).fetch_one(&pool).await?;
+    Ok((StatusCode::CREATED, Json(serde_json::json!({ "id": id, "author": user.name, "text": text }))))
+}
+
+async fn history(State(pool): State<PgPool>, user: CurrentUser, Path(room): Path<i64>) -> Result<Json<Vec<serde_json::Value>>, AppError> {
+    let me: Option<i32> = sqlx::query_scalar("SELECT 1 FROM members WHERE room_id = $1 AND user_id = $2").bind(room).bind(user.id).fetch_optional(&pool).await?;
+    if me.is_none() {
+        return Err(AppError::NotFound);
+    }
+    let rows: Vec<(i64, String)> = sqlx::query_as("SELECT id, text FROM messages WHERE room_id = $1 ORDER BY id DESC LIMIT 50").bind(room).fetch_all(&pool).await?;
+    Ok(Json(rows.into_iter().map(|(id, text)| serde_json::json!({ "id": id, "text": text })).collect()))
+}
+// ===========================================================
+
+fn app(pool: PgPool) -> Router {
+    let _ = pool;
+    Router::new()
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    let t = setup(&pool).await;
+    let app = app(pool.clone());
+    println!("{}", show(&app, "GET", "/health", None, "").await);
+    println!("{}", show(&app, "POST", "/rooms", Some(&t[0]), r#"{"name":"общая"}"#).await);
+    println!("{}", show(&app, "POST", "/rooms/1/messages", Some(&t[0]), r#"{"text":"всё работает"}"#).await);
+    println!("{}", show(&app, "GET", "/rooms/1/messages", Some(&t[0]), "").await);
+    println!("{}", show(&app, "DELETE", "/rooms/1/messages", Some(&t[0]), "").await);
+    println!("{}", show(&app, "GET", "/nowhere", Some(&t[0]), "").await);
+    println!("{}", status_of(&show(&app, "GET", "/rooms/1/messages", None, "").await));
+}
+', 'Router::new().route(..).fallback(|| async { AppError::NotFound }).method_not_allowed_fallback(h405).with_state(pool).', '{"crates": ["tokio"], "driver": "", "expected": ["200 ok", "201 {\"id\":1,\"name\":\"общая\"}", "201 {\"author\":\"anna\",\"id\":1,\"text\":\"всё работает\"}", "200 [{\"id\":1,\"text\":\"всё работает\"}]", "405 {\"error\":{\"code\":\"method_not_allowed\",\"message\":\"метод не поддерживается\"}}", "404 {\"error\":{\"code\":\"not_found\",\"message\":\"не найдено\"}}", "401"], "postgres": true, "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-tracing', 27, 'rust', 'Свой подписчик tracing', 'Реализуйте Subscriber для Collector (заготовка со всем остальным готова): enabled — разрешает события и спаны уровня INFO и выше (то есть INFO, WARN, ERROR); event — собирает поля через Fields (Visit) и добавляет в общий журнал строку «УРОВЕНЬ сообщение k=v …» (уровень — как Level::to_string(), поля в порядке объявления в макросе; значения — как в Debug: строки в кавычках, числа без). new_span возвращает уникальные Id (счётчик с 1), остальные методы пустые. main пишет несколько событий разных уровней под with_default и печатает собранные строки.
+
+Ожидаемый вывод:
+INFO сервис запущен
+WARN медленный запрос room=3 user="anna"
+ERROR сбой code=500', 'use std::fmt::Debug;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
+use tracing::field::{Field, Visit};
+use tracing::span::{Attributes, Id, Record};
+use tracing::{Event, Level, Metadata, Subscriber};
+
+struct Collector {
+    lines: Arc<Mutex<Vec<String>>>,
+    next: AtomicU64,
+}
+
+#[derive(Default)]
+struct Fields {
+    message: String,
+    others: Vec<(String, String)>,
+}
+
+impl Visit for Fields {
+    fn record_debug(&mut self, field: &Field, value: &dyn Debug) {
+        if field.name() == "message" {
+            self.message = format!("{value:?}");
+        } else {
+            self.others.push((field.name().to_string(), format!("{value:?}")));
+        }
+    }
+}
+
+impl Subscriber for Collector {
+    fn enabled(&self, _m: &Metadata<''_>) -> bool {
+        todo!()
+    }
+    fn new_span(&self, _attrs: &Attributes<''_>) -> Id {
+        todo!()
+    }
+    fn record(&self, _span: &Id, _values: &Record<''_>) {}
+    fn record_follows_from(&self, _span: &Id, _follows: &Id) {}
+    fn event(&self, _event: &Event<''_>) {
+        todo!()
+    }
+    fn enter(&self, _span: &Id) {}
+    fn exit(&self, _span: &Id) {}
+}
+
+fn main() {
+    let lines = Arc::new(Mutex::new(Vec::new()));
+    let c = Collector { lines: lines.clone(), next: AtomicU64::new(0) };
+    tracing::subscriber::with_default(c, || {
+        tracing::info!("сервис запущен");
+        tracing::debug!("отладка не видна");
+        tracing::warn!(room = 3, user = "anna", "медленный запрос");
+        tracing::error!(code = 500, "сбой");
+        tracing::trace!("трассировка не видна");
+    });
+    for l in lines.lock().unwrap().iter() {
+        println!("{l}");
+    }
+}
+', 'fn event(&self, e: &Event<''_>) { let mut f = Fields::default(); e.record(&mut f); .. e.metadata().level() .. }', '{"crates": ["tokio"], "driver": "", "expected": ["INFO сервис запущен", "WARN медленный запрос room=3 user=\"anna\"", "ERROR сбой code=500"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-stop-reason', 28, 'rust', 'Сигналы остановки через select!', 'Напишите async fn wait_for_stop(interrupt: impl Future<Output = ()>, terminate: impl Future<Output = ()>, deadline_ms: u64) -> Stop: возвращает, что произошло раньше — «Interrupt» (Ctrl-C), «Terminate» (SIGTERM) или «Deadline» (прошло deadline_ms миллисекунд, tokio::time::sleep). Если несколько готовы одновременно, приоритет у Terminate, затем Interrupt (biased; select!). В main вместо настоящих сигналов используются oneshot-каналы и std::future::pending().
+
+Ожидаемый вывод:
+Interrupt
+Terminate
+Terminate
+Deadline
+true
+Interrupt', 'use std::future::Future;
+use std::time::Duration;
+use tokio::sync::oneshot;
+
+#[derive(Debug, PartialEq)]
+enum Stop {
+    Interrupt,
+    Terminate,
+    Deadline,
+}
+
+async fn wait_for_stop(interrupt: impl Future<Output = ()>, terminate: impl Future<Output = ()>, deadline_ms: u64) -> Stop {
+    todo!()
+}
+
+fn signal() -> (oneshot::Sender<()>, impl Future<Output = ()>) {
+    let (tx, rx) = oneshot::channel::<()>();
+    (tx, async move { let _ = rx.await; })
+}
+
+#[tokio::main]
+async fn main() {
+    let (i, int) = signal();
+    let (_t, term) = signal();
+    i.send(()).unwrap();
+    println!("{:?}", wait_for_stop(int, term, 500).await);
+    let (_i, int) = signal();
+    let (t, term) = signal();
+    t.send(()).unwrap();
+    println!("{:?}", wait_for_stop(int, term, 500).await);
+    let (i, int) = signal();
+    let (t, term) = signal();
+    i.send(()).unwrap();
+    t.send(()).unwrap();
+    println!("{:?}", wait_for_stop(int, term, 500).await);
+    let start = std::time::Instant::now();
+    println!("{:?}", wait_for_stop(std::future::pending(), std::future::pending(), 100).await);
+    println!("{}", start.elapsed() >= Duration::from_millis(100));
+    let (i, int) = signal();
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(30)).await;
+        i.send(()).unwrap();
+    });
+    println!("{:?}", wait_for_stop(int, std::future::pending(), 2000).await);
+}
+', 'tokio::select! { biased; _ = terminate => .., _ = interrupt => .., _ = sleep(..) => .. }', '{"crates": ["tokio"], "driver": "", "expected": ["Interrupt", "Terminate", "Terminate", "Deadline", "true", "Interrupt"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 51, 'r51-fixture', 29, 'rust', 'Построитель тестовых данных', 'Напишите Fixture — построитель для тестов: Fixture::new(), .owner(name), .member(name) (можно несколько), .messages(n) — по n сообщений от владельца, .build(&PgPool) -> FixtureIds { room: i64, users: Vec<i64>, messages: Vec<i64> } — создаёт пользователей (владельца и участников, имена уникальны), комнату с названием «fixture-ROOM_COUNTER» (счётчик комнат с 1 в статической AtomicU32), участников (владелец тоже участник) и сообщения «m1»…«mN», всё в ОДНОЙ транзакции. Таблицы users, rooms, members, messages создаёт main. Проверьте два вызова build с общими именами пользователей (второй должен переиспользовать уже существующих, без ошибок уникальности: ON CONFLICT … RETURNING).
+
+Ожидаемый вывод:
+FixtureIds { room: 1, users: [1, 2, 3], messages: [1, 2, 3] }
+FixtureIds { room: 2, users: [2, 1], messages: [4, 5] }
+["fixture-1", "fixture-2"]
+участников 5, пользователей 3', 'use sqlx::postgres::PgPoolOptions;
+use sqlx::{FromRow, PgPool, Row};
+
+// Готово: PostgreSQL уже запущен в песочнице (пользователь postgres без пароля, база chat), каждая проверка — чистая база
+async fn pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://postgres@127.0.0.1/chat")
+        .await
+        .unwrap()
+}
+
+use std::sync::atomic::{AtomicU32, Ordering};
+
+static ROOMS: AtomicU32 = AtomicU32::new(0);
+
+#[derive(Default)]
+struct Fixture {
+    owner: String,
+    members: Vec<String>,
+    messages: u32,
+}
+
+#[derive(Debug)]
+struct FixtureIds {
+    room: i64,
+    users: Vec<i64>,
+    messages: Vec<i64>,
+}
+
+impl Fixture {
+    fn new() -> Fixture {
+        Fixture::default()
+    }
+    fn owner(mut self, name: &str) -> Fixture {
+        todo!()
+    }
+    fn member(mut self, name: &str) -> Fixture {
+        todo!()
+    }
+    fn messages(mut self, n: u32) -> Fixture {
+        todo!()
+    }
+    async fn build(self, pool: &PgPool) -> FixtureIds {
+        todo!()
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let pool = pool().await;
+    for q in ["CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE)", "CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, owner_id BIGINT NOT NULL)", "CREATE TABLE members (room_id BIGINT NOT NULL, user_id BIGINT NOT NULL, PRIMARY KEY (room_id, user_id))", "CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT NOT NULL, author_id BIGINT NOT NULL, text TEXT NOT NULL)"] {
+        sqlx::query(q).execute(&pool).await.unwrap();
+    }
+    let a = Fixture::new().owner("anna").member("boris").member("vera").messages(3).build(&pool).await;
+    println!("{a:?}");
+    let b = Fixture::new().owner("boris").member("anna").messages(2).build(&pool).await;
+    println!("{b:?}");
+    let rooms: Vec<String> = sqlx::query_scalar("SELECT name FROM rooms ORDER BY id").fetch_all(&pool).await.unwrap();
+    println!("{rooms:?}");
+    let m: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM members").fetch_one(&pool).await.unwrap();
+    let u: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users").fetch_one(&pool).await.unwrap();
+    println!("участников {m}, пользователей {u}");
+}
+', 'INSERT INTO users (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id.', '{"crates": ["tokio"], "driver": "", "expected": ["FixtureIds { room: 1, users: [1, 2, 3], messages: [1, 2, 3] }", "FixtureIds { room: 2, users: [2, 1], messages: [4, 5] }", "[\"fixture-1\", \"fixture-2\"]", "участников 5, пользователей 3"], "postgres": true, "standalone": true}');

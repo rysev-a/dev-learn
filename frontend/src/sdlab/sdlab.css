@@ -1,0 +1,324 @@
+/* Лаборатория «Системный дизайн»: поле схемы, панель компонента, цели и метрики. Токены приложения, обе темы. */
+.sd {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.sd-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@container (min-width: 860px) {
+  .sd-work {
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  }
+}
+.sd-boardcard,
+.sd-panel,
+.sd-goals,
+.sd-metrics {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 0;
+}
+.sd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.sd-chips span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--s-accent);
+}
+.sd-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.sd-spacer {
+  flex: 1;
+}
+.sd-add {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.sd-add:hover {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+.sd-fail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.sd-fail select {
+  font: inherit;
+  font-size: 13px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+.sd-hint,
+.sd-notice,
+.sd-about {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.sd-notice {
+  color: var(--error);
+}
+.sd-board {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  user-select: none;
+  touch-action: none;
+}
+.sd-edge line:not(.hit) {
+  stroke: var(--s-muted);
+  stroke-width: 1.8;
+}
+.sd-edge .hit {
+  stroke: transparent;
+  stroke-width: 14;
+  cursor: pointer;
+}
+.sd-edge.on line:not(.hit) {
+  stroke: var(--s-amber);
+}
+.sd-edge.dead line:not(.hit) {
+  stroke: var(--s-red);
+  stroke-dasharray: 4 4;
+}
+.sd-arrowhead {
+  fill: var(--s-muted);
+}
+.sd-node {
+  cursor: grab;
+}
+.sd-node rect:first-child {
+  fill: var(--panel);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+.sd-node.clients rect:first-child {
+  fill: var(--bg);
+  stroke-dasharray: 3 3;
+}
+.sd-node.warm rect:first-child {
+  stroke: var(--s-amber);
+}
+.sd-node.hot rect:first-child {
+  stroke: var(--s-amber);
+  stroke-width: 2.5;
+}
+.sd-node.over rect:first-child,
+.sd-node.down rect:first-child {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+}
+.sd-node.down {
+  opacity: 0.55;
+}
+.sd-node.ok rect:first-child {
+  stroke: var(--s-green);
+}
+.sd-node.on rect:first-child {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.sd-node.from rect:first-child {
+  stroke: var(--s-amber);
+  stroke-width: 3;
+}
+.sd-ico {
+  fill: none;
+  stroke: var(--s-accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sd-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--text);
+}
+.sd-sub {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  fill: var(--muted);
+}
+.sd-bar .bg {
+  fill: var(--border);
+}
+.sd-bar .fg {
+  fill: var(--s-green);
+}
+.sd-node.warm .sd-bar .fg,
+.sd-node.hot .sd-bar .fg {
+  fill: var(--s-amber);
+}
+.sd-node.over .sd-bar .fg {
+  fill: var(--s-red);
+}
+.sd-panel h4,
+.sd-goals h4,
+.sd-metrics h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.sd-panel h4 small,
+.sd-metrics h4 small {
+  font-weight: 400;
+  color: var(--s-amber);
+}
+.sd-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.sd-field small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+.sd-field input[type="number"],
+.sd-field select {
+  font: inherit;
+  font-size: 13px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  width: 150px;
+  box-sizing: border-box;
+}
+.sd-field.row {
+  margin-top: 10px;
+}
+.sd-load {
+  margin: 8px 0 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.sd-load.over,
+.sd-load.down {
+  color: var(--s-red);
+}
+.sd-load.hot,
+.sd-load.warm {
+  color: var(--s-amber);
+}
+.sd-ref {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.sd-ref summary {
+  cursor: pointer;
+  color: var(--s-accent);
+}
+.sd-ref ul {
+  margin: 8px 0 0;
+  padding-left: 16px;
+}
+.sd-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@container (min-width: 760px) {
+  .sd-bottom {
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+  }
+}
+.sd-goals ul {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.sd-goals li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  font-size: 13px;
+}
+.sd-gmark {
+  font-weight: 700;
+  text-align: center;
+}
+.sd-goals li.ok .sd-gmark {
+  color: var(--s-green);
+}
+.sd-goals li.bad .sd-gmark {
+  color: var(--s-red);
+}
+.sd-gtext small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.sd-metrics dl {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+.sd-metrics dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 3px;
+}
+.sd-metrics dt {
+  color: var(--muted);
+}
+.sd-metrics dd {
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+}
+.sd-metrics dd.bad {
+  color: var(--s-red);
+}
+.sd-warn {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--s-amber);
+}

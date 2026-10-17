@@ -25,7 +25,8 @@ INSERT INTO books (id, slug, title, ord, slides_dir, icon, audio_prefix) VALUES
     (17, 'virt',  'Виртуализация',                7, 'virtualization', 'nested',   'virt-ch'),
     (9,  'db',    'Базы данных',                  8, 'db',             'database', 'dbx-ch'),
     (10, 'rust',  'Изучаем Rust',                 9, 'learn-rust',     'rust',     'rust-ch'),
-    (11, 'js',    'Современный Frontend',        10, 'js',             'js',       'js-ch')
+    (11, 'js',    'Современный Frontend',        10, 'js',             'js',       'js-ch'),
+    (18, 'sd',    'Системный дизайн',            11, 'system-design',  'layers',   'sd-ch')
 ON CONFLICT (id) DO UPDATE SET
     title = excluded.title, ord = excluded.ord, slug = excluded.slug,
     slides_dir = excluded.slides_dir, icon = excluded.icon, audio_prefix = excluded.audio_prefix;

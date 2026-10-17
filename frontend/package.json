@@ -18,7 +18,9 @@
     "quizzes:check": "node --disable-warning=ExperimentalWarning scripts/export-quizzes.mjs --check",
     "answers:export": "node --disable-warning=ExperimentalWarning scripts/export-answers.mjs",
     "answers:check": "node --disable-warning=ExperimentalWarning scripts/export-answers.mjs --check",
-    "tasks:export": "cd ../backend && uv run python export_tasks.py"
+    "tasks:export": "cd ../backend && uv run python export_tasks.py",
+    "sd:manifest": "node --disable-warning=ExperimentalWarning scripts/sd-manifest.mjs",
+    "sd:check": "node --disable-warning=ExperimentalWarning scripts/sd-selfcheck.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

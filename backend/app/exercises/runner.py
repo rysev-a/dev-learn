@@ -17,10 +17,20 @@ from pathlib import Path
 
 IMAGE = "python:3.13-slim"
 RUST_IMAGE = "rust:1.97-slim"
-# Образ с заранее собранными tokio, futures, tokio-stream, tokio-util и bytes (docker/rust-tokio/Dockerfile);
-# используется задачами с полем `crates` — сети во время проверки нет, rustc получает --extern на готовые rlib.
-RUST_TOKIO_IMAGE = "say-rust-tokio:1"
-RUST_TOKIO_CRATES = ("tokio", "tokio_stream", "tokio_util", "futures", "bytes")
+# Образ с заранее собранными крейтами (tokio, axum, sqlx/SQLite, serde, tower, tungstenite…; docker/rust-crates/Dockerfile);
+# используется задачами с полем `crates` — сети во время проверки нет, rustc получает --extern на готовые rlib
+# из /opt/ext/externs (строка `--extern имя=путь` на каждый прямой крейт).
+RUST_CRATES_IMAGE = "say-rust-crates:1"
+# Задачи с полем `postgres: True` получают запущенный PostgreSQL: готовый кластер из образа копируется в tmpfs
+# (корневая ФС только для чтения) и стартует от пользователя postgres на 127.0.0.1:5432 (trust, база chat);
+# строка подключения — postgres://postgres@127.0.0.1/chat. Без fsync: данные одноразовые.
+PG_START = (
+    "cp -a /opt/pgdata /tmp/pgdata && "
+    "runuser -u postgres -- /opt/pgbin/pg_ctl -D /tmp/pgdata -w -l /tmp/pg.log "
+    "-o '-c listen_addresses=127.0.0.1 -c unix_socket_directories=/tmp -c fsync=off "
+    "-c synchronous_commit=off -c full_page_writes=off -c shared_buffers=16MB -c max_connections=40' "
+    "start >/dev/null || { echo COMPILE_ERROR; echo 'не удалось запустить PostgreSQL'; cat /tmp/pg.log; exit 0; }; "
+)
 RUST_TIMEOUT_SEC = 60
 RUST_MEMORY = "1g"
 RUST_CPUS = "2.0"
@@ -372,10 +382,8 @@ def run_rust(task: dict, code: str) -> dict:
     crates = bool(task.get("crates"))
     externs = ""
     if crates:
-        externs = "-L dependency=/opt/deps/target/release/deps " + " ".join(
-            f"--extern {c}=/opt/ext/lib{c}.rlib" for c in RUST_TOKIO_CRATES
-        )
-    script = _COMPILE_OR_FAIL.format(
+        externs = "-L dependency=/opt/deps/target/release/deps $(cat /opt/ext/externs)"
+    script = (PG_START if task.get("postgres") else "") + _COMPILE_OR_FAIL.format(
         compile=f"rustc --edition 2021 -O -C debuginfo=0 {externs} -o /tmp/prog /sandbox/main.rs"
     ) + _EXIT_TAIL.format(run="/tmp/prog")
     return _run_program(
@@ -383,11 +391,11 @@ def run_rust(task: dict, code: str) -> dict:
         prefix="say-rs-",
         filename="main.rs",
         source=source,
-        image=RUST_TOKIO_IMAGE if crates else RUST_IMAGE,
+        image=RUST_CRATES_IMAGE if crates else RUST_IMAGE,
         script=script,
         image_missing_hint=(
-            "say-rust-tokio:1 не собран. Один раз выполните: "
-            "docker build -t say-rust-tokio:1 backend/docker/rust-tokio"
+            "say-rust-crates:1 не собран. Один раз выполните: "
+            "docker build -t say-rust-crates:1 backend/docker/rust-crates"
             if crates
             else None
         ),

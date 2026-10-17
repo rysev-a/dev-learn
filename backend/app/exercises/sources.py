@@ -4,7 +4,8 @@
 linux_tasks (8, «Погружаемся в Unix»), db_tasks (9, «Базы данных»), rust_tasks (10),
 js_tasks (11, «Современный Frontend»), py_tasks (13, «Python как первый язык»),
 arch_tasks (14, лаборатория в браузере), net_tasks (15, «Компьютерные сети»),
-c_tasks (16, «От assembler к языку C»), virt_tasks (17, «Виртуализация»).
+c_tasks (16, «От assembler к языку C»), virt_tasks (17, «Виртуализация»),
+sd_tasks (18, «Системный дизайн», лаборатория в браузере).
 """
 
 from app.exercises.algo_tasks import ALGO_TASKS
@@ -16,6 +17,7 @@ from app.exercises.linux_tasks import LINUX_TASKS
 from app.exercises.py_tasks import PY_TASKS
 from app.exercises.net_tasks import NET_TASKS
 from app.exercises.rust_tasks import RUST_TASKS
+from app.exercises.sd_tasks import SD_TASKS
 from app.exercises.virt_tasks import VIRT_TASKS
 
 BOOK_TASKS: dict[int, dict[int, list[dict]]] = {
@@ -29,6 +31,7 @@ BOOK_TASKS: dict[int, dict[int, list[dict]]] = {
     15: NET_TASKS,
     16: C_TASKS,
     17: VIRT_TASKS,
+    18: SD_TASKS,
 }
 
 # Во время работы приложение эти модули не читает: задачи лежат в БД (app/exercises/store.py),

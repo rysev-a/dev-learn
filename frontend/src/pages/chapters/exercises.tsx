@@ -8,6 +8,8 @@ import Exercises from "../../components/Exercises.tsx";
 const LabPractice = lazy(() => import("../../components/LabPractice.tsx"));
 // Симулятор сети («Компьютерные сети») — тоже лаборатория, но со своим движком
 const NetPractice = lazy(() => import("../../components/NetPractice.tsx"));
+// Схема высоконагруженного сервиса («Системный дизайн») — тоже лаборатория со своим движком
+const SdPractice = lazy(() => import("../../components/SdPractice.tsx"));
 
 // Вкладка «Практика»: код-задачи в Docker (по одной, со списком слева);
 // у книги без кода — задачи с вводом ответа.
@@ -27,7 +29,9 @@ export default function ChapterExercises() {
     codeTasks.length > 0 && codeTasks.every((t) => t.mode === "lab")
       ? String(bookId) === "15"
         ? NetPractice
-        : LabPractice
+        : String(bookId) === "18"
+          ? SdPractice
+          : LabPractice
       : CodePractice;
   if (codeTasks.length > 0)
     return (
