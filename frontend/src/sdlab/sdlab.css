@@ -12,13 +12,8 @@
   gap: 14px;
   align-items: start;
 }
-@container (min-width: 860px) {
-  .sd-work {
-    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
-  }
-}
 .sd-boardcard,
-.sd-panel,
+.sd-float,
 .sd-goals,
 .sd-metrics {
   background: var(--panel);
@@ -102,61 +97,146 @@
   user-select: none;
   touch-action: none;
 }
-.sd-edge line:not(.hit) {
+.sd-boardwrap {
+  min-width: 0;
+}
+.sd-viewport {
+  position: relative;
+}
+.sd-board.panning,
+.sd-board.panning .sd-bg {
+  cursor: grabbing;
+}
+.sd-board.placing {
+  cursor: copy;
+}
+.sd-bg {
+  cursor: grab;
+}
+.sd-dot {
+  fill: var(--border);
+}
+.sd-edge .line {
+  fill: none;
   stroke: var(--s-muted);
-  stroke-width: 1.8;
+  stroke-width: 2;
+  pointer-events: none;
 }
 .sd-edge .hit {
+  fill: none;
   stroke: transparent;
   stroke-width: 14;
   cursor: pointer;
 }
-.sd-edge.on line:not(.hit) {
-  stroke: var(--s-amber);
+.sd-edge:hover .line {
+  stroke: var(--s-accent);
 }
-.sd-edge.dead line:not(.hit) {
+.sd-edge.on .line {
+  stroke: var(--s-amber);
+  stroke-width: 3;
+}
+.sd-edge.dead .line {
   stroke: var(--s-red);
   stroke-dasharray: 4 4;
 }
-.sd-arrowhead {
-  fill: var(--s-muted);
+.sd-auto,
+.sd-pending {
+  fill: none;
+  stroke: var(--s-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  pointer-events: none;
+}
+.sd-auto {
+  stroke: var(--s-amber);
+}
+.sd-pending.ok {
+  stroke: var(--s-green);
+  stroke-dasharray: none;
+}
+.sd-pending.bad {
+  stroke: var(--s-red);
+}
+.sd-pin {
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  cursor: crosshair;
+  transition: r 0.1s;
+}
+.sd-pin.in {
+  fill: var(--bg);
+}
+.sd-pin.out {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+}
+.sd-pin:hover {
+  r: 7.5;
+  stroke: var(--s-accent);
+}
+.sd-pin.ok {
+  fill: var(--s-green);
+  stroke: var(--s-green);
+  r: 7;
+}
+.sd-pin.bad {
+  opacity: 0.25;
+}
+.sd-node.ghost {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.sd-node.ghost rect:first-of-type {
+  stroke-dasharray: 5 4;
+}
+.sd-node.moving {
+  cursor: grabbing;
+}
+.sd-node.hover-ok rect:first-of-type {
+  stroke: var(--s-green);
+  stroke-width: 3;
+}
+.sd-node.hover-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.sd-tip {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
 }
 .sd-node {
   cursor: grab;
 }
-.sd-node rect:first-child {
+.sd-node rect:first-of-type {
   fill: var(--panel);
   stroke: var(--border);
   stroke-width: 1.5;
 }
-.sd-node.clients rect:first-child {
+.sd-node.clients rect:first-of-type {
   fill: var(--bg);
   stroke-dasharray: 3 3;
 }
-.sd-node.warm rect:first-child {
+.sd-node.warm rect:first-of-type {
   stroke: var(--s-amber);
 }
-.sd-node.hot rect:first-child {
+.sd-node.hot rect:first-of-type {
   stroke: var(--s-amber);
   stroke-width: 2.5;
 }
-.sd-node.over rect:first-child,
-.sd-node.down rect:first-child {
+.sd-node.over rect:first-of-type,
+.sd-node.down rect:first-of-type {
   stroke: var(--s-red);
   stroke-width: 2.5;
 }
 .sd-node.down {
   opacity: 0.55;
 }
-.sd-node.ok rect:first-child {
+.sd-node.ok rect:first-of-type {
   stroke: var(--s-green);
 }
-.sd-node.on rect:first-child {
+.sd-node.on rect:first-of-type {
   stroke: var(--s-accent);
-  stroke-width: 3;
-}
-.sd-node.from rect:first-child {
-  stroke: var(--s-amber);
   stroke-width: 3;
 }
 .sd-ico {
@@ -189,13 +269,13 @@
 .sd-node.over .sd-bar .fg {
   fill: var(--s-red);
 }
-.sd-panel h4,
+.sd-float h4,
 .sd-goals h4,
 .sd-metrics h4 {
   margin: 0 0 8px;
   font-size: 14px;
 }
-.sd-panel h4 small,
+.sd-float h4 small,
 .sd-metrics h4 small {
   font-weight: 400;
   color: var(--s-amber);
@@ -240,19 +320,6 @@
 .sd-load.hot,
 .sd-load.warm {
   color: var(--s-amber);
-}
-.sd-ref {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.sd-ref summary {
-  cursor: pointer;
-  color: var(--s-accent);
-}
-.sd-ref ul {
-  margin: 8px 0 0;
-  padding-left: 16px;
 }
 .sd-bottom {
   display: grid;
@@ -321,4 +388,147 @@
   margin: 8px 0 0;
   font-size: 12px;
   color: var(--s-amber);
+}
+
+/* На весь экран: поле слева на всю высоту, справа прокручиваемая колонка с целями и метриками */
+.sd.fs {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  overflow: hidden;
+  container-type: normal;
+}
+.sd.fs .sd-fs-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.sd.fs .sd-boardcard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.sd.fs .sd-boardwrap.fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.sd.fs .sd-viewport {
+  flex: 1;
+  min-height: 0;
+}
+.sd.fs .sd-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sd.fs .sd-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 2px;
+}
+@media (max-width: 900px) {
+  .sd.fs {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 40%);
+  }
+}
+
+/* Кнопки в углу поля, справка и плавающая карточка параметров */
+.sd-corner {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 5;
+  max-width: calc(100% - 140px);
+}
+.sd-corner-btns {
+  display: flex;
+  gap: 6px;
+}
+.sd-iconbtn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+.sd-iconbtn:hover,
+.sd-iconbtn.on {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+.sd-help {
+  margin-top: 6px;
+  width: min(440px, 100%);
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-size: 12.5px;
+}
+.sd-help h5 {
+  margin: 10px 0 6px;
+  font-size: 13px;
+}
+.sd-help ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+}
+.sd-float {
+  position: absolute;
+  top: 46px;
+  right: 8px;
+  z-index: 5;
+  width: min(300px, 46%);
+  max-height: calc(100% - 54px);
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.sd-float-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.sd-float-x:hover {
+  color: var(--text);
+}
+.sd-float h4 {
+  padding-right: 24px;
 }

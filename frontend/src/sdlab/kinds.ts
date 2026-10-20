@@ -306,7 +306,27 @@ export const KINDS: Record<Kind, KindSpec> = {
       ZONE,
     ],
   },
-  blob: { kind: "blob", label: "Объектное хранилище", about: "файлы и медиа", params: [], col: 7 },
+  blob: {
+    kind: "blob",
+    label: "Объектное хранилище",
+    about: "файлы и медиа",
+    col: 7,
+    params: [
+      {
+        key: "tier",
+        label: "Класс хранения",
+        type: "select",
+        options: [
+          { value: "hot", label: "горячее ($23/ТБ)" },
+          { value: "mix", label: "горячее + холодное ($10/ТБ)" },
+          { value: "cold", label: "холодное ($4/ТБ)" },
+        ],
+        default: "hot",
+        basic: false,
+        help: "холодное дешевле, но доступ к объектам медленнее",
+      },
+    ],
+  },
   search: {
     kind: "search",
     label: "Поиск",
@@ -318,6 +338,55 @@ export const KINDS: Record<Kind, KindSpec> = {
     ],
   },
   monitor: { kind: "monitor", label: "Мониторинг", about: "метрики, журналы, оповещения", params: [], col: 6 },
+  auth: {
+    kind: "auth",
+    label: "Сервис входа",
+    about: "аутентификация и права: проверка токенов и сессий",
+    col: 5,
+    params: [{ key: "instances", label: "Экземпляры", type: "int", min: 1, max: 20, default: 1 }],
+  },
+  geo: {
+    kind: "geo",
+    label: "Геосервис",
+    about: "геопоиск и положения в памяти: ближайшие водители, курьеры, рестораны",
+    col: 5,
+    params: [{ key: "instances", label: "Экземпляры", type: "int", min: 1, max: 30, default: 1 }],
+  },
+  ml: {
+    kind: "ml",
+    label: "Сервис ранжирования",
+    about: "модель рекомендаций и оценок: дорогие вычисления на запрос",
+    col: 5,
+    params: [{ key: "instances", label: "Экземпляры", type: "int", min: 1, max: 20, default: 1 }],
+  },
+  pay: {
+    kind: "pay",
+    label: "Платёжный шлюз",
+    about: "внешний платёжный провайдер: медленный и дорогой вызов",
+    col: 5,
+    params: [{ key: "instances", label: "Каналы провайдера", type: "int", min: 1, max: 4, default: 1 }],
+  },
+  stream: {
+    kind: "stream",
+    label: "Поток событий",
+    about: "журнал событий с партициями: каждый потребитель получает свою копию",
+    col: 5,
+    params: [{ key: "partitions", label: "Партиции", type: "int", min: 1, max: 32, default: 1 }],
+  },
+  notify: {
+    kind: "notify",
+    label: "Уведомления",
+    about: "рассылка пушей и писем из очереди или потока",
+    col: 6,
+    params: [{ key: "instances", label: "Экземпляры", type: "int", min: 1, max: 20, default: 1 }],
+  },
+  analytics: {
+    kind: "analytics",
+    label: "Аналитика",
+    about: "хранилище событий для отчётов и метрик продукта",
+    col: 6,
+    params: [{ key: "instances", label: "Экземпляры", type: "int", min: 1, max: 10, default: 1 }],
+  },
 };
 
 export function defaultParams(kind: Kind): Record<string, ParamValue> {
@@ -337,5 +406,12 @@ export const KIND_ORDER: Kind[] = [
   "db",
   "blob",
   "search",
+  "auth",
+  "geo",
+  "ml",
+  "pay",
+  "stream",
+  "notify",
+  "analytics",
   "monitor",
 ];

@@ -26,6 +26,13 @@ const KIND_FAIL: Record<string, string> = {
   limiter: "ограничителя",
   monitor: "мониторинга",
   clients: "пользователей",
+  auth: "одного сервиса входа",
+  geo: "одного геосервиса",
+  ml: "одного сервиса ранжирования",
+  pay: "одного платёжного канала",
+  stream: "потока событий",
+  notify: "одного сервиса уведомлений",
+  analytics: "одного узла аналитики",
 };
 
 export function describe(g: Goal): string {
@@ -89,12 +96,19 @@ function redundant(n: SdState["nodes"][number]): boolean {
     case "gateway":
     case "worker":
     case "ws":
+    case "auth":
+    case "geo":
+    case "ml":
+    case "pay":
+    case "notify":
+    case "analytics":
       return baseUnits(n) >= 2;
     case "cache":
       return Number(param(n, "replicas")) >= 1;
     case "db":
       return Number(param(n, "replicas")) >= 1 && param(n, "failover") === true;
     case "queue":
+    case "stream":
       return Number(param(n, "partitions")) >= 3;
     case "search":
       return baseUnits(n) >= 2;

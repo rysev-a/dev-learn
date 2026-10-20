@@ -18,7 +18,7 @@ import {
 } from "../anim/Sd18.tsx";
 import { makeSlide } from "../SlideFrame.tsx";
 
-const Slide = makeSlide("СИСТЕМНЫЙ ДИЗАЙН / ИТОГ / ГЛАВА 18", 13);
+const Slide = makeSlide("СИСТЕМНЫЙ ДИЗАЙН / ИТОГОВЫЕ ПРОЕКТЫ / ГЛАВА 18", 13);
 
 // --- сцены ---------------------------------------------------------------
 

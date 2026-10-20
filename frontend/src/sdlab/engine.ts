@@ -1,5 +1,6 @@
 import { defaultParams } from "./kinds.ts";
 import type {
+  DepKind,
   EvalOptions,
   Kind,
   NodeLoad,
@@ -33,6 +34,15 @@ export const REF = {
   queue: { capPerPartition: 20000, cost: 60, costPerPartition: 10, avail: 0.9995 },
   worker: { cap: { S: 150, M: 400 }, cost: { S: 40, M: 80 }, avail: 0.995 },
   blob: { cap: 100000, cost: 25, avail: 0.9999 },
+  /** класс хранения объектов: цена за ТБ в месяц и задержка доступа, мс */
+  blobTier: { hot: { price: 23, lat: 45 }, mix: { price: 10, lat: 70 }, cold: { price: 4, lat: 150 } } as Record<string, { price: number; lat: number }>,
+  auth: { cap: 4000, cost: 50, avail: 0.999 },
+  geo: { cap: 6000, cost: 90, avail: 0.999 },
+  ml: { cap: 300, cost: 200, avail: 0.995 },
+  pay: { cap: 400, cost: 40, avail: 0.999 },
+  notify: { cap: 1500, cost: 45, avail: 0.999 },
+  analytics: { cap: 6000, cost: 140, avail: 0.999 },
+  stream: { capPerPartition: 50000, cost: 100, costPerPartition: 15, avail: 0.9999 },
   search: { cap: 1200, cost: 150, maxGBPerShard: 40, avail: 0.999 },
   ws: { cap: 15000, cost: 90, avail: 0.995 },
   monitor: { cost: 40 },
@@ -57,8 +67,14 @@ export const REF = {
     search: 30,
     dbRead: 9,
     dbWrite: 16,
+    auth: 6,
+    geo: 4,
+    ml: 35,
+    pay: 180,
   },
 };
+
+export const DEPS: DepKind[] = ["auth", "geo", "ml", "pay"];
 
 const VALID: Record<Kind, Kind[]> = {
   clients: ["cdn", "limiter", "gateway", "lb", "ws", "app"],
@@ -66,9 +82,16 @@ const VALID: Record<Kind, Kind[]> = {
   limiter: ["gateway", "lb", "app", "ws"],
   gateway: ["limiter", "lb", "app", "ws"],
   lb: ["limiter", "gateway", "lb", "app", "ws"],
-  ws: ["app", "queue"],
-  app: ["cache", "db", "queue", "blob", "search"],
-  queue: ["worker"],
+  ws: ["app", "queue", "stream"],
+  app: ["cache", "db", "queue", "blob", "search", "stream", "auth", "geo", "ml", "pay"],
+  queue: ["worker", "notify"],
+  stream: ["worker", "notify", "analytics"],
+  auth: [],
+  geo: [],
+  ml: [],
+  pay: [],
+  notify: [],
+  analytics: [],
   worker: ["db", "blob", "search"],
   cache: [],
   db: [],
@@ -101,6 +124,12 @@ export function baseUnits(n: SdNode): number {
     case "gateway":
     case "worker":
     case "ws":
+    case "auth":
+    case "geo":
+    case "ml":
+    case "pay":
+    case "notify":
+    case "analytics":
       return pn(n, "instances");
     case "db":
       return pn(n, "shards");
@@ -139,12 +168,19 @@ function workingUnits(n: SdNode, opts: EvalOptions): number {
     case "worker":
     case "ws":
     case "search":
+    case "auth":
+    case "geo":
+    case "ml":
+    case "pay":
+    case "notify":
+    case "analytics":
       return Math.max(0, base - 1);
     case "cache":
       return pn(n, "replicas") > 0 ? 1 : 0;
     case "db":
       return pn(n, "replicas") > 0 && pb(n, "failover") ? base : 0;
     case "queue":
+    case "stream":
       return pn(n, "partitions") >= 3 ? 1 : 0;
     default:
       return 0;
@@ -176,7 +212,7 @@ const PRICE: Record<string, number> = { ondemand: 1, reserved: 0.6, spot: 0.3 };
 
 const sizeOf = (n: SdNode): "S" | "M" | "L" => (ps(n, "size") as "S" | "M" | "L") || "S";
 
-function nodeCost(n: SdNode): number {
+function nodeCost(n: SdNode, wl: Workload): number {
   switch (n.kind) {
     case "app":
       return REF.app.cost[sizeOf(n)] * pn(n, "instances") * (PRICE[ps(n, "pricing")] ?? 1) * (ps(n, "deploy") === "bluegreen" ? 2 : 1);
@@ -197,7 +233,16 @@ function nodeCost(n: SdNode): number {
     case "worker":
       return REF.worker.cost[sizeOf(n) === "L" ? "M" : (sizeOf(n) as "S" | "M")] * pn(n, "instances") * (PRICE[ps(n, "pricing")] ?? 1);
     case "blob":
-      return REF.blob.cost;
+      return REF.blob.cost + (wl.mediaTB ?? 0) * (REF.blobTier[ps(n, "tier")]?.price ?? REF.blobTier["hot"]?.price ?? 23);
+    case "auth":
+    case "geo":
+    case "ml":
+    case "pay":
+    case "notify":
+    case "analytics":
+      return REF[n.kind].cost * pn(n, "instances");
+    case "stream":
+      return REF.stream.cost + REF.stream.costPerPartition * pn(n, "partitions");
     case "search":
       return REF.search.cost * pn(n, "shards") * pn(n, "replicas");
     case "ws":
@@ -228,6 +273,13 @@ function tierAvail(n: SdNode): number {
       return pn(n, "partitions") >= 3 ? 0.99999 : REF.queue.avail;
     case "blob":
       return REF.blob.avail;
+    case "auth":
+    case "geo":
+    case "ml":
+    case "pay":
+      return redundant(REF[n.kind].avail, pn(n, "instances"));
+    case "stream":
+      return pn(n, "partitions") >= 3 ? 0.99999 : REF.stream.avail;
     case "search":
       return redundant(REF.search.avail, pn(n, "replicas"));
     default:
@@ -294,6 +346,12 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
     const w = (n: SdNode) => (n.kind === "app" ? Math.max(1, pn(n, "weight")) : Math.max(1, units(n)));
     const total = pool.reduce((s, n) => s + w(n), 0) || 1;
     return pool.map((n) => [n, w(n) / total]);
+  };
+
+  const callsOf = (k: DepKind): number => Math.max(0, Math.min(1, wl.calls?.[k] ?? 0));
+  /** нагрузка потребителям очереди/потока: обработчики разбирают, уведомления и аналитика получают копию */
+  const fanConsumers = (acc: (id: string) => Acc, queue: SdNode, rate: number): void => {
+    for (const k of ["notify", "analytics"] as const) for (const [c, share] of split(kids(queue, [k]))) acc(c.id).rps += rate * share;
   };
 
   const feedRead = (app: SdNode): number => {
@@ -366,6 +424,10 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
             return;
           }
           a.rps += r;
+          for (const k of DEPS) {
+            const f = callsOf(k);
+            if (f > 0) for (const [d, share] of split(kids(n, [k]))) A(d.id).rps += r * f * share;
+          }
           const dbs = kids(n, ["db"]);
           const db = dbs[0];
           if (cls === "read") {
@@ -399,16 +461,24 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
           }
           // write
           const queue = kids(n, ["queue"])[0];
+          const stream = kids(n, ["stream"])[0];
           const cache = hasCache(n);
           if (cache) {
             A(cache.id).rps += r * 0.5;
             A(cache.id).writes += r;
+          }
+          // поток событий — побочная копия записи: потребители (уведомления, аналитика) получают событие, путь запроса не меняется
+          if (stream) {
+            A(stream.id).queued += r;
+            A(stream.id).rps += r;
+            fanConsumers(A, stream, r);
           }
           if (queue) {
             A(queue.id).queued += r;
             A(queue.id).rps += r;
             paths.push({ p: prob, cls, nodes: [...here, queue.id], ok: true });
             // асинхронное продолжение: обработчики → БД (по схеме, только нагрузка)
+            fanConsumers(A, queue, r);
             const workers = kids(queue, ["worker"]);
             const amp = feedWrite(n);
             for (const [w, share] of split(workers)) {
@@ -422,7 +492,8 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
             A(db.id).extra += 0;
             A(db.id).writes += r * (feedWrite(n) - 1);
             walk(db, "write", prob, rate, cache ? [...here, cache.id] : here);
-          } else paths.push({ p: prob, cls, nodes: here, ok: false });
+          } else if (stream) paths.push({ p: prob, cls, nodes: [...here, stream.id], ok: true });
+          else paths.push({ p: prob, cls, nodes: here, ok: false });
           return;
         }
         case "db": {
@@ -489,15 +560,23 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
         const targets = kids(w, ["app"]);
         for (const [app, s2] of split(targets)) {
           A(app.id).rps += msgs * s2;
-          const queue = kids(app, ["queue"])[0];
+          const queue = kids(app, ["queue", "stream"])[0];
           const db = kids(app, ["db"])[0];
-          if (queue) A(queue.id).queued += msgs * s2;
+          if (queue) {
+            A(queue.id).queued += msgs * s2;
+            fanConsumers(A, queue, msgs * s2);
+          }
           else if (db) {
             A(db.id).writes += msgs * s2;
             A(db.id).rps += msgs * s2;
           }
         }
       }
+    }
+    // обновления геопозиций идут прямо в сервисы геопоиска, подключённые к приложению
+    if ((wl.geoUpdates ?? 0) > 0) {
+      const geos = state.nodes.filter((g) => g.kind === "geo" && state.edges.some((e) => e.to === g.id && nodes.get(e.from)?.kind === "app"));
+      for (const [g, share] of split(geos)) A(g.id).rps += (wl.geoUpdates ?? 0) * share;
     }
     return { acc, paths };
   }
@@ -632,6 +711,21 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
         ut = cap > 0 ? load / cap : load > 0 ? 9 : 0;
         break;
       }
+      case "auth":
+      case "geo":
+      case "ml":
+      case "pay":
+      case "notify":
+      case "analytics":
+        cap = REF[n.kind].cap * u;
+        ut = cap > 0 ? load / cap : load > 0 ? 9 : 0;
+        break;
+      case "stream": {
+        load = a.queued;
+        cap = REF.stream.capPerPartition * pn(n, "partitions") * (u > 0 ? 1 : 0);
+        ut = cap > 0 ? load / cap : load > 0 ? 9 : 0;
+        break;
+      }
       case "worker": {
         load = a.asyncWrites;
         cap = workerCap(n);
@@ -702,7 +796,7 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
   }
 
   /* очередь: отставание */
-  const queue = state.nodes.find((n) => n.kind === "queue");
+  const queue = state.nodes.find((n) => n.kind === "queue") ?? state.nodes.find((n) => n.kind === "stream");
   if (queue) {
     const arrive = acc.get(queue.id)?.queued ?? 0;
     const hasWorker = state.nodes.some((n) => n.kind === "worker");
@@ -740,7 +834,13 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
         base = REF.lat.queue;
         break;
       case "blob":
-        base = REF.lat.blob;
+        base = REF.blobTier[ps(n, "tier")]?.lat ?? REF.lat.blob;
+        break;
+      case "auth":
+      case "geo":
+      case "ml":
+      case "pay":
+        base = REF.lat[n.kind];
         break;
       case "search":
         base = REF.lat.search;
@@ -782,6 +882,32 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
       if (!n || n.kind === "clients") continue;
       touched.add(id);
       l += ownLat(n, p.cls, p.nodes.slice(0, i));
+      if (n.kind === "app" && p.cls !== "static") {
+        // вызовы сервисов: на долю f запросов добавляются задержка, потери и риск сервиса; нет связи — эти запросы не выполняются
+        for (const k of DEPS) {
+          const f = callsOf(k);
+          if (f <= 0) continue;
+          const group = kids(n, [k]);
+          if (!group.length) {
+            s *= 1 - f;
+            av *= 1 - f;
+            continue;
+          }
+          let gl = 0;
+          let gs = 0;
+          let ga = 0;
+          for (const d of group) {
+            touched.add(d.id);
+            const du = util[d.id] ?? 0;
+            gl += ownLat(d, p.cls, []);
+            gs += units(d) > 0 ? (du > 1 ? 1 / du : 1) : 0;
+            ga += tierAvail(d);
+          }
+          l += (f * gl) / group.length;
+          s *= 1 - f + (f * gs) / group.length;
+          av *= 1 - f + (f * ga) / group.length;
+        }
+      }
       const ut = util[id] ?? 0;
       const served = ut > 1 ? 1 / ut : 1;
       if (n.kind === "limiter") {
@@ -805,7 +931,7 @@ export function evaluate(state: SdState, wl: Workload, opts: EvalOptions = {}): 
   const p99 = Math.round(lat * 1.8 + Math.min(4000, tail));
 
   const entry = paths.length > 0 && paths.some((p) => p.ok);
-  const cost = state.nodes.reduce((s, n) => s + nodeCost(n), 0);
+  const cost = state.nodes.reduce((s, n) => s + nodeCost(n, wl), 0);
 
   for (const n of state.nodes) {
     if (n.kind === "clients") continue;

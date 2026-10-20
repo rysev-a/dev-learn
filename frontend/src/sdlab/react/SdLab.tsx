@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import ResultAlert from "../../lab/react/ResultAlert.tsx";
 import { allOk, checkGoals } from "../checks.ts";
-import { canLink, evaluate, REF, param } from "../engine.ts";
+import { evaluate, REF, param } from "../engine.ts";
 import { KINDS, defaultParams, type ParamSpec } from "../kinds.ts";
-import { colX, nextY } from "../layout.ts";
-import type { FailKind, Kind, ParamValue, SdScenario, SdState, Workload } from "../types.ts";
+import { colX, nextY, place } from "../layout.ts";
+import { NODE_H, NODE_W, connectError } from "../ports.ts";
+import type { FailKind, Kind, ParamValue, SdEdge, SdScenario, SdState, Workload } from "../types.ts";
 import Board from "./Board.tsx";
 import "../../lab/lab.css";
 import "../sdlab.css";
@@ -25,11 +27,17 @@ interface SdLabProps {
 
 const clone = (s: SdState): SdState => JSON.parse(JSON.stringify(s)) as SdState;
 
+/** схема старой раскладки (узлы налезают друг на друга) — расставляем по колонкам заново */
+function tidy(s: SdState): SdState {
+  const crowded = s.nodes.some((a, i) => s.nodes.some((b, j) => j > i && Math.abs(a.x - b.x) < NODE_W && Math.abs(a.y - b.y) < NODE_H));
+  return crowded ? place({ ...s, nodes: s.nodes.map((n) => ({ ...n, x: -1, y: -1 })) }) : s;
+}
+
 function restore(scenario: SdScenario, code?: string): SdState {
   if (!code) return clone(scenario.start);
   try {
     const s = JSON.parse(code) as SdState;
-    if (Array.isArray(s.nodes) && Array.isArray(s.edges) && s.nodes.some((n) => n.kind === "clients")) return s;
+    if (Array.isArray(s.nodes) && Array.isArray(s.edges) && s.nodes.some((n) => n.kind === "clients")) return tidy(s);
   } catch {
     /* повреждённый черновик */
   }
@@ -67,16 +75,23 @@ const FAIL_LABEL: Partial<Record<FailKind, string>> = {
   gateway: "падает шлюз",
   search: "падает реплика поиска",
   ws: "падает WebSocket-шлюз",
+  auth: "падает сервис входа",
+  geo: "падает геосервис",
+  ml: "падает сервис ранжирования",
+  pay: "падает платёжный канал",
+  stream: "падает поток событий",
+  notify: "падает сервис уведомлений",
+  analytics: "падает узел аналитики",
 };
 
 export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, onNext, hasNext, nextLabel }: SdLabProps) {
   const [state, setState] = useState(() => restore(scenario, code));
   const [sel, setSel] = useState<string | null>(null);
   const [selEdge, setSelEdge] = useState<number | null>(null);
-  const [link, setLink] = useState(false);
-  const [linkFrom, setLinkFrom] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [hintOpen, setHintOpen] = useState(false);
+  const [fs, setFs] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [down, setDown] = useState<string[]>([]);
   const [fail, setFail] = useState<FailKind | "">("");
   const solvedRef = useRef(solvedBefore);
@@ -102,10 +117,23 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
     }
   }, [solved, state, onSolved]);
 
+  useEffect(() => {
+    if (!fs) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setFs(false);
+    document.addEventListener("keydown", key);
+    const old = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", key);
+      document.body.style.overflow = old;
+    };
+  }, [fs]);
+
   const kindsOnBoard = [...new Set(state.nodes.map((n) => n.kind))].filter((k) => k !== "clients" && k !== "monitor" && FAIL_LABEL[k]);
   const selected = state.nodes.find((n) => n.id === sel) ?? null;
 
-  const add = (kind: Kind) => {
+  /** поставить компонент; (x, y) не заданы — на свободное место своей колонки */
+  const place = (kind: Kind, at?: { x: number; y: number }, edges: SdEdge[] = []) => {
     if (state.nodes.length >= (scenario.maxNodes ?? 14)) return setNotice(`На схеме не больше ${scenario.maxNodes ?? 14} компонентов.`);
     setNotice("");
     let i = 1;
@@ -117,37 +145,37 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
         id,
         kind,
         name: same ? `${KINDS[kind].label} ${same + 1}` : KINDS[kind].label,
-        x: colX(KINDS[kind].col),
-        y: nextY(state, KINDS[kind].col),
+        x: at ? at.x : colX(KINDS[kind].col),
+        y: at ? at.y : nextY(state, KINDS[kind].col),
         params: defaultParams(kind),
       });
+      for (const e of edges) {
+        const from = e.from === "__new__" ? id : e.from;
+        const to = e.to === "__new__" ? id : e.to;
+        if (!s.edges.some((x) => x.from === from && x.to === to)) s.edges.push({ from, to });
+      }
     });
     setSel(id);
     setSelEdge(null);
   };
 
-  const onNode = (id: string) => {
-    if (link) {
-      if (!linkFrom) {
-        setLinkFrom(id);
-        setNotice("");
-        return;
-      }
-      const a = state.nodes.find((n) => n.id === linkFrom);
-      const b = state.nodes.find((n) => n.id === id);
-      setLinkFrom(null);
-      if (!a || !b || a.id === b.id) return;
-      if (!canLink(a.kind, b.kind)) return setNotice(`«${a.name}» не соединяется с «${b.name}»: так в этой модели не устроено.`);
-      if (state.edges.some((e) => e.from === a.id && e.to === b.id)) return setNotice("Такая связь уже есть.");
-      setNotice("");
-      update((s) => {
-        s.edges.push({ from: a.id, to: b.id });
-      });
-      return;
-    }
-    setSel(id);
-    setSelEdge(null);
+  const connect = (from: string, to: string): string | null => {
+    const a = state.nodes.find((n) => n.id === from);
+    const b = state.nodes.find((n) => n.id === to);
+    if (!a || !b) return "Компонент не найден.";
+    const err = connectError(state, a, b);
+    if (err) return err;
+    setNotice("");
+    update((s) => {
+      s.edges.push({ from, to });
+    });
+    return null;
   };
+
+  const autoEdges = (edges: SdEdge[]) =>
+    update((s) => {
+      for (const e of edges) if (!s.edges.some((x) => x.from === e.from && x.to === e.to)) s.edges.push({ from: e.from, to: e.to });
+    });
 
   const remove = () => {
     if (selEdge !== null) {
@@ -178,8 +206,6 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
     persist(s);
     setSel(null);
     setSelEdge(null);
-    setLink(false);
-    setLinkFrom(null);
     setDown([]);
     setFail("");
     setNotice("");
@@ -219,9 +245,79 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
   const load = selected ? result.loads[selected.id] : undefined;
   const nameOf = (id: string) => state.nodes.find((n) => n.id === id)?.name ?? id;
 
-  return (
-    <div className="sd">
-      <div className="sd-work">
+  const paramsEl = selected ? (
+    <div className="sd-float" onPointerDown={(e) => e.stopPropagation()}>
+      <button type="button" className="sd-float-x" title="Закрыть" aria-label="Закрыть" onClick={() => setSel(null)}>
+        ×
+      </button>
+              <h4>{selected.name}</h4>
+              <p className="sd-about">{KINDS[selected.kind].about}</p>
+              {KINDS[selected.kind].params
+                .filter((p) => p.basic !== false || scenario.show?.includes(`${selected.kind}.${p.key}`))
+                .map((p) => (
+                <label key={p.key} className="sd-field">
+                  <span>{p.label}</span>
+                  {fieldOf(p)}
+                  {p.help && <small>{p.help}</small>}
+                </label>
+              ))}
+              {selected.kind !== "clients" && selected.kind !== "monitor" && (
+                <>
+                  <label className="sd-field row">
+                    <span>Отключить (проверить отказ)</span>
+                    <input
+                      type="checkbox"
+                      checked={down.includes(selected.id)}
+                      onChange={(e) => setDown((d) => (e.target.checked ? [...d, selected.id] : d.filter((x) => x !== selected.id)))}
+                    />
+                  </label>
+                  {load && (
+                    <p className={`sd-load ${load.status}`}>
+                      Нагрузка: {Math.round(load.load)} · ёмкость: {Math.round(load.cap)} · загрузка {Math.round(load.util * 100)}%
+                      {load.note ? ` · ${load.note}` : ""}
+                    </p>
+                  )}
+                </>
+              )}
+    </div>
+  ) : null;
+  const helpEl = helpOpen ? (
+    <div className="sd-help" role="dialog" aria-label="Справка по схеме">
+      <p className="sd-about">Выберите компонент на схеме, чтобы изменить его параметры. Новые компоненты перетащите на поле из палитры над ним (или кликните по кнопке), связи тяните от выходного порта к входному — подходящие соседи подключаются сами.</p>
+          <h5>Справочник чисел</h5>
+            <ul>
+              <li>Сервер приложения: S/M/L = {REF.app.cap.S}/{REF.app.cap.M}/{REF.app.cap.L} запр/с, ${REF.app.cost.S}/{REF.app.cost.M}/{REF.app.cost.L}; статика — {REF.staticWeight} запроса.</li>
+              <li>База: чтения {REF.db.read.S}/{REF.db.read.M}/{REF.db.read.L} в с, записи {REF.db.write.S}/{REF.db.write.M}/{REF.db.write.L} в с на узел; ${REF.db.cost.S}/{REF.db.cost.M}/{REF.db.cost.L} за узел; NoSQL ×{REF.db.nosql}.</li>
+              <li>Кэш: {REF.cache.cap} запр/с, ${REF.cache.costPerGB} за ГБ; CDN ${REF.cdn.cost}; балансировщик {REF.lb.cap} запр/с, ${REF.lb.cost}.</li>
+              <li>Очередь: {REF.queue.capPerPartition} сообщ/с на партицию; обработчик S/M: {REF.worker.cap.S}/{REF.worker.cap.M} записей/с.</li>
+              <li>Поиск: {REF.search.cap} запр/с на реплику, не больше {REF.search.maxGBPerShard} ГБ на шард, ${REF.search.cost} за узел.</li>
+              <li>WebSocket-шлюз: {REF.ws.cap} соединений на экземпляр, ${REF.ws.cost}.</li>
+              <li>Доступность одного экземпляра: сервер 99,5%, база 99,9%, балансировщик 99,95%; n экземпляров: 1 − (1 − a)ⁿ.</li>
+            </ul>
+    </div>
+  ) : null;
+  const cornerEl = (
+    <div className="sd-corner">
+      <div className="sd-corner-btns">
+        <button type="button" className={`sd-iconbtn ${helpOpen ? "on" : ""}`} title="Справка" aria-label="Справка" aria-pressed={helpOpen} onClick={() => setHelpOpen((v) => !v)}>
+          ?
+        </button>
+        <button type="button" className="sd-iconbtn" title={fs ? "Свернуть (Esc)" : "Схема на весь экран"} aria-label={fs ? "Свернуть" : "На весь экран"} onClick={() => setFs((v) => !v)}>
+          {fs ? (
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+            </svg>
+          )}
+        </button>
+      </div>
+      {helpEl}
+    </div>
+  );
+  const boardCard = (
         <div className="sd-boardcard">
           <div className="sd-chips">
             {workloadChips(wl).map((c) => (
@@ -229,24 +325,6 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
             ))}
           </div>
           <div className="sd-toolbar">
-            {scenario.palette.map((k) => (
-              <button key={k} type="button" className="sd-add" title={KINDS[k].about} onClick={() => add(k)}>
-                + {KINDS[k].label}
-              </button>
-            ))}
-          </div>
-          <div className="sd-toolbar">
-            <button
-              type="button"
-              className={`quiz-btn ghost ${link ? "running" : ""}`}
-              onClick={() => {
-                setLink((v) => !v);
-                setLinkFrom(null);
-                setNotice("");
-              }}
-            >
-              {link ? "Готово" : "Связать"}
-            </button>
             <button type="button" className="quiz-btn ghost" onClick={remove} disabled={selEdge === null && (!selected || selected.kind === "clients")}>
               Удалить
             </button>
@@ -278,12 +356,18 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
             loads={result.loads}
             selected={sel}
             selectedEdge={selEdge}
-            linkFrom={linkFrom}
             down={down}
-            onNode={onNode}
-            onEdge={(i) => {
+            palette={scenario.palette}
+            fullscreen={fs}
+            corner={cornerEl}
+            overlay={paramsEl}
+            onSelectNode={(id) => {
+              setSel(id);
+              setSelEdge(null);
+            }}
+            onSelectEdge={(i) => {
               setSelEdge(i);
-              setSel(null);
+              if (i !== null) setSel(null);
             }}
             onMove={(id, x, y, done) =>
               update((s) => {
@@ -294,68 +378,22 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
                 }
               }, done)
             }
+            onConnect={connect}
+            onPlace={(kind, x, y, edges) => place(kind, { x, y }, edges)}
+            onAddDefault={(kind) => place(kind)}
+            onAutoEdges={autoEdges}
+            onDelete={remove}
+            onMessage={setNotice}
           />
           {notice && <p className="sd-notice">{notice}</p>}
-          {link && <p className="sd-notice">{linkFrom ? "Теперь выберите, куда ведёт связь." : "Выберите компонент, откуда идёт связь."}</p>}
           {selEdge !== null && state.edges[selEdge] && (
             <p className="sd-hint">
               Связь «{nameOf(state.edges[selEdge].from)} → {nameOf(state.edges[selEdge].to)}» выбрана — «Удалить» уберёт её.
             </p>
           )}
         </div>
-
-        <div className="sd-panel">
-          {selected ? (
-            <>
-              <h4>{selected.name}</h4>
-              <p className="sd-about">{KINDS[selected.kind].about}</p>
-              {KINDS[selected.kind].params
-                .filter((p) => p.basic !== false || scenario.show?.includes(`${selected.kind}.${p.key}`))
-                .map((p) => (
-                <label key={p.key} className="sd-field">
-                  <span>{p.label}</span>
-                  {fieldOf(p)}
-                  {p.help && <small>{p.help}</small>}
-                </label>
-              ))}
-              {selected.kind !== "clients" && selected.kind !== "monitor" && (
-                <>
-                  <label className="sd-field row">
-                    <span>Отключить (проверить отказ)</span>
-                    <input
-                      type="checkbox"
-                      checked={down.includes(selected.id)}
-                      onChange={(e) => setDown((d) => (e.target.checked ? [...d, selected.id] : d.filter((x) => x !== selected.id)))}
-                    />
-                  </label>
-                  {load && (
-                    <p className={`sd-load ${load.status}`}>
-                      Нагрузка: {Math.round(load.load)} · ёмкость: {Math.round(load.cap)} · загрузка {Math.round(load.util * 100)}%
-                      {load.note ? ` · ${load.note}` : ""}
-                    </p>
-                  )}
-                </>
-              )}
-            </>
-          ) : (
-            <p className="sd-about">Выберите компонент на схеме, чтобы изменить его параметры. Новые компоненты добавляются кнопками выше, связи — кнопкой «Связать».</p>
-          )}
-          <details className="sd-ref">
-            <summary>Справочник чисел</summary>
-            <ul>
-              <li>Сервер приложения: S/M/L = {REF.app.cap.S}/{REF.app.cap.M}/{REF.app.cap.L} запр/с, ${REF.app.cost.S}/{REF.app.cost.M}/{REF.app.cost.L}; статика — {REF.staticWeight} запроса.</li>
-              <li>База: чтения {REF.db.read.S}/{REF.db.read.M}/{REF.db.read.L} в с, записи {REF.db.write.S}/{REF.db.write.M}/{REF.db.write.L} в с на узел; ${REF.db.cost.S}/{REF.db.cost.M}/{REF.db.cost.L} за узел; NoSQL ×{REF.db.nosql}.</li>
-              <li>Кэш: {REF.cache.cap} запр/с, ${REF.cache.costPerGB} за ГБ; CDN ${REF.cdn.cost}; балансировщик {REF.lb.cap} запр/с, ${REF.lb.cost}.</li>
-              <li>Очередь: {REF.queue.capPerPartition} сообщ/с на партицию; обработчик S/M: {REF.worker.cap.S}/{REF.worker.cap.M} записей/с.</li>
-              <li>Поиск: {REF.search.cap} запр/с на реплику, не больше {REF.search.maxGBPerShard} ГБ на шард, ${REF.search.cost} за узел.</li>
-              <li>WebSocket-шлюз: {REF.ws.cap} соединений на экземпляр, ${REF.ws.cost}.</li>
-              <li>Доступность одного экземпляра: сервер 99,5%, база 99,9%, балансировщик 99,95%; n экземпляров: 1 − (1 − a)ⁿ.</li>
-            </ul>
-          </details>
-        </div>
-      </div>
-
-      <div className="sd-bottom">
+  );
+  const goalsEl = (
         <div className="sd-goals">
           <h4>Цели</h4>
           <ul>
@@ -378,7 +416,8 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
             </ResultAlert>
           )}
         </div>
-
+  );
+  const metricsEl = (
         <div className="sd-metrics">
           <h4>
             Метрики {fail ? <small>· {FAIL_LABEL[fail]}</small> : null}
@@ -431,7 +470,25 @@ export default function SdLab({ scenario, code, onCode, solvedBefore, onSolved, 
             </p>
           ))}
         </div>
+  );
+
+  const content = fs ? (
+    <div className="sd fs">
+      <div className="sd-fs-main">{boardCard}</div>
+      <div className="sd-side">
+        {goalsEl}
+        {metricsEl}
+      </div>
+    </div>
+  ) : (
+    <div className="sd">
+      <div className="sd-work">{boardCard}</div>
+      <div className="sd-bottom">
+        {goalsEl}
+        {metricsEl}
       </div>
     </div>
   );
+  // на весь экран — поверх страницы, вне её вёрстки
+  return fs ? createPortal(content, document.body) : content;
 }

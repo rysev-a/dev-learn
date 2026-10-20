@@ -17,6 +17,12 @@ import { CH15 } from "./scenarios/ch15.ts";
 import { CH16 } from "./scenarios/ch16.ts";
 import { CH17 } from "./scenarios/ch17.ts";
 import { CH18 } from "./scenarios/ch18.ts";
+import { CH19 } from "./scenarios/ch19.ts";
+import { CH20 } from "./scenarios/ch20.ts";
+import { CH21 } from "./scenarios/ch21.ts";
+import { CH22 } from "./scenarios/ch22.ts";
+import { CH23 } from "./scenarios/ch23.ts";
+import { CH24 } from "./scenarios/ch24.ts";
 import type { SdScenario } from "./types.ts";
 
 export const SD_BOOK = 18;
@@ -40,6 +46,12 @@ export const SD_CHAPTERS: Record<number, SdScenario[]> = {
   16: CH16,
   17: CH17,
   18: CH18,
+  19: CH19,
+  20: CH20,
+  21: CH21,
+  22: CH22,
+  23: CH23,
+  24: CH24,
 };
 
 export const sdTasks = (chapter: string | number) =>

@@ -1,11 +1,15 @@
 import { KINDS } from "./kinds.ts";
 import type { SdNode, SdState } from "./types.ts";
 
-/* Раскладка схемы по колонкам слева направо: пользователи → CDN → шлюзы → серверы → кэш/очередь → хранилища. */
+/* Раскладка схемы по колонкам слева направо: пользователи → CDN → шлюзы → серверы → кэш/очередь → хранилища.
+   Окно просмотра — BOARD_W × BOARD_H единиц (по нему считается масштаб), сама схема шире: колонки стоят через 150,
+   а при открытии поле «вписывает» схему в окно (Board.fit). */
 
 export const BOARD_W = 780;
-export const BOARD_H = 420;
-const COL_X = [60, 150, 240, 330, 420, 520, 610, 710];
+export const BOARD_H = 560;
+const LAYOUT_H = 470;
+const COL_STEP = 150;
+const COL_X = Array.from({ length: 8 }, (_, i) => 70 + i * COL_STEP);
 
 export function place(state: SdState): SdState {
   const byCol = new Map<number, SdNode[]>();
@@ -18,15 +22,15 @@ export function place(state: SdState): SdState {
     const col = KINDS[n.kind].col;
     const list = byCol.get(col) ?? [n];
     const i = list.indexOf(n);
-    const step = BOARD_H / (list.length + 1);
-    return { ...n, x: COL_X[col] ?? 60, y: Math.round(step * (i + 1)) };
+    const step = LAYOUT_H / (list.length + 1);
+    return { ...n, x: COL_X[col] ?? 70, y: Math.round(step * (i + 1)) };
   });
   return { ...state, nodes };
 }
 
 export function nextY(state: SdState, col: number): number {
   const ys = state.nodes.filter((n) => KINDS[n.kind].col === col).map((n) => n.y);
-  return ys.length ? Math.min(BOARD_H - 30, Math.max(...ys) + 70) : BOARD_H / 2;
+  return ys.length ? Math.max(...ys) + 80 : LAYOUT_H / 2;
 }
 
-export const colX = (col: number) => COL_X[col] ?? 60;
+export const colX = (col: number) => COL_X[col] ?? 70;

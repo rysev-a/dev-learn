@@ -15,7 +15,17 @@ export type Kind =
   | "blob"
   | "search"
   | "ws"
-  | "monitor";
+  | "monitor"
+  | "auth"
+  | "geo"
+  | "ml"
+  | "pay"
+  | "stream"
+  | "notify"
+  | "analytics";
+
+/** сервисы, которые приложение вызывает на части запросов (Workload.calls) */
+export type DepKind = "auth" | "geo" | "ml" | "pay";
 
 export type ParamValue = number | string | boolean;
 
@@ -64,6 +74,12 @@ export interface Workload {
   monotonic?: boolean;
   /** среднее число подписчиков автора (для ленты) */
   fanout?: number;
+  /** доля запросов приложения, которая обращается к сервису: {auth: 1, geo: 0.3, …}; без связи с сервисом такие запросы не выполняются */
+  calls?: Partial<Record<DepKind, number>>;
+  /** обновления геопозиций в секунду (такси, курьеры): нагрузка на сервисы геопоиска */
+  geoUpdates?: number;
+  /** объём файлов в объектном хранилище, ТБ (влияет на стоимость и класс хранения) */
+  mediaTB?: number;
 }
 
 export type FailKind = Kind | "zone" | "region" | "deploy";
