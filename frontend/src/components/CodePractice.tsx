@@ -26,6 +26,28 @@ const langOf = (t: Task): EditorLang =>
     ? t.mode
     : "python";
 
+interface RunRequest {
+  book: number;
+  chapter: number;
+  task: string;
+  code: string;
+}
+type JobState = { state: "queued"; position?: number } | { state: "running" } | ({ state: "done" } & RunResult);
+
+/** Ставит решение в очередь проверки и ждёт результат (опрос раз в ~0,7 с); onPhase — «в очереди» / «выполняется» */
+async function checkCode(req: RunRequest, onPhase: (state: "queued" | "running", position?: number) => void): Promise<RunResult> {
+  let job = await api<JobState & { id: string }>("/api/exercises/run", { method: "POST", body: req });
+  const id = job.id;
+  const t0 = Date.now();
+  while (job.state !== "done") {
+    onPhase(job.state, job.state === "queued" ? job.position : undefined);
+    if (Date.now() - t0 > 6 * 60_000) throw new Error("Проверка слишком долго ждёт в очереди — попробуйте позже.");
+    await new Promise((r) => setTimeout(r, 700));
+    job = { ...(await api<JobState>(`/api/exercises/run/${id}`)), id };
+  }
+  return job;
+}
+
 // логи последнего запуска каждой задачи переживают переключение вкладок
 const resultCache = new Map<string, RunResult>();
 
@@ -63,6 +85,8 @@ export default function CodePractice({
   const codeOf = (t: Task) => drafts?.[t.id] ?? (t.starter || "");
   const [attempts, setAttempts] = useState<Record<string, Attempt[]>>({}); // id задачи → попытки, новые первыми
   const [busy, setBusy] = useState<string | null>(null);
+  // где проверка: «в очереди (N)» или «выполняется»
+  const [phase, setPhase] = useState("");
   const [hint, setHint] = useState<Record<string, boolean>>({});
   const [, redraw] = useState(0);
 
@@ -92,15 +116,11 @@ export default function CodePractice({
     flush();
     setBusy(id);
     try {
-      const data = await api<RunResult>("/api/exercises/run", {
-        method: "POST",
-        body: {
-          book: Number(bookId),
-          chapter: Number(chapter),
-          task: id,
-          code: source,
-        },
-      });
+      const data = await checkCode(
+        { book: Number(bookId), chapter: Number(chapter), task: id, code: source },
+        (state, position) =>
+          setPhase(state === "queued" ? `В очереди${position && position > 1 ? ` (перед вами ${position - 1})` : ""}…` : "Выполняется в песочнице…"),
+      );
       resultCache.set(key, { ...data, okAll: data.solved });
       progress.setCodeStatus(bookId, chapter, id, data.solved ? "ok" : "bad");
       setAttempts((p) => ({
@@ -125,6 +145,7 @@ export default function CodePractice({
       });
     } finally {
       setBusy(null);
+      setPhase("");
       redraw((n) => n + 1);
     }
   }
@@ -223,7 +244,7 @@ export default function CodePractice({
                 disabled={busy != null}
                 title="Проверить (Ctrl+Enter)"
               >
-                {running ? "Запускаю…" : "Проверить"}
+                {running ? (phase.startsWith("В очереди") ? "В очереди…" : "Проверяю…") : "Проверить"}
               </button>
             )}
             {goMode && (
@@ -233,7 +254,7 @@ export default function CodePractice({
                 disabled={busy != null}
                 title="Запустить проверку ещё раз"
               >
-                {running ? "Запускаю…" : "Проверить ещё раз"}
+                {running ? (phase.startsWith("В очереди") ? "В очереди…" : "Проверяю…") : "Проверить ещё раз"}
               </button>
             )}
             {task.hint && (
@@ -256,7 +277,7 @@ export default function CodePractice({
           </div>
           {hint[task.id] && task.hint && <p className="ex-hint">{task.hint}</p>}
 
-          <Results res={res} running={running} />
+          <Results res={res} running={running} phase={phase} />
 
           <History
             items={history}
@@ -312,11 +333,11 @@ function History({
   );
 }
 
-function Results({ res, running }: { res: RunResult | null; running: boolean }) {
+function Results({ res, running, phase }: { res: RunResult | null; running: boolean; phase: string }) {
   if (running)
     return (
       <div className="pr-res">
-        <p className="pr-empty">Запускаю в песочнице…</p>
+        <p className="pr-empty">{phase || "Ставлю в очередь…"}</p>
       </div>
     );
   if (!res)

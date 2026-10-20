@@ -1,15 +1,15 @@
 """API упражнений: список задач главы, запуск кода в песочнице, история попыток."""
 
-import threading
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app import config
 from app.accounts import practice
 from app.accounts.deps import current_user
 from app.books.service import db
-from app.exercises import runner, tasks
+from app.exercises import jobs, tasks
 
 router = APIRouter(prefix="/api/exercises", tags=["exercises"])
 
@@ -25,6 +25,51 @@ def summary():
         str(book): {str(ch): n for ch, n in chapters.items()}
         for book, chapters in tasks.summary().items()
     }
+
+
+class RunIn(BaseModel):
+    book: int
+    chapter: int
+    task: str
+    code: str = Field(max_length=MAX_CODE)
+
+
+@router.get("/runner/status")
+def runner_status():
+    """Работает ли проверка кода и сколько заданий в очереди (интерфейс показывает «временно недоступна»)."""
+    with db() as conn:
+        st = jobs.status(conn)
+    st["available"] = config.RUNNER_MODE == "local" or st["workers"] > 0
+    return st
+
+
+@router.post("/run", status_code=202)
+def run_code(body: RunIn, user: User):
+    """Ставит решение в очередь проверки: результат — по GET /run/{id} (у пользователя идёт не больше одной проверки)."""
+    task = tasks.find_task(body.book, body.chapter, body.task)
+    if task is None:
+        raise HTTPException(404, "Задача не найдена")
+    if task.get("mode") == "lab":
+        raise HTTPException(422, "Это упражнение проверяется в браузере, а не в песочнице")
+    if not body.code.strip():
+        raise HTTPException(422, "Пустый код — нечего проверять")
+    with db() as conn:
+        try:
+            ok = config.RUNNER_MODE == "local" or jobs.workers_alive(conn) > 0
+            job_id = jobs.submit(conn, user["id"], body.book, body.chapter, task, body.code, ok)
+        except jobs.JobError as e:
+            raise HTTPException(e.code, str(e)) from e
+        return {"id": job_id, **(jobs.get_for_user(conn, job_id, user["id"]) or {})}
+
+
+@router.get("/run/{job_id}")
+def run_state(job_id: str, user: User):
+    """queued (с местом в очереди) → running → done (с результатом: status, results, stdout, stderr, passed, total, solved, attempt)."""
+    with db() as conn:
+        state = jobs.get_for_user(conn, job_id, user["id"])
+    if state is None:
+        raise HTTPException(404, "Проверка не найдена")
+    return state
 
 
 @router.get("/{book_id}/{chapter}")
@@ -80,47 +125,3 @@ def mark_lab_solved(book_id: int, chapter: int, task_id: str, body: SolvedIn, us
         )
         if body.solution:  # решение же и есть «черновик»: оно вернётся на доску при входе
             practice.save_draft(conn, user["id"], book_id, chapter, task_id, body.solution)
-
-
-class RunIn(BaseModel):
-    book: int
-    chapter: int
-    task: str
-    code: str = Field(max_length=MAX_CODE)
-
-
-# У каждого пользователя одновременно идёт не больше одной проверки: каждая — это
-# контейнер Docker, и очередь из них легко положит машину.
-_running: set[int] = set()
-_running_lock = threading.Lock()
-
-
-@router.post("/run")
-def run_code(body: RunIn, user: User):
-    task = tasks.find_task(body.book, body.chapter, body.task)
-    if task is None:
-        raise HTTPException(404, "Задача не найдена")
-    if task.get("mode") == "lab":
-        raise HTTPException(422, "Это упражнение проверяется в браузере, а не в песочнице")
-    if not body.code.strip():
-        raise HTTPException(422, "Пустой код — нечего проверять")
-
-    uid = user["id"]
-    with _running_lock:
-        if uid in _running:
-            raise HTTPException(429, "Предыдущая проверка ещё идёт")
-        _running.add(uid)
-    try:
-        result = runner.run_task(task, body.code)
-    finally:
-        with _running_lock:
-            _running.discard(uid)
-
-    total = len(result["results"])
-    passed = sum(1 for r in result["results"] if r.get("ok"))
-    solved = result["status"] == "ok" and total > 0 and passed == total
-    with db() as conn:
-        attempt = practice.record_attempt(
-            conn, uid, body.book, body.chapter, body.task, body.code, passed, total, solved
-        )
-    return {**result, "passed": passed, "total": total, "solved": solved, "attempt": attempt}

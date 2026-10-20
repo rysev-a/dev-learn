@@ -11,8 +11,11 @@ CPU и числу процессов, общий таймаут. Итог harnes
 """
 
 import json
+import os
 import subprocess
 import tempfile
+import threading
+import uuid
 from pathlib import Path
 
 IMAGE = "python:3.13-slim"
@@ -44,6 +47,100 @@ CPUS = "1.0"
 PIDS_LIMIT = "64"
 
 MARK = "RESULT_JSON:"
+
+# --- запуск контейнера ---------------------------------------------------------------------
+# Сколько байт stdout/stderr мы готовы принять от программы ученика: остальное отбрасывается,
+# а контейнер, который «заливает» вывод, останавливается (иначе он забьёт память процесса проверки).
+OUTPUT_LIMIT = 1_000_000
+CONTAINER_PREFIX = "say-run-"
+# Минимум прав: всё, что нужно компилятору и программе, у процесса есть и без привилегий.
+HARDENING = [
+    "--cap-drop", "ALL",
+    "--security-opt", "no-new-privileges",
+    "--ulimit", "core=0",
+    "--ulimit", "nofile=1024:1024",
+]
+# Задачам с PostgreSQL нужен root внутри контейнера, чтобы скопировать кластер и запустить базу от postgres.
+PG_CAPS = ["--cap-add", "CHOWN", "--cap-add", "DAC_OVERRIDE", "--cap-add", "FOWNER", "--cap-add", "SETUID", "--cap-add", "SETGID", "--cap-add", "KILL"]
+NOBODY = ["--user", "65534:65534"]
+
+
+def _remove_container(name: str) -> None:
+    subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=30)
+
+
+def remove_stale_containers() -> int:
+    """Убирает контейнеры проверки, оставшиеся после падения процесса (вызывается при старте воркера)."""
+    try:
+        ids = subprocess.run(
+            ["docker", "ps", "-aq", "--filter", f"name={CONTAINER_PREFIX}"], capture_output=True, text=True, timeout=30
+        ).stdout.split()
+        if ids:
+            subprocess.run(["docker", "rm", "-f", *ids], capture_output=True, timeout=60)
+        return len(ids)
+    except (OSError, subprocess.SubprocessError):
+        return 0
+
+
+def _run_container(args: list[str], timeout: int) -> subprocess.CompletedProcess:
+    """`docker run` с именем, потолком вывода и гарантированной остановкой контейнера.
+
+    Если истёк срок, клиент docker убивается, а контейнер сам остался бы работать (бесконечный цикл
+    крутился бы вечно), поэтому контейнер останавливается по имени. Бросает subprocess.TimeoutExpired."""
+    name = CONTAINER_PREFIX + uuid.uuid4().hex[:12]
+    proc = subprocess.Popen(
+        ["docker", "run", "--rm", "--name", name, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    bufs: dict[str, bytearray] = {"out": bytearray(), "err": bytearray()}
+    flooded = threading.Event()
+
+    def pump(stream, key: str) -> None:
+        fd = stream.fileno()
+        buf = bufs[key]
+        while True:
+            chunk = os.read(fd, 65536)
+            if not chunk:
+                return
+            room = OUTPUT_LIMIT - len(buf)
+            if room > 0:
+                buf += chunk[:room]
+            if len(chunk) > room and not flooded.is_set():
+                flooded.set()
+                threading.Thread(target=_remove_container, args=(name,), daemon=True).start()
+
+    threads = [
+        threading.Thread(target=pump, args=(proc.stdout, "out"), daemon=True),
+        threading.Thread(target=pump, args=(proc.stderr, "err"), daemon=True),
+    ]
+    for t in threads:
+        t.start()
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        _remove_container(name)
+        proc.wait()
+        raise
+    finally:
+        for t in threads:
+            t.join(timeout=5)
+        if proc.poll() is None:
+            proc.kill()
+    out = bufs["out"].decode("utf-8", errors="replace")
+    err = bufs["err"].decode("utf-8", errors="replace")
+    if flooded.is_set():
+        err = (err + f"\nВывод программы превысил {OUTPUT_LIMIT // 1000} КБ — выполнение остановлено.").strip()
+        return subprocess.CompletedProcess(proc.args, 1, out, err)
+    return subprocess.CompletedProcess(proc.args, proc.returncode, out, err)
+
+
+def _open_dir(sandbox: Path, files: dict[str, str]) -> None:
+    """Файлы песочницы читаются любым пользователем: контейнер работает от непривилегированного."""
+    os.chmod(sandbox, 0o755)
+    for name, text in files.items():
+        f = sandbox / name
+        f.write_text(text, encoding="utf-8")
+        os.chmod(f, 0o644)
 
 # Harness для режима «функция»: импортирует solution.py, вызывает функцию
 # с аргументами из тестов и сравнивает возвращённое значение с ожидаемым.
@@ -329,19 +426,19 @@ def _run_program(
     и истечение времени показываются ученику как результат проверки."""
     with tempfile.TemporaryDirectory(prefix=prefix) as td:
         sandbox = Path(td)
-        (sandbox / filename).write_text(source, encoding="utf-8")
+        _open_dir(sandbox, {filename: source})
+        pg = bool(task.get("postgres"))
         cmd = [
-            "docker", "run", "--rm", "--network", "none",
-            "--memory", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
+            "--network", "none",
+            "--memory", RUST_MEMORY, "--memory-swap", RUST_MEMORY, "--cpus", RUST_CPUS, "--pids-limit", "256",
             "--read-only", "--tmpfs", "/tmp:rw,exec,size=256m",
+            *HARDENING, *(PG_CAPS if pg else NOBODY),
             "-e", "HOME=/tmp",
             "-v", f"{sandbox}:/sandbox:ro", "-w", "/tmp",
             image, "sh", "-c", script,
         ]
         try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, errors="replace", timeout=RUST_TIMEOUT_SEC
-            )
+            proc = _run_container(cmd, RUST_TIMEOUT_SEC)
         except subprocess.TimeoutExpired:
             return {
                 "status": "timeout", "results": [], "stdout": "",
@@ -433,14 +530,14 @@ def run_task(task: dict, code: str) -> dict:
         return run_js(task, code)
     with tempfile.TemporaryDirectory(prefix="say-ex-") as td:
         sandbox = Path(td)
-        (sandbox / "solution.py").write_text(code, encoding="utf-8")
-        (sandbox / "harness.py").write_text(_harness(task), encoding="utf-8")
+        _open_dir(sandbox, {"solution.py": code, "harness.py": _harness(task)})
         cmd = [
-            "docker",
-            "run",
-            "--rm",
             "--network",
             "none",
+            *HARDENING,
+            *NOBODY,
+            "--memory-swap",
+            MEMORY,
             "--memory",
             MEMORY,
             "--cpus",
@@ -463,9 +560,7 @@ def run_task(task: dict, code: str) -> dict:
             "harness.py",
         ]
         try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=TIMEOUT_SEC
-            )
+            proc = _run_container(cmd, TIMEOUT_SEC)
         except subprocess.TimeoutExpired:
             return {
                 "status": "timeout",
