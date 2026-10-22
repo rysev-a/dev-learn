@@ -167,6 +167,7 @@ export default function ChapterTheory() {
 // которые уже «прочитаны», светлее, текущее подсвечено; без воспроизведения —
 // просто текст.
 const VOICE_MIN = 60;
+const VOICE_MAX = 2000;
 
 function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }) {
   const words = useMemo(() => text.split(/\s+/).filter(Boolean), [text]);
@@ -179,9 +180,10 @@ function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }
   const popRef = useRef<HTMLDivElement>(null);
   const [h, setH] = useState<number | null>(() => {
     const v = Number(readSetting(KEYS.voiceH));
-    return v >= VOICE_MIN && v <= 2000 ? v : null;
+    return v >= VOICE_MIN && v <= VOICE_MAX ? v : null;
   });
-  const clampH = (v: number) => Math.round(Math.max(VOICE_MIN, Math.min(window.innerHeight * 0.7, v)));
+  // выше полного текста окно не растёт: лапка работает, только пока есть что прокручивать
+  const clampH = (v: number) => Math.round(Math.max(VOICE_MIN, Math.min(boxRef.current?.scrollHeight ?? v, window.innerHeight * 0.7, v)));
   // окно закреплено у нижнего края, поэтому растёт вверх: лапка наверху, потянуть вверх — выше
   const startResize = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || !boxRef.current) return;
@@ -193,7 +195,10 @@ function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
-      writeSetting(KEYS.voiceH, String(clampH(h0 + y0 - ev.clientY)));
+      // дотянули до полного текста — запоминаем «сколько нужно» (потолок 70% экрана), а не высоту этого абзаца
+      const full = boxRef.current ? clampH(h0 + y0 - ev.clientY) >= boxRef.current.scrollHeight : false;
+      writeSetting(KEYS.voiceH, String(full ? VOICE_MAX : clampH(h0 + y0 - ev.clientY)));
+      if (full) setH(VOICE_MAX);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -205,10 +210,24 @@ function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }
     const pop = popRef.current;
     if (!pop || typeof ResizeObserver === "undefined") return;
     const root = document.documentElement;
-    const ro = new ResizeObserver(() => root.style.setProperty("--voice-h", `${pop.offsetHeight}px`));
+    // окно стоит по центру той области, где оно показано: колонка главы или основная часть полного экрана
+    const area = pop.parentElement?.closest<HTMLElement>(".slide-fs-main, .content") ?? null;
+    const place = () => {
+      root.style.setProperty("--voice-h", `${pop.offsetHeight}px`);
+      if (area) {
+        const r = area.getBoundingClientRect();
+        pop.style.setProperty("--vp-x", `${Math.round(r.left + r.width / 2)}px`);
+        pop.style.setProperty("--vp-w", `${Math.round(r.width - 32)}px`);
+      }
+    };
+    place();
+    const ro = new ResizeObserver(place);
     ro.observe(pop);
+    if (area) ro.observe(area);
+    window.addEventListener("resize", place);
     return () => {
       ro.disconnect();
+      window.removeEventListener("resize", place);
       root.style.removeProperty("--voice-h");
     };
   }, []);
@@ -239,7 +258,7 @@ function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }
         <i />
       </div>
       <div className="voice-pop-tag">За кадром</div>
-      <p className="voice-pop-text" ref={boxRef} style={h != null ? { height: h, maxHeight: "none" } : undefined}>
+      <p className="voice-pop-text" ref={boxRef} style={h != null ? { maxHeight: `min(${h}px, 70vh)` } : undefined}>
         {words.map((w, i) => (
           <span
             key={i}

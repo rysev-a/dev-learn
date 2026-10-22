@@ -1161,7 +1161,7 @@ h2 {
 
 .slide-fs-toc {
   flex-shrink: 0;
-  width: 300px;
+  width: min(400px, 34vw);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2927,12 +2927,13 @@ html {
 .voice-pop {
   position: fixed;
   bottom: 1rem;
-  left: 50%;
+  left: var(--vp-x, 50%);
   transform: translateX(-50%);
-  width: min(720px, calc(100vw - 2rem));
+  width: min(720px, var(--vp-w, calc(100vw - 2rem)));
   display: flex;
-  gap: 0.8rem;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: stretch;
   background: var(--s-panel);
   border: 1px solid var(--s-border);
   border-radius: 14px;
@@ -2976,7 +2977,6 @@ html {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--s-accent);
-  padding-top: 3px;
 }
 
 .voice-pop-text {
