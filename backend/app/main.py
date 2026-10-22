@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app import config
 from app.accounts.progress import router as progress_router
 from app.answers.router import router as answers_router
 from app.answers.store import ensure_answers
@@ -28,7 +29,8 @@ async def lifespan(app: FastAPI):
         ensure_tasks(conn)
         ensure_quizzes(conn)
         ensure_answers(conn)
-        ensure_default_users(conn)
+        if config.DEFAULT_USERS:
+            ensure_default_users(conn)
         jobs.init_jobs(conn)
     workers = local_worker.start_local()
     yield

@@ -22,3 +22,6 @@ audio/
 .DS_Store
 experiments/*.wav
 .claude/worktrees/
+
+# deploy secrets
+deploy/.env

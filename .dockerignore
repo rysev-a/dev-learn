@@ -1,0 +1,13 @@
+.git
+.claude
+**/node_modules
+frontend/dist
+backend/.venv
+backend/app/data/say.db*
+backend/app/data/audio
+backend/app/voice/models
+**/__pycache__
+**/*.log
+experiments
+docker-pull.log
+deploy/.env

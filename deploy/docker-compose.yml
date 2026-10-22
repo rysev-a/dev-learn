@@ -1,0 +1,122 @@
+# Этап 1: всё на одной машине, на которой есть только docker compose. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
+#   cp deploy/.env.example deploy/.env  (заполнить)
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile setup run --rm images   # один раз: образы песочниц
+name: say
+
+services:
+  proxy:
+    build: { context: .., dockerfile: deploy/proxy.Dockerfile }
+    restart: unless-stopped
+    ports:
+      - "${SAY_HTTP_PORT:-80}:80"
+      - "${SAY_HTTPS_PORT:-443}:443"
+    environment:
+      SAY_SITE: ${SAY_SITE:-localhost}
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [front]
+    mem_limit: 256m
+    logging: &log { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+  api:
+    build: { context: .., dockerfile: deploy/api.Dockerfile }
+    restart: unless-stopped
+    environment:
+      SAY_DB: /data/say.db
+      SAY_RUNNER: remote
+      SAY_WORKER_TOKEN: ${SAY_WORKER_TOKEN:?задайте SAY_WORKER_TOKEN в deploy/.env}
+      SAY_DEFAULT_USERS: "0"
+      SAY_SECURE_COOKIE: ${SAY_SECURE_COOKIE:-1}
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/exercises/runner/status', timeout=5).status == 200 else 1)"]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+      start_period: 120s
+    networks: [front, back]
+    mem_limit: 1g
+    logging: *log
+
+  # отдельный Docker-демон только для песочниц: сокет хоста в контейнеры не монтируем
+  dind:
+    image: docker:29-dind
+    restart: unless-stopped
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "-H", "unix:///var/run/docker.sock", "--log-opt", "max-size=10m", "--log-opt", "max-file=2"]
+    volumes:
+      - dind-data:/var/lib/docker
+      # каталог с кодом ученика создаёт воркер, а монтирует в песочницу демон dind — путь должен быть один и тот же
+      - sandboxes:/sandboxes
+    cpus: ${SAY_SANDBOX_CPUS:-3}
+    mem_limit: ${SAY_SANDBOX_MEM:-6g}
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 10s
+      timeout: 8s
+      retries: 10
+    networks: [sandbox]
+    logging: *log
+
+  worker:
+    build: { context: .., dockerfile: deploy/worker.Dockerfile }
+    restart: unless-stopped
+    command: ["python", "worker.py", "--server", "http://api:8000", "--name", "compose", "--light", "${SAY_LIGHT_SLOTS:-2}", "--heavy", "${SAY_HEAVY_SLOTS:-1}"]
+    environment:
+      SAY_WORKER_TOKEN: ${SAY_WORKER_TOKEN}
+      DOCKER_HOST: tcp://dind:2375
+      TMPDIR: /sandboxes
+    volumes:
+      - sandboxes:/sandboxes
+    depends_on:
+      api: { condition: service_healthy }
+      dind: { condition: service_healthy }
+    networks: [back, sandbox]
+    mem_limit: 256m
+    logging: *log
+
+  # разово: заливает образы песочниц в dind (python, rust, node, say-rust-crates)
+  images:
+    build: { context: .., dockerfile: deploy/worker.Dockerfile }
+    profiles: [setup]
+    command: ["/app/init-images.sh"]
+    environment:
+      DOCKER_HOST: tcp://dind:2375
+    depends_on:
+      dind: { condition: service_healthy }
+    networks: [sandbox]
+
+  backup:
+    build: { context: .., dockerfile: deploy/api.Dockerfile }
+    restart: unless-stopped
+    entrypoint: ["python", "/app/deploy/backup.py"]
+    environment:
+      SAY_DB: /data/say.db
+      SAY_BACKUP_DIR: /backups
+    volumes:
+      - data:/data:ro
+      - backups:/backups
+    mem_limit: 128m
+    networks: [back]
+    logging: *log
+
+networks:
+  front:
+  back:
+    internal: true # у api и воркера нет выхода в интернет; наружу только proxy
+  sandbox: # dind нужен выход для docker pull при подготовке образов; сами песочницы запускаются с --network none
+
+volumes:
+  data:
+  backups:
+  dind-data:
+  sandboxes:
+  caddy-data:
+  caddy-config:

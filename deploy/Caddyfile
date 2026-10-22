@@ -1,0 +1,26 @@
+# SAY_SITE — домен (Caddy сам получит сертификат) или :80 для проверки по обычному HTTP
+{$SAY_SITE:localhost} {
+	encode zstd gzip
+
+	# API воркеров доступно только внутри сети compose (воркер ходит прямо на api:8000)
+	@internal path /internal/*
+	handle @internal {
+		respond 404
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+	}
+}

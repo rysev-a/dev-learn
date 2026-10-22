@@ -22,6 +22,11 @@ KOKORO_MODEL_DIR = VOICE_MODELS_DIR / "kokoro-ru"
 
 # Проверка кода (app/exercises/jobs.py): local — воркеры потоками внутри API (для разработки и одной машины),
 # remote — только внешние воркеры (backend/worker.py), которые приходят за заданиями с токеном SAY_WORKER_TOKEN
+# SAY_DEFAULT_USERS=0 — не создавать временных пользователей student/programmer (на сервере обязательно)
+DEFAULT_USERS = os.environ.get("SAY_DEFAULT_USERS", "1") != "0"
+# SAY_SECURE_COOKIE=1 — отдавать cookie сессии только по HTTPS (на сервере за HTTPS-прокси)
+SECURE_COOKIE = os.environ.get("SAY_SECURE_COOKIE", "0") == "1"
+
 RUNNER_MODE = os.environ.get("SAY_RUNNER", "local")
 WORKER_TOKEN = os.environ.get("SAY_WORKER_TOKEN", "")
 # сколько проверок одновременно выполняет локальный воркер: «полоса:число», light — python/js, heavy — rust/c

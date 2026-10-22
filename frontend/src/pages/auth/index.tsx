@@ -4,7 +4,8 @@ import { useAuth } from "../../lib/auth.tsx";
 /* Вход и регистрация. Пока идёт разработка, форма входа сразу заполнена данными
    student/student, а под ней две кнопки быстрого входа за готовых пользователей. */
 
-const QUICK = ["student", "programmer"];
+// в продакшен-сборке (npm run build) временных пользователей нет: ни предзаполнения, ни кнопок
+const QUICK = import.meta.env.DEV ? ["student", "programmer"] : [];
 
 export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
   const { login, register } = useAuth();
@@ -13,8 +14,8 @@ export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   // вход: логин или email + пароль (по умолчанию student / student)
-  const [ident, setIdent] = useState("student");
-  const [password, setPassword] = useState("student");
+  const [ident, setIdent] = useState(import.meta.env.DEV ? "student" : "");
+  const [password, setPassword] = useState(import.meta.env.DEV ? "student" : "");
   // регистрация
   const [email, setEmail] = useState("");
   const [loginName, setLoginName] = useState("");
@@ -108,7 +109,7 @@ export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
               {busy ? "Входим…" : "Войти"}
             </button>
 
-            <div className="auth-quick">
+            {QUICK.length > 0 && <div className="auth-quick">
               <span className="auth-quick-label">Временно, для разработки</span>
               {QUICK.map((name) => (
                 <button
@@ -121,7 +122,7 @@ export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
                   войти как {name}
                 </button>
               ))}
-            </div>
+            </div>}
           </form>
         ) : (
           <form className="auth-form" onSubmit={onRegister}>

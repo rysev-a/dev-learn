@@ -54,6 +54,15 @@ API не запускает контейнеры: `POST /api/exercises/run` кл
 **Маршруты с фиксированными сегментами (`/runner/status`, `/run/{id}`) объявляйте в `exercises/router.py` раньше `/{book_id}/{chapter}`.**
 Подробности, развёртывание воркера на домашнем сервере и что ещё нужно до публичного запуска — `docs/code-runner.md`; тесты — `tests/test_jobs.py`.
 
+## Развёртывание
+
+Этап 1 — одна машина, на которой есть только docker compose: `deploy/docker-compose.yml` (proxy на Caddy, api, worker, dind, backup, разовый images),
+Dockerfile'ы и `Caddyfile` рядом. Инструкция для агента на сервере — `docs/deploy-agent.md`, рассуждения и план масштабирования — `deploy.md`.
+Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в контейнеры не монтируем); каталог песочниц `/sandboxes` — общий том воркера и dind.
+Переменные окружения API: `SAY_DB`, `SAY_RUNNER`, `SAY_WORKER_TOKEN`, `SAY_DEFAULT_USERS=0` (на сервере временные пользователи выключены; в продакшен-сборке
+фронтенда `import.meta.env.DEV` убирает и предзаполнение формы входа), `SAY_SECURE_COOKIE=1` (cookie только по HTTPS). Озвучка вынесена в extra:
+`uv run --extra voice …` (веб-сервису и воркеру torch не нужен).
+
 ## Контент: новые книги
 
 **Новые книги добавляются только со слайдами.** Для книги обязательно:

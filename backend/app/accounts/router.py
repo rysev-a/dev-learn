@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from pydantic import BaseModel, StringConstraints
 
+from app import config
 from app.accounts import service
 from app.accounts.deps import COOKIE, current_user
 from app.books.service import db
@@ -44,6 +45,7 @@ def _set_session(response: Response, token: str) -> None:
         max_age=service.SESSION_DAYS * 86400,
         httponly=True,
         samesite="lax",
+        secure=config.SECURE_COOKIE,
         path="/",
     )
 

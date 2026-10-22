@@ -1,6 +1,6 @@
 """Download kokoro-ru model files into app/voice/models/kokoro-ru/ (one-time setup).
 
-Run from backend/: uv run python -m app.voice.download_model
+Run from backend/: uv run --extra voice python -m app.voice.download_model
 """
 
 from pathlib import Path
