@@ -102,6 +102,13 @@
 }
 .sd-viewport {
   position: relative;
+  margin-bottom: 10px;
+}
+.sd-viewport.sized .sd-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 .sd-board.panning,
 .sd-board.panning .sd-bg {
@@ -424,6 +431,7 @@
 .sd.fs .sd-viewport {
   flex: 1;
   min-height: 0;
+  margin-bottom: 0;
 }
 .sd.fs .sd-board {
   position: absolute;
@@ -531,4 +539,35 @@
 }
 .sd-float h4 {
   padding-right: 24px;
+}
+
+/* Лапка внизу поля: потянуть — изменить высоту */
+.sd-resize {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  z-index: 6;
+  width: 64px;
+  height: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: ns-resize;
+  touch-action: none;
+}
+.sd-resize i {
+  width: 28px;
+  height: 4px;
+  border-top: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+}
+.sd-resize:hover {
+  border-color: var(--s-accent);
+}
+.sd-resize:hover i {
+  border-color: var(--s-accent);
 }

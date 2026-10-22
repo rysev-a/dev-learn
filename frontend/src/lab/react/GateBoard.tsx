@@ -42,7 +42,7 @@ import {
   gatePinsOf,
 } from "../exercises/logic-gates/gate-shapes.ts";
 import { clampWorld, isClick, viewBoxOf } from "../exercises/logic-gates/board-pan.ts";
-import GateShape from "./GateShape.tsx";
+import { KEYS, autoWireOn } from "../../lib/settings.ts";import GateShape from "./GateShape.tsx";
 import { ZoomControls, boardMetrics, useBoardView, useToBoard } from "./useBoardView.tsx";
 import {
   AUTO_WIRE_RADIUS_DEFAULT,
@@ -266,9 +266,12 @@ export default function GateBoard({
     return { id: DROP_ID, type: placing, x, y };
   }, [placing, cursor, toBoard]);
 
+  const [autoOn] = useState(() => autoWireOn(KEYS.autoWireLab));
   const autoFor = useCallback(
     (gate: GateInstance, keep: readonly AutoWire[] = []) =>
-      suggestWires({
+      !autoOn
+        ? []
+        : suggestWires({
         keep,
         gate,
         gates: live().gates,
@@ -278,7 +281,7 @@ export default function GateBoard({
         stepsMode,
         radius: AUTO_WIRE_RADIUS_DEFAULT * AUTO_WIRE_RADIUS_FACTOR,
       }),
-    [inputYMap, outputYMap, stepsMode],
+    [autoOn, inputYMap, outputYMap, stepsMode],
   );
 
   const autoWires = useMemo(() => {
@@ -316,7 +319,7 @@ export default function GateBoard({
       from: remap(w.from),
       to: remap(w.to),
     }));
-    const auto = held
+    const auto = held && autoOn
       ? suggestWires({
           keep,
           gate,

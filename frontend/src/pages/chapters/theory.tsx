@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { useChapterContext } from "./context.ts";
@@ -13,6 +13,7 @@ import { SlideAudioContext } from "../../lib/slideAudio.ts";
 import { fmtTime } from "../../lib/format.ts";
 import { estimateSeconds } from "../../lib/voice.ts";
 import { useProgress } from "../../lib/progress.tsx";
+import { KEYS, readSetting, writeSetting } from "../../lib/settings.ts";
 
 export default function ChapterTheory() {
   const { chapter, bookId, fs, itemsSlot, headSlot } = useChapterContext();
@@ -165,12 +166,52 @@ export default function ChapterTheory() {
 // Всплывающее окно снизу: текст абзаца, который звучит за кадром. Слова,
 // которые уже «прочитаны», светлее, текущее подсвечено; без воспроизведения —
 // просто текст.
+const VOICE_MIN = 60;
+
 function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }) {
   const words = useMemo(() => text.split(/\s+/).filter(Boolean), [text]);
   const boxRef = useRef<HTMLParagraphElement>(null);
   const curRef = useRef<HTMLSpanElement>(null);
   const cur =
     t == null || !d ? -1 : Math.min(words.length - 1, Math.floor((t / d) * words.length));
+
+  // высота текста: пока ученик её не менял, действует предел из стилей; иначе — выбранная «лапкой»
+  const popRef = useRef<HTMLDivElement>(null);
+  const [h, setH] = useState<number | null>(() => {
+    const v = Number(readSetting(KEYS.voiceH));
+    return v >= VOICE_MIN && v <= 2000 ? v : null;
+  });
+  const clampH = (v: number) => Math.round(Math.max(VOICE_MIN, Math.min(window.innerHeight * 0.7, v)));
+  // окно закреплено у нижнего края, поэтому растёт вверх: лапка наверху, потянуть вверх — выше
+  const startResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !boxRef.current) return;
+    e.preventDefault();
+    const y0 = e.clientY;
+    const h0 = boxRef.current.clientHeight;
+    const move = (ev: PointerEvent) => setH(clampH(h0 + y0 - ev.clientY));
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      writeSetting(KEYS.voiceH, String(clampH(h0 + y0 - ev.clientY)));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
+
+  // полная высота окна нужна плееру и полям страницы, чтобы не прятаться под ним
+  useEffect(() => {
+    const pop = popRef.current;
+    if (!pop || typeof ResizeObserver === "undefined") return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() => root.style.setProperty("--voice-h", `${pop.offsetHeight}px`));
+    ro.observe(pop);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--voice-h");
+    };
+  }, []);
 
   useEffect(() => {
     const box = boxRef.current;
@@ -182,9 +223,23 @@ function VoiceText({ text, t, d }: { text: string; t: number | null; d: number }
   }, [cur]);
 
   return (
-    <div className="voice-pop" role="region" aria-label="Текст озвучки">
+    <div className="voice-pop" role="region" aria-label="Текст озвучки" ref={popRef}>
+      <div
+        className="voice-pop-grip"
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Высота окна"
+        title="Потяните вверх или вниз, чтобы изменить высоту (двойной клик — по умолчанию)"
+        onPointerDown={startResize}
+        onDoubleClick={() => {
+          setH(null);
+          writeSetting(KEYS.voiceH, null);
+        }}
+      >
+        <i />
+      </div>
       <div className="voice-pop-tag">За кадром</div>
-      <p className="voice-pop-text" ref={boxRef}>
+      <p className="voice-pop-text" ref={boxRef} style={h != null ? { height: h, maxHeight: "none" } : undefined}>
         {words.map((w, i) => (
           <span
             key={i}

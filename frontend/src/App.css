@@ -2941,6 +2941,35 @@ html {
   z-index: 1090;
 }
 
+.voice-pop-grip {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 64px;
+  height: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+  background: var(--s-panel);
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.voice-pop-grip i {
+  width: 28px;
+  height: 4px;
+  border-top: 1.5px solid var(--s-muted);
+  border-bottom: 1.5px solid var(--s-muted);
+}
+
+.voice-pop-grip:hover,
+.voice-pop-grip:hover i {
+  border-color: var(--s-accent);
+}
+
 .voice-pop-tag {
   flex-shrink: 0;
   font-size: 10.5px;
@@ -2952,7 +2981,7 @@ html {
 
 .voice-pop-text {
   margin: 0;
-  max-height: 6.6em;
+  max-height: 12em;
   overflow-y: auto;
   position: relative;
   font-size: 14px;
@@ -2976,19 +3005,19 @@ html {
 
 /* плеер встаёт над окном текста, а содержимое страниц не прячется под ними */
 body:has(.voice-pop) .np-card {
-  bottom: calc(1rem + var(--voice-h, 7.4rem) + 0.6rem);
+  bottom: calc(1rem + var(--voice-h, 11rem) + 0.6rem);
 }
 
 body:has(.voice-pop) .content {
-  padding-bottom: 9rem;
+  padding-bottom: calc(var(--voice-h, 11rem) + 2rem);
 }
 
 body:has(.voice-pop) .slide-fs {
-  padding-bottom: 150px;
+  padding-bottom: calc(var(--voice-h, 11rem) + 2rem);
 }
 
 body:has(.voice-pop):has(.np-card) .slide-fs {
-  padding-bottom: 270px;
+  padding-bottom: calc(var(--voice-h, 11rem) + 9rem);
 }
 
 @media (max-width: 768px) {

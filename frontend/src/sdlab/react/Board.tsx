@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { ZoomControls, boardMetrics, useBoardView, useToBoard } from "../../lab/react/useBoardView.tsx";
 import { isClick, viewBoxOf } from "../../lab/exercises/logic-gates/board-pan.ts";
+import { KEYS, autoWireOn, readSetting, writeSetting } from "../../lib/settings.ts";
 import { KINDS } from "../kinds.ts";
 import { BOARD_H, BOARD_W } from "../layout.ts";
 import { NODE_H, NODE_W, connectError, hasIn, hasOut, inPos, outPos, suggestEdges, wirePath, type Pt } from "../ports.ts";
@@ -16,6 +17,8 @@ const W = NODE_W;
 const H = NODE_H;
 const WORLD = 2600;
 const GHOST = "__new__";
+const MIN_H = 240;
+const MAX_H = 1600;
 
 const ICONS: Record<Kind, ReactNode> = {
   clients: (
@@ -273,12 +276,35 @@ export default function Board(props: BoardProps) {
     setBox({ w: r.width, h: r.height });
     return () => ro.disconnect();
   }, []);
-  // высота окна просмотра: на весь экран — по пропорциям экрана, иначе — как у обычного поля
-  const worldH = props.fullscreen && box.w > 0 && box.h > 0 ? (BOARD_W * box.h) / box.w : BOARD_H;
+  // высота поля, выбранная «лапкой» (px); пока не трогали — поле держит пропорции BOARD_W × BOARD_H
+  const [boardH, setBoardH] = useState<number | null>(() => {
+    const v = Number(readSetting(KEYS.sdBoardH));
+    return v >= MIN_H && v <= MAX_H ? v : null;
+  });
+  const sized = props.fullscreen || boardH !== null;
+  // высота окна просмотра: на весь экран и при заданной высоте — по пропорциям окна, иначе — как у обычного поля
+  const worldH = sized && box.w > 0 && box.h > 0 ? (BOARD_W * box.h) / box.w : BOARD_H;
   const worldHRef = useRef(worldH);
   worldHRef.current = worldH;
   const view = useBoardView(svgRef, () => boardMetrics(svgRef.current as SVGSVGElement, BOARD_W, worldHRef.current));
   const toBoard = useToBoard(svgRef);
+
+  /** «лапка» под полем: потянуть вверх или вниз — поле меняет высоту */
+  const startResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const start = { y: e.clientY, h: boardH ?? svgRef.current?.getBoundingClientRect().height ?? 420 };
+    const move = (ev: PointerEvent) => setBoardH(Math.round(Math.max(MIN_H, Math.min(MAX_H, start.h + ev.clientY - start.y))));
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      writeSetting(KEYS.sdBoardH, String(Math.round(Math.max(MIN_H, Math.min(MAX_H, start.h + ev.clientY - start.y)))));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
 
   /** вписать всю схему в окно просмотра */
   const fitRef = useRef<{ pan: Pt; zoom: number } | null>(null);
@@ -337,12 +363,13 @@ export default function Board(props: BoardProps) {
     return { id: GHOST, kind: placing, name: KINDS[placing].label, x: Math.round(p.x), y: Math.round(p.y), params: {} };
   }, [placing, cursor, toBoard]);
 
+  const [autoOn] = useState(() => autoWireOn(KEYS.autoWireSd));
   const autoEdges = useMemo((): SdEdge[] => {
     const moving = movingId ? (movedFar ? state.nodes.find((n) => n.id === movingId) : undefined) : ghost;
-    const list = moving ? suggestEdges(state, moving, memo.current) : [];
+    const list = moving && autoOn ? suggestEdges(state, moving, memo.current) : [];
     memo.current = list;
     return list;
-  }, [state, movingId, movedFar, ghost]);
+  }, [state, movingId, movedFar, ghost, autoOn]);
   const autoRef = useRef<SdEdge[]>([]);
   autoRef.current = autoEdges;
 
@@ -582,10 +609,26 @@ export default function Board(props: BoardProps) {
           </button>
         ))}
       </div>
-      <div className="sd-viewport">
+      <div className={`sd-viewport ${boardH !== null && !props.fullscreen ? "sized" : ""}`} style={boardH !== null && !props.fullscreen ? { height: boardH } : undefined}>
         {props.corner}
         {props.overlay}
         <ZoomControls zoom={view.zoom} changed={viewChanged} onZoomBy={view.zoomBy} onActual={() => view.setZoom(1)} onReset={fit} />
+        {!props.fullscreen && (
+          <div
+            className="sd-resize"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Высота схемы"
+            title="Потяните, чтобы изменить высоту схемы (двойной клик — по умолчанию)"
+            onPointerDown={startResize}
+            onDoubleClick={() => {
+              setBoardH(null);
+              writeSetting(KEYS.sdBoardH, null);
+            }}
+          >
+            <i />
+          </div>
+        )}
         <svg ref={svgRef} className={`sd-board ${view.panning ? "panning" : ""} ${placing ? "placing" : ""}`} viewBox={viewBoxOf(view.pan, view.zoom, BOARD_W, worldH)} onPointerDown={boardDown} role="img" aria-label="Схема сервиса">
           <defs>
             <pattern id="sd-dots" width="22" height="22" patternUnits="userSpaceOnUse">

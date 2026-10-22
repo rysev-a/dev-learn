@@ -108,6 +108,8 @@ interface CodeEditorProps {
   onRun?: () => void;
   lang?: EditorLang;
   className?: string;
+  /** при смене значения (например, id задачи) фокус уходит в редактор, курсор — в конец текста */
+  focusKey?: string;
 }
 
 export default function CodeEditor({
@@ -116,6 +118,7 @@ export default function CodeEditor({
   onRun,
   lang = "python",
   className = "",
+  focusKey,
 }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
@@ -195,6 +198,13 @@ export default function CodeEditor({
       });
     }
   }, [value]);
+
+  useEffect(() => {
+    const v = view.current;
+    if (!v || focusKey === undefined) return;
+    v.dispatch({ selection: { anchor: v.state.doc.length } });
+    v.focus();
+  }, [focusKey]);
 
   return <div className={`cx-cm ${className}`} ref={host} />;
 }

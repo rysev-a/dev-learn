@@ -4,6 +4,11 @@ export const KEYS = {
   theme: "say-theme",
   aside: "say-aside-collapsed",
   anim: "say-anim-auto",
+  autoWireLab: "say-autowire-lab",
+  autoWireSd: "say-autowire-sd",
+  sdBoardH: "say-sd-board-h",
+  autoNext: "say-auto-next",
+  voiceH: "say-voice-h",
 } as const;
 
 export type Theme = "dark" | "light";
@@ -27,6 +32,9 @@ export function writeSetting(key: string, value: string | null): void {
     /* хранилище недоступно — настройка не сохранится */
   }
 }
+
+/** автосвязывание на досках: по умолчанию включено, выключенное хранится как «0» */
+export const autoWireOn = (key: typeof KEYS.autoWireLab | typeof KEYS.autoWireSd): boolean => readSetting(key) !== "0";
 
 export const readTheme = (): Theme => (readSetting(KEYS.theme) === "light" ? "light" : "dark");
 

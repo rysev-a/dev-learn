@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api.ts";
 import { useAuth } from "../lib/auth.tsx";
 import { useProgress } from "../lib/progress.tsx";
+import { KEYS, readSetting } from "../lib/settings.ts";
 import CodeEditor from "./CodeEditor.tsx";
 import SqlDiff from "./SqlDiff.tsx";
 import SqlSchema from "./SqlSchema.tsx";
@@ -89,6 +90,8 @@ export default function CodePractice({
   const [phase, setPhase] = useState("");
   const [hint, setHint] = useState<Record<string, boolean>>({});
   const [, redraw] = useState(0);
+  // куда вести после успешной проверки: актуальная задача и переход (замыкание run устаревает за время проверки)
+  const advance = useRef<{ taskId: string; can: boolean; go: () => void }>({ taskId: "", can: false, go: () => {} });
 
   // история попыток выбранной задачи
   useEffect(() => {
@@ -123,6 +126,13 @@ export default function CodePractice({
       );
       resultCache.set(key, { ...data, okAll: data.solved });
       progress.setCodeStatus(bookId, chapter, id, data.solved ? "ok" : "bad");
+      if (data.solved && readSetting(KEYS.autoNext) === "1") {
+        // задержка — успеть увидеть «верно»; уходим, только если ученик всё ещё на этой задаче
+        setTimeout(() => {
+          const a = advance.current;
+          if (a.taskId === id && a.can) a.go();
+        }, 1000);
+      }
       setAttempts((p) => ({
         ...p,
         [id]: [
@@ -166,6 +176,7 @@ export default function CodePractice({
     if (idx < tasks.length - 1) select(idx + 1);
     else if (nextChapter) nextChapter.open();
   }
+  advance.current = { taskId: task.id, can: hasNext, go: goNext };
   // Ctrl/Cmd+Enter: проверить; если принятое решение не менялось — перейти дальше
   const primary = () => (goMode ? goNext() : run());
 
@@ -223,6 +234,7 @@ export default function CodePractice({
           <CodeEditor
             className={solved && accepted ? "right" : ""}
             lang={langOf(task)}
+            focusKey={task.id}
             value={codeOf(task)}
             onChange={edit}
             onRun={primary}
