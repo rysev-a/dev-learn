@@ -196,6 +196,7 @@ test.describe("упражнения и диаграммы", () => {
 
 test.describe("аккаунт", () => {
   test("показаны имя и email, «Выйти» возвращает на форму входа", async ({ page, request }) => {
+    test.skip(!!process.env.E2E_USER, "в режиме готового стека входим заданным пользователем: имя не «E2E»");
     const { email, token } = await loginFresh(page, request);
     await openSettings(page);
     const row = page.locator(".set-row").filter({ has: page.getByRole("button", { name: "Выйти" }) });
@@ -284,6 +285,7 @@ test.describe("сброс прогресса", () => {
   });
 
   test("сброс не трогает прогресс другого пользователя", async ({ page, request, browser }) => {
+    test.skip(!!process.env.E2E_USER, "в режиме готового стека второго пользователя нет (регистрации ограничены)");
     const mine = await loginFresh(page, request);
     await seedProgress(page, request, mine.token);
     // второй пользователь с собственным прогрессом

@@ -3,11 +3,18 @@
 # Сборка идёт с секретом `lab_token` (токен gitness для приватного реестра crates): LAB_TOKEN=… в окружении при сборке.
 # Данные — в томе surreal-data (SurrealDB), пользователи и прогресс Python-бэкенда сюда не переносятся.
 services:
+  # сайт — Leptos-фронтенд (frontend-rs), а не React
+  proxy:
+    build: { context: .., dockerfile: deploy/proxy-rs.Dockerfile }
+
   api:
     build:
       context: ..
       dockerfile: deploy/backend-rs.Dockerfile
       secrets: [lab_token]
+      # готовый `cargo vendor` вместо реестра lab (если до него нет сети); по умолчанию пусто — работает реестр с токеном
+      additional_contexts:
+        vendor: ${SAY_VENDOR_DIR:-./no-vendor}
     environment:
       # переменные Python-бэкенда не нужны; дописываются настройки Rust-бэкенда
       SAY_DB: !reset null

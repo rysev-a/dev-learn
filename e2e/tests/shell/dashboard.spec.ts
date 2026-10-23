@@ -34,10 +34,8 @@ test("у нового пользователя прогресс нулевой: 
   const slides = books.reduce((n, b) => n + b.parts_count, 0);
   await page.goto("/");
   // всего = слайды + вопросы + упражнения: слайдов не меньше, чем в книгах
-  const text = (await page.locator(".dash-all").textContent()) ?? "";
-  const m = /^0% · 0 из (\d+)$/.exec(text);
-  expect(m, text).not.toBeNull();
-  expect(Number(m![1])).toBeGreaterThan(slides);
+  // счётчики вопросов и упражнений приходят отдельными запросами — ждём, пока итог перестанет быть «одни слайды»
+  await expect.poll(async () => Number(/^0% · 0 из (\d+)$/.exec((await page.locator(".dash-all").textContent()) ?? "")?.[1] ?? 0)).toBeGreaterThan(slides);
   for (const w of await page.locator(".pr-bar i").evaluateAll((els) => els.map((e) => (e as HTMLElement).style.width))) {
     expect(w).toBe("0%");
   }

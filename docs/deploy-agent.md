@@ -162,6 +162,15 @@ docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.rust.yml --
 5. Бэкапы: сервис `backup` делает `surreal export` раз в сутки в том `backups` (файлы `say-*.surql`); восстановление — `surreal import` в чистую базу.
 6. Обновление — как в шаге 7, но с `LAB_TOKEN` и обоими файлами. Бэкенд должен работать **одним экземпляром** (очередь проверок под замком процесса).
 7. Данные Python-варианта (SQLite) сюда не переносятся: пользователи и прогресс начинаются с нуля.
+8. **Сайт в этом варианте — Leptos-фронтенд** (`frontend-rs`): `deploy/docker-compose.rust.yml` подменяет сборку прокси на `deploy/proxy-rs.Dockerfile` (trunk собирает wasm
+   внутри образа, около 3 минут; по сети отдаётся со сжатием ≈ 3 МБ). Регистрации в этом варианте ограничены по частоте (429) — это норма.
+9. **Нет сети до реестра `lab`** (ошибка `Failed to connect to git.service-lab.dev`): подложите зависимости готовым каталогом. На машине, где реестр доступен (или
+   есть кэш cargo): `cd backend-rs && cargo vendor --locked /путь/vendor-backend`, затем положите в каталог файл `.cargo-config.toml` (замена источников на `/vendor`:
+   `[source.crates-io] replace-with`, `[source."sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"] registry = … replace-with = "vendored-sources"`,
+   `[source.vendored-sources] directory = "/vendor"`) и укажите `SAY_VENDOR_DIR=/путь/vendor-backend` в `deploy/.env`. По умолчанию (`deploy/no-vendor`) работает реестр с токеном.
+10. Локальная проверка стека: `SAY_SITE=:80`, `SAY_SECURE_COOKIE=0`, порты `SAY_HTTP_PORT`/`SAY_HTTPS_PORT` — свободные (8080 часто занят другим стеком — проверьте, куда
+    на самом деле отвечает `localhost`). Песочницы: образы заливаются в `dind` (шаг 5) или по одному: `docker exec say-dind-1 docker pull python:3.13-slim`. Тесты на готовый стек —
+    `e2e/README.md` («Против готового стека»).
 
 ## 8. Бэкапы и восстановление
 

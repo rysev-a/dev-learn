@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
    Сборка: `npm run build` (trunk + cargo). Один рабочий процесс: тесты книг идут по одной главе за раз, лаборатории не конкурируют за CPU. */
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.E2E_PORT ?? 8099);
+/** Готовый стек (например, `docker compose … up`): тесты идут на него, свой сервер не поднимается. */
+const external = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: "tests",
@@ -16,14 +18,16 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: `http://127.0.0.1:${port}`,
+    baseURL: external ?? `http://127.0.0.1:${port}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     viewport: { width: 1400, height: 1000 },
     locale: "ru-RU",
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
-  webServer: {
+  webServer: external
+    ? undefined
+    : {
     command: "./target/debug/say-backend",
     cwd: path.join(root, "backend-rs"),
     url: `http://127.0.0.1:${port}/api/books`,

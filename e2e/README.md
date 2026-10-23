@@ -25,3 +25,10 @@ E2E_PORT=8102 npx playwright test tests/labs                # свой порт:
 
 Запуск по одной книге: `E2E_PORT=8101 npx playwright test tests/books/09-db.spec.ts --reporter=list --output=/tmp/pw-books`.
 При параллельных запусках у каждого свой `E2E_PORT` и свой `--output` (общая папка `test-results` портится).
+
+## Против готового стека
+
+`E2E_BASE_URL=http://127.0.0.1:18080 E2E_USER=admin@example.com E2E_PASSWORD=… npx playwright test tests/shell` — тесты идут на уже запущенный стек (например, `docker compose` с Rust-бэкендом,
+см. `docs/deploy-agent.md`), свой сервер не поднимается. Входят только тесты, которым нужны публичные маршруты и регистрация (оболочка, книги, лаборатории);
+`FakeWorker`-тесты практики с кодом рассчитаны на свой сервер.
+Готовый стек ограничивает регистрации (429), поэтому вместо нового пользователя на каждый тест тесты входят заданным (`E2E_USER`, `E2E_PASSWORD`) и стирают его прогресс.

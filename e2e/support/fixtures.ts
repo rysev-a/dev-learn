@@ -20,6 +20,17 @@ let counter = 0;
  * Адрес уникален в рамках запуска.
  */
 export async function loginFresh(page: Page, request: APIRequestContext, prefix = "e2e"): Promise<{ email: string; token: string }> {
+  // готовый стек ограничивает регистрации (429): входим одним заданным пользователем (`E2E_USER`/`E2E_PASSWORD`) и стираем его прогресс
+  if (process.env.E2E_USER) {
+    const email = process.env.E2E_USER;
+    const res = await request.post("/api/auth/login", { data: { login: email, email, password: process.env.E2E_PASSWORD ?? "" } });
+    expect(res.ok(), `вход ${email}`).toBeTruthy();
+    const { token } = (await res.json()) as { token: string };
+    const reset = await request.delete("/api/progress?scope=all", { headers: { Authorization: `Bearer ${token}` } });
+    expect(reset.ok(), "сброс прогресса").toBeTruthy();
+    await page.addInitScript((t) => window.localStorage.setItem("say-token", t), token);
+    return { email, token };
+  }
   const email = `${prefix}-${Date.now().toString(36)}-${counter++}@e2e.test`;
   const password = "correct-horse-1";
   const signup = await request.post("/api/auth/signup", { data: { email, password, name: "E2E" } });
