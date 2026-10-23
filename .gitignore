@@ -25,3 +25,10 @@ experiments/*.wav
 
 # deploy secrets
 deploy/.env
+
+# Rust
+backend-rs/target/
+frontend-rs/target/
+frontend-rs/app/dist/
+
+shared-rs/*/target

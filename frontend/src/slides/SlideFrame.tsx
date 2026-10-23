@@ -23,7 +23,7 @@ export interface SlideProps {
 }
 
 export function makeSlide(rubric: string, total: number) {
-  return function Slide({ n, title, sub, main, children }: SlideProps) {
+  function Slide({ n, title, sub, main, children }: SlideProps) {
     return (
       <div className="slide">
         <Rubric text={rubric} n={n} total={total} />
@@ -39,5 +39,7 @@ export function makeSlide(rubric: string, total: number) {
         )}
       </div>
     );
-  };
+  }
+  // рубрика и число слайдов нужны выгрузке слайдов в JSON (scripts/slides-export.mjs)
+  return Object.assign(Slide, { rubric, total });
 }

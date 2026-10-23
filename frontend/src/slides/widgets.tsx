@@ -60,9 +60,11 @@ export function pySpan(src: string, keywords: Set<string> = PY_KW, boolsAsNum = 
 /** Врезка кода Python со своим набором ключевых слов (boolsAsNum — True и False цветом чисел). */
 export const makePyCode = (keywords: Iterable<string>, boolsAsNum = false) => {
   const kw = new Set(keywords);
-  return function PyCode({ children }: { children: string }) {
+  function PyCode({ children }: { children: string }) {
     return <pre className="rs-code">{pySpan(children, kw, boolsAsNum)}</pre>;
-  };
+  }
+  // набор ключевых слов нужен выгрузке слайдов в JSON (scripts/slides-export.mjs)
+  return Object.assign(PyCode, { kw: [...kw], boolsAsNum });
 };
 
 /** Врезка кода Python с набором по умолчанию. */

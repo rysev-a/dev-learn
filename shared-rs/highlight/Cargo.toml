@@ -1,0 +1,12 @@
+[package]
+name = "highlight"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Подсветка кода по строкам (Python, C, ассемблер RISC-V, Rust) без зависимостей: для схем слайдов и редактора упражнений."
+
+[features]
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }

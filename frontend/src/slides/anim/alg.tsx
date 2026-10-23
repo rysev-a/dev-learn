@@ -1118,7 +1118,7 @@ export function scene({ labels, caption, frames, base = [], cues, ms = 2800, h =
       `scene «${labels[0]}…»: подписей ${caption.length}, кадров ${frames.length}`,
     );
   validate(frames, base, labels);
-  return function Scene({ cues: given }: { cues?: number[] }) {
+  function Scene({ cues: given }: { cues?: number[] }) {
     const ctl: StepsCtl = useSteps(given || cues || defaultCues(frames.length), ms);
     const k = Math.min(ctl.step, frames.length - 1);
     return (
@@ -1129,7 +1129,9 @@ export function scene({ labels, caption, frames, base = [], cues, ms = 2800, h =
         })}
       </Steps>
     );
-  };
+  }
+  // описание сцены остаётся доступным: по нему выгрузка слайдов в JSON (scripts/slides-export.mjs) берёт данные
+  return Object.assign(Scene, { spec: { labels, caption, frames, base, cues, ms, h } as SceneSpec });
 }
 
 function defaultCues(n: number) {
