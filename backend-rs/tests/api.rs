@@ -219,6 +219,9 @@ async fn progress_quiz_and_answers() {
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 18, "chapter": 24, "slide": 2 }))).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 18, "chapter": 24, "slide": 2 }))).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 0, "chapter": 24, "slide": 2 }))).await.0, StatusCode::UNPROCESSABLE_ENTITY);
+    // у «Python» и «Unix» есть нулевая глава (введение): её слайды тоже сохраняются
+    assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 13, "chapter": 0, "slide": 1 }))).await.0, StatusCode::NO_CONTENT);
+    assert_eq!(call(&app, Method::GET, "/api/progress", t, None).await.1["slides"]["13:0"], json!([1]));
 
     // квиз: вопросы без ответов, на вопрос отвечают один раз
     let (_, quiz) = call(&app, Method::GET, "/api/quizzes/18/24", t, None).await;

@@ -15,6 +15,7 @@ use super::{Answers, ChapterCtx};
 use crate::{
     components::{
         code_editor::CodeEditor,
+        fullscreen::{chapter_href, Fullscreen},
         labs::LabHost,
         results::{History, Results},
         sql_schema::SqlSchema,
@@ -51,6 +52,28 @@ fn sql_dataset(task: &Task, datasets: &StoredValue<HashMap<String, SqlDataset>>)
     datasets.with_value(|d| d.get(key).cloned())
 }
 
+/// Подпись справа от полосы прогресса: где выполняются упражнения главы.
+fn run_label(tasks: &[Task]) -> &'static str {
+    if tasks.iter().all(|t| t.mode == "lab") {
+        return "интерактивно · в браузере";
+    }
+    match tasks.iter().find(|t| t.mode != "lab").map(|t| t.mode.as_str()) {
+        Some("sql") => "sql · docker",
+        Some("rust") => "rust · docker",
+        Some("c") => "c · docker",
+        Some("js") => "javascript · docker",
+        _ => "python · docker",
+    }
+}
+
+/// Первая глава книги после `num`, у которой есть код-задачи (id для адреса): по порядку номеров глав.
+fn next_chapter(course: &[api::dto::Section], counts: &api::dto::Counts, book: i64, num: i64) -> Option<i64> {
+    let with_tasks = counts.get(&book.to_string())?;
+    let mut chapters: Vec<_> = course.iter().flat_map(|s| s.chapters.iter()).filter(|c| c.num > num).collect();
+    chapters.sort_by_key(|c| c.num);
+    chapters.into_iter().find(|c| with_tasks.get(&c.num.to_string()).is_some_and(|n| *n > 0)).map(|c| c.id)
+}
+
 /// Сообщение об ожидании: место в очереди.
 pub fn queue_text(position: Option<i64>) -> String {
     match position {
@@ -74,19 +97,28 @@ pub fn Exercises() -> impl IntoView {
 #[component]
 fn CodePractice(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, SqlDataset>) -> impl IntoView {
     let state = use_load(move || Some(()), move |c, _| async move { c.chapter_state(book, num).await });
+    // первая следующая глава книги, где есть код-задачи: после последнего упражнения «Дальше →» ведёт туда
+    let course = use_load(move || Some(()), move |c, _| async move { c.course(book).await });
+    let counts = use_load(move || Some(()), |c, _| async move { c.code_counts().await });
+    let next = Signal::derive(move || {
+        let (course, counts) = (course.get(), counts.get());
+        next_chapter(course.ready()?, counts.ready()?, book, num)
+    });
     let tasks = StoredValue::new(tasks);
     let datasets = StoredValue::new(datasets);
     move || match state.get() {
-        Load::Ready(s) => view! { <CodeBody book=book num=num tasks=tasks.get_value() datasets=datasets.get_value() state=s /> }.into_any(),
+        Load::Ready(s) => view! { <CodeBody book=book num=num tasks=tasks.get_value() datasets=datasets.get_value() state=s next=next /> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
         Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
     }
 }
 
 #[component]
-fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, SqlDataset>, state: ChapterState) -> impl IntoView {
+fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, SqlDataset>, state: ChapterState, next: Signal<Option<i64>>) -> impl IntoView {
     let progress = expect_context::<ProgressStore>();
     let navigate = use_navigate();
+    let navigate_next = navigate.clone();
+    let fullscreen = expect_context::<Fullscreen>();
     let location = use_location();
     let total = tasks.len();
     let tasks = StoredValue::new(tasks);
@@ -147,10 +179,14 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
         });
     });
 
+    // после последнего упражнения — к первому упражнению следующей главы с задачами
+    let has_next = move || idx.get() + 1 < total || next.get().is_some();
     let go_next = Callback::new(move |()| {
         let i = idx.get_untracked();
         if i + 1 < total {
             select.run(i + 1);
+        } else if let Some(id) = next.get_untracked() {
+            navigate_next(&chapter_href(book, id, "exercises", fullscreen.is_on_untracked()), Default::default());
         }
     });
     let accepted = Memo::new(move |_| {
@@ -158,7 +194,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
         let code = code_of(&t);
         status.with(|s| s.get(&t.id).map(String::as_str) == Some("ok")) && history.with(|h| h.iter().any(|a| a.status == "ok" && a.code == code))
     });
-    let go_mode = move || accepted.get() && idx.get() + 1 < total;
+    let go_mode = move || accepted.get() && has_next();
 
     let run = Callback::new(move |()| {
         if busy.get_untracked().is_some() {
@@ -280,7 +316,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                     solved=solved
                     on_solved=on_solved
                     on_next=go_next
-                    has_next=Signal::derive(move || idx.get() + 1 < total)
+                    has_next=Signal::derive(has_next)
                 />
             }
             .into_any()
@@ -356,7 +392,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                 <div class="pr-bar" role="progressbar" aria-valuemin="0" aria-valuemax=total>
                     <i style=move || format!("width: {}%", done() * 100 / total.max(1))></i>
                 </div>
-                <span class="pr-top-label">{if labs { "интерактивно · в браузере" } else { "python · docker" }}</span>
+                <span class="pr-top-label">{run_label(&tasks.with_value(|t| t.clone()))}</span>
             </div>
             <div class="pr-body">
                 <aside class="pr-list" aria-label="Упражнения">{list}</aside>
@@ -387,6 +423,26 @@ mod tests {
         assert_eq!(queue_text(Some(1)), "В очереди…");
         assert_eq!(queue_text(Some(4)), "В очереди (перед вами 3)…");
         assert_eq!(queue_text(None), "В очереди…");
+    }
+
+    #[test]
+    fn next_chapter_is_the_first_later_one_with_code_tasks() {
+        use api::dto::{ChapterRef, Counts, Section};
+        let chapter = |id: i64, num: i64| ChapterRef { id, num, title: String::new(), parts_count: 1 };
+        let course = vec![Section { id: 1, title: String::new(), chapters: vec![chapter(11, 1), chapter(12, 2), chapter(13, 3), chapter(14, 4)] }];
+        let counts: Counts = [("13".to_string(), [("1".to_string(), 5), ("3".to_string(), 7)].into_iter().collect())].into_iter().collect();
+        assert_eq!(next_chapter(&course, &counts, 13, 1), Some(13), "глава 2 без задач пропускается");
+        assert_eq!(next_chapter(&course, &counts, 13, 3), None, "после последней главы с задачами идти некуда");
+        assert_eq!(next_chapter(&course, &counts, 99, 1), None, "у книги без задач — нет");
+    }
+
+    #[test]
+    fn label_names_the_runtime_of_the_chapter() {
+        let t = |mode: &str| Task { id: "x".into(), mode: mode.into(), title: String::new(), statement: String::new(), starter: String::new(), hint: String::new(), dataset: None };
+        assert_eq!(run_label(&[t("sql")]), "sql · docker");
+        assert_eq!(run_label(&[t("func"), t("stdout")]), "python · docker");
+        assert_eq!(run_label(&[t("lab")]), "интерактивно · в браузере");
+        assert_eq!(run_label(&[t("lab"), t("rust")]), "rust · docker");
     }
 
     #[test]

@@ -96,7 +96,7 @@ struct SlideIn {
 
 async fn mark_slide(State(state): State<AppState>, Extension(me): Extension<Identity>, Json(b): Json<SlideIn>) -> ApiResult<StatusCode> {
     check_range("book", b.book, 1, 1000)?;
-    check_range("chapter", b.chapter, 1, 1000)?;
+    check_range("chapter", b.chapter, 0, 1000)?;
     check_range("slide", b.slide, 0, 500)?;
     state
         .db
@@ -120,7 +120,7 @@ struct BookChapter {
 /// Пройти квиз заново. Выбранные варианты записывает только POST /api/quizzes/…/answer, здесь их можно лишь стереть.
 async fn reset_quiz(State(state): State<AppState>, Extension(me): Extension<Identity>, Query(q): Query<BookChapter>) -> ApiResult<StatusCode> {
     check_range("book", q.book, 1, 1000)?;
-    check_range("chapter", q.chapter, 1, 1000)?;
+    check_range("chapter", q.chapter, 0, 1000)?;
     state
         .db
         .query("DELETE quiz_picks WHERE user = $u AND book = $b AND chapter = $c")

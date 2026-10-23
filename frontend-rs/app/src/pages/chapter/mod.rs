@@ -205,7 +205,7 @@ fn ChapterTabs(book: i64, id: i64, tabs: Memo<Vec<Tab>>, expand: bool) -> impl I
                     .into_iter()
                     .map(|(sub, label, badge)| {
                         let href = chapter_href(book, id, sub, fs.is_on());
-                        view! { <A href=href attr:class=move || format!("ch-tab {}", if on_tab(sub) { "on" } else { "" })>{label}{badge.map(|b| view! { <span class="ch-tab-badge">{b}</span> })}</A> }
+                        view! { <A href=href exact=true attr:class=move || format!("ch-tab {}", if on_tab(sub) { "on" } else { "" })>{label}{badge.map(|b| view! { <span class="ch-tab-badge">{b}</span> })}</A> }
                     })
                     .collect_view()
             }}

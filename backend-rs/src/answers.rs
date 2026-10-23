@@ -141,7 +141,7 @@ struct BookChapter {
 /// Начать упражнения главы заново.
 async fn reset(State(state): State<AppState>, Extension(me): Extension<Identity>, Query(q): Query<BookChapter>) -> ApiResult<StatusCode> {
     check_range("book", q.book, 1, 1000)?;
-    check_range("chapter", q.chapter, 1, 1000)?;
+    check_range("chapter", q.chapter, 0, 1000)?;
     state.db.query("DELETE answer_solved WHERE user = $u AND book = $b AND chapter = $c").bind(("u", me.user.id)).bind(("b", q.book)).bind(("c", q.chapter)).await?.check()?;
     Ok(StatusCode::NO_CONTENT)
 }

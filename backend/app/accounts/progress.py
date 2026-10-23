@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/progress", tags=["progress"])
 
 User = Annotated[dict, Depends(current_user)]
 Book = Annotated[int, Field(ge=1, le=1000)]
-Chapter = Annotated[int, Field(ge=1, le=1000)]
+Chapter = Annotated[int, Field(ge=0, le=1000)]
 
 
 @router.get("")
@@ -79,7 +79,7 @@ def mark_slide(body: SlideIn, user: User):
 
 
 @router.delete("/quiz", status_code=204)
-def reset_quiz(book: Annotated[int, Query(ge=1, le=1000)], chapter: Annotated[int, Query(ge=1, le=1000)], user: User):
+def reset_quiz(book: Annotated[int, Query(ge=1, le=1000)], chapter: Annotated[int, Query(ge=0, le=1000)], user: User):
     """Пройти квиз заново. Выбранные варианты записывает только POST /api/quizzes/…/answer (иначе ответы
     можно было бы «выбрать» для всех вопросов и тут же получить верные), здесь их можно лишь стереть."""
     with db() as conn:
