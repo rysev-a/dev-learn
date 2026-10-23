@@ -24,6 +24,8 @@ fn cell(v: ValueRef) -> Value {
 /// `{tables: [{name, kind, columns: [{name, type, pk, notnull, fk}], rows, total}], relations: [...]}`
 pub fn describe(setup: &str) -> anyhow::Result<Value> {
     let con = Connection::open_in_memory()?;
+    // учебные базы заполняются в порядке «как удобно читать», а не по внешним ключам; песочница (sqlite3) их не проверяет
+    con.execute_batch("PRAGMA foreign_keys = OFF")?;
     con.execute_batch(setup)?;
     let mut st = con.prepare("SELECT name, type FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY type DESC, rowid")?;
     let objects: Vec<(String, String)> = st.query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<Result<_, _>>()?;

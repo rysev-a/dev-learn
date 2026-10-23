@@ -77,6 +77,11 @@ async fn course_content_matches_the_python_backend() {
     let key = first["dataset"].as_str().unwrap();
     assert!(!sql["datasets"][key]["tables"].as_array().unwrap().is_empty());
     assert_eq!(call(&app, Method::GET, "/api/exercises/9/99", None, None).await.0, StatusCode::NOT_FOUND);
+    // у глав 17+ учебные базы с внешними ключами, заполненными в произвольном порядке: схема всё равно строится
+    for chapter in 1..=32 {
+        let (st, _) = call(&app, Method::GET, &format!("/api/exercises/9/{chapter}"), None, None).await;
+        assert_eq!(st, StatusCode::OK, "глава {chapter} книги 9");
+    }
     assert_eq!(call(&app, Method::GET, "/api/nope", None, None).await.0, StatusCode::NOT_FOUND);
 
     // защищённые маршруты без сессии
