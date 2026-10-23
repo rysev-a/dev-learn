@@ -1,0 +1,68 @@
+/* Редактор кода упражнений на <textarea> (в React-версии — CodeMirror): прозрачный текст поверх подсветки. */
+.rs-editor {
+  position: relative;
+  background: var(--s-bg);
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  font:
+    12.5px/1.55 "SF Mono",
+    "JetBrains Mono",
+    Menlo,
+    Consolas,
+    monospace;
+  color: var(--s-text);
+}
+
+.rs-editor:focus-within,
+.rs-editor.right {
+  border-color: var(--s-accent);
+}
+
+.rs-shade,
+.rs-input {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 8px 12px;
+  font: inherit;
+  tab-size: 4;
+  white-space: pre;
+}
+
+.rs-shade {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rs-line {
+  min-height: 1.55em;
+}
+
+.rs-input {
+  position: relative;
+  display: block;
+  resize: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: transparent;
+  caret-color: var(--s-accent);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.rs-input::selection {
+  background: var(--s-accent-a45);
+  color: transparent;
+}
+
+/* Полный экран: упражнения выбирают в левом дереве (как `.pr-body.single` в React), список внутри вкладки не нужен. */
+.slide-fs .pr-body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.slide-fs .pr-list {
+  display: none;
+}

@@ -1,0 +1,12 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Типизированный клиент API курса (книги, главы, прогресс, квизы, ответы, упражнения): DTO и вызовы без UI."
+
+[dependencies]
+content.workspace = true
+gloo-net.workspace = true
+serde.workspace = true
+serde_json.workspace = true

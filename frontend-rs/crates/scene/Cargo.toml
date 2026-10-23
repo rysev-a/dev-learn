@@ -1,0 +1,13 @@
+[package]
+name = "scene"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Покадровые анимированные схемы слайдов: модель сцены, помощники авторов, подсветка кода и компоненты Leptos."
+
+[dependencies]
+content.workspace = true
+highlight.workspace = true
+leptos.workspace = true
+gloo-timers.workspace = true
+web-sys.workspace = true
