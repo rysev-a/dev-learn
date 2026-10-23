@@ -109,7 +109,7 @@ pub async fn check(state: &AppState, user: &str, book: i64, chapter: i64, tid: &
         "arch" => {
             let rows: Vec<(u32, &str, &str)> = drafts.iter().map(|(c, id, code)| (*c, id.as_str(), code.as_str())).collect();
             let store = archlab::DraftStore::from_drafts(&arch, rows);
-            let verdict = arch.verify(chapter, &tid, &solution, Some(&arch.library(&store)));
+            let verdict = arch.verify_unlocked(chapter, &tid, &solution, &store);
             (!verdict.ok).then_some(verdict.message)
         }
         _ => verify(&lab, spec, &solution),
@@ -118,11 +118,17 @@ pub async fn check(state: &AppState, user: &str, book: i64, chapter: i64, tid: &
     .map_err(|e| ApiError::from(anyhow::anyhow!(e)))
 }
 
-/// Решения-черновики ученика по книге: (глава, id упражнения, JSON/текст).
+/// Решения ученика по книге: (глава, id упражнения, JSON/текст) — только решённые упражнения (статус `ok`):
+/// черновик нерешённого упражнения блоков и составных элементов не открывает.
 async fn drafts(db: &Db, user: &str, book: i64) -> ApiResult<Vec<(u32, String, String)>> {
-    let mut res = db.query("SELECT chapter, tid, code FROM code_drafts WHERE user = $u AND book = $b").bind(("u", user.to_string())).bind(("b", book)).await?;
-    let rows: Vec<Value> = res.take(0)?;
-    Ok(rows.iter().map(|r| (u32::try_from(i(r, "chapter")).unwrap_or(0), s(r, "tid"), s(r, "code"))).collect())
+    let mut res = db
+        .query("SELECT chapter, tid, code FROM code_drafts WHERE user = $u AND book = $b; SELECT chapter, tid FROM code_status WHERE user = $u AND book = $b AND status = 'ok'")
+        .bind(("u", user.to_string()))
+        .bind(("b", book))
+        .await?;
+    let (rows, solved): (Vec<Value>, Vec<Value>) = (res.take(0)?, res.take(1)?);
+    let done: std::collections::HashSet<(i64, String)> = solved.iter().map(|r| (i(r, "chapter"), s(r, "tid"))).collect();
+    Ok(rows.iter().filter(|r| done.contains(&(i(r, "chapter"), s(r, "tid")))).map(|r| (u32::try_from(i(r, "chapter")).unwrap_or(0), s(r, "tid"), s(r, "code"))).collect())
 }
 
 /// Диспетчер по виду лаборатории.
@@ -148,7 +154,8 @@ fn verify(lab: &str, spec: Value, solution: &str) -> Option<String> {
                 Ok(v) => v,
                 Err(e) => return Some(format!("решение не разобрано: {e}")),
             };
-            let verdict = virtlab::verify(&spec, &submitted);
+            // строго: цель без записи действий (trace), которую нечем перепроверить, не засчитывается — клиент присылает записи
+            let verdict = virtlab::verify_with(&spec, &submitted, virtlab::Strictness::Strict);
             (!verdict.solved).then(|| verdict.first_rejection().unwrap_or_else(|| "решение не засчитано".into()))
         }
         "net" => {

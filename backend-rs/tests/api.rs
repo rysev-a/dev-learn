@@ -211,6 +211,24 @@ async fn network_lab_accepts_solved_networks_and_rejects_the_starting_ones() {
 }
 
 #[tokio::test]
+async fn composite_gates_stay_locked_until_the_student_builds_them() {
+    let app = app("").await;
+    let token = sign_in(&app, "locks@mail.com").await;
+    // «половинный сумматор» использует XOR, который открывается сборкой «xor» своими руками
+    let file: Value = serde_json::from_slice(&std::fs::read("../backend/app/data/labs/arch/14-09.json").unwrap()).unwrap();
+    let task = file["tasks"].as_array().unwrap().iter().find(|t| t["id"] == "half-adder").unwrap();
+    let uri = "/api/exercises/14/9/half-adder/solved";
+    let (st, body) = call(&app, Method::PUT, uri, Some(&token), Some(json!({ "solution": task["spec"]["solution"].to_string() }))).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "XOR закрыт: {body}");
+    assert!(body["detail"].as_str().unwrap().contains("XOR"), "{body}");
+    // нерешённый черновик открывать элемент не должен
+    let (st, _) = call(&app, Method::PUT, "/api/exercises/14/6/xor-gate/draft", Some(&token), Some(json!({ "code": "{}" }))).await;
+    assert!(st == StatusCode::NO_CONTENT || st == StatusCode::NOT_FOUND);
+    let (st, _) = call(&app, Method::PUT, uri, Some(&token), Some(json!({ "solution": task["spec"]["solution"].to_string() }))).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+#[tokio::test]
 async fn progress_quiz_and_answers() {
     let app = app("").await;
     let token = sign_in(&app, "student@example.com").await;

@@ -369,6 +369,22 @@ impl ArchLab {
     }
 }
 
+impl ArchLab {
+    /// Проверка с учётом того, что открыто у ученика: блоки собираются из его решений, а составные вентили (NAND, XOR, XNOR, триггер)
+    /// допускаются только после сборки их вручную — как закрытые элементы в палитре интерфейса.
+    pub fn verify_unlocked(&self, chapter: u32, task_id: &str, submitted: &str, store: &dyn crate::data::SolutionStore) -> Verdict {
+        if let Some(Spec::Circuit(c)) = self.task(chapter, task_id).map(|t| &t.spec) {
+            if let (Build::Gates, Ok(Solution::Gate(g))) = (c.build, Solution::from_json(submitted)) {
+                let solved = |slug: &str, id: &str| store.load(slug, id).is_some();
+                if let Some(gate) = g.gates.iter().find(|x| !crate::progress::is_gate_unlocked(x.ty, &solved)) {
+                    return Verdict::fail(format!("Элемент {} закрыт. {}", gate.ty.name(), self.gate_lock_hint(gate.ty)));
+                }
+            }
+        }
+        self.verify(chapter, task_id, submitted, Some(&self.library(store)))
+    }
+}
+
 /// Значения всех узлов схемы (удобно клиенту): комбинационный расчёт без памяти.
 pub fn node_values(circuit: &Circuit, inputs: &InputState) -> Values {
     evaluate_circuit(circuit, inputs)

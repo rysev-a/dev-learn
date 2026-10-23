@@ -61,8 +61,9 @@ pub fn TextIn(
     #[prop(optional)] digits: usize,
     #[prop(optional, into)] on_commit: Option<Callback<()>>,
 ) -> impl IntoView {
+    // blur приходит, когда форма уже уничтожена (смена устройства при фокусе в поле): тогда сигнал формы мёртв — фиксировать нечего
     let commit = move || {
-        if let Some(c) = on_commit {
+        if let (Some(c), true) = (on_commit, value.try_get_untracked().is_some()) {
             c.run(());
         }
     };
@@ -171,14 +172,15 @@ pub fn Section(title: &'static str, children: Children) -> impl IntoView {
 /// Интерфейсы устройства: адрес, маска, «вкл» и (если открыт инструмент) длина очереди.
 #[component]
 pub fn Interfaces(ctx: Ctx, queue: bool) -> impl IntoView {
-    // строка пересоздаётся, когда меняется адрес (как `key` в React): поля показывают то, что записано в сети
+    // строка живёт, пока есть интерфейс: при вводе адреса и маски она не пересоздаётся и фокус не теряется;
+    // если сеть меняет что-то снаружи (терминал, «Сбросить»), поля подтягивают записанное (см. `IfaceRow`)
     let keys = Memo::new(move |_| ctx.read(|d| d.ifaces.iter().map(|i| (i.name.clone(), i.ip.clone(), i.prefix)).collect::<Vec<_>>()).unwrap_or_default());
     view! {
         <div class="nl-sec">
             <h4>"Интерфейсы"</h4>
             <For
                 each=move || keys.get()
-                key=|k| k.clone()
+                key=|k| k.0.clone()
                 children=move |(name, ip, prefix)| view! { <IfaceRow ctx=ctx name=name ip=ip prefix=prefix queue=queue /> }
             />
         </div>
@@ -191,6 +193,23 @@ fn IfaceRow(ctx: Ctx, name: String, ip: Option<String>, prefix: u8, queue: bool)
     let pre = RwSignal::new(prefix.to_string());
     let err = RwSignal::new(String::new());
     let queue_len = RwSignal::new(ctx.read(|d| d.iface(&name).and_then(|i| i.txqueuelen)).flatten().unwrap_or(1000).to_string());
+    // записанные в сети адрес и маска; когда они меняются, поля показывают новое (то, что ввели сами, уже совпадает)
+    let stored = {
+        let name = name.clone();
+        Memo::new(move |_| ctx.read(|d| d.iface(&name).map(|i| (i.ip.clone().unwrap_or_default(), i.prefix.to_string()))).flatten())
+    };
+    Effect::new(move |prev: Option<Option<(String, String)>>| {
+        let now = stored.get();
+        if let (Some(Some((prev_ip, prev_pre))), Some((ip_now, pre_now))) = (&prev, &now) {
+            if prev_ip != ip_now {
+                ip.set(ip_now.clone());
+            }
+            if prev_pre != pre_now {
+                pre.set(pre_now.clone());
+            }
+        }
+        now
+    });
     let mac = {
         let name = name.clone();
         move || ctx.read(|d| d.iface(&name).map(|i| i.mac.clone())).flatten().unwrap_or_default()
@@ -238,7 +257,7 @@ fn IfaceRow(ctx: Ctx, name: String, ip: Option<String>, prefix: u8, queue: bool)
             <input
                 prop:value=move || ip.get()
                 on:input=move |e| ip.set(event_target_value(&e))
-                on:blur=move |_| commit.run(())
+                on:blur=move |_| if ip.try_get_untracked().is_some() { commit.run(()) }
                 on:keydown=move |e| {
                     if e.key() == "Enter" {
                         commit.run(());

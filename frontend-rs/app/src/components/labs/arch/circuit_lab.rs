@@ -309,6 +309,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
                         on_toggle=toggle_node
                         on_edited=persist
                         on_message=notify
+                        on_inspect=Callback::new(move |node: String| inspect_path.update(|p| p.push(node)))
                     />
                 }
                 .into_any();
