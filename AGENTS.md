@@ -63,6 +63,95 @@ Dockerfile'ы и `Caddyfile` рядом. Инструкция для агент�
 фронтенда `import.meta.env.DEV` убирает и предзаполнение формы входа), `SAY_SECURE_COOKIE=1` (cookie только по HTTPS). Озвучка вынесена в extra:
 `uv run --extra voice …` (веб-сервису и воркеру torch не нужен).
 
+## Параллельный бэкенд на axum + SurrealDB (`backend-rs/`)
+
+Вторая реализация API рядом с Python-бэкендом (`backend/`), которую можно запускать вместо него: **те же маршруты и JSON** (`/api/books`,
+`/api/chapters`, `/api/progress`, `/api/quizzes`, `/api/answers`, `/api/exercises`, `/internal/worker`), кроме auth: вход, регистрация и админка
+— общие crates lab (`auth`, `auth_api`, `admin_api`, `system_tasks`, `mail`, `observability`) из приватного реестра `lab`
+(`/Users/rysev-a/Projects/lab/.worktrees/main/packages`; стандарт структуры — `web-services/standard.md` там же). Версии и features —
+в `[workspace.dependencies]` `backend-rs/Cargo.toml`: список **1 в 1 как в lab** (`web-services/Cargo.toml`), `Cargo.lock` взят оттуда же (чтобы
+граф зависимостей и готовые базовые образы совпадали); сверх списка только `rusqlite` (чтение SQL-файлов сида) и `sha2`. При обновлении версий в lab
+обновляйте и здесь, не расходитесь.
+
+- Устройство: `lib.rs` (роутер, `build()` — схема, сид, auth, фоновые задачи), `config.rs` (окружение), `db.rs` (подключение к SurrealDB и схема таблиц),
+  `seed.rs` (сид содержимого из тех же файлов, что у Python: `backend/app/data/textbook/**/*.md` и `sql/{books.sql,tasks,quizzes,answers}` — SQL
+  выполняется в SQLite в памяти и переносится в SurrealDB; пересев только если изменился хеш исходников, режим `SEED=auto|always|off`), модули маршрутов
+  `courses`, `progress`, `quizzes`, `answers`, `exercises`, `worker_api`, очередь проверок `jobs.rs` (та же модель, что у Python: аренда, сердцебиение, кэш,
+  две попытки; изменения очереди — под одним замком процесса, **бэкенд работает одним экземпляром**), `practice.rs`, `schema_view.rs` (ERD-данные SQL-задач).
+  Номера глав и порядок книг совпадают с Python-бэкендом (id глав раздаются так же).
+- Сессия — токен (`Authorization: Bearer`, его выдаёт `POST /api/auth/login`), вход по **email** (логинов у crate `auth` нет, имя — `profile.name`);
+  пароль не короче 8 символов (демо-пользователи `DEMO_USER_*`, `DEMO_ADMIN_*` — без политики, только для разработки). Фронтенд работает с обоими бэкендами
+  (`lib/api.ts` — токен в `localStorage` и разбор ошибок `detail`/`error`; `lib/auth.tsx` — нормализация ответов, `/signup` как запасной путь регистрации).
+  Пользователи и прогресс Python-бэкенда в SurrealDB **не переносятся**.
+- **Проверку кода выполняет внешний воркер** `backend/worker.py` (Docker-оркестрация осталась в Python: `runner.py`), бэкенд только ведёт очередь и отдаёт
+  задания по `/internal/worker/*` с токеном `SAY_WORKER_TOKEN`; встроенного локального воркера нет.
+- Запуск для разработки (SurrealDB из dev-стека lab: `ws://127.0.0.1:8123`, root/devpass):
+  `cd backend-rs && SURREAL_USER=root SURREAL_PASS=devpass BIND=127.0.0.1:8001 SAY_WORKER_TOKEN=dev DEMO_USER_EMAIL=student@mail.com DEMO_USER_PASSWORD=student DEMO_ADMIN_EMAIL=programmer@mail.com DEMO_ADMIN_PASSWORD=programmer cargo run`;
+  воркер: `cd backend && SAY_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:8001 --name dev --light 2 --heavy 1`;
+  фронтенд: `cd frontend && API_URL=http://127.0.0.1:8001 npx vite --port 5174`. Без доступной SurrealDB (и без `DB_STRICT`) бэкенд работает на базе в памяти.
+  Переменные: `BIND`, `SURREALDB_URL`, `SURREAL_USER`/`SURREAL_PASS`/`SURREAL_NS`/`SURREAL_DB`, `DB_STRICT`, `DATA_DIR`, `AUDIO_DIR`, `STATIC_DIR` (раздача `frontend/dist`),
+  `SAY_WORKER_TOKEN`, `SEED`, `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `APP_URL`, `SITE_NAME`, `SMTP_*` (без `SMTP_HOST` письма только в задачах админки).
+- Тесты: `cd backend-rs && cargo test` (SurrealDB в памяти, сид из настоящих исходников, вход, прогресс, квизы, ответы, очередь и API воркера).
+- Docker: `deploy/backend-rs.Dockerfile` (контекст — корень репозитория; секрет сборки `lab_token` = токен gitness, `LAB_TOKEN=… docker build --secret id=lab_token,env=LAB_TOKEN`)
+  и `deploy/docker-compose.rust.yml` (поверх `docker-compose.yml`: `api` на axum, `surrealdb`, резервные копии `surreal export`); см. `docs/deploy-agent.md`.
+
+## Параллельный фронтенд на Leptos и данные курса (`frontend-rs/`, `shared-rs/`)
+
+Рядом с React-фронтом (`frontend/`) живёт Leptos-фронт (`frontend-rs/`: Leptos 0.8 CSR + trunk, версии библиотек — как в lab,
+`/Users/rysev-a/Projects/lab/.worktrees/main`). Его цель — заменить React. **Содержимое курса — данные на бэкенде** (SurrealDB,
+`backend-rs`), клиент только рисует. Lab-крейты фронтенда (`auth_client`, `ui_kit`, `admin_ui`) из реестра не ставятся — вход и оболочка
+написаны здесь. Стили общие: `app/index.html` подключает `../../frontend/src/App.css`, своё — `app/style.css`; новых CSS-классов для слайдов
+не заводим (те же `a-*`, `s-*`).
+
+**Общие крейты `shared-rs/`** (каждый — отдельный пакет без общего workspace; бэкенд и фронтенд подключают путём):
+- `highlight` — подсветка py/c/asm/rust/sql/js/css, `Lang` с serde;
+- `content` — модель данных курса (serde): `Tone`, элементы схем (`Cell`, `Dot`, `Lnode`, `Text`, `Ptr`, `Line`, `Zone`, `Path`, `Bar`, `Code`,
+  `Gate`, `Transistor`, `Switch`, `Lamp`, `Circle`, `Region` — области ∪ ∩ \ и дополнение), `SceneSpec`/`Scene::compile` (проверка: число подписей,
+  вид элемента у `id`, конечные числа, метки шагов) и `Scene::lint` (текст влезает в ячейки, ничего за холстом), `Slide`/`Block`/`Chapter`
+  (блоки: схема, код, «НА ЭКРАНЕ», подпись, врезка, подсказка, темы, карточки, таблица), конструкторы `content::dsl`;
+- `gen` — **генераторы содержимого на Rust**: `generated()` (главы, у которых источник — код: `py_ch00`, `dm/ch01…10`), `bin generate <каталог>` пишет
+  файлы данных, `bin import_ts_slides <выгрузка> <каталог>` — разовый перенос прежних слайдов из TypeScript (выгрузка:
+  `cd frontend && node scripts/slides-export.mjs /tmp/sx`; сцены ручной отрисовки React (`kit.tsx`) подставляются из `dm/*`), `bin lint_slides <каталог>`.
+  Новые главы пишем генераторами: сцена = `SceneSpec` из кадров, глава = `Chapter`; ошибки ловят `Scene::compile`, `Chapter::check`, `lint`.
+
+**Хранение:** файлы `backend/app/data/slides/<книга>-<глава>.json` (канонический JSON `content::Chapter`; руками не правим — их строят
+генераторы/перенос) → сид `backend-rs` кладёт в таблицы `slide_chapters` (рубрика, число слайдов) и `slides` (слайд — документ, тело — массив
+блоков; сцена — вложенный JSON) → `GET /api/slides` (главы со слайдами) и `GET /api/slides/{книга}/{глава}`. Сид проверяет каждую главу
+(`Chapter::check`) и входит в хеш пересева. Клиент (`crates/api` → `Client::slides`) получает `content::Chapter` и рисует `components/blocks.rs`
+(`DataSlide`/`BlockView`) и `scene::SceneView`. Код Python во врезках подсвечивается единым набором ключевых слов (прежние наборы по главам
+не переносились).
+
+- Состав `frontend-rs` (workspace): `crates/scene` (отрисовка схем: `Stage`, `SceneView`, виды всех элементов, `Paint`, `use_steps`,
+  `use_reveal`), `crates/api` (клиент и DTO), `app`
+  (оболочка, вход, прогресс, плеер на виртуальных часах 14 симв/с, окно «За кадром», слайды, квиз, ответы, практика с кодом).
+- Запуск: backend-rs на 8001 (см. выше), затем `cd frontend-rs/app && trunk serve` (порт 7054, `/api` проксируется на 8001).
+  Тесты: `cd frontend-rs && cargo test --workspace`, `cd shared-rs/content && cargo test`, `cd shared-rs/gen && cargo test`.
+  Проверка данных: `cd shared-rs/gen && cargo run --release --bin lint_slides ../../backend/app/data/slides`.
+- Правила те же: число абзацев = число сцен = число частей, цвета только `--s-*`, озвучки нет.
+
+## Лаборатории: данные, движки на Rust, проверка на сервере
+
+Упражнения-лаборатории (книги 14 «схемы, Мини-8, RISC-V», 15 «сети», 17 «виртуализация», 18 «системный дизайн») — **данные на бэкенде**, а расчёт —
+общие Rust-крейты `shared-rs/{archlab,riscvlab,netlab,sdlab,virtlab}` (serde, без браузера; собираются нативно и в wasm). Они же работают в интерфейсе
+Leptos (расчёт в браузере) и на сервере (**проверка присланного решения**, раньше доверяли клиенту).
+
+- **Данные:** `backend/app/data/labs/<вид>/<книга>-<глава:02>.json` (`arch`, `riscv` — оба в `labs/arch`, `net`, `virt`, `sd`): `LabChapter { book, chapter, lab,
+  tasks: [{ id, title, statement, hint, spec }] }`; в `spec` — сценарий (исходная схема, цели, ограничения) и эталон (`solution` / `reference`). Файлы канонические
+  и **не правятся руками**: их пишут бинари `import` каждого крейта из выгрузки TypeScript (`frontend/scripts/{sd,net,arch,riscv,virt}-export.mjs` — esbuild-бандл
+  прежнего кода; выгрузка же пишет «золотые» результаты TS для дифференциальных тестов, `shared-rs/*/tests/golden*.json`). Новые упражнения добавляют уже в данные
+  (генератор/правка JSON и тест крейта), TS-исходники — только справка до удаления React.
+- **Сид и API (`backend-rs/src/labs.rs`):** файлы идут в таблицу `lab_tasks` (входят в хеш пересева); `GET /api/labs/{книга}/{глава}` отдаёт упражнения **без эталона**
+  (убираются `spec.solution` и `spec.reference`). `PUT /api/exercises/{книга}/{глава}/{id}/solved` для упражнений с данными лаборатории перепроверяет решение движком
+  (`sd::verify_raw`, `net::verify_json`, `riscv::task::verify`, `virt::verify`, `arch.verify` — составные блоки собираются из решений самого ученика, `code_drafts`) и при
+  отказе отвечает 422 с причиной. Упражнения без данных лаборатории принимаются как раньше (с предупреждением в журнале).
+- **Тесты бэкенда (`backend-rs/tests/api.rs`):** эталоны всех упражнений принимаются, исходные схемы — нет (системный дизайн, сети: все 79, архитектура: все 103
+  в порядке курса, RISC-V, виртуализация по `trace`).
+- **Интерфейс Leptos:** `frontend-rs/app/src/components/labs/` — `LabHost` (загрузка сценариев главы, отправка решения и показ причины отказа) и по модулю на вид
+  лаборатории (`sd`, `virt`, `net`, `arch`, `riscv`); общий код досок — `board_view.rs`. Вкладка «Практика» главы из одних лабораторных упражнений получает класс
+  `lab-pr` (полоса упражнений сверху).
+- Отличия от прежнего поведения: лимит `instances` у `app`/`ws` в системном дизайне поднят с 30 до 40 (эталоны итоговых упражнений 22–24 требовали 33–35);
+  сервер строже клиента (параметры по справочнику, скрытые параметры не меняются, компоненты вне палитры и закрытые блоки отклоняются).
+
 ## Контент: новые книги
 
 **Новые книги добавляются только со слайдами.** Для книги обязательно:
