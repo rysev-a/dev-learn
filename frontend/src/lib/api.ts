@@ -11,6 +11,27 @@ export class ApiError extends Error {
   }
 }
 
+// Сессия: Python-бэкенд держит её в HttpOnly-cookie, бэкенд на axum (общие crates lab) выдаёт токен при входе —
+// он хранится в localStorage и уходит заголовком Authorization: Bearer. Клиент работает с обоими.
+const TOKEN_KEY = "say-token";
+
+export const getToken = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
+export const setToken = (token: string | null): void => {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* хранилище недоступно — токен живёт до перезагрузки только в cookie-режиме */
+  }
+};
+
 interface ValidationIssue {
   loc?: (string | number)[];
   msg?: string;
@@ -44,10 +65,14 @@ export async function api<T = unknown>(
   { method = "GET", body, keepalive }: ApiOptions = {},
 ): Promise<T> {
   const init: RequestInit = { method };
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   if (body !== undefined) {
-    init.headers = { "Content-Type": "application/json" };
+    headers["Content-Type"] = "application/json";
     init.body = JSON.stringify(body);
   }
+  if (Object.keys(headers).length) init.headers = headers;
   if (keepalive !== undefined) init.keepalive = keepalive;
   const res = await fetch(path, init);
   if (res.status === 401 && !path.startsWith("/api/auth/")) {
@@ -55,7 +80,8 @@ export async function api<T = unknown>(
     window.dispatchEvent(new Event("say-unauthorized"));
   }
   if (res.status === 204) return null as T;
-  let data: { detail?: unknown } | null = null;
+  // у FastAPI ошибка в `detail`, у бэкенда на axum — `detail` (наши маршруты) или `error` (crates lab)
+  let data: { detail?: unknown; error?: unknown } | null = null;
   try {
     data = await res.json();
   } catch {
@@ -63,9 +89,9 @@ export async function api<T = unknown>(
   }
   if (!res.ok)
     throw new ApiError(
-      messageOf(data?.detail, `Ошибка ${res.status}`),
+      messageOf(data?.detail ?? data?.error, `Ошибка ${res.status}`),
       res.status,
-      data?.detail,
+      data?.detail ?? data?.error,
     );
   return data as T;
 }

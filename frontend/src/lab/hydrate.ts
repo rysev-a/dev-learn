@@ -10,14 +10,14 @@ import {
 } from "./exercises/logic-gates/lab/exercise-progress.ts";
 import { localSolutionStore } from "./exercises/logic-gates/blocks.ts";
 
-let cache: { user: number | null; promise: Promise<void> | null } = { user: null, promise: null };
+let cache: { user: number | string | null; promise: Promise<void> | null } = { user: null, promise: null };
 
 interface ServerState {
   status?: Record<string, string>;
   drafts?: Record<string, string>;
 }
 
-export function hydrateLab(userId: number | null): Promise<void> {
+export function hydrateLab(userId: number | string | null): Promise<void> {
   setLabNamespace(`u${userId}:`);
   if (cache.user === userId && cache.promise) return cache.promise;
   const circuitChapters = Object.entries(LAB_CHAPTERS).flatMap(([n, v]) => (v.kind === "circuit" ? [[n, v] as const] : []));
@@ -55,7 +55,7 @@ export function hydrateLab(userId: number | null): Promise<void> {
 }
 
 /** После «сбросить прогресс»: стереть локальный слепок решений и перечитать сервер при следующем входе */
-export function forgetLab(userId: number) {
+export function forgetLab(userId: number | string) {
   cache = { user: null, promise: null };
   try {
     const prefix = `u${userId}:processor-`;

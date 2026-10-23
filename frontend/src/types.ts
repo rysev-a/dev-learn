@@ -1,7 +1,8 @@
 // Типы данных, которыми клиент обменивается с бэкендом (backend/app/**/router.py).
 
 export interface User {
-  id: number;
+  /** число у Python-бэкенда, uuid-строка у бэкенда на axum */
+  id: number | string;
   email: string;
   login: string;
 }

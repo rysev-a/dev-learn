@@ -140,6 +140,29 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 `backend/docker/rust-crates` или версии образов в `backend/app/exercises/runner.py` (тогда повторите шаг 5 и сбросьте кэш проверок: он хранится в базе `exec_cache` и протухает за 7 дней сам).
 После выкладки повторите шаг 6.
 
+## 7а. Вариант: бэкенд на axum + SurrealDB (вместо Python-API)
+
+Тот же сайт, прокси и воркер, но `api` — Rust-бэкенд (`backend-rs/`), данные — в SurrealDB (том `surreal-data`), а не в SQLite. Использовать, **только если владелец
+просит именно этот вариант**. Отличия от шагов 3–7:
+
+1. **Токен реестра crates.** Общие библиотеки лежат в приватном реестре `lab` (gitness); без токена бэкенд не соберётся. Токен выдаёт владелец (в `~/.cargo/credentials.toml`
+   у него — строка `[registries.lab] token = "Bearer …"`), он передаётся **только** в окружении на время сборки (`LAB_TOKEN=<токен без слова Bearer>`), в файлы и git не пишется.
+2. В `deploy/.env` дополнительно: `SURREAL_PASS` (пароль root SurrealDB), `ADMIN_EMAIL` и `ADMIN_PASSWORD` (начальный администратор, вход по email, пароль ≥ 8 символов),
+   при необходимости `SMTP_*`/`MAIL_FROM` (без `SMTP_HOST` письма подтверждения никуда не уходят, а входу подтверждение не мешает). Остальное — как в шаге 3.
+3. Запуск (обе compose-файла подряд, `LAB_TOKEN` задан в окружении только для этой команды):
+
+```bash
+LAB_TOKEN=… docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.rust.yml --env-file deploy/.env up -d --build
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.rust.yml --env-file deploy/.env --profile setup run --rm images   # образы песочниц, как в шаге 5
+```
+
+   Первая сборка Rust-бэкенда долгая (10–20 минут: компилируется SurrealDB и зависимости). На старте бэкенд сидит курс в SurrealDB (≈ 5–15 с), `api` до этого `starting`.
+4. Проверка (шаг 6) та же, но вход и регистрация — по **email**: `POST /api/auth/signup` `{email, password, name}` затем `POST /api/auth/login` `{email, password}` → `{token, user, …}`;
+   дальше заголовок `Authorization: Bearer <token>` вместо cookie. Админка и пользователи — `/api/admin/*` (вход администратора `POST /api/admin/login`).
+5. Бэкапы: сервис `backup` делает `surreal export` раз в сутки в том `backups` (файлы `say-*.surql`); восстановление — `surreal import` в чистую базу.
+6. Обновление — как в шаге 7, но с `LAB_TOKEN` и обоими файлами. Бэкенд должен работать **одним экземпляром** (очередь проверок под замком процесса).
+7. Данные Python-варианта (SQLite) сюда не переносятся: пользователи и прогресс начинаются с нуля.
+
 ## 8. Бэкапы и восстановление
 
 Раз в сутки сервис `backup` кладёт копию в том `backups` (`say-YYYYMMDD-HHMMSS.db`, последние 14). Этого **недостаточно**: том живёт на той же машине. Договоритесь с владельцем о копии наружу (cron + `rsync`/объектное хранилище).

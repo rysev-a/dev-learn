@@ -1,0 +1,88 @@
+# Параллельный бэкенд «say»: axum + SurrealDB по стандарту lab (web-services/standard.md).
+#
+# Версии и features — ТОЛЬКО в [workspace.dependencies], и список общих crates и внешних зависимостей совпадает 1 в 1 со списком в
+# /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (тот же Cargo.lock → те же версии, готовые базовые образы
+# backend.base собираются один раз). Добавлено только то, чего нет в lab: rusqlite (чтение SQL-файлов инициализации), sha2 (ключ кэша проверок).
+[package]
+name = "say-backend"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+resolver = "2"
+members = ["."]
+
+[workspace.dependencies]
+# данные курса (слайды, сцены), общий crate с фронтендом и генераторами: shared-rs/content
+content = { path = "../shared-rs/content" }
+# движки лабораторий: сервер перепроверяет присланные решения теми же крейтами, что собираются в wasm для интерфейса
+sdlab = { path = "../shared-rs/sdlab" }
+virtlab = { path = "../shared-rs/virtlab" }
+riscvlab = { path = "../shared-rs/riscvlab" }
+archlab = { path = "../shared-rs/archlab" }
+netlab = { path = "../shared-rs/netlab" }
+# shared crates (gitness registry `lab_crates`)
+admin_api = { version = "0.2.1", registry = "lab" }
+auth = { version = "0.2.4", registry = "lab" }
+auth_api = { version = "0.2.2", registry = "lab" }
+mail = { version = "0.2.4", registry = "lab" }
+notifications = { version = "0.2.1", registry = "lab" }
+observability = { version = "0.1.3", registry = "lab" }
+system_tasks = { version = "0.2.2", registry = "lab" }
+# uniform external dependency set of all backends (union of features)
+anyhow = "1"
+argon2 = "0.6"
+askama = "0.16"
+axum = { version = "0.8", features = ["multipart", "ws"] }
+base64 = "0.23"
+chrono = { version = "0.4", features = ["serde"] }
+dotenvy = "0.15"
+jsonwebtoken = "11"
+percent-encoding = "2"
+rand = "0.10"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+serde = { version = "1", features = ["derive"] }
+serde_html_form = "0.4"
+serde_json = "1"
+surrealdb = { version = "3", features = ["kv-mem", "protocol-ws"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"] }
+tower-http = { version = "0.7", features = ["fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4", "v5", "serde"] }
+# only here
+rusqlite = { version = "0.37", features = ["bundled"] }
+sha2 = "0.11"
+
+[dependencies]
+content.workspace = true
+sdlab.workspace = true
+virtlab.workspace = true
+riscvlab.workspace = true
+archlab.workspace = true
+netlab.workspace = true
+admin_api.workspace = true
+auth.workspace = true
+auth_api.workspace = true
+mail.workspace = true
+observability.workspace = true
+system_tasks.workspace = true
+anyhow.workspace = true
+axum.workspace = true
+chrono.workspace = true
+dotenvy.workspace = true
+rand.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+surrealdb.workspace = true
+tokio.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

@@ -13,8 +13,8 @@ export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // вход: логин или email + пароль (по умолчанию student / student)
-  const [ident, setIdent] = useState(import.meta.env.DEV ? "student" : "");
+  // вход: логин или email + пароль (в dev-сборке по умолчанию student@mail.com / student)
+  const [ident, setIdent] = useState(import.meta.env.DEV ? "student@mail.com" : "");
   const [password, setPassword] = useState(import.meta.env.DEV ? "student" : "");
   // регистрация
   const [email, setEmail] = useState("");
@@ -44,10 +44,12 @@ export default function AuthPage({ themeButton }: { themeButton: ReactNode }) {
   };
 
   // «Войти как …»: подставить значения в форму и отправить её
+  // вход по email подходит обоим бэкендам (у бэкенда на axum логинов нет); пароль временных пользователей совпадает с именем
   const quick = (name: string) => {
-    setIdent(name);
+    const email = `${name}@mail.com`;
+    setIdent(email);
     setPassword(name);
-    submit(() => login(name, name));
+    submit(() => login(email, name));
   };
 
   const switchMode = (m: "login" | "register") => {

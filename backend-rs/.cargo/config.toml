@@ -1,0 +1,14 @@
+# Shared crates (auth, auth_api, ...) live in the Cargo registry of our gitness (space `lab`, registry
+# `lab_crates`). The token is NOT stored here: cargo reads it from CARGO_REGISTRIES_LAB_TOKEN or from
+# ~/.cargo/credentials.toml ([registries.lab] token = "Bearer <gitness personal access token>").
+[registries.lab]
+index = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
+credential-provider = "cargo:token"
+
+# One shared target dir for every backend (native) and frontend (wasm) in this
+# worktree: all apps keep an identical dependency set (registry crates, SKILL §2),
+# so each dep compiles once instead of 10x (~29 GB of per-app target/ dirs).
+# Relative to web-services/ (the parent of this .cargo dir) -> <worktree>/.target-dev.
+# The docker builds are unaffected: their CARGO_TARGET_DIR env overrides this.
+[build]
+target-dir = "target"
