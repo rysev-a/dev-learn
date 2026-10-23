@@ -19,10 +19,12 @@ use super::{
     block_logic::{
         board_size, join_error, kind_of, layout_boxes, next_bus_id, orient, pin_for, pin_map, ports_of, toggle_expanded, wire_class, BoxInfo, PinHit, RowInfo, BLOCKS_BOARD_H,
     },
-    common::{Exp, Lib, Scope},
-    view::{clamp_world, is_background, is_click, use_fullscreen, ArchView, Point, ZoomControls},
+    common::{Exp, Lib, Scope, BOARD},
 };
-use crate::dom;
+use crate::{
+    components::labs::board_view::{is_background, target_within, use_fullscreen, BoardView, ItemDrag, Point, ZoomControls},
+    dom,
+};
 
 fn bp(p: Point) -> archlab::model::Point {
     archlab::model::Point { x: p.x, y: p.y }
@@ -32,10 +34,10 @@ fn client(e: &web_sys::PointerEvent) -> Point {
     Point::new(f64::from(e.client_x()), f64::from(e.client_y()))
 }
 
-/// Перетаскиваемый блок: смещение указателя внутри него, высота (для границ мира) и точка нажатия на порт.
+/// Перетаскиваемый блок, его высота (для границ мира) и точка нажатия на порт.
 #[derive(Clone, Copy, Default)]
 struct DragInfo {
-    off: Point,
+    item: ItemDrag,
     h: f64,
     pin_down: Option<Point>,
 }
@@ -59,7 +61,7 @@ struct Ix {
     library: Signal<Lib>,
     instances: RwSignal<Vec<BlockInstance>>,
     bus_wires: RwSignal<Vec<BusWire>>,
-    view: ArchView,
+    view: BoardView,
     readonly: bool,
     expanded: RwSignal<HashSet<String>>,
     moved: RwSignal<HashMap<String, Point>>,
@@ -123,7 +125,7 @@ impl Ix {
         if let Some(id) = self.moving.get_untracked() {
             let p = self.view.to_board(c.x, c.y);
             let d = self.drag.get_value();
-            let o = clamp_world(Point::new(p.x - d.off.x, p.y - d.off.y), archlab::layout::BLOCK_W, if d.h > 0.0 { d.h } else { 80.0 });
+            let o = BOARD.items.clamp(d.item.at(p), (archlab::layout::BLOCK_W, if d.h > 0.0 { d.h } else { 80.0 }));
             if self.readonly {
                 self.moved.update(|m| {
                     m.insert(id, o);
@@ -166,7 +168,7 @@ impl Ix {
                 self.connect(pending, t);
                 self.cancel_wire();
             }
-            _ if self.drag.get_value().pin_down.is_some_and(|d| is_click(d, client(e))) => self.sticky.set(true),
+            _ if self.drag.get_value().pin_down.is_some_and(|d| self.view.is_click(d, client(e))) => self.sticky.set(true),
             _ => self.cancel_wire(),
         }
     }
@@ -213,7 +215,7 @@ impl Ix {
         let c = client(e);
         let p = self.view.to_board(c.x, c.y);
         self.drag.update_value(|d| {
-            d.off = Point::new(p.x - at.x, p.y - at.y);
+            d.item = ItemDrag::start(p, at);
             d.h = h;
         });
         self.moving.set(Some(node.to_string()));
@@ -249,7 +251,7 @@ pub fn BlockBoard(
     let fullscreen = use_fullscreen();
     let svg_ref = NodeRef::<svg::Svg>::new();
     let (board_w, board_h) = instances.with_untracked(|i| board_size(i, spread, height));
-    let view = ArchView::new(svg_ref, Signal::stored((board_w, board_h)));
+    let view = BoardView::new(svg_ref, BOARD, Signal::stored((board_w, board_h)));
     let expanded = RwSignal::new(HashSet::<String>::new());
     let moved = RwSignal::new(HashMap::<String, Point>::new());
     let iface_v = StoredValue::new(iface);
@@ -357,18 +359,21 @@ pub fn BlockBoard(
         if !ix.sticky.get_untracked() || e.button() == 1 {
             return;
         }
-        if !super::view::target_within(e.target(), ".bpin-hit") && !super::view::target_within(e.target(), ".lab-zoom") {
+        if !target_within(e.target(), ".bpin-hit") && !target_within(e.target(), ".lab-zoom") {
             ix.cancel_wire();
         }
     });
 
     let box_keys = Memo::new(move |_| boxes.with(|b| b.iter().map(BoxInfo::key).collect::<Vec<_>>()));
-    let changed = Signal::derive(move || moved.with(|m| !m.is_empty()));
-    let reset_moved = Callback::new(move |()| moved.set(HashMap::new()));
+    let changed = Signal::derive(move || view.changed() || moved.with(|m| !m.is_empty()));
+    let reset_moved = Callback::new(move |()| {
+        view.reset();
+        moved.set(HashMap::new());
+    });
 
     view! {
         <div class="lab-board" class:fill=fullscreen>
-            <ZoomControls view=view extra_changed=changed on_reset=reset_moved />
+            <ZoomControls view=view changed=changed on_reset=reset_moved />
             <svg
                 node_ref=svg_ref
                 class="lab-board-svg bb"

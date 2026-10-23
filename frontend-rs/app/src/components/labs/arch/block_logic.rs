@@ -10,7 +10,7 @@ use archlab::{
     model::NodeValue,
 };
 
-use super::view::{js_round, Point};
+use crate::components::labs::board_view::{js_round, Point};
 
 /// Размеры доски блоков по умолчанию.
 pub const BLOCKS_BOARD_W: f64 = 880.0;

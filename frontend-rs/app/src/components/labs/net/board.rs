@@ -1,31 +1,32 @@
 //! Поле сети: устройства (перетаскиваются), кабели с портами и характеристиками, бегущие по ним пакеты, пометки о потерях,
-//! прокладка кабеля мышью от устройства к устройству, сдвиг и масштаб окна. Арифметика — в `view.rs`, состояние — в `lab.rs`.
+//! прокладка кабеля мышью от устройства к устройству, сдвиг и масштаб окна. Сдвиг и масштаб — общий `board_view.rs`,
+//! геометрия — в `geom.rs`, состояние — в `lab.rs`.
 
 use leptos::{ev, prelude::*, svg};
 use netlab::model::split_ref;
-use wasm_bindgen::JsCast;
 use netlab::types::{DeviceKind, NetState};
 
 use super::lab::Lab;
 use super::logic;
-use super::view::{self, Point, Screen, DEV_H, DEV_W, HOME, ZOOM_STEP};
-use crate::dom;
+use super::geom::{self, BOARD, DEV_H, DEV_W, WORLD};
+use crate::{
+    components::labs::board_view::{BoardView, ItemDrag, Point, ZoomControls},
+    dom,
+};
 
 /// Что делает указатель, пока кнопка нажата.
 #[derive(Clone, Debug, PartialEq)]
 enum Drag {
-    /// тянут устройство: `grab` — где схватили относительно его центра (в координатах поля)
-    Device { id: String, grab: Point, down: Point, moved: bool },
+    /// тянут устройство (`item` — где схватили относительно его центра, в координатах поля)
+    Device { id: String, item: ItemDrag, down: Point, moved: bool },
     /// тянут кабель от устройства
     Cable { from: String, down: Point, moved: bool },
-    /// двигают окно
-    Pan { last: Point },
 }
 
 /// Всё, что нужно нарисовать про кабель.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinkInfo {
-    pub geom: view::LinkGeom,
+    pub geom: geom::LinkGeom,
     pub port_a: String,
     pub port_b: String,
     /// один из концов выключен
@@ -42,7 +43,7 @@ pub fn link_info(state: &NetState, idx: usize) -> Option<LinkInfo> {
     let b = state.devices.get(db)?;
     let up = |d: &netlab::types::Device, port: &str| d.iface(port).map(|i| i.up).unwrap_or(true);
     Some(LinkInfo {
-        geom: view::link_geom(Point::new(a.x, a.y), Point::new(b.x, b.y)),
+        geom: geom::link_geom(Point::new(a.x, a.y), Point::new(b.x, b.y)),
         port_a: pa.to_string(),
         port_b: pb.to_string(),
         down: !up(a, pa) || !up(b, pb),
@@ -53,11 +54,6 @@ pub fn link_info(state: &NetState, idx: usize) -> Option<LinkInfo> {
 /// Центры устройств по порядку добавления (для поиска под курсором).
 fn centers(state: &NetState) -> Vec<(String, Point)> {
     state.devices.iter().map(|d| (d.id.clone(), Point::new(d.x, d.y))).collect()
-}
-
-fn screen_of(svg: &web_sys::Element) -> Screen {
-    let r = svg.get_bounding_client_rect();
-    Screen { left: r.left(), top: r.top(), width: r.width(), height: r.height() }
 }
 
 fn client(e: &web_sys::PointerEvent) -> Point {
@@ -97,15 +93,13 @@ fn icon(kind: DeviceKind) -> AnyView {
 #[component]
 pub fn Board(lab: Lab) -> impl IntoView {
     let svg_ref = NodeRef::<svg::Svg>::new();
-    let vb = RwSignal::new(HOME);
+    let view = BoardView::new(svg_ref, BOARD, Signal::stored(WORLD));
     let drag = StoredValue::new(None::<Drag>);
-    let panning = RwSignal::new(false);
     // свободный конец тянущегося кабеля (в координатах поля)
     let rubber = RwSignal::new(None::<Point>);
     let cable_tool = lab.tools().cable;
 
-    let screen = move || svg_ref.get_untracked().map(|s| screen_of(s.unchecked_ref()));
-    let to_board = move |c: Point| screen().map(|s| s.to_board(&vb.get_untracked(), c)).unwrap_or_default();
+    let to_board = move |c: Point| view.to_board(c.x, c.y);
 
     let ids = Memo::new(move |_| lab.net.with(|n| n.devices.iter().map(|d| d.id.clone()).collect::<Vec<_>>()));
     let links = Memo::new(move |_| lab.net.with(|n| n.links.iter().enumerate().map(|(i, l)| (i, l.a.clone(), l.b.clone())).collect::<Vec<_>>()));
@@ -134,47 +128,35 @@ pub fn Board(lab: Lab) -> impl IntoView {
         lab.select(&id);
         let p = to_board(c);
         let center = lab.net.with_untracked(|n| n.devices.get(&id).map(|d| Point::new(d.x, d.y))).unwrap_or(p);
-        drag.set_value(Some(Drag::Device { id, grab: Point::new(p.x - center.x, p.y - center.y), down: c, moved: false }));
-    };
-
-    let background_down = move |e: web_sys::PointerEvent| {
-        let middle = e.button() == 1;
-        if !(middle || e.button() == 0) {
-            return;
-        }
-        e.prevent_default();
-        drag.set_value(Some(Drag::Pan { last: client(&e) }));
-        panning.set(true);
+        drag.set_value(Some(Drag::Device { id, item: ItemDrag::start(p, center), down: c, moved: false }));
     };
 
     dom::on_window(ev::pointermove, move |e| {
-        let Some(d) = drag.get_value() else { return };
         let c = client(&e);
+        if view.move_pan(c.x, c.y) {
+            return;
+        }
+        let Some(d) = drag.get_value() else { return };
         match d {
-            Drag::Device { id, grab, down, moved } => {
-                let moved = moved || !view::is_click(down, c);
+            Drag::Device { id, item, down, moved } => {
+                let moved = moved || !view.is_click(down, c);
                 if moved {
-                    let p = to_board(c);
-                    let pos = view::clamp_device(Point::new(p.x - grab.x, p.y - grab.y));
+                    let pos = BOARD.items.snap(item.at(to_board(c)));
                     lab.move_device(&id, pos.x, pos.y);
                 }
-                drag.set_value(Some(Drag::Device { id, grab, down, moved }));
+                drag.set_value(Some(Drag::Device { id, item, down, moved }));
             }
             Drag::Cable { from, down, moved } => {
-                let moved = moved || !view::is_click(down, c);
+                let moved = moved || !view.is_click(down, c);
                 rubber.set(Some(to_board(c)));
                 drag.set_value(Some(Drag::Cable { from, down, moved }));
-            }
-            Drag::Pan { last } => {
-                if let Some(s) = screen() {
-                    let (dx, dy) = s.pan_delta(&vb.get_untracked(), c.x - last.x, c.y - last.y);
-                    vb.update(|v| *v = v.panned(dx, dy));
-                }
-                drag.set_value(Some(Drag::Pan { last: c }));
             }
         }
     });
     dom::on_window(ev::pointerup, move |e| {
+        if view.end_pan() {
+            return;
+        }
         let Some(d) = drag.get_value() else { return };
         drag.set_value(None);
         match d {
@@ -188,7 +170,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
                 let p = to_board(client(&e));
                 let target = lab.net.with_untracked(|n| {
                     let cs = centers(n);
-                    view::device_at(cs.iter().map(|(id, c)| (id.as_str(), *c)), p).map(str::to_string)
+                    geom::device_at(cs.iter().map(|(id, c)| (id.as_str(), *c)), p).map(str::to_string)
                 });
                 match target {
                     Some(t) if t != from => {
@@ -200,45 +182,24 @@ pub fn Board(lab: Lab) -> impl IntoView {
                     _ => lab.cable_from.set(None),
                 }
             }
-            Drag::Pan { .. } => panning.set(false),
         }
     });
 
-    let on_wheel = move |e: web_sys::WheelEvent| {
-        if !(e.ctrl_key() || e.meta_key()) {
-            return;
-        }
-        e.prevent_default();
-        let Some(s) = screen() else { return };
-        let anchor = s.to_board(&vb.get_untracked(), Point::new(f64::from(e.client_x()), f64::from(e.client_y())));
-        vb.update(|v| *v = v.zoomed((-e.delta_y() * 0.0025).exp(), anchor));
-    };
-    let zoom_by = move |f: f64| {
-        let v = vb.get_untracked();
-        vb.set(v.zoomed(f, Point::new(v.x + v.w / 2.0, v.y + v.h / 2.0)));
-    };
-
     view! {
         <div class="lab-board-wrap">
-            <div class="lab-zoom" role="group" aria-label="Масштаб поля">
-                <button type="button" title="Уменьшить (Ctrl + колесо)" on:click=move |_| zoom_by(1.0 / ZOOM_STEP)>"−"</button>
-                <button type="button" class="pct" title="Масштаб 100 %" on:click=move |_| vb.update(|v| *v = v.with_zoom(1.0))>
-                    {move || format!("{}%", view::js_round(vb.get().zoom() * 100.0))}
-                </button>
-                <button type="button" title="Увеличить (Ctrl + колесо)" on:click=move |_| zoom_by(ZOOM_STEP)>"+"</button>
-                {move || (vb.get() != HOME).then(|| view! {
-                    <button type="button" title="Вернуть поле на место и масштаб 100 %" on:click=move |_| vb.set(HOME)>"⌖"</button>
-                })}
-            </div>
+            // «100 %» сохраняет середину окна (а не его угол)
+            <ZoomControls view=view on_actual=Callback::new(move |()| view.zoom_to(1.0)) />
             <svg
                 node_ref=svg_ref
                 class="nl-board"
-                viewBox=move || vb.get().attr()
+                viewBox=move || view.view_box()
                 role="img"
                 aria-label="Схема сети"
-                style=move || if panning.get() { "touch-action: none; cursor: grabbing" } else { "touch-action: none" }
-                on:pointerdown=background_down
-                on:wheel=on_wheel
+                style=move || if view.panning.get() { "touch-action: none; cursor: grabbing" } else { "touch-action: none" }
+                on:pointerdown=move |e| {
+                    view.on_pointer_down(&e, true);
+                }
+                on:wheel=move |e| view.on_wheel(&e, false)
                 on:auxclick=|e| {
                     if e.button() == 1 {
                         e.prevent_default();
@@ -263,7 +224,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
                     dots.into_iter()
                         .filter_map(|dot| {
                             let (a, b) = lab.net.with(|n| Some((n.devices.get(&dot.from)?.clone(), n.devices.get(&dot.to)?.clone())))?;
-                            let p = view::lerp(Point::new(a.x, a.y), Point::new(b.x, b.y), dot.p);
+                            let p = geom::lerp(Point::new(a.x, a.y), Point::new(b.x, b.y), dot.p);
                             Some(view! {
                                 <g class=format!("nl-dot {}", dot.kind) transform=format!("translate({},{})", p.x, p.y)>
                                     <circle r="6"></circle>

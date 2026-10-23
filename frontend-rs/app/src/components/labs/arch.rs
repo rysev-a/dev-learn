@@ -27,7 +27,6 @@ mod gate_logic;
 mod inspector;
 mod model;
 mod solution;
-mod view;
 
 /// Разбор сценария упражнения, который прислал сервер (без эталонного решения).
 fn parse_spec(value: &serde_json::Value) -> Result<Spec, String> {

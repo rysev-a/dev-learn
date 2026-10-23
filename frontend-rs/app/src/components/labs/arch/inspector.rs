@@ -15,10 +15,12 @@ use leptos::{ev, prelude::*, svg};
 use super::{
     block_board::BlockBoard,
     block_logic::BLOCKS_BOARD_H,
-    common::{levels_along, node_class, node_text, Exp, GateShape, Level, Lib, Scope},
-    view::{clamp_world, is_background, js_round, use_fullscreen, ArchView, Point, ZoomControls},
+    common::{levels_along, node_class, node_text, Exp, GateShape, Level, Lib, Scope, BOARD},
 };
-use crate::dom;
+use crate::{
+    components::labs::board_view::{is_background, js_round, use_fullscreen, BoardView, ItemDrag, Point, ZoomControls},
+    dom,
+};
 
 /// Равномерная раскладка узлов по высоте доски `h` (для схем с многими входами и выходами).
 pub fn spread_ys(names: &[String], h: f64) -> YMap {
@@ -84,9 +86,9 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
     let fullscreen = use_fullscreen();
     let svg_ref = NodeRef::<svg::Svg>::new();
     let (w, h, extra_w) = gate_view_size(&gates, iface.inputs.len(), iface.outputs.len(), spread);
-    let view = ArchView::new(svg_ref, Signal::stored((w, h)));
+    let view = BoardView::new(svg_ref, BOARD, Signal::stored((w, h)));
     let moved = RwSignal::new(HashMap::<String, Point>::new());
-    let dragging = RwSignal::new(None::<(String, Point)>);
+    let dragging = RwSignal::new(None::<(String, ItemDrag)>);
 
     let in_y = Arc::new(named_input_ys(&iface.inputs, h));
     let out_y = Arc::new(if iface.outputs.len() > 4 { spread_ys(&iface.outputs, h) } else { output_ys(&iface.outputs) });
@@ -129,9 +131,8 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
         if view.move_pan(c.x, c.y) {
             return;
         }
-        if let Some((id, off)) = dragging.get_untracked() {
-            let p = view.to_board(c.x, c.y);
-            let o = clamp_world(Point::new(p.x - off.x, p.y - off.y), GATE_W, GATE_H);
+        if let Some((id, item)) = dragging.get_untracked() {
+            let o = BOARD.items.clamp(item.at(view.to_board(c.x, c.y)), (GATE_W, GATE_H));
             moved.update(|m| {
                 m.insert(id, o);
             });
@@ -204,7 +205,14 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
 
     view! {
         <div class="lab-board" class:fill=fullscreen>
-            <ZoomControls view=view extra_changed=Signal::derive(move || moved.with(|m| !m.is_empty())) on_reset=Callback::new(move |()| moved.set(HashMap::new())) />
+            <ZoomControls
+                view=view
+                changed=Signal::derive(move || view.changed() || moved.with(|m| !m.is_empty()))
+                on_reset=Callback::new(move |()| {
+                    view.reset();
+                    moved.set(HashMap::new());
+                })
+            />
             <svg
                 node_ref=svg_ref
                 class="lab-board-svg cv"
@@ -252,9 +260,9 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
 /// Вентиль просмотра: контур, точки сигналов на контактах и «щуп» со значением выхода; его можно двигать.
 #[allow(clippy::too_many_arguments)]
 fn gate_node(
-    view: ArchView,
+    view: BoardView,
     placed: Memo<Vec<GateInstance>>,
-    dragging: RwSignal<Option<(String, Point)>>,
+    dragging: RwSignal<Option<(String, ItemDrag)>>,
     pin_val: PinValue,
     scope: Scope,
     id: String,
@@ -286,7 +294,7 @@ fn gate_node(
                 e.prevent_default();
                 let p = view.to_board(f64::from(e.client_x()), f64::from(e.client_y()));
                 let (x, y) = at.get_untracked();
-                dragging.set(Some((i3.clone(), Point::new(p.x - x, p.y - y))));
+                dragging.set(Some((i3.clone(), ItemDrag::start(p, Point::new(x, y)))));
             }
         >
             <GateShape ty=ty />

@@ -6,14 +6,15 @@ use archlab::{
     model::{creates_cycle, Circuit, GateInstance, PinKind, PinRef, Wire, GATE_H, GATE_W},
 };
 
-use super::view::{clamp_world, Point};
+use super::common::BOARD;
+use crate::components::labs::board_view::Point;
 
 /// Служебный id «призрака» элемента, который несут из палитры: автопроводка считает его уже стоящим на доске.
 pub const DROP_ID: &str = "auto-new";
 
 /// Левый верхний угол элемента, центр которого в точке `at` (элемент остаётся в пределах «мира»).
 pub fn gate_origin(at: Point) -> Point {
-    clamp_world(Point::new(at.x - GATE_W / 2.0, at.y - GATE_H / 2.0), GATE_W, GATE_H)
+    BOARD.items.clamp(Point::new(at.x - GATE_W / 2.0, at.y - GATE_H / 2.0), (GATE_W, GATE_H))
 }
 
 /// Куда ставится элемент, брошенный на палитру: колонкой по центру доски.

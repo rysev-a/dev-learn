@@ -10,6 +10,11 @@ use archlab::{
 };
 use leptos::prelude::*;
 
+use crate::components::labs::board_view::{BoardConfig, Bounds};
+
+/// Сдвиг и масштаб досок лаборатории: 30–300 %, целый сдвиг; элементы — в пределах «мира» 8000×6000 вокруг начала координат.
+pub const BOARD: BoardConfig = BoardConfig { items: Bounds::new((-4000.0, 4000.0), (-3000.0, 3000.0)), ..BoardConfig::DEFAULT };
+
 /// Значение узла схемы по его имени (чтение подписывает вызывающего на изменения значений).
 pub type Scope = Arc<dyn Fn(&str) -> NodeValue + Send + Sync>;
 

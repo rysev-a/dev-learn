@@ -19,11 +19,13 @@ use leptos::{ev, prelude::*, svg};
 
 use super::{
     check::value_in,
-    common::{node_class, node_text, GateShape},
+    common::{node_class, node_text, GateShape, BOARD},
     gate_logic::{can_drop, connect, gate_origin, palette_drop_spot, remap_drop, remove_gate, Connect, DROP_ID},
-    view::{clamp_world, is_background, is_click, js_round, target_within, use_element_width, use_fullscreen, world_height_for, ArchView, Point, ZoomControls},
 };
-use crate::{dom, settings};
+use crate::{
+    components::labs::board_view::{is_background, js_round, target_within, use_element_size, use_fullscreen, world_height_for, BoardView, ItemDrag, Point, ZoomControls},
+    dom, settings,
+};
 
 /// Ключ настройки: высота доски (px), выбранная «лапкой».
 const HEIGHT_KEY: &str = "say-lab-board-height";
@@ -57,11 +59,10 @@ pub struct PaletteItem {
     pub label: String,
 }
 
-/// Перетаскиваемый элемент: смещение указателя внутри него, откуда начали, и точка нажатия на контакт.
+/// Перетаскиваемый элемент и точка нажатия на контакт.
 #[derive(Clone, Copy, Default)]
 struct DragInfo {
-    off: Point,
-    from: Point,
+    item: ItemDrag,
     pin_down: Option<Point>,
 }
 
@@ -91,7 +92,7 @@ impl Vals {
 struct Ix {
     gates: RwSignal<Vec<GateInstance>>,
     wires: RwSignal<Vec<Wire>>,
-    view: ArchView,
+    view: BoardView,
     steps_mode: bool,
     auto_on: bool,
     palette: Signal<Vec<PaletteItem>>,
@@ -218,15 +219,15 @@ impl Ix {
         }
         if let Some(id) = self.moving.get_untracked() {
             let p = self.view.to_board(c.x, c.y);
-            let d = self.drag.get_value();
-            let o = clamp_world(Point::new(p.x - d.off.x, p.y - d.off.y), archlab::model::GATE_W, archlab::model::GATE_H);
+            let item = self.drag.get_value().item;
+            let o = BOARD.items.clamp(item.at(p), (archlab::model::GATE_W, archlab::model::GATE_H));
             self.gates.update(|l| {
                 if let Some(g) = l.iter_mut().find(|g| g.id == id) {
                     g.x = o.x;
                     g.y = o.y;
                 }
             });
-            if !self.moved_far.get_untracked() && (o.x - d.from.x).hypot(o.y - d.from.y) > MOVE_SLOP {
+            if !self.moved_far.get_untracked() && item.moved_far(o, MOVE_SLOP) {
                 self.moved_far.set(true);
             }
             return;
@@ -272,7 +273,7 @@ impl Ix {
                 self.try_connect(pending, target);
                 self.cancel_wire();
             }
-            _ if self.drag.get_value().pin_down.is_some_and(|down| is_click(down, c)) => self.sticky.set(true),
+            _ if self.drag.get_value().pin_down.is_some_and(|down| self.view.is_click(down, c)) => self.sticky.set(true),
             _ => self.cancel_wire(),
         }
     }
@@ -297,10 +298,7 @@ impl Ix {
         e.prevent_default();
         let c = client(e);
         let p = self.view.to_board(c.x, c.y);
-        self.drag.update_value(|d| {
-            d.off = Point::new(p.x - g.x, p.y - g.y);
-            d.from = Point::new(g.x, g.y);
-        });
+        self.drag.update_value(|d| d.item = ItemDrag::start(p, Point::new(g.x, g.y)));
         self.moved_far.set(false);
         self.moving.set(Some(g.id.clone()));
     }
@@ -370,14 +368,15 @@ pub fn GateBoard(
     on_locked_pick: Callback<GateType>,
 ) -> impl IntoView {
     let svg_ref = NodeRef::<svg::Svg>::new();
-    let width = use_element_width(svg_ref);
+    let size = use_element_size(svg_ref);
+    let width = Memo::new(move |_| size.get().0);
     let board_h = RwSignal::new(saved_height());
     let resize = RwSignal::new(None::<(f64, f64)>);
     // высота меняется без смены масштаба: видимое окно мира растёт вместе с высотой
     let fullscreen = use_fullscreen();
     let manual = Memo::new(move |_| board_h.get().filter(|_| !fullscreen()).and_then(|h| world_height_for(h, width.get(), BOARD_W)));
     let world = Signal::derive(move || (BOARD_W, manual.get().unwrap_or(BOARD_H)));
-    let view = ArchView::new(svg_ref, world);
+    let view = BoardView::new(svg_ref, BOARD, world);
 
     let in_y = StoredValue::new(input_ys(&spec.inputs));
     let out_y = StoredValue::new(output_ys(&spec.outputs));

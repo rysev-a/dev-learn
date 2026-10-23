@@ -12,12 +12,14 @@ use sdlab::{
 };
 use serde_json::{json, Value};
 
-use crate::components::labs::board_view::{js_round, Point, View};
+use crate::components::labs::board_view::{js_round, BoardConfig, Bounds, Point, View};
 
 /// Идентификатор «призрачного» компонента из палитры в списках связей, пока он ещё не поставлен на поле.
 pub const GHOST: &str = "__new__";
 /// Насколько далеко от начала координат можно унести компонент.
 pub const WORLD: f64 = 2600.0;
+/// Сдвиг и масштаб доски: 30–300 %, целый сдвиг, компоненты не дальше `WORLD` от начала координат.
+pub const BOARD: BoardConfig = BoardConfig { items: Bounds::symmetric(WORLD), ..BoardConfig::DEFAULT };
 /// Пределы высоты поля, которую выбирают «лапкой» (px).
 pub const MIN_H: f64 = 240.0;
 pub const MAX_H: f64 = 1600.0;
@@ -141,7 +143,7 @@ pub fn world_height(sized: bool, width_px: f64, height_px: f64) -> f64 {
 /// Сдвиг и масштаб, при которых вся схема видна в окне высотой `world_h` с полями; пустая схема — исходный вид.
 pub fn fit_view(nodes: &[Point], world_h: f64) -> View {
     if nodes.is_empty() {
-        return View::HOME;
+        return BOARD.home_view();
     }
     let pad = 30.0;
     let fold = |f: fn(f64, f64) -> f64, init: f64, g: fn(&Point) -> f64| nodes.iter().map(g).fold(init, f);
@@ -150,7 +152,7 @@ pub fn fit_view(nodes: &[Point], world_h: f64) -> View {
     let min_y = fold(f64::min, f64::INFINITY, |p| p.y) - NODE_H / 2.0 - pad;
     let max_y = fold(f64::max, f64::NEG_INFINITY, |p| p.y) + NODE_H / 2.0 + pad;
     let (bw, bh) = (max_x - min_x, max_y - min_y);
-    let zoom = 1.6_f64.min(BOARD_W / bw).min(world_h / bh).max(0.3);
+    let zoom = 1.6_f64.min(BOARD_W / bw).min(world_h / bh).max(BOARD.zoom_min);
     View { zoom, pan: Point::new(js_round(min_x + bw / 2.0 - BOARD_W / zoom / 2.0), js_round(min_y + bh / 2.0 - world_h / zoom / 2.0)) }
 }
 
@@ -597,7 +599,7 @@ mod tests {
 
     #[test]
     fn fit_shows_every_node_with_margins() {
-        assert_eq!(fit_view(&[], 560.0), View::HOME);
+        assert_eq!(fit_view(&[], 560.0), BOARD.home_view());
         let pts = [Point::new(70.0, 235.0), Point::new(1120.0, 235.0)];
         let v = fit_view(&pts, 560.0);
         // ширина схемы 1050 + 124 + 60 = 1234 → масштаб 780/1234

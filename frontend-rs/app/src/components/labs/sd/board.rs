@@ -19,10 +19,10 @@ use wasm_bindgen::JsCast;
 use super::{
     icons,
     lab::Lab,
-    logic::{self, Pending, Pin, MAX_H, MIN_H, MOVE_SLOP, WORLD},
+    logic::{self, Pending, Pin, BOARD, MAX_H, MIN_H, MOVE_SLOP},
 };
 use crate::{
-    components::labs::board_view::{clamp_world, is_click, js_round, use_element_size, BoardView, ItemDrag, Point, ZoomControls},
+    components::labs::board_view::{is_background, js_round, target_within, use_element_size, BoardView, ItemDrag, Point, View, ZoomControls},
     dom, settings,
 };
 
@@ -59,23 +59,8 @@ fn bar_width(util: f64) -> f64 {
     (util.min(1.0) * (NODE_W - 16.0)).max(2.0)
 }
 
-/// У элемента есть класс `class`.
-fn has_class(el: &web_sys::Element, class: &str) -> bool {
-    el.get_attribute("class").is_some_and(|c| c.split_whitespace().any(|x| x == class))
-}
-
 fn target_element(target: Option<web_sys::EventTarget>) -> Option<web_sys::Element> {
     target.and_then(|t| t.dyn_into::<web_sys::Element>().ok())
-}
-
-/// Нажатие пришлось на сам `<svg>` или на точечный фон: здесь начинается сдвиг поля.
-fn is_background(el: &web_sys::Element) -> bool {
-    el.tag_name().eq_ignore_ascii_case("svg") || has_class(el, "sd-bg")
-}
-
-/// Событие пришло изнутри поля схемы.
-fn in_board(target: Option<web_sys::EventTarget>) -> bool {
-    target_element(target).and_then(|el| el.closest(".sd-board").ok().flatten()).is_some()
 }
 
 /// Фокус в поле ввода: клавиши Delete и Backspace там работают как обычно.
@@ -125,8 +110,7 @@ impl Ix {
 
         let ghost = Memo::new(move |_| {
             let (kind, at) = (placing.get()?, cursor.get()?);
-            let rect = view.svg.get_untracked()?.get_bounding_client_rect();
-            if at.x < rect.left() || at.x > rect.right() || at.y < rect.top() || at.y > rect.bottom() {
+            if !view.contains_client(at) {
                 return None;
             }
             Some(logic::ghost_node(kind, view.to_board(at.x, at.y)))
@@ -224,7 +208,7 @@ impl Ix {
         if e.button() != 0 || self.placing.get_untracked().is_some() {
             return;
         }
-        if !target_element(e.target()).is_some_and(|el| is_background(&el)) {
+        if !is_background(e.target(), "sd-bg") {
             return;
         }
         if self.pending.get_untracked().is_some() {
@@ -247,7 +231,7 @@ impl Ix {
         }
         if let Some(id) = self.moving.get_untracked() {
             let item = self.drag.get_value().item;
-            let to = item.to(self.view.to_board(at.x, at.y), WORLD);
+            let to = BOARD.items.snap(item.at(self.view.to_board(at.x, at.y)));
             self.lab.move_node(&id, to.x, to.y, false);
             if !self.moved_far.get_untracked() && item.moved_far(to, MOVE_SLOP) {
                 self.moved_far.set(true);
@@ -270,10 +254,9 @@ impl Ix {
             let held = self.auto_edges.get_untracked();
             self.placing.set(None);
             self.cursor.set(None);
-            if in_board(e.target()) {
+            if target_within(e.target(), ".sd-board") {
                 let p = self.view.to_board(at.x, at.y);
-                let at = Point::new(js_round(clamp_world(p.x, WORLD)), js_round(clamp_world(p.y, WORLD)));
-                self.lab.add(kind, Some(at), &held);
+                self.lab.add(kind, Some(BOARD.items.snap(p)), &held);
             }
             return;
         }
@@ -302,7 +285,7 @@ impl Ix {
                     self.connect_pending(&p, &t);
                     self.cancel_wire();
                 }
-                None if self.drag.get_value().pin_down.is_some_and(|d| is_click(d, at)) => self.sticky.set(true),
+                None if self.drag.get_value().pin_down.is_some_and(|d| self.view.is_click(d, at)) => self.sticky.set(true),
                 None => self.cancel_wire(),
             }
         }
@@ -340,11 +323,11 @@ pub fn Board(
         let (w, h) = size.get();
         logic::world_height(sized(), w, h)
     });
-    let view = BoardView::new(svg_ref, BOARD_W, world_h.into());
+    let view = BoardView::new(svg_ref, BOARD, Signal::derive(move || (BOARD_W, world_h.get())));
     let ix = Ix::new(lab, view);
 
     // вписать всю схему в окно просмотра
-    let fitted = RwSignal::new(None::<crate::components::labs::board_view::View>);
+    let fitted = RwSignal::new(None::<View>);
     let fit = Callback::new(move |()| {
         let points: Vec<Point> = lab.state.with_untracked(|s| s.nodes.iter().map(|n| Point::new(n.x, n.y)).collect());
         let v = logic::fit_view(&points, world_h.get_untracked());
@@ -437,13 +420,7 @@ pub fn Board(
             >
                 {corner.run()}
                 {overlay.run()}
-                <ZoomControls
-                    zoom=view.zoom
-                    changed=changed
-                    on_zoom_by=Callback::new(move |f| view.zoom_by(f))
-                    on_actual=Callback::new(move |()| view.set_zoom(1.0))
-                    on_reset=fit
-                />
+                <ZoomControls view=view changed=changed on_reset=fit />
                 {(!fullscreen).then(|| view! {
                     <div
                         class="sd-resize"
@@ -469,7 +446,7 @@ pub fn Board(
                     role="img"
                     aria-label="Схема сервиса"
                     on:pointerdown=move |e| ix.board_down(&e)
-                    on:wheel=move |e| view.on_wheel(&e)
+                    on:wheel=move |e| view.on_wheel(&e, false)
                     on:mousedown=|e| {
                         if e.button() == 1 {
                             e.prevent_default();
