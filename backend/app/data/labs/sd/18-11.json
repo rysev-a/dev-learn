@@ -1,0 +1,194 @@
+{
+  "book": 18,
+  "chapter": 11,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd11-ws-gateway",
+      "title": "Шлюзы WebSocket",
+      "statement": "Чат получает 90 000 одновременных соединений, а обычные запросы (история) идут через балансировщик. Один шлюз WebSocket держит 15 000 соединений. Добавьте шлюзы между пользователями и серверами приложения, свяжите их и подберите число экземпляров так, чтобы шлюзы были загружены не больше чем на 80%.",
+      "hint": "Пользователи → шлюз WebSocket → сервер приложения. Для 90 000 соединений понадобится восемь экземпляров (67–75%).",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 300, "write_rps": 50, "data_gb": 20, "hot_set": 0.2, "connections": 90000, "msg_per_conn": 0.005},
+        "palette": ["lb", "ws", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "has", "kind": "ws"},
+          {"type": "link", "from": "clients", "to": "ws"},
+          {"type": "link", "from": "ws", "to": "app"},
+          {"type": "util", "kind": "ws", "max": 0.8}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 8}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}]
+        }
+      }
+    },
+    {
+      "id": "sd11-ws-scale",
+      "title": "Триста тысяч соединений",
+      "statement": "Аудитория выросла: 300 000 одновременных соединений. Подберите число шлюзов WebSocket: загрузка не выше 80% и запас на потерю одного шлюза без перегрузки остальных. Бюджет — $3500 в месяц.",
+      "hint": "300 000 / (15 000 × 0,8) = 25 шлюзов; при потере одного загрузка вырастет с 80% до 83% — поэтому лучше 26.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 300, "write_rps": 50, "data_gb": 30, "hot_set": 0.2, "connections": 300000, "msg_per_conn": 0.002},
+        "palette": ["lb", "ws", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 10}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}]
+        },
+        "goals": [
+          {"type": "util", "kind": "ws", "max": 0.8},
+          {"type": "no_spof", "kinds": ["ws"]},
+          {"type": "util", "kind": "app", "max": 0.8},
+          {"type": "cost", "max": 3500}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 26}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}]
+        }
+      }
+    },
+    {
+      "id": "sd11-messages",
+      "title": "Поток сообщений",
+      "statement": "90 000 соединений по 0,03 сообщения в секунду — 2700 сообщений в секунду. Сейчас они пишутся прямо в базу, и она перегружена. Пропустите сообщения через очередь и обработчиков: свяжите сервер с очередью, очередь — с обработчиками, обработчиков — с базой. База и серверы — не выше 80%, очередь разбирается без отставания (пик — 10 секунд, допустимо 5 с).",
+      "hint": "Нужен разбор не меньше 2700 в секунду: семь обработчиков M — 2800. Приложению нужно около шести серверов M.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 300, "write_rps": 50, "data_gb": 100, "hot_set": 0.2, "connections": 90000, "msg_per_conn": 0.03, "spike_sec": 10},
+        "palette": ["lb", "ws", "app", "queue", "worker", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 8}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "link", "from": "app", "to": "queue"},
+          {"type": "link", "from": "queue", "to": "worker"},
+          {"type": "link", "from": "worker", "to": "db"},
+          {"type": "util", "kind": "db", "max": 0.8},
+          {"type": "util", "kind": "app", "max": 0.8},
+          {"type": "lag", "max": 5}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 8}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 235, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": false, "instances": 7, "pricing": "ondemand", "size": "M", "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd11-presence",
+      "title": "Присутствие в кэше",
+      "statement": "Список друзей показывает «онлайн» — это 3000 запросов статуса в секунду к небольшому рабочему набору (около 2 ГБ). База S не справляется. Поставьте кэш статусов с долгим временем жизни записей: кэш отдаёт не меньше 90% чтений, база загружена не выше 80%.",
+      "hint": "Кэш 2–3 ГБ с TTL 3600 — около 94% попаданий; TTL 300 даст чуть меньше 90%.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 3000, "write_rps": 100, "data_gb": 5, "hot_set": 0.4},
+        "palette": ["lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "hit", "min": 0.9},
+          {"type": "util", "kind": "db", "max": 0.8},
+          {"type": "capacity", "max": 0.8}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    },
+    {
+      "id": "sd11-final",
+      "title": "Чат целиком",
+      "statement": "Итоговое упражнение главы. Мессенджер: 150 000 соединений, 0,02 сообщения в секунду на соединение (3000 сообщений в секунду), статусы и история — 2000 чтений, 100 записей. Соберите схему: шлюзы WebSocket (не выше 80%, с запасом на потерю одного), очередь с обработчиками (без отставания: пик 10 с, допустимо 5 с), кэш статусов (≥90%), база не выше 80%, бюджет — $5000 в месяц.",
+      "hint": "Шлюзы: 150 000 / 12 000 = 13–14. Обработчики: 3000 сообщений — восемь M. Кэш 3 ГБ с TTL 3600. Серверы приложения принимают и обычные запросы, и 3000 сообщений в секунду: около десяти M.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 2000, "write_rps": 100, "data_gb": 100, "hot_set": 0.04, "connections": 150000, "msg_per_conn": 0.02, "spike_sec": 10},
+        "palette": ["lb", "ws", "app", "queue", "worker", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "util", "kind": "ws", "max": 0.8},
+          {"type": "no_spof", "kinds": ["ws"]},
+          {"type": "link", "from": "app", "to": "queue"},
+          {"type": "link", "from": "worker", "to": "db"},
+          {"type": "lag", "max": 5},
+          {"type": "hit", "min": 0.9},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 5000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 10, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 157, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": false, "instances": 8, "pricing": "ondemand", "size": "M", "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 313, "params": {"policy": "aside", "replicas": 0, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1399 @@
+{
+  "book": 15,
+  "chapter": 17,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n17-pool",
+      "title": "Добавьте серверы в пул",
+      "statement": "Сервис вырос, поставили ещё два сервера (10.0.1.12 и 10.0.1.13), но балансировщик по-прежнему шлёт всё на первый. Добавьте оба в пул и убедитесь, что девять запросов раскладываются по трём серверам.",
+      "hint": "На балансировщике: `lb add 10.0.1.12:80` и `lb add 10.0.1.13:80` либо поле «+ в пул» в карточке. Проверьте командой `lb show`.",
+      "spec": {
+        "tools": {
+          "lb": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 50,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:12",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "lb",
+              "kind": "router",
+              "name": "Балансировщик",
+              "x": 240,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:13",
+                  "ip": "10.0.0.100",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:14",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "lb": {
+                "vip": "10.0.0.100",
+                "port": 80,
+                "algo": "rr",
+                "backends": [
+                  {
+                    "ip": "10.0.1.11",
+                    "port": 80
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 390,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:15",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:16",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:17",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:18",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:02:19",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s1",
+              "kind": "server",
+              "name": "Сервер 1",
+              "x": 560,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:1a",
+                  "ip": "10.0.1.11",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s2",
+              "kind": "server",
+              "name": "Сервер 2",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:1b",
+                  "ip": "10.0.1.12",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s3",
+              "kind": "server",
+              "name": "Сервер 3",
+              "x": 560,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:1c",
+                  "ip": "10.0.1.13",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "lb:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "lb:eth1",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s1:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s2:eth0",
+              "b": "sw:p3",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s3:eth0",
+              "b": "sw:p4",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "9 соединений делятся между тремя серверами",
+            "lbspread": {
+              "from": "pc",
+              "to": "@lb",
+              "port": 80,
+              "n": 9,
+              "distinct": 3
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "lb",
+            "line": "lb add 10.0.1.12:80"
+          },
+          {
+            "op": "cmd",
+            "dev": "lb",
+            "line": "lb add 10.0.1.13:80"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n17-health",
+      "title": "Проверка здоровья",
+      "statement": "В пуле три сервера, но второй не слушает порт 80 — каждый третий запрос получает отказ. Включите проверку здоровья на балансировщике: он перестанет отправлять запросы мёртвому серверу, и все соединения будут успешными.",
+      "hint": "`lb health on` или флажок «проверка здоровья» в карточке балансировщика. Потом запустите ▶ у цели и посмотрите, на какие серверы попали запросы.",
+      "spec": {
+        "tools": {
+          "lb": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 50,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:1d",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "lb",
+              "kind": "router",
+              "name": "Балансировщик",
+              "x": 240,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:1e",
+                  "ip": "10.0.0.100",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:1f",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "lb": {
+                "vip": "10.0.0.100",
+                "port": 80,
+                "algo": "rr",
+                "backends": [
+                  {
+                    "ip": "10.0.1.11",
+                    "port": 80
+                  },
+                  {
+                    "ip": "10.0.1.12",
+                    "port": 80
+                  },
+                  {
+                    "ip": "10.0.1.13",
+                    "port": 80
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 390,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:20",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:21",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:22",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:23",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:02:24",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s1",
+              "kind": "server",
+              "name": "Сервер 1",
+              "x": 560,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:25",
+                  "ip": "10.0.1.11",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s2",
+              "kind": "server",
+              "name": "Сервер 2",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:26",
+                  "ip": "10.0.1.12",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s3",
+              "kind": "server",
+              "name": "Сервер 3",
+              "x": 560,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:27",
+                  "ip": "10.0.1.13",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "lb:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "lb:eth1",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s1:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s2:eth0",
+              "b": "sw:p3",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s3:eth0",
+              "b": "sw:p4",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "6 соединений: все успешны, второй сервер не задействован",
+            "lbspread": {
+              "from": "pc",
+              "to": "@lb",
+              "port": 80,
+              "n": 6,
+              "avoid": [
+                "s2"
+              ]
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "lb",
+            "line": "lb health on"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n17-sticky",
+      "title": "Привязка клиента к серверу",
+      "statement": "Приложение хранит сессию в памяти сервера: после входа каждый следующий запрос должен попадать на тот же сервер, а сейчас запросы клиента разбросаны по кругу. Переключите алгоритм на привязку по адресу клиента.",
+      "hint": "`lb algo hash` или выбор «привязка по адресу клиента» в карточке. Помните: это временное решение — лучше выносить сессии во внешнее хранилище.",
+      "spec": {
+        "tools": {
+          "lb": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 50,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:28",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "lb",
+              "kind": "router",
+              "name": "Балансировщик",
+              "x": 240,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:29",
+                  "ip": "10.0.0.100",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:2a",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "lb": {
+                "vip": "10.0.0.100",
+                "port": 80,
+                "algo": "rr",
+                "health": true,
+                "backends": [
+                  {
+                    "ip": "10.0.1.11",
+                    "port": 80
+                  },
+                  {
+                    "ip": "10.0.1.12",
+                    "port": 80
+                  },
+                  {
+                    "ip": "10.0.1.13",
+                    "port": 80
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 390,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:2b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:2c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:2d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:2e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:02:2f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s1",
+              "kind": "server",
+              "name": "Сервер 1",
+              "x": 560,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:30",
+                  "ip": "10.0.1.11",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s2",
+              "kind": "server",
+              "name": "Сервер 2",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:31",
+                  "ip": "10.0.1.12",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s3",
+              "kind": "server",
+              "name": "Сервер 3",
+              "x": 560,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:32",
+                  "ip": "10.0.1.13",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "lb:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "lb:eth1",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s1:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s2:eth0",
+              "b": "sw:p3",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "s3:eth0",
+              "b": "sw:p4",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Все 6 запросов клиента попадают на один сервер",
+            "lbspread": {
+              "from": "pc",
+              "to": "@lb",
+              "port": 80,
+              "n": 6,
+              "distinct": 1,
+              "sticky": true
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "lb",
+            "line": "lb algo hash"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n17-rproxy",
+      "title": "Обратный прокси: маршрутизация по пути",
+      "statement": "Единая точка входа 10.0.0.80 должна разбирать запросы: всё, кроме /api, — на веб-сервер 10.0.2.20:80, а /api — на сервер API 10.0.2.10:8080. Сейчас правил нет, и прокси отвечает «no route». Добавьте два правила, более длинный путь побеждает.",
+      "hint": "`rproxy add * / 10.0.2.20:80` и `rproxy add * /api 10.0.2.10:8080`. Проверка: `curl http://10.0.0.80/` и `curl http://10.0.0.80/api/items`.",
+      "spec": {
+        "tools": {
+          "rproxy": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 60,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:33",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "rp",
+              "kind": "server",
+              "name": "Обратный прокси",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:34",
+                  "ip": "10.0.0.80",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:35",
+                  "ip": "10.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "rproxy": {
+                "rules": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб",
+              "x": 520,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:36",
+                  "ip": "10.0.2.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Витрина</h1>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "api",
+              "kind": "server",
+              "name": "API",
+              "x": 520,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:37",
+                  "ip": "10.0.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 8080
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/api/items",
+                    "status": 200,
+                    "body": "{\"items\": []}",
+                    "type": "application/json"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:38",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:39",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:3a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:3b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "rp:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "rp:eth1",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "api:eth0",
+              "b": "sw:p3",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "GET / возвращает витрину",
+            "http": {
+              "from": "pc",
+              "url": "http://10.0.0.80/",
+              "status": 200,
+              "body_includes": "Витрина"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "GET /api/items возвращает JSON от API",
+            "http": {
+              "from": "pc",
+              "url": "http://10.0.0.80/api/items",
+              "status": 200,
+              "body_includes": "items"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "rp",
+            "line": "rproxy add * / 10.0.2.20:80"
+          },
+          {
+            "op": "cmd",
+            "dev": "rp",
+            "line": "rproxy add * /api 10.0.2.10:8080"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n17-cdn",
+      "title": "Кэш на узле CDN",
+      "statement": "Узел CDN стоит рядом с клиентом (RTT меньше миллисекунды), а исходный сервер — на другом континенте (около 120 мс). Узел уже передаёт запросы дальше, но ничего не кэширует: каждый ответ приходит издалека. Включите кэш для всех путей и убедитесь: второй запрос отдаётся из кэша заголовком X-Cache: HIT и укладывается в 20 мс.",
+      "hint": "`rproxy cache / on` на узле или флажок «кэш» у правила. Выполните `curl -I http://cdn.example/logo.png` дважды: первый ответ MISS, второй HIT.",
+      "spec": {
+        "tools": {
+          "rproxy": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 70,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:3c",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "hosts": {
+                "cdn.example": "10.0.0.80"
+              }
+            },
+            {
+              "id": "edge",
+              "kind": "server",
+              "name": "Узел CDN",
+              "x": 300,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:3d",
+                  "ip": "10.0.0.80",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:3e",
+                  "ip": "172.16.0.1",
+                  "prefix": 30,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "rproxy": {
+                "rules": [
+                  {
+                    "path": "/",
+                    "backend": "172.16.0.2:80"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "origin",
+              "kind": "server",
+              "name": "Исходный сервер",
+              "x": 540,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:3f",
+                  "ip": "172.16.0.2",
+                  "prefix": 30,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "172.16.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/logo.png",
+                    "status": 200,
+                    "body": "PNG…",
+                    "type": "image/png"
+                  }
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "edge:eth0",
+              "km": 20,
+              "mbps": 1000
+            },
+            {
+              "a": "edge:eth1",
+              "b": "origin:eth0",
+              "km": 12000,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Второй запрос отдаётся из кэша (X-Cache: HIT)",
+            "http": {
+              "from": "pc",
+              "url": "http://cdn.example/logo.png",
+              "repeat": 2,
+              "status": 200,
+              "header": {
+                "x-cache": "HIT"
+              }
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Второй запрос быстрее 20 мс",
+            "http": {
+              "from": "pc",
+              "url": "http://cdn.example/logo.png",
+              "repeat": 2,
+              "status": 200,
+              "max_rtt_ms": 20.0
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "edge",
+            "line": "rproxy cache / on"
+          }
+        ]
+      }
+    }
+  ]
+}

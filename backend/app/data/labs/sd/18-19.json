@@ -1,0 +1,385 @@
+{
+  "book": 18,
+  "chapter": 19,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd19-s1-mvp",
+      "title": "Этап 1. Первая версия",
+      "statement": "Облачный диск стартует: 200 чтений и 30 записей метаданных в секунду, 120 скачиваний файлов в секунду, 2 ТБ файлов. Добавьте объектное хранилище для содержимого файлов и свяжите его с сервером приложения: метаданные — в базе, байты — в хранилище. Загрузка не выше 80%, стоимость не больше $350 в месяц.",
+      "hint": "База хранит имена и права, хранилище — блоки файлов. Сервер → хранилище: файлы идут мимо базы. Хранилище стоит $25 плюс $23 за ТБ.",
+      "spec": {
+        "workload": {"static_rps": 120, "read_rps": 200, "write_rps": 30, "data_gb": 5, "hot_set": 0.2, "media_tb": 2},
+        "palette": ["lb", "app", "db", "blob"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "has", "kind": "blob"},
+          {"type": "link", "from": "app", "to": "blob"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 350}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}]
+        }
+      }
+    },
+    {
+      "id": "sd19-s2-growth",
+      "title": "Этап 2. Рост и метаданные",
+      "statement": "Пользователей стало в десять раз больше: 2400 чтений и 300 записей метаданных в секунду, 40 ТБ файлов. Усильте метаданные: балансировщик, несколько серверов, кэш листингов папок (≥85%, рабочий набор 4 ГБ), база с репликой и автопереключением. Схема переживает отказ базы и кэша, загрузка не выше 80%, бюджет — $2500 в месяц.",
+      "hint": "Пять серверов M, кэш 4 ГБ с репликой и TTL 3600, база M с репликой и автопереключением. Основные деньги уходят на хранение: 40 ТБ × $23.",
+      "spec": {
+        "workload": {"static_rps": 1200, "read_rps": 2400, "write_rps": 300, "data_gb": 80, "hot_set": 0.05, "media_tb": 40},
+        "palette": ["lb", "app", "cache", "db", "blob"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "hit", "min": 0.85},
+          {"type": "survive", "fail": "db"},
+          {"type": "survive", "fail": "cache"},
+          {"type": "cost", "max": 2500}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    },
+    {
+      "id": "sd19-s3-cdn",
+      "title": "Этап 3. Скачивания через CDN",
+      "statement": "Скачиваний стало 15 000 в секунду. Каждое идёт через хранилище с задержкой 45 мс. Поставьте CDN перед хранилищем (≥90% попаданий) и добейтесь средней задержки не больше 40 мс. Остальное — как на втором этапе, бюджет $2500 в месяц.",
+      "hint": "CDN → хранилище; динамику (метаданные) CDN передаёт балансировщику. Блоки неизменны, поэтому TTL 300 с и больше даёт 90% и выше.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 2400, "write_rps": 300, "data_gb": 80, "hot_set": 0.05, "media_tb": 40},
+        "palette": ["cdn", "lb", "app", "cache", "db", "blob"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "link", "from": "cdn", "to": "blob"},
+          {"type": "p50", "max": 40},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 2500}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    },
+    {
+      "id": "sd19-s4-sync",
+      "title": "Этап 4. Синхронизация устройств",
+      "statement": "Добавлена синхронизация: 150 000 клиентов держат соединение и получают сигналы об изменениях (0,02 сигнала в секунду на клиента — 3000 в секунду). Поставьте шлюзы WebSocket, пропустите изменения через поток событий и подключите уведомления: шлюзы, серверы и уведомления загружены не выше 80%, бюджет — $4700 в месяц.",
+      "hint": "Шлюзы ws — около 14 (150 000 / 15 000 = 10 при 71%). Сервер приложения принимает и сигналы: около одиннадцати M. Поток событий с тремя партициями, уведомления — три экземпляра.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 2400, "write_rps": 300, "data_gb": 80, "hot_set": 0.05, "connections": 150000, "msg_per_conn": 0.02, "media_tb": 40},
+        "palette": ["cdn", "lb", "app", "cache", "db", "blob", "ws", "stream", "notify"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "link", "from": "ws", "to": "app"},
+          {"type": "link", "from": "app", "to": "stream"},
+          {"type": "link", "from": "stream", "to": "notify"},
+          {"type": "util", "kind": "ws", "max": 0.8},
+          {"type": "util", "kind": "app", "max": 0.8},
+          {"type": "util", "kind": "notify", "max": 0.8},
+          {"type": "cost", "max": 4700}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 11, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 157, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 313, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 235, "params": {"instances": 3}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}]
+        }
+      }
+    },
+    {
+      "id": "sd19-s5-share",
+      "title": "Этап 5. Права и поиск",
+      "statement": "Добавлены общий доступ и поиск: каждый запрос проверяет права в сервисе входа, а 10% чтений — поиск по файлам (индекс 80 ГБ). Подключите сервис входа (не больше 80% загрузки, переживает отказ) и поисковый кластер (шарды по объёму, две реплики, переживает отказ). Бюджет — $5600 в месяц.",
+      "hint": "Сервис входа: три экземпляра (по 4000 запросов в секунду; после отказа одного остаётся 8000 при нагрузке около 6000). Поиск: 2 шарда × 2 реплики.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 2400, "write_rps": 300, "search_share": 0.1, "data_gb": 80, "hot_set": 0.05, "connections": 150000, "msg_per_conn": 0.02, "calls": {"auth": 1}, "media_tb": 40},
+        "palette": ["cdn", "lb", "app", "cache", "db", "blob", "ws", "stream", "notify", "auth", "search"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 11, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 157, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 313, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 235, "params": {"instances": 3}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}]
+        },
+        "goals": [
+          {"type": "link", "from": "app", "to": "auth"},
+          {"type": "link", "from": "app", "to": "search"},
+          {"type": "util", "kind": "auth", "max": 0.8},
+          {"type": "survive", "fail": "auth"},
+          {"type": "survive", "fail": "search"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 5600}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 11, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 235, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 235, "params": {"instances": 3}},
+            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 353, "params": {"instances": 3}},
+            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 2, "shards": 2}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "search"}]
+        }
+      }
+    },
+    {
+      "id": "sd19-s6-storage",
+      "title": "Этап 6. Стоимость хранения",
+      "statement": "Данных стало 900 ТБ, и хранилище съедает почти весь бюджет. Переведите файлы на более дешёвый класс хранения (параметр «Класс хранения»), чтобы схема укладывалась в $15 000 в месяц, средняя задержка оставалась не больше 40 мс (CDN прикрывает холодные блоки), а остальные цели не пострадали.",
+      "hint": "Горячее стоит $23 за ТБ — 20 700 в месяц. Смешанный класс — $10 за ТБ (9000), холодное — $4 (3600). Популярные блоки всё равно раздаёт CDN.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 2400, "write_rps": 300, "search_share": 0.1, "data_gb": 80, "hot_set": 0.05, "connections": 150000, "msg_per_conn": 0.02, "calls": {"auth": 1}, "media_tb": 900},
+        "palette": ["cdn", "lb", "app", "cache", "db", "blob", "ws", "stream", "notify", "auth", "search"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 11, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 235, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 235, "params": {"instances": 3}},
+            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 353, "params": {"instances": 3}},
+            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 2, "shards": 2}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "search"}]
+        },
+        "goals": [
+          {"type": "param", "kind": "blob", "key": "tier", "op": "!=", "value": "hot"},
+          {"type": "p50", "max": 40},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 15000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 11, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "mix"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 235, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 235, "params": {"instances": 3}},
+            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 353, "params": {"instances": 3}},
+            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 2, "shards": 2}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "search"}]
+        },
+        "show": ["blob.tier"]
+      }
+    },
+    {
+      "id": "sd19-s7-reliability",
+      "title": "Этап 7. Надёжность и мониторинг",
+      "statement": "Диск стал критичным: данные пользователей нельзя терять, а простой должен быть короче минуты. Разнесите серверы, кэш и базу по трём зонам, включите rolling-выкладку, добавьте мониторинг и второй балансировщик. Схема переживает отказ зоны, выкладки, сервера, базы, кэша и сервиса входа, загрузка не выше 80%, бюджет — $16 000 в месяц.",
+      "hint": "Серверов M — около 14 в трёх зонах (после потери зоны остаются две трети). Два балансировщика, кэш и база размещены в трёх зонах с репликами, мониторинг на схему.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 2400, "write_rps": 300, "search_share": 0.1, "data_gb": 80, "hot_set": 0.05, "connections": 150000, "msg_per_conn": 0.02, "calls": {"auth": 1}, "media_tb": 900},
+        "palette": ["cdn", "lb", "app", "cache", "db", "blob", "ws", "stream", "notify", "auth", "search", "monitor"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 11, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "mix"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 235, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 235, "params": {"instances": 3}},
+            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 353, "params": {"instances": 3}},
+            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 2, "shards": 2}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "search"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "zone"},
+          {"type": "survive", "fail": "deploy"},
+          {"type": "survive", "fail": "app"},
+          {"type": "survive", "fail": "db"},
+          {"type": "survive", "fail": "cache"},
+          {"type": "survive", "fail": "auth"},
+          {"type": "no_spof", "kinds": ["lb"]},
+          {"type": "has", "kind": "monitor"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 16000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 14, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "multi"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "mix"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 235, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 157, "params": {"instances": 3}},
+            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 353, "params": {"instances": 3}},
+            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 2, "shards": 2}},
+            {"id": "mon", "kind": "monitor", "name": "Мониторинг", "x": 970, "y": 313, "params": {}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "search"}]
+        },
+        "show": ["app.deploy"]
+      }
+    },
+    {
+      "id": "sd19-exam",
+      "title": "Экзамен. Облачный диск целиком",
+      "statement": "Итоговое задание. Соберите диск с нуля: объектное хранилище (800 ТБ, смешанный класс), CDN (≥90%), кэш листингов (≥85%), метаданные с репликой, WebSocket-шлюзы, поток событий и уведомления, сервис входа, поиск (шарды по объёму, две реплики), мониторинг, два балансировщика. Нагрузка: 15 000 скачиваний, 3800 чтений и 500 записей в секунду, 150 000 клиентов на соединениях. Схема переживает отказ зоны, выкладки, сервера, базы, кэша, сервиса входа и поиска; загрузка не выше 80%; средняя задержка ≤ 40 мс; бюджет — $15 000 в месяц.",
+      "hint": "Схема этапа 7 (база L: записей 500 в секунду): серверы M в трёх зонах (около 17: после потери зоны остаются 11 — 7700 запросов при нагрузке 7300), кэш и база с репликами, CDN → хранилище, ws → серверы → поток → уведомления, сервис входа ×3, поиск 2×2.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 3800, "write_rps": 500, "search_share": 0.1, "data_gb": 80, "hot_set": 0.05, "connections": 150000, "msg_per_conn": 0.02, "calls": {"auth": 1}, "media_tb": 800},
+        "palette": ["cdn", "lb", "app", "cache", "db", "blob", "ws", "stream", "notify", "auth", "search", "monitor"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "has", "kind": "blob"},
+          {"type": "param", "kind": "blob", "key": "tier", "op": "!=", "value": "hot"},
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "hit", "min": 0.85},
+          {"type": "link", "from": "cdn", "to": "blob"},
+          {"type": "link", "from": "ws", "to": "app"},
+          {"type": "link", "from": "app", "to": "stream"},
+          {"type": "link", "from": "stream", "to": "notify"},
+          {"type": "link", "from": "app", "to": "auth"},
+          {"type": "link", "from": "app", "to": "search"},
+          {"type": "has", "kind": "monitor"},
+          {"type": "no_spof", "kinds": ["lb"]},
+          {"type": "survive", "fail": "zone"},
+          {"type": "survive", "fail": "deploy"},
+          {"type": "survive", "fail": "app"},
+          {"type": "survive", "fail": "db"},
+          {"type": "survive", "fail": "cache"},
+          {"type": "survive", "fail": "auth"},
+          {"type": "survive", "fail": "search"},
+          {"type": "p50", "max": 40},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 15000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 17, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 4, "ttl": 3600, "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "multi"}},
+            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "mix"}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 14}},
+            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 235, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 157, "params": {"instances": 3}},
+            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 353, "params": {"instances": 3}},
+            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 2, "shards": 2}},
+            {"id": "mon", "kind": "monitor", "name": "Мониторинг", "x": 970, "y": 313, "params": {}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "search"}]
+        },
+        "max_nodes": 16,
+        "show": ["blob.tier", "app.deploy"]
+      }
+    }
+  ]
+}

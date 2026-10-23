@@ -1,0 +1,915 @@
+{
+  "book": 15,
+  "chapter": 15,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n15-where",
+      "title": "Где пропал пакет",
+      "statement": "Клиент пингует сервер без проблем, но подключение к порту 8080 молчит — ни отказа, ни ответа. По пути три маршрутизатора. Выполните `traceroute 10.0.4.10` на клиенте, затем `curl 10.0.4.10:8080`, а потом откройте терминалы маршрутизаторов и выполните `tcpdump -i any tcp`. Найдите маршрутизатор, на который SYN приходит, но дальше не уходит, и снимите правило, которое его останавливает.",
+      "hint": "На том маршрутизаторе, где SYN входит и не выходит, в секции «Файрвол» удалите правило DROP для tcp/8080. Подсказка: журнал ▶ показывает «файрвол: DROP» и устройство.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 40,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:c8",
+                  "ip": "10.0.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "R1",
+              "x": 170,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:c9",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:ca",
+                  "ip": "10.0.2.2",
+                  "prefix": 30,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "10.0.4.0/24",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r2",
+              "kind": "router",
+              "name": "R2",
+              "x": 300,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:c6",
+                  "ip": "10.0.2.1",
+                  "prefix": 30,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:c7",
+                  "ip": "10.0.3.1",
+                  "prefix": 30,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "10.0.4.0/24",
+                  "via": "10.0.3.2",
+                  "dev": null
+                },
+                {
+                  "dst": "10.0.1.0/24",
+                  "via": "10.0.2.2",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": [
+                  {
+                    "action": "DROP",
+                    "proto": "tcp",
+                    "dport": 8080
+                  }
+                ]
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r3",
+              "kind": "router",
+              "name": "R3",
+              "x": 430,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:cb",
+                  "ip": "10.0.3.2",
+                  "prefix": 30,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:cc",
+                  "ip": "10.0.4.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.3.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 570,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:cd",
+                  "ip": "10.0.4.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.4.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 8080
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "r2:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r2:eth1",
+              "b": "r3:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r3:eth1",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ping до сервера проходит",
+            "ping": {
+              "from": "pc",
+              "to": "@srv"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Порт 8080 сервера открывается",
+            "tcp": {
+              "from": "pc",
+              "to": "@srv",
+              "port": 8080
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "r2",
+            "line": "iptables -D FORWARD -p tcp --dport 8080 -j DROP"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n15-mtu",
+      "title": "Маленькое проходит, большое — нет",
+      "statement": "Между офисами проложен туннель с MTU 1400, а маршрутизатор R1 блокирует ICMP «frag needed». Клиент шлёт пакеты по 1500 байт с запретом фрагментации, они пропадают, и никто не сообщает об этом отправителю. Определите порог: `ping -c 1 -s 1472 -M do 10.0.2.10` не проходит, `-s 1372` проходит. Выставьте MTU интерфейса клиента, чтобы большие пакеты помещались в туннель (не меньше 1300, чтобы не терять эффективность).",
+      "hint": "`ip link set eth0 mtu 1400` на клиенте. Размер данных пинга = MTU − 28 байт заголовков: 1400 − 28 = 1372.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 60,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:ce",
+                  "ip": "10.0.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "R1 (ICMP заблокирован)",
+              "x": 230,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:cf",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:d0",
+                  "ip": "172.16.0.1",
+                  "prefix": 30,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "10.0.2.0/24",
+                  "via": "172.16.0.2",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "icmp_block": true
+            },
+            {
+              "id": "r2",
+              "kind": "router",
+              "name": "R2",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:d1",
+                  "ip": "172.16.0.2",
+                  "prefix": 30,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:d2",
+                  "ip": "10.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "172.16.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:d3",
+                  "ip": "10.0.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "r2:eth0",
+              "km": 300,
+              "mbps": 1000,
+              "mtu": 1400
+            },
+            {
+              "a": "r2:eth1",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Пакет размера MTU клиента с запретом фрагментации проходит",
+            "ping": {
+              "from": "pc",
+              "to": "@srv",
+              "size_from_mtu": true
+            }
+          },
+          {
+            "id": "g2",
+            "text": "MTU клиента не меньше 1300 и не больше 1400",
+            "mtu": {
+              "dev": "pc",
+              "iface": "eth0",
+              "min": 1300,
+              "max": 1400
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "ip link set eth0 mtu 1400"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n15-bind",
+      "title": "Сервис слушает только localhost",
+      "statement": "Веб-сервис на сервере работает: `curl 127.0.0.1` изнутри отвечает. Но клиенты получают отказ на порту 80. Откройте терминал сервера и выполните `ss -ltn`: сервис слушает 127.0.0.1:80, то есть только локальные подключения. Перепривяжите его, чтобы он слушал все адреса.",
+      "hint": "На сервере: `listen tcp 80 0.0.0.0` или кнопка «слушать везде» в секции слушающих портов.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 100,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:d4",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 310,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:d5",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:d6",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:d7",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:d8",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:d9",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80,
+                  "bind": "127.0.0.1"
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "srv:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Клиент открывает порт 80 сервера",
+            "tcp": {
+              "from": "pc",
+              "to": "@srv",
+              "port": 80
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сервер по-прежнему слушает порт 80",
+            "ping": {
+              "from": "pc",
+              "to": "@srv"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "listen tcp 80 0.0.0.0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n15-triage",
+      "title": "Три уровня сразу",
+      "statement": "Пользователь пишет: «https://www.example.org не открывается». На пути три независимые поломки: клиент неверно указал DNS-сервер, сервис на 443-м порту слушает не там, где нужно, а сертификат просрочен. Идите по уровням: `dig www.example.org`, потом `curl -v https://www.example.org/`, `ss -ltn` на сервере, `tls show`. Найдите и исправьте все три причины.",
+      "hint": "1) на клиенте: `echo \"nameserver 192.168.0.53\" > /etc/resolv.conf`; 2) на сервере: `listen tcp 443 0.0.0.0`; 3) на сервере: `tls cert new www.example.org --issuer PublicIntCA --days 90`.",
+      "spec": {
+        "tools": {
+          "dns": true,
+          "tls": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 60,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:da",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.35"
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:db",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:dc",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:dd",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:de",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:df",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:e0",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "DNS-резолвер",
+              "x": 430,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:e1",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "192.168.0.20",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": true,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 520,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:e2",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443,
+                  "bind": "127.0.0.1"
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Защищённая главная</h1>"
+                  }
+                ]
+              },
+              "tls": {
+                "cert": {
+                  "cn": "www.example.org",
+                  "san": [
+                    "www.example.org"
+                  ],
+                  "issuer": "PublicIntCA",
+                  "not_after": "2026-08-20"
+                },
+                "chain": [
+                  "PublicIntCA"
+                ],
+                "versions": [
+                  "1.2",
+                  "1.3"
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p3",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ],
+          "pki": {
+            "cas": {
+              "PublicRootCA": {
+                "issuer": null
+              },
+              "PublicIntCA": {
+                "issuer": "PublicRootCA"
+              },
+              "CorpRootCA": {
+                "issuer": null
+              },
+              "CorpIntCA": {
+                "issuer": "CorpRootCA"
+              },
+              "ShadyRootCA": {
+                "issuer": null
+              }
+            }
+          }
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Имя www.example.org разрешается",
+            "dns": {
+              "from": "pc",
+              "name": "www.example.org",
+              "expect": "192.168.0.20"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "https://www.example.org/ возвращает 200",
+            "http": {
+              "from": "pc",
+              "url": "https://www.example.org/",
+              "status": 200,
+              "body_includes": "Защищённая"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "echo \"nameserver 192.168.0.53\" > /etc/resolv.conf"
+          },
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "listen tcp 443 0.0.0.0"
+          },
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "tls cert new www.example.org --issuer PublicIntCA --days 90"
+          }
+        ]
+      }
+    }
+  ]
+}

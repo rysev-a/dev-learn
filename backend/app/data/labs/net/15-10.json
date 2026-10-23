@@ -1,0 +1,2968 @@
+{
+  "book": 15,
+  "chapter": 10,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n10-resolver",
+      "title": "У клиента нет DNS-сервера",
+      "statement": "ПК открывает сайт по адресу, но не по имени: ping www.example.org отвечает «Temporary failure in name resolution». В локальной сети есть рекурсивный резолвер 192.168.0.53. Укажите его на ПК и убедитесь, что имя разрешается и сайт открывается по имени. Нажмите ▶ у цели и посмотрите путь запроса: резолвер идёт к корню, затем к серверу .org, затем к авторитативному серверу.",
+      "hint": "На ПК: в карточке поле «DNS-сервер», или `echo \"nameserver 192.168.0.53\" > /etc/resolv.conf`. Проверка: `dig www.example.org` и `cat /etc/resolv.conf`.",
+      "spec": {
+        "tools": {
+          "dns": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:12",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "Резолвер",
+              "x": 60,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:13",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53",
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [],
+                "recursive": true,
+                "roots": [
+                  "198.51.100.10"
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 150,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:14",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:15",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:16",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:17",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:10",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:11",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:18",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:19",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:1a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:1b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:1c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:1d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "root",
+              "kind": "server",
+              "name": "Корень (.)",
+              "x": 560,
+              "y": 50,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:1e",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "org",
+                    "ns": "198.51.100.20"
+                  }
+                ],
+                "zones": [
+                  ""
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "tld",
+              "kind": "server",
+              "name": "Сервер .org",
+              "x": 590,
+              "y": 130,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:1f",
+                  "ip": "198.51.100.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "example.org",
+                    "ns": "198.51.100.30"
+                  }
+                ],
+                "zones": [
+                  "org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "auth",
+              "kind": "server",
+              "name": "Авторит. example.org",
+              "x": 590,
+              "y": 230,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:20",
+                  "ip": "198.51.100.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "198.51.100.40",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 560,
+              "y": 310,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:21",
+                  "ip": "198.51.100.40",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p2",
+              "b": "root:eth0",
+              "km": 3000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "tld:eth0",
+              "km": 2000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p4",
+              "b": "auth:eth0",
+              "km": 500,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p5",
+              "b": "web:eth0",
+              "km": 500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "www.example.org разрешается в 198.51.100.40",
+            "dns": {
+              "from": "pc",
+              "name": "www.example.org",
+              "expect": "198.51.100.40"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК пингует сайт по имени",
+            "ping": {
+              "from": "pc",
+              "to": "www.example.org"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "ПК открывает порт 80 по имени",
+            "tcp": {
+              "from": "pc",
+              "to": "www.example.org",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "echo \"nameserver 192.168.0.53\" > /etc/resolv.conf"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n10-record",
+      "title": "Запись указывает на старый сервер",
+      "statement": "Сайт переехал на сервер 198.51.100.40, а в зоне example.org запись www всё ещё ведёт на старый адрес 198.51.100.99, где ничего нет. Вы администратор зоны: зайдите на авторитативный сервер, удалите старую запись и добавьте верную. Проверьте, что имя разрешается и порт 80 по имени открывается.",
+      "hint": "На авторитативном сервере: в секции DNS-записей удалите запись крестиком и добавьте новую, либо `dns del www.example.org A`, затем `dns add www.example.org A 198.51.100.40`.",
+      "spec": {
+        "tools": {
+          "dns": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:24",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53"
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "Резолвер",
+              "x": 60,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:25",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53",
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [],
+                "recursive": true,
+                "roots": [
+                  "198.51.100.10"
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 150,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:26",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:27",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:28",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:29",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:22",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:23",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:2a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:2b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:2c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:2d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:2e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:2f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "root",
+              "kind": "server",
+              "name": "Корень (.)",
+              "x": 560,
+              "y": 50,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:30",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "org",
+                    "ns": "198.51.100.20"
+                  }
+                ],
+                "zones": [
+                  ""
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "tld",
+              "kind": "server",
+              "name": "Сервер .org",
+              "x": 590,
+              "y": 130,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:31",
+                  "ip": "198.51.100.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "example.org",
+                    "ns": "198.51.100.30"
+                  }
+                ],
+                "zones": [
+                  "org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "auth",
+              "kind": "server",
+              "name": "Авторит. example.org",
+              "x": 590,
+              "y": 230,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:32",
+                  "ip": "198.51.100.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "198.51.100.99",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 560,
+              "y": 310,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:33",
+                  "ip": "198.51.100.40",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p2",
+              "b": "root:eth0",
+              "km": 3000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "tld:eth0",
+              "km": 2000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p4",
+              "b": "auth:eth0",
+              "km": 500,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p5",
+              "b": "web:eth0",
+              "km": 500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "www.example.org → 198.51.100.40",
+            "dns": {
+              "from": "pc",
+              "name": "www.example.org",
+              "expect": "198.51.100.40"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сайт открывается по имени (tcp/80)",
+            "tcp": {
+              "from": "pc",
+              "to": "www.example.org",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "auth",
+            "line": "dns del www.example.org A"
+          },
+          {
+            "op": "cmd",
+            "dev": "auth",
+            "line": "dns add www.example.org A 198.51.100.40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n10-cname",
+      "title": "Псевдоним CNAME",
+      "statement": "У сайта должно быть второе имя shop.example.org, которое ведёт туда же, куда www. Добавьте на авторитативном сервере запись CNAME, а не второй A: тогда при смене адреса менять придётся одну запись. Проверьте, что резолвер возвращает адрес сайта и порт 80 по новому имени открывается.",
+      "hint": "`dns add shop.example.org CNAME www.example.org` или форма «+ запись»: имя shop.example.org, тип CNAME, значение www.example.org. Резолвер сам доберётся до A.",
+      "spec": {
+        "tools": {
+          "dns": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:36",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53"
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "Резолвер",
+              "x": 60,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:37",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53",
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [],
+                "recursive": true,
+                "roots": [
+                  "198.51.100.10"
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 150,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:38",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:39",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:3a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:3b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:34",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:35",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:3c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:3d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:3e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:3f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:40",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:41",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "root",
+              "kind": "server",
+              "name": "Корень (.)",
+              "x": 560,
+              "y": 50,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:42",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "org",
+                    "ns": "198.51.100.20"
+                  }
+                ],
+                "zones": [
+                  ""
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "tld",
+              "kind": "server",
+              "name": "Сервер .org",
+              "x": 590,
+              "y": 130,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:43",
+                  "ip": "198.51.100.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "example.org",
+                    "ns": "198.51.100.30"
+                  }
+                ],
+                "zones": [
+                  "org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "auth",
+              "kind": "server",
+              "name": "Авторит. example.org",
+              "x": 590,
+              "y": 230,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:44",
+                  "ip": "198.51.100.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "198.51.100.40",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 560,
+              "y": 310,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:45",
+                  "ip": "198.51.100.40",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p2",
+              "b": "root:eth0",
+              "km": 3000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "tld:eth0",
+              "km": 2000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p4",
+              "b": "auth:eth0",
+              "km": 500,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p5",
+              "b": "web:eth0",
+              "km": 500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "shop.example.org → 198.51.100.40",
+            "dns": {
+              "from": "pc",
+              "name": "shop.example.org",
+              "expect": "198.51.100.40"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сайт открывается по имени shop.example.org",
+            "tcp": {
+              "from": "pc",
+              "to": "shop.example.org",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "auth",
+            "line": "dns add shop.example.org CNAME www.example.org"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n10-delegation",
+      "title": "Разорвано делегирование",
+      "statement": "Сервер верхнего домена .org «забыл», что зона example.org делегирована авторитативному серверу 198.51.100.30, поэтому на запрос www.example.org отвечает NXDOMAIN. Нажмите ▶ у цели и найдите шаг, где цепочка обрывается. Вы управляете сервером .org: восстановите делегирование.",
+      "hint": "На сервере .org: `dns delegate example.org 198.51.100.30` или форма «+ делегирование» (зона example.org, сервер 198.51.100.30).",
+      "spec": {
+        "tools": {
+          "dns": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:48",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53"
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "Резолвер",
+              "x": 60,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:49",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53",
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [],
+                "recursive": true,
+                "roots": [
+                  "198.51.100.10"
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 150,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:4a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:4b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:4c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:4d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:46",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:47",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:4e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:4f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:50",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:51",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:52",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:53",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "root",
+              "kind": "server",
+              "name": "Корень (.)",
+              "x": 560,
+              "y": 50,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:54",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "org",
+                    "ns": "198.51.100.20"
+                  }
+                ],
+                "zones": [
+                  ""
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "tld",
+              "kind": "server",
+              "name": "Сервер .org",
+              "x": 590,
+              "y": 130,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:55",
+                  "ip": "198.51.100.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [
+                  "org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "auth",
+              "kind": "server",
+              "name": "Авторит. example.org",
+              "x": 590,
+              "y": 230,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:56",
+                  "ip": "198.51.100.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "198.51.100.40",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 560,
+              "y": 310,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:57",
+                  "ip": "198.51.100.40",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p2",
+              "b": "root:eth0",
+              "km": 3000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "tld:eth0",
+              "km": 2000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p4",
+              "b": "auth:eth0",
+              "km": 500,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p5",
+              "b": "web:eth0",
+              "km": 500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "www.example.org разрешается",
+            "dns": {
+              "from": "pc",
+              "name": "www.example.org",
+              "expect": "198.51.100.40"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сайт открывается по имени",
+            "tcp": {
+              "from": "pc",
+              "to": "www.example.org",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "tld",
+            "line": "dns delegate example.org 198.51.100.30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n10-roothint",
+      "title": "Резолвер не знает корня",
+      "statement": "ПК настроен верно, но на любой запрос резолвер возвращает SERVFAIL: в его настройках стоит неверный адрес корневого сервера 198.51.100.99. Найдите причину по журналу ▶ (резолвер не получает ответа), а затем задайте правильный корневой сервер 198.51.100.10.",
+      "hint": "На резолвере: `dns root 198.51.100.10` или поле «корневой сервер» в секции DNS. Проверьте `dig www.example.org` на ПК.",
+      "spec": {
+        "tools": {
+          "dns": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:5a",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53"
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "Резолвер",
+              "x": 60,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:5b",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53",
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [],
+                "recursive": true,
+                "roots": [
+                  "198.51.100.99"
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 150,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:5c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:5d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:5e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:5f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:58",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:59",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:60",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:61",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:62",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:63",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:64",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:65",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "root",
+              "kind": "server",
+              "name": "Корень (.)",
+              "x": 560,
+              "y": 50,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:66",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "org",
+                    "ns": "198.51.100.20"
+                  }
+                ],
+                "zones": [
+                  ""
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "tld",
+              "kind": "server",
+              "name": "Сервер .org",
+              "x": 590,
+              "y": 130,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:67",
+                  "ip": "198.51.100.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "example.org",
+                    "ns": "198.51.100.30"
+                  }
+                ],
+                "zones": [
+                  "org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "auth",
+              "kind": "server",
+              "name": "Авторит. example.org",
+              "x": 590,
+              "y": 230,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:68",
+                  "ip": "198.51.100.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "198.51.100.40",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 560,
+              "y": 310,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:69",
+                  "ip": "198.51.100.40",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p2",
+              "b": "root:eth0",
+              "km": 3000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "tld:eth0",
+              "km": 2000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p4",
+              "b": "auth:eth0",
+              "km": 500,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p5",
+              "b": "web:eth0",
+              "km": 500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Имя разрешается через резолвер",
+            "dns": {
+              "from": "pc",
+              "name": "www.example.org",
+              "expect": "198.51.100.40"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сайт открывается по имени",
+            "tcp": {
+              "from": "pc",
+              "to": "www.example.org",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "res",
+            "line": "dns root 198.51.100.10"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n10-hosts",
+      "title": "Файл hosts для проверки",
+      "statement": "Перед запуском нового сайта нужно проверить его по имени staging.example.org на тестовом сервере 198.51.100.40, но в DNS такой записи ещё нет (запрос даёт NXDOMAIN). Не трогая DNS, добавьте локальную подсказку в файл hosts на ПК и убедитесь, что пинг и подключение по имени работают.",
+      "hint": "На ПК: `echo \"198.51.100.40 staging.example.org\" >> /etc/hosts`; `cat /etc/hosts` покажет файл. Запись hosts побеждает ответ DNS — так бывает и в жизни, когда «сайт не обновляется» у одного человека.",
+      "spec": {
+        "tools": {
+          "dns": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:6c",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53"
+            },
+            {
+              "id": "res",
+              "kind": "server",
+              "name": "Резолвер",
+              "x": 60,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:6d",
+                  "ip": "192.168.0.53",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "resolver": "192.168.0.53",
+              "dns": {
+                "records": [],
+                "delegations": [],
+                "zones": [],
+                "recursive": true,
+                "roots": [
+                  "198.51.100.10"
+                ]
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 150,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:6e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:6f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:70",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:71",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:6a",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:6b",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 400,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:72",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:73",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:74",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:75",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:01:76",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:01:77",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "root",
+              "kind": "server",
+              "name": "Корень (.)",
+              "x": 560,
+              "y": 50,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:78",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "org",
+                    "ns": "198.51.100.20"
+                  }
+                ],
+                "zones": [
+                  ""
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "tld",
+              "kind": "server",
+              "name": "Сервер .org",
+              "x": 590,
+              "y": 130,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:79",
+                  "ip": "198.51.100.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [],
+                "delegations": [
+                  {
+                    "zone": "example.org",
+                    "ns": "198.51.100.30"
+                  }
+                ],
+                "zones": [
+                  "org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "auth",
+              "kind": "server",
+              "name": "Авторит. example.org",
+              "x": 590,
+              "y": 230,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:7a",
+                  "ip": "198.51.100.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false,
+              "dns": {
+                "records": [
+                  {
+                    "name": "www.example.org",
+                    "type": "A",
+                    "value": "198.51.100.40",
+                    "ttl": 300
+                  }
+                ],
+                "delegations": [],
+                "zones": [
+                  "example.org"
+                ],
+                "recursive": false,
+                "roots": []
+              }
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 560,
+              "y": 310,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:7b",
+                  "ip": "198.51.100.40",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "res:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p2",
+              "b": "root:eth0",
+              "km": 3000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "tld:eth0",
+              "km": 2000,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p4",
+              "b": "auth:eth0",
+              "km": 500,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p5",
+              "b": "web:eth0",
+              "km": 500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "В DNS имени по-прежнему нет",
+            "dns": {
+              "from": "res",
+              "name": "staging.example.org",
+              "expect": "NXDOMAIN"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК пингует staging.example.org",
+            "ping": {
+              "from": "pc",
+              "to": "staging.example.org"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "ПК открывает порт 80 по этому имени",
+            "tcp": {
+              "from": "pc",
+              "to": "staging.example.org",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "echo \"198.51.100.40 staging.example.org\" >> /etc/hosts"
+          }
+        ]
+      }
+    }
+  ]
+}

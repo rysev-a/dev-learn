@@ -1,0 +1,15 @@
+[package]
+name = "archlab"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Лаборатория «Архитектура компьютера» (книга 14): схемы из вентилей и блоков, симулятор, упражнения главы 6–14 как данные, процессор Мини-8 и его ассемблер (глава 15). Общий крейт: интерфейс (wasm) рисует и считает, бэкенд проверяет присланное решение."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+# float_roundtrip: координаты вентилей читаются и пишутся без потери последнего знака
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[[bin]]
+name = "import"
+path = "src/bin/import.rs"

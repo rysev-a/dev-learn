@@ -1,0 +1,191 @@
+{
+  "book": 18,
+  "chapter": 17,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd17-reserved",
+      "title": "Резерв для постоянной нагрузки",
+      "statement": "Нагрузка стабильна: 4000 запросов в секунду круглые сутки. Серверы оплачиваются по требованию. Переведите их на резервный тариф (параметр «Тариф» показан в упражнении) со скидкой около 40% и уложитесь в $1000 в месяц при загрузке не выше 80%.",
+      "hint": "Восемь серверов M по требованию стоят 960 за одни серверы — вместе с базой и балансировщиком больше 1200. С резервом — около 580 за серверы.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 3600, "write_rps": 400, "data_gb": 60, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 8, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "param", "kind": "app", "key": "pricing", "op": "==", "value": "reserved"},
+          {"type": "cost", "max": 1300}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 8, "pricing": "reserved", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.pricing"]
+      }
+    },
+    {
+      "id": "sd17-spot-workers",
+      "title": "Спот для обработчиков",
+      "statement": "Обработка заказов идёт через очередь, и обработчики терпят прерывание: сообщение вернётся в очередь. Переведите обработчиков на спот (втрое дешевле), сделайте обработку идемпотентной и оставьте не меньше двух обработчиков. Загрузка — не выше 85%, очередь разбирается без отставания (пик 10 с, допустимо 5 с), бюджет — $1200 в месяц.",
+      "hint": "Три обработчика M тянут 1200 в секунду при нагрузке 900. На споте они стоят около 72 в месяц вместо 240.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 300, "write_rps": 900, "data_gb": 50, "hot_set": 0.2, "spike_sec": 10},
+        "palette": ["lb", "app", "queue", "worker", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 235, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": false, "instances": 3, "pricing": "ondemand", "size": "M", "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}]
+        },
+        "goals": [
+          {"type": "param", "kind": "worker", "key": "pricing", "op": "==", "value": "spot"},
+          {"type": "param", "kind": "worker", "key": "idempotent", "op": "==", "value": true},
+          {"type": "no_spof", "kinds": ["worker"]},
+          {"type": "lag", "max": 5},
+          {"type": "capacity", "max": 0.85},
+          {"type": "cost", "max": 1200}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 235, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": true, "instances": 3, "pricing": "spot", "size": "M", "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}]
+        },
+        "show": ["worker.pricing", "worker.idempotent"]
+      }
+    },
+    {
+      "id": "sd17-rightsize",
+      "title": "Слишком большие серверы",
+      "statement": "Сервис получает 2400 запросов в секунду, а на схеме шесть серверов L (ёмкость 9000): они загружены на 27%, и счёт огромный. Подберите правильный размер: загрузка серверов не выше 80%, но не больше — бюджет $1100 в месяц на всю схему (база — M с репликой).",
+      "hint": "Два сервера L дают 3000 запросов — 80%. Четыре сервера M — 2800: 86% — слишком много.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 2200, "write_rps": 200, "data_gb": 40, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "L", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 1100}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "L", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd17-cdn-cost",
+      "title": "CDN дешевле серверов",
+      "statement": "Сайт отдаёт 12 000 запросов в секунду статики через серверы приложения: их приходится держать с запасом. Поставьте CDN (≥90%) и пересчитайте парк: загрузка не выше 80%, бюджет — $450 в месяц на всю схему.",
+      "hint": "С CDN статика почти не доходит до серверов: двух серверов M хватит. CDN стоит 60 в месяц, а лишний сервер M — 120.",
+      "spec": {
+        "workload": {"static_rps": 12000, "read_rps": 300, "write_rps": 50, "data_gb": 10, "hot_set": 0.2},
+        "palette": ["cdn", "lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 450}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd17-final",
+      "title": "Тот же сервис дешевле",
+      "statement": "Итоговое упражнение главы. Магазин: 6000 запросов в секунду (1000 статики через CDN, остальное динамика), заказы идут через очередь. Сократите счёт, не потеряв надёжность: резервный тариф для серверов приложения, спот для идемпотентных обработчиков, CDN (≥90%), схема переживает отказ зоны и сервера, загрузка не выше 80%, бюджет — $3000 в месяц.",
+      "hint": "Серверов M — девять в трёх зонах (после потери зоны шесть — 4200), резервный тариф; три обработчика M на споте в трёх зонах; база M с тремя репликами и автопереключением в трёх зонах (после потери зоны остаются две реплики — 6000 чтений).",
+      "spec": {
+        "workload": {"static_rps": 10000, "read_rps": 3500, "write_rps": 400, "data_gb": 80, "hot_set": 0.2, "spike_sec": 10},
+        "palette": ["cdn", "lb", "app", "queue", "worker", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 9, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 235, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": false, "instances": 3, "pricing": "ondemand", "size": "M", "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}]
+        },
+        "goals": [
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "param", "kind": "app", "key": "pricing", "op": "==", "value": "reserved"},
+          {"type": "param", "kind": "worker", "key": "pricing", "op": "==", "value": "spot"},
+          {"type": "survive", "fail": "zone"},
+          {"type": "survive", "fail": "app"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 3000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 9, "pricing": "reserved", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 235, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": true, "instances": 3, "pricing": "spot", "size": "M", "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 3, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "multi"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}]
+        },
+        "show": ["app.pricing", "worker.pricing", "worker.idempotent"]
+      }
+    }
+  ]
+}

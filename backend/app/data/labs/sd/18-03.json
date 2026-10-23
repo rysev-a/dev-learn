@@ -1,0 +1,254 @@
+{
+  "book": 18,
+  "chapter": 3,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd03-cdn",
+      "title": "Статика через CDN",
+      "statement": "Сайт раздаёт 20 000 запросов в секунду статики (картинки, скрипты) и 400 динамических чтений при 50 записях. Сейчас статику отдают серверы приложения, и они перегружены. Поставьте перед схемой CDN, чтобы большая часть статики не доходила до серверов: загрузка не выше 80%, CDN отдаёт не меньше 90% статики.",
+      "hint": "CDN соединяется с пользователями и дальше передаёт запросы балансировщику. Параметр TTL у CDN — время жизни копий: 300 секунд даёт 90% попаданий.",
+      "spec": {
+        "workload": {"static_rps": 20000, "read_rps": 400, "write_rps": 50, "data_gb": 20, "hot_set": 0.2},
+        "palette": ["cdn", "lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd03-cdn-ttl",
+      "title": "Время жизни в CDN",
+      "statement": "CDN уже стоит, но с TTL в 30 секунд: копии быстро устаревают, доля попаданий низкая, а серверы приложения перегружены промахами. Подберите TTL так, чтобы CDN отдавал не меньше 90% статики. Заодно подумайте: что вы делаете с устареванием? (В реальности — версия в имени файла.)",
+      "hint": "Допустимые значения TTL: 30, 300 и 3600 секунд. Чем больше значение, тем выше доля попаданий.",
+      "spec": {
+        "workload": {"static_rps": 15000, "read_rps": 300, "write_rps": 40, "data_gb": 20, "hot_set": 0.2},
+        "palette": ["cdn", "lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 30}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "capacity", "max": 0.8},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd03-cache",
+      "title": "Кэш для чтений",
+      "statement": "Чтений стало 1800 в секунду при 60 записях, а база S тянет лишь 1000 чтений. Рабочий набор — 10 ГБ (из 100 ГБ данных). Добавьте кэш (cache-aside) между приложением и базой: доля попаданий не меньше 85%, загрузка не выше 80%, а стоимость не больше $740 в месяц — дешевле, чем просто взять базу M.",
+      "hint": "Попадание зависит от размера кэша относительно рабочего набора (10 ГБ) и TTL. Кэш на 9 ГБ с TTL 3600 даёт около 88%.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1800, "write_rps": 60, "data_gb": 100, "hot_set": 0.1},
+        "palette": ["lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "hit", "min": 0.85},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 740}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 9, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    },
+    {
+      "id": "sd03-size",
+      "title": "Размер кэша",
+      "statement": "Кэш работает, но его доля попаданий всего около 55%, и база на пределе. Рабочий набор — 8 ГБ. Подберите размер и время жизни кэша так, чтобы кэш отдавал не меньше 85% чтений, но не тратьте лишнего: бюджет на кэш ограничен общей суммой $700.",
+      "hint": "Сейчас кэш 2 ГБ с TTL 30. Увеличьте память до размера рабочего набора и поставьте TTL подольше.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1500, "write_rps": 50, "data_gb": 80, "hot_set": 0.1},
+        "palette": ["lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 2, "ttl": 30, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "hit", "min": 0.85},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 700}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 8, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    },
+    {
+      "id": "sd03-writeback",
+      "title": "Много записей: write-back",
+      "statement": "Сервис счётчиков получает 800 чтений и 700 записей в секунду. База M выдерживает только 600 записей, поэтому она перегружена. Потеря нескольких секунд счётчиков допустима. Смените политику записи кэша, чтобы база выдерживала нагрузку, не увеличивая её размер.",
+      "hint": "Политика write-back накапливает записи в кэше и сбрасывает в базу пачками — так в базу попадает лишь часть записей. Параметр политики показывается в настройках кэша.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 800, "write_rps": 700, "data_gb": 10, "hot_set": 0.3},
+        "palette": ["lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 4, "ttl": 300, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.85},
+          {"type": "param", "kind": "cache", "key": "policy", "op": "==", "value": "back"},
+          {"type": "param", "kind": "db", "key": "size", "op": "==", "value": "M"}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "back", "replicas": 0, "size_gb": 4, "ttl": 300, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "show": ["cache.policy"]
+      }
+    },
+    {
+      "id": "sd03-cache-ha",
+      "title": "Что, если кэш пропадёт",
+      "statement": "Схема держится на кэше: он принимает 90% чтений, а база рассчитана только на оставшиеся 10%. При отказе кэша база падает. Сделайте схему устойчивой: она должна переживать отказ кэша (проверка «Отказ» → «кэша»), не имея единых точек отказа среди кэша и серверов приложения.",
+      "hint": "У кэша есть параметр «Реплики». С репликой после отказа основного узла кэш продолжает работать.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 2400, "write_rps": 60, "data_gb": 100, "hot_set": 0.05},
+        "palette": ["lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 8, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "cache"},
+          {"type": "no_spof", "kinds": ["cache", "app"]},
+          {"type": "hit", "min": 0.85}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 8, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    },
+    {
+      "id": "sd03-final",
+      "title": "Сайт со статикой и кэшем",
+      "statement": "Итоговое упражнение главы. Магазин: 10 000 запросов статики, 2500 чтений и 100 записей в секунду, 200 ГБ данных, рабочий набор 10 ГБ. Соберите схему: CDN (≥90% статики), кэш (≥85% чтений), загрузка не выше 80%, схема переживает отказ кэша и сервера, бюджет — $1100 в месяц.",
+      "hint": "CDN с TTL 300, кэш около 10 ГБ с TTL 3600 и репликой, пять серверов M (на отказ одного останется 2800), база S хватит (кэш снимает чтения), балансировщик.",
+      "spec": {
+        "workload": {"static_rps": 10000, "read_rps": 2500, "write_rps": 100, "data_gb": 200, "hot_set": 0.05},
+        "palette": ["cdn", "lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "cdn_hit", "min": 0.9},
+          {"type": "hit", "min": 0.85},
+          {"type": "survive", "fail": "cache"},
+          {"type": "survive", "fail": "app"},
+          {"type": "cost", "max": 1100}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 300}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 10, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        }
+      }
+    }
+  ]
+}

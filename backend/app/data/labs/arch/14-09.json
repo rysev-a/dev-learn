@@ -1,0 +1,2636 @@
+{
+  "book": 14,
+  "chapter": 9,
+  "lab": "arch",
+  "tasks": [
+    {
+      "id": "increment",
+      "title": "Инкрементер: +1",
+      "statement": "К одноразрядному числу A прибавляем единицу: 0 + 1 = 01, 1 + 1 = 10. S — бит суммы, P — перенос. Присмотритесь к таблице: она проще, чем кажется.",
+      "hint": "Перенос P просто повторяет A (провод), а сумма S — это НЕ A. Два элемента — и сумматор готов.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A"],
+        "labels": [],
+        "outputs": ["S", "P"],
+        "target": [[1, 0], [0, 1]],
+        "allowed": ["NOT", "NOR", "AND", "OR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S = НЕ A; P = A",
+        "success": "Инкрементер — частный случай сумматора: второе слагаемое всегда 1. Заметьте: у схемы теперь ДВА выхода — старший разряд «выпадает» из младшего отдельным сигналом переноса.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_s",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_s",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "half-adder",
+      "title": "Полусумматор",
+      "statement": "Сложите два бита A и B столбиком: S — бит суммы, P — перенос. Сумма равна 1, когда входы РАЗНЫЕ; перенос — когда оба равны 1.",
+      "hint": "S — это XOR из раздела «Простые схемы»: (A ИЛИ B) И НЕ(A И B) — или готовый элемент, если он уже открыт. А P — обычный элемент И на тех же входах: единица только в строке 1 1.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["S", "P"],
+        "target": [[0, 0], [1, 0], [1, 0], [0, 1]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S = A⊕B; P = A·B",
+        "success": "Полусумматор готов! Он называется «полу-», потому что не принимает перенос из предыдущего разряда — в цепочке таких сложителей не собрать. Сейчас это исправим.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_s",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_p",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_s",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_p",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "full-adder-sum",
+      "title": "Полный сумматор: бит суммы",
+      "statement": "Теперь складываются ТРИ бита: A + B + Cin (перенос из предыдущего разряда). Соберите бит суммы S: он равен 1, когда единиц среди входов НЕЧЁТНОЕ число.",
+      "hint": "Складывайте по очереди: сначала A⊕B, затем результат ⊕ Cin. Каждый XOR — четыре элемента из И/ИЛИ/НЕ — или один готовый XOR (или XNOR: цепочка XNOR из трёх входов даёт ту же чётность).",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": ["A", "B", "Cin"],
+        "outputs": ["S"],
+        "target": [[0], [1], [1], [0], [1], [0], [0], [1]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S = A⊕B⊕Cin",
+        "success": "Бит суммы — это чётность (parity): цепочка XOR считает единицы по модулю 2. Тот же приём работает в схемах контроля чётности.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_s",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_s",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "full-adder",
+      "title": "Полный сумматор",
+      "statement": "Финал раздела: полный сумматор целиком. S — бит суммы, P — перенос выхода. Перенос равен 1, когда единиц не меньше двух.",
+      "hint": "Соедините два готовых куска: S = A⊕B⊕Cin (прошлое упражнение — XOR/XNOR теперь в палитре) и P = AB ИЛИ AC ИЛИ BC (мажоритарная схема из «Простых схем»). Выходы обоих кусков идут в S и P.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": ["A", "B", "Cin"],
+        "outputs": ["S", "P"],
+        "target": [[0, 0], [1, 0], [1, 0], [0, 1], [1, 0], [0, 1], [0, 1], [1, 1]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S = A⊕B⊕Cin; P = AB ИЛИ AC ИЛИ BC",
+        "success": "Вы собрали полный сумматор — «кирпичик» 4-, 8- и 64-разрядных АЛУ. Перенос одного разряда подключается ко входу Cin следующего — получается сумматор с последовательным переносом. Дальше: регистры и такт!",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_s",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_ab",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_ac",
+              "type": "AND",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_bc",
+              "type": "AND",
+              "x": 150.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_t",
+              "type": "OR",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_p",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ab",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ab",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ac",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ac",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bc",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bc",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_ab",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_t",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_ac",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_t",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_t",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_bc",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_s",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_p",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "half-subtractor",
+      "title": "Полувычитатель",
+      "statement": "Вычтите бит B из бита A: R — бит разности, Bo — заём (borrow). Заём нужен, когда из 0 вычитают 1: 0 − 1 = −1, и нужно «занять» единицу у старшего разряда.",
+      "hint": "Разность — снова XOR: она 1, когда биты разные. А заём — единица только в строке A = 0, B = 1: это НЕ-A И B.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["R", "Bo"],
+        "target": [[0, 0], [1, 1], [1, 0], [0, 0]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "R = A⊕B; Bo = НЕ-A·B",
+        "success": "Сравните с полусумматором: сумма и разность считаются одинаково (XOR), отличается только перенос — у вычитателя перед A стоит инвертор. Чуть позже вычитание сведётся к сложению совсем.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nA",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_w",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nA",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_nA",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_w",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_w",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "R",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_w",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Bo",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "full-subtractor",
+      "title": "Полный вычитатель",
+      "statement": "Вычитаем три бита: A − B − Bin, где Bin — заём из младшего разряда. R — бит разности, Bo — заём в старший разряд. Заём нужен, когда результат отрицательный.",
+      "hint": "Разность — чётность, как у полного сумматора: R = A⊕B⊕Bin. Заём: Bo = НЕ-A·B ИЛИ НЕ(A⊕B)·Bin — «сам занял» или «долг от младшего разряда не покрыт». Короче: Bo — это «хотя бы две единицы» среди НЕ-A, B и Bin.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": ["A", "B", "Bin"],
+        "outputs": ["R", "Bo"],
+        "target": [[0, 0], [1, 1], [1, 1], [0, 1], [1, 0], [0, 0], [0, 0], [1, 1]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "R = A⊕B⊕Bin; Bo = НЕ-A·B + НЕ(A⊕B)·Bin",
+        "success": "Полный вычитатель — зеркало полного сумматора. Но в процессорах отдельных вычитателей почти не строят: вычитание делают сложением с «дополнением» — об этом чуть дальше, в упражнении про сумматор-вычитатель.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_r",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nA",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_w1",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_nx",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_w2",
+              "type": "AND",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_bo",
+              "type": "OR",
+              "x": 420.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nA",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_nA",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_w1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_w1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nx",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_nx",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_w2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_w2",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_w1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bo",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_w2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bo",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_r",
+                "pin": "out"
+              },
+              "to": {
+                "node": "R",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_bo",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Bo",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "increment2",
+      "title": "Двухбитный инкрементер",
+      "statement": "К двухбитному числу A1 A0 прибавьте единицу. P — перенос в третий разряд, S1 S0 — сумма: 00 → 01, 01 → 10, 10 → 11, а 11 + 1 = 100 (переполнение: P = 1, S = 00).",
+      "hint": "Младший бит всегда переворачивается: S0 = НЕ-A0. Старший переворачивается, только если младший был 1: S1 = A1⊕A0. Перенос выходит, когда оба были 1: P = A1·A0.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": ["A1", "A0"],
+        "outputs": ["P", "S1", "S0"],
+        "target": [[0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S0 = НЕ-A0; S1 = A1⊕A0; P = A1·A0",
+        "success": "Так работает счётчик: каждый разряд переворачивается, когда все младшие — единицы. Это схема «+1», из которой потом вырастет счётчик команд — адрес следующей инструкции.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_s0",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_s1",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_p",
+              "type": "AND",
+              "x": 150.0,
+              "y": 124.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_p",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_s1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_s0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S0",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "comparator1",
+      "title": "Однобитный компаратор",
+      "statement": "Сравните два бита A и B тремя выходами: Lt горит, когда A < B; Eq — когда A = B; Gt — когда A > B. Всегда горит ровно один.",
+      "hint": "A < B — только строка A = 0, B = 1: НЕ-A И B. A > B — зеркально: A И НЕ-B. Равенство — готовый XNOR (или НЕ от XOR).",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Lt", "Eq", "Gt"],
+        "target": [[0, 1, 0], [1, 0, 0], [0, 0, 1], [0, 1, 0]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Lt = НЕ-A·B; Eq = A⊙B; Gt = A·НЕ-B",
+        "success": "Компаратор — основа условных переходов («если A < B, то…»). Заметьте: Lt и Gt — те же элементы, что давали заём у вычитателя. Сравнение — это вычитание, от которого оставили только знак.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nA",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nB",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_lt",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_eq",
+              "type": "XNOR",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_gt",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nA",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nB",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_nA",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_lt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_lt",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_eq",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_eq",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_gt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_nB",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_gt",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_lt",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Lt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_eq",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Eq",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_gt",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Gt",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "adder2",
+      "title": "Двухбитный сумматор",
+      "statement": "Сложите двухбитные числа A1 A0 и B1 B0. Результат — трёхбитный: P S1 S0 (P — перенос из старшего разряда). Например, 11 + 11 = 110.",
+      "hint": "Младший разряд — полусумматор: S0 = A0⊕B0, перенос c = A0·B0. Старший — полный сумматор с входом c: S1 = A1⊕B1⊕c, P = A1·B1 ИЛИ (A1⊕B1)·c. Перенос из младшего разряда «переезжает» в старший.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D"],
+        "labels": ["A1", "A0", "B1", "B0"],
+        "outputs": ["P", "S1", "S0"],
+        "target": [
+          [0, 0, 0],
+          [0, 0, 1],
+          [0, 1, 0],
+          [0, 1, 1],
+          [0, 0, 1],
+          [0, 1, 0],
+          [0, 1, 1],
+          [1, 0, 0],
+          [0, 1, 0],
+          [0, 1, 1],
+          [1, 0, 0],
+          [1, 0, 1],
+          [0, 1, 1],
+          [1, 0, 0],
+          [1, 0, 1],
+          [1, 1, 0]
+        ],
+        "allowed": ["AND", "OR", "NOT", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S0 = A0⊕B0; c = A0·B0; S1 = A1⊕B1⊕c; P = A1·B1 + (A1⊕B1)·c",
+        "success": "Это сумматор с последовательным переносом: каждый разряд ждёт перенос от соседа. Чем шире число, тем длиннее цепочка и тем дольше складывается — поэтому в быстрых процессорах переносы «угадывают» заранее.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_s0",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_c0",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_s1",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_g",
+              "type": "AND",
+              "x": 150.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_h",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_p",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_c0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_c0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_g",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_h",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_p",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_s1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "g_s0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S0",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "add-sub",
+      "title": "Сумматор-вычитатель",
+      "statement": "Один сумматор — и сложение, и вычитание. M — режим: M = 0 даёт A + B; M = 1 даёт A − B как A + НЕ-B + 1 (инвертируем B, а единицу подаём на вход переноса). S — бит результата, P — перенос; при M = 1 единица в P означает «заёма нет».",
+      "hint": "Управляемый инвертор из раздела мультиплексоров: B⊕M. Дальше — полный сумматор с входами A, (B⊕M) и Cin = M: S = A⊕(B⊕M)⊕M, P — мажоритарная функция тех же трёх.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": ["A", "B", "M"],
+        "outputs": ["S", "P"],
+        "target": [[0, 0], [0, 1], [1, 0], [1, 0], [1, 0], [1, 1], [0, 1], [0, 1]],
+        "allowed": ["AND", "OR", "NOT", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "S = A⊕(B⊕M)⊕M; P = maj(A, B⊕M, M)",
+        "success": "Так АЛУ вычитает: в «дополнительном коде» A − B — это A + НЕ-B + 1. Отдельный вычитатель не нужен — достаточно управляемого инвертора на входе B и единицы в переносе.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_bm",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_s",
+              "type": "XOR",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_g",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_h",
+              "type": "AND",
+              "x": 330.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_p",
+              "type": "OR",
+              "x": 420.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bm",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bm",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_bm",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_bm",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_g",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_h",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_s",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_p",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "comparator2",
+      "title": "Двухбитный компаратор",
+      "statement": "Сравните двухбитные числа A1 A0 и B1 B0: Lt — A меньше B, Eq — равны, Gt — A больше B. Горит ровно один выход.",
+      "hint": "Сравнивайте со старшего разряда. Eq: оба разряда совпали (два XNOR и И). Gt: A1 > B1 ИЛИ (A1 = B1 И A0 > B0). Lt — зеркально.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D"],
+        "labels": ["A1", "A0", "B1", "B0"],
+        "outputs": ["Lt", "Eq", "Gt"],
+        "target": [
+          [0, 1, 0],
+          [1, 0, 0],
+          [1, 0, 0],
+          [1, 0, 0],
+          [0, 0, 1],
+          [0, 1, 0],
+          [1, 0, 0],
+          [1, 0, 0],
+          [0, 0, 1],
+          [0, 0, 1],
+          [0, 1, 0],
+          [1, 0, 0],
+          [0, 0, 1],
+          [0, 0, 1],
+          [0, 0, 1],
+          [0, 1, 0]
+        ],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Gt = A1·НЕ-B1 + (A1⊙B1)·A0·НЕ-B0; Eq = (A1⊙B1)·(A0⊙B0)",
+        "success": "Правило «сравнивай старший разряд, и только если равны — идёшь к младшему» работает для чисел любой ширины. Условные переходы в программах делаются именно такими компараторами.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nA1",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nB1",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_nA0",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_nB0",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_e1",
+              "type": "XNOR",
+              "x": 150.0,
+              "y": 236.0
+            },
+            {
+              "id": "g_e0",
+              "type": "XNOR",
+              "x": 150.0,
+              "y": 292.0
+            },
+            {
+              "id": "g_eq",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_g1",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_g0",
+              "type": "AND",
+              "x": 240.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_g0e",
+              "type": "AND",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_gt",
+              "type": "OR",
+              "x": 420.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_l1",
+              "type": "AND",
+              "x": 240.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_l0",
+              "type": "AND",
+              "x": 240.0,
+              "y": 236.0
+            },
+            {
+              "id": "g_l0e",
+              "type": "AND",
+              "x": 330.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_lt",
+              "type": "OR",
+              "x": 420.0,
+              "y": 68.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nA1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nB1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nA0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nB0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_e1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_e1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_e0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_e0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_e1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_eq",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_e0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_eq",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_nB1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_nB0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_e1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g0e",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_g0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g0e",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "g_g1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_gt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w18",
+              "from": {
+                "node": "g_g0e",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_gt",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w19",
+              "from": {
+                "node": "g_nA1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w20",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w21",
+              "from": {
+                "node": "g_nA0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w22",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w23",
+              "from": {
+                "node": "g_e1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l0e",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w24",
+              "from": {
+                "node": "g_l0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l0e",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w25",
+              "from": {
+                "node": "g_l1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_lt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w26",
+              "from": {
+                "node": "g_l0e",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_lt",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w27",
+              "from": {
+                "node": "g_lt",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Lt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w28",
+              "from": {
+                "node": "g_eq",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Eq",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w29",
+              "from": {
+                "node": "g_gt",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Gt",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "adder3",
+      "title": "Трёхбитный сумматор",
+      "statement": "Финал раздела: сложите числа A2 A1 A0 и B2 B1 B0. Результат — четыре бита P S2 S1 S0. Цепочка переносов должна пройти через все три разряда.",
+      "hint": "Три звена: младшее — полусумматор (S0 = A0⊕B0, c0 = A0·B0); два следующих — полные сумматоры: S = A⊕B⊕c, перенос = A·B ИЛИ (A⊕B)·c. Перенос каждого звена идёт на вход следующего; перенос последнего — это P. Инверторы не нужны.",
+      "spec": {
+        "kind": "circuit",
+        "section": "adders",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D", "E", "F"],
+        "labels": ["A2", "A1", "A0", "B2", "B1", "B0"],
+        "outputs": ["P", "S2", "S1", "S0"],
+        "target": [
+          [0, 0, 0, 0],
+          [0, 0, 0, 1],
+          [0, 0, 1, 0],
+          [0, 0, 1, 1],
+          [0, 1, 0, 0],
+          [0, 1, 0, 1],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [0, 0, 0, 1],
+          [0, 0, 1, 0],
+          [0, 0, 1, 1],
+          [0, 1, 0, 0],
+          [0, 1, 0, 1],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [0, 0, 1, 0],
+          [0, 0, 1, 1],
+          [0, 1, 0, 0],
+          [0, 1, 0, 1],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [1, 0, 0, 1],
+          [0, 0, 1, 1],
+          [0, 1, 0, 0],
+          [0, 1, 0, 1],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [1, 0, 0, 1],
+          [1, 0, 1, 0],
+          [0, 1, 0, 0],
+          [0, 1, 0, 1],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [1, 0, 0, 1],
+          [1, 0, 1, 0],
+          [1, 0, 1, 1],
+          [0, 1, 0, 1],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [1, 0, 0, 1],
+          [1, 0, 1, 0],
+          [1, 0, 1, 1],
+          [1, 1, 0, 0],
+          [0, 1, 1, 0],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [1, 0, 0, 1],
+          [1, 0, 1, 0],
+          [1, 0, 1, 1],
+          [1, 1, 0, 0],
+          [1, 1, 0, 1],
+          [0, 1, 1, 1],
+          [1, 0, 0, 0],
+          [1, 0, 0, 1],
+          [1, 0, 1, 0],
+          [1, 0, 1, 1],
+          [1, 1, 0, 0],
+          [1, 1, 0, 1],
+          [1, 1, 1, 0]
+        ],
+        "allowed": ["AND", "OR", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "ci+1 = Ai·Bi + (Ai⊕Bi)·ci; Si = Ai⊕Bi⊕ci",
+        "success": "Вы собрали настоящий многоразрядный сумматор: те же звенья в цепочке дают 8, 32 и 64 бита. Это и есть сердце АЛУ — а значит, «арифметика» процессора теперь не загадка. Дальше — регистры и такт: куда складывать результат и когда.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_s0",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_c0",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_x1",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_s1",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_g1",
+              "type": "AND",
+              "x": 150.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_h1",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_c1",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_x2",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 236.0
+            },
+            {
+              "id": "g_s2",
+              "type": "XOR",
+              "x": 420.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_g2",
+              "type": "AND",
+              "x": 150.0,
+              "y": 292.0
+            },
+            {
+              "id": "g_h2",
+              "type": "AND",
+              "x": 420.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_p",
+              "type": "OR",
+              "x": 510.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "F",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "F",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "E",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_x1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_c0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "E",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_x1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_c0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_g1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_h1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x2",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "g_x2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w18",
+              "from": {
+                "node": "g_c1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_s2",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w19",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w20",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g2",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w21",
+              "from": {
+                "node": "g_x2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w22",
+              "from": {
+                "node": "g_c1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h2",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w23",
+              "from": {
+                "node": "g_g2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w24",
+              "from": {
+                "node": "g_h2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_p",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w25",
+              "from": {
+                "node": "g_p",
+                "pin": "out"
+              },
+              "to": {
+                "node": "P",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w26",
+              "from": {
+                "node": "g_s2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w27",
+              "from": {
+                "node": "g_s1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w28",
+              "from": {
+                "node": "g_s0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "S0",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

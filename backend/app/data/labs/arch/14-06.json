@@ -1,0 +1,1363 @@
+{
+  "book": 14,
+  "chapter": 6,
+  "lab": "arch",
+  "tasks": [
+    {
+      "id": "wire",
+      "title": "Первый сигнал",
+      "statement": "Соедините вход A с выходом Y обычным проводом. Элементы здесь не нужны — сигнал можно передавать и по проводу.",
+      "hint": "Схватите круглый контакт справа от блока A и отпустите его на контакте слева от Y.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [1]],
+        "allowed": [],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = A",
+        "success": "Провод передаёт сигнал без изменений: что на входе, то и на выходе. Таблица всех входных комбинаций — это «паспорт» схемы, и по нему мы и сверяемся.",
+        "solution": {
+          "gates": [],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "not",
+      "title": "Инвертор (НЕ)",
+      "statement": "Соберите элемент, который переворачивает сигнал: при A = 0 на выходе 1, при A = 1 — 0.",
+      "hint": "У элемента НЕ один вход. Есть и трюк: если у ИЛИ-НЕ соединить оба входа вместе, он тоже станет инвертором.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[1], [0]],
+        "allowed": ["NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = НЕ A",
+        "success": "Это инвертор. В процессорах инверсия встречается на каждом шагу — например, когда нужно проверить «не равно». Кстати, решение через NOR тоже засчитывается!",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_n",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_n",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "and",
+      "title": "Элемент И",
+      "statement": "Лампочка Y горит (1), только когда ОБА входа равны 1.",
+      "hint": "Один элемент И решает задачу целиком: единица в «Цели» стоит только в строке 1 1.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [0], [0], [1]],
+        "allowed": ["AND"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = A И B",
+        "success": "Вы собрали вентиль И (AND). Он работает как два последовательно соединённых выключателя: ток пройдёт, только если замкнуты оба.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_y",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "or",
+      "title": "Элемент ИЛИ",
+      "statement": "Лампочка Y горит, когда ХОТЯ БЫ ОДИН вход равен 1.",
+      "hint": "Можно взять готовый элемент ИЛИ. А можно собрать ИЛИ из И и НЕ — вспомните закон де Моргана: НЕ(НЕ-A И НЕ-B).",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [1], [1], [1]],
+        "allowed": ["OR", "AND", "NOT"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = A ИЛИ B",
+        "success": "Это ИЛИ (OR) — как два выключателя параллельно. Бонус для любопытных: ИЛИ можно собрать из И и двух НЕ, и такое решение тоже зачтётся.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_y",
+              "type": "OR",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "nor",
+      "title": "ИЛИ-НЕ",
+      "statement": "Лампочка Y горит, только когда ОБА входа равны 0.",
+      "hint": "Это «НЕ от ИЛИ»: сначала ИЛИ, потом инверсия. Или один готовый элемент ИЛИ-НЕ.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[1], [0], [0], [0]],
+        "allowed": ["NOR", "OR", "NOT"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = НЕ(A ИЛИ B)",
+        "success": "Получился NOR. Забавный факт: из одних только элементов ИЛИ-НЕ (как и из И-НЕ) можно собрать любой процессор целиком.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_o",
+              "type": "OR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_y",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_o",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_o",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_o",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "nand",
+      "title": "И-НЕ",
+      "statement": "Лампочка Y горит всегда, КРОМЕ случая, когда оба входа равны 1.",
+      "hint": "«НЕ от И»: сначала элемент И, затем инвертор на его выходе.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[1], [1], [1], [0]],
+        "allowed": ["AND", "OR", "NOT"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = НЕ(A И B)",
+        "success": "Это NAND — «универсальный» вентиль. На заводских чипах он один из самых дешёвых, поэтому раньше целые микросхемы строили только на нём.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_a",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_y",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_a",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_a",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_a",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "enable",
+      "title": "Разрешение: пропуск сигнала",
+      "statement": "D — данные, E — разрешение. На выход должно проходить только разрешённое: Y повторяет D, но только при E = 1; при E = 0 на выходе всегда 0.",
+      "hint": "Это по-прежнему элемент И: единица только когда оба входа равны 1. Присмотритесь: E здесь работает как ключ, а D — как данные.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": ["D", "E"],
+        "outputs": ["Y"],
+        "target": [[0], [0], [0], [1]],
+        "allowed": ["AND", "NOR", "NOT"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = D·E",
+        "success": "Элемент И — это не только «обе стороны согласны», но и КЛЮЧ: разрешение пропускает данные. Так устроен вход разрешения в защёлке (упражнение «D-защёлка») — запомните этот приём.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_y",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "inhibit",
+      "title": "Блокировка: сигнал с запретом",
+      "statement": "Теперь наоборот: сигнал A проходит, только пока B МОЛЧИТ. При B = 1 на выходе всегда 0, что бы ни делал A.",
+      "hint": "Сначала переверните B элементом НЕ, затем объедините с A через И: Y = A И НЕ-B.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [0], [1], [0]],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = A·НЕ-B",
+        "success": "Это «ингибитор»: один сигнал разрешает, другой запрещает. Схема R = НЕ-D·E во входе D-защёлки — ровно этот фрагмент. Комбинация И + НЕ встречается постоянно.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nb",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_y",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nb",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_nb",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dont-care",
+      "title": "Лишние входы",
+      "statement": "Входов три, но схема должна реагировать только на A: при A = 0 на выходе 1, при A = 1 — 0. Что делать с B и C — решайте сами.",
+      "hint": "B и C можно вообще не подключать. Инвертор — это НЕ, или NOR с объединёнными входами.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[1], [1], [1], [1], [0], [0], [0], [0]],
+        "allowed": ["NOT", "NOR", "AND"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = НЕ A",
+        "success": "B и C не влияют на выход — такие входы называют «не важными» (don't care). Инженеры упрощают таблицы именно так: вычёркивают всё лишнее.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_n",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_n",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "xor",
+      "title": "Исключающее ИЛИ",
+      "statement": "Лампочка Y горит, когда входы РАЗНЫЕ: ровно один из двух равен 1.",
+      "hint": "Формула: (A ИЛИ B) И НЕ(A И B). Соберите обе скобки отдельными элементами, а затем объедините их через И.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [1], [1], [0]],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = (A ИЛИ B) И НЕ(A И B)",
+        "success": "Это XOR — «сложение по модулю 2». Ровно так выглядит одноразрядный сумматор внутри процессора: XOR складывает биты, а перенос даёт элемент И.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_o",
+              "type": "OR",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_a",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_na",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_y",
+              "type": "AND",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_o",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_o",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_a",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_a",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_a",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_na",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_o",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_na",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pair",
+      "title": "Пара: сигнал и его тень",
+      "statement": "Соберите схему с ДВУМЯ выходами: Y равен A И B, а nY — его полная противоположность (НЕ(A И B)). Проверяйте оба столбца таблицы сразу.",
+      "hint": "Один элемент И даёт Y. Затем пропустите Y через НЕ — получится nY. Второй провод цепляйте прямо к выходу элемента И.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Y", "nY"],
+        "target": [[0, 1], [0, 1], [0, 1], [1, 0]],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = A·B; nY = НЕ(A·B)",
+        "success": "Выходы-близнецы Y и nY называют «парой». В защёлках вы встретите пару Q и nQ, а в сумматорах — сумму и перенос: одна схема, несколько ответов.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_y",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_ny",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ny",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_ny",
+                "pin": "out"
+              },
+              "to": {
+                "node": "nY",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "equals",
+      "title": "Равенство: сравнение битов",
+      "statement": "Лампочка горит, когда входы ОДИНАКОВЫЕ: оба 0 или оба 1. Это проверка «A = B?» — базовая операция сравнения.",
+      "hint": "Два пути: либо НЕ от XOR ((A ИЛИ B) И НЕ(A И B), затем НЕ), либо прямая формула: (A И B) ИЛИ (НЕ-A И НЕ-B). Если XNOR уже открыт — есть и третий: один готовый элемент.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": [],
+        "outputs": ["Q"],
+        "target": [[1], [0], [0], [1]],
+        "allowed": ["AND", "OR", "NOT", "NOR", "XNOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Q = НЕ(A⊕B) = A⊙B",
+        "success": "Это XNOR — «исключающее ИЛИ-НЕ», элемент равенства. Сравнивать биты так будет АЛУ. Собрав это упражнение, вы открыли готовый XNOR в палитре — соберите XOR, если ещё не.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_both",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nA",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_nB",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_none",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_q",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_both",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_both",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nA",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nB",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_nA",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_none",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_nB",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_none",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_both",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_q",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_none",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_q",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_q",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Q",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "majority",
+      "title": "Хотя бы два",
+      "statement": "Лампочка горит, когда единиц НЕ МЕНЬШЕ ДВУХ из трёх. Такая схема называется мажоритарной.",
+      "hint": "Переберите три варианта пары: A И B, или A И C, или B И C. Три элемента И, затем два ИЛИ.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [0], [0], [1], [0], [1], [1], [1]],
+        "allowed": ["AND", "OR", "NOT"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = AB ИЛИ AC ИЛИ BC",
+        "success": "Мажоритарная схема «голосует»: большинство входов решает. Так делают в системах надёжности — например, три датчика подтверждают показания.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_ab",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_ac",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_bc",
+              "type": "AND",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_t",
+              "type": "OR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_y",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ab",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ab",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ac",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ac",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bc",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_bc",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_ab",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_t",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_ac",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_t",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_t",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_bc",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mux",
+      "title": "Мультиплексор: выбор канала",
+      "statement": "A — переключатель канала: при A = 0 на выход идёт сигнал B, при A = 1 — сигнал C.",
+      "hint": "Две ветки: (НЕ-A И B) и (A И C), затем ИЛИ. Сверьтесь с таблицей: в верхней половине Y повторяет B, в нижней — C.",
+      "spec": {
+        "kind": "circuit",
+        "section": "simple-circuits",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": [],
+        "outputs": ["Y"],
+        "target": [[0], [0], [1], [1], [0], [1], [0], [1]],
+        "allowed": ["AND", "OR", "NOT"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Y = НЕ-A·B ИЛИ A·C",
+        "success": "Вы собрали мультиплексор 2→1 — схему выбора данных. Именно мультиплексоры решают, какие данные пойдут дальше по процессору. Это уже почти архитектура!",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_na",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_l",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_r",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_y",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_na",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_na",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_l",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_l",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_r",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_y",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_y",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Y",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,807 @@
+{
+  "book": 15,
+  "chapter": 7,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n7-triage",
+      "title": "Три сервера: отказ, молчание, успех",
+      "statement": "Клиент пробует подключиться к порту 80 трёх серверов. Сервер 1 отвечает RST (отказ), сервер 2 молчит, сервер 3 работает. Нажмите ▶ у каждой цели и сравните журналы: RST — узел жив, порт закрыт; тишина — пакет пропал по дороге. Исправьте оба сервера: на первом запустите сервис, а второй освободите от правила файрвола.",
+      "hint": "Сервер 1: `nc -l 80` в его терминале. Сервер 2: на маршрутизаторе найдите правило DROP для tcp порт 80 к 10.0.2.10 в секции «Файрвол» и удалите его.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 70,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f0",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:ec",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:ed",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth2",
+                  "mac": "28:28:00:00:00:ee",
+                  "ip": "10.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth3",
+                  "mac": "28:28:00:00:00:ef",
+                  "ip": "10.0.3.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": [
+                  {
+                    "action": "DROP",
+                    "dst": "10.0.2.10",
+                    "proto": "tcp",
+                    "dport": 80
+                  }
+                ]
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s1",
+              "kind": "server",
+              "name": "Сервер 1",
+              "x": 480,
+              "y": 60,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f1",
+                  "ip": "10.0.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s2",
+              "kind": "server",
+              "name": "Сервер 2",
+              "x": 480,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f2",
+                  "ip": "10.0.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s3",
+              "kind": "server",
+              "name": "Сервер 3",
+              "x": 480,
+              "y": 300,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f3",
+                  "ip": "10.0.3.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.3.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "s1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth2",
+              "b": "s2:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth3",
+              "b": "s3:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Сервер 1: порт 80 открыт",
+            "tcp": {
+              "from": "pc1",
+              "to": "@s1",
+              "port": 80
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сервер 2: порт 80 открыт",
+            "tcp": {
+              "from": "pc1",
+              "to": "@s2",
+              "port": 80
+            }
+          },
+          {
+            "id": "g3",
+            "text": "Сервер 3: порт 80 открыт",
+            "tcp": {
+              "from": "pc1",
+              "to": "@s3",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "s1",
+            "line": "nc -l 80"
+          },
+          {
+            "op": "cmd",
+            "dev": "r1",
+            "line": "iptables -D FORWARD -p tcp --dport 80 -d 10.0.2.10 -j DROP"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n7-sport",
+      "title": "Рукопожатие обрывается на втором шаге",
+      "statement": "Клиент не может подключиться к веб-серверу: ни отказа, ни ответа. Нажмите ▶ у цели и посмотрите журнал: SYN доходит до сервера, сервер отвечает SYN-ACK, но ответ пропадает в маршрутизаторе — кто-то запретил пересылку пакетов с порта 80. Найдите и удалите это правило.",
+      "hint": "На маршрутизаторе в секции «Файрвол» есть правило DROP tcp, в логе оно выглядит как «файрвол: DROP». Нужно удалить правило, режущее порт отправителя 80.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f6",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f4",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:f5",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": [
+                  {
+                    "action": "DROP",
+                    "proto": "tcp",
+                    "sport": 80
+                  }
+                ]
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f7",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "web:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ping проходит",
+            "ping": {
+              "from": "pc1",
+              "to": "@web"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Клиент завершает рукопожатие с портом 80",
+            "tcp": {
+              "from": "pc1",
+              "to": "@web",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "r1",
+            "line": "iptables -D FORWARD -p tcp --sport 80 -j DROP"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n7-stateful",
+      "title": "Файрвол с отслеживанием соединений",
+      "statement": "В локальной сети 192.0.2.0/24 живут клиент и свой веб-сервер (порт 80). Снаружи ходят гости. Нужно: клиент ходит в интернет свободно, гость снаружи свободно открывает только то, что нужно, — но к веб-серверу в локальной сети подключаться не должен, хотя ответы на соединения клиента принимаются. Выставьте политику FORWARD DROP, разрешите «уже установленные» соединения и новые соединения из своей сети.",
+      "hint": "Правила по порядку: `iptables -P FORWARD DROP`, `iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT`, `iptables -A FORWARD -s 192.0.2.0/24 -j ACCEPT`. Новое соединение извне (SYN гостя) не попадёт ни под одно разрешение — политика DROP его отбросит.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 70,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f8",
+                  "ip": "192.0.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "lan",
+              "kind": "server",
+              "name": "Веб-сервер LAN",
+              "x": 70,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:f9",
+                  "ip": "192.0.2.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 175,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:fa",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:fb",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:fc",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 300,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:fd",
+                  "ip": "192.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:fe",
+                  "ip": "203.0.113.2",
+                  "prefix": 30,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "isp",
+              "kind": "internet",
+              "name": "Провайдер",
+              "x": 440,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:ff",
+                  "ip": "203.0.113.1",
+                  "prefix": 30,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:00",
+                  "ip": "198.51.100.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth2",
+                  "mac": "28:28:00:00:01:01",
+                  "ip": "198.51.101.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "192.0.2.0/24",
+                  "via": "203.0.113.2",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": true
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 580,
+              "y": 90,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:02",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "guest",
+              "kind": "host",
+              "name": "Гость",
+              "x": 580,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:03",
+                  "ip": "198.51.101.50",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.101.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "lan:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "isp:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth1",
+              "b": "web:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth2",
+              "b": "guest:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Клиент открывает внешний сайт (tcp/80)",
+            "tcp": {
+              "from": "pc1",
+              "to": "@web",
+              "port": 80
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Гость не открывает веб-сервер локальной сети",
+            "tcp": {
+              "from": "guest",
+              "to": "@lan",
+              "port": 80,
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "Клиент по-прежнему видит свой веб-сервер",
+            "tcp": {
+              "from": "pc1",
+              "to": "@lan",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -P FORWARD DROP"
+          },
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT"
+          },
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -s 192.0.2.0/24 -j ACCEPT"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1214 @@
+{
+  "book": 15,
+  "chapter": 3,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n3-hub",
+      "title": "Хаб подслушивается, коммутатор — нет",
+      "statement": "Три компьютера подключены к хабу. ПК 1 и ПК 2 разговаривают, а ПК 3 видит каждый их кадр: хаб повторяет всё на все порты. Замените хаб коммутатором: удалите три кабеля (выберите кабель на схеме и нажмите «Удалить кабель») и подключите компьютеры к коммутатору. Затем нажмите ▶ у цели про подслушивание и убедитесь, что кадр до ПК 3 не доходит.",
+      "hint": "Выберите линию кабеля кликом, затем «Удалить кабель». Новое соединение — режим «Кабель»: нажмите на ПК и на коммутатор. Коммутатор после первого обмена знает, за каким портом ПК 1 и ПК 2.",
+      "spec": {
+        "tools": {
+          "cable": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 90,
+              "y": 90,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:4c",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 90,
+              "y": 270,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:4d",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc3",
+              "kind": "host",
+              "name": "ПК 3",
+              "x": 330,
+              "y": 330,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:4e",
+                  "ip": "192.168.0.3",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "hub",
+              "kind": "hub",
+              "name": "Хаб",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:4f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:50",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:51",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:52",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:53",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:54",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 500,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:55",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:56",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:57",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:58",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:59",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:5a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:5b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:5c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "hub:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "hub:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc3:eth0",
+              "b": "hub:p3",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК 3 тоже в сети: пингует ПК 1",
+            "ping": {
+              "from": "pc3",
+              "to": "@pc1"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "Кадры ПК 1 ↔ ПК 2 не доходят до ПК 3",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2",
+              "warm": true,
+              "not_seen_by": "pc3"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "drop",
+            "dev": "hub"
+          },
+          {
+            "op": "cable",
+            "a": "pc1",
+            "b": "sw1"
+          },
+          {
+            "op": "cable",
+            "a": "pc2",
+            "b": "sw1"
+          },
+          {
+            "op": "cable",
+            "a": "pc3",
+            "b": "sw1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n3-loop",
+      "title": "Уберите петлю",
+      "statement": "Три коммутатора соединены кольцом. Широковещательный кадр (а ARP-запрос именно такой) будет ходить по кольцу вечно — шторм. Нажмите ▶ у цели и посмотрите журнал: коммутатор отмечает, что кадр уже проходил здесь. Разорвите кольцо так, чтобы осталось дерево, но сеть связной. Это то, что автоматически делает протокол STP, блокируя лишний порт.",
+      "hint": "Выберите любой кабель между коммутаторами и удалите. Три коммутатора останутся связаны цепочкой — этого достаточно.",
+      "spec": {
+        "tools": {
+          "cable": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 80,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:5d",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 560,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:5e",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "SW 1",
+              "x": 320,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:5f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:60",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:61",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:62",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw2",
+              "kind": "switch",
+              "name": "SW 2",
+              "x": 150,
+              "y": 220,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:63",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:64",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:65",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:66",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw3",
+              "kind": "switch",
+              "name": "SW 3",
+              "x": 490,
+              "y": 220,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:67",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:68",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:69",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:6a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw2:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "sw3:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw1:p1",
+              "b": "sw2:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw1:p2",
+              "b": "sw3:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw2:p3",
+              "b": "sw3:p3",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "В сети нет петли (кадры не ходят по кругу)",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2",
+              "no_loop": true
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "unlink",
+            "a": "sw2",
+            "b": "sw3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n3-vlan",
+      "title": "Две виртуальные сети на одном коммутаторе",
+      "statement": "Бухгалтерия (ПК 1, ПК 2) и разработка (ПК 3, ПК 4) подключены к одному коммутатору и сейчас видят друг друга. Нужно разделить их на два VLAN: бухгалтерия — VLAN 10, разработка — VLAN 20. Внутри отдела связь должна остаться, между отделами — пропасть. Номер VLAN задаётся в карточке коммутатора для каждого порта.",
+      "hint": "На коммутаторе: ПК 1 — порт p1, ПК 2 — p2, ПК 3 — p3, ПК 4 — p4. Поставьте VLAN 10 на p1 и p2, VLAN 20 на p3 и p4. Или в терминале: `port p1 vlan 10`.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1 (бухг.)",
+              "x": 100,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:6b",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2 (бухг.)",
+              "x": 100,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:6c",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc3",
+              "kind": "host",
+              "name": "ПК 3 (разр.)",
+              "x": 540,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:6d",
+                  "ip": "192.168.0.3",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc4",
+              "kind": "host",
+              "name": "ПК 4 (разр.)",
+              "x": 540,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:6e",
+                  "ip": "192.168.0.4",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:6f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:70",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:71",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:72",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:73",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:74",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:75",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:76",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "sw1:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc3:eth0",
+              "b": "sw1:p3",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc4:eth0",
+              "b": "sw1:p4",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2 (бухгалтерия)",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК 3 пингует ПК 4 (разработка)",
+            "ping": {
+              "from": "pc3",
+              "to": "@pc4"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "ПК 1 не достаёт до ПК 3",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc3",
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g4",
+            "text": "ПК 2 не достаёт до ПК 4",
+            "ping": {
+              "from": "pc2",
+              "to": "@pc4",
+              "expect": "fail"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p1 vlan 10"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p2 vlan 10"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p3 vlan 20"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p4 vlan 20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n3-trunk",
+      "title": "Транк между коммутаторами",
+      "statement": "Отделы сидят на двух этажах, у каждого этажа свой коммутатор. Бухгалтерия: ПК 1 (первый этаж) и ПК 3 (второй), разработка: ПК 2 и ПК 4. Настройте VLAN 10 и 20 на портах доступа и превратите порт p8 на каждом коммутаторе в транк, чтобы оба VLAN ходили по одному кабелю с метками. ПК одного отдела должны видеть друг друга через этажи, а чужие отделы — нет.",
+      "hint": "Порты доступа: p1 — VLAN 10, p2 — VLAN 20 на обоих коммутаторах. Порт p8 каждого коммутатора — «trunk». Без транка метки не пройдут и ПК 1 не достанет до ПК 3.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1 (бухг.)",
+              "x": 90,
+              "y": 90,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:77",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2 (разр.)",
+              "x": 90,
+              "y": 270,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:78",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc3",
+              "kind": "host",
+              "name": "ПК 3 (бухг.)",
+              "x": 550,
+              "y": 90,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:79",
+                  "ip": "192.168.0.3",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc4",
+              "kind": "host",
+              "name": "ПК 4 (разр.)",
+              "x": 550,
+              "y": 270,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:7a",
+                  "ip": "192.168.0.4",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор 1 эт.",
+              "x": 230,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:7b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:7c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:7d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:7e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:7f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:80",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:81",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:82",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw2",
+              "kind": "switch",
+              "name": "Коммутатор 2 эт.",
+              "x": 410,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:83",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:84",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:85",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:86",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:87",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:88",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:89",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:8a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "sw1:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc3:eth0",
+              "b": "sw2:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc4:eth0",
+              "b": "sw2:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw1:p8",
+              "b": "sw2:p8",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 3 (бухгалтерия через этажи)",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc3"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК 2 пингует ПК 4 (разработка через этажи)",
+            "ping": {
+              "from": "pc2",
+              "to": "@pc4"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "ПК 1 не достаёт до ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2",
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g4",
+            "text": "ПК 1 не достаёт до ПК 4",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc4",
+              "expect": "fail"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p1 vlan 10"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p2 vlan 20"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p8 trunk"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw2",
+            "line": "port p1 vlan 10"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw2",
+            "line": "port p2 vlan 20"
+          },
+          {
+            "op": "cmd",
+            "dev": "sw2",
+            "line": "port p8 trunk"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "book": 14,
+  "chapter": 17,
+  "lab": "riscv",
+  "tasks": [
+    {
+      "id": "real-hello",
+      "title": "Hello из настоящего write",
+      "statement": "Теперь без периферии учебной платы: это обычная программа. Точка входа — метка _start, строка лежит в секции .rodata. Выведите её системным вызовом write(fd = 1, буфер, длина): номер вызова 64 кладётся в a7, аргументы — в a0, a1, a2, потом ecall. Затем завершите программу вызовом exit(0): a7 = 93, a0 = код возврата. Сборка у себя: make run (описание ниже).",
+      "hint": "a0 = 1 (стандартный вывод), a1 = адрес строки (la a1, msg), a2 = её длина (15 байт вместе с переводом строки), a7 = 64, ecall. Затем li a0, 0; li a7, 93; ecall.",
+      "spec": {
+        "profile": "linux",
+        "starter": "  .globl _start\n  .text\n_start:\n  # напишите write(1, msg, 15) и exit(0)\n\n  .section .rodata\nmsg:\n  .ascii \"Hello, RISC-V!\\n\"\n",
+        "reference": "  .globl _start\n  .text\n_start:\n  li   a0, 1             # fd = 1: стандартный вывод\n  la   a1, msg           # адрес строки\n  li   a2, 15            # длина\n  li   a7, 64            # write\n  ecall\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n  .section .rodata\nmsg:\n  .ascii \"Hello, RISC-V!\\n\"\n",
+        "data": "",
+        "max_steps": 200000,
+        "tests": [
+          {
+            "switches": 0,
+            "check": {
+              "kind": "run",
+              "stdout": "Hello, RISC-V!\n",
+              "code": 0,
+              "ok": "Вывод верный, код возврата 0. Такая же программа соберётся и у вас."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "real-print-uint",
+      "title": "Печать числа: print_uint",
+      "statement": "write умеет выводить только байты, поэтому число нужно превратить в текст самому. Допишите функцию print_uint(a0): она печатает беззнаковое число в десятичном виде и перевод строки. Основная программа уже вызывает её для 0, 7, 1234567 и 4294967295. Алгоритм: пока число не стало нулём — взять остаток от деления на 10 (remu), прибавить код символа «0», записать в буфер на стеке и разделить число на 10 (divu). Цифры получаются с конца, поэтому буфер заполняется справа налево.",
+      "hint": "Выделите на стеке 16 байт (addi sp, sp, -16), положите в конец перевод строки (10) и пишите цифры, уменьшая указатель. Число 0 — особый случай: цикл должен выполниться хотя бы раз (проверка условия в конце цикла, как do…while). В конце — write(1, начало, длина) и addi sp, sp, 16 перед ret.",
+      "spec": {
+        "profile": "linux",
+        "starter": "  .globl _start\n  .text\n_start:\n  li   a0, 0\n  call print_uint\n  li   a0, 7\n  call print_uint\n  li   a0, 1234567\n  call print_uint\n  li   a0, 4294967295\n  call print_uint\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_uint(a0): напечатать число и перевод строки\nprint_uint:\n  # ваш код\n  ret\n",
+        "reference": "  .globl _start\n  .text\n_start:\n  li   a0, 0\n  call print_uint\n  li   a0, 7\n  call print_uint\n  li   a0, 1234567\n  call print_uint\n  li   a0, 4294967295\n  call print_uint\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_uint(a0): напечатать число и перевод строки\nprint_uint:\n  addi sp, sp, -16\n  addi t0, sp, 15        # куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки в конце буфера\nprint_uint_loop:\n  remu t2, a0, t1        # младшая десятичная цифра\n  addi t2, t2, '0'\n  addi t0, t0, -1\n  sb   t2, 0(t0)\n  divu a0, a0, t1\n  bnez a0, print_uint_loop\n  li   a0, 1\n  mv   a1, t0\n  addi a2, sp, 16\n  sub  a2, a2, t0        # длина = конец буфера - начало\n  li   a7, 64\n  ecall\n  addi sp, sp, 16\n  ret\n",
+        "data": "",
+        "max_steps": 200000,
+        "tests": [
+          {
+            "switches": 0,
+            "check": {
+              "kind": "run",
+              "stdout": "0\n7\n1234567\n4294967295\n",
+              "code": 0,
+              "ok": "Вывод верный, код возврата 0. Такая же программа соберётся и у вас."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "real-fizzbuzz",
+      "title": "FizzBuzz",
+      "statement": "Классика: для чисел от 1 до 30 выведите по строке: «FizzBuzz», если число делится и на 3, и на 5; «Fizz» — если только на 3; «Buzz» — если только на 5; иначе само число. Готовая print_int уже есть — она печатает число и перевод строки. Текстовые слова выводите сами через write. Остаток от деления даёт команда rem.",
+      "hint": "Счётчик храните в s0 — этот регистр не портится вызовом print_int (вызываемая функция обязана его сохранять; наша print_int вообще его не трогает). Проверяйте сначала деление на 15, потом на 3, потом на 5.",
+      "spec": {
+        "profile": "linux",
+        "starter": "  .globl _start\n  .text\n_start:\n  li   s0, 1             # счётчик\n  # ваш цикл от 1 до 30\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): печатает знаковое число и перевод строки.\n# Цифры собираются в буфере на стеке справа налево, потом одним write уходят в консоль.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 — куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки — последним\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 у отрицательного числа, иначе 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = модуль числа\nprint_int_loop:\n  remu t4, t2, t1        # младшая цифра\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: стандартный вывод\n  mv   a1, t0            # адрес первого символа\n  addi a2, sp, 32\n  sub  a2, a2, t0        # длина\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n\n  .section .rodata\nfizz:\n  .ascii \"Fizz\\n\"\nbuzz:\n  .ascii \"Buzz\\n\"\nfizzbuzz:\n  .ascii \"FizzBuzz\\n\"\n",
+        "reference": "  .globl _start\n  .text\n_start:\n  li   s0, 1             # счётчик\n  li   s1, 31            # предел\n  li   s2, 3\n  li   s3, 5\n  li   s4, 15\nloop:\n  rem  t0, s0, s4\n  beqz t0, say_fizzbuzz\n  rem  t0, s0, s2\n  beqz t0, say_fizz\n  rem  t0, s0, s3\n  beqz t0, say_buzz\n  mv   a0, s0\n  call print_int\n  j    next\nsay_fizzbuzz:\n  la   a1, fizzbuzz\n  li   a2, 9\n  j    say\nsay_fizz:\n  la   a1, fizz\n  li   a2, 5\n  j    say\nsay_buzz:\n  la   a1, buzz\n  li   a2, 5\nsay:\n  li   a0, 1\n  li   a7, 64\n  ecall\nnext:\n  addi s0, s0, 1\n  blt  s0, s1, loop\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): печатает знаковое число и перевод строки.\n# Цифры собираются в буфере на стеке справа налево, потом одним write уходят в консоль.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 — куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки — последним\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 у отрицательного числа, иначе 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = модуль числа\nprint_int_loop:\n  remu t4, t2, t1        # младшая цифра\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: стандартный вывод\n  mv   a1, t0            # адрес первого символа\n  addi a2, sp, 32\n  sub  a2, a2, t0        # длина\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n\n  .section .rodata\nfizz:\n  .ascii \"Fizz\\n\"\nbuzz:\n  .ascii \"Buzz\\n\"\nfizzbuzz:\n  .ascii \"FizzBuzz\\n\"\n",
+        "data": "",
+        "max_steps": 200000,
+        "tests": [
+          {
+            "switches": 0,
+            "check": {
+              "kind": "run",
+              "stdout": "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz\n16\n17\nFizz\n19\nBuzz\nFizz\n22\n23\nFizz\nBuzz\n26\nFizz\n28\n29\nFizzBuzz\n",
+              "code": 0,
+              "ok": "Вывод верный, код возврата 0. Такая же программа соберётся и у вас."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "real-fib",
+      "title": "Числа Фибоначчи",
+      "statement": "Выведите первые 15 чисел Фибоначчи (0, 1, 1, 2, 3, 5, …, 377), по числу в строке. Готовая print_int уже есть. Каждое следующее число — сумма двух предыдущих, поэтому держите два регистра и обновляйте их в цикле.",
+      "hint": "Пусть s0 = текущее число (сначала 0), s1 = следующее (сначала 1), s2 = сколько ещё напечатать. В цикле: напечатать s0; t = s0 + s1; s0 = s1; s1 = t; s2--.",
+      "spec": {
+        "profile": "linux",
+        "starter": "  .globl _start\n  .text\n_start:\n  # ваш цикл: 15 чисел Фибоначчи\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): печатает знаковое число и перевод строки.\n# Цифры собираются в буфере на стеке справа налево, потом одним write уходят в консоль.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 — куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки — последним\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 у отрицательного числа, иначе 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = модуль числа\nprint_int_loop:\n  remu t4, t2, t1        # младшая цифра\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: стандартный вывод\n  mv   a1, t0            # адрес первого символа\n  addi a2, sp, 32\n  sub  a2, a2, t0        # длина\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n",
+        "reference": "  .globl _start\n  .text\n_start:\n  li   s0, 0             # F(n)\n  li   s1, 1             # F(n+1)\n  li   s2, 15            # сколько напечатать\nloop:\n  mv   a0, s0\n  call print_int\n  add  t0, s0, s1\n  mv   s0, s1\n  mv   s1, t0\n  addi s2, s2, -1\n  bnez s2, loop\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): печатает знаковое число и перевод строки.\n# Цифры собираются в буфере на стеке справа налево, потом одним write уходят в консоль.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 — куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки — последним\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 у отрицательного числа, иначе 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = модуль числа\nprint_int_loop:\n  remu t4, t2, t1        # младшая цифра\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: стандартный вывод\n  mv   a1, t0            # адрес первого символа\n  addi a2, sp, 32\n  sub  a2, a2, t0        # длина\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n",
+        "data": "",
+        "max_steps": 200000,
+        "tests": [
+          {
+            "switches": 0,
+            "check": {
+              "kind": "run",
+              "stdout": "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n89\n144\n233\n377\n",
+              "code": 0,
+              "ok": "Вывод верный, код возврата 0. Такая же программа соберётся и у вас."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "real-sort-print",
+      "title": "Отсортировать и напечатать",
+      "statement": "В секции .data лежит массив из восьми 32-битных слов со знаком: 5, −3, 99, 0, −100, 42, 7, −1 (метка arr, число элементов — константа N). Отсортируйте его по возрастанию на месте и напечатайте элементы по одному в строке (готовая print_int печатает и отрицательные числа).",
+      "hint": "Сортировка пузырьком, как раньше: адрес i-го слова — arr + 4·i. Для печати пройдите массив ещё раз: lw a0, 0(указатель); call print_int. Счётчики и указатели, которые должны пережить call, держите в s-регистрах.",
+      "spec": {
+        "profile": "linux",
+        "starter": "  .equ N, 8              # число элементов\n  .globl _start\n  .text\n_start:\n  # 1) отсортируйте arr   2) напечатайте элементы по порядку\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): печатает знаковое число и перевод строки.\n# Цифры собираются в буфере на стеке справа налево, потом одним write уходят в консоль.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 — куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки — последним\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 у отрицательного числа, иначе 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = модуль числа\nprint_int_loop:\n  remu t4, t2, t1        # младшая цифра\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: стандартный вывод\n  mv   a1, t0            # адрес первого символа\n  addi a2, sp, 32\n  sub  a2, a2, t0        # длина\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n\n  .data\narr:\n  .word 5, -3, 99, 0, -100, 42, 7, -1\n",
+        "reference": "  .equ N, 8              # число элементов\n  .globl _start\n  .text\n_start:\n  la   s0, arr\n  li   s1, N\nouter:\n  addi s1, s1, -1\n  blez s1, print\n  li   t1, 0             # i\ninner:\n  bge  t1, s1, outer\n  slli t2, t1, 2\n  add  t2, t2, s0        # адрес arr[i]\n  lw   t3, 0(t2)\n  lw   t4, 4(t2)\n  ble  t3, t4, skip      # уже по порядку\n  sw   t4, 0(t2)\n  sw   t3, 4(t2)\nskip:\n  addi t1, t1, 1\n  j    inner\nprint:\n  li   s1, N             # сколько напечатать\n  mv   s2, s0            # указатель\nprint_loop:\n  lw   a0, 0(s2)\n  call print_int\n  addi s2, s2, 4\n  addi s1, s1, -1\n  bnez s1, print_loop\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): печатает знаковое число и перевод строки.\n# Цифры собираются в буфере на стеке справа налево, потом одним write уходят в консоль.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 — куда писать следующий символ\n  li   t1, 10\n  sb   t1, 0(t0)         # перевод строки — последним\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 у отрицательного числа, иначе 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = модуль числа\nprint_int_loop:\n  remu t4, t2, t1        # младшая цифра\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: стандартный вывод\n  mv   a1, t0            # адрес первого символа\n  addi a2, sp, 32\n  sub  a2, a2, t0        # длина\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n\n  .data\narr:\n  .word 5, -3, 99, 0, -100, 42, 7, -1\n",
+        "data": "",
+        "max_steps": 200000,
+        "tests": [
+          {
+            "switches": 0,
+            "check": {
+              "kind": "run",
+              "stdout": "-100\n-3\n-1\n0\n5\n7\n42\n99\n",
+              "code": 0,
+              "ok": "Вывод верный, код возврата 0. Такая же программа соберётся и у вас."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "real-exit-code",
+      "title": "Код возврата: гласные",
+      "statement": "Программа может сообщить результат кодом возврата: он лежит в a0 при вызове exit, а в терминале его показывает «echo $?». Посчитайте, сколько в строке text английских гласных (a, e, i, o, u — строчных; строка заканчивается нулевым байтом), и верните это число как код возврата. Ничего выводить не нужно.",
+      "hint": "Идите по строке lbu до нулевого байта. Для каждого символа сравнивайте по очереди с пятью гласными (beq) и увеличивайте счётчик. Результат — в a0, затем li a7, 93; ecall.",
+      "spec": {
+        "profile": "linux",
+        "starter": "  .globl _start\n  .text\n_start:\n  la   t0, text\n  # посчитайте гласные, результат — в a0, затем exit(a0)\n\n  .section .rodata\ntext:\n  .asciz \"programming in assembly is fun\"\n",
+        "reference": "  .globl _start\n  .text\n_start:\n  la   t0, text\n  li   a0, 0             # счётчик гласных\n  li   t2, 'a'\n  li   t3, 'e'\n  li   t4, 'i'\n  li   t5, 'o'\n  li   t6, 'u'\nloop:\n  lbu  t1, 0(t0)\n  beqz t1, done\n  beq  t1, t2, vowel\n  beq  t1, t3, vowel\n  beq  t1, t4, vowel\n  beq  t1, t5, vowel\n  beq  t1, t6, vowel\n  j    next\nvowel:\n  addi a0, a0, 1\nnext:\n  addi t0, t0, 1\n  j    loop\ndone:\n  li   a7, 93            # exit(a0)\n  ecall\n\n  .section .rodata\ntext:\n  .asciz \"programming in assembly is fun\"\n",
+        "data": "",
+        "max_steps": 200000,
+        "tests": [
+          {
+            "switches": 0,
+            "check": {
+              "kind": "run",
+              "stdout": "",
+              "code": 8,
+              "ok": "Вывод верный, код возврата 8. Такая же программа соберётся и у вас."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

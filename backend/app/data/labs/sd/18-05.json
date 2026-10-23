@@ -1,0 +1,208 @@
+{
+  "book": 18,
+  "chapter": 5,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd05-write-shards",
+      "title": "Упёрлись в запись",
+      "statement": "Сервис принимает 1500 записей в секунду, а база S тянет 200, M — 600, L — 1500 (в обрез). Реплики запись не ускорят. Разрежьте данные на шарды (параметр «Шарды» у базы): загрузка не выше 80%, стоимость не больше $1600 в месяц.",
+      "hint": "Записи делятся между шардами поровну (при хеше). Четыре шарда M: по 375 записей на шард — 63%. Столько же стоят десять шардов S, но M проще.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 500, "write_rps": 1500, "data_gb": 400, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "success", "min": 0.99},
+          {"type": "cost", "max": 1600}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 4, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd05-monotonic",
+      "title": "Ключ растёт со временем",
+      "statement": "Данные уже разрезаны на четыре шарда по диапазонам ключа, но ключ — время создания записи: все новые записи попадают в последний шард. Перекос мешает: смените способ разбиения так, чтобы на самый нагруженный шард приходилось не больше 40% нагрузки, а общая загрузка не превышала 80%.",
+      "hint": "У базы есть параметр «Ключ шардирования»: хеш или диапазон. Хеш распределяет записи поровну.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 400, "write_rps": 1200, "data_gb": 300, "hot_set": 0.2, "monotonic": true},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "range", "shards": 4, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "shard_share", "max": 0.4},
+          {"type": "capacity", "max": 0.8},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 4, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["db.shard_key"]
+      }
+    },
+    {
+      "id": "sd05-hotkey",
+      "title": "Горячий ключ",
+      "statement": "У сервиса есть «знаменитость»: 20% запросов приходится на один ключ. Тогда на одном шарде оказывается 20% плюс его доля от остального. Сейчас четыре шарда M, и самый нагруженный перегружен. Что дешевле: больше шардов или шарды покрупнее? Добейтесь загрузки не выше 80% при стоимости не больше $1800.",
+      "hint": "Доля горячего шарда = горячий ключ + остальное / число шардов. Увеличивать число шардов выгодно слабо: 20% не уйдут. Крупные шарды помогают сильнее.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 400, "write_rps": 1500, "data_gb": 300, "hot_set": 0.2, "hot_key": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 4, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 1800},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 2, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd05-with-replicas",
+      "title": "Шарды и реплики вместе",
+      "statement": "Данные: 3000 чтений и 900 записей в секунду. Нужно и разрезать (запись), и реплицировать (чтения и отказоустойчивость). Соберите базу из шардов M с репликами и автопереключением: загрузка не выше 80%, схема переживает отказ базы, бюджет — $2700 в месяц.",
+      "hint": "Три шарда M: по 300 записей (50%); чтений по 1000 на шард, реплика M тянет 3000. Включите автопереключение.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 3000, "write_rps": 900, "data_gb": 600, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 8, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "survive", "fail": "db"},
+          {"type": "cost", "max": 2700}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 8, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 3, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd05-nosql",
+      "title": "Выбор хранилища",
+      "statement": "Сервис хранит события по ключу, без соединений и сложных запросов: подходит NoSQL, которое примерно в 1,8 раза быстрее на простых операциях. При 1500 записях в секунду уложите всю схему в $1100: выберите тип «NoSQL» и подберите шарды.",
+      "hint": "NoSQL M тянет около 1080 записей в секунду на шард. Два шарда: 750 на шард — 69%.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 600, "write_rps": 1500, "data_gb": 500, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 2, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 1100},
+          {"type": "param", "kind": "db", "key": "engine", "op": "==", "value": "nosql"}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "nosql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 2, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd05-final",
+      "title": "Социальная сеть: перекос и надёжность",
+      "statement": "Итоговое упражнение главы. Лента событий: 3000 чтений и 1200 записей в секунду, ключи растут со временем, 10% запросов приходится на самый популярный ключ. Соберите базу: хеш-шардирование, реплики и автопереключение, загрузка не выше 85%, переживание отказа базы, бюджет — $3500 в месяц.",
+      "hint": "Хеш убирает перекос по времени, но горячие 10% остаются: крупные шарды помогают. Подойдут три шарда M с репликой или два шарда L.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 3000, "write_rps": 1200, "data_gb": 800, "hot_set": 0.2, "hot_key": 0.1, "monotonic": true},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 8, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "range", "shards": 4, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.85},
+          {"type": "param", "kind": "db", "key": "shard_key", "op": "==", "value": "hash"},
+          {"type": "survive", "fail": "db"},
+          {"type": "cost", "max": 3500}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 8, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 2, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["db.shard_key"]
+      }
+    }
+  ]
+}

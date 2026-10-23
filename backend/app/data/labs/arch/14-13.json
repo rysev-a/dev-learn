@@ -1,0 +1,2138 @@
+{
+  "book": 14,
+  "chapter": 13,
+  "lab": "arch",
+  "tasks": [
+    {
+      "id": "control-word",
+      "title": "Управляющее слово",
+      "statement": "Набор команд процессора: 00 — LDI k (загрузить), 01 — ADD k (прибавить), 10 — JNZ k (прыжок, если не ноль), 11 — HLT (стоп). По коду операции I3 I2 выдайте четыре управляющих сигнала: Ld — «записать результат в аккумулятор» (LDI и ADD), Add — «прибавить к текущему значению» (только ADD), Jmp — «это прыжок» (JNZ), Hlt — «стоп» (HLT).",
+      "hint": "Ld = НЕ-I3 (команды 00 и 01 — это I3 = 0). Add = НЕ-I3·I2, Jmp = I3·НЕ-I2, Hlt = I3·I2 — каждый «узнаёт» свой код, как выход дешифратора.",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": ["I3", "I2"],
+        "outputs": ["Ld", "Add", "Jmp", "Hlt"],
+        "target": [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Ld = НЕ-I3; Add = НЕ-I3·I2; Jmp = I3·НЕ-I2; Hlt = I3·I2",
+        "success": "Декодер команд — простая комбинационная схема: код операции на входе, управляющие сигналы на выходе. Он не «думает» — он лишь включает нужные части процессора. Чем богаче набор команд, тем больше сигналов и тем сложнее эта схема.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nI3",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nI2",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_add",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_jmp",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_hlt",
+              "type": "AND",
+              "x": 150.0,
+              "y": 124.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI3",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_add",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_add",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_jmp",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_nI2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_jmp",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_hlt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_hlt",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Ld",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_add",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Add",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_jmp",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Jmp",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_hlt",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Hlt",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jnz-take",
+      "title": "Условный переход",
+      "statement": "Команда JNZ прыгает, только если аккумулятор НЕ ноль. Флаг Z = 1 означает «аккумулятор равен нулю» (из раздела про АЛУ). К четырём сигналам прошлого упражнения добавьте решение о прыжке: Take = 1, если команда JNZ и Z = 0. Теперь выходы: Ld, Add, Take, Hlt.",
+      "hint": "Ld, Add и Hlt те же, что в прошлом упражнении. Take = Jmp·НЕ-Z, где Jmp = I3·НЕ-I2: сначала «это JNZ», затем «и аккумулятор не ноль».",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C"],
+        "labels": ["I3", "I2", "Z"],
+        "outputs": ["Ld", "Add", "Take", "Hlt"],
+        "target": [
+          [1, 0, 0, 0],
+          [1, 0, 0, 0],
+          [1, 1, 0, 0],
+          [1, 1, 0, 0],
+          [0, 0, 1, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 1],
+          [0, 0, 0, 1]
+        ],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Take = I3·НЕ-I2·НЕ-Z",
+        "success": "Так программа получает ветвления: значение из прошлого (флаг Z) влияет на то, какая команда выполнится дальше. Без условного перехода процессор был бы калькулятором, а с ним — способен к циклам и решениям.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nI3",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nI2",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_nZ",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_add",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_jmp",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_take",
+              "type": "AND",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_hlt",
+              "type": "AND",
+              "x": 150.0,
+              "y": 180.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI3",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nZ",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_add",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_add",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_jmp",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_nI2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_jmp",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_jmp",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_take",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_nZ",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_take",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_hlt",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_hlt",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Ld",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_add",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Add",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_take",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Take",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_hlt",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Hlt",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "acc-operand",
+      "title": "Операнд для аккумулятора",
+      "statement": "Что записать в аккумулятор? Для LDI — просто операнд k; для ADD — сумму ACC + k. Сигнал Add (из декодера) решает, прибавлять ли аккумулятор. Входы: ACC (A1 A0), операнд k (K1 K0), Add. Выход R1 R0 = K + (Add ? ACC : 0), по модулю 4.",
+      "hint": "Сначала «затвор»: g1 = A1·Add, g0 = A0·Add — при Add = 0 вместо аккумулятора нули. Потом двухбитный сумматор K + g: R0 = K0⊕g0, c = K0·g0, R1 = K1⊕g1⊕c.",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D", "E"],
+        "labels": ["A1", "A0", "K1", "K0", "Add"],
+        "outputs": ["R1", "R0"],
+        "target": [
+          [0, 0],
+          [0, 0],
+          [0, 1],
+          [0, 1],
+          [1, 0],
+          [1, 0],
+          [1, 1],
+          [1, 1],
+          [0, 0],
+          [0, 1],
+          [0, 1],
+          [1, 0],
+          [1, 0],
+          [1, 1],
+          [1, 1],
+          [0, 0],
+          [0, 0],
+          [1, 0],
+          [0, 1],
+          [1, 1],
+          [1, 0],
+          [0, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+          [1, 0],
+          [0, 1],
+          [1, 1],
+          [1, 0]
+        ],
+        "allowed": ["AND", "OR", "NOT", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [
+          {
+            "name": "acc",
+            "type": "Word2",
+            "nodes": ["A", "B"]
+          },
+          {
+            "name": "k",
+            "type": "Word2",
+            "nodes": ["C", "D"]
+          },
+          {
+            "name": "add",
+            "type": "Bit",
+            "nodes": ["E"]
+          },
+          {
+            "name": "r",
+            "type": "Word2",
+            "nodes": ["R1", "R0"]
+          }
+        ],
+        "block": {
+          "id": "operand",
+          "title": "Операнд аккумулятора"
+        },
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "g = ACC·Add; R = K + g (mod 4)",
+        "success": "Одна и та же схема сложения служит обеим командам: «загрузить» — это «прибавить к нулю». Затвор на элементах И превращает аккумулятор в ноль, когда он не нужен. Экономия: один сумматор вместо двух.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_g1",
+              "type": "AND",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_g0",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_r0",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_c",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_x",
+              "type": "XOR",
+              "x": 240.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_r1",
+              "type": "XOR",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "E",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "E",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_g0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_g0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_g0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_c",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_g1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_x",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_x",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_c",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_r1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_r1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "R1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_r0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "R0",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "next-pc",
+      "title": "Следующий адрес",
+      "statement": "Счётчик команд (PC) хранит адрес текущей команды. Следующий адрес — либо «адрес + 1», либо адрес прыжка k, если решено прыгать (Take = 1). Входы: Take, K1 K0 (куда прыгать), P1 P0 (текущий адрес). Выход N1 N0 — следующий адрес (по модулю 4).",
+      "hint": "Два пути, выбор по Take. Путь «+1» — инкрементер: i0 = НЕ-P0, i1 = P1⊕P0. Затем на каждый бит мультиплексор: Ni = Take ? Ki : ii.",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D", "E"],
+        "labels": ["Take", "K1", "K0", "P1", "P0"],
+        "outputs": ["N1", "N0"],
+        "target": [
+          [0, 1],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+          [0, 1],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+          [0, 1],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+          [0, 1],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+          [0, 0],
+          [0, 0],
+          [0, 0],
+          [0, 0],
+          [0, 1],
+          [0, 1],
+          [0, 1],
+          [0, 1],
+          [1, 0],
+          [1, 0],
+          [1, 0],
+          [1, 0],
+          [1, 1],
+          [1, 1],
+          [1, 1],
+          [1, 1]
+        ],
+        "allowed": ["AND", "OR", "NOT", "XOR", "XNOR"],
+        "steps": [],
+        "ports": [
+          {
+            "name": "take",
+            "type": "Bit",
+            "nodes": ["A"]
+          },
+          {
+            "name": "k",
+            "type": "Addr2",
+            "nodes": ["B", "C"]
+          },
+          {
+            "name": "pc",
+            "type": "Addr2",
+            "nodes": ["D", "E"]
+          },
+          {
+            "name": "next",
+            "type": "Addr2",
+            "nodes": ["N1", "N0"]
+          }
+        ],
+        "block": {
+          "id": "next-pc",
+          "title": "Следующий адрес"
+        },
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "N = Take ? K : P + 1",
+        "success": "Эта схема стоит на входе счётчика команд: без прыжков он считает «+1», с прыжком — берёт адрес из команды. Всё поведение программы — циклы, ветвления — складывается из такого выбора «следующего адреса».",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nT",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_i0",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_i1",
+              "type": "XOR",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_n1a",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_n1b",
+              "type": "AND",
+              "x": 150.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_n1",
+              "type": "OR",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_n0a",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_n0b",
+              "type": "AND",
+              "x": 150.0,
+              "y": 236.0
+            },
+            {
+              "id": "g_n0",
+              "type": "OR",
+              "x": 330.0,
+              "y": 68.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nT",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "E",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_i0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_i1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "E",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_i1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_i1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1a",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_nT",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1a",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1b",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1b",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_n1a",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_n1b",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_i0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0a",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_nT",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0a",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0b",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0b",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_n0a",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_n0b",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "g_n1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "N1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w18",
+              "from": {
+                "node": "g_n0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "N0",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "phase-seq",
+      "title": "Фазы такта",
+      "statement": "Команда выполняется не за один такт: сначала выборка (Fe — достать команду из памяти), потом декодирование (De), исполнение (Ex) и запись результата (Wb). Соберите «секвенсор»: счётчик на два бита, который по каждому такту переходит к следующей фазе, и четыре выхода «сейчас эта фаза». Сразу после включения — фаза Fe.",
+      "hint": "Счётчик Джонсона из раздела про регистры: D0 = НЕ-Q1, D1 = Q0, состояния 00 → 01 → 11 → 10. Декодируйте: Fe — 00 (ИЛИ-НЕ от Q1, Q0), De — 01, Ex — 11, Wb — 10. Для De и Wb нужны НЕ от Q0 и Q1.",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "steps",
+        "build": "gates",
+        "inputs": ["A"],
+        "labels": ["CLK"],
+        "outputs": ["Fe", "De", "Ex", "Wb"],
+        "target": [],
+        "allowed": ["DFF", "AND", "OR", "NOT", "NOR"],
+        "steps": [
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "De": 1,
+              "Ex": 0,
+              "Fe": 0,
+              "Wb": 0
+            },
+            "text": "Первый такт: выборка закончилась — фаза декодирования De.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "De": 0,
+              "Ex": 1,
+              "Fe": 0,
+              "Wb": 0
+            },
+            "text": "Второй такт: исполнение Ex.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "De": 0,
+              "Ex": 0,
+              "Fe": 0,
+              "Wb": 1
+            },
+            "text": "Третий такт: запись результата Wb.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "Wb": 0
+            },
+            "text": "Четвёртый такт: круг замкнулся — снова выборка Fe.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "De": 1,
+              "Ex": 0,
+              "Fe": 0,
+              "Wb": 0
+            },
+            "text": "Пятый такт: опять De. Фазы идут по кругу, пока работает такт.",
+            "pulses": null
+          }
+        ],
+        "ports": [
+          {
+            "name": "clk",
+            "type": "Clk",
+            "nodes": ["A"]
+          },
+          {
+            "name": "ph",
+            "type": "Phases",
+            "nodes": ["Fe", "De", "Ex", "Wb"]
+          }
+        ],
+        "block": {
+          "id": "sequencer",
+          "title": "Секвенсор фаз"
+        },
+        "blocks": [],
+        "clock": "A",
+        "ticks": true,
+        "formula": "Fe=00, De=01, Ex=11, Wb=10 (счётчик Джонсона)",
+        "success": "Сигналы фаз — «дирижёр» процессора: в фазе Fe читается память, в Wb записываются результаты, а в остальные фазы схема молчит. Чтобы система не «спотыкалась», в каждой фазе работает ровно одна часть. Это и есть «выборка — декодирование — исполнение».",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_n1",
+              "type": "NOT",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_n0",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_f0",
+              "type": "DFF",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_f1",
+              "type": "DFF",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_fe",
+              "type": "NOR",
+              "x": 330.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_de",
+              "type": "AND",
+              "x": 420.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_ex",
+              "type": "AND",
+              "x": 330.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_wb",
+              "type": "AND",
+              "x": 330.0,
+              "y": 180.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "g_f1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_f0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_n0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_n1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_f0",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_f0",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_f0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_f1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_f1",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_f1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_fe",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_f0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_fe",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_n1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_de",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_f0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_de",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_f1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ex",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_f0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ex",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_f1",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_wb",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_n0",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_wb",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_fe",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Fe",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_de",
+                "pin": "out"
+              },
+              "to": {
+                "node": "De",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "g_ex",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Ex",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w18",
+              "from": {
+                "node": "g_wb",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Wb",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "phase-gate",
+      "title": "Сигналы управления по фазам",
+      "statement": "Управляющие сигналы подаются не всё время, а в «свою» фазу. По фазам Fe и Wb и коду операции I3 I2 выдайте: IrLoad — загрузить регистр команд (в фазе Fe); AccLoad — записать аккумулятор (в фазе Wb, и только для LDI и ADD, то есть при I3 = 0); PcLoad — обновить счётчик команд (в фазе Wb, но НЕ для HLT, чтобы процессор после остановки не шёл дальше).",
+      "hint": "IrLoad — просто провод от Fe. AccLoad = Wb·НЕ-I3. Для PcLoad сначала «это HLT» = I3·I2, затем Wb·НЕ(HLT).",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D"],
+        "labels": ["Fe", "Wb", "I3", "I2"],
+        "outputs": ["IrLoad", "AccLoad", "PcLoad"],
+        "target": [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 1, 1],
+          [0, 1, 1],
+          [0, 0, 1],
+          [0, 0, 0],
+          [1, 0, 0],
+          [1, 0, 0],
+          [1, 0, 0],
+          [1, 0, 0],
+          [1, 1, 1],
+          [1, 1, 1],
+          [1, 0, 1],
+          [1, 0, 0]
+        ],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "IrLoad = Fe; AccLoad = Wb·НЕ-I3; PcLoad = Wb·НЕ(I3·I2)",
+        "success": "Так «разрешения записи» сопоставляются с фазами: регистр команд обновляется в начале цикла, аккумулятор и счётчик — в конце. Это ровно те входы LD, которые вы делали у регистров.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nI3",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_acc",
+              "type": "AND",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_h",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_nh",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_pc",
+              "type": "AND",
+              "x": 330.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI3",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_acc",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_acc",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_h",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_h",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nh",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_pc",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_nh",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_pc",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "IrLoad",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_acc",
+                "pin": "out"
+              },
+              "to": {
+                "node": "AccLoad",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_pc",
+                "pin": "out"
+              },
+              "to": {
+                "node": "PcLoad",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "hlt-latch",
+      "title": "Остановка процессора",
+      "statement": "Когда процессор встречает HLT, он должен остановиться насовсем — не только на момент, пока команда на шине. Соберите защёлку «Run»: Rst = 1 запускает (Run = 1), сигнал Hlt = 1 останавливает (Run = 0), и после этого Run остаётся 0, даже когда Hlt пропал. Только новый Rst снова запустит процессор.",
+      "hint": "Это SR-защёлка на двух ИЛИ-НЕ: Q = НЕ(Rst ИЛИ nQ), nQ = НЕ(Hlt ИЛИ Q). Q запоминает «остановлен», а выход Run — это nQ (противоположность Q).",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "steps",
+        "build": "gates",
+        "inputs": ["A", "B"],
+        "labels": ["Hlt", "Rst"],
+        "outputs": ["Run"],
+        "target": [],
+        "allowed": ["NOR", "AND", "OR", "NOT"],
+        "steps": [
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1
+            },
+            "expect": {
+              "Run": 1
+            },
+            "text": "Сброс: Rst = 1. Процессор запущен — Run = 1.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 0
+            },
+            "expect": {
+              "Run": 1
+            },
+            "text": "Отпустите Rst: Run держит 1.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1,
+              "B": 0
+            },
+            "expect": {
+              "Run": 0
+            },
+            "text": "Пришла команда HLT: Hlt = 1. Run = 0 — процессор остановился.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 0
+            },
+            "expect": {
+              "Run": 0
+            },
+            "text": "Команда HLT пропала, а процессор остаётся остановленным — защёлка помнит!",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1
+            },
+            "expect": {
+              "Run": 1
+            },
+            "text": "Новый сброс: Rst = 1 — процессор снова запущен.",
+            "pulses": null
+          }
+        ],
+        "ports": [],
+        "block": null,
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Q = «остановлен» (SR-защёлка); Run = НЕ-Q",
+        "success": "Единственное место, где в декодере нужна память: «остановлен или нет». Всё остальное — комбинационные схемы. Один бит состояния «Run» запрещает такту двигать процессор дальше.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_q",
+              "type": "NOR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nq",
+              "type": "NOR",
+              "x": 150.0,
+              "y": 12.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_q",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_nq",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_q",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nq",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "g_q",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nq",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "g_nq",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Run",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "decode-all",
+      "title": "Полный декодер",
+      "statement": "Соберите декодер целиком. Входы: I3 I2 (код операции), Z (аккумулятор равен нулю), Wb (фаза записи результата). Выходы: AccLoad — писать в аккумулятор (в Wb, для LDI и ADD); UseAdd — прибавлять аккумулятор (для ADD); Take — прыгать (JNZ и Z = 0); PcLoad — обновить счётчик команд (в Wb, кроме HLT); Stop — команда HLT.",
+      "hint": "Это уже собранные куски: Stop = I3·I2; UseAdd = НЕ-I3·I2; Take = I3·НЕ-I2·НЕ-Z; AccLoad = Wb·НЕ-I3; PcLoad = Wb·НЕ-Stop. Остаётся только аккуратно повторно использовать общие инверторы и Stop.",
+      "spec": {
+        "kind": "circuit",
+        "section": "decoder",
+        "mode": "table",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D"],
+        "labels": ["I3", "I2", "Z", "Wb"],
+        "outputs": ["AccLoad", "UseAdd", "Take", "PcLoad", "Stop"],
+        "target": [
+          [0, 0, 0, 0, 0],
+          [1, 0, 0, 1, 0],
+          [0, 0, 0, 0, 0],
+          [1, 0, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          [1, 1, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          [1, 1, 0, 1, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 0],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1]
+        ],
+        "allowed": ["AND", "OR", "NOT", "NOR"],
+        "steps": [],
+        "ports": [
+          {
+            "name": "op",
+            "type": "Op2",
+            "nodes": ["A", "B"]
+          },
+          {
+            "name": "z",
+            "type": "Bit",
+            "nodes": ["C"]
+          },
+          {
+            "name": "wb",
+            "type": "Bit",
+            "nodes": ["D"]
+          },
+          {
+            "name": "ctl",
+            "type": "Ctl",
+            "nodes": ["AccLoad", "UseAdd", "Take", "PcLoad", "Stop"]
+          }
+        ],
+        "block": {
+          "id": "decoder",
+          "title": "Декодер команд"
+        },
+        "blocks": [],
+        "clock": null,
+        "ticks": false,
+        "formula": "Stop = I3·I2; UseAdd = НЕ-I3·I2; Take = I3·НЕ-I2·НЕ-Z; AccLoad = Wb·НЕ-I3; PcLoad = Wb·НЕ-Stop",
+        "success": "Декодер готов: он знает, что делать с любой из четырёх команд, в любую фазу такта. С ним и ПЗУ с программой, регистрами, АЛУ и счётчиком команд осталось собрать всё вместе — это следующий этап: блоки, которые можно открыть и заглянуть внутрь.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nI3",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_nI2",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_nZ",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_stop",
+              "type": "AND",
+              "x": 150.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_nstop",
+              "type": "NOT",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_acc",
+              "type": "AND",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_add",
+              "type": "AND",
+              "x": 240.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_jmp",
+              "type": "AND",
+              "x": 240.0,
+              "y": 180.0
+            },
+            {
+              "id": "g_take",
+              "type": "AND",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_pc",
+              "type": "AND",
+              "x": 330.0,
+              "y": 68.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI3",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nI2",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nZ",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_stop",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_stop",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_stop",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nstop",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_acc",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_acc",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "g_nI3",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_add",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_add",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_jmp",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "g_nI2",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_jmp",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "g_jmp",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_take",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_nZ",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_take",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_pc",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_nstop",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_pc",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "g_acc",
+                "pin": "out"
+              },
+              "to": {
+                "node": "AccLoad",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w18",
+              "from": {
+                "node": "g_add",
+                "pin": "out"
+              },
+              "to": {
+                "node": "UseAdd",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w19",
+              "from": {
+                "node": "g_take",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Take",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w20",
+              "from": {
+                "node": "g_pc",
+                "pin": "out"
+              },
+              "to": {
+                "node": "PcLoad",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w21",
+              "from": {
+                "node": "g_stop",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Stop",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

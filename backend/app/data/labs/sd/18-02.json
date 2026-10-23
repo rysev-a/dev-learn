@@ -1,0 +1,238 @@
+{
+  "book": 18,
+  "chapter": 2,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd02-vertical",
+      "title": "Вертикальный рост",
+      "statement": "Сервис вырос до 900 чтений и 100 записей в секунду, а единственный сервер S тянет только 300. Балансировщик и новые серверы пока вводить нельзя: команда небольшая. Масштабируйте вертикально — оставьте один сервер, но возьмите подходящего размера, чтобы загрузка не превышала 80%.",
+      "hint": "У сервера L ёмкость 1500 запросов в секунду. Проверьте и базу: при 1000 запросах ей хватит размера M.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 900, "write_rps": 100, "data_gb": 30, "hot_set": 0.2},
+        "palette": ["app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "success", "min": 0.99},
+          {"type": "param", "kind": "app", "key": "instances", "op": "==", "value": 1},
+          {"type": "lacks", "kind": "lb"}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "L", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd02-horizontal",
+      "title": "Горизонтальный рост",
+      "statement": "Та же нагрузка (1000 запросов в секунду), но теперь масштабируем горизонтально: поставьте балансировщик и несколько одинаковых серверов, чтобы загрузка не превышала 80% и стоимость осталась не больше $520 в месяц. Не забудьте: база тоже должна держать нагрузку.",
+      "hint": "Два сервера M дают 1400 запросов — загрузка 71%. Серверы S дороже при такой нагрузке: понадобится пять.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 900, "write_rps": 100, "data_gb": 30, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "success", "min": 0.99},
+          {"type": "has", "kind": "lb"},
+          {"type": "cost", "max": 520},
+          {"type": "param", "kind": "app", "key": "instances", "op": ">=", "value": 2}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd02-sessions",
+      "title": "Сессии за балансировщиком",
+      "statement": "После того как серверов стало три, пользователи жалуются: вход «слетает» через раз. Сессии хранятся в памяти каждого сервера, а балансировщик отправляет запросы на любой из них. Исправьте схему: вынесите сессии во внешнее хранилище (параметр сервера «Сессии»), чтобы любой экземпляр мог обслужить любого пользователя.",
+      "hint": "Выберите сервер приложения на схеме и поменяйте «Сессии» на «во внешнем хранилище».",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 500, "write_rps": 60, "data_gb": 10, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "param", "kind": "app", "key": "sessions", "op": "==", "value": "external"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd02-l7",
+      "title": "Какой уровень балансировки",
+      "statement": "Команде нужно направлять запросы по пути («/api» — одним сервисам, «/img» — другим) и повторять неудачные запросы. Поменяйте балансировщик так, чтобы он понимал HTTP, но при этом p99 остался не больше 120 мс.",
+      "hint": "Уровень L7 разбирает HTTP, но добавляет полторы миллисекунды. Загрузку серверов лучше держать ниже 60%, иначе вырастет очередь.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 400, "write_rps": 50, "data_gb": 10, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "param", "kind": "lb", "key": "layer", "op": "==", "value": "L7"},
+          {"type": "p99", "max": 120},
+          {"type": "capacity", "max": 0.8}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L7"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd02-nplus1",
+      "title": "Запас на один сервер",
+      "statement": "Сервис получает 1000 запросов в секунду. Сейчас два сервера M дают 1400, а когда один из них падает, остаётся 700 — половина запросов теряется. Добавьте запас «N+1»: схема должна переживать отказ любого одного сервера приложения и укладываться в $700 в месяц.",
+      "hint": "Нужно, чтобы оставшиеся после потери одного сервера вытягивали 1000. Три сервера M: после потери двух остаётся 1400.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 900, "write_rps": 100, "data_gb": 30, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "app"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 700}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd02-lbha",
+      "title": "Балансировщик тоже ломается",
+      "statement": "Серверы приложения зарезервированы, но балансировщик один. Если он выйдет из строя, сервис полностью недоступен. Сделайте так, чтобы схема переживала отказ балансировщика и не имела единых точек отказа среди балансировщиков и серверов приложения.",
+      "hint": "Параметр «Экземпляры» у балансировщика: два экземпляра делят общий адрес.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 400, "write_rps": 50, "data_gb": 10, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "lb"},
+          {"type": "no_spof", "kinds": ["lb", "app"]}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd02-migrate",
+      "title": "Переезд на горизонталь",
+      "statement": "Итоговое упражнение главы. Сервис — один сервер S с сессиями в памяти и 700 запросами в секунду. Переведите его на горизонтальную схему: балансировщик (с резервом), серверы без состояния, запас на отказ одного сервера и загрузка не выше 80%. Бюджет — $900 в месяц.",
+      "hint": "Нужны: пара балансировщиков, сессии во внешнем хранилище, три сервера M (после потери одного остаются два — 1400 запросов), база M.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 620, "write_rps": 80, "data_gb": 20, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "survive", "fail": "app"},
+          {"type": "survive", "fail": "lb"},
+          {"type": "param", "kind": "app", "key": "sessions", "op": "==", "value": "external"},
+          {"type": "cost", "max": 900}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    }
+  ]
+}

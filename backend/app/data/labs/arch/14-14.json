@@ -1,0 +1,1570 @@
+{
+  "book": 14,
+  "chapter": 14,
+  "lab": "arch",
+  "tasks": [
+    {
+      "id": "reg2-load",
+      "title": "Двухбитный регистр с записью",
+      "statement": "Из двух триггеров DFF соберите регистр на слово из двух бит. По фронту CLK, если LD = 1, регистр берёт слово D1 D0; при LD = 0 хранит прежнее. Из таких регистров потом сложатся аккумулятор и счётчик команд. Готовые триггеры при включении стоят в нуле.",
+      "hint": "Два одинаковых разряда с общим LD и CLK: на входе триггера мультиплексор «себя или новое» D' = LD·D + НЕ-LD·Q (из упражнения «Регистр с записью по разрешению»). Инвертор LD нужен один на оба разряда. Около 10 элементов.",
+      "spec": {
+        "kind": "circuit",
+        "section": "cpu",
+        "mode": "steps",
+        "build": "gates",
+        "inputs": ["A", "B", "C", "D"],
+        "labels": ["D1", "D0", "LD", "CLK"],
+        "outputs": ["Q1", "Q0"],
+        "target": [],
+        "allowed": ["DFF", "AND", "OR", "NOT"],
+        "steps": [
+          {
+            "inputs": {
+              "A": 1,
+              "B": 0,
+              "C": 1,
+              "D": 1
+            },
+            "expect": {
+              "Q0": 0,
+              "Q1": 1
+            },
+            "text": "Запись слова 10: D1 = 1, D0 = 0, LD = 1 и такт.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 0,
+              "D": 1
+            },
+            "expect": {
+              "Q0": 0,
+              "Q1": 1
+            },
+            "text": "Данные 01, но LD = 0: после такта регистр хранит прежнее 10.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 1,
+              "D": 1
+            },
+            "expect": {
+              "Q0": 1,
+              "Q1": 0
+            },
+            "text": "LD = 1: запись слова 01.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1,
+              "B": 1,
+              "C": 0,
+              "D": 1
+            },
+            "expect": {
+              "Q0": 1,
+              "Q1": 0
+            },
+            "text": "Данные 11, LD = 0: регистр по-прежнему хранит 01.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1,
+              "B": 1,
+              "C": 1,
+              "D": 1
+            },
+            "expect": {
+              "Q0": 1,
+              "Q1": 1
+            },
+            "text": "LD = 1: запись слова 11.",
+            "pulses": null
+          }
+        ],
+        "ports": [
+          {
+            "name": "d",
+            "type": "Word2",
+            "nodes": ["A", "B"]
+          },
+          {
+            "name": "load",
+            "type": "Bit",
+            "nodes": ["C"]
+          },
+          {
+            "name": "clk",
+            "type": "Clk",
+            "nodes": ["D"]
+          },
+          {
+            "name": "q",
+            "type": "Word2",
+            "nodes": ["Q1", "Q0"]
+          }
+        ],
+        "block": {
+          "id": "reg2",
+          "title": "Регистр на 2 бита"
+        },
+        "blocks": [],
+        "clock": "D",
+        "ticks": true,
+        "formula": "Qi ← LD ? Di : Qi на фронте CLK",
+        "success": "Это регистр с записью — универсальная деталь процессора. Сохранено как блок «Регистр на 2 бита»: у него порты d, load, clk (вход) и q (выход, слово). Он понадобится дважды: для аккумулятора и для счётчика команд.",
+        "solution": {
+          "gates": [
+            {
+              "id": "g_nl",
+              "type": "NOT",
+              "x": 150.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_kh",
+              "type": "AND",
+              "x": 420.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_lh",
+              "type": "AND",
+              "x": 150.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_mh",
+              "type": "OR",
+              "x": 240.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_fh",
+              "type": "DFF",
+              "x": 330.0,
+              "y": 12.0
+            },
+            {
+              "id": "g_kl",
+              "type": "AND",
+              "x": 420.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_ll",
+              "type": "AND",
+              "x": 150.0,
+              "y": 124.0
+            },
+            {
+              "id": "g_ml",
+              "type": "OR",
+              "x": 240.0,
+              "y": 68.0
+            },
+            {
+              "id": "g_fl",
+              "type": "DFF",
+              "x": 330.0,
+              "y": 68.0
+            }
+          ],
+          "wires": [
+            {
+              "id": "w1",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_nl",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w2",
+              "from": {
+                "node": "g_fh",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_kh",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w3",
+              "from": {
+                "node": "g_nl",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_kh",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w4",
+              "from": {
+                "node": "A",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_lh",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w5",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_lh",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w6",
+              "from": {
+                "node": "g_kh",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_mh",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w7",
+              "from": {
+                "node": "g_lh",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_mh",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w8",
+              "from": {
+                "node": "g_mh",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_fh",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w9",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_fh",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w10",
+              "from": {
+                "node": "g_fl",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_kl",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w11",
+              "from": {
+                "node": "g_nl",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_kl",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w12",
+              "from": {
+                "node": "B",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ll",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w13",
+              "from": {
+                "node": "C",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ll",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w14",
+              "from": {
+                "node": "g_kl",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ml",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w15",
+              "from": {
+                "node": "g_ll",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_ml",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w16",
+              "from": {
+                "node": "g_ml",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_fl",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w17",
+              "from": {
+                "node": "D",
+                "pin": "out"
+              },
+              "to": {
+                "node": "g_fl",
+                "pin": "in1"
+              }
+            },
+            {
+              "id": "w18",
+              "from": {
+                "node": "g_fh",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Q1",
+                "pin": "in0"
+              }
+            },
+            {
+              "id": "w19",
+              "from": {
+                "node": "g_fl",
+                "pin": "out"
+              },
+              "to": {
+                "node": "Q0",
+                "pin": "in0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "decode-bus",
+      "title": "Шина: прочитать и декодировать",
+      "statement": "Первое упражнение с блоками. У вас есть ПЗУ с программой (порт addr — адрес, instr — команда) и декодер команд (порты op, z, wb → ctl). Соедините их шинами: по адресу ПЗУ достаёт команду, а декодер превращает её код операции в сигналы управления. Чтобы получить код операции, раскройте порт instr (кнопка ▸) и тяните провод от поля op.",
+      "hint": "Четыре провода. Адрес (addr сверху) → вход addr ПЗУ. Поле op выхода instr → вход op декодера. Входы z и wb сверху → входы z и wb декодера. Выход ctl декодера → выход ctl справа. Провод между портами одного типа тянется целиком; несовместимый тип подсветится серым.",
+      "spec": {
+        "kind": "circuit",
+        "section": "cpu",
+        "mode": "table",
+        "build": "blocks",
+        "inputs": ["A", "B", "C", "D"],
+        "labels": ["A1", "A0", "Z", "Wb"],
+        "outputs": ["AccLoad", "UseAdd", "Take", "PcLoad", "Stop"],
+        "target": [
+          [0, 0, 0, 0, 0],
+          [1, 0, 0, 1, 0],
+          [0, 0, 0, 0, 0],
+          [1, 0, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          [1, 1, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          [1, 1, 0, 1, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 0],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1]
+        ],
+        "allowed": [],
+        "steps": [],
+        "ports": [
+          {
+            "name": "addr",
+            "type": "Addr2",
+            "nodes": ["A", "B"]
+          },
+          {
+            "name": "z",
+            "type": "Bit",
+            "nodes": ["C"]
+          },
+          {
+            "name": "wb",
+            "type": "Bit",
+            "nodes": ["D"]
+          },
+          {
+            "name": "ctl",
+            "type": "Ctl",
+            "nodes": ["AccLoad", "UseAdd", "Take", "PcLoad", "Stop"]
+          }
+        ],
+        "block": null,
+        "blocks": ["rom", "decoder"],
+        "clock": null,
+        "ticks": false,
+        "formula": "addr → ПЗУ → instr.op → декодер → ctl",
+        "success": "Четыре провода вместо пары десятков: интерфейсы сгруппировали биты в шины, а типы не дали перепутать Addr2 с Word2. Кнопка 🔍 на блоке открывает схему, которую вы собирали в упражнениях «ПЗУ с программой» и «Полный декодер».",
+        "solution": {
+          "instances": [
+            {
+              "id": "r",
+              "block_id": "rom",
+              "x": 170.0,
+              "y": 40.0
+            },
+            {
+              "id": "d",
+              "block_id": "decoder",
+              "x": 380.0,
+              "y": 40.0
+            }
+          ],
+          "bus_wires": [
+            {
+              "id": "b1",
+              "from": {
+                "node": "$",
+                "port": "addr",
+                "path": ""
+              },
+              "to": {
+                "node": "r",
+                "port": "addr",
+                "path": ""
+              }
+            },
+            {
+              "id": "b2",
+              "from": {
+                "node": "r",
+                "port": "instr",
+                "path": "op"
+              },
+              "to": {
+                "node": "d",
+                "port": "op",
+                "path": ""
+              }
+            },
+            {
+              "id": "b3",
+              "from": {
+                "node": "$",
+                "port": "z",
+                "path": ""
+              },
+              "to": {
+                "node": "d",
+                "port": "z",
+                "path": ""
+              }
+            },
+            {
+              "id": "b4",
+              "from": {
+                "node": "$",
+                "port": "wb",
+                "path": ""
+              },
+              "to": {
+                "node": "d",
+                "port": "wb",
+                "path": ""
+              }
+            },
+            {
+              "id": "b5",
+              "from": {
+                "node": "d",
+                "port": "ctl",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "ctl",
+                "path": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch",
+      "title": "Выборка команд",
+      "statement": "Соберите блок выборки: счётчик команд (регистр на 2 бита), схема «следующий адрес» и ПЗУ с программой. По такту при load = 1 счётчик берёт следующий адрес (+1 или адрес прыжка k, если take = 1), а ПЗУ всё время выдаёт команду по текущему адресу. Регистр хранит слово (Word2), а адрес — это Addr2: между ними понадобятся переходники.",
+      "hint": "Регистр reg2 — это счётчик команд. Его выход q (Word2) через переходник «слово → адрес» даёт адрес для ПЗУ, для next-pc (вход pc) и для выхода pc. Выход next-pc (Addr2) через переходник «адрес → слово» идёт на вход d регистра. Остальное: take, k → next-pc; load, clk → регистр; instr ПЗУ → выход instr.",
+      "spec": {
+        "kind": "circuit",
+        "section": "cpu",
+        "mode": "steps",
+        "build": "blocks",
+        "inputs": ["A", "B", "C", "D", "E"],
+        "labels": ["Take", "Load", "K1", "K0", "CLK"],
+        "outputs": ["P1", "P0", "W3", "W2", "W1", "W0"],
+        "target": [],
+        "allowed": [],
+        "steps": [
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 0,
+              "D": 0,
+              "E": 1
+            },
+            "expect": {
+              "P0": 1,
+              "P1": 0,
+              "W0": 1,
+              "W1": 0,
+              "W2": 1,
+              "W3": 0
+            },
+            "text": "Load = 1, Take = 0, такт: счётчик 0 → 1. ПЗУ выдаёт команду 1 — 0101 (ADD 1).",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 0,
+              "D": 0,
+              "E": 1
+            },
+            "expect": {
+              "P0": 0,
+              "P1": 1,
+              "W0": 1,
+              "W1": 0,
+              "W2": 0,
+              "W3": 1
+            },
+            "text": "Ещё такт: 1 → 2. Команда 2 — 1001 (JNZ 1).",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 1,
+              "B": 1,
+              "C": 0,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "P0": 1,
+              "P1": 0,
+              "W0": 1,
+              "W1": 0,
+              "W2": 1,
+              "W3": 0
+            },
+            "text": "Прыжок: Take = 1, K = 01, такт. Счётчик не 3, а 1 — взят адрес из K. Команда снова 0101.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 0,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "P0": 0,
+              "P1": 1,
+              "W0": 1,
+              "W1": 0,
+              "W2": 0,
+              "W3": 1
+            },
+            "text": "Take = 0, такт: обычный шаг +1 (1 → 2).",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 0,
+              "C": 0,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "P0": 0,
+              "P1": 1,
+              "W0": 1,
+              "W1": 0,
+              "W2": 0,
+              "W3": 1
+            },
+            "text": "Load = 0, такт: запись в счётчик запрещена — адрес 2 остаётся.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 0,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "P0": 1,
+              "P1": 1,
+              "W0": 0,
+              "W1": 0,
+              "W2": 1,
+              "W3": 1
+            },
+            "text": "Load = 1, такт: 2 → 3. Команда 3 — 1100 (HLT).",
+            "pulses": null
+          }
+        ],
+        "ports": [
+          {
+            "name": "take",
+            "type": "Bit",
+            "nodes": ["A"]
+          },
+          {
+            "name": "load",
+            "type": "Bit",
+            "nodes": ["B"]
+          },
+          {
+            "name": "k",
+            "type": "Addr2",
+            "nodes": ["C", "D"]
+          },
+          {
+            "name": "clk",
+            "type": "Clk",
+            "nodes": ["E"]
+          },
+          {
+            "name": "pc",
+            "type": "Addr2",
+            "nodes": ["P1", "P0"]
+          },
+          {
+            "name": "instr",
+            "type": "Instr",
+            "nodes": ["W3", "W2", "W1", "W0"]
+          }
+        ],
+        "block": {
+          "id": "fetch",
+          "title": "Выборка команд"
+        },
+        "blocks": ["reg2", "next-pc", "rom", "adapter-w2a", "adapter-a2w"],
+        "clock": "E",
+        "ticks": true,
+        "formula": "PC ← (Take ? K : PC + 1) по такту при Load; instr = ПЗУ[PC]",
+        "success": "Блок выборки готов: внутри счётчик команд, «следующий адрес» и ПЗУ — те самые детали, что вы собрали раньше. Замкнутая петля «счётчик → ПЗУ» и «счётчик → следующий адрес → счётчик» идёт через триггеры, поэтому она не убегает в генерацию.",
+        "solution": {
+          "instances": [
+            {
+              "id": "pc",
+              "block_id": "reg2",
+              "x": 170.0,
+              "y": 20.0
+            },
+            {
+              "id": "a1",
+              "block_id": "adapter-w2a",
+              "x": 380.0,
+              "y": 20.0
+            },
+            {
+              "id": "rom",
+              "block_id": "rom",
+              "x": 380.0,
+              "y": 120.0
+            },
+            {
+              "id": "nx",
+              "block_id": "next-pc",
+              "x": 170.0,
+              "y": 160.0
+            },
+            {
+              "id": "a2",
+              "block_id": "adapter-a2w",
+              "x": 170.0,
+              "y": 310.0
+            }
+          ],
+          "bus_wires": [
+            {
+              "id": "b6",
+              "from": {
+                "node": "$",
+                "port": "clk",
+                "path": ""
+              },
+              "to": {
+                "node": "pc",
+                "port": "clk",
+                "path": ""
+              }
+            },
+            {
+              "id": "b7",
+              "from": {
+                "node": "$",
+                "port": "load",
+                "path": ""
+              },
+              "to": {
+                "node": "pc",
+                "port": "load",
+                "path": ""
+              }
+            },
+            {
+              "id": "b8",
+              "from": {
+                "node": "pc",
+                "port": "q",
+                "path": ""
+              },
+              "to": {
+                "node": "a1",
+                "port": "in",
+                "path": ""
+              }
+            },
+            {
+              "id": "b9",
+              "from": {
+                "node": "a1",
+                "port": "out",
+                "path": ""
+              },
+              "to": {
+                "node": "rom",
+                "port": "addr",
+                "path": ""
+              }
+            },
+            {
+              "id": "b10",
+              "from": {
+                "node": "a1",
+                "port": "out",
+                "path": ""
+              },
+              "to": {
+                "node": "nx",
+                "port": "pc",
+                "path": ""
+              }
+            },
+            {
+              "id": "b11",
+              "from": {
+                "node": "a1",
+                "port": "out",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "pc",
+                "path": ""
+              }
+            },
+            {
+              "id": "b12",
+              "from": {
+                "node": "$",
+                "port": "take",
+                "path": ""
+              },
+              "to": {
+                "node": "nx",
+                "port": "take",
+                "path": ""
+              }
+            },
+            {
+              "id": "b13",
+              "from": {
+                "node": "$",
+                "port": "k",
+                "path": ""
+              },
+              "to": {
+                "node": "nx",
+                "port": "k",
+                "path": ""
+              }
+            },
+            {
+              "id": "b14",
+              "from": {
+                "node": "nx",
+                "port": "next",
+                "path": ""
+              },
+              "to": {
+                "node": "a2",
+                "port": "in",
+                "path": ""
+              }
+            },
+            {
+              "id": "b15",
+              "from": {
+                "node": "a2",
+                "port": "out",
+                "path": ""
+              },
+              "to": {
+                "node": "pc",
+                "port": "d",
+                "path": ""
+              }
+            },
+            {
+              "id": "b16",
+              "from": {
+                "node": "rom",
+                "port": "instr",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "instr",
+                "path": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "exec",
+      "title": "Исполнение",
+      "statement": "Соберите блок исполнения: аккумулятор (регистр на 2 бита), «операнд аккумулятора» (что записывать) и флаги по значению аккумулятора. По такту при acc_load = 1 в аккумулятор записывается либо k (use_add = 0), либо ACC + k (use_add = 1). Выходы: acc — текущее значение и flags — флаги (Z = 1, когда ноль).",
+      "hint": "Аккумулятор — reg2. Его выход q идёт в три места: на вход acc блока «операнд», на вход r блока «флаги» и на выход acc. Блок «операнд» получает k и use_add снаружи (вход add), а его выход r — на вход d регистра. acc_load → load регистра, clk → clk регистра. Флаги идут на выход flags.",
+      "spec": {
+        "kind": "circuit",
+        "section": "cpu",
+        "mode": "steps",
+        "build": "blocks",
+        "inputs": ["A", "B", "C", "D", "E"],
+        "labels": ["K1", "K0", "UseAdd", "AccLoad", "CLK"],
+        "outputs": ["Acc1", "Acc0", "Z", "N", "Pe"],
+        "target": [],
+        "allowed": [],
+        "steps": [
+          {
+            "inputs": {
+              "A": 1,
+              "B": 0,
+              "C": 0,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 1,
+              "Z": 0
+            },
+            "text": "Загрузка: K = 10, UseAdd = 0, AccLoad = 1, такт. Аккумулятор = 10, флаг Z = 0.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 1,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "Acc0": 1,
+              "Acc1": 1,
+              "Z": 0
+            },
+            "text": "Сложение: K = 01, UseAdd = 1, такт. 2 + 1 = 3 → 11.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 1,
+              "D": 0,
+              "E": 1
+            },
+            "expect": {
+              "Acc0": 1,
+              "Acc1": 1,
+              "Z": 0
+            },
+            "text": "AccLoad = 0, такт: запись запрещена — аккумулятор остаётся 11.",
+            "pulses": null
+          },
+          {
+            "inputs": {
+              "A": 0,
+              "B": 1,
+              "C": 1,
+              "D": 1,
+              "E": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 0,
+              "Z": 1
+            },
+            "text": "AccLoad = 1, такт: 3 + 1 = 4 — переполнение, остаётся 00. Флаг Z = 1.",
+            "pulses": null
+          }
+        ],
+        "ports": [
+          {
+            "name": "k",
+            "type": "Word2",
+            "nodes": ["A", "B"]
+          },
+          {
+            "name": "use_add",
+            "type": "Bit",
+            "nodes": ["C"]
+          },
+          {
+            "name": "acc_load",
+            "type": "Bit",
+            "nodes": ["D"]
+          },
+          {
+            "name": "clk",
+            "type": "Clk",
+            "nodes": ["E"]
+          },
+          {
+            "name": "acc",
+            "type": "Word2",
+            "nodes": ["Acc1", "Acc0"]
+          },
+          {
+            "name": "flags",
+            "type": "Flags",
+            "nodes": ["Z", "N", "Pe"]
+          }
+        ],
+        "block": {
+          "id": "exec",
+          "title": "Исполнение"
+        },
+        "blocks": ["reg2", "operand", "flags"],
+        "clock": "E",
+        "ticks": true,
+        "formula": "ACC ← (UseAdd ? ACC : 0) + K по такту при AccLoad; Z = (ACC = 0)",
+        "success": "Это тот же цикл «сумматор + регистр» из аккумулятора в разделе про регистры, только из готовых деталей. Заметьте, как знакомо выглядят порты: те же имена, что у упражнений «Операнд для аккумулятора» и «Флаги результата».",
+        "solution": {
+          "instances": [
+            {
+              "id": "op",
+              "block_id": "operand",
+              "x": 170.0,
+              "y": 20.0
+            },
+            {
+              "id": "acc",
+              "block_id": "reg2",
+              "x": 380.0,
+              "y": 20.0
+            },
+            {
+              "id": "fl",
+              "block_id": "flags",
+              "x": 380.0,
+              "y": 170.0
+            }
+          ],
+          "bus_wires": [
+            {
+              "id": "b17",
+              "from": {
+                "node": "$",
+                "port": "k",
+                "path": ""
+              },
+              "to": {
+                "node": "op",
+                "port": "k",
+                "path": ""
+              }
+            },
+            {
+              "id": "b18",
+              "from": {
+                "node": "$",
+                "port": "use_add",
+                "path": ""
+              },
+              "to": {
+                "node": "op",
+                "port": "add",
+                "path": ""
+              }
+            },
+            {
+              "id": "b19",
+              "from": {
+                "node": "acc",
+                "port": "q",
+                "path": ""
+              },
+              "to": {
+                "node": "op",
+                "port": "acc",
+                "path": ""
+              }
+            },
+            {
+              "id": "b20",
+              "from": {
+                "node": "op",
+                "port": "r",
+                "path": ""
+              },
+              "to": {
+                "node": "acc",
+                "port": "d",
+                "path": ""
+              }
+            },
+            {
+              "id": "b21",
+              "from": {
+                "node": "$",
+                "port": "acc_load",
+                "path": ""
+              },
+              "to": {
+                "node": "acc",
+                "port": "load",
+                "path": ""
+              }
+            },
+            {
+              "id": "b22",
+              "from": {
+                "node": "$",
+                "port": "clk",
+                "path": ""
+              },
+              "to": {
+                "node": "acc",
+                "port": "clk",
+                "path": ""
+              }
+            },
+            {
+              "id": "b23",
+              "from": {
+                "node": "acc",
+                "port": "q",
+                "path": ""
+              },
+              "to": {
+                "node": "fl",
+                "port": "r",
+                "path": ""
+              }
+            },
+            {
+              "id": "b24",
+              "from": {
+                "node": "acc",
+                "port": "q",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "acc",
+                "path": ""
+              }
+            },
+            {
+              "id": "b25",
+              "from": {
+                "node": "fl",
+                "port": "flags",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "flags",
+                "path": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cpu",
+      "title": "Процессор",
+      "statement": "Финал: соберите процессор из четырёх блоков — секвенсор фаз, выборка команд, декодер и исполнение. На входе только такт CLK. ПЗУ внутри блока выборки хранит программу LDI 2, ADD 1, JNZ 1, HLT — процессор выполнит её сам. Каждая команда занимает четыре такта: выборка, декодирование, исполнение, запись. Выходы: acc — аккумулятор, pc — счётчик команд, ph — текущая фаза.",
+      "hint": "Такт clk → clk секвенсора, выборки и исполнения. Секвенсор: ph.Wb → wb декодера. Выборка: instr.op → op декодера; instr.k → k исполнения; instr.k через переходник «слово → адрес» → k выборки. Исполнение: flags.Z → z декодера. Декодер: ctl.UseAdd → use_add исполнения, ctl.AccLoad → acc_load исполнения, ctl.Take → take выборки, ctl.PcLoad → load выборки. Наружу: acc, pc и ph.",
+      "spec": {
+        "kind": "circuit",
+        "section": "cpu",
+        "mode": "steps",
+        "build": "blocks",
+        "inputs": ["A"],
+        "labels": ["CLK"],
+        "outputs": ["Acc1", "Acc0", "P1", "P0", "Fe", "De", "Ex", "Wb"],
+        "target": [],
+        "allowed": [],
+        "steps": [
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 1,
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "P0": 1,
+              "P1": 0,
+              "Wb": 0
+            },
+            "text": "Подайте четыре такта. LDI 2 выполнена: аккумулятор = 10, счётчик команд = 1, снова фаза выборки.",
+            "pulses": 4
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 1,
+              "Acc1": 1,
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "P0": 0,
+              "P1": 1,
+              "Wb": 0
+            },
+            "text": "Ещё четыре такта. ADD 1: 2 + 1 = 3 → аккумулятор 11, счётчик = 2.",
+            "pulses": 4
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 1,
+              "Acc1": 1,
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "P0": 1,
+              "P1": 0,
+              "Wb": 0
+            },
+            "text": "JNZ 1: аккумулятор не ноль — прыжок назад. Аккумулятор прежний 11, счётчик команд = 1 (а не 3).",
+            "pulses": 4
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 0,
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "P0": 0,
+              "P1": 1,
+              "Wb": 0
+            },
+            "text": "Снова ADD 1: 3 + 1 = 4 — не помещается в два бита, остаётся 00. Счётчик = 2.",
+            "pulses": 4
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 0,
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "P0": 1,
+              "P1": 1,
+              "Wb": 0
+            },
+            "text": "JNZ 1: аккумулятор ноль — прыжка нет, идём дальше. Счётчик команд = 3.",
+            "pulses": 4
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 0,
+              "De": 0,
+              "Ex": 1,
+              "Fe": 0,
+              "P0": 1,
+              "P1": 1,
+              "Wb": 0
+            },
+            "text": "Команда 3 — HLT. Подайте два такта: фаза исполнения.",
+            "pulses": 2
+          },
+          {
+            "inputs": {
+              "A": 1
+            },
+            "expect": {
+              "Acc0": 0,
+              "Acc1": 0,
+              "De": 0,
+              "Ex": 0,
+              "Fe": 1,
+              "P0": 1,
+              "P1": 1,
+              "Wb": 0
+            },
+            "text": "Ещё два такта: цикл HLT закончился, но счётчик команд не сдвинулся и аккумулятор тоже. Процессор остановился.",
+            "pulses": 2
+          }
+        ],
+        "ports": [
+          {
+            "name": "clk",
+            "type": "Clk",
+            "nodes": ["A"]
+          },
+          {
+            "name": "acc",
+            "type": "Word2",
+            "nodes": ["Acc1", "Acc0"]
+          },
+          {
+            "name": "pc",
+            "type": "Addr2",
+            "nodes": ["P1", "P0"]
+          },
+          {
+            "name": "ph",
+            "type": "Phases",
+            "nodes": ["Fe", "De", "Ex", "Wb"]
+          }
+        ],
+        "block": null,
+        "blocks": ["sequencer", "fetch", "decoder", "exec", "adapter-w2a"],
+        "clock": "A",
+        "ticks": true,
+        "formula": "Выборка → декодирование → исполнение → запись, 4 такта на команду",
+        "success": "Это процессор! Каждый блок внутри — ваши собственные схемы из вентилей: загляните через 🔍 в любой блок, затем ещё глубже. Программа в ПЗУ — три команды и стоп; чтобы процессор делал другое, достаточно переписать ПЗУ. Всё, что здесь работает, началось с одного элемента «И».",
+        "solution": {
+          "instances": [
+            {
+              "id": "seq",
+              "block_id": "sequencer",
+              "x": 170.0,
+              "y": 20.0
+            },
+            {
+              "id": "fe",
+              "block_id": "fetch",
+              "x": 170.0,
+              "y": 120.0
+            },
+            {
+              "id": "ad",
+              "block_id": "adapter-w2a",
+              "x": 170.0,
+              "y": 310.0
+            },
+            {
+              "id": "dec",
+              "block_id": "decoder",
+              "x": 380.0,
+              "y": 20.0
+            },
+            {
+              "id": "ex",
+              "block_id": "exec",
+              "x": 380.0,
+              "y": 170.0
+            }
+          ],
+          "bus_wires": [
+            {
+              "id": "b26",
+              "from": {
+                "node": "$",
+                "port": "clk",
+                "path": ""
+              },
+              "to": {
+                "node": "seq",
+                "port": "clk",
+                "path": ""
+              }
+            },
+            {
+              "id": "b27",
+              "from": {
+                "node": "$",
+                "port": "clk",
+                "path": ""
+              },
+              "to": {
+                "node": "fe",
+                "port": "clk",
+                "path": ""
+              }
+            },
+            {
+              "id": "b28",
+              "from": {
+                "node": "$",
+                "port": "clk",
+                "path": ""
+              },
+              "to": {
+                "node": "ex",
+                "port": "clk",
+                "path": ""
+              }
+            },
+            {
+              "id": "b29",
+              "from": {
+                "node": "seq",
+                "port": "ph",
+                "path": "Wb"
+              },
+              "to": {
+                "node": "dec",
+                "port": "wb",
+                "path": ""
+              }
+            },
+            {
+              "id": "b30",
+              "from": {
+                "node": "fe",
+                "port": "instr",
+                "path": "op"
+              },
+              "to": {
+                "node": "dec",
+                "port": "op",
+                "path": ""
+              }
+            },
+            {
+              "id": "b31",
+              "from": {
+                "node": "fe",
+                "port": "instr",
+                "path": "k"
+              },
+              "to": {
+                "node": "ex",
+                "port": "k",
+                "path": ""
+              }
+            },
+            {
+              "id": "b32",
+              "from": {
+                "node": "fe",
+                "port": "instr",
+                "path": "k"
+              },
+              "to": {
+                "node": "ad",
+                "port": "in",
+                "path": ""
+              }
+            },
+            {
+              "id": "b33",
+              "from": {
+                "node": "ad",
+                "port": "out",
+                "path": ""
+              },
+              "to": {
+                "node": "fe",
+                "port": "k",
+                "path": ""
+              }
+            },
+            {
+              "id": "b34",
+              "from": {
+                "node": "ex",
+                "port": "flags",
+                "path": "Z"
+              },
+              "to": {
+                "node": "dec",
+                "port": "z",
+                "path": ""
+              }
+            },
+            {
+              "id": "b35",
+              "from": {
+                "node": "dec",
+                "port": "ctl",
+                "path": "UseAdd"
+              },
+              "to": {
+                "node": "ex",
+                "port": "use_add",
+                "path": ""
+              }
+            },
+            {
+              "id": "b36",
+              "from": {
+                "node": "dec",
+                "port": "ctl",
+                "path": "AccLoad"
+              },
+              "to": {
+                "node": "ex",
+                "port": "acc_load",
+                "path": ""
+              }
+            },
+            {
+              "id": "b37",
+              "from": {
+                "node": "dec",
+                "port": "ctl",
+                "path": "Take"
+              },
+              "to": {
+                "node": "fe",
+                "port": "take",
+                "path": ""
+              }
+            },
+            {
+              "id": "b38",
+              "from": {
+                "node": "dec",
+                "port": "ctl",
+                "path": "PcLoad"
+              },
+              "to": {
+                "node": "fe",
+                "port": "load",
+                "path": ""
+              }
+            },
+            {
+              "id": "b39",
+              "from": {
+                "node": "ex",
+                "port": "acc",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "acc",
+                "path": ""
+              }
+            },
+            {
+              "id": "b40",
+              "from": {
+                "node": "fe",
+                "port": "pc",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "pc",
+                "path": ""
+              }
+            },
+            {
+              "id": "b41",
+              "from": {
+                "node": "seq",
+                "port": "ph",
+                "path": ""
+              },
+              "to": {
+                "node": "$",
+                "port": "ph",
+                "path": ""
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

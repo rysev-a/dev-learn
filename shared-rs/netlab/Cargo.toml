@@ -1,0 +1,10 @@
+[package]
+name = "netlab"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Лаборатория «Компьютерные сети» (книга 15): модель сети, симулятор, мини-терминал, проверка целей и данные упражнений. Общий crate интерфейса (wasm) и бэкенда (проверка решений)."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value"] }

@@ -1,0 +1,1188 @@
+{
+  "book": 15,
+  "chapter": 19,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n19-arp",
+      "title": "Подмена ARP: трафик идёт через чужой ПК",
+      "statement": "В локальной сети появился ПК злоумышленника 192.168.0.66: он рассылает ложные ARP-ответы, и трафик ПК к шлюзу 192.168.0.1 идёт через него. Посмотрите на ПК `arp -n`: у шлюза не его MAC. Узнайте настоящий MAC шлюза (`ip addr` на шлюзе) и закрепите его на ПК статической записью, чтобы ложные ответы перестали действовать.",
+      "hint": "На шлюзе: `ip addr` → MAC интерфейса eth0 (28:28:00:00:…). На ПК: `arp -s 192.168.0.1 <этот MAC>`. Проверка: `arp -n` и ▶ у цели — пакеты больше не заходят на ПК злоумышленника.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК жертвы",
+              "x": 70,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:68",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "evil",
+              "kind": "host",
+              "name": "ПК злоумышленника",
+              "x": 70,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:69",
+                  "ip": "192.168.0.66",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "attack": {
+                "type": "arpspoof",
+                "victim": "pc",
+                "gateway_ip": "192.168.0.1"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 190,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:6a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:6b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:6c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:6d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:6e",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:6f",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "isp",
+              "kind": "internet",
+              "name": "Интернет",
+              "x": 450,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:70",
+                  "ip": "198.51.100.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:71",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": true
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Сайт",
+              "x": 580,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:72",
+                  "ip": "203.0.113.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "evil:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "isp:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth1",
+              "b": "web:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК пингует сайт",
+            "ping": {
+              "from": "pc",
+              "to": "@web"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Трафик ПК не проходит через ПК злоумышленника",
+            "ping": {
+              "from": "pc",
+              "to": "@web",
+              "avoid": "evil"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "arp -s 192.168.0.1 28:28:00:00:02:6e"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n19-synflood",
+      "title": "SYN-флуд на веб-сервер",
+      "statement": "Злоумышленник заваливает сервер SYN-пакетами, и настоящие клиенты не могут подключиться (запрос клиента молчит; в журнале ▶ — «очередь переполнена»). Включите на сервере SYN-куки: тогда состояние до подтверждения не хранится и очередь не переполняется. Можно ещё закрыть источник файрволом, но куки защищают от любых источников.",
+      "hint": "На сервере: `sysctl -w net.ipv4.tcp_syncookies=1`. Альтернатива на файрволе: `iptables -A FORWARD -s 198.51.100.66 -j DROP`.",
+      "spec": {
+        "tools": {
+          "fw": true,
+          "tcp": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "client",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:73",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "bot",
+              "kind": "host",
+              "name": "Атакующий",
+              "x": 60,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:74",
+                  "ip": "198.51.100.66",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "attack": {
+                "type": "synflood",
+                "target": "web",
+                "port": 80
+              }
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 190,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:75",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:76",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:77",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:78",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "fw",
+              "kind": "router",
+              "name": "Файрвол",
+              "x": 330,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:79",
+                  "ip": "198.51.100.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:7a",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 500,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:7b",
+                  "ip": "203.0.113.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "client:eth0",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "bot:eth0",
+              "b": "ix:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "fw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "fw:eth1",
+              "b": "web:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Клиент подключается к порту 80 во время атаки",
+            "tcp": {
+              "from": "client",
+              "to": "@web",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "sysctl -w net.ipv4.tcp_syncookies=1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n19-scan",
+      "title": "Найдите сканер и закройте лишнее",
+      "statement": "Кто-то обходит порты сервера. Запустите на шлюзе `tcpdump -i any tcp` и найдите источник: десятки SYN на разные порты с одного адреса. Заблокируйте его на файрволе, закройте на сервере ненужный Telnet (порт 23) и убедитесь, что легитимный пользователь по-прежнему работает с SSH и сайтом.",
+      "hint": "Источник — 198.51.100.66. На шлюзе: `iptables -A FORWARD -s 198.51.100.66 -j DROP`. На сервере: `close tcp 23`. Порт 3306 (база) должен быть закрыт для всех внешних, он и так не нужен снаружи: закройте его так же `close tcp 3306`.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "user",
+              "kind": "host",
+              "name": "Пользователь",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:7c",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "scanner",
+              "kind": "host",
+              "name": "Сканер",
+              "x": 60,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:7d",
+                  "ip": "198.51.100.66",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "attack": {
+                "type": "scan",
+                "target": "srv",
+                "ports": [
+                  21,
+                  22,
+                  23,
+                  80,
+                  443,
+                  3306,
+                  8080
+                ]
+              }
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 190,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:7e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:7f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:80",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:81",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 330,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:82",
+                  "ip": "198.51.100.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:83",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 500,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:84",
+                  "ip": "203.0.113.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 22
+                },
+                {
+                  "proto": "tcp",
+                  "port": 23
+                },
+                {
+                  "proto": "tcp",
+                  "port": 80
+                },
+                {
+                  "proto": "tcp",
+                  "port": 3306
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "user:eth0",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "scanner:eth0",
+              "b": "ix:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ix:p3",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Сканер не достаёт до SSH (порт 22)",
+            "tcp": {
+              "from": "scanner",
+              "to": "@srv",
+              "port": 22,
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Telnet (23) закрыт для пользователя",
+            "tcp": {
+              "from": "user",
+              "to": "@srv",
+              "port": 23,
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "База (3306) закрыта снаружи",
+            "tcp": {
+              "from": "user",
+              "to": "@srv",
+              "port": 3306,
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g4",
+            "text": "Пользователь по-прежнему работает по SSH",
+            "tcp": {
+              "from": "user",
+              "to": "@srv",
+              "port": 22
+            }
+          },
+          {
+            "id": "g5",
+            "text": "…и открывает сайт (80)",
+            "tcp": {
+              "from": "user",
+              "to": "@srv",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -s 198.51.100.66 -j DROP"
+          },
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "close tcp 23"
+          },
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "close tcp 3306"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n19-exposure",
+      "title": "База данных видна из интернета",
+      "statement": "Во «внутренней» зоне стоят веб (443), сервер приложений и база данных (3306). Политика FORWARD сейчас ACCEPT, поэтому базу видно из интернета. Разрешите порт базы только серверу приложений 203.0.113.20, а всем остальным запретите. Порядок правил важен: сначала разрешение, потом запрет.",
+      "hint": "`iptables -A FORWARD -p tcp --dport 3306 -s 203.0.113.20 -j ACCEPT`, затем `iptables -A FORWARD -p tcp --dport 3306 -j DROP`. Веб (443) остаётся открытым, так как для него запрета нет.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "guest",
+              "kind": "host",
+              "name": "Гость из интернета",
+              "x": 60,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:85",
+                  "ip": "198.51.100.50",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.2",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Файрвол",
+              "x": 230,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:86",
+                  "ip": "198.51.100.2",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:87",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 350,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:88",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:89",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:8a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:8b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:02:8c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб",
+              "x": 520,
+              "y": 60,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:8d",
+                  "ip": "203.0.113.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "app",
+              "kind": "server",
+              "name": "Приложение",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:8e",
+                  "ip": "203.0.113.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 8080
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "db",
+              "kind": "server",
+              "name": "База данных",
+              "x": 520,
+              "y": 300,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:8f",
+                  "ip": "203.0.113.30",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 3306
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "guest:eth0",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "app:eth0",
+              "b": "sw:p3",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "db:eth0",
+              "b": "sw:p4",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Гость открывает веб (443)",
+            "tcp": {
+              "from": "guest",
+              "to": "@web",
+              "port": 443
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Гость не достаёт до базы (3306)",
+            "tcp": {
+              "from": "guest",
+              "to": "@db",
+              "port": 3306,
+              "expect": "fail"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "Сервер приложений достаёт до базы",
+            "tcp": {
+              "from": "app",
+              "to": "@db",
+              "port": 3306
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -p tcp --dport 3306 -s 203.0.113.20 -j ACCEPT"
+          },
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -p tcp --dport 3306 -j DROP"
+          }
+        ]
+      }
+    }
+  ]
+}

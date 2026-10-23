@@ -1,0 +1,1005 @@
+{
+  "book": 15,
+  "chapter": 13,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n13-expired",
+      "title": "Сертификат просрочен",
+      "statement": "Сайт перестал открываться по HTTPS: `curl https://www.example.org/` выдаёт «certificate has expired». Проверьте срок на сервере (`tls show`; сегодня 2026-10-16) и выпустите новый сертификат на 90 дней у промежуточного центра PublicIntCA на то же имя.",
+      "hint": "На сервере: `tls cert new www.example.org --issuer PublicIntCA --days 90`. Цепочка и версии остаются. Проверка: `openssl s_client -connect www.example.org:443`.",
+      "spec": {
+        "tools": {
+          "tls": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Браузер (ПК)",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:a8",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "hosts": {
+                "www.example.org": "192.168.0.20"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:a9",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:aa",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:ab",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:ac",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:ad",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Защищённая главная</h1>"
+                  }
+                ]
+              },
+              "tls": {
+                "cert": {
+                  "cn": "www.example.org",
+                  "san": [
+                    "www.example.org"
+                  ],
+                  "issuer": "PublicIntCA",
+                  "not_after": "2026-09-01"
+                },
+                "chain": [
+                  "PublicIntCA"
+                ],
+                "versions": [
+                  "1.2",
+                  "1.3"
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ],
+          "pki": {
+            "cas": {
+              "PublicRootCA": {
+                "issuer": null
+              },
+              "PublicIntCA": {
+                "issuer": "PublicRootCA"
+              },
+              "CorpRootCA": {
+                "issuer": null
+              },
+              "CorpIntCA": {
+                "issuer": "CorpRootCA"
+              },
+              "ShadyRootCA": {
+                "issuer": null
+              }
+            }
+          }
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "HTTPS-запрос возвращает 200",
+            "http": {
+              "from": "pc",
+              "url": "https://www.example.org/",
+              "status": 200,
+              "body_includes": "Защищённая"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "tls cert new www.example.org --issuer PublicIntCA --days 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n13-name",
+      "title": "Имя не совпадает с сертификатом",
+      "statement": "Сертификат выпущен только на example.org, а пользователи открывают www.example.org. Браузер отказывает: имя не найдено среди SAN. Выпустите сертификат, в котором есть оба имени: example.org и www.example.org.",
+      "hint": "`tls cert new example.org www.example.org --issuer PublicIntCA --days 90` — первое имя становится CN, все перечисленные попадают в SAN.",
+      "spec": {
+        "tools": {
+          "tls": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Браузер (ПК)",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:ae",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "hosts": {
+                "www.example.org": "192.168.0.20"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:af",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:b0",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:b1",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:b2",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:b3",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Защищённая главная</h1>"
+                  }
+                ]
+              },
+              "tls": {
+                "cert": {
+                  "cn": "example.org",
+                  "san": [
+                    "example.org"
+                  ],
+                  "issuer": "PublicIntCA",
+                  "not_after": "2027-01-15"
+                },
+                "chain": [
+                  "PublicIntCA"
+                ],
+                "versions": [
+                  "1.2",
+                  "1.3"
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ],
+          "pki": {
+            "cas": {
+              "PublicRootCA": {
+                "issuer": null
+              },
+              "PublicIntCA": {
+                "issuer": "PublicRootCA"
+              },
+              "CorpRootCA": {
+                "issuer": null
+              },
+              "CorpIntCA": {
+                "issuer": "CorpRootCA"
+              },
+              "ShadyRootCA": {
+                "issuer": null
+              }
+            }
+          }
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "https://www.example.org/ открывается",
+            "http": {
+              "from": "pc",
+              "url": "https://www.example.org/",
+              "status": 200,
+              "body_includes": "Защищённая"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "tls cert new example.org www.example.org --issuer PublicIntCA --days 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n13-chain",
+      "title": "Забытый промежуточный сертификат",
+      "statement": "У вас сайт открывается, у клиентов — «unable to get local issuer certificate». Сервер присылает только листовой сертификат, а выдавший его PublicIntCA клиент не знает: в хранилище доверия только корневой PublicRootCA. Добавьте промежуточный сертификат в цепочку, которую присылает сервер.",
+      "hint": "`tls chain add PublicIntCA`. Сервер должен присылать листовой и все промежуточные сертификаты; корневой клиент уже знает.",
+      "spec": {
+        "tools": {
+          "tls": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Браузер (ПК)",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:b4",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "hosts": {
+                "www.example.org": "192.168.0.20"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:b5",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:b6",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:b7",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:b8",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:b9",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Защищённая главная</h1>"
+                  }
+                ]
+              },
+              "tls": {
+                "cert": {
+                  "cn": "www.example.org",
+                  "san": [
+                    "www.example.org"
+                  ],
+                  "issuer": "PublicIntCA",
+                  "not_after": "2027-01-15"
+                },
+                "chain": [],
+                "versions": [
+                  "1.2",
+                  "1.3"
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ],
+          "pki": {
+            "cas": {
+              "PublicRootCA": {
+                "issuer": null
+              },
+              "PublicIntCA": {
+                "issuer": "PublicRootCA"
+              },
+              "CorpRootCA": {
+                "issuer": null
+              },
+              "CorpIntCA": {
+                "issuer": "CorpRootCA"
+              },
+              "ShadyRootCA": {
+                "issuer": null
+              }
+            }
+          }
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "HTTPS-запрос возвращает 200",
+            "http": {
+              "from": "pc",
+              "url": "https://www.example.org/",
+              "status": 200,
+              "body_includes": "Защищённая"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "tls chain add PublicIntCA"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n13-trust",
+      "title": "Внутренний центр сертификации",
+      "statement": "Внутренний сервис intranet.corp использует сертификат от корпоративного центра CorpIntCA (его корень — CorpRootCA). Он правильно настроен на сервере: срок, имя и цепочка в порядке. Но корень CorpRootCA нет в хранилище доверия ПК, поэтому браузер ругается на «self-signed certificate in chain». Добавьте CorpRootCA в доверенные на ПК — так делают на корпоративных устройствах. Осторожно: лишний корень в хранилище — дыра в безопасности.",
+      "hint": "На ПК: `trust show`, затем `trust add CorpRootCA`. Проверка: `curl https://intranet.corp/`.",
+      "spec": {
+        "tools": {
+          "tls": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Браузер (ПК)",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:ba",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "hosts": {
+                "intranet.corp": "192.168.0.20"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:bb",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:bc",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:bd",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:be",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:bf",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Защищённая главная</h1>"
+                  }
+                ]
+              },
+              "tls": {
+                "cert": {
+                  "cn": "intranet.corp",
+                  "san": [
+                    "intranet.corp"
+                  ],
+                  "issuer": "CorpIntCA",
+                  "not_after": "2027-06-01"
+                },
+                "chain": [
+                  "CorpIntCA"
+                ],
+                "versions": [
+                  "1.2",
+                  "1.3"
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ],
+          "pki": {
+            "cas": {
+              "PublicRootCA": {
+                "issuer": null
+              },
+              "PublicIntCA": {
+                "issuer": "PublicRootCA"
+              },
+              "CorpRootCA": {
+                "issuer": null
+              },
+              "CorpIntCA": {
+                "issuer": "CorpRootCA"
+              },
+              "ShadyRootCA": {
+                "issuer": null
+              }
+            }
+          }
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "https://intranet.corp/ открывается",
+            "http": {
+              "from": "pc",
+              "url": "https://intranet.corp/",
+              "status": 200,
+              "body_includes": "Защищённая"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "trust add CorpRootCA"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n13-version",
+      "title": "Старая версия TLS",
+      "statement": "Сервер настроен давно и поддерживает только TLS 1.0 и 1.1: современные клиенты их отключили и получают alert protocol version. Включите на сервере TLS 1.2 и 1.3. Затем выполните `openssl s_client -connect www.example.org:443` и посмотрите, сколько кругов занимает рукопожатие.",
+      "hint": "`tls versions 1.2,1.3` — клиент выберет самую новую из общих: 1.3, рукопожатие за один круг.",
+      "spec": {
+        "tools": {
+          "tls": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Браузер (ПК)",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:c0",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "hosts": {
+                "www.example.org": "192.168.0.20"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 260,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:01:c1",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:01:c2",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:01:c3",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:01:c4",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Веб-сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:c5",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 443
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "http": {
+                "routes": [
+                  {
+                    "path": "/",
+                    "status": 200,
+                    "body": "<h1>Защищённая главная</h1>"
+                  }
+                ]
+              },
+              "tls": {
+                "cert": {
+                  "cn": "www.example.org",
+                  "san": [
+                    "www.example.org"
+                  ],
+                  "issuer": "PublicIntCA",
+                  "not_after": "2027-01-15"
+                },
+                "chain": [
+                  "PublicIntCA"
+                ],
+                "versions": [
+                  "1.0",
+                  "1.1"
+                ]
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "web:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ],
+          "pki": {
+            "cas": {
+              "PublicRootCA": {
+                "issuer": null
+              },
+              "PublicIntCA": {
+                "issuer": "PublicRootCA"
+              },
+              "CorpRootCA": {
+                "issuer": null
+              },
+              "CorpIntCA": {
+                "issuer": "CorpRootCA"
+              },
+              "ShadyRootCA": {
+                "issuer": null
+              }
+            }
+          }
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "HTTPS-запрос возвращает 200",
+            "http": {
+              "from": "pc",
+              "url": "https://www.example.org/",
+              "status": 200,
+              "body_includes": "Защищённая"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "web",
+            "line": "tls versions 1.2,1.3"
+          }
+        ]
+      }
+    }
+  ]
+}

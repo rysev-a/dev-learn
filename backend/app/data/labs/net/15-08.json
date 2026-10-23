@@ -1,0 +1,448 @@
+{
+  "book": 15,
+  "chapter": 8,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n8-window",
+      "title": "Окно приёма не даёт заполнить канал",
+      "statement": "Сервер отдаёт файл клиенту по каналу 200 Мбит/с с большой задержкой (RTT около 80 мс). Запустите на сервере `iperf3 10.1.0.10` — скорость около 6 Мбит/с, хотя канал в тридцать раз быстрее: окно приёма клиента всего 64 КБ. Увеличьте окно приёма у клиента (получателя), чтобы скорость превысила 150 Мбит/с. Ёмкость канала (BDP) на графике — линия янтарного цвета.",
+      "hint": "Нужно окно не меньше BDP ≈ 2 МБ. На клиенте: в карточке — «Окно приёма, КБ» (поставьте 4096) или в терминале `sysctl -w net.ipv4.tcp_rmem=\"4096 131072 4194304\"`.",
+      "spec": {
+        "tools": {
+          "tcp": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:04",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:05",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:06",
+                  "ip": "10.1.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:07",
+                  "ip": "10.1.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.1.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "rwnd": 64
+            }
+          ],
+          "links": [
+            {
+              "a": "srv:eth0",
+              "b": "r1:eth0",
+              "km": 10,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "pc:eth0",
+              "km": 7900,
+              "mbps": 200
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Скачивание на скорости не ниже 150 Мбит/с",
+            "xfer": {
+              "from": "srv",
+              "to": "@pc",
+              "mb": 100.0,
+              "min_mbps": 150.0
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "sysctl -w net.ipv4.tcp_rmem=\"4096 131072 4194304\""
+          }
+        ]
+      }
+    },
+    {
+      "id": "n8-cc",
+      "title": "Потери на радиоканале и алгоритм",
+      "statement": "Сервер отправляет данные клиенту через спутниковый канал: 100 Мбит/с, RTT около 100 мс и случайные потери 0,5% пакетов. Классический алгоритм после каждой потери сжимает окно, и скорость падает до единиц Мбит/с. Окно приёма уже достаточно большое. Смените алгоритм управления перегрузкой на сервере (отправителе) на тот, что не считает любую потерю перегрузкой.",
+      "hint": "На сервере: в карточке «Алгоритм» — bbr или `sysctl -w net.ipv4.tcp_congestion_control=bbr`. Сначала запустите `iperf3 10.1.0.10`, потом смените алгоритм и повторите — график покажет разницу.",
+      "spec": {
+        "tools": {
+          "tcp": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:08",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "cc": "cubic"
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:09",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:0a",
+                  "ip": "10.1.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:0b",
+                  "ip": "10.1.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.1.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "rwnd": 16384
+            }
+          ],
+          "links": [
+            {
+              "a": "srv:eth0",
+              "b": "r1:eth0",
+              "km": 10,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "pc:eth0",
+              "km": 9990,
+              "mbps": 100,
+              "loss": 0.5
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Скорость не ниже 60 Мбит/с",
+            "xfer": {
+              "from": "srv",
+              "to": "@pc",
+              "mb": 200.0,
+              "min_mbps": 60.0
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "sysctl -w net.ipv4.tcp_congestion_control=bbr"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n8-bufferbloat",
+      "title": "Раздутие буферов",
+      "statement": "Клиент скачивает файл через домашний маршрутизатор с узким исходящим каналом 20 Мбит/с. Скорость отличная, но при загрузке пинг и звонки «плывут»: очередь на узком месте — 1000 пакетов, и каждый ждёт в ней сотни миллисекунд. Уменьшите очередь на интерфейсе маршрутизатора, смотрящем в узкий канал, так, чтобы RTT под нагрузкой был не больше 80 мс, а скорость не падала ниже 17 Мбит/с.",
+      "hint": "Очередь задаётся на интерфейсе, который отправляет в узкий канал (eth1 маршрутизатора): в его карточке поле «очередь» либо `ip link set eth1 txqueuelen 30`. Слишком короткая очередь тоже плоха — канал перестанет заполняться.",
+      "spec": {
+        "tools": {
+          "queue": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:0c",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Домашний маршрутизатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:0d",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:01:0e",
+                  "ip": "10.1.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:01:0f",
+                  "ip": "10.1.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.1.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "rwnd": 8192
+            }
+          ],
+          "links": [
+            {
+              "a": "srv:eth0",
+              "b": "r1:eth0",
+              "km": 10,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "pc:eth0",
+              "km": 1990,
+              "mbps": 20
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "RTT под нагрузкой ≤ 80 мс, скорость ≥ 17 Мбит/с",
+            "xfer": {
+              "from": "srv",
+              "to": "@pc",
+              "mb": 100.0,
+              "min_mbps": 17.0,
+              "max_loaded_rtt_ms": 80.0
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "r1",
+            "line": "ip link set eth1 txqueuelen 30"
+          }
+        ]
+      }
+    }
+  ]
+}

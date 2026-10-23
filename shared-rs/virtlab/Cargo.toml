@@ -1,0 +1,15 @@
+[package]
+name = "virtlab"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Лаборатория книги «Виртуализация» (книга 17): модели шести симуляторов, цели упражнений и серверная проверка решений. Общий crate интерфейса (wasm) и бэкенда (нативно)."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+# float_roundtrip: числа из JSON читаются точно (иначе возможна разница в последнем бите с JavaScript)
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[[bin]]
+name = "import"
+path = "src/bin/import.rs"

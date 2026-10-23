@@ -1,0 +1,1254 @@
+{
+  "book": 15,
+  "chapter": 18,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n18-keys",
+      "title": "Вход по ключу вместо пароля",
+      "statement": "Сервер пускает пользователя alice по паролю alice123, и ботам этого достаточно. Нужно перейти на ключи. На ПК создайте ключ (`ssh-keygen`), скопируйте его на сервер (`ssh-copy-id -P alice123 alice@192.168.0.20`; пароль нужен один раз), проверьте вход по ключу, а затем выключите парольный вход на сервере (`sshd password off`).",
+      "hint": "Порядок важен: сначала ключ и копирование, потом отключение паролей — иначе вы отрежете себе вход. Проверка: `ssh alice@192.168.0.20` входит по ключу, `ssh -o PubkeyAuthentication=no -P alice123 alice@192.168.0.20` — отказ.",
+      "spec": {
+        "tools": {
+          "ssh": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК админа",
+              "x": 100,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:40",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 310,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:41",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:42",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:43",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:44",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:45",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 22
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "ssh": {
+                "host_key": "SHA256:hostKeyA1",
+                "password_auth": true,
+                "users": {
+                  "alice": {
+                    "keys": [],
+                    "password": "alice123"
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "srv:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Вход alice по ключу работает",
+            "ssh": {
+              "from": "pc",
+              "to": "@srv",
+              "user": "alice",
+              "auth": "key"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Вход по паролю закрыт",
+            "ssh": {
+              "from": "pc",
+              "to": "@srv",
+              "user": "alice",
+              "pass": "alice123",
+              "auth": "password",
+              "expect": "fail"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "ssh-keygen"
+          },
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "ssh-copy-id -P alice123 alice@192.168.0.20"
+          },
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "sshd password off"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n18-hostkey",
+      "title": "Ключ хоста изменился",
+      "statement": "После переустановки сервера (администратор подтвердил: смена ключа плановая) вход выдаёт «REMOTE HOST IDENTIFICATION HAS CHANGED». В known_hosts клиента остался старый ключ. Удалите устаревшую запись для 192.168.0.20 (`ssh-keygen -R 192.168.0.20`) и войдите снова — клиент запомнит новый ключ.",
+      "hint": "`ssh-keygen -R 192.168.0.20`, затем `ssh alice@192.168.0.20`. Не выключайте проверку ключа хоста навсегда: она защищает от подмены сервера.",
+      "spec": {
+        "tools": {
+          "ssh": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК админа",
+              "x": 100,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:46",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "ssh_key": "SHA256:pcKeyOK",
+              "known_hosts": {
+                "192.168.0.20": "SHA256:hostKeyOLD"
+              }
+            },
+            {
+              "id": "sw",
+              "kind": "switch",
+              "name": "SW",
+              "x": 310,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:47",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:48",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:49",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:4a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер (новый)",
+              "x": 520,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:4b",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 22
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "ssh": {
+                "host_key": "SHA256:hostKeyNEW",
+                "password_auth": false,
+                "users": {
+                  "alice": {
+                    "keys": [
+                      "SHA256:pcKeyOK"
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "sw:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "srv:eth0",
+              "b": "sw:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Вход alice по ключу выполняется",
+            "ssh": {
+              "from": "pc",
+              "to": "@srv",
+              "user": "alice",
+              "auth": "key"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc",
+            "line": "ssh-keygen -R 192.168.0.20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n18-jump",
+      "title": "Бастион: вход во внутреннюю сеть",
+      "statement": "Сервер 10.0.2.20 во внутренней сети доступен по SSH только с бастиона 10.0.1.5 — так настроен файрвол. Напрямую с ПК он недоступен. Настройте вход `ssh -J alice@10.0.1.5 alice@10.0.2.20` (ключ клиента уже создан): разрешите ключ ПК (`ssh-keygen -l` покажет отпечаток) и на бастионе, и на внутреннем сервере для пользователя alice. Парольный вход там выключен.",
+      "hint": "`ssh-keygen -l` на ПК → отпечаток. На бастионе и на внутреннем сервере: `sshd authorize alice <отпечаток>`. Затем `ssh -J alice@10.0.1.5 alice@10.0.2.20`.",
+      "spec": {
+        "tools": {
+          "fw": true,
+          "ssh": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc",
+              "kind": "host",
+              "name": "ПК админа",
+              "x": 60,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:4f",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false,
+              "ssh_key": "SHA256:pcKeyOK"
+            },
+            {
+              "id": "r",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 280,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:4c",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:4d",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth2",
+                  "mac": "28:28:00:00:02:4e",
+                  "ip": "10.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": [
+                  {
+                    "action": "ACCEPT",
+                    "src": "10.0.1.5",
+                    "dst": "10.0.2.20",
+                    "proto": "tcp",
+                    "dport": 22
+                  },
+                  {
+                    "action": "DROP",
+                    "dst": "10.0.2.20",
+                    "proto": "tcp",
+                    "dport": 22
+                  }
+                ]
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "bast",
+              "kind": "server",
+              "name": "Бастион",
+              "x": 520,
+              "y": 60,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:50",
+                  "ip": "10.0.1.5",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 22
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "ssh": {
+                "host_key": "SHA256:bastKey",
+                "password_auth": false,
+                "users": {
+                  "alice": {
+                    "keys": []
+                  }
+                }
+              }
+            },
+            {
+              "id": "int",
+              "kind": "server",
+              "name": "Внутренний сервер",
+              "x": 520,
+              "y": 300,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:51",
+                  "ip": "10.0.2.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 22
+                }
+              ],
+              "locked": false,
+              "drop_private": false,
+              "ssh": {
+                "host_key": "SHA256:intKey",
+                "password_auth": false,
+                "users": {
+                  "alice": {
+                    "keys": []
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "a": "pc:eth0",
+              "b": "r:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r:eth1",
+              "b": "bast:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r:eth2",
+              "b": "int:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Вход на внутренний сервер через бастион",
+            "ssh": {
+              "from": "pc",
+              "to": "@int",
+              "user": "alice",
+              "via": "@bast",
+              "auth": "key"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Напрямую с ПК внутренний сервер закрыт",
+            "ssh": {
+              "from": "pc",
+              "to": "@int",
+              "user": "alice",
+              "expect": "fail"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "bast",
+            "line": "sshd authorize alice SHA256:pcKeyOK"
+          },
+          {
+            "op": "cmd",
+            "dev": "int",
+            "line": "sshd authorize alice SHA256:pcKeyOK"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n18-vpn",
+      "title": "VPN между двумя офисами",
+      "statement": "Офисы А (192.168.1.0/24) и Б (192.168.2.0/24) связаны только через интернет, а интернет не маршрутизирует частные адреса. Постройте туннель между шлюзами: на шлюзе А пир 198.51.100.1, адрес туннеля 10.9.0.1/30; на шлюзе Б пир 203.0.113.1, адрес 10.9.0.2/30; общий секрет у обоих одинаковый. Затем добавьте маршруты в чужие сети через туннель.",
+      "hint": "`vpn add wg0 --peer 198.51.100.1 --address 10.9.0.1/30 --key s3cr3t` на А и `vpn add wg0 --peer 203.0.113.1 --address 10.9.0.2/30 --key s3cr3t` на Б. Маршруты: на А `ip route add 192.168.2.0/24 dev wg0`, на Б `ip route add 192.168.1.0/24 dev wg0`. Выполните ▶ и найдите в журнале упаковку «туннель wg0».",
+      "spec": {
+        "tools": {
+          "vpn": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pa",
+              "kind": "host",
+              "name": "ПК офиса А",
+              "x": 60,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:52",
+                  "ip": "192.168.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ga",
+              "kind": "router",
+              "name": "Шлюз А",
+              "x": 190,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:53",
+                  "ip": "192.168.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:54",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.254",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "isp",
+              "kind": "internet",
+              "name": "Интернет",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:55",
+                  "ip": "203.0.113.254",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:56",
+                  "ip": "198.51.100.254",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": true
+            },
+            {
+              "id": "gb",
+              "kind": "router",
+              "name": "Шлюз Б",
+              "x": 450,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:57",
+                  "ip": "192.168.2.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:58",
+                  "ip": "198.51.100.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.254",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pb",
+              "kind": "host",
+              "name": "ПК офиса Б",
+              "x": 580,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:59",
+                  "ip": "192.168.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pa:eth0",
+              "b": "ga:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "ga:eth1",
+              "b": "isp:eth0",
+              "km": 400,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth1",
+              "b": "gb:eth1",
+              "km": 400,
+              "mbps": 1000
+            },
+            {
+              "a": "gb:eth0",
+              "b": "pb:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК А достаёт до ПК Б (частные адреса через интернет)",
+            "ping": {
+              "from": "pa",
+              "to": "@pb"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК Б достаёт до ПК А",
+            "ping": {
+              "from": "pb",
+              "to": "@pa"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "Трафик между офисами идёт через шлюзы по туннелю",
+            "ping": {
+              "from": "pa",
+              "to": "@pb",
+              "via": "gb"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "ga",
+            "line": "vpn add wg0 --peer 198.51.100.1 --address 10.9.0.1/30 --key s3cr3t"
+          },
+          {
+            "op": "cmd",
+            "dev": "gb",
+            "line": "vpn add wg0 --peer 203.0.113.1 --address 10.9.0.2/30 --key s3cr3t"
+          },
+          {
+            "op": "cmd",
+            "dev": "ga",
+            "line": "ip route add 192.168.2.0/24 dev wg0"
+          },
+          {
+            "op": "cmd",
+            "dev": "gb",
+            "line": "ip route add 192.168.1.0/24 dev wg0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n18-split",
+      "title": "Раздельный туннель",
+      "statement": "Ноутбук сотрудника дома: туннель к корпоративному шлюзу уже поднят, но маршрут по умолчанию ведёт в туннель — весь интернет идёт через офис, да и сам туннель потерял путь к пиру (ping в корпоративную сеть не проходит). Сделайте раздельный туннель: корпоративные сети 10.0.0.0/8 — в туннель (wg0), всё остальное — напрямую через домашний роутер 192.168.100.1.",
+      "hint": "`ip route del default`, затем `ip route add default via 192.168.100.1` и `ip route add 10.0.0.0/8 dev wg0`. Проверьте: ping 10.0.0.5 идёт через корпоративный шлюз, ping 198.51.100.10 — нет.",
+      "spec": {
+        "tools": {
+          "vpn": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "lap",
+              "kind": "host",
+              "name": "Ноутбук дома",
+              "x": 50,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:5a",
+                  "ip": "192.168.100.10",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "wg0",
+                  "mac": "00:00:00:00:00:00",
+                  "ip": "10.9.0.2",
+                  "prefix": 30,
+                  "up": true,
+                  "tun": {
+                    "peer": "203.0.113.1",
+                    "port": 51820,
+                    "key": "s3cr3t"
+                  }
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": null,
+                  "dev": "wg0"
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "hgw",
+              "kind": "router",
+              "name": "Домашний роутер",
+              "x": 190,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:5b",
+                  "ip": "192.168.100.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:5c",
+                  "ip": "203.0.113.50",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.254",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "ix",
+              "kind": "switch",
+              "name": "Интернет",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:02:5d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:02:5e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:02:5f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:02:60",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:02:61",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            },
+            {
+              "id": "cgw",
+              "kind": "router",
+              "name": "Корп. шлюз",
+              "x": 440,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:62",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:63",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "wg0",
+                  "mac": "00:00:00:00:00:00",
+                  "ip": "10.9.0.1",
+                  "prefix": 30,
+                  "up": true,
+                  "tun": {
+                    "peer": "203.0.113.50",
+                    "port": 51820,
+                    "key": "s3cr3t"
+                  }
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.254",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "corp",
+              "kind": "server",
+              "name": "Корп. сервер",
+              "x": 580,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:64",
+                  "ip": "10.0.0.5",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "isp",
+              "kind": "internet",
+              "name": "Провайдер",
+              "x": 440,
+              "y": 250,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:65",
+                  "ip": "203.0.113.254",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:02:66",
+                  "ip": "198.51.100.254",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": true
+            },
+            {
+              "id": "web",
+              "kind": "server",
+              "name": "Публичный сайт",
+              "x": 580,
+              "y": 250,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:02:67",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.254",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "lap:eth0",
+              "b": "hgw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "hgw:eth1",
+              "b": "ix:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "cgw:eth1",
+              "b": "ix:p2",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth0",
+              "b": "ix:p3",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "cgw:eth0",
+              "b": "corp:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth1",
+              "b": "web:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Корпоративный сервер 10.0.0.5 доступен через туннель",
+            "ping": {
+              "from": "lap",
+              "to": "@corp",
+              "via": "cgw"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Публичный сайт идёт напрямую, мимо корпоративного шлюза",
+            "ping": {
+              "from": "lap",
+              "to": "@web",
+              "avoid": "cgw"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "lap",
+            "line": "ip route del default"
+          },
+          {
+            "op": "cmd",
+            "dev": "lap",
+            "line": "ip route add default via 192.168.100.1"
+          },
+          {
+            "op": "cmd",
+            "dev": "lap",
+            "line": "ip route add 10.0.0.0/8 dev wg0"
+          }
+        ]
+      }
+    }
+  ]
+}

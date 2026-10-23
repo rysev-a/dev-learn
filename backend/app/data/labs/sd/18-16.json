@@ -1,0 +1,188 @@
+{
+  "book": 18,
+  "chapter": 16,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd16-rolling",
+      "title": "Выкладка по одному",
+      "statement": "Сейчас новая версия выкладывается на все серверы сразу: на время выкладки сервис недоступен. Переключите стратегию на «по одному» (rolling) и подберите число серверов, чтобы при обновлении (минус один сервер) оставшиеся вытягивали 1300 запросов в секунду. Схема должна переживать выкладку. Бюджет — $700 в месяц. Параметр «Выкладка» показан в упражнении.",
+      "hint": "Три сервера M: при обновлении остаётся два — 1400 запросов. Двух серверов мало: останется один (700).",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1200, "write_rps": 100, "data_gb": 40, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "deploy"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 700}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.deploy"]
+      }
+    },
+    {
+      "id": "sd16-bluegreen",
+      "title": "Когда запаса нет",
+      "statement": "Парк небольшой — два сервера M (1400 запросов), нагрузка 1300. Выкладка «по одному» оставит один сервер, этого мало, а покупать третий бюджет не позволяет. Выберите blue/green: пока идёт выкладка, мощность не падает. Не больше двух серверов, загрузка не выше 95%, стоимость — не больше $700 в месяц (blue/green удваивает расход на серверы).",
+      "hint": "Параметр «Выкладка» сервера — blue/green. Расход на серверы при этом ×2: 2 × 240 = 480.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1200, "write_rps": 100, "data_gb": 40, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "deploy"},
+          {"type": "param", "kind": "app", "key": "instances", "op": "<=", "value": 2},
+          {"type": "capacity", "max": 0.95},
+          {"type": "cost", "max": 1100}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "bluegreen", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.deploy"]
+      }
+    },
+    {
+      "id": "sd16-cost",
+      "title": "Что дешевле: rolling или blue/green",
+      "statement": "Нагрузка выросла до 6000 запросов в секунду, и сейчас используется blue/green: расход на серверы удваивается. Сравните цены: при большом парке rolling обходится заметно дешевле. Переведите выкладку на «по одному» и подберите число серверов: схема переживает выкладку, загрузка не выше 90%, бюджет — $2200 в месяц.",
+      "hint": "Десять серверов M: при выкладке остаётся девять — 6300 запросов. Blue/green с девятью серверами обойдётся в 2160 за серверы — слишком дорого.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 5700, "write_rps": 300, "data_gb": 20, "hot_set": 0.1},
+        "palette": ["lb", "app", "cache", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "bluegreen", "feed": "pull", "idempotency": false, "instances": 9, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "deploy"},
+          {"type": "capacity", "max": 0.9},
+          {"type": "cost", "max": 2200}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 10, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "show": ["app.deploy"]
+      }
+    },
+    {
+      "id": "sd16-zero-downtime",
+      "title": "Выкладка и отказ зоны",
+      "statement": "Серверы должны пережить и выкладку (минус один сервер), и отказ зоны (минус треть). Нагрузка — 2000 запросов в секунду. Разместите серверы по трём зонам, включите rolling и подберите число серверов: схема переживает выкладку, отказ зоны и отказ сервера.",
+      "hint": "Четыре сервера M: при потере зоны останется два — 1400, мало. Пять: после потери зоны три — 2100, при выкладке четыре — 2800.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1800, "write_rps": 200, "data_gb": 50, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "multi"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "deploy"},
+          {"type": "survive", "fail": "zone"},
+          {"type": "survive", "fail": "app"},
+          {"type": "capacity", "max": 0.8}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "multi"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.deploy"]
+      }
+    },
+    {
+      "id": "sd16-final",
+      "title": "Безопасная доставка",
+      "statement": "Итоговое упражнение главы. Магазин: 2500 запросов в секунду, кэш и база. Соберите схему, которая переживает выкладку (rolling), отказ зоны, отказ базы и кэша, с мониторингом: загрузка не выше 80%, бюджет — $3000 в месяц.",
+      "hint": "Серверов M — семь (после потери зоны пять — 3500); кэш с репликой в трёх зонах; база M с репликой и автопереключением в трёх зонах; мониторинг.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 2300, "write_rps": 200, "data_gb": 60, "hot_set": 0.08},
+        "palette": ["lb", "app", "cache", "db", "monitor"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 0, "size_gb": 4, "ttl": 300, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "goals": [
+          {"type": "survive", "fail": "deploy"},
+          {"type": "survive", "fail": "zone"},
+          {"type": "survive", "fail": "db"},
+          {"type": "survive", "fail": "cache"},
+          {"type": "has", "kind": "monitor"},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 3000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "rolling", "feed": "pull", "idempotency": false, "instances": 7, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 5, "ttl": 3600, "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "multi"}},
+            {"id": "mon", "kind": "monitor", "name": "Мониторинг", "x": 970, "y": 235, "params": {}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "cache"}]
+        },
+        "show": ["app.deploy"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,884 @@
+{
+  "book": 15,
+  "chapter": 2,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n2-l1",
+      "title": "Уровень 1–2: порт коммутатора выключен",
+      "statement": "ПК 1 и ПК 2 подключены к коммутатору, адреса настроены верно. Но ПК 2 недоступен. Запустите ping, посмотрите журнал: кадр доходит до коммутатора и дальше идти некуда. Выберите коммутатор и посмотрите на его порты.",
+      "hint": "На карточке коммутатора есть список портов с флажками. Порт, к которому подключён ПК 2, выключен. В терминале коммутатора это `show ports` и `port p2 up`.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 110,
+              "y": 100,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:2e",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 110,
+              "y": 270,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:2f",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:26",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:27",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": false
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:28",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:29",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:2a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:2b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:2c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:2d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "sw1:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p2 up"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n2-l3",
+      "title": "Уровень 3: неправильная маска",
+      "statement": "Два компьютера в одной сети 192.168.0.0/24 подключены через коммутатор. ПК 1 отправляет запрос, а ответа нет. Загляните в журнал: ПК 2 получает пакет, но отвечать не может — по его настройкам адрес ПК 1 «не в его сети», а шлюза у него нет. Найдите ошибку в настройках ПК 2.",
+      "hint": "Маска ПК 2 — /25, это только адреса .0–.127, а сам ПК 2 имеет адрес .200. Поставьте /24. Редактируйте поле маски в карточке и нажмите Enter.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 110,
+              "y": 100,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:30",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 110,
+              "y": 270,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:31",
+                  "ip": "192.168.0.200",
+                  "prefix": 25,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:32",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:33",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:34",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:35",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:36",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:37",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:38",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:39",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "sw1:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК 2 пингует ПК 1",
+            "ping": {
+              "from": "pc2",
+              "to": "@pc1"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc2",
+            "line": "ip addr flush dev eth0"
+          },
+          {
+            "op": "cmd",
+            "dev": "pc2",
+            "line": "ip addr add 192.168.0.200/24 dev eth0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n2-l4",
+      "title": "Уровень 4: порт никто не слушает",
+      "statement": "ПК пингует сервер без проблем, но подключиться к порту 80 не может: в ответ приходит RST. Сеть в порядке — дело в транспортном уровне. Запустите на сервере прослушивание порта 80: откройте карточку сервера и добавьте порт либо введите в терминале `nc -l 80`.",
+      "hint": "Сервер сам отвечает RST, когда порт закрыт. Как только порт слушает, придёт SYN-ACK.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК",
+              "x": 110,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:3a",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 530,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:3b",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:3c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:3d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:3e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:3f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "srv:eth0",
+              "b": "sw1:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК пингует сервер",
+            "ping": {
+              "from": "pc1",
+              "to": "@srv"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК подключается к порту 80 сервера",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "nc -l 80"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n2-fw",
+      "title": "Уровень 4: файрвол режет порт",
+      "statement": "Сервер слушает порт 80, ping проходит, но подключение к порту 80 «молчит»: ни SYN-ACK, ни RST — пакет пропадает. На маршрутизаторе стоит правило файрвола. Найдите его в журнале (строка «файрвол: DROP») и удалите.",
+      "hint": "Выберите маршрутизатор: внизу карточки секция «Файрвол». Правило DROP для tcp порт 80 удаляется крестиком. Пинг при этом работает, потому что ICMP правило не затрагивает.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК",
+              "x": 100,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:42",
+                  "ip": "192.168.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:40",
+                  "ip": "192.168.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:41",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": [
+                  {
+                    "action": "DROP",
+                    "proto": "tcp",
+                    "dport": 80
+                  }
+                ]
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 540,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:43",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК пингует сервер",
+            "ping": {
+              "from": "pc1",
+              "to": "@srv"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК подключается к порту 80",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "r1",
+            "line": "iptables -D FORWARD -p tcp --dport 80 -j DROP"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n2-stack",
+      "title": "Три поломки на одном пути",
+      "statement": "ПК должен открыть страницу на сервере через коммутатор и маршрутизатор. На пути три неисправности — по одной на физическом, сетевом и транспортном уровне. Идите снизу вверх: ping, журнал, терминал. Когда и ping, и подключение к порту 80 заработают, упражнение засчитано.",
+      "hint": "Физика: порт коммутатора для ПК выключен. Сеть: у ПК не задан шлюз по умолчанию (192.168.1.1). Транспорт: сервер не слушает порт 80.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:48",
+                  "ip": "192.168.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 230,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:44",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": false
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:45",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:46",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:47",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 380,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:49",
+                  "ip": "192.168.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:4a",
+                  "ip": "10.0.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 560,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:4b",
+                  "ip": "10.0.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "sw1:p2",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК пингует сервер",
+            "ping": {
+              "from": "pc1",
+              "to": "@srv"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК подключается к порту 80",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "sw1",
+            "line": "port p1 up"
+          },
+          {
+            "op": "cmd",
+            "dev": "pc1",
+            "line": "ip route add default via 192.168.1.1"
+          },
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "nc -l 80"
+          }
+        ]
+      }
+    }
+  ]
+}

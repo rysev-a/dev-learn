@@ -1,0 +1,195 @@
+{
+  "book": 18,
+  "chapter": 10,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd10-gateway",
+      "title": "Шлюз на входе",
+      "statement": "Монолит стоит за балансировщиком, а команда хочет единую входную точку: авторизацию, лимиты и маршрутизацию. Добавьте API-шлюз между пользователями и балансировщиком, зарезервируйте его (не меньше двух экземпляров), чтобы шлюз не стал единой точкой отказа: схема переживает отказ шлюза.",
+      "hint": "Пользователи → шлюз → балансировщик → серверы. Параметр «Экземпляры» шлюза — 2.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1200, "write_rps": 200, "data_gb": 30, "hot_set": 0.2},
+        "palette": ["gateway", "lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "has", "kind": "gateway"},
+          {"type": "link", "from": "clients", "to": "gateway"},
+          {"type": "no_spof", "kinds": ["gateway"]},
+          {"type": "survive", "fail": "gateway"},
+          {"type": "util", "kind": "gateway", "max": 0.5}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        }
+      }
+    },
+    {
+      "id": "sd10-split",
+      "title": "Разрезаем монолит",
+      "statement": "Монолит получает 2500 чтений и 300 записей в секунду, и единственная база перегружена. Разрежьте его на два сервиса: «Заказы» (70% трафика) и «Каталог» (30%) — каждый со своей базой. Шлюз делит трафик по весам сервисов (параметр «Доля трафика»: 7 и 3). Загрузка всех компонентов — не выше 80%.",
+      "hint": "«Заказы» — вес 7, база L (на ней 1750 чтений и 210 записей). «Каталог» — вес 3, база M (750 чтений, 90 записей). Серверы: у заказов четыре M (1960 запросов при ёмкости 2800), у каталога два M.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 2500, "write_rps": 300, "data_gb": 100, "hot_set": 0.2},
+        "palette": ["gateway", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "app", "kind": "app", "name": "Монолит", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "has", "kind": "app", "min": 2},
+          {"type": "has", "kind": "db", "min": 2},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "orders", "kind": "app", "name": "Заказы", "x": 670, "y": 157, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 7, "zone": "single"}},
+            {"id": "catalog", "kind": "app", "name": "Каталог", "x": 670, "y": 313, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 3, "zone": "single"}},
+            {"id": "db1", "kind": "db", "name": "БД заказов", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}},
+            {"id": "db2", "kind": "db", "name": "БД каталога", "x": 1120, "y": 313, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "orders"}, {"from": "orders", "to": "db1"}, {"from": "gateway", "to": "catalog"}, {"from": "catalog", "to": "db2"}]
+        },
+        "show": ["app.weight"]
+      }
+    },
+    {
+      "id": "sd10-weights",
+      "title": "Доли трафика между сервисами",
+      "statement": "Два сервиса за шлюзом: «Основной» (четыре сервера M) и «Дополнительный» (один сервер M). Трафик делится поровну, и маленький сервис перегружен. Настройте доли трафика (параметр «Доля трафика») пропорционально ёмкости: загрузка всех компонентов — не выше 90%.",
+      "hint": "Ёмкость 2800 против 700 — это 4 : 1. Поставьте вес 4 у основного и 1 у дополнительного.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 2400, "write_rps": 400, "data_gb": 60, "hot_set": 0.2},
+        "palette": ["gateway", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "main", "kind": "app", "name": "Основной", "x": 670, "y": 157, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "extra", "kind": "app", "name": "Дополнительный", "x": 670, "y": 313, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db1", "kind": "db", "name": "БД основного", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}},
+            {"id": "db2", "kind": "db", "name": "БД дополнительного", "x": 1120, "y": 313, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "main"}, {"from": "main", "to": "db1"}, {"from": "gateway", "to": "extra"}, {"from": "extra", "to": "db2"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.9},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "main", "kind": "app", "name": "Основной", "x": 670, "y": 157, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 4, "zone": "single"}},
+            {"id": "extra", "kind": "app", "name": "Дополнительный", "x": 670, "y": 313, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db1", "kind": "db", "name": "БД основного", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}},
+            {"id": "db2", "kind": "db", "name": "БД дополнительного", "x": 1120, "y": 313, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "main"}, {"from": "main", "to": "db1"}, {"from": "gateway", "to": "extra"}, {"from": "extra", "to": "db2"}]
+        },
+        "show": ["app.weight"]
+      }
+    },
+    {
+      "id": "sd10-own-db",
+      "title": "База на сервис",
+      "statement": "Два сервиса — «Заказы» и «Платежи» — ходят в одну общую базу, и выкладка одного регулярно ломает другой. Разделите хранилище: у каждого сервиса должна быть своя база. Базы средние, общая загрузка не выше 80%, бюджет $1900 в месяц.",
+      "hint": "Нужны две базы, каждая подключена только к своему сервису. Поставьте вторую базу и перенесите связь платежей на неё.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1500, "write_rps": 300, "data_gb": 80, "hot_set": 0.2},
+        "palette": ["gateway", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "orders", "kind": "app", "name": "Заказы", "x": 670, "y": 157, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "pay", "kind": "app", "name": "Платежи", "x": 670, "y": 313, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Общая БД", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "orders"}, {"from": "orders", "to": "db"}, {"from": "gateway", "to": "pay"}, {"from": "pay", "to": "db"}]
+        },
+        "goals": [
+          {"type": "has", "kind": "db", "min": 2},
+          {"type": "capacity", "max": 0.8},
+          {"type": "cost", "max": 1900},
+          {"type": "success", "min": 0.99}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "orders", "kind": "app", "name": "Заказы", "x": 670, "y": 157, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "pay", "kind": "app", "name": "Платежи", "x": 670, "y": 313, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "БД заказов", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "db2", "kind": "db", "name": "БД платежей", "x": 1120, "y": 313, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "orders"}, {"from": "orders", "to": "db"}, {"from": "gateway", "to": "pay"}, {"from": "pay", "to": "db2"}]
+        }
+      }
+    },
+    {
+      "id": "sd10-final",
+      "title": "Магазин из трёх сервисов",
+      "statement": "Итоговое упражнение главы. Соберите магазин из трёх сервисов — «Каталог» (вес 5), «Заказы» (вес 3) и «Платежи» (вес 2), у каждого своя база. Нагрузка: 3000 чтений и 500 записей в секунду. Шлюз в двух экземплярах, загрузка не выше 80%, схема переживает отказ шлюза и сервера приложения, бюджет — $3000 в месяц.",
+      "hint": "Доли 5:3:2 — это 1750, 1050 и 700 запросов. Каталог: четыре сервера M и база L; заказы: три сервера M и база M; платежи: два сервера M и база M. У каждого сервиса запас на потерю одного экземпляра.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 3000, "write_rps": 500, "data_gb": 150, "hot_set": 0.2},
+        "palette": ["gateway", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 1}},
+            {"id": "cat", "kind": "app", "name": "Каталог", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Общая БД", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "cat"}, {"from": "cat", "to": "db"}]
+        },
+        "goals": [
+          {"type": "has", "kind": "app", "min": 3},
+          {"type": "has", "kind": "db", "min": 3},
+          {"type": "capacity", "max": 0.8},
+          {"type": "survive", "fail": "gateway"},
+          {"type": "survive", "fail": "app"},
+          {"type": "cost", "max": 3000}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "gateway", "kind": "gateway", "name": "API-шлюз", "x": 370, "y": 235, "params": {"instances": 2}},
+            {"id": "cat", "kind": "app", "name": "Каталог", "x": 670, "y": 118, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 4, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 5, "zone": "single"}},
+            {"id": "ord", "kind": "app", "name": "Заказы", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 3, "zone": "single"}},
+            {"id": "pay", "kind": "app", "name": "Платежи", "x": 670, "y": 353, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 2, "zone": "single"}},
+            {"id": "db1", "kind": "db", "name": "БД каталога", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "single"}},
+            {"id": "db2", "kind": "db", "name": "БД заказов", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "db3", "kind": "db", "name": "БД платежей", "x": 1120, "y": 353, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "gateway"}, {"from": "gateway", "to": "cat"}, {"from": "cat", "to": "db1"}, {"from": "gateway", "to": "ord"}, {"from": "ord", "to": "db2"}, {"from": "gateway", "to": "pay"}, {"from": "pay", "to": "db3"}]
+        },
+        "show": ["app.weight"]
+      }
+    }
+  ]
+}

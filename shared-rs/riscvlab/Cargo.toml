@@ -1,0 +1,10 @@
+[package]
+name = "riscvlab"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Лаборатория RISC-V (книга 14, главы 16-17): набор команд RV32IM, ассемблер, эмулятор «мягкого процессора», задачи и проверка решений. Общий крейт бэкенда (проверка) и фронтенда (wasm)."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

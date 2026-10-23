@@ -1,0 +1,679 @@
+{
+  "book": 15,
+  "chapter": 6,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n6-listen",
+      "title": "Сервер не слушает UDP-порт",
+      "statement": "Клиент отправляет датаграммы на порт 5000 сервера, но ничего не получает. В терминале клиента выполните `nc -u 192.168.0.20 5000` и посмотрите на ответ: приходит ICMP «порт недоступен». Запустите на сервере прослушивание UDP-порта 5000 и повторите.",
+      "hint": "На сервере в терминале: `nc -u -l 5000`. Или в карточке сервера «Слушающие порты»: протокол udp, порт 5000. TCP-порт с тем же номером — это другой сокет, он не поможет.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 110,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:dc",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 530,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:dd",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 5000
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Клиент получает ответ на UDP-порту 5000",
+            "udp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 5000
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Порт 5000 по TCP остаётся открытым",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 5000
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "nc -u -l 5000"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n6-two",
+      "title": "TCP и UDP на одном сервере",
+      "statement": "Сервер должен отвечать на веб-запросы (TCP, порт 80) и на запросы имён (UDP, порт 53). Сейчас он ничего не слушает. Откройте оба порта и проверьте каждый: TCP-порт 53 при этом должен остаться закрытым — разные протоколы дают разные сокеты.",
+      "hint": "В карточке сервера секция «Слушающие порты»: выберите протокол tcp, порт 80; затем udp, порт 53. Терминал: `nc -l 80` и `nc -u -l 53`.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 110,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:de",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 530,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:df",
+                  "ip": "192.168.0.20",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Веб (tcp/80) отвечает",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 80
+            }
+          },
+          {
+            "id": "g2",
+            "text": "DNS (udp/53) отвечает",
+            "udp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 53
+            }
+          },
+          {
+            "id": "g3",
+            "text": "TCP-порт 53 закрыт",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 53,
+              "expect": "fail"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "nc -l 80"
+          },
+          {
+            "op": "cmd",
+            "dev": "srv",
+            "line": "nc -u -l 53"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n6-fw",
+      "title": "Файрвол: только DNS и веб",
+      "statement": "Домашний шлюз по умолчанию запрещает всё (политика DROP на FORWARD). NAT уже настроен. Откройте для клиентов сети то, что нужно: запросы DNS (udp/53) и веб (tcp/80), а также разрешите ответы на уже установленные соединения. SSH (tcp/22) должен остаться закрытым.",
+      "hint": "Правила FORWARD по порядку: 1) `-m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT` (ответы), 2) `-p udp --dport 53 -j ACCEPT`, 3) `-p tcp --dport 80 -j ACCEPT`. В форме файрвола выберите состояние «уже установлено» для первого правила.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 80,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:e2",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "gw",
+              "kind": "router",
+              "name": "Шлюз",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:e0",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:e1",
+                  "ip": "203.0.113.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "203.0.113.1",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [
+                {
+                  "chain": "POSTROUTING",
+                  "action": "MASQUERADE",
+                  "out": "eth1"
+                }
+              ],
+              "fw": {
+                "policy": "DROP",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "isp",
+              "kind": "internet",
+              "name": "Провайдер",
+              "x": 420,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:e3",
+                  "ip": "203.0.113.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:e4",
+                  "ip": "198.51.100.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": true,
+              "drop_private": true
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 575,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:e5",
+                  "ip": "198.51.100.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "198.51.100.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "udp",
+                  "port": 53
+                },
+                {
+                  "proto": "tcp",
+                  "port": 80
+                },
+                {
+                  "proto": "tcp",
+                  "port": 22
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "gw:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "gw:eth1",
+              "b": "isp:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "isp:eth1",
+              "b": "srv:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "DNS-запрос (udp/53) получает ответ",
+            "udp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 53
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Веб (tcp/80) открывается",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 80
+            }
+          },
+          {
+            "id": "g3",
+            "text": "SSH (tcp/22) закрыт",
+            "tcp": {
+              "from": "pc1",
+              "to": "@srv",
+              "port": 22,
+              "expect": "fail"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT"
+          },
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -p udp --dport 53 -j ACCEPT"
+          },
+          {
+            "op": "cmd",
+            "dev": "gw",
+            "line": "iptables -A FORWARD -p tcp --dport 80 -j ACCEPT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n6-diagnose",
+      "title": "Отказ или молчание",
+      "statement": "Два сервера должны отвечать по UDP на порту 5000. Клиент пробует оба. С первым ответ приходит сразу в виде ICMP «порт недоступен» (отказ), со вторым — тишина (пакеты пропадают). Это две разные причины: у первого порт просто не слушает, а у второго что-то режет пакеты по дороге. Исправьте обе.",
+      "hint": "Первый: на сервере 1 откройте UDP-порт 5000 (`nc -u -l 5000`). Второй: на маршрутизаторе в журнале «файрвол: DROP» — удалите правило, режущее UDP на порт 5000.",
+      "spec": {
+        "tools": {
+          "fw": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "Клиент",
+              "x": 70,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:e9",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "192.168.0.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 250,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:e6",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:e7",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth2",
+                  "mac": "28:28:00:00:00:e8",
+                  "ip": "10.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": [
+                  {
+                    "action": "DROP",
+                    "dst": "10.0.2.10",
+                    "proto": "udp",
+                    "dport": 5000
+                  }
+                ]
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s1",
+              "kind": "server",
+              "name": "Сервер 1",
+              "x": 480,
+              "y": 70,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:ea",
+                  "ip": "10.0.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.1.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "s2",
+              "kind": "server",
+              "name": "Сервер 2",
+              "x": 480,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:eb",
+                  "ip": "10.0.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "udp",
+                  "port": 5000
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth1",
+              "b": "s1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "r1:eth2",
+              "b": "s2:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Сервер 1 отвечает по UDP/5000",
+            "udp": {
+              "from": "pc1",
+              "to": "@s1",
+              "port": 5000
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Сервер 2 отвечает по UDP/5000",
+            "udp": {
+              "from": "pc1",
+              "to": "@s2",
+              "port": 5000
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "s1",
+            "line": "nc -u -l 5000"
+          },
+          {
+            "op": "cmd",
+            "dev": "r1",
+            "line": "iptables -D FORWARD -p udp --dport 5000 -d 10.0.2.10 -j DROP"
+          }
+        ]
+      }
+    }
+  ]
+}

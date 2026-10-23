@@ -1,0 +1,929 @@
+{
+  "book": 15,
+  "chapter": 1,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n1-cable",
+      "title": "Соедините два компьютера",
+      "statement": "Два компьютера уже настроены: адреса 192.168.0.1 и 192.168.0.2 в одной подсети. Но между ними нет канала. Нажмите «Кабель», выберите первый узел, затем второй, и проверьте связь командой ping.",
+      "hint": "Канал — это ребро графа. Без кабеля узлы не могут обменяться даже одним пакетом.",
+      "spec": {
+        "tools": {
+          "cable": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 160,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:01",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 480,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:02",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": []
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cable",
+            "a": "pc1",
+            "b": "pc2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n1-switch",
+      "title": "Коммутатор в центре",
+      "statement": "Четыре компьютера, все в одной подсети 192.168.0.0/24, и один коммутатор. Проложите кабели от каждого компьютера к коммутатору. Напрямую у компьютера всего один порт, а коммутатор соединяет сразу многих. Проверьте, что любой достаёт до любого.",
+      "hint": "У коммутатора восемь портов. Каждый компьютер подключается своим кабелем к своему порту.",
+      "spec": {
+        "tools": {
+          "cable": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 100,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:03",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 100,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:04",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc3",
+              "kind": "host",
+              "name": "ПК 3",
+              "x": 540,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:05",
+                  "ip": "192.168.0.3",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc4",
+              "kind": "host",
+              "name": "ПК 4",
+              "x": 540,
+              "y": 280,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:06",
+                  "ip": "192.168.0.4",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:07",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:08",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:09",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:0a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:0b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:0c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:0d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:0e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": []
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 достаёт до ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК 3 достаёт до ПК 4",
+            "ping": {
+              "from": "pc3",
+              "to": "@pc4"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "ПК 1 достаёт до ПК 4",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc4"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cable",
+            "a": "pc1",
+            "b": "sw1"
+          },
+          {
+            "op": "cable",
+            "a": "pc2",
+            "b": "sw1"
+          },
+          {
+            "op": "cable",
+            "a": "pc3",
+            "b": "sw1"
+          },
+          {
+            "op": "cable",
+            "a": "pc4",
+            "b": "sw1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n1-fast-path",
+      "title": "Короткий путь против длинного",
+      "statement": "К серверу ведут два пути: через маршрутизатор «Быстрый» (кабели по 20 км) и через «Медленный» (по 1500 км). Сейчас ПК использует длинный путь — отсюда большая задержка распространения (около 5 мкс на километр). Откройте терминал ПК, посмотрите ping и traceroute, затем переключите шлюз по умолчанию на быстрый маршрутизатор.",
+      "hint": "Сначала `ip route` — там строка default. Удалите её: `ip route del default`, затем `ip route add default via 10.0.1.1`. Адрес 10.0.1.1 — это «Быстрый» на стороне ПК.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК",
+              "x": 90,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:0f",
+                  "ip": "10.0.1.2",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:10",
+                  "ip": "10.0.2.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "0.0.0.0/0",
+                  "via": "10.0.2.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r_fast",
+              "kind": "router",
+              "name": "Быстрый",
+              "x": 320,
+              "y": 80,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:11",
+                  "ip": "10.0.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:12",
+                  "ip": "10.0.3.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r_slow",
+              "kind": "router",
+              "name": "Медленный",
+              "x": 320,
+              "y": 290,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:13",
+                  "ip": "10.0.2.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:14",
+                  "ip": "10.0.4.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "10.0.3.0/24",
+                  "via": "10.0.4.2",
+                  "dev": null
+                }
+              ],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 550,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:15",
+                  "ip": "10.0.3.2",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:16",
+                  "ip": "10.0.4.2",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [
+                {
+                  "dst": "10.0.1.0/24",
+                  "via": "10.0.3.1",
+                  "dev": null
+                },
+                {
+                  "dst": "10.0.2.0/24",
+                  "via": "10.0.4.1",
+                  "dev": null
+                }
+              ],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "r_fast:eth0",
+              "km": 20,
+              "mbps": 1000
+            },
+            {
+              "a": "pc1:eth1",
+              "b": "r_slow:eth0",
+              "km": 1500,
+              "mbps": 1000
+            },
+            {
+              "a": "r_fast:eth1",
+              "b": "srv:eth0",
+              "km": 20,
+              "mbps": 1000
+            },
+            {
+              "a": "r_slow:eth1",
+              "b": "srv:eth1",
+              "km": 1500,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "Сервер отвечает быстрее 5 мс",
+            "ping": {
+              "from": "pc1",
+              "to": "@srv",
+              "max_rtt_ms": 5.0
+            }
+          },
+          {
+            "id": "g2",
+            "text": "Пакет идёт через «Быстрый»",
+            "ping": {
+              "from": "pc1",
+              "to": "@srv",
+              "via": "r_fast"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc1",
+            "line": "ip route del default"
+          },
+          {
+            "op": "cmd",
+            "dev": "pc1",
+            "line": "ip route add default via 10.0.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n1-diagnose",
+      "title": "Почему не пингуется",
+      "statement": "ПК 1 не достаёт ни до ПК 2, ни до сервера. Адреса настроены верно, ошибок в адресах нет. Найдите две неисправности на нижних уровнях — физическом и канальном — и устраните их. Подсказка: смотрите, что в терминале показывает `ip link` и все ли кабели на месте.",
+      "hint": "Один порт выключен программно (`ip link set eth0 up` на нужном компьютере), а у сервера нет кабеля — добавьте его через «Кабель».",
+      "spec": {
+        "tools": {
+          "cable": true
+        },
+        "start": {
+          "devices": [
+            {
+              "id": "pc1",
+              "kind": "host",
+              "name": "ПК 1",
+              "x": 100,
+              "y": 90,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:17",
+                  "ip": "192.168.0.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pc2",
+              "kind": "host",
+              "name": "ПК 2",
+              "x": 100,
+              "y": 270,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:18",
+                  "ip": "192.168.0.2",
+                  "prefix": 24,
+                  "up": false
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "sw1",
+              "kind": "switch",
+              "name": "Коммутатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "p1",
+                  "mac": "28:28:00:00:00:19",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p2",
+                  "mac": "28:28:00:00:00:1a",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p3",
+                  "mac": "28:28:00:00:00:1b",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p4",
+                  "mac": "28:28:00:00:00:1c",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p5",
+                  "mac": "28:28:00:00:00:1d",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p6",
+                  "mac": "28:28:00:00:00:1e",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p7",
+                  "mac": "28:28:00:00:00:1f",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "p8",
+                  "mac": "28:28:00:00:00:20",
+                  "ip": null,
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "srv",
+              "kind": "server",
+              "name": "Сервер",
+              "x": 540,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:21",
+                  "ip": "192.168.0.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [
+                {
+                  "proto": "tcp",
+                  "port": 80
+                }
+              ],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pc1:eth0",
+              "b": "sw1:p1",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pc2:eth0",
+              "b": "sw1:p2",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК 1 пингует ПК 2",
+            "ping": {
+              "from": "pc1",
+              "to": "@pc2"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК 1 пингует сервер",
+            "ping": {
+              "from": "pc1",
+              "to": "@srv"
+            }
+          },
+          {
+            "id": "g3",
+            "text": "ПК 2 открывает порт 80 сервера",
+            "tcp": {
+              "from": "pc2",
+              "to": "@srv",
+              "port": 80
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pc2",
+            "line": "ip link set eth0 up"
+          },
+          {
+            "op": "cable",
+            "a": "srv",
+            "b": "sw1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n1-two-nets",
+      "title": "Две сети и маршрутизатор",
+      "statement": "ПК А живёт в сети 192.168.1.0/24, ПК Б — в 192.168.2.0/24. Их соединяет маршрутизатор, и он уже настроен. Но компьютеры не знают, куда слать пакеты для чужой сети. Так устроен интернет: сеть сетей. Укажите каждому компьютеру шлюз по умолчанию — адрес маршрутизатора в его сети.",
+      "hint": "Команда `ip route add default via <адрес маршрутизатора>`. Для ПК А шлюз 192.168.1.1, для ПК Б — 192.168.2.1.",
+      "spec": {
+        "tools": {},
+        "start": {
+          "devices": [
+            {
+              "id": "pa",
+              "kind": "host",
+              "name": "ПК А",
+              "x": 100,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:22",
+                  "ip": "192.168.1.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "r1",
+              "kind": "router",
+              "name": "Маршрутизатор",
+              "x": 320,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:23",
+                  "ip": "192.168.1.1",
+                  "prefix": 24,
+                  "up": true
+                },
+                {
+                  "name": "eth1",
+                  "mac": "28:28:00:00:00:24",
+                  "ip": "192.168.2.1",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": true,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            },
+            {
+              "id": "pb",
+              "kind": "host",
+              "name": "ПК Б",
+              "x": 540,
+              "y": 180,
+              "ifaces": [
+                {
+                  "name": "eth0",
+                  "mac": "28:28:00:00:00:25",
+                  "ip": "192.168.2.10",
+                  "prefix": 24,
+                  "up": true
+                }
+              ],
+              "routes": [],
+              "forward": false,
+              "nat": [],
+              "fw": {
+                "policy": "ACCEPT",
+                "rules": []
+              },
+              "services": [],
+              "locked": false,
+              "drop_private": false
+            }
+          ],
+          "links": [
+            {
+              "a": "pa:eth0",
+              "b": "r1:eth0",
+              "km": 0.01,
+              "mbps": 1000
+            },
+            {
+              "a": "pb:eth0",
+              "b": "r1:eth1",
+              "km": 0.01,
+              "mbps": 1000
+            }
+          ]
+        },
+        "goals": [
+          {
+            "id": "g1",
+            "text": "ПК А достаёт до ПК Б",
+            "ping": {
+              "from": "pa",
+              "to": "@pb"
+            }
+          },
+          {
+            "id": "g2",
+            "text": "ПК Б достаёт до ПК А",
+            "ping": {
+              "from": "pb",
+              "to": "@pa"
+            }
+          }
+        ],
+        "solution": [
+          {
+            "op": "cmd",
+            "dev": "pa",
+            "line": "ip route add default via 192.168.1.1"
+          },
+          {
+            "op": "cmd",
+            "dev": "pb",
+            "line": "ip route add default via 192.168.2.1"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "book": 18,
+  "chapter": 6,
+  "lab": "sd",
+  "tasks": [
+    {
+      "id": "sd06-retry-storm",
+      "title": "Шторм повторов",
+      "statement": "База S перегружена: чтений 1300 при пределе 1000. Приложение при ошибке повторяет запрос к базе до трёх раз без паузы, и нагрузка на базу растёт ещё сильнее — сервис не может подняться. Остановите шторм: включите автомат разрыва (circuit breaker) — когда база перегружена, он обрывает повторы, — чтобы доля успешных ответов была не ниже 72%.",
+      "hint": "У сервера приложения есть параметры «Повторы к БД» и «Автомат разрыва» (они показаны в этом упражнении). Включите автомат или обнулите повторы.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 1300, "write_rps": 0, "data_gb": 20, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 3, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "success", "min": 0.72},
+          {"type": "param", "kind": "app", "key": "breaker", "op": "==", "value": true}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 3, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.retries", "app.breaker"]
+      }
+    },
+    {
+      "id": "sd06-idempotency",
+      "title": "Двойное списание",
+      "statement": "Платёжный сервис: клиенты повторяют запрос, если не получили ответ вовремя. Из-за этого иногда деньги списываются дважды. Включите ключи идемпотентности (параметр сервера), оставьте хотя бы один повтор — клиенты и сервер повторяют запросы — и включите автомат разрыва, чтобы повторы не усиливали перегрузку.",
+      "hint": "Параметры сервера приложения: «Ключи идемпотентности» — включить; «Повторы к БД» — не меньше 1; «Автомат разрыва» — включить.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 200, "write_rps": 100, "data_gb": 10, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "param", "kind": "app", "key": "idempotency", "op": "==", "value": true},
+          {"type": "param", "kind": "app", "key": "retries", "op": ">=", "value": 1},
+          {"type": "param", "kind": "app", "key": "breaker", "op": "==", "value": true}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 3, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.idempotency", "app.retries", "app.breaker"]
+      }
+    },
+    {
+      "id": "sd06-strong",
+      "title": "Строгая согласованность",
+      "statement": "Сервис балансов не вправе терять подтверждённую запись и показывать старый баланс. Соберите базу из трёх копий (лидер и две реплики) с синхронной репликацией и автопереключением: отставание реплик — ноль, схема переживает отказ базы, p99 не больше 160 мс.",
+      "hint": "База: «Реплики на шард» — 2, «Репликация» — синхронная, «Автопереключение» — включить. Синхронность добавляет несколько миллисекунд к записи.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 300, "write_rps": 100, "data_gb": 10, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "replica_lag", "max": 0},
+          {"type": "survive", "fail": "db"},
+          {"type": "p99", "max": 160},
+          {"type": "param", "kind": "db", "key": "replicas", "op": ">=", "value": 2}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 2, "shard_key": "hash", "shards": 1, "size": "M", "sync": "sync", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["db.sync"]
+      }
+    },
+    {
+      "id": "sd06-eventual",
+      "title": "Согласованность в конечном счёте",
+      "statement": "Лента новостей допускает небольшое отставание: свежесть в несколько сотен миллисекунд никому не мешает, зато нужны быстрые чтения и дешёвая запись. Оставьте асинхронную репликацию с двумя репликами и убедитесь, что отставание не больше 200 мс, схема переживает отказ базы, а p99 не больше 100 мс.",
+      "hint": "Синхронные реплики здесь не нужны: они замедляют запись. Выберите «асинхронная».",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 900, "write_rps": 120, "data_gb": 40, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 2, "shard_key": "hash", "shards": 1, "size": "M", "sync": "sync", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "param", "kind": "db", "key": "sync", "op": "==", "value": "async"},
+          {"type": "replica_lag", "max": 200},
+          {"type": "survive", "fail": "db"},
+          {"type": "p99", "max": 100}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 2, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["db.sync"]
+      }
+    },
+    {
+      "id": "sd06-redelivery",
+      "title": "Повторная доставка из очереди",
+      "statement": "Заказы принимаются через очередь, и обработчики разбирают её с доставкой «не менее одного раза»: одно сообщение иногда приходит дважды. Соберите схему «сервер → очередь → обработчики → база» с идемпотентными обработчиками, чтобы очередь разбиралась без отставания (после пика в 60 с), а обработчики были загружены не выше 90%.",
+      "hint": "Параметр «Идемпотентная обработка» у обработчика. Нагрузка записи 400 в секунду: три обработчика S тянут 450.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 100, "write_rps": 400, "data_gb": 10, "hot_set": 0.2, "spike_sec": 60},
+        "palette": ["lb", "app", "queue", "worker", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "link", "from": "app", "to": "queue"},
+          {"type": "link", "from": "queue", "to": "worker"},
+          {"type": "param", "kind": "worker", "key": "idempotent", "op": "==", "value": true},
+          {"type": "lag", "max": 5},
+          {"type": "capacity", "max": 0.9}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 3, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "queue", "kind": "queue", "name": "Очередь", "x": 820, "y": 235, "params": {"dlq": false, "partitions": 1}},
+            {"id": "worker", "kind": "worker", "name": "Обработчик", "x": 970, "y": 235, "params": {"idempotent": true, "instances": 3, "pricing": "ondemand", "size": "S", "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "queue"}, {"from": "queue", "to": "worker"}, {"from": "worker", "to": "db"}]
+        },
+        "show": ["worker.idempotent"]
+      }
+    },
+    {
+      "id": "sd06-final",
+      "title": "Платёжный контур",
+      "statement": "Итоговое упражнение главы. Платёжный сервис: надёжность важнее скорости. Нужны: ключи идемпотентности, автомат разрыва, база с синхронной репликой и автопереключением, пара балансировщиков, схема переживает отказ базы и сервера приложения, загрузка не выше 80%, бюджет $1500 в месяц.",
+      "hint": "Три сервера M (после потери одного 1400 запросов — хватает), база M с репликой, синхронная, с автопереключением, пара балансировщиков.",
+      "spec": {
+        "workload": {"static_rps": 0, "read_rps": 500, "write_rps": 150, "data_gb": 30, "hot_set": 0.2},
+        "palette": ["lb", "app", "db"],
+        "start": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 2, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "goals": [
+          {"type": "capacity", "max": 0.8},
+          {"type": "param", "kind": "app", "key": "idempotency", "op": "==", "value": true},
+          {"type": "param", "kind": "app", "key": "breaker", "op": "==", "value": true},
+          {"type": "replica_lag", "max": 0},
+          {"type": "survive", "fail": "db"},
+          {"type": "survive", "fail": "app"},
+          {"type": "no_spof", "kinds": ["lb"]},
+          {"type": "cost", "max": 1500}
+        ],
+        "solution": {
+          "nodes": [
+            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 3, "pricing": "ondemand", "retries": 1, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "M", "sync": "sync", "zone": "single"}}
+          ],
+          "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}]
+        },
+        "show": ["app.idempotency", "app.retries", "app.breaker", "db.sync"]
+      }
+    }
+  ]
+}
