@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 /// Каталог данных лабораторий (общий с остальным бэкендом).
 pub fn data_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/data/labs/arch")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/arch")
 }
 
 /// Загрузить главу из данных курса.

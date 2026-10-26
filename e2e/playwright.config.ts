@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/* E2E-тесты: Leptos-фронт (собранный в e2e/.dist) отдаёт backend-rs на базе в памяти, содержимое курса сидится из backend/app/data.
+/* E2E-тесты: Leptos-фронт (собранный в e2e/.dist) отдаёт backend на базе в памяти, содержимое курса сидится из backend/data.
    Сборка: `npm run build` (trunk + cargo). Один рабочий процесс: тесты книг идут по одной главе за раз, лаборатории не конкурируют за CPU. */
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.E2E_PORT ?? 8099);
@@ -29,7 +29,7 @@ export default defineConfig({
     ? undefined
     : {
     command: "./target/debug/say-backend",
-    cwd: path.join(root, "backend-rs"),
+    cwd: path.join(root, "backend"),
     url: `http://127.0.0.1:${port}/api/books`,
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,

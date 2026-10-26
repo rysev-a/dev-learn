@@ -1,8 +1,14 @@
 # AGENTS.md — правила проекта «say»
 
-Аудиокурс: FastAPI + SQLite (`backend/`, приложение `backend/app/`), React+Vite
-фронт (`frontend/`), TTS kokoro-ru (`backend/app/voice/`), контент в
-`backend/app/data/textbook/<id>-<slug>/*.md`, аудио в `backend/app/data/audio/`.
+Аудиокурс «CS.Core»: бэкенд на axum + SurrealDB (`backend/`), фронтенд на Leptos (`frontend/`), общие крейты Rust (`shared-rs/`),
+воркер проверки кода на Python (`worker/`), озвучка kokoro-ru (`voice/`). Содержимое курса — данные в `backend/data/`
+(тексты `textbook/<id>-<slug>/*.md`, слайды `slides/`, лаборатории `labs/`, SQL упражнений и квизов `sql/`, аудио `audio/`).
+
+**Прежняя реализация удалена 26.10.2026** (FastAPI + SQLite, React + Vite, авторские модули задач на Python, квизы и слайды на TypeScript)
+и сохранена в git-теге `legacy-react-python`: `git show legacy-react-python:<путь>` или `git worktree add /tmp/legacy legacy-react-python`.
+Пути вида `frontend/src/slides/…`, `exercises/*_tasks`, `content/quizzes/*.ts`, `npm run …:export`, `seed_textbook.py`, `app/…` в разделах про
+отдельные книги ниже относятся к тому коду; **источник истины сейчас — файлы данных** (см. «Хранение содержимого»). Разделы про интерфейс
+(шапка, полноэкранный режим, дашборд, вкладки главы) описывают поведение, которое реализовано и в Leptos-версии (`frontend/app/src/{pages,components}/*.rs`).
 
 ## ОБЯЗАТЕЛЬНОЕ ПРАВИЛО: сейчас пишем книгу, озвучки нет
 
@@ -10,10 +16,9 @@
 **абсолютно точно абстрагируемся от аудио** — во всех книгах и разделах работаем в формате «слайды + текст, который
 потом прозвучит за кадром»:
 
-- **весь существующий звук удалён** (`backend/app/data/audio/` пуст, 16.10.2026), чтобы проект не весил; генерация
+- **весь существующий звук удалён** (`backend/data/audio/` пуст, 16.10.2026), чтобы проект не весил; генерация
   потом — одна команда, запускается один раз и отрабатывает за какое-то время, поэтому **100% внимания — содержимому**;
-- не синтезируем wav; не запускаем озвучку (`seed_textbook.py` без `--no-audio`,
-  `--audio-only`, скрипты синтеза); сидим только с `--no-audio`;
+- не синтезируем wav; не запускаем озвучку (`voice/`, скрипты синтеза); бэкенд аудио не генерирует;
 - не считаем `cues` по паузам в wav и не сверяем длительности озвучки — `cues` считаются по доле символов
   (≈ 14 символов в секунду), этого достаточно до финальной озвучки;
 - не поддерживаем `docs/audio-status.md` по ходу работы и не пишем в задачах и отчётах «озвучка устарела»: при
@@ -24,84 +29,68 @@
   («ю-ти-эф-восемь», «систем-ди»), без «см. рисунок» и без кода внутри абзаца — код живёт на слайдах;
 - остальные правила про «один абзац = одна сцена = одна часть» остаются: структура должна быть готова к озвучке.
 
-## Структура backend
+## Структура репозитория
 
-- `backend/app/main.py` — FastAPI-приложение, подключает роутеры.
-- `backend/app/config.py` — все пути (данные, аудио, БД, модели).
-- `backend/app/books/` — всё по книгам: `router.py` (API курса),
-  `service.py` (БД, аудио-файлы), `seed.py` (парсинг учебников + сид).
-- `backend/app/voice/` — всё по озвучке: `engine.py` (kokoro-ru),
-  `download_model.py`, `models/` (чекпоинты).
-- `backend/app/exercises/` — проверка кода в Docker-песочнице: `tasks.py`
-  (чтение определений задач из таблицы `tasks` БД, см. «Упражнения в БД»), `runner.py`
-  (запуск в `python:3.13-slim`: без сети, лимиты памяти/CPU/процессов,
-  таймаут), `router.py` (`GET /api/exercises/{book}/{chapter}`,
-  `POST /api/exercises/run` — постановка в очередь, `GET /api/exercises/run/{id}` — состояние и результат), `jobs.py` (очередь проверок),
-  `local_worker.py`/`worker_api.py`/`backend/worker.py` (воркеры; см. `docs/code-runner.md`). Тесты остаются на бэкенде, клиенту отдаются
-  только условие, заготовка и подсказка.
-- `backend/app/data/` — книги в текстовом виде (`textbook/`), аудио (`audio/`),
-  база (`say.db`).
-- Запуск backend: `cd backend && uv run uvicorn app.main:app` (порт 8000).
+- `backend/` — бэкенд (раздел «Бэкенд»); `backend/data/` — данные курса; `frontend/` — Leptos-фронтенд; `shared-rs/` — общие крейты;
+  `worker/` — воркер проверки кода (`worker.py`, песочница `runner.py`, `docker/rust-crates` — образ для задач с tokio/axum/sqlx);
+  `voice/` — озвучка (`engine.py`, `download_model.py`; модель в `voice/models`, в git не попадает); `e2e/`, `deploy/`, `docs/`.
+- Python остался в воркере и озвучке: `cd worker && uv run worker.py …`; зависимостей у воркера нет (стандартная библиотека + Docker CLI).
+- Пути считаются от файлов пакета/крейта, не от CWD (кроме явных `DATA_DIR`, `STATIC_DIR`).
 
 ## Проверка кода: очередь и воркеры
 
-API не запускает контейнеры: `POST /api/exercises/run` кладёт решение в очередь (`exercises/jobs.py`, таблицы `exec_jobs`, `exec_cache`,
-`exec_workers`) и отвечает `202`; клиент опрашивает `GET /api/exercises/run/{id}` (`queued` с местом в очереди → `running` → `done` с результатом,
-`CodePractice.tsx`, функция `checkCode`). Выполняет воркер: потоки внутри API (`SAY_RUNNER=local`, по умолчанию, для разработки) или отдельный
-демон `backend/worker.py` на другой машине (`SAY_RUNNER=remote` + `SAY_WORKER_TOKEN`), который сам приходит за заданиями по HTTPS и не имеет
-доступа к базе. Полосы `light` (python/js/sql) и `heavy` (rust/c), аренда с сердцебиением, кэш результатов по хешу решения, потолок очереди.
-Песочница — только в `runner.py` (`_run_container`: имя контейнера, остановка по таймауту, потолок вывода, `--cap-drop ALL`, `nobody`).
-**Маршруты с фиксированными сегментами (`/runner/status`, `/run/{id}`) объявляйте в `exercises/router.py` раньше `/{book_id}/{chapter}`.**
-Подробности, развёртывание воркера на домашнем сервере и что ещё нужно до публичного запуска — `docs/code-runner.md`; тесты — `tests/test_jobs.py`.
+Бэкенд не запускает контейнеры: `POST /api/exercises/run` кладёт решение в очередь (`backend/src/jobs.rs`) и отвечает `202`; клиент опрашивает
+`GET /api/exercises/run/{id}` (`queued` с местом в очереди → `running` → `done` с результатом, `pages/chapter/code.rs`). Выполняет внешний воркер
+`worker/worker.py` (на этой же машине или другой, `SAY_WORKER_TOKEN`): сам приходит за заданиями по HTTPS на `/internal/worker/*` и не имеет доступа
+к базе. Полосы `light` (python/js/sql) и `heavy` (rust/c), аренда с сердцебиением, кэш результатов по хешу решения, потолок очереди, две попытки;
+изменения очереди — под одним замком процесса, **бэкенд работает одним экземпляром**. Песочница — только в `worker/runner.py` (`_run_container`:
+имя контейнера, остановка по таймауту, потолок вывода, `--cap-drop ALL`, `nobody`). Встроенного воркера нет. Подробности и развёртывание воркера
+на домашнем сервере — `docs/code-runner.md`; тесты очереди — `backend/tests/api.rs`.
 
 ## Развёртывание
 
-Этап 1 — одна машина, на которой есть только docker compose: `deploy/docker-compose.yml` (proxy на Caddy, api, worker, dind, backup, разовый images),
-Dockerfile'ы и `Caddyfile` рядом. Инструкция для агента на сервере — `docs/deploy-agent.md`, рассуждения и план масштабирования — `deploy.md`.
-Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в контейнеры не монтируем); каталог песочниц `/sandboxes` — общий том воркера и dind.
-Переменные окружения API: `SAY_DB`, `SAY_RUNNER`, `SAY_WORKER_TOKEN`, `SAY_DEFAULT_USERS=0` (на сервере временные пользователи выключены; в продакшен-сборке
-фронтенда `import.meta.env.DEV` убирает и предзаполнение формы входа), `SAY_SECURE_COOKIE=1` (cookie только по HTTPS). Озвучка вынесена в extra:
-`uv run --extra voice …` (веб-сервису и воркеру torch не нужен).
+Одна машина, на которой есть только docker compose: `deploy/docker-compose.yml` (proxy на Caddy со статикой Leptos, api на axum, surrealdb, worker, dind,
+backup, разовый images), Dockerfile'ы (`backend.Dockerfile`, `proxy.Dockerfile`, `worker.Dockerfile`) и `Caddyfile` рядом. Инструкция для агента на сервере —
+`docs/deploy-agent.md`, рассуждения о прежнем стеке — `deploy.md` (исторический). Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в
+контейнеры не монтируем); каталог песочниц `/sandboxes` — общий том воркера и dind. Сборка бэкенда — с секретом `lab_token` (`LAB_TOKEN=… docker compose …
+up -d --build`) или с готовым `cargo vendor` (`SAY_VENDOR_DIR`). Озвучка в образы не входит (`voice/` — отдельно).
 
-## Параллельный бэкенд на axum + SurrealDB (`backend-rs/`)
+## Бэкенд: axum + SurrealDB (`backend/`)
 
-Вторая реализация API рядом с Python-бэкендом (`backend/`), которую можно запускать вместо него: **те же маршруты и JSON** (`/api/books`,
-`/api/chapters`, `/api/progress`, `/api/quizzes`, `/api/answers`, `/api/exercises`, `/internal/worker`), кроме auth: вход, регистрация и админка
-— общие crates lab (`auth`, `auth_api`, `admin_api`, `system_tasks`, `mail`, `observability`) из приватного реестра `lab`
-(`/Users/rysev-a/Projects/lab/.worktrees/main/packages`; стандарт структуры — `web-services/standard.md` там же). Версии и features —
-в `[workspace.dependencies]` `backend-rs/Cargo.toml`: список **1 в 1 как в lab** (`web-services/Cargo.toml`), `Cargo.lock` взят оттуда же (чтобы
-граф зависимостей и готовые базовые образы совпадали); сверх списка только `rusqlite` (чтение SQL-файлов сида) и `sha2`. При обновлении версий в lab
-обновляйте и здесь, не расходитесь.
+Маршруты: `/api/books`, `/api/chapters`, `/api/progress`, `/api/quizzes`, `/api/answers`, `/api/exercises`, `/api/slides`, `/api/labs`, `/internal/worker`; вход,
+регистрация и админка — общие crates lab (`auth`, `auth_api`, `admin_api`, `system_tasks`, `mail`, `observability`) из приватного реестра `lab`
+(`/Users/rysev-a/Projects/lab/.worktrees/main/packages`; стандарт структуры — `web-services/standard.md` там же). Версии и features — в `[workspace.dependencies]`
+`backend/Cargo.toml`: список **1 в 1 как в lab** (`web-services/Cargo.toml`), `Cargo.lock` взят оттуда же (чтобы граф зависимостей и готовые базовые образы
+совпадали); сверх списка только `rusqlite` (чтение SQL-файлов сида) и `sha2`. При обновлении версий в lab обновляйте и здесь, не расходитесь.
 
 - Устройство: `lib.rs` (роутер, `build()` — схема, сид, auth, фоновые задачи), `config.rs` (окружение), `db.rs` (подключение к SurrealDB и схема таблиц),
-  `seed.rs` (сид содержимого из тех же файлов, что у Python: `backend/app/data/textbook/**/*.md` и `sql/{books.sql,tasks,quizzes,answers}` — SQL
+  `seed.rs` (сид содержимого из `backend/data`: `textbook/**/*.md`, `slides`, `labs` и `sql/{books.sql,tasks,quizzes,answers}` — SQL
   выполняется в SQLite в памяти и переносится в SurrealDB; пересев только если изменился хеш исходников, режим `SEED=auto|always|off`), модули маршрутов
   `courses`, `progress`, `quizzes`, `answers`, `exercises`, `worker_api`, очередь проверок `jobs.rs` (та же модель, что у Python: аренда, сердцебиение, кэш,
   две попытки; изменения очереди — под одним замком процесса, **бэкенд работает одним экземпляром**), `practice.rs`, `schema_view.rs` (ERD-данные SQL-задач).
-  Номера глав и порядок книг совпадают с Python-бэкендом (id глав раздаются так же).
+  Id глав раздаются по порядку книг и глав; id аудио — `uuid5` от `<audio_prefix книги><глава>-l<индекс абзаца>`.
 - Сессия — токен (`Authorization: Bearer`, его выдаёт `POST /api/auth/login`), вход по **email** (логинов у crate `auth` нет, имя — `profile.name`);
-  пароль не короче 8 символов (демо-пользователи `DEMO_USER_*`, `DEMO_ADMIN_*` — без политики, только для разработки). Фронтенд работает с обоими бэкендами
-  (`lib/api.ts` — токен в `localStorage` и разбор ошибок `detail`/`error`; `lib/auth.tsx` — нормализация ответов, `/signup` как запасной путь регистрации).
-  Пользователи и прогресс Python-бэкенда в SurrealDB **не переносятся**.
-- **Проверку кода выполняет внешний воркер** `backend/worker.py` (Docker-оркестрация осталась в Python: `runner.py`), бэкенд только ведёт очередь и отдаёт
+  пароль не короче 8 символов (демо-пользователи `DEMO_USER_*`, `DEMO_ADMIN_*` — без политики, только для разработки). Фронтенд работает с этим API
+  (`frontend/app/src/session.rs`, клиент — `frontend/crates/api`).
+ 
+- **Проверку кода выполняет внешний воркер** `worker/worker.py` (Docker-оркестрация — Python, `worker/runner.py`), бэкенд только ведёт очередь и отдаёт
   задания по `/internal/worker/*` с токеном `SAY_WORKER_TOKEN`; встроенного локального воркера нет.
 - Запуск для разработки (SurrealDB из dev-стека lab: `ws://127.0.0.1:8123`, root/devpass):
-  `cd backend-rs && SURREAL_USER=root SURREAL_PASS=devpass BIND=127.0.0.1:8001 SAY_WORKER_TOKEN=dev DEMO_USER_EMAIL=student@mail.com DEMO_USER_PASSWORD=student DEMO_ADMIN_EMAIL=programmer@mail.com DEMO_ADMIN_PASSWORD=programmer cargo run`;
-  воркер: `cd backend && SAY_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:8001 --name dev --light 2 --heavy 1`;
-  фронтенд: `cd frontend && API_URL=http://127.0.0.1:8001 npx vite --port 5174`. Без доступной SurrealDB (и без `DB_STRICT`) бэкенд работает на базе в памяти.
+  `cd backend && SURREAL_USER=root SURREAL_PASS=devpass BIND=127.0.0.1:8001 SAY_WORKER_TOKEN=dev DEMO_USER_EMAIL=student@mail.com DEMO_USER_PASSWORD=student DEMO_ADMIN_EMAIL=programmer@mail.com DEMO_ADMIN_PASSWORD=programmer cargo run`;
+  воркер: `cd worker && SAY_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:8001 --name dev --light 2 --heavy 1`;
+  фронтенд: `cd frontend/app && trunk serve`. Без доступной SurrealDB (и без `DB_STRICT`) бэкенд работает на базе в памяти.
   Переменные: `BIND`, `SURREALDB_URL`, `SURREAL_USER`/`SURREAL_PASS`/`SURREAL_NS`/`SURREAL_DB`, `DB_STRICT`, `DATA_DIR`, `AUDIO_DIR`, `STATIC_DIR` (раздача `frontend/dist`),
   `SAY_WORKER_TOKEN`, `SEED`, `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `APP_URL`, `SITE_NAME`, `SMTP_*` (без `SMTP_HOST` письма только в задачах админки).
 - Тесты: `cd backend-rs && cargo test` (SurrealDB в памяти, сид из настоящих исходников, вход, прогресс, квизы, ответы, очередь и API воркера).
-- Docker: `deploy/backend-rs.Dockerfile` (контекст — корень репозитория; секрет сборки `lab_token` = токен gitness, `LAB_TOKEN=… docker build --secret id=lab_token,env=LAB_TOKEN`)
-  и `deploy/docker-compose.rust.yml` (поверх `docker-compose.yml`: `api` на axum, `surrealdb`, резервные копии `surreal export`); см. `docs/deploy-agent.md`.
+- Docker: `deploy/backend.Dockerfile` (контекст — корень репозитория; секрет сборки `lab_token` = токен gitness, `LAB_TOKEN=… docker build --secret id=lab_token,env=LAB_TOKEN`)
+  и `deploy/docker-compose.yml` (api, surrealdb, резервные копии `surreal export`, worker, dind); см. `docs/deploy-agent.md`.
 
-## Параллельный фронтенд на Leptos и данные курса (`frontend-rs/`, `shared-rs/`)
+## Фронтенд на Leptos и общие крейты (`frontend/`, `shared-rs/`)
 
-Рядом с React-фронтом (`frontend/`) живёт Leptos-фронт (`frontend-rs/`: Leptos 0.8 CSR + trunk, версии библиотек — как в lab,
-`/Users/rysev-a/Projects/lab/.worktrees/main`). Его цель — заменить React. **Содержимое курса — данные на бэкенде** (SurrealDB,
-`backend-rs`), клиент только рисует. Lab-крейты фронтенда (`auth_client`, `ui_kit`, `admin_ui`) из реестра не ставятся — вход и оболочка
-написаны здесь. Стили общие: `app/index.html` подключает `../../frontend/src/App.css`, своё — `app/style.css`; новых CSS-классов для слайдов
-не заводим (те же `a-*`, `s-*`).
+Фронтенд — Leptos 0.8 CSR + trunk (версии библиотек — как в lab, `/Users/rysev-a/Projects/lab/.worktrees/main`). **Содержимое курса — данные на бэкенде**
+(SurrealDB), клиент только рисует. Lab-крейты фронтенда (`auth_client`, `ui_kit`, `admin_ui`) из реестра не ставятся — вход и оболочка написаны здесь.
+Стили: `frontend/app/styles/{app,lab,netlab,sdlab,virtlab}.css` (общие, подключены в `app/index.html`) и `app/style.css` (редактор кода на textarea);
+новых CSS-классов для слайдов не заводим (те же `a-*`, `s-*`).
 
 **Общие крейты `shared-rs/`** (каждый — отдельный пакет без общего workspace; бэкенд и фронтенд подключают путём):
 - `highlight` — подсветка py/c/asm/rust/sql/js/css, `Lang` с serde;
@@ -110,43 +99,44 @@ Dockerfile'ы и `Caddyfile` рядом. Инструкция для агент�
   вид элемента у `id`, конечные числа, метки шагов) и `Scene::lint` (текст влезает в ячейки, ничего за холстом), `Slide`/`Block`/`Chapter`
   (блоки: схема, код, «НА ЭКРАНЕ», подпись, врезка, подсказка, темы, карточки, таблица), конструкторы `content::dsl`;
 - `gen` — **генераторы содержимого на Rust**: `generated()` (главы, у которых источник — код: `py_ch00`, `dm/ch01…10`), `bin generate <каталог>` пишет
-  файлы данных, `bin import_ts_slides <выгрузка> <каталог>` — разовый перенос прежних слайдов из TypeScript (выгрузка:
-  `cd frontend && node scripts/slides-export.mjs /tmp/sx`; сцены ручной отрисовки React (`kit.tsx`) подставляются из `dm/*`), `bin lint_slides <каталог>`.
-  Новые главы пишем генераторами: сцена = `SceneSpec` из кадров, глава = `Chapter`; ошибки ловят `Scene::compile`, `Chapter::check`, `lint`.
+  файлы данных, `bin lint_slides <каталог>` проверяет их. Новые главы пишем генераторами: сцена = `SceneSpec` из кадров, глава = `Chapter`; ошибки ловят
+  `Scene::compile`, `Chapter::check`, `lint`.
+- лаборатории `sdlab`, `netlab`, `archlab`, `riscvlab`, `virtlab` — раздел «Лаборатории».
 
-**Хранение:** файлы `backend/app/data/slides/<книга>-<глава>.json` (канонический JSON `content::Chapter`; руками не правим — их строят
-генераторы/перенос) → сид `backend-rs` кладёт в таблицы `slide_chapters` (рубрика, число слайдов) и `slides` (слайд — документ, тело — массив
-блоков; сцена — вложенный JSON) → `GET /api/slides` (главы со слайдами) и `GET /api/slides/{книга}/{глава}`. Сид проверяет каждую главу
-(`Chapter::check`) и входит в хеш пересева. Клиент (`crates/api` → `Client::slides`) получает `content::Chapter` и рисует `components/blocks.rs`
-(`DataSlide`/`BlockView`) и `scene::SceneView`. Код Python во врезках подсвечивается единым набором ключевых слов (прежние наборы по главам
-не переносились).
+**Хранение содержимого:** слайды — файлы `backend/data/slides/<книга>-<глава>.json` (канонический JSON `content::Chapter`). Для глав из `gen::generated()`
+источник — генератор (файл перезаписывается `generate`, руками не правим); остальные главы были перенесены из прежнего TypeScript один раз, и теперь JSON —
+единственный источник (правка скриптом или вручную, затем `lint_slides` и пересев). Сид бэкенда кладёт их в таблицы `slide_chapters` (рубрика, число слайдов)
+и `slides` (слайд — документ, тело — массив блоков; сцена — вложенный JSON) → `GET /api/slides` и `GET /api/slides/{книга}/{глава}`. Сид проверяет каждую главу
+(`Chapter::check`) и входит в хеш пересева. Клиент (`frontend/crates/api` → `Client::slides`) получает `content::Chapter` и рисует `components/blocks.rs`
+(`DataSlide`/`BlockView`) и `scene::SceneView`. Квизы, код-задачи и упражнения с вводом ответа — SQL-файлы `backend/data/sql/{quizzes,tasks,answers}`,
+которые правят напрямую (см. «Упражнения в БД» и «Квизы в БД»); лаборатории — JSON `backend/data/labs`.
 
-- Состав `frontend-rs` (workspace): `crates/scene` (отрисовка схем: `Stage`, `SceneView`, виды всех элементов, `Paint`, `use_steps`,
-  `use_reveal`), `crates/api` (клиент и DTO), `app`
-  (оболочка, вход, прогресс, плеер на виртуальных часах 14 симв/с, окно «За кадром», слайды, квиз, ответы, практика с кодом).
-- Запуск: backend-rs на 8001 (см. выше), затем `cd frontend-rs/app && trunk serve` (порт 7054, `/api` проксируется на 8001).
-  Тесты: `cd frontend-rs && cargo test --workspace`, `cd shared-rs/content && cargo test`, `cd shared-rs/gen && cargo test`.
-  Проверка данных: `cd shared-rs/gen && cargo run --release --bin lint_slides ../../backend/app/data/slides`.
-- Правила те же: число абзацев = число сцен = число частей, цвета только `--s-*`, озвучки нет.
+- Состав `frontend` (workspace): `crates/scene` (отрисовка схем: `Stage`, `SceneView`, виды всех элементов, `Paint`, `use_steps`, `use_reveal`), `crates/api`
+  (клиент и DTO), `app` (оболочка, вход, прогресс, плеер на виртуальных часах 14 симв/с, окно «За кадром», слайды, квиз, ответы, практика с кодом).
+- Запуск: бэкенд на 8001 (см. выше), затем `cd frontend/app && trunk serve` (порт 7054, `/api` проксируется на 8001).
+  Тесты: `cd frontend && cargo test --workspace`, `cd shared-rs/<крейт> && cargo test`.
+  Проверка данных: `cd shared-rs/gen && cargo run --release --bin lint_slides ../../backend/data/slides`.
+- Правила: число абзацев = число сцен = число частей, цвета только `--s-*` (обе темы), озвучки нет; движение — через CSS-переходы и состояние,
+  `prefers-reduced-motion` отключает его; сцена = `labels`/`caption` одинаковой длины, число кадров = число подписей; метки `cues` — по доле символов.
 
 ## Лаборатории: данные, движки на Rust, проверка на сервере
 
 Упражнения-лаборатории (книги 14 «схемы, Мини-8, RISC-V», 15 «сети», 17 «виртуализация», 18 «системный дизайн») — **данные на бэкенде**, а расчёт —
 общие Rust-крейты `shared-rs/{archlab,riscvlab,netlab,sdlab,virtlab}` (serde, без браузера; собираются нативно и в wasm). Они же работают в интерфейсе
-Leptos (расчёт в браузере) и на сервере (**проверка присланного решения**, раньше доверяли клиенту).
+Leptos (расчёт в браузере) и на сервере (**проверка присланного решения**: клиенту не доверяем).
 
-- **Данные:** `backend/app/data/labs/<вид>/<книга>-<глава:02>.json` (`arch`, `riscv` — оба в `labs/arch`, `net`, `virt`, `sd`): `LabChapter { book, chapter, lab,
-  tasks: [{ id, title, statement, hint, spec }] }`; в `spec` — сценарий (исходная схема, цели, ограничения) и эталон (`solution` / `reference`). Файлы канонические
-  и **не правятся руками**: их пишут бинари `import` каждого крейта из выгрузки TypeScript (`frontend/scripts/{sd,net,arch,riscv,virt}-export.mjs` — esbuild-бандл
-  прежнего кода; выгрузка же пишет «золотые» результаты TS для дифференциальных тестов, `shared-rs/*/tests/golden*.json`). Новые упражнения добавляют уже в данные
-  (генератор/правка JSON и тест крейта), TS-исходники — только справка до удаления React.
-- **Сид и API (`backend-rs/src/labs.rs`):** файлы идут в таблицу `lab_tasks` (входят в хеш пересева); `GET /api/labs/{книга}/{глава}` отдаёт упражнения **без эталона**
+- **Данные:** `backend/data/labs/<вид>/<книга>-<глава:02>.json` (`arch`, `riscv` — оба в `labs/arch`, `net`, `virt`, `sd`): `LabChapter { book, chapter, lab,
+  tasks: [{ id, title, statement, hint, spec }] }`; в `spec` — сценарий (исходная схема, цели, ограничения) и эталон (`solution` / `reference`). Файлы данных канонические, их правят
+  напрямую (или пишет скрипт-генератор) вместе с тестом крейта; «золотые» результаты прежнего TypeScript-движка лежат как фикстуры дифференциальных тестов
+  (`shared-rs/*/tests/golden*.json`) — тесты остаются, пересоздать их без тега `legacy-react-python` нельзя. Новые упражнения добавляют в данные, а эталон
+  обязан проходить проверку движка, исходная схема — нет.
+- **Сид и API (`backend/src/labs.rs`):** файлы идут в таблицу `lab_tasks` (входят в хеш пересева); `GET /api/labs/{книга}/{глава}` отдаёт упражнения **без эталона**
   (убираются `spec.solution` и `spec.reference`). `PUT /api/exercises/{книга}/{глава}/{id}/solved` для упражнений с данными лаборатории перепроверяет решение движком
   (`sd::verify_raw`, `net::verify_json`, `riscv::task::verify`, `virt::verify`, `arch.verify` — составные блоки собираются из решений самого ученика, `code_drafts`) и при
   отказе отвечает 422 с причиной. Упражнения без данных лаборатории принимаются как раньше (с предупреждением в журнале).
-- **Тесты бэкенда (`backend-rs/tests/api.rs`):** эталоны всех упражнений принимаются, исходные схемы — нет (системный дизайн, сети: все 79, архитектура: все 103
+- **Тесты бэкенда (`backend/tests/api.rs`):** эталоны всех упражнений принимаются, исходные схемы — нет (системный дизайн, сети: все 79, архитектура: все 103
   в порядке курса, RISC-V, виртуализация по `trace`).
-- **Интерфейс Leptos:** `frontend-rs/app/src/components/labs/` — `LabHost` (загрузка сценариев главы, отправка решения и показ причины отказа) и по модулю на вид
+- **Интерфейс Leptos:** `frontend/app/src/components/labs/` — `LabHost` (загрузка сценариев главы, отправка решения и показ причины отказа) и по модулю на вид
   лаборатории (`sd`, `virt`, `net`, `arch`, `riscv`); общий код досок — `board_view.rs`. Вкладка «Практика» главы из одних лабораторных упражнений получает класс
   `lab-pr` (полоса упражнений сверху).
 - Отличия от прежнего поведения: лимит `instances` у `app`/`ws` в системном дизайне поднят с 30 до 40 (эталоны итоговых упражнений 22–24 требовали 33–35);
@@ -154,120 +144,67 @@ Leptos (расчёт в браузере) и на сервере (**провер
 
 ## E2E-тесты (Playwright, TypeScript)
 
-`e2e/` — тесты браузера на Leptos-фронт и `backend-rs` (база в памяти, курс сидится из `backend/app/data`). Сборка и запуск — `e2e/README.md`
+`e2e/` — тесты браузера на Leptos-фронт и бэкенд (база в памяти, курс сидится из `backend/data`). Сборка и запуск — `e2e/README.md`
 (`npm run build` → `npm test`; одна книга — `npx playwright test tests/books/<файл>`). Каждый тест берёт нового пользователя (`loginFresh`), охрана консоли
 превращает панику Rust и `console.error` в провал. Тесты книг идут по одной главе за раз (`workers = 1`), лаборатории проверяются тремя способами: эталон
 через черновик, руками в интерфейсе и отказ сервера. Тест выявляет дефект приложения — чиним приложение, тест остаётся строгим (`test.fixme` — только
 временно). Перед фиксацией изменений интерфейса: пересобрать `e2e/.dist` и прогнать затронутые модули.
 
-## Контент: новые книги
+## Контент: новые книги и главы
 
 **Новые книги добавляются только со слайдами.** Для книги обязательно:
 
-1. Учебник в `backend/app/data/textbook/<id>-<slug>/<slug>-NN.md` (формат:
-   `#BOOK`, `#SECTION`, `#CHAPTER N | Название`, текст урока одной строкой,
-   абзацы — литеральными `\n\n`).
-2. Слайды для КАЖДОЙ главы в `frontend/src/slides/<slug>/chNN.tsx`
-   (формат — по образцу `frontend/src/slides/dm/ch04.tsx`: `const Slide = makeSlide(рубрика, число слайдов)` из
-   `slides/SlideFrame.tsx`, общие виджеты (`Node`, `Cmd`, `PyCode`, `RsCode`…) — из `slides/widgets.tsx`;
-   экспорт `SLIDES_<Xn>: Record<string, SlideComponent[]> = { "<bookId>:<N>": [...] }` + `SLIDE_TITLES_<Xn>`;
-   число сцен = числу абзацев урока). Каталог слайдов книги задаёт её строка в `backend/app/data/sql/books.sql` (поле `slides_dir`, приходит
-   в `/api/books`); главы находятся сами по `import.meta.glob`, вручную их подключать не надо.
-3. Квизы на теорию для каждой главы в `frontend/content/quizzes/<slug>.ts`
-   (`kind: "theory"`, 5 вопросов; поля `answer` и `expl` обязательны), подключить в `frontend/content/quizzes/index.ts`,
-   затем `cd frontend && npm run quizzes:export` (см. «Квизы в БД»).
-4. Регистрация книги — одна строка в `backend/app/data/sql/books.sql` (id, короткое имя `slug`, название, порядок `ord`,
-   `slides_dir`, `icon`, `audio_prefix`; иконка — запись с этим именем в `ICONS` в `components/BookIcon.tsx`), затем сид:
-   `cd backend && uv run seed_textbook.py`
-   (флаги: `--no-audio` — только БД, `--audio-only` — только аудио).
+1. Учебник `backend/data/textbook/<id>-<slug>/<slug>-NN.md` (формат: `#BOOK`, `#SECTION`, `#CHAPTER N | Название`, текст урока одной строкой, абзацы —
+   литеральными `\n\n`).
+2. Слайды для КАЖДОЙ главы: генератор в `shared-rs/gen` (сцена = `SceneSpec` из кадров, глава = `Chapter`, число сцен = числу абзацев; образцы —
+   `gen/src/dm/ch01.rs…ch10.rs`, `gen/src/py_ch00.rs`), регистрация в `generated()`, затем
+   `cd shared-rs/gen && cargo run --release --bin generate ../../backend/data/slides` и `lint_slides`.
+3. Квиз на теорию каждой главы — `backend/data/sql/quizzes/NN-<slug>.sql` (5 вопросов, `kind = 'theory'`, поля `answer` и `expl` обязательны; формат — по
+   соседним файлам).
+4. Регистрация книги — одна строка в `backend/data/sql/books.sql` (id, короткое имя `slug`, название, порядок `ord`, `audio_prefix`; поля `icon` и
+   `slides_dir` Leptos-фронтом не используются). Тест `backend/tests/api.rs` и e2e следят за согласованностью.
+5. Задачи — `backend/data/sql/tasks/NN-<книга>.sql` (см. «Упражнения в БД»); лаборатории — `backend/data/labs/<вид>/<книга>-<глава>.json`.
 
-## Порядок книг и новые главы Python
+Пересев происходит при старте бэкенда, если изменился хеш исходников (`SEED=always` — принудительно).
 
-- Порядок книг в левом меню — поле `ord` в `backend/app/data/sql/books.sql`, по плану
-  из `course.MD`; файл применяется при каждом запуске сервера и сида (upsert по id), прогресс пользователей не трогает.
-  Тест `tests/test_books.py` следит, чтобы каталоги слайдов, иконки, учебники, задачи и квизы ссылались на зарегистрированные книги.
-- Python (book 13, «Python как первый язык»): 52 главы **0–51** в 14 разделах: «Основы» (0 введение, 1–4),
-  «Данные и циклы» (5–8), «Словари и кортежи» (9–11), «Классы» (12–14), «Исключения и файлы» (15–17),
-  **«Модель данных» (18–21: специальные методы, перегрузка операторов, контейнеры/вызов/with, дескрипторы и слоты)**,
-  «Итераторы и генераторы» (22–23, **24 — send/throw/yield from**), «Функциональное программирование» (25–28),
-  **«Метапрограммирование» (29–32: декораторы глубже, интроспекция, метаклассы и `__init_subclass__`, ast/eval/dis)**,
-  «Стандартная библиотека» (33–39), **«Проектирование классов» (40–42: abc, протоколы и обобщения, MRO)**,
-  «Асинхронность» (43–45, **46 — async-итераторы и менеджеры контекста**), **«Питон изнутри» (47–49: память и gc,
-  байт-код и GIL, производительность)**, **«Проекты и инструменты» (50–51: пакеты, venv, uv; качество кода и шаблоны)**.
-  Главы 0–17 и 22–23, 25–28, 33–39, 43–45 — прежний формат (рукописные `slides/py/chNN.tsx`); новые главы
-  **18–21, 24, 29–32, 40–42, 46–51** написаны в анимированном формате: 13 абзацев = 13 сцен (`slides/anim/PyNN.tsx`, DSL `alg.tsx`
-  с `lang: "py"`, помощники `anim/cl.tsx`: `cc`, `Box`, `arrow`, `slot`), 9 код-задач (`py_tasks/datamodel.py`, `generators2.py`,
-  `metaprog.py`, `design.py`, `asyncs2.py`, `internals.py`, `projects.py`), квиз на 5 вопросов (`content/quizzes/py.ts`). Режим всех новых задач —
-  `stdout` со скрытым `driver` (ученик пишет класс/функцию, драйвер печатает результат; ban-приёмы — через ast по `/sandbox/solution.py`);
-  в главе 49 заготовки — «наивные» верные решения, которые не укладываются в лимит песочницы.
-  **Вставка главы в середину допускается** (так сделаны главы 18–21 и др.), но требует сдвига: номер входит в ключи слайдов
-  (`"13:N"`, `SLIDES_P<N>`), квизов, заданий (ключи словарей в `py_tasks/*.py`), в имя `py-NN.md` и первую фразу текста
-  («Глава N.»), в таблицы прогресса пользователя (`slide_views`, `quiz_picks`, `answer_solved`, `code_*` — колонка `chapter`
-  при `book_id = 13`) и в id аудио. Сдвиг делайте скриптом от больших номеров к меньшим, копию базы сохраняйте заранее;
-  после сдвига — пересид (`--no-audio`) и сборка фронта.
-- Код-задачи лежат по книгам: `exercises/py_tasks/<раздел>.py` («Изучаем
-  Python», book 13), `exercises/algo_tasks/ch*.py` («Алгоритмы», book 7) и
-  `exercises/linux_tasks/ch*.py` («Linux», book 8) и
-  `exercises/db_tasks/ch*.py` («Базы данных», book 9) и
-  `exercises/rust_tasks/ch*.py` («Изучаем Rust», book 10),
-  `exercises/virt_tasks/ch*.py` («Виртуализация», book 17);
-  ключ — номер главы, реестр книг — `BOOK_TASKS` в `exercises/sources.py`.
-  Решения — на Python (песочница умеет только его), в книге БД есть ещё режим
-  `sql`: запрос ученика выполняется в SQLite на готовой базе `setup`; сравнивается
-  результат последнего SELECT (или контрольного запроса `check`) — как множество
-  строк или по порядку (`ordered`), для планов запросов — подстроки `contains` /
-  `forbid`. Режим `rust`: код ученика + скрытый `driver` (функция `main` проверки)
-  собираются в один файл и компилируются `rustc` в образе `rust:1.97-slim` (без сети,
-  только std; loopback-сокеты работают); драйвер оборачивается в `mod __say_driver`
-  (`runner.wrap_rust_driver`), поэтому его `use` не конфликтуют с импортами ученика.
-  Новая книга с упражнениями — новый пакет, запись в `BOOK_TASKS` (`sources.py`) и имя в `BOOK_NAMES` (`export_tasks.py`).
-- Эффективность в задачах на алгоритмы проверяйте не словами: драйвер
-  считает обращения к данным (подкласс списка со счётчиком `__getitem__`)
-  или подаёт вход, на котором O(n²) не успевает за лимит песочницы (25 с);
-  для проверки запускайте и наивное решение — оно должно падать.
-- Режимы задач: `func` (вызов функции с JSON-аргументами; кортежи — настоящими
-  кортежами), `stdout` (сравнение вывода) и `stdout` со скрытым `driver` —
-  код, который после решения ученика печатает результат (классы, файлы,
-  генераторы, моки). В задачах главы «Тестирование» ученик пишет тесты, а
-  драйвер прогоняет их против верной и сломанных реализаций.
-- «Архитектура компьютера» (book 14) — не код-задачи, а интерактивная лаборатория в
-  браузере (раздел «Книга 14» ниже); `exercises/arch_tasks/__init__.py` лишь читает
-  `lab_manifest.json` (id, название и условие упражнений).
-- Каждый эталон задачи проверяйте в песочнице: решение проходит, пустая
-  заготовка — нет.
+## Порядок книг и книга 13 «Python как первый язык»
 
-## Упражнения в БД: SQL-файлы для инициализации
+- Порядок книг в левом меню — поле `ord` в `backend/data/sql/books.sql`, по плану из `course.MD`; прогресс пользователей сид не трогает.
+- Python (book 13): 52 главы **0–51** в 14 разделах: «Основы» (0 введение, 1–4), «Данные и циклы» (5–8), «Словари и кортежи» (9–11), «Классы» (12–14),
+  «Исключения и файлы» (15–17), «Модель данных» (18–21), «Итераторы и генераторы» (22–24), «Функциональное программирование» (25–28),
+  «Метапрограммирование» (29–32), «Стандартная библиотека» (33–39), «Проектирование классов» (40–42), «Асинхронность» (43–46), «Питон изнутри» (47–49),
+  «Проекты и инструменты» (50–51). Главы пишутся в анимированном формате: 13 абзацев = 13 сцен, 9 код-задач, квиз на 5 вопросов. Режим всех новых задач —
+  `stdout` со скрытым `driver` (ученик пишет класс/функцию, драйвер печатает результат; ban-приёмы — через ast по `/sandbox/solution.py`).
+- **Вставка главы в середину допускается**, но требует сдвига: номер входит в имя файла слайдов (`13-NN.json`), `py-NN.md` и первую фразу текста («Глава N.»),
+  в ключи квизов, задач и упражнений (SQL), в таблицы прогресса пользователя в SurrealDB (колонка `chapter` при `book_id = 13`) и в id аудио. Сдвиг делайте
+  скриптом от больших номеров к меньшим, копию базы сохраняйте заранее.
+- Режимы код-задач (поле `mode` в `tasks`, всё остальное — тесты, эталонный вывод, драйвер, `setup`, `flags` — лежит в `spec`): `func` (вызов функции с
+  JSON-аргументами; кортежи — настоящими кортежами), `stdout` (сравнение вывода; со скрытым `driver` — код, который после решения ученика печатает
+  результат: классы, файлы, генераторы, моки), `sql` (запрос ученика выполняется в SQLite на готовой базе `setup`; сравнивается результат последнего SELECT
+  или контрольного запроса `check` — как множество строк или по порядку `ordered`; для планов — `contains`/`forbid`), `rust` (код ученика + скрытый `driver`
+  собираются в один файл и компилируются `rustc` в образе `rust:1.97-slim`: без сети, только std; драйвер оборачивается в `mod __say_driver`), `c`
+  (gcc 14), `js` (node 22), `lab` (упражнения лабораторий, проверка движком). Реестр режимов и образов — `worker/runner.py`.
+- Эффективность в задачах на алгоритмы проверяют не словами: драйвер считает обращения к данным (подкласс списка со счётчиком `__getitem__`) или подаёт вход,
+  на котором O(n²) не успевает за лимит песочницы (25 с); для проверки запускайте и наивное решение — оно должно падать.
+- Каждый эталон задачи проверяйте в песочнице: решение проходит, пустая заготовка — нет.
 
-Во время работы приложение читает задачи **только из таблицы `tasks`** (`book_id, chapter, id, ord, mode, title,
-statement, starter, hint, spec`; всё остальное — тесты, эталонный вывод, драйвер, `setup`, `flags` — лежит в `spec`
-как JSON, кортежи Python хранятся как `{"__tuple__": [...]}` и возвращаются кортежами; код — `app/exercises/store.py`).
-Если база потеряна, задачи возвращают SQL-файлы `backend/app/data/sql/tasks`: `00-schema.sql` создаёт таблицу и
-очищает её, `NN-<книга>.sql` — по одному `INSERT` на задачу. Восстановление любым из способов:
+## Упражнения в БД: SQL-файлы
 
-- запустить сервер (пустая таблица `tasks` заполняется сама) или `cd backend && uv run seed_textbook.py --no-audio`
-  (перезагружает задачи из SQL одновременно с пересидом курса);
-- вручную: `sqlite3 backend/app/data/say.db < backend/app/data/sql/tasks/*.sql`.
-
-Авторский формат прежний — Python-модули `exercises/*_tasks` (и `lab_manifest.json` у книг 14 и 15). После любой
-правки задач: `cd backend && uv run export_tasks.py` (или `cd frontend && npm run tasks:export`), SQL-файлы
-коммитятся вместе с правкой, затем `uv run seed_textbook.py --no-audio` или перезапуск пустой БД. Тест
-`tests/test_tasks.py` падает, если SQL отстал от модулей, и проверяет, что загрузка из SQL возвращает каждую задачу
-без потерь. После `npm run lab:manifest` и `npm run net:manifest` тоже запускайте `tasks:export`.
+Во время работы приложение читает задачи **только из таблицы `tasks`** (`book_id, chapter, id, ord, mode, title, statement, starter, hint, spec`; всё остальное —
+тесты, эталонный вывод, драйвер, `setup`, `flags` — в `spec` как JSON, кортежи Python хранятся как `{"__tuple__": [...]}` и возвращаются кортежами).
+Источник истины — SQL-файлы `backend/data/sql/tasks`: `00-schema.sql` создаёт таблицу, `NN-<книга>.sql` — по одному `INSERT` на задачу. Их **правят
+напрямую** (авторских Python-модулей больше нет: прежние — в теге `legacy-react-python`); бэкенд сидит их при старте, если изменился хеш исходников.
+Новые задачи проверяйте в песочнице (`worker/runner.py`): решение проходит, пустая заготовка — нет.
 
 ## Квизы в БД: ответы только на сервере
 
-Исходники квизов — `frontend/content/quizzes/*.ts` (в приложение не попадают). `npm run quizzes:export` превращает их в
-SQL-файлы `backend/app/data/sql/quizzes` (`00-schema.sql` — таблицы `quizzes` и `quiz_questions` и очистка, `NN-<книга>.sql`
-— по одному `INSERT` на квиз и вопрос), `npm run quizzes:check` проверяет, что файлы не отстали (код возврата 1). В БД квизы
-попадают так же, как задачи: пустую таблицу сервер заполняет при запуске, `uv run seed_textbook.py --no-audio`
-перезагружает, вручную — `sqlite3 backend/app/data/say.db < backend/app/data/sql/quizzes/*.sql`. После правки квиза:
-`npm run quizzes:export`, SQL коммитится вместе с правкой, затем перезагрузка квизов (сид или перезапуск пустой БД).
+Источник — SQL-файлы `backend/data/sql/quizzes` (`00-schema.sql` — таблицы `quizzes` и `quiz_questions`, `NN-<книга>.sql` — по одному `INSERT` на квиз и
+вопрос), их правят напрямую; сид загружает их в SurrealDB при старте, если изменился хеш исходников.
 
-API (`backend/app/quizzes`): `GET /api/quizzes` — число вопросов по главам; `GET /api/quizzes/{книга}/{глава}` — вопросы и варианты
-**без ответов** и `reveal` с ответом и пояснением для вопросов, на которые пользователь уже отвечал;
-`POST /api/quizzes/{книга}/{глава}/answer` `{question, pick}` — записывает выбор (на вопрос отвечают один раз) и возвращает верный
-ответ, пояснение и число верных; `DELETE /api/progress/quiz?book=&chapter=` — пройти заново. `GET /api/progress` отдаёт `quizRight`
-(число верных по главам), клиент ответов не знает. Выбранные варианты нельзя записать задним числом: `PUT /api/progress/quiz` убран.
+API (`backend/src/quizzes.rs`): `GET /api/quizzes` — число вопросов по главам; `GET /api/quizzes/{книга}/{глава}` — вопросы и варианты **без ответов** и
+`reveal` с ответом и пояснением для вопросов, на которые пользователь уже отвечал; `POST /api/quizzes/{книга}/{глава}/answer` `{question, pick}` — записывает
+выбор (на вопрос отвечают один раз) и возвращает верный ответ, пояснение и число верных; `DELETE /api/progress/quiz?book=&chapter=` — пройти заново.
+`GET /api/progress` отдаёт `quizRight` (число верных по главам), клиент ответов не знает. Выбранные варианты нельзя записать задним числом.
 
 ## Книга 9 «Базы данных»: устройство
 
@@ -334,7 +271,7 @@ employees), школа и фильмы; задачи пишутся в `exercise
 Каждый абзац урока озвучивается **отдельным wav-файлом** и показывается как
 отдельная «часть» главы: переключение слайда начинает играть его абзац с
 начала, без хвоста предыдущей фразы. Сидер делает это сам для всех глав всех
-книг (`split_paragraph_parts` в `books/seed.py`), фронт включает режим частей,
+книг (разбиение на абзацы в `backend/src/seed.rs`), фронт включает режим частей,
 когда у главы больше одной части. Поэтому:
 
 - число абзацев урока = число сцен в слайдах = число частей (проверяйте);
@@ -370,20 +307,13 @@ employees), школа и фильмы; задачи пишутся в `exercise
 
 ## Пользователи и кабинет
 
-Без входа приложение закрыто: форма входа и регистрации (`pages/auth/`), сессия — HttpOnly-cookie
-`say_session` (в базе только SHA-256 токена), пароли — scrypt (`backend/app/accounts/security.py`).
-**Временно** создаются два пользователя: `student@mail.com / student / student` и
-`programmer@mail.com / programmer / programmer`; форма входа по умолчанию заполнена student/student,
-под ней кнопки «войти как …» (убрать вместе с `DEFAULT_USERS` в `accounts/service.py`, когда будет
-настоящая регистрация). Весь прогресс — в таблицах пользователя (`accounts/schema.py`), ключ главы
-всегда «книга + номер главы», а не id главы (id меняются при пересиде): просмотренные слайды, ответы
-на вопросы, решённые задачи с вводом ответа, статусы код-задач, черновики кода, история попыток
-(до 50 на задачу). Клиент: `lib/auth.tsx` (кто вошёл), `lib/progress.tsx` (копия прогресса и
-мутаторы), `lib/api.ts` (fetch с разбором ошибок; 401 возвращает на форму входа). Проверка кода
-(`POST /api/exercises/run`) требует входа и пишет попытку; у пользователя одновременно идёт одна
-проверка. Таблицы пользователей сид курса не трогает. Тесты бэкенда (временная база, Docker не
-нужен): `cd backend && uv run python -m unittest discover -s tests -t .`. Свою базу можно указать
-переменной `SAY_DB`, а у Vite — `API_URL` (для проверки на копии данных).
+Без входа приложение закрыто: форма входа и регистрации (`frontend/app/src/pages/auth.rs`), сессия — токен (`Authorization: Bearer`, его выдаёт
+`POST /api/auth/login`), вход по **email**; пароль не короче 8 символов. Вход, регистрация, админка — общие crates lab. Для разработки бэкенд создаёт демо-
+пользователей из `DEMO_USER_*` и `DEMO_ADMIN_*` (`student@mail.com / student`, `programmer@mail.com / programmer`); на сервере они не задаются.
+Весь прогресс — в таблицах пользователя (SurrealDB), ключ главы всегда «книга + номер главы», а не id главы: просмотренные слайды, ответы на вопросы,
+решённые задачи с вводом ответа, статусы код-задач, черновики кода, история попыток (до 50 на задачу). Клиент: `session.rs` (кто вошёл), `progress.rs`
+(копия прогресса и мутаторы). Проверка кода (`POST /api/exercises/run`) требует входа и пишет попытку; у пользователя одновременно идёт одна проверка.
+Сид курса таблицы пользователей не трогает.
 
 ## Главная: дашборд прогресса
 
@@ -409,7 +339,7 @@ employees), школа и фильмы; задачи пишутся в `exercise
 `App.tsx`; общий макет и данные главы — `pages/chapters/detail.tsx`):
 
 - `/book/:bookId/chapter/:chapterId` — «Теория»: слайды и озвучка
-  (`pages/chapters/theory.tsx`);
+  (`pages/chapter/theory.rs`);
 - `.../questions` — «Вопросы»: квиз на теорию (`questions.tsx`);
 - `.../exercises` — «Практика» (`exercises.tsx`): упражнения с кодом в Docker.
 
@@ -427,7 +357,7 @@ employees), школа и фильмы; задачи пишутся в `exercise
 - Квизы (`frontend/content/quizzes/`) — только теория, `kind: "theory"`; живут в БД (раздел «Квизы в БД»).
 - Упражнения с вводом ответа — «Дискретная математика»
   (исходники `frontend/content/exercises/dm.ts`, ключ `"<bookId>:<N>"`, компонент `Exercises.tsx`). Живут в БД
-  (таблицы `answer_sets`, `answer_tasks`, SQL — `backend/app/data/sql/answers`, выгрузка `npm run answers:export`,
+  (таблицы `answer_sets`, `answer_tasks`, SQL — `backend/data/sql/answers`, выгрузка `npm run answers:export`,
   проверка актуальности `npm run answers:check`); клиент получает условия и подсказки без ответов, введённое
   проверяет сервер (`POST /api/answers/{книга}/{глава}/check`, сравнение без учёта регистра и пробелов, числа по
   значению), верный ответ не раскрывается. Решённые задачи — `answer_solved`; `DELETE /api/answers?book=&chapter=` —
@@ -754,7 +684,7 @@ WebSocket и чат; 12 лента новостей; 13 типовые зада�
 ## Что убрано и не возвращать
 
 - Текст урока как страница с чтением — нет. Текст показывается только всплывающим окном «За кадром» внизу экрана
-  (`VoiceText` в `pages/chapters/theory.tsx`): абзац текущего слайда, слова подсвечиваются по мере «чтения». Окно закреплено у нижнего края и стоит по центру области, где показано (колонка главы `.content` или `.slide-fs-main` в полном экране; `--vp-x`/`--vp-w`), подпись «За кадром» — сверху, по умолчанию высокое (до 12em текста); наверху «лапка» для высоты (тянуть вверх — выше, но не выше полного текста — только пока есть прокрутка; двойной клик — по умолчанию; `say-voice-h`), полная высота окна пишется в `--voice-h`, по ней плеер и поля страницы не прячутся под окном. Пока нет
+  (`VoiceText` в `pages/chapter/theory.rs`): абзац текущего слайда, слова подсвечиваются по мере «чтения». Окно закреплено у нижнего края и стоит по центру области, где показано (колонка главы `.content` или `.slide-fs-main` в полном экране; `--vp-x`/`--vp-w`), подпись «За кадром» — сверху, по умолчанию высокое (до 12em текста); наверху «лапка» для высоты (тянуть вверх — выше, но не выше полного текста — только пока есть прокрутка; двойной клик — по умолчанию; `say-voice-h`), полная высота окна пишется в `--voice-h`, по ней плеер и поля страницы не прячутся под окном. Пока нет
   wav, плеер крутит виртуальные часы (`lib/voice.ts`, ~14 символов в секунду) — слайды и `cues` идут по ним; когда у
   части появляется файл (бэкенд отдаёт `dur` > 0), играет он, окно остаётся.
 - Проверка кода в браузере: чекеры, Pyodide, web-tree-sitter удалены из
@@ -765,68 +695,10 @@ WebSocket и чат; 12 лента новостей; 13 типовые зада�
   самого упражнения и работают в браузере (это не проверка пользовательского Python).
 - Код-квизы: квизы только на теорию.
 
-## Фронтенд: TypeScript и проверки
-
-Весь `frontend/src` — строгий TypeScript (`.ts`/`.tsx`, JS-файлов нет). `tsconfig.json`: `strict`, `noUnusedLocals`,
-`noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `allowUnreachableCode: false`.
-`noUncheckedIndexedAccess` (элемент по индексу — `T | undefined`: проверяйте его или берите через помощники с понятной ошибкой вроде
-`deviceOf`; `!` — только когда индекс верен по построению, например в таблицах сцен). Необязательное свойство, которому
-передают возможное `undefined`, объявляйте как `имя?: T | undefined`. Проверки перед коммитом:
-
-- `cd frontend && npm run typecheck` — типы (`tsc -p .`), должно быть 0 ошибок; явный `any` не добавляем;
-- `npm run slides:check` — серверная отрисовка всех слайдов всех глав (ловит ошибки в сценах: неизвестный тип
-  элемента, нечисловая координата, падение компонента); `npm run lab:check`, `npm run net:check` — движки лабораторий, `npm run net:render` — отрисовка симулятора сети;
-- `npm run build`.
-
-Устройство слайдов: сцена — `scene({labels, caption, frames, base, cues})` из `slides/anim/alg.tsx`; элемент кадра —
-тип `SceneItem` (`slides/anim/dsl.ts`, там же конструкторы `Tx`, `Box`, `arrow`, `codeIn`); пакеты помощников
-`hw`, `lx`, `rs`, `cl`, `jv`, `db`, `ad` — тонкие надстройки над `dsl.ts` (новые конструкторы добавляйте в `dsl.ts`,
-если они нужны больше чем одной книге). Локальные помощники сцены, возвращающие элементы, обязательно с типом
-результата (`SceneItem[]`) — иначе литерал `t: "cell"` расширяется до `string`. Таблицы разнородных строк
-(`[["a", 1, true], …]`) — с аннотацией кортежа или `as const`. Общий код глав (подсветка Python и Rust, карточки
-`Node`/`Cmd`) живёт в `slides/widgets.tsx`: не копируйте его в файлы глав.
-
 ## Прочее
 
-- Слайд-файлы не вводят новых CSS-классов — только существующие из `frontend/src/App.css`. Импортируют они
-  лишь общее: `SlideFrame.tsx` (`makeSlide`), `widgets.tsx` и анимированные схемы — компоненты лежат в
-  `frontend/src/slides/anim/*.tsx`, слайд импортирует их оттуда, стили — классы `a-*` в конце `App.css`. Правила
-  для анимаций: цвета только из `--s-*` (обе темы), всё через CSS-переходы и
-  состояние React (автопроигрывание при показе слайда, кнопки шагов для ручного
-  выбора), `prefers-reduced-motion` отключает движение. Пошаговые сцены строятся
-  на `anim/kit.tsx` (`useSteps`, `Steps`, `G`, `Pill`, `Dot`, `Txt`); дополнительные
-  правки анимаций — в существующих файлах `anim/`, новые классы `a-*` — в конце `App.css`.
-
-## Анимированные слайды: эталонный формат
-
-Эталон — «Дискретная математика», глава 1 (`slides/dm/ch01.tsx`, сцены в
-`slides/anim/`). Для остальных математических глав делаем так же:
-
-- Каждый слайд главы = одна анимированная сцена на `Steps`/`useSteps` из
-  `anim/kit.tsx` (`<Steps ctl labels caption>`; внутри SVG 360×170) плюс
-  короткая заметка `s-note` и «ГЛАВНОЕ» как раньше. Слайд-файл только
-  импортирует сцену и рисует `<Сцена />`.
-- Шаги сцены = смысловые куски абзаца. Метки `cues` (секунды от начала абзаца)
-  считаются по готовому wav: паузы ≥0,2 с и положение предложений
-  (скрипт — найти паузы в wav, привязать начала предложений); без звука
-  сцена идёт по таймерам, кнопки шагов дают ручной выбор. Кнопки «заново» нет:
-  вернуться к началу — первая кнопка шага.
-- Сцена невидима первые кадры и всплывает чистым CSS (`.a-stage`, `.a-svg` с
-  `animation` и задержкой; прозрачность работает и при `prefers-reduced-motion`),
-  движение внутри стартует после `REVEAL_MS`. Время озвучки слайда при старте — 0,
-  а не «нет данных».
-- Если абзац переписан (больше примеров и т.п.) — число абзацев не менять;
-  перегенерировать wav этого абзаца и обновить `cues`. Один слайд — один wav.
-- Цвета только из `--s-*` (есть `--s-red`, `--s-blue`, `--s-amber`,
-  `--s-accent`), без новых цветов; тексты в SVG — классы `a-mono`/`a-cap`.
- Синхронизация с голосом —
-  приблизительная внутри слайда (жёсткая связь только «слайд = один wav»): анимация
-  читает время абзаца через `useSlideAudioTime()` (`lib/slideAudio.ts`) и получает
-  метки `cues` (секунды); метки берут по паузам в wav (тишина ≥0,2 с) и по
-  положению знаков препинания в тексте. Без звука идёт на таймерах.
-- Сборка фронта: `cd frontend && npm run build`.
+- Логи и wav-пробы не коммитим; код не оставляем «на всякий случай» — неиспользуемое удаляем (история в git, прежняя реализация — тег `legacy-react-python`).
 - `tasks/` — исходные планы курсов (algo, arch_oc, db_learn), не код.
-  Логи и wav-пробы не коммитим; код не оставляем «на всякий случай» —
-  неиспользуемое удаляем (история в git).
-- Python-код держим в `backend/`; пути считать от файлов пакета
-  (`app/config.py`), не от CWD.
+- Сборка и проверки перед коммитом: `cd backend && cargo test`, `cd frontend && cargo test --workspace`, тесты затронутых крейтов `shared-rs`,
+  `cd shared-rs/gen && cargo run --release --bin lint_slides ../../backend/data/slides`, при правках интерфейса — пересборка `e2e/.dist` и затронутые модули e2e.
+

@@ -605,18 +605,9 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Имена компонентов из импортов прежнего слайд-файла, по порядку.
-    fn imported() -> Vec<String> {
-        include_str!("../../../../frontend/src/slides/dm/ch07.tsx")
-            .lines()
-            .filter_map(|l| l.strip_prefix("import C7")?.split_whitespace().next().map(|n| format!("C7{n}")))
-            .collect()
-    }
-
     #[test]
     fn names_match_imports() {
         let names: Vec<String> = scenes().iter().map(|(n, _)| n.to_string()).collect();
-        assert_eq!(names, imported());
         assert_eq!(names.len(), 13);
     }
 

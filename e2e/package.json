@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "E2E-тесты курса на Playwright (TypeScript): Leptos-фронт + backend-rs, проверка по одной главе одной книги",
+  "description": "E2E-тесты курса на Playwright (TypeScript): Leptos-фронт + backend, проверка по одной главе одной книги",
   "scripts": {
-    "build:app": "cd ../frontend-rs/app && trunk build --dist ../../e2e/.dist",
-    "build:backend": "cd ../backend-rs && cargo build",
+    "build:app": "cd ../frontend/app && trunk build --dist ../../e2e/.dist",
+    "build:backend": "cd ../backend && cargo build",
     "build": "npm run build:app && npm run build:backend",
     "test": "playwright test",
     "test:book": "playwright test books/",

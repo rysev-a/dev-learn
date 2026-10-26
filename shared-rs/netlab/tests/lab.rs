@@ -8,7 +8,7 @@ use serde_json::{json, Value};
 use std::path::PathBuf;
 
 fn data_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/data/labs/net")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/net")
 }
 
 fn chapters() -> Vec<LabChapter> {
@@ -95,23 +95,7 @@ fn данные_полны_и_согласованы() {
     assert_eq!(n, 79);
 }
 
-#[test]
-fn ид_и_заголовки_совпадают_с_манифестом_задач() {
-    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/exercises/net_tasks/lab_manifest.json");
-    let m: Value = serde_json::from_str(&std::fs::read_to_string(p).expect("lab_manifest.json")).expect("json");
-    for c in chapters() {
-        let want = m[c.chapter.to_string()].as_array().cloned().unwrap_or_default();
-        assert_eq!(want.len(), c.tasks.len(), "глава {}", c.chapter);
-        for (w, t) in want.iter().zip(&c.tasks) {
-            assert_eq!(w["id"], t.id.as_str());
-            assert_eq!(w["title"], t.title.as_str());
-            assert_eq!(w["statement"], t.statement.as_str());
-            assert_eq!(w["hint"], t.hint.as_str());
-        }
-    }
-}
-
-/// Порт `frontend/scripts/net-selfcheck.mjs`: в исходной сети хотя бы одна цель не выполнена, эталон проходит.
+/// Самопроверка: в исходной сети хотя бы одна цель не выполнена, эталон проходит.
 #[test]
 fn самопроверка_заготовка_не_проходит_эталон_проходит() {
     for t in tasks() {

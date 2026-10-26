@@ -634,19 +634,9 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Имена сцен — в порядке импортов `slides/dm/ch05.tsx`.
-    fn ts_imports() -> Vec<String> {
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../frontend/src/slides/dm/ch05.tsx");
-        let src = std::fs::read_to_string(path).unwrap();
-        src.lines()
-            .filter_map(|l| l.strip_prefix("import C5")?.split_whitespace().next().map(|n| format!("C5{n}")))
-            .collect()
-    }
-
     #[test]
-    fn scene_names_match_the_react_components() {
+    fn thirteen_scenes() {
         let names: Vec<_> = scenes().iter().map(|(n, _)| (*n).to_string()).collect();
-        assert_eq!(names, ts_imports());
         assert_eq!(names.len(), 13);
     }
 

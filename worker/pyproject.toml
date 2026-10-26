@@ -1,0 +1,6 @@
+[project]
+name = "say-worker"
+version = "0.1.0"
+description = "Воркер проверки кода: только стандартная библиотека Python и Docker CLI"
+requires-python = ">=3.14"
+dependencies = []

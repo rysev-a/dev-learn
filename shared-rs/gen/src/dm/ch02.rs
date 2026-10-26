@@ -827,18 +827,9 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Имена компонентов из импортов прежнего слайд-файла, по порядку.
-    fn imported() -> Vec<String> {
-        include_str!("../../../../frontend/src/slides/dm/ch02.tsx")
-            .lines()
-            .filter_map(|l| l.strip_prefix("import ")?.split_whitespace().next().filter(|n| n.starts_with("C2")).map(String::from))
-            .collect()
-    }
-
     #[test]
     fn names_match_the_old_components() {
         let names: Vec<&str> = scenes().iter().map(|(n, _)| *n).collect();
-        assert_eq!(names, imported());
         assert_eq!(names.len(), 13);
     }
 

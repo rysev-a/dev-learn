@@ -1,4 +1,4 @@
-//! Общее для тестов: данные из `backend/app/data/labs/arch` и «золото» из TypeScript.
+//! Общее для тестов: данные из `backend/data/labs/arch` и «золото» из TypeScript.
 #![allow(dead_code)]
 
 use archlab::ArchLab;
@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 /// Каталог данных лаборатории (через `CARGO_MANIFEST_DIR`).
 pub fn data_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/data/labs/arch")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/arch")
 }
 
 /// Все главы 6–15.

@@ -1,5 +1,7 @@
 # Рефакторинг кодовой базы: итоги, что хранить в БД, что дальше
 
+> **Исторический документ (2026-10-26).** Описывает рефакторинг прежней кодовой базы (React + FastAPI); этот код удалён и сохранён в git-теге `legacy-react-python`. Планы миграции на Rust/Leptos выполнены — см. `AGENTS.md`.
+
 Ветка `refactor/cleanup-typescript` (от релиза `release/1.0.0`). Проверки, которыми подтверждён каждый шаг:
 `npm run typecheck` (tsc strict + `ts-guard`), `npm run slides:check` (отрисовка 3030 слайдов), `npm run lab:check`
 (83 решения лабораторий), `npm run net:check` (79 решений сетевой лаборатории), `npm run build`, тесты бэкенда
@@ -12,7 +14,7 @@
 | Фронтенд (`frontend/src`) | 738 файлов `.ts`/`.tsx`, ≈226 тыс. строк; слайды — 246 файлов глав и 338 файлов сцен (≈123 тыс. строк), стили — `App.css` (≈3,4 тыс. строк) |
 | Код-задачи (`backend/app/exercises/*_tasks`) | 4311 задач в 10 книгах, ≈170 тыс. строк Python с эталонами и скрытыми драйверами |
 | Квизы (`frontend/content/quizzes`) | 1281 вопрос в 11 файлах (≈13 тыс. строк) |
-| Учебники (`backend/app/data/textbook`) | 3,7 МБ markdown, сидятся в БД |
+| Учебники (`backend/data/textbook`) | 3,7 МБ markdown, сидятся в БД |
 | БД (`say.db`) | `books`, `sections`, `chapters`, `lessons`, `sayings`, `users`, `sessions`, `slide_views`, `quiz_picks`, `answer_solved`, `code_status`, `code_drafts`, `code_attempts` |
 
 ## 2. Что сделано
@@ -66,7 +68,7 @@
 
 Не переносить в БД: слайды и сцены (это React-компоненты и анимации), движки лабораторий, песочницу.
 
-Порядок: 1) задачи и манифесты лабораторий — **сделано** (таблица `tasks`, SQL для инициализации в `backend/app/data/sql/tasks`, раздел «Упражнения в БД» в `AGENTS.md`); 2) квизы — **сделано** (таблицы `quizzes` и `quiz_questions`, ответ выдаётся сервером после выбора варианта, SQL в `backend/app/data/sql/quizzes`); 3) метаданные книг — **сделано** (таблица `books` с полями `slug`, `slides_dir`, `icon`, `audio_prefix`; SQL — `backend/app/data/sql/books.sql`); заголовки слайдов остаются в главах: это тексты интерфейса, привязанные к сценам.
+Порядок: 1) задачи и манифесты лабораторий — **сделано** (таблица `tasks`, SQL для инициализации в `backend/data/sql/tasks`, раздел «Упражнения в БД» в `AGENTS.md`); 2) квизы — **сделано** (таблицы `quizzes` и `quiz_questions`, ответ выдаётся сервером после выбора варианта, SQL в `backend/data/sql/quizzes`); 3) метаданные книг — **сделано** (таблица `books` с полями `slug`, `slides_dir`, `icon`, `audio_prefix`; SQL — `backend/data/sql/books.sql`); заголовки слайдов остаются в главах: это тексты интерфейса, привязанные к сценам.
 
 ## 4. Виджеты и утилиты: что осталось объединить
 

@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 import { expect, type APIRequestContext, type APIResponse, type Locator, type Page } from "@playwright/test";
 import { bearer, chapterId } from "./fixtures";
 
-/* Лаборатории книги 14 (схемы, Мини-8, RISC-V): эталоны читаются из данных курса (backend/app/data/labs/arch),
+/* Лаборатории книги 14 (схемы, Мини-8, RISC-V): эталоны читаются из данных курса (backend/data/labs/arch),
    помощники API (черновики, решение, состояние) и открытие упражнения в практике главы. */
 
-const DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../backend/app/data/labs/arch");
+const DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../backend/data/labs/arch");
 
 export const BOOK = 14;
 /** Главы со схемами и ассемблером Мини-8: 6–15; RISC-V: 16–17. */

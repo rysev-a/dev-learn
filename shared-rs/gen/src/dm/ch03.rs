@@ -891,12 +891,6 @@ mod tests {
     fn names_match_the_old_components_in_order() {
         let names: Vec<_> = scenes().iter().map(|(n, _)| *n).collect();
         assert_eq!(names, COMPONENTS);
-        // и совпадают с импортами слайд-файла (если он рядом)
-        let ts = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../frontend/src/slides/dm/ch03.tsx");
-        if let Ok(src) = std::fs::read_to_string(ts) {
-            let imported: Vec<_> = src.lines().filter_map(|l| l.strip_prefix("import ")).filter_map(|l| l.split_whitespace().next()).filter(|n| n.starts_with("C3")).collect();
-            assert_eq!(imported, COMPONENTS);
-        }
     }
 
     #[test]

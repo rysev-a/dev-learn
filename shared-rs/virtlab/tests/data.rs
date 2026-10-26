@@ -1,4 +1,4 @@
-//! Файлы данных (`backend/app/data/labs/virt`) и serde-круг: данные читаются, пишутся обратно без потерь и совпадают
+//! Файлы данных (`backend/data/labs/virt`) и serde-круг: данные читаются, пишутся обратно без потерь и совпадают
 //! с тем, что строит `import` из `labs.py` и описаний симуляторов.
 
 use std::path::PathBuf;
@@ -9,7 +9,7 @@ use virtlab::labfile::build_chapters;
 use virtlab::{ept, hv, migration, numa, qcow2, virtq, Goal, GoalStatus, LabChapter, Spec, Verdict};
 
 fn data_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/data/labs/virt")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/virt")
 }
 
 fn round_trip<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(x: &T) {

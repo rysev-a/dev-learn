@@ -1,0 +1,11 @@
+[project]
+name = "say-voice"
+version = "0.1.0"
+description = "Озвучка курса (kokoro-ru): запускается один раз, когда готовы все главы всех книг; веб-сервису и воркеру не нужна"
+requires-python = ">=3.14"
+dependencies = [
+    "kokoro>=0.9.4",
+    "ruaccent>=1.5.8.3",
+    "soundfile>=0.14.0",
+    "huggingface_hub",
+]

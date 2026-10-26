@@ -1,4 +1,4 @@
-# Python-generated files
+# Python (воркер, озвучка)
 __pycache__/
 *.py[oc]
 build/
@@ -12,8 +12,7 @@ wheels/
 # Node
 node_modules/
 
-# app data
-say.db
+# модель озвучки и сгенерированное аудио
 models/
 audio/
 
@@ -27,8 +26,8 @@ experiments/*.wav
 deploy/.env
 
 # Rust
-backend-rs/target/
-frontend-rs/target/
-frontend-rs/app/dist/
+backend/target/
+frontend/target/
+frontend/app/dist/
 
 shared-rs/*/target

@@ -65,7 +65,7 @@ fn summarize(rs: &[GoalResult]) -> Vec<Value> {
 }
 
 fn data_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/data/labs/net")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/net")
 }
 
 fn golden() -> Value {

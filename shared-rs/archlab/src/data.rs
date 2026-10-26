@@ -49,7 +49,7 @@ impl ArchLab {
         Self::from_chapters(list)
     }
 
-    /// Из каталога `backend/app/data/labs/arch`: файлы `14-06.json` … `14-15.json` (чужие главы — RISC-V — пропускаются).
+    /// Из каталога `backend/data/labs/arch`: файлы `14-06.json` … `14-15.json` (чужие главы — RISC-V — пропускаются).
     pub fn load_dir(dir: &Path) -> Result<ArchLab, String> {
         let mut texts = Vec::new();
         for n in registry::chapters() {

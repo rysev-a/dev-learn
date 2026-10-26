@@ -1,0 +1,48 @@
+# Фронтенд «say» на Leptos (CSR, trunk) по стандарту lab (web-services/standard.md).
+#
+# Версии и features — ТОЛЬКО здесь, в [workspace.dependencies]; список общих crates и внешних зависимостей совпадает с фронтенд-частью
+# /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (Cargo.lock взят оттуда же, поэтому версии те же). Отличия от lab —
+# только расширенный список features у web-sys (нужны события и ResizeObserver) и свои crates сервиса (scene, api).
+[workspace]
+resolver = "2"
+members = ["app", "crates/scene", "crates/api"]
+
+[workspace.dependencies]
+# Общие фронтенд-crates lab (auth_client, ui_kit, admin_ui) не подключаем: на 2026-10-22 их нет в индексе реестра `lab`
+# (даже собственные фронтенды lab не резолвятся: «no matching package named auth_client»), поэтому вход и формы написаны здесь.
+# uniform external dependency set of all frontends (wasm32)
+chrono = { version = "0.4", features = ["serde"] }
+console_error_panic_hook = "0.1"
+gloo-net = { version = "0.7", default-features = false, features = ["http", "json"] }
+gloo-timers = { version = "0.4", features = ["futures"] }
+js-sys = "0.3"
+leptos = { version = "0.8.0", features = ["csr"] }
+leptos_meta = "0.8.0"
+leptos_router = "0.8.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+wasm-bindgen = "0.2.106"
+web-sys = { version = "0.3", features = [
+  "CssStyleDeclaration", "Document", "DomRect", "Element", "Event", "EventTarget", "HtmlElement", "HtmlInputElement",
+  "HtmlTextAreaElement", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "Node", "NodeList", "PointerEvent",
+  "ResizeObserver", "ResizeObserverEntry", "Storage", "Window", "History", "WheelEvent", "SvgsvgElement",
+  "Blob", "BlobPropertyBag", "HtmlAnchorElement", "Url",
+] }
+
+# свои crates сервиса
+highlight = { path = "../shared-rs/highlight" }
+content = { path = "../shared-rs/content" }
+# движки лабораторий (общие с бэкендом): расчёт в браузере и перепроверка на сервере — одним кодом
+sdlab = { path = "../shared-rs/sdlab" }
+virtlab = { path = "../shared-rs/virtlab" }
+archlab = { path = "../shared-rs/archlab" }
+riscvlab = { path = "../shared-rs/riscvlab" }
+netlab = { path = "../shared-rs/netlab" }
+scene = { path = "crates/scene" }
+api = { path = "crates/api" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

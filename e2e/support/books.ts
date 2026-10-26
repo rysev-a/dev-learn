@@ -4,11 +4,11 @@ import { fileURLToPath } from "node:url";
 import { bearer, chapters, expect, loginFresh, test, type ChapterRef } from "./fixtures";
 import type { APIRequestContext, Page } from "@playwright/test";
 
-/* Обход глав книги: по одной главе — один test. Список глав берётся статически из файлов слайдов `backend/app/data/slides`,
+/* Обход глав книги: по одной главе — один test. Список глав берётся статически из файлов слайдов `backend/data/slides`,
    id главы и её данные (слайды, число вопросов и упражнений) — из API при выполнении. */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const data = path.join(root, "backend", "app", "data");
+const data = path.join(root, "backend", "data");
 
 /** Номера глав книги, у которых есть файл слайдов `<книга:02>-<глава:02>.json`. */
 export function slideChapters(book: number): number[] {

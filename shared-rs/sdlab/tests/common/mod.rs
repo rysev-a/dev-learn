@@ -7,7 +7,7 @@ use sdlab::import::GoldenChapter;
 use sdlab::LabChapter;
 
 pub fn data_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/app/data/labs/sd")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd")
 }
 
 pub fn golden_dir() -> PathBuf {

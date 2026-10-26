@@ -6,7 +6,7 @@ use content::{
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, Y,
 };
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/app/data/slides/13-00.json`.
+/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/13-00.json`.
 pub fn chapter() -> Chapter {
     Chapter {
         book: 13,

@@ -9,7 +9,3 @@ description = "Лаборатория «Архитектура компьюте�
 serde = { version = "1", features = ["derive"] }
 # float_roundtrip: координаты вентилей читаются и пишутся без потери последнего знака
 serde_json = { version = "1", features = ["float_roundtrip"] }
-
-[[bin]]
-name = "import"
-path = "src/bin/import.rs"

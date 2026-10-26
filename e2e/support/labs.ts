@@ -8,7 +8,7 @@ import { bearer, chapterId } from "./fixtures";
    упражнение открывается по номеру главы и id, состояние проверяется и по интерфейсу, и по API. */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const DATA = path.join(root, "backend", "app", "data", "labs");
+const DATA = path.join(root, "backend", "data", "labs");
 
 export type LabKind = "sd" | "net" | "virt";
 
@@ -33,7 +33,7 @@ interface LabFile {
 
 const cache = new Map<string, LabFile>();
 
-/** Файл данных главы: `backend/app/data/labs/<вид>/<книга>-<глава:02>.json`. */
+/** Файл данных главы: `backend/data/labs/<вид>/<книга>-<глава:02>.json`. */
 export function labFile(kind: LabKind, chapter: number): LabFile {
   const name = `${BOOK[kind]}-${String(chapter).padStart(2, "0")}.json`;
   const file = path.join(DATA, kind, name);

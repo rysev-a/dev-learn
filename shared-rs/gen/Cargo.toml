@@ -3,7 +3,7 @@ name = "gen"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Генераторы содержимого курса: создают данные (главы, слайды, сцены) для бэкенда. import-ts-slides — разовый перенос прежних слайдов из выгрузки TypeScript."
+description = "Генераторы содержимого курса: создают данные (главы, слайды, сцены) для бэкенда."
 
 [dependencies]
 content = { path = "../content" }

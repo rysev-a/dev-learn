@@ -1,4 +1,4 @@
-//! Файлы данных упражнений: `backend/app/data/labs/sd/<книга>-<глава:02>.json` — по файлу на главу.
+//! Файлы данных упражнений: `backend/data/labs/sd/<книга>-<глава:02>.json` — по файлу на главу.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};

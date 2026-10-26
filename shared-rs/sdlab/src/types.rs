@@ -769,7 +769,7 @@ pub struct Task {
     pub spec: Scenario,
 }
 
-/// Файл данных главы: `backend/app/data/labs/sd/<книга>-<глава:02>.json`.
+/// Файл данных главы: `backend/data/labs/sd/<книга>-<глава:02>.json`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LabChapter {
     pub book: u32,

@@ -135,7 +135,7 @@ test("на карточке раздела есть квадратики гла�
 });
 
 // Дефект: у главы 0 (Python, глава 0; Unix, глава 0) просмотры слайдов не сохраняются: POST /api/progress/slides отвечает 422
-// («chapter: от 1 до 1000», `backend-rs/src/progress.rs`, `check_range`), клиент ошибку молча глотает — после перезагрузки счётчик обнуляется.
+// («chapter: от 1 до 1000», `backend/src/progress.rs`, `check_range`), клиент ошибку молча глотает — после перезагрузки счётчик обнуляется.
 test("просмотр слайдов главы 0 сохраняется на сервере", async ({ page, request }) => {
   const { token } = await loginFresh(page, request);
   const ch = await loadChapter(request, { book: 13, num: 0 });

@@ -9,7 +9,3 @@ description = "Лаборатория книги «Виртуализация» 
 serde = { version = "1", features = ["derive"] }
 # float_roundtrip: числа из JSON читаются точно (иначе возможна разница в последнем бите с JavaScript)
 serde_json = { version = "1", features = ["float_roundtrip"] }
-
-[[bin]]
-name = "import"
-path = "src/bin/import.rs"

@@ -1,6 +1,6 @@
 # audio learn
 
-Локальное приложение «слушай учебник»: книги → разделы → главы. Каждая глава — слайды, и у каждого слайда свой аудио-файл (абзац урока), плюс квиз на теорию в конце; в «Дискретной математике» — ещё и упражнения с вводом ответа. Голос — **kokoro-ru** (русский файнтюн Kokoro-82M, голоса Sveta / Masha / Dima), работает локально, без сети.
+Локальное приложение «слушай учебник»: книги → разделы → главы. Каждая глава — слайды, и у каждого слайда свой аудио-файл (абзац урока), плюс квиз на теорию в конце; в «Дискретной математике» — ещё и упражнения с вводом ответа. Голос — **kokoro-ru** (русский файнтюн Kokoro-82M, голоса Sveta / Masha / Dima), работает локально, без сети; озвучка генерируется один раз, когда готовы все книги (сейчас курс пишется без звука: у каждой части есть текст «За кадром»).
 
 ## Книги
 
@@ -20,56 +20,53 @@
 
 ## Запуск
 
-Backend (порт 8000, первый запрос к TTS загружает модель ~30–60 с):
+Бэкенд — axum + SurrealDB (порт 8001; без доступной SurrealDB работает на базе в памяти), фронтенд — Leptos (trunk, порт 7054).
+SurrealDB из dev-стека lab (`ws://127.0.0.1:8123`, root/devpass) либо контейнер `surrealdb` из `deploy/docker-compose.yml`.
 
 ```sh
-cd backend && uv run uvicorn app.main:app
+cd backend && SURREAL_USER=root SURREAL_PASS=devpass BIND=127.0.0.1:8001 SAY_WORKER_TOKEN=dev \
+  DEMO_USER_EMAIL=student@mail.com DEMO_USER_PASSWORD=student \
+  DEMO_ADMIN_EMAIL=programmer@mail.com DEMO_ADMIN_PASSWORD=programmer cargo run
+cd frontend/app && trunk serve          # http://127.0.0.1:7054, /api проксируется на 8001
+cd worker && SAY_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:8001 --name dev --light 2 --heavy 1
 ```
 
-Frontend (порт 5173, проксирует /api → 8000):
+Для код-упражнений воркеру нужен запущенный Docker и образы песочниц (`python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine`,
+`say-rust-crates:1` — сборка в `worker/docker/rust-crates`); без воркера остальное приложение работает как обычно
+(теория, вопросы и лаборатории в браузере; их решения проверяет сам бэкенд).
 
-```sh
-cd frontend && npm install && npm run dev
-```
-
-Открыть http://localhost:5173
-
-Для код-упражнений «Python как первый язык» нужен запущенный Docker и образ `python:3.13-slim` (`docker pull python:3.13-slim`); без него остальное приложение работает как обычно.
+Весь стек одной командой — `deploy/docker-compose.yml` (см. `docs/deploy-agent.md`). Тесты: `cd backend && cargo test`,
+`cd frontend && cargo test --workspace`, `cd shared-rs/<крейт> && cargo test`, браузерные — `e2e/README.md`.
 
 ## Структура
 
 ```
-backend/
-  app/
-    main.py        — FastAPI-приложение, подключает роутеры
-    config.py      — все пути (данные, аудио, БД, модели)
-    books/         — курс: router.py (API), service.py (БД, аудио), seed.py (сид)
-    voice/         — озвучка: engine.py (kokoro-ru), download_model.py,
-                     models/ (чекпоинты)
-    exercises/     — проверка кода в Docker-песочнице: tasks.py (чтение задач
-                     из БД), store.py (таблица tasks, SQL), runner.py (запуск),
-                     router.py (API); исходники задач — *_tasks, SQL для
-                     инициализации БД — data/sql/tasks
-    data/
-      textbook/    — исходники уроков, по директории на книгу
-      audio/       — сгенерированные wav
-      say.db       — SQLite
-  seed_textbook.py — CLI-утилита сида (курс, задачи, квизы)
-  export_tasks.py  — выгрузка задач из модулей в SQL-файлы
-frontend/          — React 19 + Vite
-  src/slides/      — слайды по книгам: <book>/chNN.tsx (реестр — lib/slides.ts)
-  content/quizzes/ — исходники квизов (в БД их загружают SQL-файлы
-                     backend/app/data/sql/quizzes: npm run quizzes:export)
-  content/exercises/ — исходники упражнений с вводом ответа (дискретная математика; в БД — через
-                     backend/app/data/sql/answers: npm run answers:export)
-  src/components/  — плеер, квиз, Exercises (ответы), CodePractice + CodeEditor (код, CodeMirror)
-  src/pages/       — книги и главы
+backend/           — axum + SurrealDB: API курса, прогресс, очередь проверок, вход (общие crates lab)
+  src/             — lib.rs (роутер), seed.rs (сид содержимого), slides.rs, labs.rs, exercises.rs, jobs.rs, …
+  data/            — содержимое курса, общий источник для сида:
+    textbook/      — тексты уроков, по директории на книгу
+    slides/        — слайды: <книга>-<глава>.json (строят генераторы shared-rs/gen)
+    labs/          — данные лабораторий: <вид>/<книга>-<глава>.json
+    sql/           — книги, задачи, квизы, упражнения с вводом ответа (SQL для сида)
+  tests/api.rs     — API-тесты на базе в памяти
+frontend/          — Leptos 0.8 CSR (trunk)
+  app/             — оболочка, страницы, слайды, практика, лаборатории; styles/ — общий CSS
+  crates/          — scene (отрисовка схем), api (клиент и DTO)
+shared-rs/         — общие крейты (бэкенд, фронтенд, генераторы): content, highlight, gen,
+                     лаборатории sdlab, netlab, archlab, riscvlab, virtlab
+worker/            — воркер проверки кода (Python, только стандартная библиотека + Docker CLI)
+voice/             — озвучка kokoro-ru (запускается один раз в конце работы над курсом)
+e2e/               — Playwright (TypeScript): тесты браузера на каждую книгу и модуль
+deploy/            — docker compose (proxy на Caddy, api, surrealdb, worker, dind, backup)
 tasks/             — исходные планы курсов (algo, arch_oc, db_learn)
 ```
 
+Прежняя реализация (FastAPI + SQLite, React + Vite, авторские модули задач на Python и TypeScript) удалена; она сохранена
+в git-теге `legacy-react-python` (`git show legacy-react-python:backend/app/exercises/py_tasks/…`).
+
 ## Наполнение (новая книга)
 
-Тексты лежат в `backend/app/data/textbook/<id>-<slug>/<slug>-NN.md`. Формат:
+Тексты лежат в `backend/data/textbook/<id>-<slug>/<slug>-NN.md`. Формат:
 
 ```
 #BOOK <id>                     ← необязательно, по умолчанию 1
@@ -78,32 +75,19 @@ tasks/             — исходные планы курсов (algo, arch_oc, 
 <текст урока одной строкой, абзацы — литеральными \n\n>
 ```
 
-Новая книга добавляется **только со слайдами** — полный чек-лист в `AGENTS.md`.
-Сид (идемпотентно: готовые .wav не пересоздаются):
-
-```sh
-cd backend
-uv run seed_textbook.py                # БД + недостающее аудио
-uv run seed_textbook.py --no-audio     # только перестроить БД
-uv run seed_textbook.py --audio-only   # только догенерировать аудио
-```
-
-Модель kokoro-ru скачивается один раз: `cd backend && uv run python -m app.voice.download_model` (~640 МБ).
+Новая книга добавляется **только со слайдами**; полный чек-лист — в `AGENTS.md`. Содержимое подхватывает сид бэкенда
+при запуске (пересев, только если изменился хеш исходников).
 
 ## API
 
-- `GET /api/books` — список книг со счётчиками (разделы / уроки / части)
-- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` — вход
-  (cookie-сессия); временные пользователи: `student`/`student`, `programmer`/`programmer`
-- `GET /api/progress` — весь прогресс пользователя; `POST /api/progress/slides`,
-  `PUT /api/progress/quiz`, `PUT /api/progress/answers`, `DELETE /api/progress?scope=practice|all`
-- `GET /api/exercises` — число код-упражнений по книгам и главам (для дашборда)
-- `GET /api/exercises/{book}/{chapter}/state` — статусы и черновики; `PUT .../{task}/draft`,
-  `GET .../{task}/attempts` — черновик и история попыток
-- `GET /api/books/{id}/course` — дерево разделов и глав книги
-- `GET /api/chapters/{id}` — глава с частями, текстами и длительностями
-- `GET /api/lesson/{id}/audio` — аудио части
-- `GET /api/lesson/{id}/download` — скачать часть
-- `GET /api/chapters/{id}/download` — скачать главу целиком (части склеиваются в один wav)
-- `GET /api/exercises/{book}/{chapter}` — код-упражнения главы (без тестов)
-- `POST /api/exercises/run` — проверить код в Docker-песочнице (python:3.13-slim, без сети, с лимитами); нужен вход, пишет попытку
+- `GET /api/books` — список книг со счётчиками; `GET /api/books/{id}/course` — дерево разделов и глав
+- `GET /api/chapters/{id}` — глава с частями и текстами
+- `GET /api/slides`, `GET /api/slides/{книга}/{глава}` — слайды как данные
+- `POST /api/auth/login`, `/signup`, `/logout`, `GET /api/auth/me` — вход (токен `Authorization: Bearer`)
+- `GET /api/progress` и мутаторы (`/slides`, `/quiz`, `/answers`, `DELETE /api/progress`) — прогресс пользователя
+- `GET /api/quizzes/{книга}/{глава}`, `POST …/answer` — квизы (ответы только на сервере)
+- `GET /api/answers/{книга}/{глава}`, `POST …/check` — упражнения с вводом ответа
+- `GET /api/exercises`, `GET /api/exercises/{книга}/{глава}` — код-упражнения (без тестов); `POST /api/exercises/run` — постановка в очередь,
+  `GET /api/exercises/run/{id}` — состояние; `GET /api/exercises/runner/status`
+- `GET /api/labs/{книга}/{глава}` — упражнения лабораторий (без эталонов); `PUT /api/exercises/{книга}/{глава}/{id}/solved` — решение проверяет сервер
+- `/internal/worker/*` — API воркеров (ping, claim, result), только с токеном `SAY_WORKER_TOKEN`

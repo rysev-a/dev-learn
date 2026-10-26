@@ -12,7 +12,7 @@ fn main() {
         serde_json::from_str(&std::fs::read_to_string(root.join("tests/golden.json")).expect("golden")).expect("json");
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
-    let chapters = load_dir(&root.join("../../backend/app/data/labs/net")).expect("данные");
+    let chapters = load_dir(&root.join("../../backend/data/labs/net")).expect("данные");
     let task = chapters.iter().flat_map(|c| c.tasks.iter()).find(|t| t.id == id).expect("нет такого упражнения");
     let mut s = task.spec.start_state();
     for run in gold["scenarios"][&id]["edge"].as_array().expect("edge") {

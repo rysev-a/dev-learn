@@ -1,4 +1,4 @@
-//! Генераторы содержимого. Результат — файлы данных `backend/app/data/slides/<книга>-<глава>.json` (канонический JSON
+//! Генераторы содержимого. Результат — файлы данных `backend/data/slides/<книга>-<глава>.json` (канонический JSON
 //! структуры [`content::Chapter`]); бэкенд читает их при сиде и кладёт в базу.
 
 use std::path::Path;
@@ -7,7 +7,6 @@ use content::{Chapter, SceneSpec};
 
 pub mod dm;
 pub mod py_ch00;
-pub mod ts_import;
 
 /// Главы, которые пишут генераторы на Rust (источник — этот код, а не перенос из TypeScript).
 pub fn generated() -> Vec<Chapter> {

@@ -10,7 +10,7 @@ import { bearer, chapterId } from "./fixtures";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(here, "..", "..");
-const SQL = path.join(ROOT, "backend", "app", "data", "sql");
+const SQL = path.join(ROOT, "backend", "data", "sql");
 export const PORT = Number(process.env.E2E_PORT ?? 8099);
 export const WORKER_TOKEN = "e2e";
 
@@ -268,10 +268,10 @@ export interface RealWorker {
   stop: () => Promise<void>;
 }
 
-/** Запускает `backend/worker.py` как дочерний процесс и ждёт, пока сервер увидит воркера. */
+/** Запускает `worker/worker.py` как дочерний процесс и ждёт, пока сервер увидит воркера. */
 export async function startRealWorker(request: APIRequestContext): Promise<RealWorker> {
   const child: ChildProcess = spawn("uv", ["run", "worker.py", "--server", `http://127.0.0.1:${PORT}`, "--name", "e2e", "--light", "2", "--heavy", "1"], {
-    cwd: path.join(ROOT, "backend"),
+    cwd: path.join(ROOT, "worker"),
     env: { ...process.env, SAY_WORKER_TOKEN: WORKER_TOKEN },
     stdio: "ignore",
     detached: true,

@@ -1,7 +1,9 @@
-# Этап 1: всё на одной машине, на которой есть только docker compose. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
+# Всё на одной машине, на которой есть только docker compose. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
 #   cp deploy/.env.example deploy/.env  (заполнить)
-#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+#   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 #   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile setup run --rm images   # один раз: образы песочниц
+# Сборка бэкенда идёт с секретом `lab_token` (токен gitness для приватного реестра crates): LAB_TOKEN=… в окружении при сборке.
+# Данные — в томе surreal-data (SurrealDB).
 name: say
 
 services:
@@ -23,23 +25,58 @@ services:
     logging: &log { driver: json-file, options: { max-size: "10m", max-file: "3" } }
 
   api:
-    build: { context: .., dockerfile: deploy/api.Dockerfile }
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+      secrets: [lab_token]
+      # готовый `cargo vendor` вместо реестра lab (если до него нет сети); по умолчанию пусто — работает реестр с токеном
+      additional_contexts:
+        vendor: ${SAY_VENDOR_DIR:-./no-vendor}
     restart: unless-stopped
     environment:
-      SAY_DB: /data/say.db
-      SAY_RUNNER: remote
       SAY_WORKER_TOKEN: ${SAY_WORKER_TOKEN:?задайте SAY_WORKER_TOKEN в deploy/.env}
-      SAY_DEFAULT_USERS: "0"
-      SAY_SECURE_COOKIE: ${SAY_SECURE_COOKIE:-1}
-    volumes:
-      - data:/data
+      SURREALDB_URL: ws://surrealdb:8000
+      SURREAL_USER: root
+      SURREAL_PASS: ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env}
+      DB_STRICT: "1" # без базы не стартуем: молча работать на базе в памяти нельзя
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?задайте ADMIN_EMAIL в deploy/.env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?задайте ADMIN_PASSWORD в deploy/.env}
+      APP_URL: https://${SAY_SITE:-localhost}
+      SITE_NAME: ${SITE_NAME:-CS.Core}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-noreply@localhost}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/exercises/runner/status', timeout=5).status == 200 else 1)"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/exercises/runner/status"]
       interval: 15s
       timeout: 8s
       retries: 5
-      start_period: 120s
+      start_period: 180s
+    depends_on:
+      surrealdb: { condition: service_healthy }
     networks: [front, back]
+    mem_limit: 1g
+    logging: *log
+
+  surrealdb:
+    image: surrealdb/surrealdb:v3
+    restart: unless-stopped
+    user: "0:0"
+    command: start --user root --pass ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env} surrealkv:/data/database.db
+    volumes:
+      - surreal-data:/data
+    # доступ с хоста для разработки (Surrealist, surreal sql): только на 127.0.0.1, наружу порт не выходит.
+    # Сеть back внутренняя (без выхода наружу), поэтому для публикации порта база дополнительно подключена к front.
+    ports:
+      - "127.0.0.1:${SAY_SURREAL_PORT:-18000}:8000"
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [back, front]
     mem_limit: 1g
     logging: *log
 
@@ -93,19 +130,39 @@ services:
       dind: { condition: service_healthy }
     networks: [sandbox]
 
+  # резервная копия SurrealDB: раз в сутки HTTP-экспорт (SurrealQL) в том backups, хранятся последние 14
+  # (в образе surrealdb нет оболочки, поэтому curl; восстановление — `surreal import` в чистую базу)
   backup:
-    build: { context: .., dockerfile: deploy/api.Dockerfile }
+    image: curlimages/curl:8.11.1
     restart: unless-stopped
-    entrypoint: ["python", "/app/deploy/backup.py"]
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sleep 90
+        while true; do
+          f=/backups/say-$$(date +%Y%m%d-%H%M%S).surql
+          if curl -fsS -u "root:$$SURREAL_PASS" -H "surreal-ns: stack" -H "surreal-db: say" -H "Accept: application/octet-stream" -o "$$f" http://surrealdb:8000/export; then
+            echo "копия: $$f"
+          else
+            rm -f "$$f"; echo "ошибка копии"
+          fi
+          ls -1t /backups/say-*.surql 2>/dev/null | tail -n +15 | xargs -r rm --
+          sleep 86400
+        done
     environment:
-      SAY_DB: /data/say.db
-      SAY_BACKUP_DIR: /backups
+      SURREAL_PASS: ${SURREAL_PASS}
     volumes:
-      - data:/data:ro
       - backups:/backups
-    mem_limit: 128m
+    depends_on:
+      surrealdb: { condition: service_healthy }
     networks: [back]
+    mem_limit: 128m
     logging: *log
+
+secrets:
+  lab_token:
+    environment: LAB_TOKEN
 
 networks:
   front:
@@ -114,9 +171,9 @@ networks:
   sandbox: # dind нужен выход для docker pull при подготовке образов; сами песочницы запускаются с --network none
 
 volumes:
-  data:
+  caddy-data:
+  caddy-config:
+  surreal-data:
   backups:
   dind-data:
   sandboxes:
-  caddy-data:
-  caddy-config:

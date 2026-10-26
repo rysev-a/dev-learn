@@ -1,4 +1,4 @@
-//! Файл данных главы: `backend/app/data/labs/virt/<книга>-<глава:02>.json`.
+//! Файл данных главы: `backend/data/labs/virt/<книга>-<глава:02>.json`.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
