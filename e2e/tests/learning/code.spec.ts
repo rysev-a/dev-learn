@@ -332,6 +332,28 @@ test.describe("проверка без воркера", () => {
     guard.assertClean();
   });
 
+  test("окно о перегрузке: ссылка на репозиторий и инструкцию, закрытие, не навязывается повторно", async ({ page, request }) => {
+    const guard = learningGuard(page);
+    await waitNoWorkers(request);
+    await loginFresh(page, request);
+    await open(page, request);
+    await typeCode(page, "print(1991)");
+    const notice = page.locator(".overload");
+    await expect(notice).toHaveCount(0);
+    await mainBtn(page).click();
+    await expect(notice).toBeVisible();
+    await expect(notice).toContainText("Проверка кода сейчас недоступна");
+    await expect(notice.getByRole("link", { name: "Как запустить у себя" })).toHaveAttribute("href", /github\.com\/rysev-a\/dev-learn#/);
+    await expect(notice.getByRole("link", { name: "Репозиторий" })).toHaveAttribute("href", "https://github.com/rysev-a/dev-learn");
+    // закрыли — следующий отказ в ближайшую минуту окно не возвращает, сообщение в результатах остаётся
+    await notice.getByRole("button", { name: "Закрыть" }).click();
+    await expect(notice).toHaveCount(0);
+    await mainBtn(page).click();
+    await expect(result(page).locator(".cx-error")).toContainText("временно недоступна");
+    await expect(notice).toHaveCount(0);
+    guard.assertClean();
+  });
+
   test("пустой код не уходит в очередь: сервер отвечает сообщением", async ({ page, request }) => {
     const guard = learningGuard(page);
     await waitNoWorkers(request);

@@ -1,0 +1,57 @@
+name: Проверки
+
+# Тесты общих крейтов и фронтенда. Бэкенд здесь не собирается: он зависит от закрытых библиотек (реестр автора), его проверяют локально и при выкладке на сервере.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  packages:
+    name: Крейты packages/
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [content, highlight, gen, weblab, sdlab, netlab, archlab, riscvlab, virtlab]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/${{ matrix.crate }}
+      - run: cargo test --release
+        working-directory: packages/${{ matrix.crate }}
+
+  slides:
+    name: Проверка слайдов (информационная, в старых главах 90 замечаний вёрстки сцен)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/gen
+      - run: cargo run --release --bin lint_slides -- ../../backend/data/slides
+        working-directory: packages/gen
+
+  frontend:
+    name: Фронтенд (Leptos)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend
+      - run: cargo test --workspace
+        working-directory: frontend
+      - run: cargo check --workspace --target wasm32-unknown-unknown
+        working-directory: frontend

@@ -72,6 +72,8 @@ services:
     restart: unless-stopped
     environment:
       SAY_WORKER_TOKEN: ${SAY_WORKER_TOKEN:?задайте SAY_WORKER_TOKEN в deploy/.env}
+      # потолок очереди проверок: при превышении бэкенд отвечает 503, интерфейс показывает окно о перегрузке
+      SAY_QUEUE_LIMIT: ${SAY_QUEUE_LIMIT:-300}
       SURREALDB_URL: ws://surrealdb:8000
       SURREAL_USER: root
       SURREAL_PASS: ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env}

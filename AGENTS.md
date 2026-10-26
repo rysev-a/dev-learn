@@ -54,6 +54,7 @@
 `docs/deploy-agent.md`, выбор схемы и порядок работ — `docs/deploy.md`. Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в
 контейнеры не монтируем); каталог песочниц `/sandboxes` — общий том воркера и dind. Сборка бэкенда — с секретом `lab_token` (`LAB_TOKEN=… docker compose …
 up -d --build`) или с готовым `cargo vendor` (`SAY_VENDOR_DIR`). Озвучка в образы не входит (`voice/` — отдельно).
+**Выкладка по релизу:** `.github/workflows/release.yml` (релиз на GitHub → `deploy/server/release.sh` на сервере собирает образы `cs-core-*:<тег>`, запускает стек, при провале проверки откатывает; затем образы уходят в GHCR); `ci.yml` — тесты `packages/` и фронтенда (бэкенд в Actions не собирается: закрытые библиотеки реестра lab лежат на сервере в `~/say-vendor`). Подробности — `docs/deploy.md`, «Выкладка по релизу».
 
 ## Бэкенд: axum + SurrealDB (`backend/`)
 

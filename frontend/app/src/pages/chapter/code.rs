@@ -17,6 +17,7 @@ use crate::{
         code_editor::CodeEditor,
         fullscreen::{chapter_href, Fullscreen},
         labs::LabHost,
+        overload::{Overload, OverloadNotice, OverloadState},
         results::{History, Results},
         sql_schema::SqlSchema,
     },
@@ -25,6 +26,9 @@ use crate::{
     settings,
 };
 
+/// Очередь длиннее этого места или ожидание дольше этого (мс) — показываем окно о перегрузке.
+const BUSY_QUEUE_PLACE: i64 = 8;
+const BUSY_WAIT_MS: u32 = 25_000;
 const DRAFT_DELAY_MS: u32 = 700;
 const POLL_MS: u32 = 700;
 /// Дольше этого проверку не ждём (6 минут при опросе раз в 0,7 с).
@@ -196,6 +200,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
     });
     let go_mode = move || accepted.get() && has_next();
 
+    let overload = OverloadState::new();
     let run = Callback::new(move |()| {
         if busy.get_untracked().is_some() {
             return;
@@ -210,10 +215,18 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
             let outcome = async {
                 let (job, mut st) = c.run(book, num, &id, &code).await?;
                 let mut polls = 0;
+                let mut warned = false;
                 loop {
                     match st {
                         RunState::Done(res) => return Ok(res),
-                        RunState::Queued { position } => phase.set(queue_text(position)),
+                        RunState::Queued { position } => {
+                            phase.set(queue_text(position));
+                            // длинная очередь или долгое ожидание — предложить запустить систему у себя (один раз за проверку)
+                            if !warned && (position.unwrap_or(0) >= BUSY_QUEUE_PLACE || polls * POLL_MS >= BUSY_WAIT_MS) {
+                                warned = true;
+                                overload.raise(Overload::Busy);
+                            }
+                        }
                         RunState::Running => phase.set("Выполняется в песочнице…".to_string()),
                     }
                     polls += 1;
@@ -251,9 +264,15 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                         .forget();
                     }
                 }
-                Err(e) => results.update(|r| {
-                    r.insert(id.clone(), RunResult { status: "error".into(), results: Vec::new(), stdout: String::new(), stderr: e.message, passed: 0, total: 0, solved: false, attempt: None });
-                }),
+                Err(e) => {
+                    // 503: проверка недоступна или очередь переполнена
+                    if e.status == 503 {
+                        overload.raise(Overload::Unavailable);
+                    }
+                    results.update(|r| {
+                        r.insert(id.clone(), RunResult { status: "error".into(), results: Vec::new(), stdout: String::new(), stderr: e.message, passed: 0, total: 0, solved: false, attempt: None });
+                    });
+                }
             }
             busy.set(None);
             phase.set(String::new());
@@ -387,6 +406,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
     let labs = tasks.with_value(|t| t.iter().all(|x| x.mode == "lab"));
     view! {
         <section class="pr" class:lab-pr=labs>
+            <OverloadNotice state=overload />
             <div class="pr-top">
                 <span class="pr-top-label">{move || format!("Решено {} из {total}", done())}</span>
                 <div class="pr-bar" role="progressbar" aria-valuemin="0" aria-valuemax=total>

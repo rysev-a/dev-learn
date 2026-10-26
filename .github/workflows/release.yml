@@ -1,0 +1,103 @@
+name: Выкладка релиза
+
+# Создали релиз на GitHub — сайт обновился. Образы собираются НА СЕРВЕРЕ (бэкенд зависит от закрытых библиотек, которых нет у GitHub-раннера),
+# затем публикуются в GHCR, чтобы систему мог запустить любой желающий (см. README, «Запуск у себя»).
+#
+# Нужно один раз настроить (см. docs/deploy.md, «Выкладка по релизу»):
+#   secrets.DEPLOY_SSH_KEY   — закрытый ключ, которому на сервере разрешён только deploy/server/release.sh
+#   vars.DEPLOY_HOST, vars.DEPLOY_USER, vars.DEPLOY_HOST_KEY (строка из known_hosts), vars.SITE_URL
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Тег, который нужно выложить (уже существующий)
+        required: true
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Выкладка на сайт
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Подготовка SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          printf 'Host deploy\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 30\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" > ~/.ssh/config
+
+      - name: Сборка и запуск на сервере
+        run: git archive --format=tar.gz HEAD | ssh deploy "deploy $TAG"
+
+      - name: Проверка сайта снаружи
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          for path in / /api/books; do
+            curl -fsS --retry 5 --retry-delay 5 --retry-connrefused -o /dev/null -w "$path %{http_code}\n" "$SITE_URL$path"
+          done
+
+  publish:
+    name: Публикация образов в GHCR
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Подготовка SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          printf 'Host deploy\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 30\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" > ~/.ssh/config
+
+      - name: Забрать образы с сервера
+        run: ssh deploy "export $TAG" | gunzip | docker load
+
+      - name: Вход в GHCR и публикация
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          GH_OWNER: ${{ github.repository_owner }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+          owner="$(echo "$GH_OWNER" | tr 'A-Z' 'a-z')"
+          for image in cs-core-api cs-core-proxy cs-core-worker; do
+            for t in "$TAG" latest; do
+              docker tag "$image:$TAG" "ghcr.io/$owner/$image:$t"
+              docker push "ghcr.io/$owner/$image:$t"
+            done
+          done

@@ -73,3 +73,11 @@
 .web-frame { display: block; height: 420px; flex: none; border: 0; background: #fff; margin: 0 auto; }
 .lab-ok { margin: 12px 0 0; color: var(--s-accent); font-weight: 600; }
 .lab-actions .quiz-btn.on { border-color: var(--accent); color: var(--accent); }
+
+/* окно о перегрузке сервера проверки кода */
+.overload { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(380px, calc(100vw - 32px)); padding: 16px 18px; background: var(--panel); color: var(--text, inherit); border: 1px solid var(--amber, var(--border)); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+.overload h3 { margin: 0 24px 8px 0; font-size: 1rem; }
+.overload p { margin: 0 0 8px; font-size: .9rem; line-height: 1.45; }
+.overload-x { position: absolute; top: 8px; right: 10px; border: 0; background: none; color: var(--muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.overload-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.overload-actions .quiz-btn { text-decoration: none; }

@@ -17,7 +17,13 @@ use crate::{
 pub const LIGHT: &str = "light";
 pub const HEAVY: &str = "heavy";
 const LANES: [&str; 2] = [LIGHT, HEAVY];
-const QUEUE_LIMIT: i64 = 300;
+/// Потолок очереди по умолчанию; меняется переменной `SAY_QUEUE_LIMIT` (при превышении `POST /run` отвечает 503, интерфейс показывает окно о перегрузке).
+const DEFAULT_QUEUE_LIMIT: i64 = 300;
+
+fn queue_limit() -> i64 {
+    static LIMIT: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
+    *LIMIT.get_or_init(|| std::env::var("SAY_QUEUE_LIMIT").ok().and_then(|v| v.trim().parse().ok()).filter(|n| *n > 0).unwrap_or(DEFAULT_QUEUE_LIMIT))
+}
 pub const LEASE_SEC: f64 = 45.0;
 const MAX_ATTEMPTS: i64 = 2;
 const CACHE_TTL: f64 = 7.0 * 24.0 * 3600.0;
@@ -79,8 +85,8 @@ pub async fn submit(state: &AppState, user: &str, book: i64, chapter: i64, task:
         if !runner_ok {
             return Err(JobError(503, "Проверка кода временно недоступна: сервер проверки не отвечает. Попробуйте чуть позже.".into()));
         }
-        if count_where(db, "status = 'queued'").await.map_err(|_| JobError(500, "Ошибка базы данных".into()))? >= QUEUE_LIMIT {
-            return Err(JobError(503, "Очередь проверок переполнена — попробуйте через минуту.".into()));
+        if count_where(db, "status = 'queued'").await.map_err(|_| JobError(500, "Ошибка базы данных".into()))? >= queue_limit() {
+            return Err(JobError(503, "Сервер проверки перегружен: очередь переполнена. Попробуйте через минуту.".into()));
         }
     }
     db.query("CREATE exec_jobs CONTENT { jid: $j, user: $u, book: $b, chapter: $c, tid: $t, code: $code, key: $k, lane: $l, status: 'queued', attempts: 0, created_at: $at }")
