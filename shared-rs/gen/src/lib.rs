@@ -7,10 +7,14 @@ use content::{Chapter, SceneSpec};
 
 pub mod dm;
 pub mod py_ch00;
+pub mod web_ch13;
+pub mod web_ch14;
+pub mod web_ch15;
 
 /// Главы, которые пишут генераторы на Rust (источник — этот код, а не перенос из TypeScript).
 pub fn generated() -> Vec<Chapter> {
-    vec![py_ch00::chapter()]
+    // главы без слайдов — заготовки (их ещё пишут), в данные не попадают
+    vec![py_ch00::chapter(), web_ch13::chapter(), web_ch14::chapter(), web_ch15::chapter()].into_iter().filter(|c| !c.slides.is_empty()).collect()
 }
 
 /// Имя файла главы: `13-05.json`.

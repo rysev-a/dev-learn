@@ -1,0 +1,13 @@
+[package]
+name = "weblab"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Лаборатория HTML и CSS (книга 11): структурные проверки разметки, каскад и вычисленные стили, селекторы и специфичность. Общий crate интерфейса (wasm) и бэкенда (нативно)."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+# разбор HTML (html5ever) и сопоставление селекторов; без «main»-фич — только то, что нужно
+scraper = { version = "0.25", default-features = false, features = ["errors"] }
+ego-tree = "0.10"

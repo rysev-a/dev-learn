@@ -14,6 +14,7 @@ pub enum Lang {
     Sql,
     Js,
     Css,
+    Html,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -548,6 +549,83 @@ fn css(src: &str) -> Vec<Token> {
     sc.out
 }
 
+/// HTML (по строкам): комментарии, `<!doctype>`, имена тегов, атрибуты, значения в кавычках, `&сущности;`.
+fn html(src: &str) -> Vec<Token> {
+    let mut sc = Scan::new(src);
+    let is_name = |ch: char| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == ':';
+    while !sc.done() {
+        let c = sc.peek(0).unwrap_or(' ');
+        if c == '<' && sc.peek(1) == Some('!') && sc.peek(2) == Some('-') && sc.peek(3) == Some('-') {
+            let start = sc.pos;
+            sc.pos += 4;
+            while !sc.done() && !(sc.peek(0) == Some('-') && sc.peek(1) == Some('-') && sc.peek(2) == Some('>')) {
+                sc.pos += 1;
+            }
+            sc.pos = (sc.pos + 3).min(sc.chars.len());
+            let t: String = sc.chars[start..sc.pos].iter().collect();
+            sc.push(t, Kind::Comment);
+        } else if c == '<' && sc.peek(1) == Some('!') {
+            let start = sc.pos;
+            while !sc.done() && sc.peek(0) != Some('>') {
+                sc.pos += 1;
+            }
+            sc.pos = (sc.pos + 1).min(sc.chars.len());
+            let t: String = sc.chars[start..sc.pos].iter().collect();
+            sc.push(t, Kind::Accent);
+        } else if c == '<' && sc.peek(1).is_some_and(|d| d == '/' || d.is_ascii_alphabetic()) {
+            sc.pos += 1;
+            let slash = if sc.peek(0) == Some('/') {
+                sc.pos += 1;
+                "/"
+            } else {
+                ""
+            };
+            sc.push(format!("<{slash}"), Kind::Plain);
+            let name = sc.take_while(is_name);
+            sc.push(name, Kind::Keyword);
+            // атрибуты до `>` или конца строки
+            while !sc.done() && sc.peek(0) != Some('>') {
+                let d = sc.peek(0).unwrap_or(' ');
+                if d.is_whitespace() {
+                    let w = sc.take_while(|x| x.is_whitespace());
+                    sc.push(w, Kind::Plain);
+                } else if d == '"' || d == '\'' {
+                    let q = sc.quoted(String::new(), d);
+                    sc.push(q, Kind::Str);
+                } else if is_name(d) {
+                    let w = sc.take_while(is_name);
+                    sc.push(w, Kind::Builtin);
+                } else if d == '=' && sc.peek(1).is_some_and(|x| !x.is_whitespace() && x != '"' && x != '\'' && x != '>') {
+                    sc.pos += 1;
+                    sc.push("=".into(), Kind::Plain);
+                    let v = sc.take_while(|x| !x.is_whitespace() && x != '>' && x != '/');
+                    sc.push(v, Kind::Str);
+                } else {
+                    sc.pos += 1;
+                    sc.push(d.to_string(), Kind::Plain);
+                }
+            }
+            if sc.peek(0) == Some('>') {
+                sc.pos += 1;
+                sc.push(">".into(), Kind::Plain);
+            }
+        } else if c == '&' && sc.peek(1).is_some_and(|d| d.is_ascii_alphanumeric() || d == '#') {
+            let start = sc.pos;
+            sc.pos += 1;
+            sc.take_while(|d| d.is_ascii_alphanumeric() || d == '#');
+            if sc.peek(0) == Some(';') {
+                sc.pos += 1;
+            }
+            let t: String = sc.chars[start..sc.pos].iter().collect();
+            sc.push(t, Kind::Number);
+        } else {
+            sc.pos += 1;
+            sc.push(c.to_string(), Kind::Plain);
+        }
+    }
+    sc.out
+}
+
 /// Токены одной строки кода.
 pub fn highlight(lang: Lang, line: &str) -> Vec<Token> {
     match lang {
@@ -559,6 +637,7 @@ pub fn highlight(lang: Lang, line: &str) -> Vec<Token> {
         Lang::Sql => sql(line),
         Lang::Js => js(line),
         Lang::Css => css(line),
+        Lang::Html => html(line),
     }
 }
 
@@ -568,6 +647,15 @@ mod tests {
 
     fn kinds(lang: Lang, src: &str) -> Vec<(String, Kind)> {
         highlight(lang, src).into_iter().map(|t| (t.text, t.kind)).collect()
+    }
+
+    #[test]
+    fn html_tags_attributes_and_values() {
+        let k = kinds(Lang::Html, "<a href=\"/x\">t &amp;</a>");
+        assert!(k.contains(&("a".into(), Kind::Keyword)));
+        assert!(k.contains(&("href".into(), Kind::Builtin)));
+        assert!(k.contains(&("\"/x\"".into(), Kind::Str)));
+        assert!(k.contains(&("&amp;".into(), Kind::Number)));
     }
 
     #[test]
@@ -587,6 +675,10 @@ mod tests {
             (Lang::Js, "return `x ${y}` + \"s\" + new Map()"),
             (Lang::Css, "  --gap: 8px; color: #1a2b3c; /* c */ margin: -4px 1.5rem;"),
             (Lang::Css, "@media (min-width: 600px) { a:hover { top: 0 } }"),
+            (Lang::Html, "<!doctype html>"),
+            (Lang::Html, "<a href=\"/x\" class='b' data-n=3 hidden>Текст &amp; ещё</a>"),
+            (Lang::Html, "  <img src=a.png alt=\"\"/> <!-- c --> <p"),
+            (Lang::Html, "a < b и </"),
             (Lang::Plain, "что угодно"),
         ] {
             let joined: String = highlight(lang, src).into_iter().map(|t| t.text).collect();

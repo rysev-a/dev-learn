@@ -16,6 +16,7 @@ mod net;
 mod riscv;
 mod sd;
 mod virt;
+mod web;
 
 /// Что получает интерфейс конкретной лаборатории.
 #[derive(Clone)]
@@ -79,6 +80,7 @@ pub fn LabHost(
                 "net" => view! { <net::NetLab props=props /> }.into_any(),
                 "arch" => view! { <arch::ArchLab props=props /> }.into_any(),
                 "riscv" => view! { <riscv::RiscvLab props=props /> }.into_any(),
+                "web" => view! { <web::WebLab props=props /> }.into_any(),
                 other => view! { <p class="empty">{format!("Неизвестная лаборатория «{other}»")}</p> }.into_any(),
             };
             view! {

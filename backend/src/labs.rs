@@ -180,6 +180,18 @@ fn verify(lab: &str, spec: Value, solution: &str) -> Option<String> {
             let verdict = riscvlab::task::verify(&spec, solution);
             (!verdict.ok).then_some(verdict.message)
         }
+        "web" => {
+            let task: weblab::Task = match serde_json::from_value(spec) {
+                Ok(v) => v,
+                Err(e) => return Some(format!("задание повреждено: {e}")),
+            };
+            let submitted: weblab::Solution = match serde_json::from_str(solution) {
+                Ok(v) => v,
+                Err(e) => return Some(format!("решение не разобрано: {e}")),
+            };
+            let report = weblab::verify(&task, &submitted);
+            (!report.ok()).then(|| report.reason().unwrap_or_else(|| "решение не засчитано".into()))
+        }
         other => {
             tracing::warn!("вид лаборатории «{other}»: проверки на сервере пока нет, решение принято");
             None

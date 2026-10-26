@@ -10,6 +10,7 @@ COPY shared-rs/content shared-rs/content
 COPY shared-rs/highlight shared-rs/highlight
 COPY shared-rs/sdlab shared-rs/sdlab
 COPY shared-rs/virtlab shared-rs/virtlab
+COPY shared-rs/weblab shared-rs/weblab
 COPY shared-rs/riscvlab shared-rs/riscvlab
 COPY shared-rs/archlab shared-rs/archlab
 COPY shared-rs/netlab shared-rs/netlab

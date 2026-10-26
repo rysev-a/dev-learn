@@ -360,3 +360,37 @@ async fn worker_api_is_closed_without_a_token() {
     let app = app("").await;
     assert_eq!(call(&app, Method::POST, "/internal/worker/ping", None, Some(json!({ "name": "w", "lanes": [] }))).await.0, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn web_lab_accepts_references_and_rejects_starters() {
+    let app = app("").await;
+    let token = sign_in(&app, "web@mail.com").await;
+    let mut checked = 0;
+    for entry in std::fs::read_dir("data/labs/web").unwrap() {
+        let path = entry.unwrap().path();
+        let file: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        let (book, chapter) = (file["book"].as_i64().unwrap(), file["chapter"].as_i64().unwrap());
+        // задание приходит без эталона
+        let (st, lab) = call(&app, Method::GET, &format!("/api/labs/{book}/{chapter}"), None, None).await;
+        assert_eq!(st, StatusCode::OK);
+        assert_eq!(lab["lab"], "web");
+        assert!(lab["tasks"].as_array().unwrap().iter().all(|t| t["spec"].get("reference").is_none()), "эталон не уходит клиенту");
+        for task in file["tasks"].as_array().unwrap() {
+            let spec = &task["spec"];
+            let uri = format!("/api/exercises/{book}/{chapter}/{}/solved", task["id"].as_str().unwrap());
+            let start = json!({ "html": spec["starter_html"], "css": spec["starter_css"] });
+            let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": start.to_string() }))).await;
+            assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "{}: заготовка не должна решать: {body}", task["id"]);
+            let r = &spec["reference"];
+            let good = match spec["kind"].as_str().unwrap() {
+                "html" => json!({ "html": r["html"], "css": "" }),
+                "css" => json!({ "html": "", "css": r["css"] }),
+                _ => json!({ "html": "", "css": r["selector"] }),
+            };
+            let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": good.to_string() }))).await;
+            assert_eq!(st, StatusCode::NO_CONTENT, "{}: эталон должен приниматься: {body}", task["id"]);
+            checked += 1;
+        }
+    }
+    assert!(checked >= 21, "проверено упражнений: {checked}");
+}

@@ -16,6 +16,7 @@ path = "src/main.rs"
 content.workspace = true
 sdlab.workspace = true
 virtlab.workspace = true
+weblab.workspace = true
 archlab.workspace = true
 riscvlab.workspace = true
 netlab.workspace = true

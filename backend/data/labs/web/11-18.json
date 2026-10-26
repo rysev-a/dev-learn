@@ -1,0 +1,631 @@
+{
+ "book": 11,
+ "chapter": 18,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w18-sel-descendant",
+   "title": "Селектор потомков",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны абзацы внутри блока .article.",
+   "hint": "Пробел между селекторами означает «на любой глубине внутри».",
+   "spec": {
+    "kind": "selector",
+    "html": "<div class=\"article\"><h2 id=\"h\">Заголовок</h2><p id=\"p1\">Первый абзац</p><p id=\"p2\">Второй абзац</p></div><p id=\"out\">Абзац вне статьи</p>",
+    "starter_css": "",
+    "want": [
+     "p1",
+     "p2"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".article p"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-child",
+   "title": "Непосредственные дети",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только пункты верхнего уровня меню .menu, вложенные пункты не нужны.",
+   "hint": "Знак > выбирает только прямых детей.",
+   "spec": {
+    "kind": "selector",
+    "html": "<ul class=\"menu\"><li id=\"a\">Главная<ul><li id=\"a1\">Вложенный</li></ul></li><li id=\"b\">О нас</li></ul>",
+    "starter_css": "",
+    "want": [
+     "a",
+     "b"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".menu > li"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-attr",
+   "title": "Атрибут и начало значения",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только внешние ссылки: адрес начинается с https.",
+   "hint": "Селектор атрибута: [href^=\"https\"] — значение начинается с «https».",
+   "spec": {
+    "kind": "selector",
+    "html": "<a id=\"l1\" href=\"https://a.example\">Один</a> <a id=\"l2\" href=\"/local\">Два</a> <a id=\"l3\" href=\"https://b.example\">Три</a>",
+    "starter_css": "",
+    "want": [
+     "l1",
+     "l3"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "a[href^=\"https\"]"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-sibling",
+   "title": "Соседний элемент",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужен только абзац, который стоит сразу после заголовка h2.",
+   "hint": "Знак + выбирает ближайшего следующего соседа.",
+   "spec": {
+    "kind": "selector",
+    "html": "<h2 id=\"t\">Заголовок</h2><p id=\"p1\">Сразу после заголовка</p><p id=\"p2\">Второй абзац</p><p id=\"p3\">Третий абзац</p>",
+    "starter_css": "",
+    "want": [
+     "p1"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "h2 + p"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-nth",
+   "title": "Каждый чётный",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны чётные пункты списка.",
+   "hint": "Псевдокласс :nth-child принимает even, odd и формулы вроде 2n+1.",
+   "spec": {
+    "kind": "selector",
+    "html": "<ul><li id=\"i1\">1</li><li id=\"i2\">2</li><li id=\"i3\">3</li><li id=\"i4\">4</li><li id=\"i5\">5</li><li id=\"i6\">6</li></ul>",
+    "starter_css": "",
+    "want": [
+     "i2",
+     "i4",
+     "i6"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "li:nth-child(even)"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-not",
+   "title": "Всё, кроме",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны кнопки .btn, которые не отключены (у отключённых есть класс disabled).",
+   "hint": "Псевдокласс :not(...) исключает совпавшее.",
+   "spec": {
+    "kind": "selector",
+    "html": "<button id=\"b1\" class=\"btn\">Один</button> <button id=\"b2\" class=\"btn disabled\">Два</button> <button id=\"b3\" class=\"btn\">Три</button> <button id=\"b4\" class=\"disabled\">Четыре</button>",
+    "starter_css": "",
+    "want": [
+     "b1",
+     "b3"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".btn:not(.disabled)"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-low-spec",
+   "title": "Селектор с низкой специфичностью",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны все элементы с классом note, но специфичность селектора не должна превышать (0, 1, 0), и идентификаторы запрещены.",
+   "hint": "Один класс даёт (0, 1, 0). Всё, что длиннее, уже тяжелее.",
+   "spec": {
+    "kind": "selector",
+    "html": "<div id=\"page\"><p id=\"n1\" class=\"note\">В странице</p><p id=\"n2\">Без класса</p></div><p id=\"n3\" class=\"note\">Снаружи</p>",
+    "starter_css": "#page .note",
+    "want": [
+     "n1",
+     "n3"
+    ],
+    "checks": [
+     {
+      "t": "no_ids"
+     }
+    ],
+    "reference": {
+     "selector": ".note"
+    },
+    "max_specificity": [
+     0,
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "id": "w18-sel-group",
+   "title": "Список селекторов",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны заголовки первого и второго уровня (одним правилом, через запятую).",
+   "hint": "Запятая объединяет селекторы: h1, h2.",
+   "spec": {
+    "kind": "selector",
+    "html": "<h1 id=\"t\">Название</h1><h2 id=\"s\">Раздел</h2><h3 id=\"u\">Подраздел</h3><p id=\"p\">Текст</p>",
+    "starter_css": "",
+    "want": [
+     "t",
+     "s"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "h1, h2"
+    }
+   }
+  },
+  {
+   "id": "w18-sel-first-last",
+   "title": "Первый и последний",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны первый и последний пункты списка.",
+   "hint": ":first-child и :last-child, объединённые запятой.",
+   "spec": {
+    "kind": "selector",
+    "html": "<ol><li id=\"f\">Первый</li><li id=\"m\">Средний</li><li id=\"l\">Последний</li></ol>",
+    "starter_css": "",
+    "want": [
+     "f",
+     "l"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "li:first-child, li:last-child"
+    }
+   }
+  },
+  {
+   "id": "w18-css-color",
+   "title": "Цвет и размер",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заголовок .title должен быть цвета #c0392b, а абзац .lead — не меньше 18 пикселей.",
+   "hint": "color задаёт цвет текста, font-size — размер шрифта.",
+   "spec": {
+    "kind": "css",
+    "html": "<h1 class=\"title\">Привет</h1><p class=\"lead\">Вводный текст</p>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "color",
+      "equals": "#c0392b"
+     },
+     {
+      "t": "style",
+      "sel": ".lead",
+      "prop": "font-size",
+      "min": 18
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".title { color: #c0392b; } .lead { font-size: 20px; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-specificity",
+   "title": "Победить по специфичности",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В документе уже есть правило #card .text { color: red }. Сделайте текст синим без !important: ваше правило должно оказаться специфичнее.",
+   "hint": "Селектор #card .text весит (1, 1, 0). Добавьте ещё один класс или тег, не трогая ничего другого.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>#card .text { color: red; }</style><div id=\"card\"><p class=\"text\" id=\"t\">Текст в карточке</p></div>",
+    "starter_css": ".text { color: blue; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "blue"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "#card .text.text { color: blue; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-order",
+   "title": "Победить порядком",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Элементу с классами a b подходят два правила одинаковой специфичности: .a { color: red } и .b { color: green }, побеждает последнее. Сделайте текст красным, не усиливая селектор и не трогая !important.",
+   "hint": "При равной специфичности выигрывает правило, которое записано ниже. Ваш CSS идёт после того, что уже есть.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.a { color: red; } .b { color: green; }</style><p class=\"a b\" id=\"t\">Какого я цвета?</p>",
+    "starter_css": "p { color: red; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "red"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "no_ids"
+     }
+    ],
+    "reference": {
+     "css": ".a { color: red; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-flex-row",
+   "title": "Панель на flexbox",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте из .bar горизонтальную панель: элементы в ряд, по краям, по центру по вертикали, с промежутком не меньше 16 пикселей.",
+   "hint": "display: flex включает flexbox; justify-content раскладывает по главной оси, align-items — по поперечной, gap задаёт промежуток.",
+   "spec": {
+    "kind": "css",
+    "html": "<nav class=\"bar\"><a href=\"#\">Главная</a><a href=\"#\">Каталог</a><a href=\"#\">О нас</a></nav>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "justify-content",
+      "equals": "space-between"
+     },
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "align-items",
+      "equals": "center"
+     },
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "gap",
+      "min": 16
+     }
+    ],
+    "reference": {
+     "css": ".bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-vars",
+   "title": "Переменные CSS",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заведите переменную --brand со значением #2563eb на :root и используйте её для цвета текста .t и для цвета рамки .box (рамка 2px solid).",
+   "hint": "Объявление --brand: ...; на :root, использование — var(--brand).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"box\"><p class=\"t\">Фирменный цвет</p></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "uses",
+      "prop": "--brand"
+     },
+     {
+      "t": "style",
+      "sel": ".t",
+      "prop": "color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "border-top-color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "border-top-width",
+      "equals": "2px"
+     }
+    ],
+    "reference": {
+     "css": ":root { --brand: #2563eb; } .t { color: var(--brand); } .box { border: 2px solid var(--brand); }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-inherit",
+   "title": "Наследование",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Одним правилом на .post задайте цвет #444444 так, чтобы заголовок и оба абзаца стали такого цвета сами. Для .note дополнительно задайте размер шрифта 14px.",
+   "hint": "color наследуется: достаточно задать его родителю. font-size для .note — отдельное правило.",
+   "spec": {
+    "kind": "css",
+    "html": "<article class=\"post\"><h2>Заметка</h2><p>Первый абзац</p><p class=\"note\">Примечание</p></article>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "h2",
+      "prop": "color",
+      "equals": "#444444"
+     },
+     {
+      "t": "style",
+      "sel": "p",
+      "prop": "color",
+      "equals": "#444444"
+     },
+     {
+      "t": "style",
+      "sel": ".note",
+      "prop": "font-size",
+      "equals": "14px"
+     }
+    ],
+    "reference": {
+     "css": ".post { color: #444444; } .note { font-size: 14px; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-box",
+   "title": "Блочная модель",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Карточка .card: внутренние отступы 24px, рамка 2px solid, по центру страницы (margin: 0 auto) и ширина не больше 480px.",
+   "hint": "padding — внутри рамки, border — рамка, margin: 0 auto центрирует блок с заданной шириной, max-width ограничивает.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"card\">Карточка с текстом</div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "padding",
+      "equals": "24px"
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "border-top-width",
+      "equals": "2px"
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "border-top-style",
+      "equals": "solid"
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "margin",
+      "equals": "0 auto"
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "max-width",
+      "equals": "480px"
+     }
+    ],
+    "reference": {
+     "css": ".card { padding: 24px; border: 2px solid #333; margin: 0 auto; max-width: 480px; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-em",
+   "title": "Единицы em",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У .box размер шрифта 20px, а внутренние отступы равны 1.5em. Сколько это в пикселях, браузер посчитает сам.",
+   "hint": "em считается от размера шрифта самого элемента: 1.5em при шрифте 20px даёт 30px.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"box\"><p>Содержимое</p></div>",
+    "starter_css": ".box { padding: 1.5em; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "font-size",
+      "equals": "20px"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "padding",
+      "equals": "30px"
+     },
+     {
+      "t": "uses",
+      "prop": "padding",
+      "value": "1.5em"
+     }
+    ],
+    "reference": {
+     "css": ".box { font-size: 20px; padding: 1.5em; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-media",
+   "title": "Адаптивная сетка",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. На широком экране ячейки .grid идут в ряд (flex-direction: row), на экране не шире 600px — в столбец. Используйте @media (max-width: ...).",
+   "hint": "Сначала обычное правило для широких экранов, потом @media (max-width: 600px) { ... } с переопределением.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"grid\"><div class=\"cell\">1</div><div class=\"cell\">2</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "flex-direction",
+      "equals": "row",
+      "viewport": 1000
+     },
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "flex-direction",
+      "equals": "column",
+      "viewport": 400
+     },
+     {
+      "t": "media",
+      "contains": "max-width"
+     }
+    ],
+    "reference": {
+     "css": ".grid { display: flex; flex-direction: row; } @media (max-width: 600px) { .grid { flex-direction: column; } }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-flex-grow",
+   "title": "Пропорции flex",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Ряд .row — flex-контейнер; левая колонка .a занимает 1 часть, правая .b — 2 части свободного места (сокращение flex).",
+   "hint": "flex: 1 и flex: 2 задают flex-grow 1 и 2 (и basis 0%).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"row\"><div class=\"a\">A</div><div class=\"b\">B</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".row",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".a",
+      "prop": "flex-grow",
+      "equals": "1"
+     },
+     {
+      "t": "style",
+      "sel": ".b",
+      "prop": "flex-grow",
+      "equals": "2"
+     },
+     {
+      "t": "style",
+      "sel": ".b",
+      "prop": "flex-basis",
+      "equals": "0%"
+     }
+    ],
+    "reference": {
+     "css": ".row { display: flex; } .a { flex: 1; } .b { flex: 2; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-position",
+   "title": "Значок в углу",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Значок .badge должен прижаться к правому верхнему углу карточки .card с отступом 8px от краёв. Карточка — опорная точка для позиционирования.",
+   "hint": "У родителя position: relative, у значка position: absolute и top/right.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"card\">Товар<span class=\"badge\">new</span></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "position",
+      "equals": "relative"
+     },
+     {
+      "t": "style",
+      "sel": ".badge",
+      "prop": "position",
+      "equals": "absolute"
+     },
+     {
+      "t": "style",
+      "sel": ".badge",
+      "prop": "top",
+      "equals": "8px"
+     },
+     {
+      "t": "style",
+      "sel": ".badge",
+      "prop": "right",
+      "equals": "8px"
+     }
+    ],
+    "reference": {
+     "css": ".card { position: relative; } .badge { position: absolute; top: 8px; right: 8px; }"
+    }
+   }
+  },
+  {
+   "id": "w18-css-grid",
+   "title": "Сетка из трёх колонок",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Раскладка .layout — сетка из трёх равных колонок (repeat(3, 1fr)) с промежутком 12px.",
+   "hint": "display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"layout\"><div>1</div><div>2</div><div>3</div><div>4</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "grid-template-columns",
+      "equals": "repeat(3, 1fr)"
+     },
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "gap",
+      "equals": "12px"
+     }
+    ],
+    "reference": {
+     "css": ".layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }"
+    }
+   }
+  }
+ ]
+}

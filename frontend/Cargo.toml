@@ -35,6 +35,7 @@ content = { path = "../shared-rs/content" }
 # движки лабораторий (общие с бэкендом): расчёт в браузере и перепроверка на сервере — одним кодом
 sdlab = { path = "../shared-rs/sdlab" }
 virtlab = { path = "../shared-rs/virtlab" }
+weblab = { path = "../shared-rs/weblab" }
 archlab = { path = "../shared-rs/archlab" }
 riscvlab = { path = "../shared-rs/riscvlab" }
 netlab = { path = "../shared-rs/netlab" }

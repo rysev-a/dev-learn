@@ -24,6 +24,7 @@ COPY shared-rs/highlight /src/shared-rs/highlight
 # движки лабораторий: сервер перепроверяет решения тем же кодом, что работает в браузере
 COPY shared-rs/sdlab /src/shared-rs/sdlab
 COPY shared-rs/virtlab /src/shared-rs/virtlab
+COPY shared-rs/weblab /src/shared-rs/weblab
 COPY shared-rs/riscvlab /src/shared-rs/riscvlab
 COPY shared-rs/archlab /src/shared-rs/archlab
 COPY shared-rs/netlab /src/shared-rs/netlab
