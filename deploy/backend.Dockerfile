@@ -13,25 +13,25 @@
 #   --build-arg BASE=git.service-lab.dev/lab/lab_images/backend.base:rust-1.98.1
 #
 # Содержимое курса (учебники, слайды, SQL упражнений/квизов) бэкенд читает при запуске из /app/data.
-# Данные курса (crate content) общие с фронтендом и генераторами: лежат в shared-rs и подключаются путём ../shared-rs.
+# Данные курса (crate content) общие с фронтендом и генераторами: лежат в packages и подключаются путём ../packages.
 ARG BASE=rust:1.98.1-bookworm
 FROM ${BASE} AS build
 ENV CARGO_TARGET_DIR=/target
 COPY backend/.cargo/config.toml /usr/local/cargo/config.toml
 WORKDIR /src/backend
-COPY shared-rs/content /src/shared-rs/content
-COPY shared-rs/highlight /src/shared-rs/highlight
+COPY packages/content /src/packages/content
+COPY packages/highlight /src/packages/highlight
 # движки лабораторий: сервер перепроверяет решения тем же кодом, что работает в браузере
-COPY shared-rs/sdlab /src/shared-rs/sdlab
-COPY shared-rs/virtlab /src/shared-rs/virtlab
-COPY shared-rs/weblab /src/shared-rs/weblab
-COPY shared-rs/riscvlab /src/shared-rs/riscvlab
-COPY shared-rs/archlab /src/shared-rs/archlab
-COPY shared-rs/netlab /src/shared-rs/netlab
+COPY packages/sdlab /src/packages/sdlab
+COPY packages/virtlab /src/packages/virtlab
+COPY packages/weblab /src/packages/weblab
+COPY packages/riscvlab /src/packages/riscvlab
+COPY packages/archlab /src/packages/archlab
+COPY packages/netlab /src/packages/netlab
 COPY --from=vendor / /vendor
 RUN if [ -f /vendor/.cargo-config.toml ]; then cat /vendor/.cargo-config.toml >> /usr/local/cargo/config.toml; fi
 # слой зависимостей: пока не менялись манифест и lock, пересобираются только исходники
-COPY backend/Cargo.toml backend-rs/Cargo.lock ./
+COPY backend/Cargo.toml backend/Cargo.lock ./
 RUN mkdir src && echo 'fn main() {}' > src/main.rs && : > src/lib.rs
 RUN --mount=type=secret,id=lab_token,required=false \
     CARGO_REGISTRIES_LAB_TOKEN="Bearer $(cat /run/secrets/lab_token 2>/dev/null)" \

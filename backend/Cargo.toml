@@ -14,15 +14,15 @@ resolver = "2"
 members = ["."]
 
 [workspace.dependencies]
-# данные курса (слайды, сцены), общий crate с фронтендом и генераторами: shared-rs/content
-content = { path = "../shared-rs/content" }
+# данные курса (слайды, сцены), общий crate с фронтендом и генераторами: packages/content
+content = { path = "../packages/content" }
 # движки лабораторий: сервер перепроверяет присланные решения теми же крейтами, что собираются в wasm для интерфейса
-sdlab = { path = "../shared-rs/sdlab" }
-virtlab = { path = "../shared-rs/virtlab" }
-weblab = { path = "../shared-rs/weblab" }
-riscvlab = { path = "../shared-rs/riscvlab" }
-archlab = { path = "../shared-rs/archlab" }
-netlab = { path = "../shared-rs/netlab" }
+sdlab = { path = "../packages/sdlab" }
+virtlab = { path = "../packages/virtlab" }
+weblab = { path = "../packages/weblab" }
+riscvlab = { path = "../packages/riscvlab" }
+archlab = { path = "../packages/archlab" }
+netlab = { path = "../packages/netlab" }
 # shared crates (gitness registry `lab_crates`)
 admin_api = { version = "0.2.1", registry = "lab" }
 auth = { version = "0.2.4", registry = "lab" }

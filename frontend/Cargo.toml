@@ -30,15 +30,15 @@ web-sys = { version = "0.3", features = [
 ] }
 
 # свои crates сервиса
-highlight = { path = "../shared-rs/highlight" }
-content = { path = "../shared-rs/content" }
+highlight = { path = "../packages/highlight" }
+content = { path = "../packages/content" }
 # движки лабораторий (общие с бэкендом): расчёт в браузере и перепроверка на сервере — одним кодом
-sdlab = { path = "../shared-rs/sdlab" }
-virtlab = { path = "../shared-rs/virtlab" }
-weblab = { path = "../shared-rs/weblab" }
-archlab = { path = "../shared-rs/archlab" }
-riscvlab = { path = "../shared-rs/riscvlab" }
-netlab = { path = "../shared-rs/netlab" }
+sdlab = { path = "../packages/sdlab" }
+virtlab = { path = "../packages/virtlab" }
+weblab = { path = "../packages/weblab" }
+archlab = { path = "../packages/archlab" }
+riscvlab = { path = "../packages/riscvlab" }
+netlab = { path = "../packages/netlab" }
 scene = { path = "crates/scene" }
 api = { path = "crates/api" }
 

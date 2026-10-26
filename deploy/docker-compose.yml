@@ -1,6 +1,9 @@
 # Всё на одной машине, на которой есть только docker compose. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
 #   cp deploy/.env.example deploy/.env  (заполнить)
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+# Вариант без сборки на сервере: образы собираются и публикуются на другой машине (SAY_REGISTRY=ghcr.io/владелец/, SAY_TAG=2026-10-26):
+#   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env build && docker compose … push
+#   на сервере: docker compose … pull && docker compose … up -d --no-build
 #   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile setup run --rm images   # один раз: образы песочниц
 # Сборка бэкенда идёт с секретом `lab_token` (токен gitness для приватного реестра crates): LAB_TOKEN=… в окружении при сборке.
 # Данные — в томе surreal-data (SurrealDB).
@@ -8,6 +11,7 @@ name: say
 
 services:
   proxy:
+    image: ${SAY_REGISTRY:-}say-proxy:${SAY_TAG:-latest}
     build: { context: .., dockerfile: deploy/proxy.Dockerfile }
     restart: unless-stopped
     ports:
@@ -25,6 +29,7 @@ services:
     logging: &log { driver: json-file, options: { max-size: "10m", max-file: "3" } }
 
   api:
+    image: ${SAY_REGISTRY:-}say-api:${SAY_TAG:-latest}
     build:
       context: ..
       dockerfile: deploy/backend.Dockerfile
@@ -103,6 +108,7 @@ services:
     logging: *log
 
   worker:
+    image: ${SAY_REGISTRY:-}say-worker:${SAY_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
     restart: unless-stopped
     command: ["python", "worker.py", "--server", "http://api:8000", "--name", "compose", "--light", "${SAY_LIGHT_SLOTS:-2}", "--heavy", "${SAY_HEAVY_SLOTS:-1}"]
@@ -121,6 +127,7 @@ services:
 
   # разово: заливает образы песочниц в dind (python, rust, node, say-rust-crates)
   images:
+    image: ${SAY_REGISTRY:-}say-worker:${SAY_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
     profiles: [setup]
     command: ["/app/init-images.sh"]

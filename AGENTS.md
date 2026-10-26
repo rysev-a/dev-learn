@@ -1,6 +1,6 @@
 # AGENTS.md — правила проекта «say»
 
-Аудиокурс «CS.Core»: бэкенд на axum + SurrealDB (`backend/`), фронтенд на Leptos (`frontend/`), общие крейты Rust (`shared-rs/`),
+Аудиокурс «CS.Core»: бэкенд на axum + SurrealDB (`backend/`), фронтенд на Leptos (`frontend/`), общие крейты Rust (`packages/`),
 воркер проверки кода на Python (`worker/`), озвучка kokoro-ru (`voice/`). Содержимое курса — данные в `backend/data/`
 (тексты `textbook/<id>-<slug>/*.md`, слайды `slides/`, лаборатории `labs/`, SQL упражнений и квизов `sql/`, аудио `audio/`).
 
@@ -31,7 +31,7 @@
 
 ## Структура репозитория
 
-- `backend/` — бэкенд (раздел «Бэкенд»); `backend/data/` — данные курса; `frontend/` — Leptos-фронтенд; `shared-rs/` — общие крейты;
+- `backend/` — бэкенд (раздел «Бэкенд»); `backend/data/` — данные курса; `frontend/` — Leptos-фронтенд; `packages/` — общие крейты;
   `worker/` — воркер проверки кода (`worker.py`, песочница `runner.py`, `docker/rust-crates` — образ для задач с tokio/axum/sqlx);
   `voice/` — озвучка (`engine.py`, `download_model.py`; модель в `voice/models`, в git не попадает); `e2e/`, `deploy/`, `docs/`.
 - Python остался в воркере и озвучке: `cd worker && uv run worker.py …`; зависимостей у воркера нет (стандартная библиотека + Docker CLI).
@@ -51,7 +51,7 @@
 
 Одна машина, на которой есть только docker compose: `deploy/docker-compose.yml` (proxy на Caddy со статикой Leptos, api на axum, surrealdb, worker, dind,
 backup, разовый images), Dockerfile'ы (`backend.Dockerfile`, `proxy.Dockerfile`, `worker.Dockerfile`) и `Caddyfile` рядом. Инструкция для агента на сервере —
-`docs/deploy-agent.md`, рассуждения о прежнем стеке — `deploy.md` (исторический). Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в
+`docs/deploy-agent.md`, выбор схемы и порядок работ — `docs/deploy.md`. Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в
 контейнеры не монтируем); каталог песочниц `/sandboxes` — общий том воркера и dind. Сборка бэкенда — с секретом `lab_token` (`LAB_TOKEN=… docker compose …
 up -d --build`) или с готовым `cargo vendor` (`SAY_VENDOR_DIR`). Озвучка в образы не входит (`voice/` — отдельно).
 
@@ -81,18 +81,18 @@ up -d --build`) или с готовым `cargo vendor` (`SAY_VENDOR_DIR`). Оз
   фронтенд: `cd frontend/app && trunk serve`. Без доступной SurrealDB (и без `DB_STRICT`) бэкенд работает на базе в памяти.
   Переменные: `BIND`, `SURREALDB_URL`, `SURREAL_USER`/`SURREAL_PASS`/`SURREAL_NS`/`SURREAL_DB`, `DB_STRICT`, `DATA_DIR`, `AUDIO_DIR`, `STATIC_DIR` (раздача `frontend/dist`),
   `SAY_WORKER_TOKEN`, `SEED`, `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `APP_URL`, `SITE_NAME`, `SMTP_*` (без `SMTP_HOST` письма только в задачах админки).
-- Тесты: `cd backend-rs && cargo test` (SurrealDB в памяти, сид из настоящих исходников, вход, прогресс, квизы, ответы, очередь и API воркера).
+- Тесты: `cd backend && cargo test` (SurrealDB в памяти, сид из настоящих исходников, вход, прогресс, квизы, ответы, очередь и API воркера).
 - Docker: `deploy/backend.Dockerfile` (контекст — корень репозитория; секрет сборки `lab_token` = токен gitness, `LAB_TOKEN=… docker build --secret id=lab_token,env=LAB_TOKEN`)
   и `deploy/docker-compose.yml` (api, surrealdb, резервные копии `surreal export`, worker, dind); см. `docs/deploy-agent.md`.
 
-## Фронтенд на Leptos и общие крейты (`frontend/`, `shared-rs/`)
+## Фронтенд на Leptos и общие крейты (`frontend/`, `packages/`)
 
 Фронтенд — Leptos 0.8 CSR + trunk (версии библиотек — как в lab, `/Users/rysev-a/Projects/lab/.worktrees/main`). **Содержимое курса — данные на бэкенде**
 (SurrealDB), клиент только рисует. Lab-крейты фронтенда (`auth_client`, `ui_kit`, `admin_ui`) из реестра не ставятся — вход и оболочка написаны здесь.
 Стили: `frontend/app/styles/{app,lab,netlab,sdlab,virtlab}.css` (общие, подключены в `app/index.html`) и `app/style.css` (редактор кода на textarea);
 новых CSS-классов для слайдов не заводим (те же `a-*`, `s-*`).
 
-**Общие крейты `shared-rs/`** (каждый — отдельный пакет без общего workspace; бэкенд и фронтенд подключают путём):
+**Общие крейты `packages/`** (каждый — отдельный пакет без общего workspace; бэкенд и фронтенд подключают путём):
 - `highlight` — подсветка py/c/asm/rust/sql/js/css, `Lang` с serde;
 - `content` — модель данных курса (serde): `Tone`, элементы схем (`Cell`, `Dot`, `Lnode`, `Text`, `Ptr`, `Line`, `Zone`, `Path`, `Bar`, `Code`,
   `Gate`, `Transistor`, `Switch`, `Lamp`, `Circle`, `Region` — области ∪ ∩ \ и дополнение), `SceneSpec`/`Scene::compile` (проверка: число подписей,
@@ -114,21 +114,21 @@ up -d --build`) или с готовым `cargo vendor` (`SAY_VENDOR_DIR`). Оз
 - Состав `frontend` (workspace): `crates/scene` (отрисовка схем: `Stage`, `SceneView`, виды всех элементов, `Paint`, `use_steps`, `use_reveal`), `crates/api`
   (клиент и DTO), `app` (оболочка, вход, прогресс, плеер на виртуальных часах 14 симв/с, окно «За кадром», слайды, квиз, ответы, практика с кодом).
 - Запуск: бэкенд на 8001 (см. выше), затем `cd frontend/app && trunk serve` (порт 7054, `/api` проксируется на 8001).
-  Тесты: `cd frontend && cargo test --workspace`, `cd shared-rs/<крейт> && cargo test`.
-  Проверка данных: `cd shared-rs/gen && cargo run --release --bin lint_slides ../../backend/data/slides`.
+  Тесты: `cd frontend && cargo test --workspace`, `cd packages/<крейт> && cargo test`.
+  Проверка данных: `cd packages/gen && cargo run --release --bin lint_slides ../../backend/data/slides`.
 - Правила: число абзацев = число сцен = число частей, цвета только `--s-*` (обе темы), озвучки нет; движение — через CSS-переходы и состояние,
   `prefers-reduced-motion` отключает его; сцена = `labels`/`caption` одинаковой длины, число кадров = число подписей; метки `cues` — по доле символов.
 
 ## Лаборатории: данные, движки на Rust, проверка на сервере
 
 Упражнения-лаборатории (книги 14 «схемы, Мини-8, RISC-V», 15 «сети», 17 «виртуализация», 18 «системный дизайн») — **данные на бэкенде**, а расчёт —
-общие Rust-крейты `shared-rs/{archlab,riscvlab,netlab,sdlab,virtlab}` (serde, без браузера; собираются нативно и в wasm). Они же работают в интерфейсе
+общие Rust-крейты `packages/{archlab,riscvlab,netlab,sdlab,virtlab}` (serde, без браузера; собираются нативно и в wasm). Они же работают в интерфейсе
 Leptos (расчёт в браузере) и на сервере (**проверка присланного решения**: клиенту не доверяем).
 
 - **Данные:** `backend/data/labs/<вид>/<книга>-<глава:02>.json` (`arch`, `riscv` — оба в `labs/arch`, `net`, `virt`, `sd`): `LabChapter { book, chapter, lab,
   tasks: [{ id, title, statement, hint, spec }] }`; в `spec` — сценарий (исходная схема, цели, ограничения) и эталон (`solution` / `reference`). Файлы данных канонические, их правят
   напрямую (или пишет скрипт-генератор) вместе с тестом крейта; «золотые» результаты прежнего TypeScript-движка лежат как фикстуры дифференциальных тестов
-  (`shared-rs/*/tests/golden*.json`) — тесты остаются, пересоздать их без тега `legacy-react-python` нельзя. Новые упражнения добавляют в данные, а эталон
+  (`packages/*/tests/golden*.json`) — тесты остаются, пересоздать их без тега `legacy-react-python` нельзя. Новые упражнения добавляют в данные, а эталон
   обязан проходить проверку движка, исходная схема — нет.
 - **Сид и API (`backend/src/labs.rs`):** файлы идут в таблицу `lab_tasks` (входят в хеш пересева); `GET /api/labs/{книга}/{глава}` отдаёт упражнения **без эталона**
   (убираются `spec.solution` и `spec.reference`). `PUT /api/exercises/{книга}/{глава}/{id}/solved` для упражнений с данными лаборатории перепроверяет решение движком
@@ -156,9 +156,9 @@ Leptos (расчёт в браузере) и на сервере (**провер
 
 1. Учебник `backend/data/textbook/<id>-<slug>/<slug>-NN.md` (формат: `#BOOK`, `#SECTION`, `#CHAPTER N | Название`, текст урока одной строкой, абзацы —
    литеральными `\n\n`).
-2. Слайды для КАЖДОЙ главы: генератор в `shared-rs/gen` (сцена = `SceneSpec` из кадров, глава = `Chapter`, число сцен = числу абзацев; образцы —
+2. Слайды для КАЖДОЙ главы: генератор в `packages/gen` (сцена = `SceneSpec` из кадров, глава = `Chapter`, число сцен = числу абзацев; образцы —
    `gen/src/dm/ch01.rs…ch10.rs`, `gen/src/py_ch00.rs`), регистрация в `generated()`, затем
-   `cd shared-rs/gen && cargo run --release --bin generate ../../backend/data/slides` и `lint_slides`.
+   `cd packages/gen && cargo run --release --bin generate ../../backend/data/slides` и `lint_slides`.
 3. Квиз на теорию каждой главы — `backend/data/sql/quizzes/NN-<slug>.sql` (5 вопросов, `kind = 'theory'`, поля `answer` и `expl` обязательны; формат — по
    соседним файлам).
 4. Регистрация книги — одна строка в `backend/data/sql/books.sql` (id, короткое имя `slug`, название, порядок `ord`, `audio_prefix`; поля `icon` и
@@ -671,7 +671,7 @@ WebSocket и чат; 12 лента новостей; 13 типовые зада�
 **Вставка главы допускается только скриптом сдвига** (номер входит в имя файлов текста и слайдов, ключи квизов и задач, ссылки «глава N» в текстах).
 
 - Формат — как у остальных анимированных книг: 13 абзацев = 13 слайдов = 13 сцен (3 кадра). Слайды глав 1–12 и 16–34 — готовые данные
-  `backend/data/slides/11-NN.json` (перенесены из прежнего TypeScript, правятся напрямую), слайды глав 13–15 — генераторы `shared-rs/gen/src/web_ch13…15.rs`.
+  `backend/data/slides/11-NN.json` (перенесены из прежнего TypeScript, правятся напрямую), слайды глав 13–15 — генераторы `packages/gen/src/web_ch13…15.rs`.
   Тексты (разговорный русский: английские слова записаны по-русски — «ноут», «джейсон», «ай-о-джей-эс»); квизы — `backend/data/sql/quizzes/11-js*.sql` (по 5 вопросов).
 - Задания JS — режим `js` (`backend/data/sql/tasks/11-js.sql`, по 30 на главу). Код ученика и скрытый драйвер склеиваются в один ES-модуль `main.mjs` и
   выполняются `node` в образе `node:22-alpine` (без сети, `--max-old-space-size=256`, 10 с); сравнивается построчный вывод `console.log`. Драйвер начинается
@@ -684,7 +684,7 @@ WebSocket и чат; 12 лента новостей; 13 типовые зада�
 
 ## Лаборатория web: HTML и CSS без браузера
 
-Крейт `shared-rs/weblab` (общий для интерфейса в wasm и сервера): ученик пишет **разметку**, **стили** или **селектор**, проверка не запускает браузер.
+Крейт `packages/weblab` (общий для интерфейса в wasm и сервера): ученик пишет **разметку**, **стили** или **селектор**, проверка не запускает браузер.
 Данные — `backend/data/labs/web/<книга>-<глава:02>.json` (`LabChapter` с `lab: "web"`, задания `{id, title, statement, hint, spec}`; те же упражнения лежат
 в таблице `tasks` как строки `mode = 'lab'` — SQL в `backend/data/sql/tasks`, файлы `11-js.sql` и `11-js-html-NN.sql`). `spec` — `weblab::Task`:
 - `kind: "html"` — условия на разметку ученика: `exists`, `count`, `text`, `attr`, `child`, `order`, `forbid`, `headings` (один `h1`, уровни без пропусков), `labels`
@@ -693,12 +693,12 @@ WebSocket и чат; 12 лента новостей; 13 типовые зада�
   `style` (вычисленное значение свойства у элементов по селектору: каскад со специфичностью, порядком, `!important`, атрибутом `style`; наследование, `var()`,
   сокращения `margin`/`padding`/`border`/`flex`/`gap`, единицы `em`/`rem` → px, цвета → `rgb()`, `@media` по ширине окна `viewport`), `uses`, `media`, `no_important`, `no_ids`, `css_valid`;
 - `kind: "selector"` — HTML задан, ученик пишет один селектор: он должен выбрать ровно элементы с `id` из `want`; `max_specificity` ограничивает вес;
-- `reference` — эталон, клиенту не отдаётся (`public_spec` убирает его); `weblab::verify::self_check` и тест `shared-rs/weblab/tests/data.rs` требуют, чтобы эталон проходил
+- `reference` — эталон, клиенту не отдаётся (`public_spec` убирает его); `weblab::verify::self_check` и тест `packages/weblab/tests/data.rs` требуют, чтобы эталон проходил
   все условия, а заготовка — нет. Геометрия, раскладка и пиксели не считаются (нужен настоящий движок: возможное расширение — Chromium в песочнице воркера).
 - Сервер: `PUT /api/exercises/{книга}/{глава}/{id}/solved` с телом `{solution: "{\"html\": …, \"css\": …}"}` (для `selector` селектор лежит в `css`) перепроверяет `weblab::verify`;
   тест `web_lab_accepts_references_and_rejects_starters` (`backend/tests/api.rs`). Интерфейс — `frontend/app/src/components/labs/web.rs`: редактор (`highlight::Lang::Html`/`Css`),
   предпросмотр в `iframe` с пустым `sandbox` (ширины 360/768/1100), список условий пересчитывается при каждой правке; для селектора выбранные элементы обводятся.
-- Новые упражнения — правка JSON и строки `tasks` (скрипт-генератор не хранится в репозитории: файлы канонические); сначала запустите `cd shared-rs/weblab && cargo test`.
+- Новые упражнения — правка JSON и строки `tasks` (скрипт-генератор не хранится в репозитории: файлы канонические); сначала запустите `cd packages/weblab && cargo test`.
 
 ## Что убрано и не возвращать
 
@@ -717,7 +717,7 @@ WebSocket и чат; 12 лента новостей; 13 типовые зада�
 ## Прочее
 
 - Логи и wav-пробы не коммитим; код не оставляем «на всякий случай» — неиспользуемое удаляем (история в git, прежняя реализация — тег `legacy-react-python`).
-- `tasks/` — исходные планы курсов (algo, arch_oc, db_learn), не код.
-- Сборка и проверки перед коммитом: `cd backend && cargo test`, `cd frontend && cargo test --workspace`, тесты затронутых крейтов `shared-rs`,
-  `cd shared-rs/gen && cargo run --release --bin lint_slides ../../backend/data/slides`, при правках интерфейса — пересборка `e2e/.dist` и затронутые модули e2e.
+- `course.MD` — план курса (порядок книг в левом меню).
+- Сборка и проверки перед коммитом: `cd backend && cargo test`, `cd frontend && cargo test --workspace`, тесты затронутых крейтов `packages`,
+  `cd packages/gen && cargo run --release --bin lint_slides ../../backend/data/slides`, при правках интерфейса — пересборка `e2e/.dist` и затронутые модули e2e.
 

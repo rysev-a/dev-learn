@@ -80,7 +80,7 @@ impl LabChapter {
     }
 }
 
-/// Определение упражнения из `labs.py` (выгрузка `data/export_labs.py` → `data/tasks.json`).
+/// Определение упражнения из `labs.py` (`data/tasks.json` — снимок определений прежней реализации, фикстура тестов).
 #[derive(Clone, Debug, Deserialize)]
 struct Definition {
     chapter: u32,

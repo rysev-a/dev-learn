@@ -41,12 +41,12 @@ impl Config {
         self.data_dir.join("textbook")
     }
 
-    /// Слайды глав: файлы `<книга>-<глава>.json` (их создают генераторы `shared-rs/gen`).
+    /// Слайды глав: файлы `<книга>-<глава>.json` (их создают генераторы `packages/gen`).
     pub fn slides_dir(&self) -> PathBuf {
         self.data_dir.join("slides")
     }
 
-    /// Упражнения-лаборатории: `labs/<вид>/<книга>-<глава>.json` (их создают крейты `shared-rs/*lab`).
+    /// Упражнения-лаборатории: `labs/<вид>/<книга>-<глава>.json` (их создают крейты `packages/*lab`).
     pub fn labs_dir(&self) -> PathBuf {
         self.data_dir.join("labs")
     }

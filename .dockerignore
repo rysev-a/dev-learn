@@ -11,5 +11,5 @@ deploy/.env
 backend/target
 frontend/target
 frontend/app/dist
-shared-rs/**/target
+packages/**/target
 e2e

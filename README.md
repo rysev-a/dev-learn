@@ -36,7 +36,7 @@ cd worker && SAY_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:800
 (теория, вопросы и лаборатории в браузере; их решения проверяет сам бэкенд).
 
 Весь стек одной командой — `deploy/docker-compose.yml` (см. `docs/deploy-agent.md`). Тесты: `cd backend && cargo test`,
-`cd frontend && cargo test --workspace`, `cd shared-rs/<крейт> && cargo test`, браузерные — `e2e/README.md`.
+`cd frontend && cargo test --workspace`, `cd packages/<крейт> && cargo test`, браузерные — `e2e/README.md`.
 
 ## Структура
 
@@ -45,20 +45,19 @@ backend/           — axum + SurrealDB: API курса, прогресс, оч�
   src/             — lib.rs (роутер), seed.rs (сид содержимого), slides.rs, labs.rs, exercises.rs, jobs.rs, …
   data/            — содержимое курса, общий источник для сида:
     textbook/      — тексты уроков, по директории на книгу
-    slides/        — слайды: <книга>-<глава>.json (строят генераторы shared-rs/gen)
+    slides/        — слайды: <книга>-<глава>.json (строят генераторы packages/gen)
     labs/          — данные лабораторий: <вид>/<книга>-<глава>.json
     sql/           — книги, задачи, квизы, упражнения с вводом ответа (SQL для сида)
   tests/api.rs     — API-тесты на базе в памяти
 frontend/          — Leptos 0.8 CSR (trunk)
   app/             — оболочка, страницы, слайды, практика, лаборатории; styles/ — общий CSS
   crates/          — scene (отрисовка схем), api (клиент и DTO)
-shared-rs/         — общие крейты (бэкенд, фронтенд, генераторы): content, highlight, gen,
+packages/         — общие крейты (бэкенд, фронтенд, генераторы): content, highlight, gen,
                      лаборатории sdlab, netlab, archlab, riscvlab, virtlab
 worker/            — воркер проверки кода (Python, только стандартная библиотека + Docker CLI)
 voice/             — озвучка kokoro-ru (запускается один раз в конце работы над курсом)
 e2e/               — Playwright (TypeScript): тесты браузера на каждую книгу и модуль
 deploy/            — docker compose (proxy на Caddy, api, surrealdb, worker, dind, backup)
-tasks/             — исходные планы курсов (algo, arch_oc, db_learn)
 ```
 
 Прежняя реализация (FastAPI + SQLite, React + Vite, авторские модули задач на Python и TypeScript) удалена; она сохранена
