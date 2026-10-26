@@ -10,10 +10,10 @@ import { bearer, chapterId } from "./fixtures";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const DATA = path.join(root, "backend", "data", "labs");
 
-export type LabKind = "sd" | "net" | "virt";
+export type LabKind = "sd" | "net" | "virt" | "web";
 
 /** Книга курса для каждого вида лаборатории. */
-export const BOOK: Record<LabKind, number> = { sd: 18, net: 15, virt: 17 };
+export const BOOK: Record<LabKind, number> = { sd: 18, net: 15, virt: 17, web: 11 };
 
 export interface LabTaskData {
   id: string;

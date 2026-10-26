@@ -1,0 +1,872 @@
+{
+ "book": 11,
+ "chapter": 13,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w13-skeleton",
+   "title": "Минимальный документ",
+   "statement": "Напишите с нуля каркас страницы: доктайп, элемент html с языком ru, в голове — кодировка utf-8, вьюпорт (width=device-width) и заголовок страницы «Кофейня», в теле — заголовок первого уровня.",
+   "hint": "Порядок: <!doctype html>, затем html lang=\"ru\" с двумя детьми head и body. В head — meta charset, meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" и title.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<!-- Начните с <!doctype html> -->\n",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "html",
+      "name": "lang",
+      "equals": "ru"
+     },
+     {
+      "t": "attr",
+      "sel": "meta",
+      "name": "charset",
+      "equals": "utf-8"
+     },
+     {
+      "t": "attr",
+      "sel": "meta[name=\"viewport\"]",
+      "name": "content",
+      "contains": "width=device-width"
+     },
+     {
+      "t": "child",
+      "parent": "head",
+      "child": "title",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "title",
+      "contains": "Кофейня"
+     },
+     {
+      "t": "child",
+      "parent": "body",
+      "child": "h1",
+      "direct": true
+     },
+     {
+      "t": "clean_parse"
+     }
+    ],
+    "reference": {
+     "html": "<!doctype html>\n<html lang=\"ru\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Кофейня</title>\n</head>\n<body>\n<h1>Добро пожаловать</h1>\n</body>\n</html>"
+    }
+   }
+  },
+  {
+   "id": "w13-head",
+   "title": "Голова страницы",
+   "statement": "Дополните голову документа: у страницы должно быть название «Рецепты», кодировка utf-8, вьюпорт с width=device-width, подключённые стили style.css и скрипт app.js с отложенной загрузкой.",
+   "hint": "Таблицы стилей подключает link с rel=\"stylesheet\" и href. У скрипта нужен атрибут defer, а не async.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<!doctype html>\n<html lang=\"ru\">\n<head>\n  <title></title>\n</head>\n<body>\n  <h1>Рецепты</h1>\n</body>\n</html>",
+    "checks": [
+     {
+      "t": "text",
+      "sel": "title",
+      "contains": "Рецепты"
+     },
+     {
+      "t": "attr",
+      "sel": "meta",
+      "name": "charset",
+      "equals": "utf-8"
+     },
+     {
+      "t": "attr",
+      "sel": "meta[name=\"viewport\"]",
+      "name": "content",
+      "contains": "width=device-width"
+     },
+     {
+      "t": "attr",
+      "sel": "head link[rel=\"stylesheet\"]",
+      "name": "href",
+      "contains": "style.css"
+     },
+     {
+      "t": "attr",
+      "sel": "head script",
+      "name": "src",
+      "contains": "app.js"
+     },
+     {
+      "t": "attr",
+      "sel": "head script[src]",
+      "name": "defer",
+      "present": true
+     },
+     {
+      "t": "clean_parse"
+     }
+    ],
+    "reference": {
+     "html": "<!doctype html>\n<html lang=\"ru\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Рецепты</title>\n  <link rel=\"stylesheet\" href=\"style.css\">\n  <script src=\"app.js\" defer></script>\n</head>\n<body>\n  <h1>Рецепты</h1>\n</body>\n</html>"
+    }
+   }
+  },
+  {
+   "id": "w13-headings",
+   "title": "Заголовки без пропусков",
+   "statement": "В странице перепутаны уровни заголовков: после h1 сразу идёт h3. Исправьте их: разделы «Сорта» и «Заварка» — заголовки второго уровня, а «Арабика» и «Робуста» — третьего. Заголовков четвёртого уровня быть не должно.",
+   "hint": "Уровень выбирают по месту в структуре: h1 — название, h2 — разделы, h3 — части разделов. Пропускать уровни нельзя.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<h1>Кофе</h1>\n<h3>Сорта</h3>\n<h4>Арабика</h4>\n<h4>Робуста</h4>\n<h3>Заварка</h3>",
+    "checks": [
+     {
+      "t": "headings"
+     },
+     {
+      "t": "count",
+      "sel": "h2",
+      "n": 2
+     },
+     {
+      "t": "count",
+      "sel": "h3",
+      "n": 2
+     },
+     {
+      "t": "forbid",
+      "sel": "h4"
+     },
+     {
+      "t": "text",
+      "sel": "h2",
+      "contains": "Сорта"
+     },
+     {
+      "t": "text",
+      "sel": "h2",
+      "contains": "Заварка"
+     },
+     {
+      "t": "text",
+      "sel": "h3",
+      "contains": "Арабика"
+     }
+    ],
+    "reference": {
+     "html": "<h1>Кофе</h1>\n<h2>Сорта</h2>\n<h3>Арабика</h3>\n<h3>Робуста</h3>\n<h2>Заварка</h2>"
+    }
+   }
+  },
+  {
+   "id": "w13-nav",
+   "title": "Навигация списком ссылок",
+   "statement": "Сделайте меню сайта: элемент nav, внутри него маркированный список из трёх пунктов со ссылками «Главная», «Меню» и «Контакты». У каждой ссылки должен быть адрес href.",
+   "hint": "Меню — это список ссылок: nav > ul > li > a. Каждый пункт li содержит одну ссылку.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<!-- nav → ul → три li, в каждом по ссылке a -->\n",
+    "checks": [
+     {
+      "t": "child",
+      "parent": "nav",
+      "child": "ul",
+      "direct": true
+     },
+     {
+      "t": "count",
+      "sel": "nav ul > li",
+      "n": 3
+     },
+     {
+      "t": "count",
+      "sel": "nav li > a",
+      "n": 3
+     },
+     {
+      "t": "attr",
+      "sel": "nav a",
+      "name": "href",
+      "all": true
+     },
+     {
+      "t": "text",
+      "sel": "nav a",
+      "contains": "Главная"
+     },
+     {
+      "t": "text",
+      "sel": "nav a",
+      "contains": "Меню"
+     },
+     {
+      "t": "text",
+      "sel": "nav a",
+      "contains": "Контакты"
+     }
+    ],
+    "reference": {
+     "html": "<nav>\n<ul>\n<li><a href=\"/\">Главная</a></li>\n<li><a href=\"/menu\">Меню</a></li>\n<li><a href=\"/contacts\">Контакты</a></li>\n</ul>\n</nav>"
+    }
+   }
+  },
+  {
+   "id": "w13-layout",
+   "title": "Шапка, главное, подвал",
+   "statement": "Страница собрана из абзацев. Разметьте её смысловыми контейнерами: название сайта — в header, основной текст — в main, строка с правами — в footer. Контейнеры идут по порядку и по одному, прямо в body.",
+   "hint": "Нужны элементы header, main и footer; main на странице один. Текст сохраните, меняйте только обёртки.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p>Кофейня «Зерно»</p>\n<p>Свежий кофе каждый день.</p>\n<p>© 2026 Кофейня</p>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "header",
+      "max": 1
+     },
+     {
+      "t": "exists",
+      "sel": "main",
+      "max": 1
+     },
+     {
+      "t": "exists",
+      "sel": "footer",
+      "max": 1
+     },
+     {
+      "t": "order",
+      "before": "header",
+      "after": "main"
+     },
+     {
+      "t": "order",
+      "before": "main",
+      "after": "footer"
+     },
+     {
+      "t": "child",
+      "parent": "body",
+      "child": "header",
+      "direct": true
+     },
+     {
+      "t": "child",
+      "parent": "body",
+      "child": "main",
+      "direct": true
+     },
+     {
+      "t": "child",
+      "parent": "body",
+      "child": "footer",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "header",
+      "contains": "Зерно"
+     },
+     {
+      "t": "text",
+      "sel": "main",
+      "contains": "Свежий кофе"
+     },
+     {
+      "t": "text",
+      "sel": "footer",
+      "contains": "2026"
+     }
+    ],
+    "reference": {
+     "html": "<header><p>Кофейня «Зерно»</p></header>\n<main><p>Свежий кофе каждый день.</p></main>\n<footer><p>© 2026 Кофейня</p></footer>"
+    }
+   }
+  },
+  {
+   "id": "w13-article",
+   "title": "Статья с датой",
+   "statement": "Разметьте запись блога. Заголовок страницы «Блог» — h1. Сама запись — элемент article: внутри заголовок второго уровня, дата в элементе time с атрибутом datetime и абзац текста.",
+   "hint": "time пишут так: <time datetime=\"2026-05-06\">6 мая 2026</time>. Заголовок записи — h2, потому что h1 уже занят названием блога.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<h1>Блог</h1>\n<!-- здесь запись: article, h2, time и абзац -->\n",
+    "checks": [
+     {
+      "t": "headings"
+     },
+     {
+      "t": "child",
+      "parent": "article",
+      "child": "h2",
+      "direct": true
+     },
+     {
+      "t": "attr",
+      "sel": "article time",
+      "name": "datetime",
+      "present": true
+     },
+     {
+      "t": "child",
+      "parent": "article",
+      "child": "p",
+      "direct": true
+     }
+    ],
+    "reference": {
+     "html": "<h1>Блог</h1>\n<article>\n<h2>Как мы открыли кофейню</h2>\n<time datetime=\"2026-05-06\">6 мая 2026</time>\n<p>Сначала была идея, потом аренда и первая обжарка.</p>\n</article>"
+    }
+   }
+  },
+  {
+   "id": "w13-link",
+   "title": "Внешняя ссылка",
+   "statement": "Ссылка ведёт на чужой сайт. Сделайте так, чтобы она открывалась в новой вкладке безопасно: добавьте target и rel с обоими значениями защиты. Текст и адрес оставьте.",
+   "hint": "target=\"_blank\" открывает новую вкладку, а rel=\"noopener noreferrer\" не даёт открытой странице управлять вашей.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<a href=\"https://example.org\">Сайт партнёра</a>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "a",
+      "name": "href",
+      "contains": "https://"
+     },
+     {
+      "t": "attr",
+      "sel": "a",
+      "name": "target",
+      "equals": "_blank"
+     },
+     {
+      "t": "attr",
+      "sel": "a",
+      "name": "rel",
+      "contains": "noopener"
+     },
+     {
+      "t": "attr",
+      "sel": "a",
+      "name": "rel",
+      "contains": "noreferrer"
+     },
+     {
+      "t": "text",
+      "sel": "a",
+      "contains": "партнёра"
+     }
+    ],
+    "reference": {
+     "html": "<a href=\"https://example.org\" target=\"_blank\" rel=\"noopener noreferrer\">Сайт партнёра</a>"
+    }
+   }
+  },
+  {
+   "id": "w13-anchor",
+   "title": "Якорная ссылка",
+   "statement": "Сделайте ссылку «К ценам» якорем: она должна вести на заголовок «Цены» на этой же странице. Для этого заголовку нужен идентификатор prices, а ссылке — адрес из решётки и этого идентификатора.",
+   "hint": "Идентификатор задают атрибутом id, а ссылка на него начинается с решётки: href=\"#prices\".",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p><a>К ценам</a></p>\n<h2>Цены</h2>\n<p>Эспрессо — 150 рублей.</p>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "a",
+      "name": "href",
+      "equals": "#prices"
+     },
+     {
+      "t": "attr",
+      "sel": "h2",
+      "name": "id",
+      "equals": "prices"
+     },
+     {
+      "t": "text",
+      "sel": "a",
+      "contains": "К ценам"
+     }
+    ],
+    "reference": {
+     "html": "<p><a href=\"#prices\">К ценам</a></p>\n<h2 id=\"prices\">Цены</h2>\n<p>Эспрессо — 150 рублей.</p>"
+    }
+   }
+  },
+  {
+   "id": "w13-dl",
+   "title": "Список определений",
+   "statement": "Термины записаны абзацами. Превратите их в список определений: элемент dl, каждый термин — в dt, пояснение — в dd. Абзацев остаться не должно.",
+   "hint": "Структура пары: <dt>термин</dt><dd>пояснение</dd>, все пары лежат внутри одного dl.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p>HTML — язык разметки страниц</p>\n<p>CSS — язык стилей</p>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "dl",
+      "max": 1
+     },
+     {
+      "t": "exists",
+      "sel": "dl > dt",
+      "min": 2
+     },
+     {
+      "t": "exists",
+      "sel": "dl > dd",
+      "min": 2
+     },
+     {
+      "t": "text",
+      "sel": "dt",
+      "contains": "HTML"
+     },
+     {
+      "t": "text",
+      "sel": "dd",
+      "contains": "стилей"
+     },
+     {
+      "t": "forbid",
+      "sel": "p"
+     }
+    ],
+    "reference": {
+     "html": "<dl>\n<dt>HTML</dt><dd>язык разметки страниц</dd>\n<dt>CSS</dt><dd>язык стилей</dd>\n</dl>"
+    }
+   }
+  },
+  {
+   "id": "w13-quote",
+   "title": "Цитата с источником",
+   "statement": "Оформите фразу как цитату: длинную — элементом blockquote с атрибутом cite, в котором лежит адрес источника (начинается с https). Абзац-обёртка не нужен.",
+   "hint": "blockquote — цитата отдельным блоком, адрес первоисточника записывают в cite: <blockquote cite=\"https://…\">.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p>Простота — залог надёжности.</p>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "blockquote",
+      "max": 1
+     },
+     {
+      "t": "attr",
+      "sel": "blockquote",
+      "name": "cite",
+      "contains": "https://"
+     },
+     {
+      "t": "text",
+      "sel": "blockquote",
+      "contains": "Простота — залог надёжности"
+     },
+     {
+      "t": "forbid",
+      "sel": "body > p"
+     }
+    ],
+    "reference": {
+     "html": "<blockquote cite=\"https://example.org/quotes\">Простота — залог надёжности.</blockquote>"
+    }
+   }
+  },
+  {
+   "id": "w13-code",
+   "title": "Код в pre и code",
+   "statement": "Короткий листинг набран абзацем с переносами через br. Оформите его правильно: многострочный код — в pre, а внутри pre — элемент code. Элементов br быть не должно.",
+   "hint": "Пробелы и переносы строк внутри pre сохраняются, поэтому br не нужен. Структура: <pre><code>…</code></pre>.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p>def hi():<br>&nbsp;&nbsp;print(\"Привет\")</p>",
+    "checks": [
+     {
+      "t": "child",
+      "parent": "pre",
+      "child": "code",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "code",
+      "contains": "def hi"
+     },
+     {
+      "t": "text",
+      "sel": "code",
+      "contains": "print"
+     },
+     {
+      "t": "forbid",
+      "sel": "br"
+     },
+     {
+      "t": "forbid",
+      "sel": "p"
+     }
+    ],
+    "reference": {
+     "html": "<pre><code>def hi():\n    print(\"Привет\")\n</code></pre>"
+    }
+   }
+  },
+  {
+   "id": "w13-soup",
+   "title": "Из див-супа в семантику",
+   "statement": "Страница целиком собрана из div с классами. Перепишите её: header с названием и навигацией (nav со списком ссылок), main с заголовком h1 и абзацем, footer. Дивов с классами не должно остаться.",
+   "hint": "div.top → header, div.menu → nav со списком ul, div.content → main, div.title → h1, div.text → p, div.bottom → footer. Пункты меню — li со ссылкой.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<div class=\"top\"><div class=\"logo\">Кофейня</div><div class=\"menu\"><div><a href=\"/\">Главная</a></div><div><a href=\"/menu\">Меню</a></div></div></div>\n<div class=\"content\"><div class=\"title\">Меню на сегодня</div><div class=\"text\">Эспрессо, капучино, латте.</div></div>\n<div class=\"bottom\">© Кофейня</div>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "header",
+      "max": 1
+     },
+     {
+      "t": "exists",
+      "sel": "nav",
+      "max": 1
+     },
+     {
+      "t": "exists",
+      "sel": "main",
+      "max": 1
+     },
+     {
+      "t": "exists",
+      "sel": "footer",
+      "max": 1
+     },
+     {
+      "t": "child",
+      "parent": "header",
+      "child": "nav",
+      "direct": false
+     },
+     {
+      "t": "exists",
+      "sel": "nav ul > li > a",
+      "min": 2
+     },
+     {
+      "t": "child",
+      "parent": "main",
+      "child": "h1",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "main h1",
+      "contains": "Меню на сегодня"
+     },
+     {
+      "t": "text",
+      "sel": "main p",
+      "contains": "Эспрессо"
+     },
+     {
+      "t": "order",
+      "before": "header",
+      "after": "main"
+     },
+     {
+      "t": "order",
+      "before": "main",
+      "after": "footer"
+     },
+     {
+      "t": "headings"
+     },
+     {
+      "t": "forbid",
+      "sel": "div[class]"
+     }
+    ],
+    "reference": {
+     "html": "<header><p class=\"logo\">Кофейня</p><nav><ul><li><a href=\"/\">Главная</a></li><li><a href=\"/menu\">Меню</a></li></ul></nav></header>\n<main><h1>Меню на сегодня</h1><p>Эспрессо, капучино, латте.</p></main>\n<footer>© Кофейня</footer>"
+    }
+   }
+  },
+  {
+   "id": "w13-figure",
+   "title": "Картинка с подписью",
+   "statement": "Оформите иллюстрацию: элемент figure, внутри него картинка img с коротким описанием в alt и подпись в figcaption. Путь к файлу сохраните.",
+   "hint": "Структура: <figure><img src=\"…\" alt=\"описание\"><figcaption>подпись</figcaption></figure>. Описание в alt не должно быть пустым.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<img src=\"cat.jpg\">",
+    "checks": [
+     {
+      "t": "child",
+      "parent": "figure",
+      "child": "img",
+      "direct": true
+     },
+     {
+      "t": "child",
+      "parent": "figure",
+      "child": "figcaption",
+      "direct": true
+     },
+     {
+      "t": "attr",
+      "sel": "figure img",
+      "name": "src",
+      "contains": "cat.jpg"
+     },
+     {
+      "t": "attr",
+      "sel": "figure img",
+      "name": "alt",
+      "all": true
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<figure><img src=\"cat.jpg\" alt=\"Рыжий кот на подоконнике\"><figcaption>Мой кот Мурзик</figcaption></figure>"
+    }
+   }
+  },
+  {
+   "id": "w13-inline",
+   "title": "Мелкие смысловые элементы",
+   "statement": "В абзаце есть сокращение, дата и важная мысль. Разметьте их: HTML — элементом abbr с расшифровкой в title, дату — элементом time с datetime=\"2026-05-06\", слова «очень важно» — элементом strong, слово «разметки» — элементом mark.",
+   "hint": "abbr получает расшифровку в title, time — машинную дату в datetime, strong — важное, mark — выделенное для поиска. Текст абзаца менять не нужно.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p>HTML — язык разметки. Релиз состоялся 2026-05-06. Это очень важно.</p>",
+    "checks": [
+     {
+      "t": "text",
+      "sel": "abbr",
+      "contains": "HTML"
+     },
+     {
+      "t": "attr",
+      "sel": "abbr",
+      "name": "title",
+      "present": true
+     },
+     {
+      "t": "attr",
+      "sel": "time",
+      "name": "datetime",
+      "contains": "2026-05-06"
+     },
+     {
+      "t": "text",
+      "sel": "strong",
+      "contains": "очень важно"
+     },
+     {
+      "t": "text",
+      "sel": "mark",
+      "contains": "разметки"
+     },
+     {
+      "t": "exists",
+      "sel": "p"
+     }
+    ],
+    "reference": {
+     "html": "<p><abbr title=\"HyperText Markup Language\">HTML</abbr> — язык <mark>разметки</mark>. Релиз состоялся <time datetime=\"2026-05-06\">6 мая 2026</time>. Это <strong>очень важно</strong>.</p>"
+    }
+   }
+  },
+  {
+   "id": "w13-legacy",
+   "title": "Без устаревших тегов",
+   "statement": "Фрагмент написан по правилам девяностых: центрирование и цвет — через center и font. Перепишите его: заголовок «Распродажа» — h1, текст — абзац p. Тегов center и font, а также атрибутов style, color и align быть не должно.",
+   "hint": "Оформление — задача стилей, а не разметки. В разметке остаётся смысл: заголовок и абзац.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<center><font color=\"red\">Распродажа</font></center>\n<p align=\"center\">Скидки до 50%</p>",
+    "checks": [
+     {
+      "t": "text",
+      "sel": "h1",
+      "contains": "Распродажа"
+     },
+     {
+      "t": "text",
+      "sel": "p",
+      "contains": "Скидки до 50%"
+     },
+     {
+      "t": "forbid",
+      "sel": "center"
+     },
+     {
+      "t": "forbid",
+      "sel": "font"
+     },
+     {
+      "t": "forbid",
+      "sel": "[style]"
+     },
+     {
+      "t": "forbid",
+      "sel": "[color]"
+     },
+     {
+      "t": "forbid",
+      "sel": "[align]"
+     }
+    ],
+    "reference": {
+     "html": "<h1>Распродажа</h1>\n<p>Скидки до 50%</p>"
+    }
+   }
+  },
+  {
+   "id": "w13-parse",
+   "title": "Документ без ошибок разбора",
+   "statement": "Браузер молча чинит разметку, но ошибки остаются: незакрытый заголовок, перепутанный порядок закрытия тегов, лишний закрывающий тег. Исправьте документ так, чтобы разбор прошёл без замечаний. Заголовок «Покупки» и два пункта списка сохраните.",
+   "hint": "Каждый открытый тег закрывается, причём в обратном порядке: <b><i>…</i></b>. Лишний закрывающий тег просто удалите.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<!doctype html>\n<html lang=\"ru\">\n<head><meta charset=\"utf-8\"><title>Список</title></head>\n<body>\n<h1>Покупки\n<p>Взять <b><i>обязательно</b></i>:</p>\n</div>\n<ul>\n<li>Хлеб</li>\n<li>Молоко</li>\n</ul>\n</body>\n</html>",
+    "checks": [
+     {
+      "t": "clean_parse"
+     },
+     {
+      "t": "text",
+      "sel": "h1",
+      "equals": "Покупки"
+     },
+     {
+      "t": "count",
+      "sel": "ul > li",
+      "n": 2
+     },
+     {
+      "t": "text",
+      "sel": "li",
+      "contains": "Хлеб"
+     },
+     {
+      "t": "text",
+      "sel": "li",
+      "contains": "Молоко"
+     }
+    ],
+    "reference": {
+     "html": "<!doctype html>\n<html lang=\"ru\">\n<head><meta charset=\"utf-8\"><title>Список</title></head>\n<body>\n<h1>Покупки</h1>\n<p>Взять <b><i>обязательно</i></b>:</p>\n<ul>\n<li>Хлеб</li>\n<li>Молоко</li>\n</ul>\n</body>\n</html>"
+    }
+   }
+  },
+  {
+   "id": "w13-a11y",
+   "title": "Доступная страница",
+   "statement": "Страница подписки недоступна для скринридера. Исправьте: добавьте язык документа, заголовок первого уровня вместо div «Подписка на рассылку», описание для логотипа в alt, подпись label для поля почты и оберните содержимое в main.",
+   "hint": "Поле связывают с подписью через for и id: <label for=\"email\">…</label><input id=\"email\">. Логотипу нужен непустой alt.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<!doctype html>\n<html>\n<head><meta charset=\"utf-8\"><title>Подписка</title></head>\n<body>\n<div class=\"title\">Подписка на рассылку</div>\n<img src=\"logo.png\">\n<input type=\"email\" name=\"email\">\n<button>Подписаться</button>\n</body>\n</html>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "html",
+      "name": "lang",
+      "present": true
+     },
+     {
+      "t": "headings"
+     },
+     {
+      "t": "text",
+      "sel": "h1",
+      "contains": "Подписка"
+     },
+     {
+      "t": "img_alt"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "alt",
+      "all": true
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "exists",
+      "sel": "main",
+      "max": 1
+     },
+     {
+      "t": "child",
+      "parent": "main",
+      "child": "input",
+      "direct": false
+     },
+     {
+      "t": "text",
+      "sel": "button",
+      "contains": "Подписаться"
+     }
+    ],
+    "reference": {
+     "html": "<!doctype html>\n<html lang=\"ru\">\n<head><meta charset=\"utf-8\"><title>Подписка</title></head>\n<body>\n<main>\n<h1>Подписка на рассылку</h1>\n<img src=\"logo.png\" alt=\"Логотип «Зерна»\">\n<label for=\"email\">Почта</label>\n<input type=\"email\" id=\"email\" name=\"email\">\n<button>Подписаться</button>\n</main>\n</body>\n</html>"
+    }
+   }
+  },
+  {
+   "id": "w13-sections",
+   "title": "Статья, разделы и врезка",
+   "statement": "Соберите страницу статьи: h1 с названием, в main — элемент article с двумя разделами section (у каждого заголовок h2 и абзац), а рядом с ним врезка aside с абзацем.",
+   "hint": "Структура: main > article > section × 2 (каждая с h2 и p), а aside — побочное содержимое с абзацем внутри.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<!-- main → article → два section (h2 + p), рядом aside с абзацем -->\n",
+    "checks": [
+     {
+      "t": "headings"
+     },
+     {
+      "t": "child",
+      "parent": "main",
+      "child": "article",
+      "direct": false
+     },
+     {
+      "t": "exists",
+      "sel": "article section",
+      "min": 2
+     },
+     {
+      "t": "exists",
+      "sel": "article section > h2",
+      "min": 2
+     },
+     {
+      "t": "exists",
+      "sel": "article section > p",
+      "min": 2
+     },
+     {
+      "t": "exists",
+      "sel": "aside",
+      "max": 1
+     },
+     {
+      "t": "child",
+      "parent": "aside",
+      "child": "p",
+      "direct": false
+     }
+    ],
+    "reference": {
+     "html": "<h1>Как варить кофе</h1>\n<main>\n<article>\n<section><h2>Помол</h2><p>Средний помол подходит для воронки.</p></section>\n<section><h2>Температура</h2><p>Вода должна быть около девяноста градусов.</p></section>\n</article>\n<aside><p>Совет: свежий помол пахнет сильнее.</p></aside>\n</main>"
+    }
+   }
+  }
+ ]
+}

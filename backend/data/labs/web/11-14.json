@@ -1,0 +1,850 @@
+{
+ "book": 11,
+ "chapter": 14,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w14-img-alt",
+   "title": "Картинка с alt",
+   "statement": "Под абзацем нет фотографии. Добавьте картинку офиса: файл `office.jpg`, текстовая замена передаёт смысл снимка (например, «Фасад офиса на центральной улице»).",
+   "hint": "Тег `img` пустой, у него нет закрывающего тега. Нужны два атрибута: `src` с адресом и `alt` с описанием того, что на снимке.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<p>Наш офис находится в центре города.</p>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "img"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "src",
+      "equals": "office.jpg"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "alt",
+      "msg": "У картинки есть непустой `alt`"
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<p>Наш офис находится в центре города.</p><img src=\"office.jpg\" alt=\"Фасад офиса на центральной улице\">"
+    }
+   }
+  },
+  {
+   "id": "w14-img-decor",
+   "title": "Декоративная картинка",
+   "statement": "Волнистая линия `wave.svg` только украшает заголовок и ничего не сообщает. Сделайте так, чтобы скринридер её пропускал, но атрибут текстовой замены остался в разметке.",
+   "hint": "Пустая строка — это значение: `alt=\"\"`. Если убрать атрибут целиком, скринридер прочитает имя файла.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<h1>Добро пожаловать</h1><img src=\"wave.svg\">",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "img"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "src",
+      "equals": "wave.svg"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "alt",
+      "present": true,
+      "equals": "",
+      "msg": "У картинки есть `alt`, и он пустой"
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<h1>Добро пожаловать</h1><img src=\"wave.svg\" alt=\"\">"
+    }
+   }
+  },
+  {
+   "id": "w14-img-link",
+   "title": "Картинка-ссылка",
+   "statement": "Значок сумки ведёт в корзину. Сейчас у картинки нет замены, и скринридер не поймёт, куда ведёт ссылка. Напишите `alt`, который описывает действие.",
+   "hint": "Для ссылки `alt` говорит не «сумка», а что произойдёт по клику: «Открыть корзину».",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<a href=\"/cart\"><img src=\"bag.svg\"></a>",
+    "checks": [
+     {
+      "t": "child",
+      "parent": "a",
+      "child": "img",
+      "direct": true
+     },
+     {
+      "t": "attr",
+      "sel": "a",
+      "name": "href",
+      "equals": "/cart"
+     },
+     {
+      "t": "attr",
+      "sel": "a img",
+      "name": "alt",
+      "contains": "корзин",
+      "msg": "`alt` описывает действие и содержит слово «корзина»"
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<a href=\"/cart\"><img src=\"bag.svg\" alt=\"Открыть корзину\"></a>"
+    }
+   }
+  },
+  {
+   "id": "w14-img-size",
+   "title": "Размеры против прыжков",
+   "statement": "Герой-картинка `hero.jpg` имеет размер 800 на 450 пикселей. Сообщите браузеру размеры в разметке, чтобы он зарезервировал место до загрузки файла.",
+   "hint": "Атрибуты называются `width` и `height`, значения — числа без единиц.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<img src=\"hero.jpg\" alt=\"Горы на рассвете\">",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "width",
+      "equals": "800"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "height",
+      "equals": "450"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "alt",
+      "present": true
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<img src=\"hero.jpg\" alt=\"Горы на рассвете\" width=\"800\" height=\"450\">"
+    }
+   }
+  },
+  {
+   "id": "w14-figure",
+   "title": "Иллюстрация с подписью",
+   "statement": "Оберните картинку `chart.png` в самостоятельный блок и добавьте подпись «Рис. 1. Выручка по кварталам». Подпись должна идти после картинки.",
+   "hint": "Нужна пара `figure` и `figcaption`; `img` лежит внутри `figure`, `figcaption` — тоже, после картинки.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<img src=\"chart.png\" alt=\"Столбчатый график выручки\">",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "figure"
+     },
+     {
+      "t": "child",
+      "parent": "figure",
+      "child": "img"
+     },
+     {
+      "t": "child",
+      "parent": "figure",
+      "child": "figcaption",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "figcaption",
+      "contains": "выручка"
+     },
+     {
+      "t": "order",
+      "before": "figure img",
+      "after": "figcaption"
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<figure><img src=\"chart.png\" alt=\"Столбчатый график выручки\"><figcaption>Рис. 1. Выручка по кварталам</figcaption></figure>"
+    }
+   }
+  },
+  {
+   "id": "w14-picture",
+   "title": "picture с форматами",
+   "statement": "Подключите три файла одной картинки: `cat.avif`, `cat.webp` и запасной `cat.jpg`. Современные форматы идут первыми и отличаются атрибутом `type`; запасной вариант — обычный `img` с `alt`.",
+   "hint": "Внутри `picture` сначала два `source` (`type=\"image/avif\"`, `type=\"image/webp\"`, адреса в `srcset`), последним — `img`.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<img src=\"cat.jpg\" alt=\"Кот на диване\">",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "picture"
+     },
+     {
+      "t": "count",
+      "sel": "picture > source",
+      "n": 2,
+      "msg": "Два `source` прямо внутри `picture`"
+     },
+     {
+      "t": "attr",
+      "sel": "picture > source",
+      "name": "type",
+      "contains": "avif"
+     },
+     {
+      "t": "attr",
+      "sel": "picture > source",
+      "name": "type",
+      "contains": "webp"
+     },
+     {
+      "t": "attr",
+      "sel": "picture > source",
+      "name": "srcset",
+      "present": true,
+      "all": true
+     },
+     {
+      "t": "child",
+      "parent": "picture",
+      "child": "img",
+      "direct": true
+     },
+     {
+      "t": "order",
+      "before": "picture source",
+      "after": "picture img"
+     },
+     {
+      "t": "attr",
+      "sel": "picture img",
+      "name": "alt",
+      "present": true
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<picture><source type=\"image/avif\" srcset=\"cat.avif\"><source type=\"image/webp\" srcset=\"cat.webp\"><img src=\"cat.jpg\" alt=\"Кот на диване\" width=\"600\" height=\"400\"></picture>"
+    }
+   }
+  },
+  {
+   "id": "w14-srcset",
+   "title": "srcset и sizes",
+   "statement": "У героя-картинки есть три файла: `hero-400.jpg` (400 px), `hero-800.jpg` (800 px), `hero-1600.jpg` (1600 px). Перечислите их в `srcset` с шириной в дескрипторах `w`, а в `sizes` сообщите: на окнах шире 900px картинка занимает треть ширины, на узких — всю.",
+   "hint": "`srcset=\"a.jpg 400w, b.jpg 800w\"`; `sizes=\"(min-width: 900px) 33vw, 100vw\"`. Атрибуты `src` и `alt` оставьте: они нужны старым браузерам и скринридеру.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<img src=\"hero-800.jpg\" alt=\"Горы на рассвете\">",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "srcset",
+      "contains": "400w"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "srcset",
+      "contains": "800w"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "srcset",
+      "contains": "1600w"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "sizes",
+      "contains": "900px"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "sizes",
+      "contains": "33vw"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "sizes",
+      "contains": "100vw"
+     },
+     {
+      "t": "attr",
+      "sel": "img",
+      "name": "src",
+      "present": true
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<img src=\"hero-800.jpg\" srcset=\"hero-400.jpg 400w, hero-800.jpg 800w, hero-1600.jpg 1600w\" sizes=\"(min-width: 900px) 33vw, 100vw\" alt=\"Горы на рассвете\">"
+    }
+   }
+  },
+  {
+   "id": "w14-lazy",
+   "title": "Лениво и жадно",
+   "statement": "На странице главная картинка `#hero` видна сразу, а `#g1` и `#g2` лежат в галерее ниже первого экрана. Включите отложенную загрузку для галереи, а главной картинке дайте высокий приоритет и не делайте её ленивой.",
+   "hint": "Галерее — `loading=\"lazy\"`. Главной — `fetchpriority=\"high\"`, и атрибута `loading` у неё быть не должно.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<img id=\"hero\" src=\"hero.jpg\" alt=\"Главная картинка\" width=\"800\" height=\"400\"><img id=\"g1\" src=\"g1.jpg\" alt=\"Фото 1\" width=\"400\" height=\"300\"><img id=\"g2\" src=\"g2.jpg\" alt=\"Фото 2\" width=\"400\" height=\"300\">",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "#hero",
+      "name": "fetchpriority",
+      "equals": "high"
+     },
+     {
+      "t": "attr",
+      "sel": "#hero",
+      "name": "loading",
+      "present": false,
+      "msg": "У главной картинки нет `loading=\"lazy\"`"
+     },
+     {
+      "t": "attr",
+      "sel": "#g1",
+      "name": "loading",
+      "equals": "lazy"
+     },
+     {
+      "t": "attr",
+      "sel": "#g2",
+      "name": "loading",
+      "equals": "lazy"
+     },
+     {
+      "t": "count",
+      "sel": "img",
+      "n": 3
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<img id=\"hero\" src=\"hero.jpg\" alt=\"Главная картинка\" width=\"800\" height=\"400\" fetchpriority=\"high\"><img id=\"g1\" src=\"g1.jpg\" alt=\"Фото 1\" width=\"400\" height=\"300\" loading=\"lazy\"><img id=\"g2\" src=\"g2.jpg\" alt=\"Фото 2\" width=\"400\" height=\"300\" loading=\"lazy\">"
+    }
+   }
+  },
+  {
+   "id": "w14-video",
+   "title": "Видео с субтитрами",
+   "statement": "Соберите плеер: панель управления, постер `poster.jpg`, два файла (`intro.webm` с типом `video/webm` и `intro.mp4` с типом `video/mp4`), русские субтитры `ru.vtt` и текст для браузеров без поддержки видео внутри тега.",
+   "hint": "Внутри `video` — два `source`, один `track` с `kind=\"subtitles\"` и `srclang=\"ru\"`, а затем обычный текст. `controls` пишется без значения.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<video src=\"intro.mp4\"></video>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "video"
+     },
+     {
+      "t": "attr",
+      "sel": "video",
+      "name": "controls",
+      "present": true
+     },
+     {
+      "t": "attr",
+      "sel": "video",
+      "name": "poster",
+      "equals": "poster.jpg"
+     },
+     {
+      "t": "exists",
+      "sel": "video > source",
+      "min": 2
+     },
+     {
+      "t": "attr",
+      "sel": "video source",
+      "name": "type",
+      "contains": "webm"
+     },
+     {
+      "t": "attr",
+      "sel": "video source",
+      "name": "type",
+      "contains": "mp4"
+     },
+     {
+      "t": "exists",
+      "sel": "video > track"
+     },
+     {
+      "t": "attr",
+      "sel": "track",
+      "name": "kind",
+      "equals": "subtitles"
+     },
+     {
+      "t": "attr",
+      "sel": "track",
+      "name": "srclang",
+      "equals": "ru"
+     },
+     {
+      "t": "attr",
+      "sel": "track",
+      "name": "src",
+      "equals": "ru.vtt"
+     },
+     {
+      "t": "text",
+      "sel": "video",
+      "contains": "браузер",
+      "msg": "Внутри `video` есть запасной текст со словом «браузер»"
+     }
+    ],
+    "reference": {
+     "html": "<video controls poster=\"poster.jpg\"><source src=\"intro.webm\" type=\"video/webm\"><source src=\"intro.mp4\" type=\"video/mp4\"><track kind=\"subtitles\" src=\"ru.vtt\" srclang=\"ru\" label=\"Русский\">Ваш браузер не воспроизводит видео.</video>"
+    }
+   }
+  },
+  {
+   "id": "w14-audio",
+   "title": "Подкаст на странице",
+   "statement": "Добавьте под заголовком плеер подкаста: панель управления и два формата — `episode.mp3` (`audio/mpeg`) и `episode.ogg` (`audio/ogg`). Для старых браузеров внутри тега положите ссылку на скачивание.",
+   "hint": "`audio` с атрибутом `controls`; внутри два `source` и ссылка `a` с `href`.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<h2>Выпуск 12</h2>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "audio"
+     },
+     {
+      "t": "attr",
+      "sel": "audio",
+      "name": "controls",
+      "present": true
+     },
+     {
+      "t": "exists",
+      "sel": "audio > source",
+      "min": 2
+     },
+     {
+      "t": "attr",
+      "sel": "audio source",
+      "name": "type",
+      "contains": "mpeg"
+     },
+     {
+      "t": "attr",
+      "sel": "audio source",
+      "name": "type",
+      "contains": "ogg"
+     },
+     {
+      "t": "child",
+      "parent": "audio",
+      "child": "a",
+      "direct": true
+     },
+     {
+      "t": "attr",
+      "sel": "audio a",
+      "name": "href",
+      "present": true
+     }
+    ],
+    "reference": {
+     "html": "<h2>Выпуск 12</h2><audio controls><source src=\"episode.mp3\" type=\"audio/mpeg\"><source src=\"episode.ogg\" type=\"audio/ogg\">Не играет? <a href=\"episode.mp3\">Скачайте выпуск</a>.</audio>"
+    }
+   }
+  },
+  {
+   "id": "w14-iframe",
+   "title": "Безопасная карта",
+   "statement": "Карта подключена фреймом без подготовки. Дайте фрейму имя для скринридера («Карта офиса»), запретите ему всё лишнее через `sandbox` (скриптам карты можно работать, переходов верхнего окна разрешать не нужно) и отложите загрузку, пока он не окажется рядом с экраном.",
+   "hint": "Атрибуты `title`, `sandbox=\"allow-scripts\"`, `loading=\"lazy\"`. Значения `allow-top-navigation…` не нужны.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<iframe src=\"https://maps.example.com/embed?office=1\"></iframe>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "iframe"
+     },
+     {
+      "t": "attr",
+      "sel": "iframe",
+      "name": "title",
+      "contains": "карта"
+     },
+     {
+      "t": "attr",
+      "sel": "iframe",
+      "name": "sandbox",
+      "present": true
+     },
+     {
+      "t": "attr",
+      "sel": "iframe",
+      "name": "loading",
+      "equals": "lazy"
+     },
+     {
+      "t": "forbid",
+      "sel": "iframe[sandbox*=\"allow-top-navigation\"]",
+      "msg": "`sandbox` не разрешает переходов верхнего окна"
+     }
+    ],
+    "reference": {
+     "html": "<iframe src=\"https://maps.example.com/embed?office=1\" title=\"Карта офиса\" sandbox=\"allow-scripts\" loading=\"lazy\"></iframe>"
+    }
+   }
+  },
+  {
+   "id": "w14-table-basic",
+   "title": "Таблица с шапкой",
+   "statement": "Прайс написан голыми строками. Дайте таблице название «Прайс» (`caption`), вынесите первую строку в шапку (`thead`) и сделайте её ячейки заголовками (`th`); строки данных пусть лежат в `tbody`.",
+   "hint": "Порядок внутри `table`: `caption`, `thead`, `tbody`. В шапке ячейки — `th`, в данных — `td`.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<table><tr><td>Товар</td><td>Цена</td></tr><tr><td>Чай</td><td>120</td></tr><tr><td>Кофе</td><td>250</td></tr></table>",
+    "checks": [
+     {
+      "t": "child",
+      "parent": "table",
+      "child": "caption",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "caption",
+      "contains": "прайс"
+     },
+     {
+      "t": "count",
+      "sel": "thead th",
+      "n": 2
+     },
+     {
+      "t": "forbid",
+      "sel": "thead td",
+      "msg": "В шапке нет `td`"
+     },
+     {
+      "t": "exists",
+      "sel": "tbody tr",
+      "min": 2
+     },
+     {
+      "t": "order",
+      "before": "caption",
+      "after": "thead"
+     },
+     {
+      "t": "order",
+      "before": "thead",
+      "after": "tbody"
+     }
+    ],
+    "reference": {
+     "html": "<table><caption>Прайс</caption><thead><tr><th>Товар</th><th>Цена</th></tr></thead><tbody><tr><td>Чай</td><td>120</td></tr><tr><td>Кофе</td><td>250</td></tr></tbody></table>"
+    }
+   }
+  },
+  {
+   "id": "w14-table-scope",
+   "title": "Заголовки со scope",
+   "statement": "В таблице погоды заголовки не связаны с данными. Объявите заголовки столбцов (`scope=\"col\"`), а названия городов в строках сделайте заголовочными ячейками `th` с `scope=\"row\"`. Угловую пустую ячейку не трогайте.",
+   "hint": "В `thead` у каждого `th` пишем `scope=\"col\"`. В `tbody` первая ячейка каждой строки — не `td`, а `th scope=\"row\"`.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<table><caption>Температура</caption><thead><tr><td></td><th>Январь</th><th>Июль</th></tr></thead><tbody><tr><td>Москва</td><td>−6</td><td>+19</td></tr><tr><td>Сочи</td><td>+6</td><td>+24</td></tr></tbody></table>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "thead th",
+      "name": "scope",
+      "equals": "col",
+      "all": true
+     },
+     {
+      "t": "count",
+      "sel": "tbody th",
+      "n": 2,
+      "msg": "Два заголовка строк `th` в `tbody`"
+     },
+     {
+      "t": "attr",
+      "sel": "tbody th",
+      "name": "scope",
+      "equals": "row",
+      "all": true
+     },
+     {
+      "t": "count",
+      "sel": "tbody td",
+      "n": 4
+     },
+     {
+      "t": "child",
+      "parent": "table",
+      "child": "caption",
+      "direct": true
+     }
+    ],
+    "reference": {
+     "html": "<table><caption>Температура</caption><thead><tr><td></td><th scope=\"col\">Январь</th><th scope=\"col\">Июль</th></tr></thead><tbody><tr><th scope=\"row\">Москва</th><td>−6</td><td>+19</td></tr><tr><th scope=\"row\">Сочи</th><td>+6</td><td>+24</td></tr></tbody></table>"
+    }
+   }
+  },
+  {
+   "id": "w14-colspan",
+   "title": "Двухэтажная шапка",
+   "statement": "Сделайте шапку из двух строк: ячейка «Город» занимает обе строки (`rowspan`), над «Январь» и «Июль» стоит общая ячейка «Температура» (`colspan`). Во второй строке шапки остаются только «Январь» и «Июль».",
+   "hint": "Первая строка: `th rowspan=\"2\"` с «Город» и `th colspan=\"2\"` с «Температура». Вторая строка: два `th`. Для объединённой по столбцам ячейки подойдёт `scope=\"colgroup\"`.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<table><thead><tr><th scope=\"col\">Город</th><th scope=\"col\">Январь</th><th scope=\"col\">Июль</th></tr></thead><tbody><tr><th scope=\"row\">Москва</th><td>−6</td><td>+19</td></tr></tbody></table>",
+    "checks": [
+     {
+      "t": "count",
+      "sel": "thead tr",
+      "n": 2
+     },
+     {
+      "t": "attr",
+      "sel": "thead th",
+      "name": "rowspan",
+      "equals": "2"
+     },
+     {
+      "t": "attr",
+      "sel": "thead th",
+      "name": "colspan",
+      "equals": "2"
+     },
+     {
+      "t": "text",
+      "sel": "th[colspan]",
+      "contains": "температура"
+     },
+     {
+      "t": "text",
+      "sel": "th[rowspan]",
+      "contains": "город"
+     },
+     {
+      "t": "attr",
+      "sel": "th[colspan]",
+      "name": "scope",
+      "equals": "colgroup"
+     },
+     {
+      "t": "count",
+      "sel": "thead th",
+      "n": 4
+     }
+    ],
+    "reference": {
+     "html": "<table><thead><tr><th rowspan=\"2\" scope=\"col\">Город</th><th colspan=\"2\" scope=\"colgroup\">Температура</th></tr><tr><th scope=\"col\">Январь</th><th scope=\"col\">Июль</th></tr></thead><tbody><tr><th scope=\"row\">Москва</th><td>−6</td><td>+19</td></tr></tbody></table>"
+    }
+   }
+  },
+  {
+   "id": "w14-details",
+   "title": "Раскрывающийся ответ",
+   "statement": "Вопрос и ответ лежат в обычных блоках. Сверните ответ в готовый виджет: вопрос — заголовок, который виден всегда, ответ показывается по клику.",
+   "hint": "`details` содержит `summary` (первым дочерним элементом) с текстом вопроса, а потом — абзац с ответом.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<h3>Как вернуть товар?</h3><p>В течение 14 дней с чеком.</p>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "details"
+     },
+     {
+      "t": "child",
+      "parent": "details",
+      "child": "summary",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "summary",
+      "contains": "вернуть"
+     },
+     {
+      "t": "child",
+      "parent": "details",
+      "child": "p"
+     },
+     {
+      "t": "order",
+      "before": "summary",
+      "after": "details p"
+     }
+    ],
+    "reference": {
+     "html": "<details><summary>Как вернуть товар?</summary><p>В течение 14 дней с чеком.</p></details>"
+    }
+   }
+  },
+  {
+   "id": "w14-gallery",
+   "title": "Галерея с подписями",
+   "statement": "Три фотографии лежат в одном блоке без подписей. Соберите галерею: маркированный список из трёх пунктов, в каждом — `figure` с картинкой и подписью (`figcaption`: «Озеро», «Лес», «Горы»).",
+   "hint": "`ul` > `li` > `figure` > `img` и `figcaption`. Не забудьте сохранить `alt` у каждой картинки.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<div><img src=\"a.jpg\" alt=\"Озеро\"><img src=\"b.jpg\" alt=\"Лес\"><img src=\"c.jpg\" alt=\"Горы\"></div>",
+    "checks": [
+     {
+      "t": "count",
+      "sel": "ul > li",
+      "n": 3
+     },
+     {
+      "t": "count",
+      "sel": "li > figure",
+      "n": 3
+     },
+     {
+      "t": "count",
+      "sel": "figure > img",
+      "n": 3
+     },
+     {
+      "t": "count",
+      "sel": "figure > figcaption",
+      "n": 3
+     },
+     {
+      "t": "text",
+      "sel": "figcaption",
+      "contains": "озеро"
+     },
+     {
+      "t": "text",
+      "sel": "figcaption",
+      "contains": "лес"
+     },
+     {
+      "t": "text",
+      "sel": "figcaption",
+      "contains": "горы"
+     },
+     {
+      "t": "img_alt"
+     }
+    ],
+    "reference": {
+     "html": "<ul><li><figure><img src=\"a.jpg\" alt=\"Озеро\"><figcaption>Озеро</figcaption></figure></li><li><figure><img src=\"b.jpg\" alt=\"Лес\"><figcaption>Лес</figcaption></figure></li><li><figure><img src=\"c.jpg\" alt=\"Горы\"><figcaption>Горы</figcaption></figure></li></ul>"
+    }
+   }
+  },
+  {
+   "id": "w14-no-layout-table",
+   "title": "Без таблицы для вёрстки",
+   "statement": "Страница с меню слева и текстом справа сверстана таблицей: так делали давно, но таблица — для данных. Перепишите разметку смыслово: меню — `nav` с двумя ссылками, основной текст — `main`. Таблиц быть не должно.",
+   "hint": "Уберите `table`, `tr` и `td`. Колонки позже раскладывает CSS (flex или grid), для разметки хватит `nav` и `main` в нужном порядке.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<table><tr><td><h2>Меню</h2><a href=\"/a\">Главная</a> <a href=\"/b\">О нас</a></td><td><p>Основной текст страницы.</p></td></tr></table>",
+    "checks": [
+     {
+      "t": "forbid",
+      "sel": "table, tr, td, th",
+      "msg": "Нет таблиц: `table`, `tr`, `td`, `th`"
+     },
+     {
+      "t": "exists",
+      "sel": "nav a",
+      "min": 2
+     },
+     {
+      "t": "exists",
+      "sel": "main p"
+     },
+     {
+      "t": "order",
+      "before": "nav",
+      "after": "main"
+     }
+    ],
+    "reference": {
+     "html": "<nav><h2>Меню</h2><a href=\"/a\">Главная</a> <a href=\"/b\">О нас</a></nav><main><p>Основной текст страницы.</p></main>"
+    }
+   }
+  },
+  {
+   "id": "w14-svg-inline",
+   "title": "Иконка в разметке",
+   "statement": "Иконка-кружок вставлена прямо в страницу, но скринридер не знает, что это. Сделайте её картинкой с именем «Информация»: роль `img` и вложенный `title`.",
+   "hint": "У `svg` пишем `role=\"img\"`, а первым дочерним элементом кладём `<title>Информация</title>`.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"currentColor\"/></svg>",
+    "checks": [
+     {
+      "t": "exists",
+      "sel": "svg"
+     },
+     {
+      "t": "attr",
+      "sel": "svg",
+      "name": "role",
+      "equals": "img"
+     },
+     {
+      "t": "exists",
+      "sel": "svg > title"
+     },
+     {
+      "t": "attr",
+      "sel": "svg",
+      "name": "aria-hidden",
+      "present": false,
+      "msg": "Иконка не скрыта через `aria-hidden`"
+     }
+    ],
+    "reference": {
+     "html": "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" role=\"img\"><title>Информация</title><circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"currentColor\"/></svg>"
+    }
+   }
+  }
+ ]
+}

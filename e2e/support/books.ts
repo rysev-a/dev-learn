@@ -88,7 +88,7 @@ function watchChapterConsole(page: Page, ignore500 = false) {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => {
-    if (m.type() !== "error" || /ResizeObserver loop/.test(m.text())) return;
+    if (m.type() !== "error" || /ResizeObserver loop|Blocked script execution in 'about:srcdoc'/.test(m.text())) return;
     const exercises = /\/api\/exercises\/\d+\/\d+$/.test(m.location().url);
     const expected = exercises && (/status of 404/.test(m.text()) || (ignore500 && /status of 500/.test(m.text())));
     if (!expected) errors.push(`console.error: ${m.text().slice(0, 300)} @${m.location().url}`);

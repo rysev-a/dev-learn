@@ -10,9 +10,6 @@ pub fn verify(task: &Task, solution: &Solution) -> Report {
     let mut items = Vec::new();
     match task.kind {
         Kind::Html => {
-            if solution.html.trim().is_empty() {
-                return Report { items: vec![Item { text: "Разметка написана".into(), ok: false, detail: "редактор пуст".into() }] };
-            }
             let doc = Doc::parse(&solution.html);
             items.extend(task.checks.iter().filter_map(|c| html::run(&doc, c)));
         }
@@ -21,9 +18,6 @@ pub fn verify(task: &Task, solution: &Solution) -> Report {
             // правила из `<style>` задания идут раньше правил ученика
             let user = Stylesheet::parse(&solution.css);
             let sheet = Stylesheet::parse(&format!("{}\n{}", doc.style_text(), solution.css));
-            if solution.css.trim().is_empty() {
-                return Report { items: vec![Item { text: "Стили написаны".into(), ok: false, detail: "редактор пуст".into() }] };
-            }
             items.extend(task.checks.iter().filter_map(|c| css::run(&doc, &sheet, &user, c, task.viewport)));
         }
         Kind::Selector => {
@@ -35,6 +29,14 @@ pub fn verify(task: &Task, solution: &Solution) -> Report {
                 }
             }
         }
+    }
+    // пустой редактор не решает задачу, даже если все условия — «чего-то нет»
+    let empty = match task.kind {
+        Kind::Html => solution.html.trim().is_empty(),
+        Kind::Css | Kind::Selector => solution.css.trim().is_empty(),
+    };
+    if empty {
+        items.push(Item { text: "Решение написано".into(), ok: false, detail: "редактор пуст".into() });
     }
     Report { items }
 }

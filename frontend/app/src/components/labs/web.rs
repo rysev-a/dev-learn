@@ -17,7 +17,7 @@ const WIDTHS: [(u32, &str); 3] = [(360, "360"), (768, "768"), (1100, "1100")];
 /// Документ для предпросмотра.
 pub fn preview_doc(task: &Task, s: &Solution) -> String {
     match task.kind {
-        Kind::Html => s.html.clone(),
+        Kind::Html => strip_scripts(&s.html),
         Kind::Css => with_style(&task.html, &s.css),
         // выбранные селектором элементы обводятся; неверный селектор ничего не обводит
         Kind::Selector => {
@@ -26,6 +26,24 @@ pub fn preview_doc(task: &Task, s: &Solution) -> String {
             with_style(&task.html, &rule)
         }
     }
+}
+
+/// Скрипты в предпросмотре не работают (песочница) — вырезаем их, чтобы браузер не сыпал ошибками о блокировке.
+fn strip_scripts(html: &str) -> String {
+    let lower = html.to_lowercase();
+    let (mut out, mut at) = (String::new(), 0);
+    while let Some(i) = lower[at..].find("<script") {
+        out.push_str(&html[at..at + i]);
+        match lower[at + i..].find("</script>") {
+            Some(j) => at += i + j + "</script>".len(),
+            None => {
+                at = html.len();
+                break;
+            }
+        }
+    }
+    out.push_str(&html[at..]);
+    out
 }
 
 /// `<style>` в начало документа (после `<head>`, если он есть).
@@ -158,4 +176,17 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
         </div>
     }
     .into_any()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::strip_scripts;
+
+    #[test]
+    fn scripts_are_removed_from_the_preview() {
+        assert_eq!(strip_scripts("<p>a</p><script src=x></script><p>b</p>"), "<p>a</p><p>b</p>");
+        assert_eq!(strip_scripts("<SCRIPT>alert(1)</SCRIPT>тут"), "тут");
+        assert_eq!(strip_scripts("<p>без скриптов</p>"), "<p>без скриптов</p>");
+        assert_eq!(strip_scripts("до<script>не закрыт"), "до");
+    }
 }

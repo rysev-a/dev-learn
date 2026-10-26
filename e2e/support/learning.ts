@@ -166,7 +166,7 @@ export function learningGuard(page: Page) {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => {
-    if (m.type() !== "error") return;
+    if (m.type() !== "error" || /Blocked script execution in 'about:srcdoc'/.test(m.text())) return;
     if (/Failed to load resource.*404/.test(m.text()) && /\/api\/exercises\/\d+\/\d+$/.test(m.location().url)) return;
     // ожидаемые отказы постановки проверки (нет воркера, пустой код, уже идёт проверка): интерфейс показывает их текстом
     if (/Failed to load resource.*(422|429|503)/.test(m.text()) && m.location().url.endsWith("/api/exercises/run")) return;
@@ -180,7 +180,7 @@ export function learningGuard(page: Page) {
 
 /** Записать настройку в localStorage до загрузки приложения. */
 export async function presetSetting(page: Page, key: string, value: string) {
-  await page.addInitScript(([k, v]) => window.localStorage.setItem(k as string, v as string), [key, value]);
+  await page.addInitScript(([k, v]) => { if (window === window.top) window.localStorage.setItem(k as string, v as string); }, [key, value]);
 }
 
 // --- воркер проверки кода -----------------------------------------------------------------------

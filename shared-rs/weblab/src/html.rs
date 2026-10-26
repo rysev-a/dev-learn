@@ -10,6 +10,7 @@ use crate::spec::{Check, Item};
 /// Разобранный документ с порядком узлов.
 pub struct Doc {
     pub html: Html,
+    source: String,
     order: HashMap<NodeId, usize>,
 }
 
@@ -17,12 +18,22 @@ impl Doc {
     pub fn parse(source: &str) -> Doc {
         let html = Html::parse_document(source);
         let order = html.tree.root().descendants().enumerate().map(|(i, n)| (n.id(), i)).collect();
-        Doc { html, order }
+        Doc { html, source: source.to_string(), order }
     }
 
     /// Фрагмент разбирается как документ: `html`, `head`, `body` добавляет сам разбор.
     pub fn parse_errors(&self) -> Vec<String> {
+        // без doctype разбор всегда жалуется («Unexpected token»): для проверки на ошибки добавляем его сами
+        if !self.has_doctype() {
+            return Html::parse_document(&format!("<!doctype html>{}", self.source)).errors.iter().map(|e| e.to_string()).collect();
+        }
         self.html.errors.iter().map(|e| e.to_string()).collect()
+    }
+
+    /// Документ начинается с `<!doctype html>` (регистр не важен).
+    pub fn has_doctype(&self) -> bool {
+        let t = self.source.trim_start().to_lowercase();
+        t.starts_with("<!doctype html")
     }
 
     pub fn select<'a>(&'a self, sel: &str) -> Result<Vec<ElementRef<'a>>, String> {
@@ -167,6 +178,7 @@ pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
                 Ok(v) => item(text, v.is_empty(), format!("найдено {}", v.len())),
             }
         }
+        Check::Doctype => item("Документ начинается с `<!doctype html>`".into(), doc.has_doctype(), "объявления типа документа нет — браузер включит режим совместимости"),
         Check::Headings => headings(doc),
         Check::Labels => labels(doc),
         Check::ImgAlt => {
@@ -281,6 +293,15 @@ mod tests {
         assert!(all_ok("<input type=hidden name=t><input type=submit>", Check::Labels));
         assert!(!all_ok("<input name=a>", Check::Labels));
         assert!(!all_ok("<label for=x>Имя</label><input id=a>", Check::Labels));
+    }
+
+    #[test]
+    fn doctype_and_clean_parse() {
+        assert!(all_ok("<!DOCTYPE html><title>t</title><p>x</p>", Check::Doctype));
+        assert!(!all_ok("<p>x</p>", Check::Doctype));
+        // у фрагмента без doctype ошибок разбора нет, пока теги вложены верно
+        assert!(all_ok("<title>t</title><p>x</p>", Check::CleanParse));
+        assert!(!all_ok("<div><span></div>", Check::CleanParse));
     }
 
     #[test]

@@ -1,0 +1,798 @@
+{
+ "book": 11,
+ "chapter": 15,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w15-login",
+   "title": "Форма входа",
+   "statement": "Соберите форму входа: она отправляется методом POST на адрес /login; внутри поле почты (type=email, name=email), поле пароля (type=password, name=password) и кнопка отправки. У каждого поля должна быть подпись.",
+   "hint": "У form два атрибута: action и method. Подпись — label с for, равным id поля; у кнопки type=submit.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form>\n  <!-- поля формы -->\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "form",
+      "name": "method",
+      "equals": "post"
+     },
+     {
+      "t": "attr",
+      "sel": "form",
+      "name": "action",
+      "equals": "/login"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=email]",
+      "name": "name",
+      "equals": "email"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=password]",
+      "name": "name",
+      "equals": "password"
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "exists",
+      "sel": "button[type=submit]",
+      "msg": "Есть кнопка button с type=\"submit\""
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/login\" method=\"post\">\n  <label for=\"email\">Почта</label>\n  <input id=\"email\" name=\"email\" type=\"email\">\n  <label for=\"password\">Пароль</label>\n  <input id=\"password\" name=\"password\" type=\"password\">\n  <button type=\"submit\">Войти</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-search",
+   "title": "Форма поиска",
+   "statement": "Форма поиска отправляет запрос методом GET на /search. Поле — type=search с именем q; видимой подписи у него нет, поэтому назовите его для скринридера через aria-label. Форме задайте role=\"search\", а кнопке — текст «Найти».",
+   "hint": "GET кладёт запрос в адрес: /search?q=…. Поле без видимого label получает имя через атрибут aria-label. Роль формы — атрибут role.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/search\">\n  <input name=\"q\">\n  <button>Найти</button>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "form",
+      "name": "method",
+      "equals": "get"
+     },
+     {
+      "t": "attr",
+      "sel": "form",
+      "name": "action",
+      "equals": "/search"
+     },
+     {
+      "t": "attr",
+      "sel": "form",
+      "name": "role",
+      "equals": "search"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=search]",
+      "name": "name",
+      "equals": "q"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=search]",
+      "name": "aria-label"
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "text",
+      "sel": "button",
+      "contains": "Найти"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/search\" method=\"get\" role=\"search\">\n  <input type=\"search\" name=\"q\" aria-label=\"Поиск по сайту\">\n  <button type=\"submit\">Найти</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-email-required",
+   "title": "Обязательная почта",
+   "statement": "Форма подписки: поле почты должно быть обязательным и иметь тип email, чтобы браузер сам проверил вид адреса. Добавьте подпись «Почта», имя поля — email.",
+   "hint": "required — булев атрибут, пишется без значения. Тип email включает встроенную проверку «что-то@что-то». Подпись — label for=id.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/subscribe\" method=\"post\">\n  <input name=\"email\">\n  <button>Подписаться</button>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[name=email]",
+      "name": "type",
+      "equals": "email"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=email]",
+      "name": "required",
+      "present": true
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "text",
+      "sel": "label",
+      "contains": "Почта"
+     },
+     {
+      "t": "exists",
+      "sel": "button",
+      "msg": "Есть кнопка отправки"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/subscribe\" method=\"post\">\n  <label for=\"email\">Почта</label>\n  <input id=\"email\" name=\"email\" type=\"email\" required>\n  <button>Подписаться</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-password-new",
+   "title": "Пароль при регистрации",
+   "statement": "Поле нового пароля: type=password, имя password, обязательное, не короче 8 символов (minlength). Менеджер паролей должен понять, что это новый пароль: autocomplete=\"new-password\". Подпись у поля уже есть — не потеряйте её.",
+   "hint": "minlength=\"8\" ограничивает длину снизу; при входе в существующий аккаунт было бы current-password, при регистрации — new-password.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form method=\"post\" action=\"/signup\">\n  <label for=\"pw\">Пароль</label>\n  <input id=\"pw\" name=\"password\" type=\"password\">\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[type=password]",
+      "name": "minlength",
+      "equals": "8"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=password]",
+      "name": "required",
+      "present": true
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=password]",
+      "name": "autocomplete",
+      "equals": "new-password"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=password]",
+      "name": "name",
+      "equals": "password"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form method=\"post\" action=\"/signup\">\n  <label for=\"pw\">Пароль</label>\n  <input id=\"pw\" name=\"password\" type=\"password\" required minlength=\"8\" autocomplete=\"new-password\">\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-number",
+   "title": "Количество товара",
+   "statement": "Поле «Количество» — число от 1 до 10 с шагом 1, по умолчанию 1. Имя поля qty, тип number, границы задайте атрибутами браузера, а не скриптом.",
+   "hint": "У number есть атрибуты min, max и step; значение по умолчанию задаёт value.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/cart\" method=\"post\">\n  <label for=\"q\">Количество</label>\n  <input id=\"q\" name=\"qty\">\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[name=qty]",
+      "name": "type",
+      "equals": "number"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=qty]",
+      "name": "min",
+      "equals": "1"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=qty]",
+      "name": "max",
+      "equals": "10"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=qty]",
+      "name": "step",
+      "equals": "1"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=qty]",
+      "name": "value",
+      "equals": "1"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/cart\" method=\"post\">\n  <label for=\"q\">Количество</label>\n  <input id=\"q\" name=\"qty\" type=\"number\" min=\"1\" max=\"10\" step=\"1\" value=\"1\">\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-radio-group",
+   "title": "Радиогруппа",
+   "statement": "Выбор способа доставки: группа из двух радиокнопок («Почтой» со значением post и «Курьером» со значением courier) с общим именем delivery. Оберните группу в fieldset с заголовком legend «Доставка»; по умолчанию выбран курьер. У каждой кнопки есть подпись.",
+   "hint": "Радиокнопки с одним name образуют группу. fieldset собирает группу, legend — её вопрос (первый ребёнок fieldset). checked отмечает кнопку.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/order\" method=\"post\">\n  <p>Доставка</p>\n  <input type=\"radio\"> Почтой\n  <input type=\"radio\"> Курьером\n</form>",
+    "checks": [
+     {
+      "t": "child",
+      "parent": "fieldset",
+      "child": "legend",
+      "direct": true
+     },
+     {
+      "t": "text",
+      "sel": "legend",
+      "contains": "Доставка"
+     },
+     {
+      "t": "exists",
+      "sel": "input[type=radio]",
+      "min": 2,
+      "msg": "Не меньше двух радиокнопок"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=radio]",
+      "name": "name",
+      "equals": "delivery",
+      "all": true
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=radio]",
+      "name": "value",
+      "all": true
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=radio][value=courier]",
+      "name": "checked",
+      "present": true
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "child",
+      "parent": "fieldset",
+      "child": "input[type=radio]"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/order\" method=\"post\">\n  <fieldset>\n    <legend>Доставка</legend>\n    <label><input type=\"radio\" name=\"delivery\" value=\"post\"> Почтой</label>\n    <label><input type=\"radio\" name=\"delivery\" value=\"courier\" checked> Курьером</label>\n  </fieldset>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-consent",
+   "title": "Согласие флажком",
+   "statement": "Флажок согласия с правилами: type=checkbox, имя agree, значение yes. Он обязателен, а подпись — «Согласен с правилами» — должна быть связана с флажком, чтобы клик по тексту его отмечал.",
+   "hint": "Самый короткий способ связать подпись — обернуть флажок тегом label. Обязательность — атрибут required.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/register\" method=\"post\">\n  <input type=\"checkbox\"> Согласен с правилами\n  <button>Продолжить</button>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[type=checkbox]",
+      "name": "name",
+      "equals": "agree"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=checkbox]",
+      "name": "value",
+      "equals": "yes"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=checkbox]",
+      "name": "required",
+      "present": true
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "text",
+      "sel": "label",
+      "contains": "Согласен с правилами"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/register\" method=\"post\">\n  <label><input type=\"checkbox\" name=\"agree\" value=\"yes\" required> Согласен с правилами</label>\n  <button>Продолжить</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-select-groups",
+   "title": "Список с группами",
+   "statement": "Выпадающий список городов: select с именем city, внутри две группы optgroup (у каждой есть label), в группах вместе не меньше четырёх вариантов option. У каждого option задайте value. Подпись списка — «Город».",
+   "hint": "Структура: select → optgroup label=\"…\" → option value=\"…\". Подпись для select — тот же label for.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/city\" method=\"post\">\n  <label for=\"c\">Город</label>\n  <select id=\"c\" name=\"city\">\n    <option>Омск</option>\n    <option>Москва</option>\n  </select>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "select",
+      "name": "name",
+      "equals": "city"
+     },
+     {
+      "t": "exists",
+      "sel": "select optgroup",
+      "min": 2,
+      "msg": "Не меньше двух optgroup внутри select"
+     },
+     {
+      "t": "attr",
+      "sel": "optgroup",
+      "name": "label",
+      "all": true
+     },
+     {
+      "t": "exists",
+      "sel": "optgroup option",
+      "min": 4,
+      "msg": "Не меньше четырёх option внутри групп"
+     },
+     {
+      "t": "attr",
+      "sel": "option",
+      "name": "value",
+      "all": true
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/city\" method=\"post\">\n  <label for=\"c\">Город</label>\n  <select id=\"c\" name=\"city\">\n    <optgroup label=\"Сибирь\">\n      <option value=\"omsk\">Омск</option>\n      <option value=\"tomsk\">Томск</option>\n    </optgroup>\n    <optgroup label=\"Центр\">\n      <option value=\"moscow\">Москва</option>\n      <option value=\"tula\">Тула</option>\n    </optgroup>\n  </select>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-textarea",
+   "title": "Многострочное поле",
+   "statement": "Поле для сообщения: textarea с именем message, высотой в 5 строк, не длиннее 500 символов. Подпись — «Сообщение».",
+   "hint": "Размер textarea задают rows и cols, предел длины — maxlength.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/feedback\" method=\"post\">\n  <textarea name=\"message\"></textarea>\n  <button>Отправить</button>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "textarea",
+      "name": "name",
+      "equals": "message"
+     },
+     {
+      "t": "attr",
+      "sel": "textarea",
+      "name": "rows",
+      "equals": "5"
+     },
+     {
+      "t": "attr",
+      "sel": "textarea",
+      "name": "maxlength",
+      "equals": "500"
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "text",
+      "sel": "label",
+      "contains": "Сообщение"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/feedback\" method=\"post\">\n  <label for=\"m\">Сообщение</label>\n  <textarea id=\"m\" name=\"message\" rows=\"5\" maxlength=\"500\"></textarea>\n  <button>Отправить</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-datalist",
+   "title": "Подсказки в поле",
+   "statement": "Поле «Город» с подсказками: input с именем city связан списком datalist, у которого id=\"cities\" и не меньше трёх option. Человек может выбрать из списка или ввести своё. У поля есть подпись.",
+   "hint": "Связь двух элементов — атрибут list у input, равный id списка. Варианты datalist — теги option с value.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/city\" method=\"get\">\n  <label for=\"c\">Город</label>\n  <input id=\"c\" name=\"city\">\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[name=city]",
+      "name": "list",
+      "equals": "cities"
+     },
+     {
+      "t": "exists",
+      "sel": "datalist#cities option",
+      "min": 3,
+      "msg": "В datalist с id=\"cities\" не меньше трёх option"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/city\" method=\"get\">\n  <label for=\"c\">Город</label>\n  <input id=\"c\" name=\"city\" list=\"cities\">\n  <datalist id=\"cities\">\n    <option value=\"Омск\"></option>\n    <option value=\"Томск\"></option>\n    <option value=\"Тула\"></option>\n  </datalist>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-describedby",
+   "title": "Подсказка к полю",
+   "statement": "У поля пароля есть подсказка «Не короче 8 символов». Дайте абзацу с подсказкой id=\"hint\" и свяжите её с полем атрибутом aria-describedby, чтобы скринридер прочитал её после названия поля.",
+   "hint": "Значение aria-describedby — id элемента с пояснением (без решётки).",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<label for=\"pw\">Пароль</label>\n<input id=\"pw\" name=\"password\" type=\"password\">\n<p>Не короче 8 символов</p>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[type=password]",
+      "name": "aria-describedby",
+      "equals": "hint"
+     },
+     {
+      "t": "exists",
+      "sel": "#hint",
+      "msg": "Есть элемент с id=\"hint\""
+     },
+     {
+      "t": "text",
+      "sel": "#hint",
+      "contains": "8 символов"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<label for=\"pw\">Пароль</label>\n<input id=\"pw\" name=\"password\" type=\"password\" aria-describedby=\"hint\">\n<p id=\"hint\">Не короче 8 символов</p>"
+    }
+   }
+  },
+  {
+   "id": "w15-button-types",
+   "title": "Кнопки внутри формы",
+   "statement": "В форме две кнопки. «Показать пароль» нужна скрипту и не должна отправлять форму, «Войти» — отправляет. Задайте типы так, чтобы в форме не осталось кнопки без type.",
+   "hint": "У button три типа: submit (по умолчанию), button и reset. Кнопка без type внутри формы — отправляющая.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/login\" method=\"post\">\n  <input name=\"pw\" type=\"password\" aria-label=\"Пароль\">\n  <button>Показать пароль</button>\n  <button>Войти</button>\n</form>",
+    "checks": [
+     {
+      "t": "count",
+      "sel": "button[type=button]",
+      "n": 1
+     },
+     {
+      "t": "exists",
+      "sel": "button[type=submit]",
+      "msg": "Есть кнопка с type=\"submit\""
+     },
+     {
+      "t": "forbid",
+      "sel": "button:not([type])",
+      "msg": "Нет кнопок без атрибута type"
+     },
+     {
+      "t": "text",
+      "sel": "button[type=button]",
+      "contains": "Показать пароль"
+     },
+     {
+      "t": "text",
+      "sel": "button[type=submit]",
+      "contains": "Войти"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/login\" method=\"post\">\n  <input name=\"pw\" type=\"password\" aria-label=\"Пароль\">\n  <button type=\"button\">Показать пароль</button>\n  <button type=\"submit\">Войти</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-file",
+   "title": "Загрузка файлов",
+   "statement": "Форма загрузки фотографий: поле type=file с именем photo, принимающее только изображения (accept=\"image/*\") и позволяющее выбрать несколько файлов (multiple). Подпись — «Фотографии».",
+   "hint": "accept ограничивает тип выбираемых файлов, multiple — булев атрибут без значения.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/upload\" method=\"post\">\n  <input type=\"file\" name=\"photo\">\n  <button>Загрузить</button>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[type=file]",
+      "name": "name",
+      "equals": "photo"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=file]",
+      "name": "accept",
+      "contains": "image"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=file]",
+      "name": "multiple",
+      "present": true
+     },
+     {
+      "t": "labels"
+     },
+     {
+      "t": "text",
+      "sel": "label",
+      "contains": "Фотографии"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/upload\" method=\"post\">\n  <label for=\"f\">Фотографии</label>\n  <input id=\"f\" type=\"file\" name=\"photo\" accept=\"image/*\" multiple>\n  <button>Загрузить</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-hidden",
+   "title": "Служебное поле",
+   "statement": "Форма правки записи: вместе с видимым полем «Заголовок» (имя title) на сервер должен уйти номер записи — скрытое поле с именем id и значением 42. Форма отправляется методом POST.",
+   "hint": "Скрытое поле — input type=hidden: его не видно, но имя и значение попадают в запрос. Подписи оно не требует.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/edit\" method=\"post\">\n  <label for=\"t\">Заголовок</label>\n  <input id=\"t\" name=\"title\">\n  <button>Сохранить</button>\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[type=hidden]",
+      "name": "name",
+      "equals": "id"
+     },
+     {
+      "t": "attr",
+      "sel": "input[type=hidden]",
+      "name": "value",
+      "equals": "42"
+     },
+     {
+      "t": "attr",
+      "sel": "form",
+      "name": "method",
+      "equals": "post"
+     },
+     {
+      "t": "exists",
+      "sel": "input[name=title]",
+      "msg": "Видимое поле title осталось"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/edit\" method=\"post\">\n  <input type=\"hidden\" name=\"id\" value=\"42\">\n  <label for=\"t\">Заголовок</label>\n  <input id=\"t\" name=\"title\">\n  <button>Сохранить</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-refactor",
+   "title": "Исправьте форму заказа",
+   "statement": "Форма сделана на div: подписи — просто текст, а «кнопка» — div с onclick. Исправьте её: у каждого поля настоящий label, телефону — тип tel, вместо div с обработчиком — button с type=submit и текстом «Заказать». Атрибут onclick в форме не нужен.",
+   "hint": "Для подписей используйте label (for + id или обёртка). div[onclick] замените на button; тип tel даёт телефону цифровую клавиатуру.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/order\" method=\"post\">\n  <div>Имя</div>\n  <input name=\"name\">\n  <div>Телефон</div>\n  <input name=\"phone\">\n  <div onclick=\"send()\">Заказать</div>\n</form>",
+    "checks": [
+     {
+      "t": "labels"
+     },
+     {
+      "t": "exists",
+      "sel": "input[name=name]",
+      "msg": "Поле name осталось"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=phone]",
+      "name": "type",
+      "equals": "tel"
+     },
+     {
+      "t": "forbid",
+      "sel": "div[onclick]",
+      "msg": "Нет div с onclick"
+     },
+     {
+      "t": "forbid",
+      "sel": "[onclick]",
+      "msg": "Нет атрибутов onclick"
+     },
+     {
+      "t": "exists",
+      "sel": "button[type=submit]",
+      "msg": "Есть кнопка button с type=\"submit\""
+     },
+     {
+      "t": "text",
+      "sel": "button",
+      "contains": "Заказать"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/order\" method=\"post\">\n  <label for=\"n\">Имя</label>\n  <input id=\"n\" name=\"name\">\n  <label for=\"p\">Телефон</label>\n  <input id=\"p\" name=\"phone\" type=\"tel\">\n  <button type=\"submit\">Заказать</button>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-readonly-disabled",
+   "title": "readonly и disabled",
+   "statement": "В форме оформления два поля. «Страна» (имя country, значение «Россия») должна быть видна и уходить на сервер, но пользователь её менять не может. «Промокод» (имя promo) выключено совсем: не получает фокус и на сервер не уходит. Подписи сохраните.",
+   "hint": "readonly оставляет поле в запросе, disabled — убирает. Оба атрибута булевы.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/pay\" method=\"post\">\n  <label for=\"c\">Страна</label>\n  <input id=\"c\" name=\"country\" value=\"Россия\">\n  <label for=\"p\">Промокод</label>\n  <input id=\"p\" name=\"promo\">\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[name=country]",
+      "name": "readonly",
+      "present": true
+     },
+     {
+      "t": "forbid",
+      "sel": "input[name=country][disabled]",
+      "msg": "Страна не выключена (disabled)"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=country]",
+      "name": "value",
+      "equals": "Россия"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=promo]",
+      "name": "disabled",
+      "present": true
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/pay\" method=\"post\">\n  <label for=\"c\">Страна</label>\n  <input id=\"c\" name=\"country\" value=\"Россия\" readonly>\n  <label for=\"p\">Промокод</label>\n  <input id=\"p\" name=\"promo\" disabled>\n</form>"
+    }
+   }
+  },
+  {
+   "id": "w15-error-message",
+   "title": "Сообщение об ошибке",
+   "statement": "Поле почты не прошло проверку. Сообщение «Неверная почта» должно быть текстом с id=\"err\" и ролью alert (озвучивается сразу), связано с полем через aria-describedby и отмечено у поля как aria-invalid=\"true\". Подпись поля сохраните.",
+   "hint": "Три атрибута у input: aria-invalid=\"true\", aria-describedby с id сообщения. У самого сообщения — role=\"alert\".",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<label for=\"e\">Почта</label>\n<input id=\"e\" name=\"email\" type=\"email\" value=\"ann@\">\n<p class=\"error\">Неверная почта</p>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[name=email]",
+      "name": "aria-invalid",
+      "equals": "true"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=email]",
+      "name": "aria-describedby",
+      "equals": "err"
+     },
+     {
+      "t": "exists",
+      "sel": "#err",
+      "msg": "Есть элемент с id=\"err\""
+     },
+     {
+      "t": "attr",
+      "sel": "#err",
+      "name": "role",
+      "equals": "alert"
+     },
+     {
+      "t": "text",
+      "sel": "#err",
+      "contains": "почт"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<label for=\"e\">Почта</label>\n<input id=\"e\" name=\"email\" type=\"email\" value=\"ann@\" aria-invalid=\"true\" aria-describedby=\"err\">\n<p id=\"err\" class=\"error\" role=\"alert\">Неверная почта</p>"
+    }
+   }
+  },
+  {
+   "id": "w15-autocomplete",
+   "title": "Форма адреса с автозаполнением",
+   "statement": "Форма доставки с тремя полями: «ФИО» (имя fullname, autocomplete=\"name\"), «Почта» (имя email, тип email, autocomplete=\"email\") и «Индекс» (имя zip, autocomplete=\"postal-code\", inputmode=\"numeric\"). Подписи уже есть.",
+   "hint": "autocomplete подсказывает браузеру, что подставить; inputmode=\"numeric\" только меняет клавиатуру, тип остаётся текстовым.",
+   "spec": {
+    "kind": "html",
+    "starter_html": "<form action=\"/ship\" method=\"post\">\n  <label for=\"a\">ФИО</label>\n  <input id=\"a\" name=\"fullname\">\n  <label for=\"b\">Почта</label>\n  <input id=\"b\" name=\"email\">\n  <label for=\"c\">Индекс</label>\n  <input id=\"c\" name=\"zip\">\n</form>",
+    "checks": [
+     {
+      "t": "attr",
+      "sel": "input[name=fullname]",
+      "name": "autocomplete",
+      "equals": "name"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=email]",
+      "name": "type",
+      "equals": "email"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=email]",
+      "name": "autocomplete",
+      "equals": "email"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=zip]",
+      "name": "autocomplete",
+      "equals": "postal-code"
+     },
+     {
+      "t": "attr",
+      "sel": "input[name=zip]",
+      "name": "inputmode",
+      "equals": "numeric"
+     },
+     {
+      "t": "labels"
+     }
+    ],
+    "reference": {
+     "html": "<form action=\"/ship\" method=\"post\">\n  <label for=\"a\">ФИО</label>\n  <input id=\"a\" name=\"fullname\" autocomplete=\"name\">\n  <label for=\"b\">Почта</label>\n  <input id=\"b\" name=\"email\" type=\"email\" autocomplete=\"email\">\n  <label for=\"c\">Индекс</label>\n  <input id=\"c\" name=\"zip\" autocomplete=\"postal-code\" inputmode=\"numeric\">\n</form>"
+    }
+   }
+  }
+ ]
+}
