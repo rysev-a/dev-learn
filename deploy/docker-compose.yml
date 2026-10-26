@@ -1,35 +1,67 @@
-# Всё на одной машине, на которой есть только docker compose. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
+# Всё на одной машине, на которой есть только docker compose: traefik (вход), frontend (сервис `proxy`), api, surrealdb, backup.
+# Проверка кода (worker + dind) — отдельный профиль `checks`: `--profile checks`. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
 #   cp deploy/.env.example deploy/.env  (заполнить)
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 # Вариант без сборки на сервере: образы собираются и публикуются на другой машине (SAY_REGISTRY=ghcr.io/владелец/, SAY_TAG=2026-10-26):
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env build && docker compose … push
 #   на сервере: docker compose … pull && docker compose … up -d --no-build
-#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile setup run --rm images   # один раз: образы песочниц
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks run --rm images   # один раз: образы песочниц
 # Сборка бэкенда идёт с секретом `lab_token` (токен gitness для приватного реестра crates): LAB_TOKEN=… в окружении при сборке.
 # Данные — в томе surreal-data (SurrealDB).
 name: say
 
 services:
-  proxy:
-    image: ${SAY_REGISTRY:-}say-proxy:${SAY_TAG:-latest}
-    build: { context: .., dockerfile: deploy/proxy.Dockerfile }
+  # единственная точка входа: Traefik принимает 80/443 и раздаёт по маршрутам из traefik/dynamic.yml (сокет Docker не монтируется)
+  traefik:
+    image: traefik:v3.3
     restart: unless-stopped
+    command:
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      # сертификаты Let's Encrypt для рабочего режима (traefik/tls.yml); пока ни один роутер резолвер не использует, запросов нет
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL:-}
+      - --certificatesresolvers.le.acme.storage=/acme/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --api=false
+      - --ping=true
+      - --log.level=INFO
+      - --accesslog=true
     ports:
       - "${SAY_HTTP_PORT:-80}:80"
       - "${SAY_HTTPS_PORT:-443}:443"
     environment:
-      SAY_SITE: ${SAY_SITE:-localhost}
+      SAY_DOMAIN: ${SAY_DOMAIN:-localhost}
     volumes:
-      - caddy-data:/data
-      - caddy-config:/config
+      - ${SAY_TRAEFIK_CONFIG:-./traefik/http.yml}:/etc/traefik/dynamic.yml:ro
+      - traefik-acme:/acme
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     depends_on:
       api: { condition: service_healthy }
+      proxy: { condition: service_started }
     networks: [front]
     mem_limit: 256m
     logging: &log { driver: json-file, options: { max-size: "10m", max-file: "3" } }
 
+  # frontend: Caddy со статикой Leptos внутри сети (наружу не опубликован)
+  proxy:
+    image: ${SAY_REGISTRY:-}cs-core-proxy:${SAY_TAG:-latest}
+    build: { context: .., dockerfile: deploy/proxy.Dockerfile }
+    restart: unless-stopped
+    environment:
+      SAY_SITE: ":80"
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [front]
+    mem_limit: 256m
+    logging: *log
+
   api:
-    image: ${SAY_REGISTRY:-}say-api:${SAY_TAG:-latest}
+    image: ${SAY_REGISTRY:-}cs-core-api:${SAY_TAG:-latest}
     build:
       context: ..
       dockerfile: deploy/backend.Dockerfile
@@ -46,7 +78,7 @@ services:
       DB_STRICT: "1" # без базы не стартуем: молча работать на базе в памяти нельзя
       ADMIN_EMAIL: ${ADMIN_EMAIL:?задайте ADMIN_EMAIL в deploy/.env}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?задайте ADMIN_PASSWORD в deploy/.env}
-      APP_URL: https://${SAY_SITE:-localhost}
+      APP_URL: ${SAY_URL:-http://localhost}
       SITE_NAME: ${SITE_NAME:-CS.Core}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -66,7 +98,7 @@ services:
     logging: *log
 
   surrealdb:
-    image: surrealdb/surrealdb:v3
+    image: surrealdb/surrealdb:v3.3.4 # версия закреплена: тег v3 плавающий, а запросы бэкенда проверены на 3.3.4
     restart: unless-stopped
     user: "0:0"
     command: start --user root --pass ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env} surrealkv:/data/database.db
@@ -88,6 +120,7 @@ services:
   # отдельный Docker-демон только для песочниц: сокет хоста в контейнеры не монтируем
   dind:
     image: docker:29-dind
+    profiles: [checks]
     restart: unless-stopped
     privileged: true
     environment:
@@ -108,8 +141,9 @@ services:
     logging: *log
 
   worker:
-    image: ${SAY_REGISTRY:-}say-worker:${SAY_TAG:-latest}
+    image: ${SAY_REGISTRY:-}cs-core-worker:${SAY_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
+    profiles: [checks]
     restart: unless-stopped
     command: ["python", "worker.py", "--server", "http://api:8000", "--name", "compose", "--light", "${SAY_LIGHT_SLOTS:-2}", "--heavy", "${SAY_HEAVY_SLOTS:-1}"]
     environment:
@@ -127,9 +161,9 @@ services:
 
   # разово: заливает образы песочниц в dind (python, rust, node, say-rust-crates)
   images:
-    image: ${SAY_REGISTRY:-}say-worker:${SAY_TAG:-latest}
+    image: ${SAY_REGISTRY:-}cs-core-worker:${SAY_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
-    profiles: [setup]
+    profiles: [checks]
     command: ["/app/init-images.sh"]
     environment:
       DOCKER_HOST: tcp://dind:2375
@@ -178,9 +212,8 @@ networks:
   sandbox: # dind нужен выход для docker pull при подготовке образов; сами песочницы запускаются с --network none
 
 volumes:
-  caddy-data:
-  caddy-config:
   surreal-data:
+  traefik-acme:
   backups:
   dind-data:
   sandboxes:

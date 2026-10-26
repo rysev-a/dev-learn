@@ -1,0 +1,61 @@
+# Маршруты Traefik для рабочего сервера: домен из SAY_DOMAIN, HTTPS с сертификатом Let's Encrypt (резолвер `le` задан флагами traefik в compose),
+# HTTP только перенаправляет на HTTPS. Подключается переменной SAY_TRAEFIK_CONFIG=./traefik/tls.yml. По адресу машины без домена сайт не открывается.
+# /api → бэкенд; всё остальное → frontend (Caddy со статикой Leptos; /internal он отдаёт как 404).
+http:
+  routers:
+    http-to-https:
+      entryPoints: [web]
+      rule: "Host(`{{ env "SAY_DOMAIN" }}`)"
+      middlewares: [to-https]
+      service: noop@internal
+    www-http:
+      entryPoints: [web]
+      rule: "Host(`www.{{ env "SAY_DOMAIN" }}`)"
+      middlewares: [to-apex]
+      service: noop@internal
+    www-https:
+      entryPoints: [websecure]
+      rule: "Host(`www.{{ env "SAY_DOMAIN" }}`)"
+      middlewares: [to-apex]
+      service: noop@internal
+      tls:
+        certResolver: le
+    api:
+      entryPoints: [websecure]
+      rule: "Host(`{{ env "SAY_DOMAIN" }}`) && PathPrefix(`/api`)"
+      service: api
+      middlewares: [secure]
+      tls:
+        certResolver: le
+    frontend:
+      entryPoints: [websecure]
+      rule: "Host(`{{ env "SAY_DOMAIN" }}`)"
+      service: frontend
+      middlewares: [secure]
+      tls:
+        certResolver: le
+  middlewares:
+    to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    to-apex:
+      redirectRegex:
+        regex: "^https?://www\\.(.*)"
+        replacement: "https://${1}"
+        permanent: true
+    secure:
+      headers:
+        contentTypeNosniff: true
+        referrerPolicy: strict-origin-when-cross-origin
+        frameDeny: true
+        stsSeconds: 31536000
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: http://api:8000
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://proxy:80

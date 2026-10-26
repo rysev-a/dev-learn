@@ -49,8 +49,8 @@
 
 ## Развёртывание
 
-Одна машина, на которой есть только docker compose: `deploy/docker-compose.yml` (proxy на Caddy со статикой Leptos, api на axum, surrealdb, worker, dind,
-backup, разовый images), Dockerfile'ы (`backend.Dockerfile`, `proxy.Dockerfile`, `worker.Dockerfile`) и `Caddyfile` рядом. Инструкция для агента на сервере —
+Одна машина, на которой есть только docker compose: `deploy/docker-compose.yml` (traefik как вход, proxy на Caddy со статикой Leptos — frontend, api на axum, surrealdb, backup;
+профиль `checks` — worker, dind и разовый images), `traefik/http.yml` и `traefik/tls.yml` (маршруты), Dockerfile'ы (`backend.Dockerfile`, `proxy.Dockerfile`, `worker.Dockerfile`) и `Caddyfile` рядом. Инструкция для агента на сервере —
 `docs/deploy-agent.md`, выбор схемы и порядок работ — `docs/deploy.md`. Песочницы запускает воркер в **отдельном демоне dind** (сокет хоста в
 контейнеры не монтируем); каталог песочниц `/sandboxes` — общий том воркера и dind. Сборка бэкенда — с секретом `lab_token` (`LAB_TOKEN=… docker compose …
 up -d --build`) или с готовым `cargo vendor` (`SAY_VENDOR_DIR`). Озвучка в образы не входит (`voice/` — отдельно).

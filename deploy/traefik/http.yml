@@ -1,0 +1,29 @@
+# Маршруты Traefik для разработки и доступа по адресу машины, только HTTP (файловый провайдер: сокет Docker не монтируем).
+# /api → бэкенд; всё остальное → frontend (Caddy со статикой Leptos; /internal он отдаёт как 404).
+http:
+  routers:
+    api:
+      entryPoints: [web]
+      rule: "PathPrefix(`/api`)"
+      service: api
+      middlewares: [secure]
+    frontend:
+      entryPoints: [web]
+      rule: "PathPrefix(`/`)"
+      service: frontend
+      middlewares: [secure]
+  middlewares:
+    secure:
+      headers:
+        contentTypeNosniff: true
+        referrerPolicy: strict-origin-when-cross-origin
+        frameDeny: true
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: http://api:8000
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://proxy:80

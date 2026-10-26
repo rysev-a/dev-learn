@@ -7,11 +7,12 @@
 
 | Сервис | Что это |
 |---|---|
-| `proxy` | Caddy: HTTPS, раздаёт собранный Leptos-фронтенд (`frontend/`, trunk собирает wasm внутри образа), `/api` → `api`, `/internal` наружу закрыт |
+| `traefik` | точка входа: порты 80/443, маршруты в `deploy/traefik/http.yml` (разработка) или `tls.yml` (домен и HTTPS) (`/api` → `api`, остальное → `proxy`); сокет Docker не монтируется |
+| `proxy` | frontend: Caddy со статикой Leptos (`frontend/`, trunk собирает wasm внутри образа); наружу не опубликован, `/internal` отдаёт 404 |
 | `api` | бэкенд на axum (`backend/`): при старте сидит содержимое курса в SurrealDB, ведёт очередь проверок и API воркеров |
 | `surrealdb` | база (том `surreal-data`, порт 8000 только внутри сети; для разработки опубликован `127.0.0.1:18000`) |
-| `worker` | воркер проверки кода: забирает задания у `api` и запускает песочницы |
-| `dind` | **отдельный** Docker-демон (`privileged`) только для песочниц; образы лежат в томе `dind-data` |
+| `worker` | (профиль `checks`) воркер проверки кода: забирает задания у `api` и запускает песочницы |
+| `dind` | (профиль `checks`) **отдельный** Docker-демон (`privileged`) только для песочниц; образы лежат в томе `dind-data` |
 | `backup` | раз в сутки экспорт SurrealDB (`surreal export` по HTTP, файлы `say-*.surql`) в том `backups` (хранятся 14 последних) |
 | `images` | разовая задача (профиль `setup`): заливает образы песочниц в `dind` |
 
@@ -68,10 +69,9 @@ sed -i "s/^SAY_WORKER_TOKEN=.*/SAY_WORKER_TOKEN=$(openssl rand -hex 32)/" deploy
 И вручную: `SURREAL_PASS` (пароль root SurrealDB), `ADMIN_EMAIL` и `ADMIN_PASSWORD` (начальный администратор, вход по email, пароль ≥ 8 символов),
 при необходимости `SMTP_*`/`MAIL_FROM` (без `SMTP_HOST` письма подтверждения никуда не уходят), `SAY_SITE` (домен), `SAY_SANDBOX_CPUS`, `SAY_SANDBOX_MEM`, `SAY_LIGHT_SLOTS`/`SAY_HEAVY_SLOTS` (слоты не больше `SAY_SANDBOX_CPUS`; обычно `light = ядра`, `heavy = ядра/2`).
 
-**Вариант «порты 80/443 заняты другим прокси»** (например Traefik на этом же сервере): поставьте `SAY_SITE=:80`, `SAY_HTTP_PORT=<свободный локальный порт, например 8088>`,
-`SAY_HTTPS_PORT=<свободный порт>` и направьте существующий прокси на `127.0.0.1:<SAY_HTTP_PORT>` (HTTPS и сертификат делает он). Существующий прокси должен передавать `X-Forwarded-Proto`/`Host`. Не удаляйте и не меняйте чужие сервисы.
-
-**Вариант «проверить по HTTP без домена»**: `SAY_SITE=:80`, любые свободные порты (8080 часто занят другим стеком — проверьте, куда на самом деле отвечает `localhost`).
+**Порты и HTTPS.** Вход — Traefik из этого же compose: он слушает `SAY_HTTP_PORT` (по умолчанию 80) и `SAY_HTTPS_PORT` (443). Если на машине эти порты уже заняты чужим прокси,
+задайте другие и направьте тот прокси на `127.0.0.1:<SAY_HTTP_PORT>` (HTTPS и сертификат тогда делает он). Пока домена нет, сайт работает по HTTP на адресе машины; с доменом — `SAY_DOMAIN`, `SAY_TRAEFIK_CONFIG=./traefik/tls.yml`
+(сертификат Let's Encrypt получается сам) — `docs/deploy.md`, раздел «HTTPS». Сервис `proxy` (frontend) наружу не публикуется.
 
 **Токен реестра crates.** Общие библиотеки лежат в приватном реестре `lab` (gitness); без токена бэкенд не соберётся. Токен выдаёт владелец (в `~/.cargo/credentials.toml`
 у него — строка `[registries.lab] token = "Bearer …"`), он передаётся **только** в окружении на время сборки (`LAB_TOKEN=<токен без слова Bearer>`), в файлы и git не пишется.
@@ -102,7 +102,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env ps
 Проверка кода не работает, пока в `dind` нет образов. Они хранятся в томе `dind-data` и переживают перезапуск.
 
 ```bash
-docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile setup run --rm images
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks run --rm images
 ```
 
 Скачиваются `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine` и **собирается `say-rust-crates:1`** (tokio, axum, sqlx, PostgreSQL — долго, 15–40 минут и несколько ГБ; нужен выход в интернет у `dind`).
@@ -112,7 +112,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile set
 
 ## 6. Проверка работы (обязательно, после каждой выкладки)
 
-Подставьте свой адрес (`https://<домен>` или `http://localhost:<SAY_HTTP_PORT>`):
+Подставьте свой адрес (`https://<домен>` или `http://<адрес машины>:<SAY_HTTP_PORT>`):
 
 ```bash
 BASE=https://say.example.com
@@ -176,7 +176,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs --tail 1
 | В `status` `workers: 0`, проверка отвечает 503 | воркер не подключился: `logs worker` (неверный `SAY_WORKER_TOKEN`, `api` не `healthy`, нет связи с `dind`); токен в `.env` одинаков для `api` и `worker` — после правки пересоздайте оба (`up -d`) |
 | Проверка зависает в «В очереди» | нет свободных слотов (`SAY_LIGHT_SLOTS`/`SAY_HEAVY_SLOTS`) или образа в `dind`: выполните шаг 5 |
 | В песочнице «файл не найден» / пустой каталог | не совпал путь каталога песочниц: воркер должен иметь `TMPDIR=/sandboxes`, а том `sandboxes` — смонтирован в `worker` и `dind` по пути `/sandboxes` (так в compose; не меняйте) |
-| `proxy` не выдаёт сертификат | DNS домена не указывает на сервер, порты 80/443 закрыты или заняты; для проверки поставьте `SAY_SITE=:80` |
+| сайт не открывается снаружи | `docker compose ps`: `traefik` должен быть `healthy`; порты `SAY_HTTP_PORT`/`SAY_HTTPS_PORT` свободны и открыты в файрволе; маршруты — `deploy/traefik/http.yml` или `tls.yml` |
 | Сборка `api` падает на `git.service-lab.dev` | нет токена или сети до реестра: `LAB_TOKEN` либо `SAY_VENDOR_DIR` (шаг 3) |
 | Нужно остановить всё | `docker compose -f deploy/docker-compose.yml --env-file deploy/.env stop` (тома сохраняются) |
 

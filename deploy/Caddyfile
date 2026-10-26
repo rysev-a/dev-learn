@@ -1,4 +1,4 @@
-# SAY_SITE — домен (Caddy сам получит сертификат) или :80 для проверки по обычному HTTP
+# Frontend за Traefik: внутри сети слушаем обычный HTTP (SAY_SITE=:80), HTTPS и сертификаты делает Traefik
 {$SAY_SITE:localhost} {
 	encode zstd gzip
 

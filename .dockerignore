@@ -13,3 +13,4 @@ frontend/target
 frontend/app/dist
 packages/**/target
 e2e
+**/._*
