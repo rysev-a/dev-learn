@@ -34,16 +34,10 @@
 
 ## Порядок работ
 
-1. **Подготовка.** Домен (A/AAAA на сервер), VPS, реестр образов (ghcr.io или свой), SMTP для писем подтверждения (без `SMTP_HOST` письма видны только в задачах админки), секреты: `openssl rand -hex 32` для `SAY_WORKER_TOKEN`, пароли `SURREAL_PASS`, `ADMIN_PASSWORD`.
-2. **Сборка образов не на сервере.** Бэкенд собирается долго (10–20 минут) и требует токена приватного реестра crates (`LAB_TOKEN`) или каталога `cargo vendor` (`SAY_VENDOR_DIR`); фронтенд собирает wasm (≈3 минуты). Поэтому образы собираются на своей машине или в CI и публикуются:
-
-   ```bash
-   export SAY_REGISTRY=ghcr.io/owner/ SAY_TAG=$(date +%Y%m%d)-$(git rev-parse --short HEAD)
-   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env build
-   docker compose -f deploy/docker-compose.yml --env-file deploy/.env push proxy api worker
-   ```
-
-   На сервере: `docker compose … pull && docker compose … up -d --no-build`. Тег образа в `deploy/.env` — это и версия, и точка отката (`SAY_TAG=прежний` → `up -d`).
+1. **Подготовка.** Домен (A/AAAA на сервер), VPS, SMTP для писем подтверждения (без `SMTP_HOST` письма видны только в задачах админки), секреты: `openssl rand -hex 32` для `SAY_WORKER_TOKEN`, пароли `SURREAL_PASS`, `ADMIN_PASSWORD`.
+2. **Сборка образов.** Бэкенд собирается долго (10–20 минут) и требует закрытых библиотек (реестр автора: токен `LAB_TOKEN` или готовый каталог `cargo vendor` — `SAY_VENDOR_DIR`). Сейчас образы собираются
+   на самом сервере скриптом `deploy/server/release.sh` (см. «Выкладка по релизу» ниже); вручную то же делают `docker build` для трёх Dockerfile'ов с тегом `cs-core-api|proxy|worker:<тег>`
+   и `docker compose … up -d --no-build`. Тег образа (`SAY_TAG` в `.env`) — это и версия, и точка отката. Если нужен внешний реестр, имена задаются `SAY_REGISTRY` (с косой чертой на конце) и `SAY_TAG`.
 3. **Первый запуск** по `docs/deploy-agent.md`: `.env`, `up -d`, один раз `--profile checks run --rm images` (образы песочниц, 15–40 минут), сквозная проверка кода по каждому режиму.
 4. **Проверка снаружи:** e2e-тесты умеют работать против готового стека (`e2e/README.md`, «Против готового стека»): вход под тестовым пользователем, обход глав, лаборатории.
 5. **Эксплуатация:** мониторинг доступности `/api/exercises/runner/status` (`workers` ≥ 1, `available: true`) и главной; журналы `docker compose logs`; копии базы **выносить с машины** (`rsync`/объектное хранилище): том `backups` на той же машине бэкапом не считается; раз в квартал проверять восстановление (`surreal import` в чистую базу).
@@ -76,14 +70,19 @@ HTTP перенаправляется на HTTPS, `www` — на домен бе
 3. Скрипт запускает стек с новым тегом (`SAY_TAG` в `~/cs-core/shared/.env`), ждёт, пока сайт ответит по `https://домен/` и `/api/books`; если нет — **возвращает прежний тег** и завершается с ошибкой (workflow красный).
 4. Хранятся три последние версии (каталоги `~/cs-core/releases/<тег>` и образы `cs-core-*:<тег>`). Откат вручную: `SAY_TAG=<прежний тег>` в `shared/.env` и `docker compose … up -d --no-build`
    (или создать/перевыпустить релиз со старым тегом, либо запустить workflow вручную: Actions → «Выкладка релиза» → Run workflow → тег).
-5. Вторая задача workflow забирает собранные образы с сервера и публикует их в GHCR (`ghcr.io/<владелец>/cs-core-api|proxy|worker:<тег>` и `latest`) — по ним любой запускает систему у себя (README). После первой публикации
-   сделайте пакеты публичными: GitHub → профиль → Packages → пакет → Package settings → Change visibility.
 
 Настроено один раз: секрет `DEPLOY_SSH_KEY` (закрытый ключ) и переменные `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_HOST_KEY` (отпечаток хоста: строка из `known_hosts`), `SITE_URL` в Settings → Secrets and variables → Actions.
 Чтобы выкладка ждала подтверждения, добавьте в Settings → Environments → `production` обязательных ревьюеров. Смена сервера — новые значения переменных и новый ключ (`ssh-keygen -t ed25519`, публичная часть в `authorized_keys` с теми же ограничениями).
 
 Ограничения: между собой выкладки не пересекаются (`concurrency`); тесты бэкенда в Actions не идут (закрытые библиотеки) — перед релизом прогоняйте `cd backend && cargo test` и e2e локально; пользовательские данные и настройки
 (`shared/.env`, том SurrealDB) выкладка не трогает.
+
+## Публикация образов в Docker Hub
+
+Образы для запуска «у себя» (README, «Запуск у себя») лежат в Docker Hub, пространство `alexeirysev`: `cs-core-api`, `cs-core-proxy`, `cs-core-worker`, теги `<версия>` и `latest`, архитектуры `linux/amd64` и `linux/arm64`.
+Выкладывает их `deploy/publish.sh <версия> <тег образов на сервере>` **с компьютера на Apple Silicon**: `arm64` собирается там (бэкенду нужны закрытые библиотеки — каталог `vendor`, которого нет в CI),
+`amd64` забирается с сервера, где собран релиз, затем один multi-arch тег. Нужны `docker login` в Docker Hub и ssh-доступ к серверу. После выкладки релиза на сайт запустите скрипт с тем же тегом, чтобы образы совпадали с сайтом.
+Первая публикация создаёт репозитории публичными; образ бэкенда содержит скомпилированный код закрытых библиотек (исходников в нём нет).
 
 ## Чек-лист перед открытием регистрации
 

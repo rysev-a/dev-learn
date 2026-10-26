@@ -11,5 +11,6 @@ pub mod player;
 pub mod progress;
 pub mod session;
 pub mod settings;
+pub mod themes;
 
 pub use app::App;

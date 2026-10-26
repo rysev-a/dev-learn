@@ -41,12 +41,12 @@ impl Kind {
     pub fn css(self) -> Option<&'static str> {
         match self {
             Kind::Plain => None,
-            Kind::Comment => Some("var(--s-muted)"),
-            Kind::Str => Some("var(--s-amber)"),
-            Kind::Number => Some("var(--s-red)"),
-            Kind::Keyword => Some("var(--s-blue)"),
-            Kind::Builtin => Some("var(--s-violet)"),
-            Kind::Accent => Some("var(--s-accent)"),
+            Kind::Comment => Some("var(--syn-comment, var(--s-muted))"),
+            Kind::Str => Some("var(--syn-string, var(--s-amber))"),
+            Kind::Number => Some("var(--syn-number, var(--s-red))"),
+            Kind::Keyword => Some("var(--syn-keyword, var(--s-blue))"),
+            Kind::Builtin => Some("var(--syn-builtin, var(--s-violet))"),
+            Kind::Accent => Some("var(--syn-call, var(--s-accent))"),
         }
     }
 }

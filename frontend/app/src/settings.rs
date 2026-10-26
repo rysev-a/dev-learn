@@ -4,6 +4,9 @@ use leptos::prelude::{RwSignal, Set};
 use wasm_bindgen::JsCast;
 
 pub const THEME: &str = "say-theme";
+/// Выбранная цветовая тема для тёмного и светлого режима (`default` — не хранится).
+pub const PALETTE_DARK: &str = "say-palette-dark";
+pub const PALETTE_LIGHT: &str = "say-palette-light";
 pub const ASIDE: &str = "say-aside-collapsed";
 pub const ANIM: &str = "say-anim-auto";
 pub const VOICE_H: &str = "say-voice-h";
@@ -113,17 +116,47 @@ pub fn read_theme() -> Theme {
     }
 }
 
+/// Ключ хранилища для цветовой темы режима.
+fn palette_key(mode: Theme) -> &'static str {
+    match mode {
+        Theme::Dark => PALETTE_DARK,
+        Theme::Light => PALETTE_LIGHT,
+    }
+}
+
+/// Сохранённая цветовая тема режима (неизвестное или устаревшее значение — тема по умолчанию).
+pub fn read_palette(mode: Theme) -> String {
+    match read(palette_key(mode)) {
+        Some(id) if crate::themes::is_known(mode, &id) => id,
+        _ => crate::themes::DEFAULT.to_string(),
+    }
+}
+
 /// Меняет тему: сигнал, документ и сохранённая настройка.
 pub fn switch_theme(theme: RwSignal<Theme>, to: Theme) {
     theme.set(to);
     apply_theme(to);
 }
 
-/// Тема документа и запись в настройки.
+/// Выбирает цветовую тему и включает её режим (как в VS Code: выбор темы переключает светлый и тёмный режим).
+pub fn choose_palette(theme: RwSignal<Theme>, mode: Theme, id: &str) {
+    write(palette_key(mode), (id != crate::themes::DEFAULT).then_some(id));
+    theme.set(mode);
+    apply_theme(mode);
+}
+
+/// Режим и цветовая тема документа и запись режима в настройки.
 pub fn apply_theme(theme: Theme) {
     if let Some(root) = web_sys::window().and_then(|w| w.document()).and_then(|d| d.document_element()) {
+        let palette = read_palette(theme);
         if let Ok(html) = root.dyn_into::<web_sys::HtmlElement>() {
-            let _ = html.dataset().set("theme", theme.name());
+            let data = html.dataset();
+            let _ = data.set("theme", theme.name());
+            if palette == crate::themes::DEFAULT {
+                let _ = data.delete("palette");
+            } else {
+                let _ = data.set("palette", &palette);
+            }
         }
     }
     write(THEME, Some(theme.name()));

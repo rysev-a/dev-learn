@@ -301,3 +301,95 @@ test.describe("сброс прогресса", () => {
     await ctx.close();
   });
 });
+
+test.describe("цветовые темы", () => {
+  const card = (page: Page, name: string) => page.getByRole("button", { name: new RegExp(`^${name}`) });
+  const html = (page: Page) => page.locator("html");
+  const cssVar = (page: Page, name: string) => page.evaluate((n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name);
+
+  test("карточки: семь тёмных и пять светлых, по умолчанию выбрана «Тёмная»", async ({ page, request }) => {
+    await loginFresh(page, request);
+    await openSettings(page);
+    await expect(page.locator(".palette-group").nth(0).locator(".palette-card")).toHaveCount(7);
+    await expect(page.locator(".palette-group").nth(1).locator(".palette-card")).toHaveCount(5);
+    await expect(card(page, "Тёмная")).toHaveAttribute("aria-pressed", "true");
+    await expect(card(page, "Светлая")).toHaveAttribute("aria-pressed", "false");
+    await expect(html(page)).not.toHaveAttribute("data-palette", /.+/);
+  });
+
+  test("выбор темы красит страницу, редактор и запоминается; тёмная и светлая хранятся отдельно", async ({ page, request }) => {
+    await loginFresh(page, request);
+    await openSettings(page);
+    await card(page, "Dracula").click();
+    await expect(html(page)).toHaveAttribute("data-theme", "dark");
+    await expect(html(page)).toHaveAttribute("data-palette", "dracula");
+    expect(await stored(page, "say-palette-dark")).toBe("dracula");
+    expect(await cssVar(page, "--bg")).toBe("#282a36");
+    await expect(page.locator("body")).toHaveCSS("background-color", "rgb(40, 42, 54)");
+    await expect(card(page, "Dracula")).toHaveAttribute("aria-pressed", "true");
+
+    // выбор светлой темы переключает режим; тёмная остаётся запомненной
+    await card(page, "GitHub Light").click();
+    await expect(html(page)).toHaveAttribute("data-theme", "light");
+    await expect(html(page)).toHaveAttribute("data-palette", "github-light");
+    expect(await stored(page, "say-theme")).toBe("light");
+    expect(await stored(page, "say-palette-light")).toBe("github-light");
+    expect(await stored(page, "say-palette-dark")).toBe("dracula");
+    await expect(card(page, "Dracula")).toHaveAttribute("aria-pressed", "false");
+
+    // кнопка в шапке возвращает в тёмный режим с той же темой
+    await page.getByRole("button", { name: "Переключить тему" }).click();
+    await expect(html(page)).toHaveAttribute("data-theme", "dark");
+    await expect(html(page)).toHaveAttribute("data-palette", "dracula");
+    await page.getByRole("button", { name: "Переключить тему" }).click();
+    await expect(html(page)).toHaveAttribute("data-palette", "github-light");
+
+    // после перезагрузки тема на месте (в том числе до запуска приложения: её ставит скрипт в index.html)
+    await page.reload();
+    await expect(html(page)).toHaveAttribute("data-theme", "light");
+    await expect(html(page)).toHaveAttribute("data-palette", "github-light");
+    await expect(page.locator(".set-card")).toBeVisible();
+    await expect(card(page, "GitHub Light")).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("тема по умолчанию снимает атрибут и очищает запись", async ({ page, request }) => {
+    await loginFresh(page, request);
+    await openSettings(page);
+    await card(page, "Nord").click();
+    await expect(html(page)).toHaveAttribute("data-palette", "nord");
+    await card(page, "Тёмная").click();
+    await expect(html(page)).not.toHaveAttribute("data-palette", /.+/);
+    expect(await stored(page, "say-palette-dark")).toBeNull();
+    expect(await cssVar(page, "--bg")).toBe("#0f1115");
+  });
+
+  test("неизвестное значение в хранилище игнорируется", async ({ page, request }) => {
+    await loginFresh(page, request);
+    await page.addInitScript(() => window.localStorage.setItem("say-palette-dark", "no-such-theme"));
+    await openSettings(page);
+    await expect(html(page)).not.toHaveAttribute("data-palette", /.+/);
+    await expect(card(page, "Тёмная")).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("карточка показывает свою тему независимо от текущей: цвета фона и кода", async ({ page, request }) => {
+    await loginFresh(page, request);
+    await openSettings(page);
+    // сейчас светлый режим, а карточка Dracula всё равно тёмная; ключевое слово в образце кода розовое, как в Dracula
+    await sw(page, "Светлая тема").click();
+    await expect(html(page)).toHaveAttribute("data-theme", "light");
+    const dracula = card(page, "Dracula");
+    await expect(dracula).toHaveCSS("background-color", "rgb(40, 42, 54)");
+    await expect(dracula.locator(".palette-code span", { hasText: "def" }).first()).toHaveCSS("color", "rgb(255, 121, 198)");
+    await expect(card(page, "One Light")).toHaveCSS("background-color", "rgb(250, 250, 250)");
+  });
+
+  test("карточки тем по умолчанию не наследуют цвета кода активной темы", async ({ page, request }) => {
+    await loginFresh(page, request);
+    await openSettings(page);
+    await card(page, "Dracula").click();
+    await expect(html(page)).toHaveAttribute("data-palette", "dracula");
+    // у «Светлой» ключевое слово прежнего синего, а не розовое из Dracula
+    await expect(card(page, "Светлая").locator(".palette-code span", { hasText: "def" }).first()).toHaveCSS("color", "rgb(47, 107, 176)");
+    await expect(card(page, "Тёмная").locator(".palette-code span", { hasText: "def" }).first()).toHaveCSS("color", "rgb(130, 184, 232)");
+  });
+});

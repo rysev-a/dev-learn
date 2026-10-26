@@ -10,7 +10,9 @@ use crate::{
     progress::ProgressStore,
     session::Session,
     settings::{self, Flag, Theme},
+    themes,
 };
+use highlight::{highlight, Lang};
 
 /// Тексты строки сброса: название, пояснение, вопрос в подтверждении и подпись кнопки.
 #[derive(Clone, Copy)]
@@ -65,6 +67,7 @@ pub fn SettingsPage(theme: RwSignal<Theme>) -> impl IntoView {
                     on=Signal::derive(move || theme.get() == Theme::Light)
                     on_toggle=Callback::new(move |()| settings::switch_theme(theme, theme.get_untracked().toggled()))
                 />
+                <PalettePicker theme=theme />
                 <SwitchRow
                     title="Свёрнутое меню разделов"
                     text="Вместо названий в левом меню — колонка иконок. Можно переключать и кнопкой над меню."
@@ -129,6 +132,70 @@ fn AccountRow() -> impl IntoView {
             >
                 "Выйти"
             </button>
+        </div>
+    }
+}
+
+/// Образец кода на карточке темы: цвета берутся из переменных карточки (`data-palette`), как в редакторе.
+const SAMPLE: [&str; 3] = ["def total(xs):  # сумма", "    return sum(xs) + 42", "print(\"итого\", total([1, 2]))"];
+
+/// Выбор цветовой темы: интерфейс, слайды и редактор кода. Карточки показывают тему вживую, выбор переключает и светлый или тёмный режим.
+#[component]
+fn PalettePicker(theme: RwSignal<Theme>) -> impl IntoView {
+    let dark = RwSignal::new(settings::read_palette(Theme::Dark));
+    let light = RwSignal::new(settings::read_palette(Theme::Light));
+    let group = move |title: &'static str, mode: Theme, chosen: RwSignal<String>| {
+        let cards = themes::of_mode(mode)
+            .map(|p| {
+                let id = p.id;
+                let active = move || theme.get() == mode && chosen.get() == id;
+                let code = SAMPLE
+                    .iter()
+                    .map(|line| {
+                        let tokens = highlight(Lang::Python, line)
+                            .into_iter()
+                            .map(|t| match t.kind.css() {
+                                Some(color) => view! { <span style=format!("color: {color}")>{t.text}</span> }.into_any(),
+                                None => t.text.into_any(),
+                            })
+                            .collect_view();
+                        view! { <div>{tokens}" "</div> }
+                    })
+                    .collect_view();
+                view! {
+                    <button
+                        type="button"
+                        class="palette-card"
+                        class:on=active
+                        data-palette=themes::card_id(p)
+                        aria-pressed=move || active().to_string()
+                        on:click=move |_| {
+                            chosen.set(id.to_string());
+                            settings::choose_palette(theme, mode, id);
+                        }
+                    >
+                        <span class="palette-name">{p.name}</span>
+                        <span class="palette-code">{code}</span>
+                        <span class="palette-chips"><i style="background: var(--accent)"></i><i style="background: var(--green)"></i><i style="background: var(--amber)"></i><i style="background: var(--error)"></i><i style="background: var(--syn-keyword, var(--s-blue))"></i><i style="background: var(--syn-string, var(--s-amber))"></i></span>
+                    </button>
+                }
+            })
+            .collect_view();
+        view! {
+            <div class="palette-group">
+                <span class="set-row-title">{title}</span>
+                <div class="palette-grid">{cards}</div>
+            </div>
+        }
+    };
+    view! {
+        <div class="set-row palette-row">
+            <div class="set-row-text">
+                <span class="set-row-title">"Цветовая тема"</span>
+                <span class="set-row-desc">"Цвета интерфейса, слайдов и редактора кода. Выбор темы переключает светлый или тёмный режим; для каждого режима тема запоминается отдельно."</span>
+            </div>
+            {group("Тёмные", Theme::Dark, dark)}
+            {group("Светлые", Theme::Light, light)}
         </div>
     }
 }

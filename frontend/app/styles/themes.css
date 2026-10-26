@@ -1,0 +1,589 @@
+/* Цветовые темы (как в VS Code). Файл сгенерирован: основные цвета каждой темы заданы вручную, производные (границы, наведение, прозрачности) посчитаны,
+   контраст проверен. Применяются атрибутом data-palette на <html>; в настройках карточки предпросмотра получают тот же атрибут на себе. Светлый или тёмный режим
+   задаёт data-theme, тема поверх него переопределяет переменные. */
+
+/* Dracula (тёмная) */
+:root[data-palette="dracula"],
+.palette-card[data-palette="dracula"] {
+  --bg: #282a36;
+  --sidebar-bg: #21222c;
+  --panel: #2f3140;
+  --panel-2: #383a4c;
+  --border: #44475a;
+  --border-soft: #373a4a;
+  --text: #f8f8f2;
+  --muted: #b4b9d6;
+  --faint: #7c8096;
+  --accent: #bd93f9;
+  --accent-hover: #c8a5f8;
+  --accent-text: #0b0e14;
+  --green: #2e8b57;
+  --green-hover: #4c9b6e;
+  --amber: #ffb86c;
+  --error: #ff6e6e;
+  --active-bg: #52476d;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #bd93f9, #bd93f9);
+  --s-bg: #282a36;
+  --s-panel: #2f3140;
+  --s-panel2: #383a4c;
+  --s-border: #44475a;
+  --s-text: #f8f8f2;
+  --s-muted: #b4b9d6;
+  --s-accent: #bd93f9;
+  --s-accent-a35: rgba(189, 147, 249, 0.35);
+  --s-accent-a4: rgba(189, 147, 249, 0.4);
+  --s-accent-a45: rgba(189, 147, 249, 0.45);
+  --s-amber: #ffb86c;
+  --s-amber-a45: rgba(255, 184, 108, 0.45);
+  --s-amber-bg: #534641;
+  --s-green: #554a70;
+  --s-blue: #8be9fd;
+  --s-violet: #bd93f9;
+  --s-red: #ff79c6;
+  --s-ink: #121318;
+  --s-onink: #f8f8f2;
+  --syn-keyword: #ff79c6;
+  --syn-builtin: #8be9fd;
+  --syn-string: #f1fa8c;
+  --syn-number: #bd93f9;
+  --syn-call: #50fa7b;
+  --syn-comment: #7080b8;
+}
+
+/* One Dark (тёмная) */
+:root[data-palette="one-dark"],
+.palette-card[data-palette="one-dark"] {
+  --bg: #282c34;
+  --sidebar-bg: #21252b;
+  --panel: #2c313a;
+  --panel-2: #353b45;
+  --border: #3e4451;
+  --border-soft: #343944;
+  --text: #abb2bf;
+  --muted: #8e96a6;
+  --faint: #656c78;
+  --accent: #61afef;
+  --accent-hover: #6eb0e6;
+  --accent-text: #0b0e14;
+  --green: #3f8f52;
+  --green-hover: #4f9462;
+  --amber: #e5c07b;
+  --error: #e06c75;
+  --active-bg: #385168;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #61afef, #c678dd);
+  --s-bg: #282c34;
+  --s-panel: #2c313a;
+  --s-panel2: #353b45;
+  --s-border: #3e4451;
+  --s-text: #abb2bf;
+  --s-muted: #8e96a6;
+  --s-accent: #61afef;
+  --s-accent-a35: rgba(97, 175, 239, 0.35);
+  --s-accent-a4: rgba(97, 175, 239, 0.4);
+  --s-accent-a45: rgba(97, 175, 239, 0.45);
+  --s-amber: #e5c07b;
+  --s-amber-a45: rgba(229, 192, 123, 0.45);
+  --s-amber-bg: #4e4a42;
+  --s-green: #39536c;
+  --s-blue: #61afef;
+  --s-violet: #c678dd;
+  --s-red: #e06c75;
+  --s-ink: #121417;
+  --s-onink: #abb2bf;
+  --syn-keyword: #c678dd;
+  --syn-builtin: #e5c07b;
+  --syn-string: #98c379;
+  --syn-number: #d19a66;
+  --syn-call: #61afef;
+  --syn-comment: #7f848e;
+}
+
+/* Nord (тёмная) */
+:root[data-palette="nord"],
+.palette-card[data-palette="nord"] {
+  --bg: #2e3440;
+  --sidebar-bg: #272c36;
+  --panel: #3b4252;
+  --panel-2: #434c5e;
+  --border: #4c566a;
+  --border-soft: #3e4757;
+  --text: #e5e9f0;
+  --muted: #a9b4c8;
+  --faint: #788192;
+  --accent: #88c0d0;
+  --accent-hover: #99c7d6;
+  --accent-text: #0b0e14;
+  --green: #5a8f63;
+  --green-hover: #6f9c78;
+  --amber: #ebcb8b;
+  --error: #d57780;
+  --active-bg: #475b68;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #88c0d0, #b48ead);
+  --s-bg: #2e3440;
+  --s-panel: #3b4252;
+  --s-panel2: #434c5e;
+  --s-border: #4c566a;
+  --s-text: #e5e9f0;
+  --s-muted: #a9b4c8;
+  --s-accent: #88c0d0;
+  --s-accent-a35: rgba(136, 192, 208, 0.35);
+  --s-accent-a4: rgba(136, 192, 208, 0.4);
+  --s-accent-a45: rgba(136, 192, 208, 0.45);
+  --s-amber: #ebcb8b;
+  --s-amber-a45: rgba(235, 203, 139, 0.45);
+  --s-amber-bg: #54524f;
+  --s-green: #495e6b;
+  --s-blue: #81a1c1;
+  --s-violet: #b48ead;
+  --s-red: #d08770;
+  --s-ink: #15171d;
+  --s-onink: #e5e9f0;
+  --syn-keyword: #92b2d3;
+  --syn-builtin: #8fbcbb;
+  --syn-string: #a3be8c;
+  --syn-number: #c9a0c0;
+  --syn-call: #88c0d0;
+  --syn-comment: #8996b0;
+}
+
+/* Tokyo Night (тёмная) */
+:root[data-palette="tokyo-night"],
+.palette-card[data-palette="tokyo-night"] {
+  --bg: #1a1b26;
+  --sidebar-bg: #16161e;
+  --panel: #1f2335;
+  --panel-2: #292e42;
+  --border: #3b4261;
+  --border-soft: #2c3046;
+  --text: #c0caf5;
+  --muted: #9aa5ce;
+  --faint: #676e8b;
+  --accent: #7aa2f7;
+  --accent-hover: #87a9f7;
+  --accent-text: #0b0e14;
+  --green: #3f8f54;
+  --green-hover: #52986c;
+  --amber: #e0af68;
+  --error: #f7768e;
+  --active-bg: #354161;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #7aa2f7, #bb9af7);
+  --s-bg: #1a1b26;
+  --s-panel: #1f2335;
+  --s-panel2: #292e42;
+  --s-border: #3b4261;
+  --s-text: #c0caf5;
+  --s-muted: #9aa5ce;
+  --s-accent: #7aa2f7;
+  --s-accent-a35: rgba(122, 162, 247, 0.35);
+  --s-accent-a4: rgba(122, 162, 247, 0.4);
+  --s-accent-a45: rgba(122, 162, 247, 0.45);
+  --s-amber: #e0af68;
+  --s-amber-a45: rgba(224, 175, 104, 0.45);
+  --s-amber-bg: #423933;
+  --s-green: #374465;
+  --s-blue: #7aa2f7;
+  --s-violet: #bb9af7;
+  --s-red: #f7768e;
+  --s-ink: #0c0c11;
+  --s-onink: #c0caf5;
+  --syn-keyword: #bb9af7;
+  --syn-builtin: #7dcfff;
+  --syn-string: #9ece6a;
+  --syn-number: #ff9e64;
+  --syn-call: #7aa2f7;
+  --syn-comment: #6a7099;
+}
+
+/* Solarized Dark (тёмная) */
+:root[data-palette="solarized-dark"],
+.palette-card[data-palette="solarized-dark"] {
+  --bg: #002b36;
+  --sidebar-bg: #00232c;
+  --panel: #073642;
+  --panel-2: #0d4452;
+  --border: #1f5562;
+  --border-soft: #11424e;
+  --text: #a8b6b6;
+  --muted: #839496;
+  --faint: #4f6a70;
+  --accent: #2aa0f0;
+  --accent-hover: #41a4e6;
+  --accent-text: #0b0e14;
+  --green: #6f8a00;
+  --green-hover: #78911b;
+  --amber: #c99a00;
+  --error: #f0524f;
+  --active-bg: #0c4c6a;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #2aa0f0, #8a8fe0);
+  --s-bg: #002b36;
+  --s-panel: #073642;
+  --s-panel2: #0d4452;
+  --s-border: #1f5562;
+  --s-text: #a8b6b6;
+  --s-muted: #839496;
+  --s-accent: #2aa0f0;
+  --s-accent-a35: rgba(42, 160, 240, 0.35);
+  --s-accent-a4: rgba(42, 160, 240, 0.4);
+  --s-accent-a45: rgba(42, 160, 240, 0.45);
+  --s-amber: #c99a00;
+  --s-amber-a45: rgba(201, 154, 0, 0.45);
+  --s-amber-bg: #28412b;
+  --s-green: #0d4e6e;
+  --s-blue: #2aa0f0;
+  --s-violet: #8a8fe0;
+  --s-red: #f06aa8;
+  --s-ink: #001318;
+  --s-onink: #a8b6b6;
+  --syn-keyword: #a3b800;
+  --syn-builtin: #8a8fe0;
+  --syn-string: #2fc4b8;
+  --syn-number: #f06aa8;
+  --syn-call: #2aa0f0;
+  --syn-comment: #6f8a92;
+}
+
+/* Monokai (тёмная) */
+:root[data-palette="monokai"],
+.palette-card[data-palette="monokai"] {
+  --bg: #272822;
+  --sidebar-bg: #1e1f1c;
+  --panel: #2e2f28;
+  --panel-2: #3b3c32;
+  --border: #4a4b3f;
+  --border-soft: #3a3b32;
+  --text: #f8f8f2;
+  --muted: #b0b09a;
+  --faint: #797a6a;
+  --accent: #a6e22e;
+  --accent-hover: #b5e651;
+  --accent-text: #0b0e14;
+  --green: #4f8f2f;
+  --green-hover: #689f4c;
+  --amber: #e6db74;
+  --error: #f92672;
+  --active-bg: #4b5c25;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #a6e22e, #ae81ff);
+  --s-bg: #272822;
+  --s-panel: #2e2f28;
+  --s-panel2: #3b3c32;
+  --s-border: #4a4b3f;
+  --s-text: #f8f8f2;
+  --s-muted: #b0b09a;
+  --s-accent: #a6e22e;
+  --s-accent-a35: rgba(166, 226, 46, 0.35);
+  --s-accent-a4: rgba(166, 226, 46, 0.4);
+  --s-accent-a45: rgba(166, 226, 46, 0.45);
+  --s-amber: #e6db74;
+  --s-amber-a45: rgba(230, 219, 116, 0.45);
+  --s-amber-bg: #4d4c32;
+  --s-green: #4d6026;
+  --s-blue: #66d9ef;
+  --s-violet: #ae81ff;
+  --s-red: #f92672;
+  --s-ink: #12120f;
+  --s-onink: #f8f8f2;
+  --syn-keyword: #fb5b93;
+  --syn-builtin: #66d9ef;
+  --syn-string: #e6db74;
+  --syn-number: #ae81ff;
+  --syn-call: #a6e22e;
+  --syn-comment: #8a8a78;
+}
+
+/* GitHub Light (светлая) */
+:root[data-palette="github-light"],
+.palette-card[data-palette="github-light"] {
+  --bg: #f6f8fa;
+  --sidebar-bg: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #eef1f4;
+  --border: #d0d7de;
+  --border-soft: #e1e6eb;
+  --text: #1f2328;
+  --muted: #59636e;
+  --faint: #989fa6;
+  --accent: #0969da;
+  --accent-hover: #0d5cba;
+  --accent-text: #ffffff;
+  --green: #1a7f37;
+  --green-hover: #1b7135;
+  --amber: #9a6700;
+  --error: #cf222e;
+  --active-bg: #c7dbf4;
+  --shadow: 0 12px 40px rgba(16, 24, 40, 0.14);
+  --np-cover-grad: linear-gradient(135deg, #0969da, #8250df);
+  --s-bg: #f6f8fa;
+  --s-panel: #ffffff;
+  --s-panel2: #eef1f4;
+  --s-border: #d0d7de;
+  --s-text: #1f2328;
+  --s-muted: #59636e;
+  --s-accent: #0969da;
+  --s-accent-a35: rgba(9, 105, 218, 0.35);
+  --s-accent-a4: rgba(9, 105, 218, 0.4);
+  --s-accent-a45: rgba(9, 105, 218, 0.45);
+  --s-amber: #9a6700;
+  --s-amber-a45: rgba(154, 103, 0, 0.45);
+  --s-amber-bg: #e4dbc8;
+  --s-green: #c2d9f3;
+  --s-blue: #0550ae;
+  --s-violet: #8250df;
+  --s-red: #cf222e;
+  --s-ink: #1f2328;
+  --s-onink: #f6f8fa;
+  --syn-keyword: #cf222e;
+  --syn-builtin: #8250df;
+  --syn-string: #0a3069;
+  --syn-number: #0550ae;
+  --syn-call: #6639ba;
+  --syn-comment: #6e7781;
+}
+
+/* Solarized Light (светлая) */
+:root[data-palette="solarized-light"],
+.palette-card[data-palette="solarized-light"] {
+  --bg: #fdf6e3;
+  --sidebar-bg: #eee8d5;
+  --panel: #fffaf0;
+  --panel-2: #f2ebd6;
+  --border: #d8cfb4;
+  --border-soft: #e9e1c9;
+  --text: #4a5f67;
+  --muted: #58707a;
+  --faint: #9aa6a4;
+  --accent: #1f78b8;
+  --accent-hover: #2774a9;
+  --accent-text: #ffffff;
+  --green: #6f8a00;
+  --green-hover: #69840f;
+  --amber: #946b00;
+  --error: #c9302c;
+  --active-bg: #d1ddda;
+  --shadow: 0 12px 40px rgba(16, 24, 40, 0.14);
+  --np-cover-grad: linear-gradient(135deg, #1f78b8, #5c60b8);
+  --s-bg: #fdf6e3;
+  --s-panel: #fffaf0;
+  --s-panel2: #f2ebd6;
+  --s-border: #d8cfb4;
+  --s-text: #4a5f67;
+  --s-muted: #58707a;
+  --s-accent: #1f78b8;
+  --s-accent-a35: rgba(31, 120, 184, 0.35);
+  --s-accent-a4: rgba(31, 120, 184, 0.4);
+  --s-accent-a45: rgba(31, 120, 184, 0.45);
+  --s-amber: #946b00;
+  --s-amber-a45: rgba(148, 107, 0, 0.45);
+  --s-amber-bg: #e8dab6;
+  --s-green: #ccdada;
+  --s-blue: #1f78b8;
+  --s-violet: #5c60b8;
+  --s-red: #c42b78;
+  --s-ink: #4a5f67;
+  --s-onink: #fdf6e3;
+  --syn-keyword: #5f7600;
+  --syn-builtin: #5c60b8;
+  --syn-string: #1f8a82;
+  --syn-number: #c42b78;
+  --syn-call: #1f78b8;
+  --syn-comment: #7a8f94;
+}
+
+/* One Light (светлая) */
+:root[data-palette="one-light"],
+.palette-card[data-palette="one-light"] {
+  --bg: #fafafa;
+  --sidebar-bg: #f0f0f1;
+  --panel: #ffffff;
+  --panel-2: #ececee;
+  --border: #dbdbdc;
+  --border-soft: #e9e9ea;
+  --text: #383a42;
+  --muted: #62656f;
+  --faint: #9fa1a7;
+  --accent: #3a6fe0;
+  --accent-hover: #3a65c4;
+  --accent-text: #ffffff;
+  --green: #3d8a3c;
+  --green-hover: #3c7e3d;
+  --amber: #a06800;
+  --error: #d6453a;
+  --active-bg: #d4def5;
+  --shadow: 0 12px 40px rgba(16, 24, 40, 0.14);
+  --np-cover-grad: linear-gradient(135deg, #3a6fe0, #a626a4);
+  --s-bg: #fafafa;
+  --s-panel: #ffffff;
+  --s-panel2: #ececee;
+  --s-border: #dbdbdc;
+  --s-text: #383a42;
+  --s-muted: #62656f;
+  --s-accent: #3a6fe0;
+  --s-accent-a35: rgba(58, 111, 224, 0.35);
+  --s-accent-a4: rgba(58, 111, 224, 0.4);
+  --s-accent-a45: rgba(58, 111, 224, 0.45);
+  --s-amber: #a06800;
+  --s-amber-a45: rgba(160, 104, 0, 0.45);
+  --s-amber-bg: #e8ddc8;
+  --s-green: #d0dbf4;
+  --s-blue: #3a6fe0;
+  --s-violet: #a626a4;
+  --s-red: #d6453a;
+  --s-ink: #383a42;
+  --s-onink: #fafafa;
+  --syn-keyword: #a626a4;
+  --syn-builtin: #0b7a9a;
+  --syn-string: #3d8a3c;
+  --syn-number: #986801;
+  --syn-call: #3a6fe0;
+  --syn-comment: #8a8c96;
+}
+
+/* Gruvbox Light (светлая) */
+:root[data-palette="gruvbox-light"],
+.palette-card[data-palette="gruvbox-light"] {
+  --bg: #fbf1c7;
+  --sidebar-bg: #ebdbb2;
+  --panel: #f9f5d7;
+  --panel-2: #efe3b9;
+  --border: #d5c4a1;
+  --border-soft: #e6d8b2;
+  --text: #3c3836;
+  --muted: #665c54;
+  --faint: #a29882;
+  --accent: #076678;
+  --accent-hover: #115e6c;
+  --accent-text: #ffffff;
+  --green: #79740e;
+  --green-hover: #706b14;
+  --amber: #8f5f0a;
+  --error: #9d0006;
+  --active-bg: #cad5b7;
+  --shadow: 0 12px 40px rgba(16, 24, 40, 0.14);
+  --np-cover-grad: linear-gradient(135deg, #076678, #8f3f71);
+  --s-bg: #fbf1c7;
+  --s-panel: #f9f5d7;
+  --s-panel2: #efe3b9;
+  --s-border: #d5c4a1;
+  --s-text: #3c3836;
+  --s-muted: #665c54;
+  --s-accent: #076678;
+  --s-accent-a35: rgba(7, 102, 120, 0.35);
+  --s-accent-a4: rgba(7, 102, 120, 0.4);
+  --s-accent-a45: rgba(7, 102, 120, 0.45);
+  --s-amber: #8f5f0a;
+  --s-amber-a45: rgba(143, 95, 10, 0.45);
+  --s-amber-bg: #e5d4a1;
+  --s-green: #c5d2b6;
+  --s-blue: #076678;
+  --s-violet: #8f3f71;
+  --s-red: #9d0006;
+  --s-ink: #3c3836;
+  --s-onink: #fbf1c7;
+  --syn-keyword: #9d0006;
+  --syn-builtin: #8f3f71;
+  --syn-string: #79740e;
+  --syn-number: #8f3f71;
+  --syn-call: #427b58;
+  --syn-comment: #7c6f64;
+}
+
+/* Тёмная по умолчанию: значения из app.css, нужны только карточкам предпросмотра в настройках */
+.palette-card[data-palette="default-dark"] {
+  --bg: #0f1115;
+  --sidebar-bg: #12151b;
+  --panel: #171a21;
+  --panel-2: #1f242e;
+  --border: #2a2f37;
+  --border-soft: #232830;
+  --text: #e6e6e6;
+  --muted: #9aa0a6;
+  --faint: #6f767e;
+  --accent: #4c8dff;
+  --accent-hover: #3a7ae8;
+  --accent-text: #ffffff;
+  --green: #2e7d4f;
+  --green-hover: #276a44;
+  --amber: #d9a441;
+  --error: #ff6b6b;
+  --active-bg: #2b3b58;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --np-cover-grad: linear-gradient(135deg, #4c8dff, #7b5cff);
+  --s-bg: #0b1217;
+  --s-panel: #121e26;
+  --s-panel2: #192a33;
+  --s-accent: #8fe3bf;
+  --s-accent-a35: rgba(143, 227, 191, 0.35);
+  --s-accent-a4: rgba(143, 227, 191, 0.4);
+  --s-accent-a45: rgba(143, 227, 191, 0.45);
+  --s-text: #f0f5f3;
+  --s-muted: #9baeb6;
+  --s-border: #30444e;
+  --s-amber: #f1be72;
+  --s-amber-a45: rgba(241, 190, 114, 0.45);
+  --s-amber-bg: #3a2b1d;
+  --s-green: #193a32;
+  --s-blue: #82b8e8;
+  --s-violet: #c9a7f0;
+  --s-red: #ee8d86;
+  --s-ink: #05090c;
+  --s-onink: #f0f5f3;
+  --syn-keyword: var(--s-blue);
+  --syn-builtin: var(--s-violet);
+  --syn-string: var(--s-amber);
+  --syn-number: var(--s-red);
+  --syn-call: var(--s-accent);
+  --syn-comment: var(--s-muted);
+}
+
+/* Светлая по умолчанию: значения из app.css, нужны только карточкам предпросмотра в настройках */
+.palette-card[data-palette="default-light"] {
+  --bg: #f5f6f8;
+  --sidebar-bg: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #eef1f5;
+  --border: #e2e6eb;
+  --border-soft: #e8ebef;
+  --text: #1c2026;
+  --muted: #6b7280;
+  --faint: #9aa1ab;
+  --accent: #3a7ae8;
+  --accent-hover: #2d66c9;
+  --accent-text: #ffffff;
+  --green: #27965c;
+  --green-hover: #1f7d4b;
+  --amber: #c98f1f;
+  --error: #d93025;
+  --active-bg: #dfe9ff;
+  --shadow: 0 12px 40px rgba(16, 24, 40, 0.14);
+  --np-cover-grad: linear-gradient(135deg, #5b95ff, #8f6fff);
+  --s-bg: #f6f8f7;
+  --s-panel: #ffffff;
+  --s-panel2: #e9f0ec;
+  --s-accent: #177a4e;
+  --s-accent-a35: rgba(23, 122, 78, 0.3);
+  --s-accent-a4: rgba(23, 122, 78, 0.35);
+  --s-accent-a45: rgba(23, 122, 78, 0.4);
+  --s-text: #17232b;
+  --s-muted: #5e6d75;
+  --s-border: #d3dee2;
+  --s-amber: #a5720e;
+  --s-amber-a45: rgba(165, 114, 14, 0.4);
+  --s-amber-bg: #f8eed9;
+  --s-green: #dff0e8;
+  --s-blue: #2f6bb0;
+  --s-violet: #7d4fc9;
+  --s-red: #c24842;
+  --s-ink: #17232b;
+  --s-onink: #f6f8f7;
+  --syn-keyword: var(--s-blue);
+  --syn-builtin: var(--s-violet);
+  --syn-string: var(--s-amber);
+  --syn-number: var(--s-red);
+  --syn-call: var(--s-accent);
+  --syn-comment: var(--s-muted);
+}

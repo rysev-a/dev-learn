@@ -3,7 +3,6 @@
 # (в ~/.ssh/authorized_keys: restrict,command="…/release.sh" ssh-ed25519 …); что просит ключ, приходит в SSH_ORIGINAL_COMMAND.
 #
 #   deploy <тег>   — читает tar.gz исходников релиза из stdin, собирает образы cs-core-*:<тег> и запускает стек; при неудаче возвращает прежнюю версию
-#   export <тег>   — отдаёт в stdout `docker save | gzip` образов этого тега (для публикации в GHCR из Actions)
 #
 # Раскладка на сервере ($BASE, по умолчанию ~/cs-core): releases/<тег>/ — исходники, shared/.env — настройки (не в git), shared/current_tag — выложенный тег.
 # Каталог зависимостей бэкенда (закрытый реестр crates) — $VENDOR (по умолчанию ~/say-vendor).
@@ -16,7 +15,7 @@ KEEP=3
 cmd="${SSH_ORIGINAL_COMMAND:-}"
 action="${cmd%% *}"
 tag="${cmd#* }"
-[ "$action" != "$cmd" ] || { echo "ожидается: deploy|export <тег>" >&2; exit 2; }
+[ "$action" != "$cmd" ] || { echo "ожидается: deploy <тег>" >&2; exit 2; }
 case "$tag" in
   "" | *[!A-Za-z0-9._-]*) echo "недопустимый тег: '$tag'" >&2; exit 2 ;;
 esac
@@ -44,9 +43,6 @@ smoke() {
 }
 
 case "$action" in
-  export)
-    docker save "cs-core-api:$tag" "cs-core-proxy:$tag" "cs-core-worker:$tag" | gzip
-    ;;
   deploy)
     exec 9>"$BASE/.deploy.lock"
     flock -n 9 || { echo "выкладка уже идёт" >&2; exit 3; }

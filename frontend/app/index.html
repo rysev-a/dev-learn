@@ -13,9 +13,21 @@
     <link data-trunk rel="css" href="styles/netlab.css" />
     <link data-trunk rel="css" href="styles/sdlab.css" />
     <link data-trunk rel="css" href="styles/virtlab.css" />
+    <!-- цветовые темы: после app.css, переопределяют его переменные -->
+    <link data-trunk rel="css" href="styles/themes.css" />
     <!-- редактор кода на textarea и остальное своё -->
     <link data-trunk rel="css" href="style.css" />
     <link data-trunk rel="rust" data-bin="frontend" data-wasm-opt="0" />
   </head>
-  <body></body>
+  <body>
+    <!-- режим и цветовая тема до загрузки приложения, чтобы страница не мигала цветами по умолчанию -->
+    <script>
+      try {
+        var d = document.documentElement, t = localStorage.getItem("say-theme") === "light" ? "light" : "dark";
+        d.dataset.theme = t;
+        var p = localStorage.getItem("say-palette-" + t);
+        if (p && p !== "default") d.dataset.palette = p;
+      } catch (e) {}
+    </script>
+  </body>
 </html>
