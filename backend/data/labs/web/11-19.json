@@ -1,0 +1,802 @@
+{
+ "book": 11,
+ "chapter": 19,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w19-bar",
+   "title": "Панель на flexbox",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте из .bar горизонтальную панель: элементы в ряд, по краям, по центру по вертикали, с промежутком не меньше 16 пикселей.",
+   "hint": "display: flex включает флексбокс; justify-content раскладывает вдоль главной оси, align-items — поперёк, gap задаёт промежуток.",
+   "spec": {
+    "kind": "css",
+    "html": "<nav class=\"bar\"><a href=\"#\">Главная</a><a href=\"#\">Каталог</a><a href=\"#\">О нас</a></nav>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "justify-content",
+      "equals": "space-between"
+     },
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "align-items",
+      "equals": "center"
+     },
+     {
+      "t": "style",
+      "sel": ".bar",
+      "prop": "gap",
+      "min": 16
+     }
+    ],
+    "reference": {
+     "css": ".bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }"
+    }
+   }
+  },
+  {
+   "id": "w19-column",
+   "title": "Колонка вместо ряда",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте из .stack флекс-контейнер, в котором элементы идут столбиком: главная ось вертикальная. Между элементами — промежуток не меньше 8 пикселей.",
+   "hint": "Направление главной оси задаёт flex-direction. Значение column ведёт ось сверху вниз.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"stack\"><div class=\"item\">Профиль</div><div class=\"item\">Заказы</div><div class=\"item\">Выход</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".stack",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".stack",
+      "prop": "flex-direction",
+      "equals": "column"
+     },
+     {
+      "t": "style",
+      "sel": ".stack",
+      "prop": "gap",
+      "min": 8
+     }
+    ],
+    "reference": {
+     "css": ".stack { display: flex; flex-direction: column; gap: 8px; }"
+    }
+   }
+  },
+  {
+   "id": "w19-justify",
+   "title": "Равные промежутки",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Разложите кнопки .toolbar по ряду так, чтобы свободное место доставалось и промежуткам между кнопками, и краям (подойдёт space-around или space-evenly).",
+   "hint": "justify-content: space-around даёт каждому элементу равные поля с обеих сторон, space-evenly делает одинаковыми все промежутки, включая крайние.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"toolbar\"><button>Назад</button><button>Далее</button><button>Отмена</button></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".toolbar",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".toolbar",
+      "prop": "justify-content",
+      "one_of": [
+       "space-around",
+       "space-evenly"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".toolbar { display: flex; justify-content: space-evenly; }"
+    }
+   }
+  },
+  {
+   "id": "w19-baseline",
+   "title": "Одна базовая линия",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Крупная цифра .num и мелкая подпись .cur стоят в одной строке. Сделайте .price флекс-контейнером и выровняйте элементы по базовой линии текста, чтобы подпись не «плавала».",
+   "hint": "align-items: baseline выравнивает элементы по базовой линии их первой строки текста.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.num { font-size: 40px; } .cur { font-size: 14px; }</style><div class=\"price\"><span class=\"num\">1990</span><span class=\"cur\">руб.</span></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".price",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".price",
+      "prop": "align-items",
+      "one_of": [
+       "baseline",
+       "first baseline"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".price { display: flex; align-items: baseline; }"
+    }
+   }
+  },
+  {
+   "id": "w19-gaps",
+   "title": "Разные промежутки",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Фишки .chip переносятся в контейнере .board на несколько строк. Сделайте промежуток 8 пикселей между строками и 24 пикселя между столбцами одним свойством gap.",
+   "hint": "gap принимает два значения: сначала между строками (row-gap), потом между столбцами (column-gap).",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.board { display: flex; flex-wrap: wrap; width: 260px; } .chip { width: 110px; padding: 6px; background: #ddd; }</style><div class=\"board\"><div class=\"chip\">Один</div><div class=\"chip\">Два</div><div class=\"chip\">Три</div><div class=\"chip\">Четыре</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".board",
+      "prop": "row-gap",
+      "equals": "8px"
+     },
+     {
+      "t": "style",
+      "sel": ".board",
+      "prop": "column-gap",
+      "equals": "24px"
+     },
+     {
+      "t": "uses",
+      "prop": "gap"
+     }
+    ],
+    "reference": {
+     "css": ".board { gap: 8px 24px; }"
+    }
+   }
+  },
+  {
+   "id": "w19-wrap",
+   "title": "Перенос строк",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Теги .tag не помещаются в одну строку. Сделайте из .tags флекс-контейнер, который переносит элементы на новую строку, с промежутком не меньше 8 пикселей и между строками, и между столбцами.",
+   "hint": "flex-wrap: wrap разрешает перенос. Промежуток по обеим осям — gap (или row-gap и column-gap).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"tags\"><span class=\"tag\">html</span><span class=\"tag\">css</span><span class=\"tag\">javascript</span><span class=\"tag\">flexbox</span><span class=\"tag\">grid</span><span class=\"tag\">доступность</span><span class=\"tag\">адаптивность</span><span class=\"tag\">анимации</span></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".tags",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".tags",
+      "prop": "flex-wrap",
+      "equals": "wrap"
+     },
+     {
+      "t": "style",
+      "sel": ".tags",
+      "prop": "row-gap",
+      "min": 8
+     },
+     {
+      "t": "style",
+      "sel": ".tags",
+      "prop": "column-gap",
+      "min": 8
+     }
+    ],
+    "reference": {
+     "css": ".tags { display: flex; flex-wrap: wrap; gap: 8px; }"
+    }
+   }
+  },
+  {
+   "id": "w19-grow",
+   "title": "Пропорции flex",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Ряд .row — флекс-контейнер; левая колонка .a занимает 1 часть, правая .b — 2 части свободного места (сокращение flex).",
+   "hint": "flex: 1 и flex: 2 задают flex-grow 1 и 2 (и flex-basis 0%).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"row\"><div class=\"a\">A</div><div class=\"b\">B</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".row",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".a",
+      "prop": "flex-grow",
+      "equals": "1"
+     },
+     {
+      "t": "style",
+      "sel": ".b",
+      "prop": "flex-grow",
+      "equals": "2"
+     },
+     {
+      "t": "style",
+      "sel": ".b",
+      "prop": "flex-basis",
+      "equals": "0%"
+     }
+    ],
+    "reference": {
+     "css": ".row { display: flex; } .a { flex: 1; } .b { flex: 2; }"
+    }
+   }
+  },
+  {
+   "id": "w19-sidebar",
+   "title": "Боковая колонка не сжимается",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте .layout флекс-контейнером. Боковая колонка .side — ровно 240 пикселей по базе и никогда не сжимается; основная часть .main забирает всё оставшееся место.",
+   "hint": "flex: 0 0 240px — не расти, не сжиматься, база 240px. Для основной части достаточно flex: 1.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"layout\"><aside class=\"side\">Меню</aside><main class=\"main\">Основное содержимое страницы с длинным текстом, которому хочется занять всё место</main></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".side",
+      "prop": "flex-basis",
+      "equals": "240px"
+     },
+     {
+      "t": "style",
+      "sel": ".side",
+      "prop": "flex-shrink",
+      "equals": "0"
+     },
+     {
+      "t": "style",
+      "sel": ".main",
+      "prop": "flex-grow",
+      "one_of": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "10"
+      ],
+      "msg": "У `.main` flex-grow: 1 или больше"
+     }
+    ],
+    "reference": {
+     "css": ".layout { display: flex; } .side { flex: 0 0 240px; } .main { flex: 1; }"
+    }
+   }
+  },
+  {
+   "id": "w19-center",
+   "title": "Центр по обеим осям",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Блок .box лежит внутри .hero, у которого уже задана минимальная высота. Поставьте .box точно по центру .hero: и вдоль, и поперёк.",
+   "hint": "Нужны три свойства у контейнера: display: flex, justify-content: center (вдоль) и align-items: center (поперёк).",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.hero { min-height: 240px; border: 1px dashed #888; }</style><div class=\"hero\"><div class=\"box\">Привет</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".hero",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".hero",
+      "prop": "justify-content",
+      "equals": "center"
+     },
+     {
+      "t": "style",
+      "sel": ".hero",
+      "prop": "align-items",
+      "equals": "center"
+     }
+    ],
+    "reference": {
+     "css": ".hero { display: flex; justify-content: center; align-items: center; }"
+    }
+   }
+  },
+  {
+   "id": "w19-auto",
+   "title": "margin-left: auto",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте из .top флекс-контейнер: все ссылки идут слева, а «Войти» (.login) уезжает к правому краю. Значение justify-content у .top менять нельзя — используйте автоматическое поле.",
+   "hint": "Левое поле auto забирает всё свободное место и сдвигает элемент вправо.",
+   "spec": {
+    "kind": "css",
+    "html": "<nav class=\"top\"><a class=\"logo\" href=\"#\">Лого</a><a href=\"#\">Каталог</a><a href=\"#\">О нас</a><a class=\"login\" href=\"#\">Войти</a></nav>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".top",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".top",
+      "prop": "justify-content",
+      "one_of": [
+       "normal",
+       "flex-start",
+       "start"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".login",
+      "prop": "margin-left",
+      "equals": "auto"
+     }
+    ],
+    "reference": {
+     "css": ".top { display: flex; } .login { margin-left: auto; }"
+    }
+   }
+  },
+  {
+   "id": "w19-self",
+   "title": "align-self у одного элемента",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Карточки стоят у верхнего края ряда .row. Опустите к нижнему краю только карточку .warn, не меняя ни выравнивание ряда, ни остальные карточки.",
+   "hint": "align-self у отдельного элемента переопределяет align-items контейнера. Правило нужно только для .warn.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.row { display: flex; align-items: flex-start; gap: 8px; height: 120px; } .card { width: 80px; height: 40px; background: #ddd; }</style><div class=\"row\"><div class=\"card\">1</div><div class=\"card warn\">2</div><div class=\"card\">3</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".warn",
+      "prop": "align-self",
+      "one_of": [
+       "flex-end",
+       "end"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".card:not(.warn)",
+      "prop": "align-self",
+      "one_of": [
+       "auto",
+       "normal"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".row",
+      "prop": "align-items",
+      "equals": "flex-start"
+     }
+    ],
+    "reference": {
+     "css": ".warn { align-self: flex-end; }"
+    }
+   }
+  },
+  {
+   "id": "w19-order",
+   "title": "Закреплённая запись вперёд",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В разметке закреплённая запись .pin стоит последней, а на экране должна быть первой. Не трогая разметку и направление столбца, переставьте только её.",
+   "hint": "order по умолчанию равен нулю; отрицательное число отправляет элемент вперёд всех остальных.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.list { display: flex; flex-direction: column; gap: 6px; }</style><div class=\"list\"><div class=\"item\">Запись 1</div><div class=\"item\">Запись 2</div><div class=\"item pin\">Закреплённая запись</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".pin",
+      "prop": "order",
+      "one_of": [
+       "-1",
+       "-2",
+       "-3",
+       "-5",
+       "-10",
+       "-100"
+      ],
+      "msg": "У `.pin` order: отрицательное число"
+     },
+     {
+      "t": "style",
+      "sel": ".list",
+      "prop": "flex-direction",
+      "equals": "column"
+     }
+    ],
+    "reference": {
+     "css": ".pin { order: -1; }"
+    }
+   }
+  },
+  {
+   "id": "w19-reverse",
+   "title": "Шаги справа налево",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Шаги .step идут в разметке как 1, 2, 3, а показать их нужно справа налево: 3, 2, 1. Сделайте .steps флекс-контейнером с обратным рядом.",
+   "hint": "flex-direction: row-reverse разворачивает главную ось справа налево; переставлять элементы через order не нужно.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"steps\"><div class=\"step\">Шаг 1</div><div class=\"step\">Шаг 2</div><div class=\"step\">Шаг 3</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".steps",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".steps",
+      "prop": "flex-direction",
+      "equals": "row-reverse"
+     }
+    ],
+    "reference": {
+     "css": ".steps { display: flex; flex-direction: row-reverse; }"
+    }
+   }
+  },
+  {
+   "id": "w19-cards",
+   "title": "Карточки равной высоты",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Ряд .cards — флекс-контейнер, но карточки разной высоты прижаты к верху. Сделайте так, чтобы каждая карточка тянулась до высоты самой высокой в ряду и все карточки делили ряд поровну.",
+   "hint": "align-items: stretch — значение по умолчанию, его перебивает flex-start. Чтобы делить ряд поровну, у карточки нужен flex: 1.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.cards { display: flex; align-items: flex-start; gap: 12px; } .card { padding: 12px; border: 1px solid #888; }</style><div class=\"cards\"><div class=\"card\">Короткий текст</div><div class=\"card\">Текст в этой карточке заметно длиннее, и он занимает несколько строк, поэтому карточка выше соседей.</div><div class=\"card\">Средний по длине текст карточки</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "align-items",
+      "one_of": [
+       "stretch",
+       "normal"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "align-self",
+      "one_of": [
+       "auto",
+       "normal",
+       "stretch"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "flex-grow",
+      "one_of": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "10"
+      ],
+      "msg": "У `.card` flex-grow: 1 или больше"
+     }
+    ],
+    "reference": {
+     "css": ".cards { align-items: stretch; } .card { flex: 1; }"
+    }
+   }
+  },
+  {
+   "id": "w19-sticky",
+   "title": "«Липкий» подвал",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Страница .page — колонка минимум на всю высоту окна (100vh). Основная часть main забирает всё свободное место, чтобы подвал оставался внизу даже при малом содержимом.",
+   "hint": "У контейнера: display: flex, flex-direction: column и min-height: 100vh. У main: flex: 1 (или flex-grow: 1).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"page\"><header>Шапка</header><main>Мало текста</main><footer>Подвал</footer></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "flex-direction",
+      "equals": "column"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "min-height",
+      "one_of": [
+       "100vh",
+       "100dvh",
+       "100svh"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": "main",
+      "prop": "flex-grow",
+      "one_of": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "10"
+      ],
+      "msg": "У `main` flex-grow: 1 или больше"
+     }
+    ],
+    "reference": {
+     "css": ".page { display: flex; flex-direction: column; min-height: 100vh; } main { flex: 1; }"
+    }
+   }
+  },
+  {
+   "id": "w19-ellipsis",
+   "title": "Обрезка текста: min-width: 0",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Название файла .title не помещается и распирает ряд .row. Разрешите ему сжиматься (min-width: 0) и обрежьте текст в одну строку с многоточием: скрытое переполнение, text-overflow, white-space.",
+   "hint": "Нужны четыре свойства у .title: min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.row { display: flex; width: 240px; gap: 8px; } .badge { flex: none; }</style><div class=\"row\"><div class=\"title\">Очень_длинное_название_файла_без_пробелов.pdf</div><span class=\"badge\">PDF</span></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "min-width",
+      "equals": "0"
+     },
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "overflow-x",
+      "equals": "hidden"
+     },
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "text-overflow",
+      "equals": "ellipsis"
+     },
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "white-space",
+      "equals": "nowrap"
+     }
+    ],
+    "reference": {
+     "css": ".title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+    }
+   }
+  },
+  {
+   "id": "w19-media",
+   "title": "Адаптивный flex",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте .cols флекс-контейнером с промежутком не меньше 8 пикселей: на широком окне колонки стоят рядом, а на узком (до 600 пикселей) встают друг под другом.",
+   "hint": "На узком окне перебейте направление: @media (max-width: 600px) { .cols { flex-direction: column; } }.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"cols\"><section class=\"col\">Основное</section><aside class=\"col\">Врезка</aside></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".cols",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".cols",
+      "prop": "gap",
+      "min": 8
+     },
+     {
+      "t": "style",
+      "sel": ".cols",
+      "prop": "flex-direction",
+      "equals": "row",
+      "viewport": 1024,
+      "msg": "На широком окне (1024px) колонки рядом: flex-direction: row"
+     },
+     {
+      "t": "style",
+      "sel": ".cols",
+      "prop": "flex-direction",
+      "equals": "column",
+      "viewport": 480,
+      "msg": "На узком окне (480px) колонки друг под другом: flex-direction: column"
+     },
+     {
+      "t": "media",
+      "contains": "width"
+     }
+    ],
+    "reference": {
+     "css": ".cols { display: flex; gap: 12px; } @media (max-width: 600px) { .cols { flex-direction: column; } }"
+    }
+   }
+  },
+  {
+   "id": "w19-holy",
+   "title": "Священный грааль",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Соберите макет страницы: .page — колонка на всю высоту окна; .mid занимает всё свободное место по высоте и сам является рядом; в нём боковые колонки nav и aside держат ширину 160 пикселей и не сжимаются, а main растягивается.",
+   "hint": "Два вложенных флекс-контейнера: .page (колонка, min-height: 100vh) и .mid (ряд). У .mid и main — flex: 1; у боковых колонок — flex: 0 0 160px.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"page\"><header>Шапка</header><div class=\"mid\"><nav>Меню</nav><main>Основное содержимое</main><aside>Справа</aside></div><footer>Подвал</footer></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "flex-direction",
+      "equals": "column"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "min-height",
+      "one_of": [
+       "100vh",
+       "100dvh",
+       "100svh"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".mid",
+      "prop": "display",
+      "equals": "flex"
+     },
+     {
+      "t": "style",
+      "sel": ".mid",
+      "prop": "flex-grow",
+      "one_of": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "10"
+      ],
+      "msg": "У `.mid` flex-grow: 1 или больше"
+     },
+     {
+      "t": "style",
+      "sel": ".mid main",
+      "prop": "flex-grow",
+      "one_of": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "10"
+      ],
+      "msg": "У `main` flex-grow: 1 или больше"
+     },
+     {
+      "t": "style",
+      "sel": ".mid nav",
+      "prop": "flex-basis",
+      "equals": "160px"
+     },
+     {
+      "t": "style",
+      "sel": ".mid aside",
+      "prop": "flex-basis",
+      "equals": "160px"
+     },
+     {
+      "t": "style",
+      "sel": ".mid nav",
+      "prop": "flex-shrink",
+      "equals": "0"
+     },
+     {
+      "t": "style",
+      "sel": ".mid aside",
+      "prop": "flex-shrink",
+      "equals": "0"
+     }
+    ],
+    "reference": {
+     "css": ".page { display: flex; flex-direction: column; min-height: 100vh; } .mid { display: flex; flex: 1; } main { flex: 1; } nav, aside { flex: 0 0 160px; }"
+    }
+   }
+  },
+  {
+   "id": "w19-sel-items",
+   "title": "Флекс-элементы меню",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только прямые дети списка .menu — именно они были бы флекс-элементами; вложенный список и ссылки внутри пунктов трогать нельзя.",
+   "hint": "Знак «>» между селекторами означает «непосредственный ребёнок». Пробел выбрал бы потомков на любой глубине.",
+   "spec": {
+    "kind": "selector",
+    "html": "<ul class=\"menu\"><li id=\"a\"><a href=\"#\">Главная</a></li><li id=\"b\"><a href=\"#\">Каталог</a><ul class=\"sub\"><li id=\"b1\">Ноутбуки</li><li id=\"b2\">Телефоны</li></ul></li><li id=\"c\"><a href=\"#\">Контакты</a></li></ul>",
+    "starter_css": "",
+    "want": [
+     "a",
+     "b",
+     "c"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".menu > li"
+    }
+   }
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 # CS.Core — аудиокурс по программированию
 
-Учебник «от нуля до своего веб-сервиса»: 12 книг, 311 глав. В каждой главе — слайды с покадровыми анимациями, закадровый текст, квиз на теорию и практика прямо в браузере:
+Учебник «от нуля до своего веб-сервиса»: 12 книг, 316 глав. В каждой главе — слайды с покадровыми анимациями, закадровый текст, квиз на теорию и практика прямо в браузере:
 код проверяется в изолированной песочнице, а схемы, сети, виртуальные машины, системный дизайн и разметка HTML/CSS проверяются интерактивными лабораториями.
 
 **Сайт:** <https://cs-core.tech> — тестовый запуск на одной небольшой машине. Сервис в стадии развития и пока не выдерживает большую нагрузку:
@@ -23,7 +23,7 @@
 | Виртуализация | 16 | VT-x, EPT, virtio, KVM, миграция, контейнеры, confidential computing |
 | Базы данных | 32 | SQL и «под капотом»: транзакции, индексы, репликация, шардирование |
 | Изучаем Rust | 51 | владение, трейты, Tokio, сервер на Axum и Sqlx |
-| Современный Frontend | 34 | JavaScript, HTML и CSS, браузер, Node.js, сборка, свой мини-фреймворк |
+| Современный Frontend | 39 | JavaScript, HTML и CSS (разметка, селекторы, каскад, flexbox, grid, адаптивность, анимации), браузер, Node.js, сборка, свой мини-фреймворк |
 | Системный дизайн | 24 | от требований и прикидок до проектирования Uber, Instagram, мессенджера |
 
 ## Что внутри главы
@@ -93,7 +93,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --no-bu
 
 ```bash
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks up -d --no-build
-docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks run --rm images   # один раз: образы песочниц, 15–40 минут
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images   # один раз: образы песочниц, 15–40 минут
 ```
 
 Ресурсы песочниц ограничиваются переменными `SAY_SANDBOX_CPUS`, `SAY_SANDBOX_MEM`, `SAY_LIGHT_SLOTS`, `SAY_HEAVY_SLOTS`, потолок очереди — `SAY_QUEUE_LIMIT` (см. `deploy/.env.example`).

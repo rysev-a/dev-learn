@@ -127,8 +127,7 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
     view! {
         <div class="lab lab-web">
             <div class="lab-web-grid">
-                <section class="lab-col">
-                    <div class="lab-card">
+                    <div class="lab-card web-ed">
                         <div class="lab-card-head">
                             <h3>{title}</h3>
                             <div class="lab-actions">
@@ -143,7 +142,7 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
                         {move || (has_hint && hint_open.get()).then(|| view! { <p class="ex-hint">{hint.clone()}</p> })}
                         <CodeEditor value=editor_value on_input=on_input on_run=Callback::new(|()| ()) lang=lang accepted=solved autofocus=false />
                     </div>
-                    <div class="lab-card">
+                    <div class="lab-card web-co">
                         <div class="lab-card-head"><h3>"Условия"</h3></div>
                         <ul class="vl-goals">{items}</ul>
                         {move || solved.get().then(|| view! {
@@ -153,9 +152,7 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
                             </p>
                         })}
                     </div>
-                </section>
-                <section class="lab-col">
-                    <div class="lab-card">
+                    <div class="lab-card web-pv">
                         <div class="lab-card-head">
                             <h3>"Предпросмотр"</h3>
                             <div class="lab-actions">
@@ -171,7 +168,6 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
                             <iframe class="web-frame" sandbox="" title="Предпросмотр" style=move || format!("width: {}px", width.get()) srcdoc=srcdoc></iframe>
                         </div>
                     </div>
-                </section>
             </div>
         </div>
     }

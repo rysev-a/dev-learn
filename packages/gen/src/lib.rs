@@ -10,11 +10,17 @@ pub mod py_ch00;
 pub mod web_ch13;
 pub mod web_ch14;
 pub mod web_ch15;
+pub mod web_ch16;
+pub mod web_ch17;
+pub mod web_ch18;
+pub mod web_ch19;
+pub mod web_ch20;
+pub mod web_ch21;
 
 /// Главы, которые пишут генераторы на Rust (источник — этот код, а не перенос из TypeScript).
 pub fn generated() -> Vec<Chapter> {
     // главы без слайдов — заготовки (их ещё пишут), в данные не попадают
-    vec![py_ch00::chapter(), web_ch13::chapter(), web_ch14::chapter(), web_ch15::chapter()].into_iter().filter(|c| !c.slides.is_empty()).collect()
+    vec![py_ch00::chapter(), web_ch13::chapter(), web_ch14::chapter(), web_ch15::chapter(), web_ch16::chapter(), web_ch17::chapter(), web_ch18::chapter(), web_ch19::chapter(), web_ch20::chapter(), web_ch21::chapter()].into_iter().filter(|c| !c.slides.is_empty()).collect()
 }
 
 /// Имя файла главы: `13-05.json`.

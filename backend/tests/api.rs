@@ -372,7 +372,7 @@ async fn web_lab_accepts_references_and_rejects_starters() {
         let (book, chapter) = (file["book"].as_i64().unwrap(), file["chapter"].as_i64().unwrap());
         // задание приходит без эталона
         let (st, lab) = call(&app, Method::GET, &format!("/api/labs/{book}/{chapter}"), None, None).await;
-        assert_eq!(st, StatusCode::OK);
+        assert_eq!(st, StatusCode::OK, "GET /api/labs/{book}/{chapter}");
         assert_eq!(lab["lab"], "web");
         assert!(lab["tasks"].as_array().unwrap().iter().all(|t| t["spec"].get("reference").is_none()), "эталон не уходит клиенту");
         for task in file["tasks"].as_array().unwrap() {

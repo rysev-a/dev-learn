@@ -1,0 +1,850 @@
+{
+  "book": 11,
+  "chapter": 21,
+  "lab": "web",
+  "tasks": [
+    {
+      "id": "w21-mobile-first",
+      "title": "Сначала мобильная версия",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Карточки .cards лежат во флекс-контейнере. По умолчанию (узкий экран) они идут столбиком, а от ширины окна 600px и больше — в ряд. Пишите «от малого к большому»: обычные правила для телефона, а расширение — в @media (min-width: …).",
+      "hint": "Сначала .cards { display: flex; flex-direction: column; gap: 12px; }, потом @media (min-width: 600px) { .cards { flex-direction: row; } }.",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"cards\"><div class=\"card\">Один</div><div class=\"card\">Два</div></div>",
+        "starter_css": ".cards { display: flex; gap: 12px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".cards",
+            "prop": "display",
+            "equals": "flex"
+          },
+          {
+            "t": "style",
+            "sel": ".cards",
+            "prop": "flex-direction",
+            "equals": "column",
+            "viewport": 360
+          },
+          {
+            "t": "style",
+            "sel": ".cards",
+            "prop": "flex-direction",
+            "equals": "row",
+            "viewport": 800
+          },
+          {
+            "t": "media",
+            "contains": "min-width"
+          }
+        ],
+        "reference": {
+          "css": ".cards { display: flex; flex-direction: column; gap: 12px; } @media (min-width: 600px) { .cards { flex-direction: row; } }"
+        }
+      }
+    },
+    {
+      "id": "w21-breakpoints-grid",
+      "title": "Сетка с двумя брейкпоинтами",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Блок .gallery — сетка. На телефоне (до 600px) одна колонка, от 600px — две равные колонки, от 960px — три. Используйте grid-template-columns с repeat(…, 1fr) и два @media (min-width: …). Стили проверяются при ширине 360, 700 и 1100px.",
+      "hint": "Базовое правило: grid-template-columns: 1fr. Затем @media (min-width: 600px) с repeat(2, 1fr) и @media (min-width: 960px) с repeat(3, 1fr), в таком порядке.",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"gallery\"><div class=\"item\">1</div><div class=\"item\">2</div><div class=\"item\">3</div></div>",
+        "starter_css": ".gallery { gap: 8px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".gallery",
+            "prop": "display",
+            "equals": "grid"
+          },
+          {
+            "t": "style",
+            "sel": ".gallery",
+            "prop": "grid-template-columns",
+            "viewport": 360,
+            "one_of": [
+              "1fr",
+              "repeat(1, 1fr)"
+            ]
+          },
+          {
+            "t": "style",
+            "sel": ".gallery",
+            "prop": "grid-template-columns",
+            "viewport": 700,
+            "one_of": [
+              "repeat(2, 1fr)",
+              "1fr 1fr",
+              "repeat(2,1fr)"
+            ]
+          },
+          {
+            "t": "style",
+            "sel": ".gallery",
+            "prop": "grid-template-columns",
+            "viewport": 1100,
+            "one_of": [
+              "repeat(3, 1fr)",
+              "1fr 1fr 1fr",
+              "repeat(3,1fr)"
+            ]
+          },
+          {
+            "t": "media",
+            "contains": "min-width"
+          }
+        ],
+        "reference": {
+          "css": ".gallery { display: grid; gap: 8px; grid-template-columns: 1fr; } @media (min-width: 600px) { .gallery { grid-template-columns: repeat(2, 1fr); } } @media (min-width: 960px) { .gallery { grid-template-columns: repeat(3, 1fr); } }"
+        }
+      }
+    },
+    {
+      "id": "w21-nav-switch",
+      "title": "Меню и «бургер»",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. На узком экране видна только кнопка .burger, а список .menu скрыт. От ширины 768px, наоборот, меню показывается как flex-ряд, а кнопка исчезает. Стили проверяются при 360 и 1000px; пишите в подходе «сначала мобильная версия».",
+      "hint": "База: .menu { display: none; } и .burger { display: block; }. В @media (min-width: 768px): .menu { display: flex; } и .burger { display: none; }.",
+      "spec": {
+        "kind": "css",
+        "html": "<nav><button class=\"burger\">Меню</button><ul class=\"menu\"><li>Главная</li><li>Курсы</li></ul></nav>",
+        "starter_css": ".menu { gap: 16px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".menu",
+            "prop": "display",
+            "equals": "none",
+            "viewport": 360
+          },
+          {
+            "t": "style",
+            "sel": ".burger",
+            "prop": "display",
+            "equals": "block",
+            "viewport": 360
+          },
+          {
+            "t": "style",
+            "sel": ".menu",
+            "prop": "display",
+            "equals": "flex",
+            "viewport": 1000
+          },
+          {
+            "t": "style",
+            "sel": ".burger",
+            "prop": "display",
+            "equals": "none",
+            "viewport": 1000
+          },
+          {
+            "t": "media",
+            "contains": "min-width"
+          }
+        ],
+        "reference": {
+          "css": ".menu { display: none; } .burger { display: block; } @media (min-width: 768px) { .menu { display: flex; gap: 16px; } .burger { display: none; } }"
+        }
+      }
+    },
+    {
+      "id": "w21-fluid-image",
+      "title": "Картинка по ширине колонки",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Фото .photo внутри колонки .col никогда не должно вылезать за её край и не должно искажаться. Задайте max-width: 100% и height: auto. Для обложки .cover (шириной в колонку) поставьте object-fit: cover и соотношение сторон aspect-ratio: 16 / 9.",
+      "hint": "img { max-width: 100%; height: auto; } для обложки — width: 100%; aspect-ratio: 16 / 9; object-fit: cover.",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"col\"><img class=\"photo\" src=\"photo.jpg\" alt=\"Горы\"><img class=\"cover\" src=\"cover.jpg\" alt=\"Озеро\"></div>",
+        "starter_css": ".photo { border-radius: 8px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".photo",
+            "prop": "max-width",
+            "equals": "100%"
+          },
+          {
+            "t": "style",
+            "sel": ".photo",
+            "prop": "height",
+            "equals": "auto"
+          },
+          {
+            "t": "style",
+            "sel": ".cover",
+            "prop": "object-fit",
+            "equals": "cover"
+          },
+          {
+            "t": "style",
+            "sel": ".cover",
+            "prop": "aspect-ratio",
+            "one_of": [
+              "16 / 9",
+              "16/9"
+            ]
+          },
+          {
+            "t": "style",
+            "sel": ".cover",
+            "prop": "width",
+            "equals": "100%"
+          }
+        ],
+        "reference": {
+          "css": ".photo { max-width: 100%; height: auto; } .cover { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }"
+        }
+      }
+    },
+    {
+      "id": "w21-dark-scheme",
+      "title": "Тёмная тема по настройке системы",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Цвета страницы вынесены в переменные --bg и --fg. По умолчанию (светлая тема): фон #ffffff, текст #1a1a1a. Если пользователь выбрал тёмную тему в системе, переопределите их в @media (prefers-color-scheme: dark): фон #121212, текст #eeeeee. Элемент body берёт цвета из переменных.",
+      "hint": "На :root задайте обе переменные для светлой темы, затем @media (prefers-color-scheme: dark) { :root { --bg: …; --fg: …; } }, а body { background: var(--bg); color: var(--fg); }.",
+      "spec": {
+        "kind": "css",
+        "html": "<body><h1>Заголовок</h1><p>Текст страницы.</p></body>",
+        "starter_css": "body { margin: 0; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "uses",
+            "prop": "--bg"
+          },
+          {
+            "t": "uses",
+            "prop": "--fg"
+          },
+          {
+            "t": "style",
+            "sel": "body",
+            "prop": "background-color",
+            "equals": "#ffffff"
+          },
+          {
+            "t": "style",
+            "sel": "body",
+            "prop": "color",
+            "equals": "#1a1a1a"
+          },
+          {
+            "t": "media",
+            "contains": "prefers-color-scheme: dark"
+          },
+          {
+            "t": "style",
+            "sel": "body",
+            "prop": "background-color",
+            "equals": "#121212",
+            "env": {
+              "prefers-color-scheme": "dark"
+            },
+            "msg": "В тёмной схеме фон body — #121212"
+          },
+          {
+            "t": "style",
+            "sel": "body",
+            "prop": "color",
+            "equals": "#eeeeee",
+            "env": {
+              "prefers-color-scheme": "dark"
+            },
+            "msg": "В тёмной схеме цвет текста — #eeeeee"
+          }
+        ],
+        "reference": {
+          "css": ":root { --bg: #ffffff; --fg: #1a1a1a; } @media (prefers-color-scheme: dark) { :root { --bg: #121212; --fg: #eeeeee; } } body { background: var(--bg); color: var(--fg); }"
+        }
+      }
+    },
+    {
+      "id": "w21-hover-media",
+      "title": "Наведение только для мыши",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У ссылки .link при наведении цвет должен становиться #e11d48, а в обычном состоянии — #2563eb. На сенсорных экранах «наведения» нет, поэтому правило с :hover оберните в @media (hover: hover).",
+      "hint": ".link { color: #2563eb; } @media (hover: hover) { .link:hover { color: #e11d48; } }",
+      "spec": {
+        "kind": "css",
+        "html": "<a class=\"link\" href=\"/docs\">Документация</a>",
+        "starter_css": ".link { text-decoration: none; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".link",
+            "prop": "color",
+            "equals": "#2563eb"
+          },
+          {
+            "t": "style",
+            "sel": ".link",
+            "prop": "color",
+            "equals": "#e11d48",
+            "state": "hover"
+          },
+          {
+            "t": "media",
+            "contains": "hover: hover"
+          }
+        ],
+        "reference": {
+          "css": ".link { color: #2563eb; } @media (hover: hover) { .link:hover { color: #e11d48; } }"
+        }
+      }
+    },
+    {
+      "id": "w21-container-query",
+      "title": "Контейнерный запрос",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Карточка .card живёт в боксе .box и должна подстраиваться под ширину бокса, а не окна. Сделайте .box контейнером (container-type: inline-size). Пока бокс уже 480px, карточка — блок (display: block). Начиная с 480px, карточка — flex-ряд. Используйте @container.",
+      "hint": ".box { container-type: inline-size; } .card { display: block; } @container (min-width: 480px) { .card { display: flex; } }",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"box\"><article class=\"card\"><h3>Кофе</h3><p>Описание карточки.</p></article></div>",
+        "starter_css": ".card { display: block; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "uses",
+            "prop": "container-type",
+            "value": "inline-size"
+          },
+          {
+            "t": "container",
+            "contains": "min-width"
+          },
+          {
+            "t": "style",
+            "sel": ".card",
+            "prop": "display",
+            "equals": "block",
+            "container_width": 320
+          },
+          {
+            "t": "style",
+            "sel": ".card",
+            "prop": "display",
+            "equals": "flex",
+            "container_width": 640
+          }
+        ],
+        "reference": {
+          "css": ".box { container-type: inline-size; } .card { display: block; } @container (min-width: 480px) { .card { display: flex; gap: 16px; } }"
+        }
+      }
+    },
+    {
+      "id": "w21-container-named",
+      "title": "Именованный контейнер",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Дайте контейнеру .sidebar имя widgets (container-name: widgets) и тип inline-size. Когда он шире 300px, список .tags становится flex-контейнером с переносом (flex-wrap: wrap); уже — остаётся обычным блоком. Условие записывайте с именем: @container widgets (min-width: 300px).",
+      "hint": "container-name: widgets; container-type: inline-size; на .sidebar. Затем @container widgets (min-width: 300px) { .tags { display: flex; flex-wrap: wrap; } }.",
+      "spec": {
+        "kind": "css",
+        "html": "<aside class=\"sidebar\"><ul class=\"tags\"><li>css</li><li>html</li><li>js</li></ul></aside>",
+        "starter_css": ".tags { display: block; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "uses",
+            "prop": "container-name",
+            "value": "widgets"
+          },
+          {
+            "t": "uses",
+            "prop": "container-type",
+            "value": "inline-size"
+          },
+          {
+            "t": "container",
+            "contains": "widgets"
+          },
+          {
+            "t": "style",
+            "sel": ".tags",
+            "prop": "display",
+            "equals": "block",
+            "container_width": 200
+          },
+          {
+            "t": "style",
+            "sel": ".tags",
+            "prop": "display",
+            "equals": "flex",
+            "container_width": 400
+          },
+          {
+            "t": "style",
+            "sel": ".tags",
+            "prop": "flex-wrap",
+            "equals": "wrap",
+            "container_width": 400
+          }
+        ],
+        "reference": {
+          "css": ".sidebar { container-name: widgets; container-type: inline-size; } .tags { display: block; } @container widgets (min-width: 300px) { .tags { display: flex; flex-wrap: wrap; gap: 8px; } }"
+        }
+      }
+    },
+    {
+      "id": "w21-clamp-title",
+      "title": "Заголовок на clamp()",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Размер h1 должен плавно расти вместе с шириной окна: не меньше 24px (1.5rem), не больше 48px (3rem), а между ними — 5vw. Запишите одним значением через clamp(). Проверяется при ширине 320, 800 и 1400px.",
+      "hint": "h1 { font-size: clamp(1.5rem, 5vw, 3rem); }",
+      "spec": {
+        "kind": "css",
+        "html": "<h1>Современный Frontend</h1>",
+        "starter_css": "h1 { font-size: 32px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": "h1",
+            "prop": "font-size",
+            "equals": "24px",
+            "viewport": 320
+          },
+          {
+            "t": "style",
+            "sel": "h1",
+            "prop": "font-size",
+            "min": 39,
+            "max": 41,
+            "viewport": 800
+          },
+          {
+            "t": "style",
+            "sel": "h1",
+            "prop": "font-size",
+            "equals": "48px",
+            "viewport": 1400
+          }
+        ],
+        "reference": {
+          "css": "h1 { font-size: clamp(1.5rem, 5vw, 3rem); }"
+        }
+      }
+    },
+    {
+      "id": "w21-clamp-space",
+      "title": "Резиновые отступы",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Внутренний отступ блока .hero должен быть «резиновым»: не меньше 16px, не больше 48px, посередине — 4vw. Задайте боковые отступы (padding-left и padding-right) через clamp(…). При 320px они равны 16px, при 800px — 32px, при 1400px — 48px.",
+      "hint": ".hero { padding-left: clamp(16px, 4vw, 48px); padding-right: clamp(16px, 4vw, 48px); }",
+      "spec": {
+        "kind": "css",
+        "html": "<section class=\"hero\"><h2>Лето рядом</h2></section>",
+        "starter_css": ".hero { background: #eef; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".hero",
+            "prop": "padding-left",
+            "equals": "16px",
+            "viewport": 320
+          },
+          {
+            "t": "style",
+            "sel": ".hero",
+            "prop": "padding-right",
+            "equals": "16px",
+            "viewport": 320
+          },
+          {
+            "t": "style",
+            "sel": ".hero",
+            "prop": "padding-left",
+            "equals": "32px",
+            "viewport": 800
+          },
+          {
+            "t": "style",
+            "sel": ".hero",
+            "prop": "padding-right",
+            "equals": "48px",
+            "viewport": 1400
+          }
+        ],
+        "reference": {
+          "css": ".hero { padding-left: clamp(16px, 4vw, 48px); padding-right: clamp(16px, 4vw, 48px); }"
+        }
+      }
+    },
+    {
+      "id": "w21-hover-lift",
+      "title": "Карточка, которая приподнимается",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. При наведении карточка .card должна сдвигаться вверх на 4px (transform: translateY(-4px)). Чтобы движение было плавным, в обычном состоянии задайте переход только по transform: transition-property transform, длительность 0.2s, функция ease-out.",
+      "hint": ".card { transition: transform 0.2s ease-out; } .card:hover { transform: translateY(-4px); }",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"card\">Кофе</div>",
+        "starter_css": ".card { padding: 16px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".card",
+            "prop": "transition-property",
+            "equals": "transform"
+          },
+          {
+            "t": "style",
+            "sel": ".card",
+            "prop": "transition-duration",
+            "equals": "0.2s"
+          },
+          {
+            "t": "style",
+            "sel": ".card",
+            "prop": "transition-timing-function",
+            "equals": "ease-out"
+          },
+          {
+            "t": "style",
+            "sel": ".card",
+            "prop": "transform",
+            "equals": "translateY(-4px)",
+            "state": "hover"
+          }
+        ],
+        "reference": {
+          "css": ".card { transition: transform 0.2s ease-out; } .card:hover { transform: translateY(-4px); }"
+        }
+      }
+    },
+    {
+      "id": "w21-button-states",
+      "title": "Состояния кнопки",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Кнопка .btn: при наведении фон #1d4ed8, при нажатии (:active) она слегка уменьшается — transform: scale(0.97), а при фокусе с клавиатуры (:focus-visible) получает контур 3px solid #f59e0b. Обычный фон — #2563eb.",
+      "hint": ".btn { background: #2563eb; } .btn:hover { background: #1d4ed8; } .btn:active { transform: scale(0.97); } .btn:focus-visible { outline: 3px solid #f59e0b; }",
+      "spec": {
+        "kind": "css",
+        "html": "<button class=\"btn\">Купить</button>",
+        "starter_css": ".btn { color: #fff; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".btn",
+            "prop": "background-color",
+            "equals": "#2563eb"
+          },
+          {
+            "t": "style",
+            "sel": ".btn",
+            "prop": "background-color",
+            "equals": "#1d4ed8",
+            "state": "hover"
+          },
+          {
+            "t": "style",
+            "sel": ".btn",
+            "prop": "transform",
+            "equals": "scale(0.97)",
+            "state": "active"
+          },
+          {
+            "t": "style",
+            "sel": ".btn",
+            "prop": "outline-width",
+            "equals": "3px",
+            "state": "focus-visible"
+          },
+          {
+            "t": "style",
+            "sel": ".btn",
+            "prop": "outline-style",
+            "equals": "solid",
+            "state": "focus-visible"
+          },
+          {
+            "t": "style",
+            "sel": ".btn",
+            "prop": "outline-color",
+            "equals": "#f59e0b",
+            "state": "focus-visible"
+          }
+        ],
+        "reference": {
+          "css": ".btn { background: #2563eb; color: #fff; } .btn:hover { background: #1d4ed8; } .btn:active { transform: scale(0.97); } .btn:focus-visible { outline: 3px solid #f59e0b; }"
+        }
+      }
+    },
+    {
+      "id": "w21-tooltip-fade",
+      "title": "Подсказка с плавным появлением",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Подсказка .tip скрыта (opacity: 0). Когда пользователь наводит курсор на обёртку .has-tip, подсказка становится полностью видимой (opacity: 1). Анимируйте только прозрачность: transition-property opacity, длительность 0.25s.",
+      "hint": ".tip { opacity: 0; transition: opacity 0.25s; } .has-tip:hover .tip { opacity: 1; }",
+      "spec": {
+        "kind": "css",
+        "html": "<span class=\"has-tip\">Наведи<span class=\"tip\">Подсказка</span></span>",
+        "starter_css": ".tip { font-size: 12px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".tip",
+            "prop": "opacity",
+            "equals": "0"
+          },
+          {
+            "t": "style",
+            "sel": ".tip",
+            "prop": "opacity",
+            "equals": "1",
+            "state": "hover"
+          },
+          {
+            "t": "style",
+            "sel": ".tip",
+            "prop": "transition-property",
+            "equals": "opacity"
+          },
+          {
+            "t": "style",
+            "sel": ".tip",
+            "prop": "transition-duration",
+            "equals": "0.25s"
+          }
+        ],
+        "reference": {
+          "css": ".tip { opacity: 0; transition: opacity 0.25s; } .has-tip:hover .tip { opacity: 1; }"
+        }
+      }
+    },
+    {
+      "id": "w21-transform-values",
+      "title": "Три преобразования",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Задайте элементам трансформации: .a сдвиньте вправо на 40px (translateX), .b поверните на 45 градусов (rotate), .c увеличьте в 1.5 раза (scale), а точку, вокруг которой он растёт, поставьте в левый верхний угол (transform-origin: left top).",
+      "hint": ".a { transform: translateX(40px); } .b { transform: rotate(45deg); } .c { transform: scale(1.5); transform-origin: left top; }",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"a\">A</div><div class=\"b\">B</div><div class=\"c\">C</div>",
+        "starter_css": ".a, .b, .c { width: 60px; height: 60px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".a",
+            "prop": "transform",
+            "equals": "translateX(40px)"
+          },
+          {
+            "t": "style",
+            "sel": ".b",
+            "prop": "transform",
+            "equals": "rotate(45deg)"
+          },
+          {
+            "t": "style",
+            "sel": ".c",
+            "prop": "transform",
+            "equals": "scale(1.5)"
+          },
+          {
+            "t": "style",
+            "sel": ".c",
+            "prop": "transform-origin",
+            "one_of": [
+              "left top",
+              "0% 0%",
+              "0 0",
+              "0px 0px"
+            ]
+          }
+        ],
+        "reference": {
+          "css": ".a { transform: translateX(40px); } .b { transform: rotate(45deg); } .c { transform: scale(1.5); transform-origin: left top; }"
+        }
+      }
+    },
+    {
+      "id": "w21-drawer",
+      "title": "Выдвижная панель без перерисовки",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Боковая панель .drawer спрятана за левым краем: transform: translateX(-100%). У открытой панели .drawer.open преобразование сбрасывается (translateX(0)). Анимируйте только transform — не left и не width: transition-property transform, 0.3s, ease-out.",
+      "hint": ".drawer { transform: translateX(-100%); transition: transform 0.3s ease-out; } .drawer.open { transform: translateX(0); }",
+      "spec": {
+        "kind": "css",
+        "html": "<aside class=\"drawer\">Закрыта</aside><aside class=\"drawer open\">Открыта</aside>",
+        "starter_css": ".drawer { position: fixed; top: 0; bottom: 0; left: 0; width: 240px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "style",
+            "sel": ".drawer:not(.open)",
+            "prop": "transform",
+            "equals": "translateX(-100%)"
+          },
+          {
+            "t": "style",
+            "sel": ".drawer.open",
+            "prop": "transform",
+            "one_of": [
+              "translateX(0)",
+              "translateX(0px)",
+              "none"
+            ]
+          },
+          {
+            "t": "style",
+            "sel": ".drawer",
+            "prop": "transition-property",
+            "equals": "transform"
+          },
+          {
+            "t": "style",
+            "sel": ".drawer",
+            "prop": "transition-duration",
+            "equals": "0.3s"
+          },
+          {
+            "t": "style",
+            "sel": ".drawer",
+            "prop": "transition-timing-function",
+            "equals": "ease-out"
+          }
+        ],
+        "reference": {
+          "css": ".drawer { transform: translateX(-100%); transition: transform 0.3s ease-out; } .drawer.open { transform: translateX(0); }"
+        }
+      }
+    },
+    {
+      "id": "w21-keyframes-pulse",
+      "title": "Пульсация через @keyframes",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Опишите анимацию pulse: в середине (50%) значок увеличивается через transform: scale(1.2). Подключите её к .dot одной строкой: имя pulse, длительность 1.5s, ease-in-out, бесконечно (infinite).",
+      "hint": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } } .dot { animation: pulse 1.5s ease-in-out infinite; }",
+      "spec": {
+        "kind": "css",
+        "html": "<span class=\"dot\"></span>",
+        "starter_css": ".dot { width: 16px; height: 16px; border-radius: 50%; background: #2563eb; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "keyframes",
+            "name": "pulse",
+            "contains": "transform"
+          },
+          {
+            "t": "style",
+            "sel": ".dot",
+            "prop": "animation-name",
+            "equals": "pulse"
+          },
+          {
+            "t": "style",
+            "sel": ".dot",
+            "prop": "animation-duration",
+            "equals": "1.5s"
+          },
+          {
+            "t": "style",
+            "sel": ".dot",
+            "prop": "animation-timing-function",
+            "equals": "ease-in-out"
+          },
+          {
+            "t": "style",
+            "sel": ".dot",
+            "prop": "animation-iteration-count",
+            "equals": "infinite"
+          }
+        ],
+        "reference": {
+          "css": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } } .dot { animation: pulse 1.5s ease-in-out infinite; }"
+        }
+      }
+    },
+    {
+      "id": "w21-fade-in",
+      "title": "Появление с сохранением конечного кадра",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Окно .toast должно плавно появляться: @keyframes fade-in меняет opacity от 0 до 1. Анимация идёт 0.4s и один раз; после окончания окно остаётся видимым, а до старта (при задержке) уже скрыто. Задайте для этого animation-fill-mode: both.",
+      "hint": "@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } } .toast { animation: fade-in 0.4s ease-out both; }",
+      "spec": {
+        "kind": "css",
+        "html": "<div class=\"toast\">Сохранено</div>",
+        "starter_css": ".toast { padding: 12px; }",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "keyframes",
+            "name": "fade-in",
+            "contains": "opacity"
+          },
+          {
+            "t": "style",
+            "sel": ".toast",
+            "prop": "animation-name",
+            "equals": "fade-in"
+          },
+          {
+            "t": "style",
+            "sel": ".toast",
+            "prop": "animation-duration",
+            "equals": "0.4s"
+          },
+          {
+            "t": "style",
+            "sel": ".toast",
+            "prop": "animation-fill-mode",
+            "equals": "both"
+          },
+          {
+            "t": "style",
+            "sel": ".toast",
+            "prop": "animation-iteration-count",
+            "equals": "1"
+          }
+        ],
+        "reference": {
+          "css": "@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } } .toast { animation: fade-in 0.4s ease-out both; }"
+        }
+      }
+    },
+    {
+      "id": "w21-reduced-motion",
+      "title": "Уважаем «уменьшить движение»",
+      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Индикатор .spinner крутится бесконечно (анимация уже описана в стилях задания). Пользователям с включённой настройкой «уменьшить движение» вращение мешает. Добавьте @media (prefers-reduced-motion: reduce), внутри которого для .spinner отключите анимацию: animation: none.",
+      "hint": "@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }",
+      "spec": {
+        "kind": "css",
+        "html": "<style>@keyframes spin { to { transform: rotate(360deg); } } .spinner { width: 24px; height: 24px; border: 3px solid #ccc; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; }</style><div class=\"spinner\"></div>",
+        "starter_css": "",
+        "viewport": 1024,
+        "checks": [
+          {
+            "t": "media",
+            "contains": "prefers-reduced-motion"
+          },
+          {
+            "t": "uses",
+            "prop": "animation",
+            "value": "none"
+          },
+          {
+            "t": "style",
+            "sel": ".spinner",
+            "prop": "animation-name",
+            "equals": "spin"
+          },
+          {
+            "t": "style",
+            "sel": ".spinner",
+            "prop": "animation-name",
+            "equals": "none",
+            "env": {
+              "prefers-reduced-motion": "reduce"
+            },
+            "msg": "При «уменьшить движение» анимация у .spinner отключена"
+          }
+        ],
+        "reference": {
+          "css": "@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }"
+        }
+      }
+    }
+  ]
+}

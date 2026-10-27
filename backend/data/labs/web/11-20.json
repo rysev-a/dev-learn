@@ -1,0 +1,789 @@
+{
+ "book": 11,
+ "chapter": 20,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w20-three-cols",
+   "title": "Три равные колонки",
+   "statement": "Разметка задана и меняться не может. Сделайте контейнер .layout сеткой из трёх равных колонок (используйте единицу fr) с промежутком 12px между ячейками.",
+   "hint": "display: grid включает сетку; grid-template-columns: repeat(3, 1fr) задаёт три равные доли; gap — промежуток.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"layout\"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "repeat(3, 1fr)",
+       "repeat(3,1fr)",
+       "1fr 1fr 1fr",
+       "repeat(3, minmax(0, 1fr))",
+       "repeat(3,minmax(0,1fr))",
+       "repeat(3, minmax(0,1fr))"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "gap",
+      "equals": "12px"
+     }
+    ],
+    "reference": {
+     "css": ".layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-fr-mix",
+   "title": "Фиксированная и две резиновые",
+   "statement": "Контейнер .page — сетка из трёх колонок: первая ровно 200px, остальные делят оставшееся место: вторая получает одну долю, третья — две.",
+   "hint": "Размеры дорожек пишутся через пробел: 200px 1fr 2fr. Единица fr делит место, которое осталось после фиксированных колонок.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"page\"><div>Меню</div><div>Статья</div><div>Реклама</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "grid-template-columns",
+      "equals": "200px 1fr 2fr"
+     }
+    ],
+    "reference": {
+     "css": ".page { display: grid; grid-template-columns: 200px 1fr 2fr; }"
+    }
+   }
+  },
+  {
+   "id": "w20-gap",
+   "title": "Промежутки по строкам и колонкам",
+   "statement": "Сетка .grid уже включена в разметке: три колонки и шесть ячеек. Задайте промежутки: 8px между строками и 24px между колонками.",
+   "hint": "Сокращение gap принимает два значения: сначала для строк, потом для колонок. Можно и по отдельности: row-gap и column-gap.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); }</style><div class=\"grid\"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "row-gap",
+      "equals": "8px"
+     },
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "column-gap",
+      "equals": "24px"
+     }
+    ],
+    "reference": {
+     "css": ".grid { gap: 8px 24px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-rows",
+   "title": "Строки сетки",
+   "statement": "Контейнер .box высотой 300px уже стал сеткой. Задайте три строки: шапка 60px, подвал 40px, а содержимое между ними занимает всё оставшееся место.",
+   "hint": "grid-template-rows работает так же, как grid-template-columns: 60px 1fr 40px.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.box { display: grid; height: 300px; }</style><div class=\"box\"><header>Шапка</header><main>Содержимое</main><footer>Подвал</footer></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "grid-template-rows",
+      "equals": "60px 1fr 40px"
+     }
+    ],
+    "reference": {
+     "css": ".box { grid-template-rows: 60px 1fr 40px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-auto-fit",
+   "title": "Адаптивная сетка без медиа-запросов",
+   "statement": "Сделайте из .cards адаптивную сетку: колонки шириной не меньше 200px, сколько поместится в строку, растянутые на всю ширину (repeat с auto-fit и minmax). Промежуток — 16px. Медиа-запросы не нужны.",
+   "hint": "grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); не забудьте display: grid и gap: 16px. Измените ширину предпросмотра и посмотрите, как меняется число колонок.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"cards\"><div class=\"card\">Карточка 1</div><div class=\"card\">Карточка 2</div><div class=\"card\">Карточка 3</div><div class=\"card\">Карточка 4</div><div class=\"card\">Карточка 5</div><div class=\"card\">Карточка 6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "repeat(auto-fit, minmax(200px, 1fr))",
+       "repeat(auto-fit,minmax(200px, 1fr))",
+       "repeat(auto-fit, minmax(200px,1fr))",
+       "repeat(auto-fit,minmax(200px,1fr))",
+       "repeat(auto-fill, minmax(200px, 1fr))",
+       "repeat(auto-fill,minmax(200px, 1fr))",
+       "repeat(auto-fill, minmax(200px,1fr))",
+       "repeat(auto-fill,minmax(200px,1fr))"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "gap",
+      "equals": "16px"
+     }
+    ],
+    "reference": {
+     "css": ".cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-span",
+   "title": "Элемент на две колонки",
+   "statement": "В сетке .grid четыре колонки. Сделайте так, чтобы элемент .wide занимал две колонки (используйте grid-column).",
+   "hint": "grid-column: span 2 — «займи две дорожки от своего места». Можно и по линиям: 1 / 3.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }</style><div class=\"grid\"><div class=\"wide\">Широкий</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".wide",
+      "prop": "grid-column",
+      "one_of": [
+       "span 2",
+       "1 / span 2",
+       "1/span 2",
+       "1 / 3",
+       "1/3",
+       "2 / span 2",
+       "2/span 2",
+       "2 / 4",
+       "2/4",
+       "3 / span 2",
+       "3/span 2",
+       "3 / 5",
+       "3/5",
+       "auto / span 2",
+       "auto/span 2"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".wide { grid-column: span 2; }"
+    }
+   }
+  },
+  {
+   "id": "w20-full-row",
+   "title": "Заголовок на всю строку",
+   "statement": "В сетке .grid три колонки, но их число может измениться. Растяните заголовок .title на всю строку — от первой линии до последней, чтобы это работало при любом числе колонок.",
+   "hint": "Отрицательные номера линий считаются с конца: grid-column: 1 / -1.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><h2 class=\"title\">Раздел</h2><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "grid-column",
+      "one_of": [
+       "1 / -1",
+       "1/-1"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".title { grid-column: 1 / -1; }"
+    }
+   }
+  },
+  {
+   "id": "w20-areas",
+   "title": "Страница по областям",
+   "statement": "Раскройте раскладку .page с помощью именованных областей: слева колонка меню шириной 200px, справа резиновое содержимое; шапка и подвал занимают обе колонки. Названия областей — header, nav, main и footer, у каждого элемента должен быть свой grid-area.",
+   "hint": "На .page: display: grid; grid-template-columns: 200px 1fr; grid-template-areas: \"header header\" \"nav main\" \"footer footer\". На элементах: header { grid-area: header } и так далее.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"page\"><header>Шапка</header><nav>Меню</nav><main>Содержимое</main><footer>Подвал</footer></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "200px 1fr",
+       "200px minmax(0, 1fr)",
+       "200px minmax(0,1fr)",
+       "200px auto"
+      ]
+     },
+     {
+      "t": "uses",
+      "prop": "grid-template-areas"
+     },
+     {
+      "t": "style",
+      "sel": "header",
+      "prop": "grid-area",
+      "equals": "header"
+     },
+     {
+      "t": "style",
+      "sel": "nav",
+      "prop": "grid-area",
+      "equals": "nav"
+     },
+     {
+      "t": "style",
+      "sel": "main",
+      "prop": "grid-area",
+      "equals": "main"
+     },
+     {
+      "t": "style",
+      "sel": "footer",
+      "prop": "grid-area",
+      "equals": "footer"
+     }
+    ],
+    "reference": {
+     "css": ".page { display: grid; grid-template-columns: 200px 1fr; grid-template-areas: \"header header\" \"nav main\" \"footer footer\"; }\nheader { grid-area: header; }\nnav { grid-area: nav; }\nmain { grid-area: main; }\nfooter { grid-area: footer; }"
+    }
+   }
+  },
+  {
+   "id": "w20-center",
+   "title": "Содержимое в центре ячеек",
+   "statement": "Сетка .grid уже построена: три колонки, у ячеек высота 80px. Расположите содержимое каждой ячейки в её центре — и по горизонтали, и по вертикали, одним сокращением.",
+   "hint": "place-items: center — сокращение для align-items и justify-items сразу.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .grid div { height: 80px; }</style><div class=\"grid\"><div>1</div><div>2</div><div>3</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "align-items",
+      "equals": "center"
+     },
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "justify-items",
+      "equals": "center"
+     }
+    ],
+    "reference": {
+     "css": ".grid { place-items: center; }"
+    }
+   }
+  },
+  {
+   "id": "w20-content",
+   "title": "Сетка внутри контейнера",
+   "statement": "Контейнер .box высотой 240px — сетка из двух колонок по 80px, места остаётся много. Прижмите колонки к левому и правому краям, разделив свободное место между ними (space-between), а по вертикали поместите сетку в центр контейнера.",
+   "hint": "justify-content выравнивает дорожки по горизонтали, align-content — по вертикали. Сокращение place-content принимает их в порядке «align justify».",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.box { display: grid; grid-template-columns: repeat(2, 80px); grid-template-rows: 60px; height: 240px; border: 1px solid #888; }</style><div class=\"box\"><div>1</div><div>2</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "justify-content",
+      "equals": "space-between"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "align-content",
+      "equals": "center"
+     }
+    ],
+    "reference": {
+     "css": ".box { place-content: center space-between; }"
+    }
+   }
+  },
+  {
+   "id": "w20-auto-rows",
+   "title": "Высота неявных строк",
+   "statement": "В сетке .grid три колонки, а элементов семь — браузер сам достроит строки. Сделайте высоту каждой такой строки ровно 100px.",
+   "hint": "За размер неявных строк отвечает grid-auto-rows.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "grid-auto-rows",
+      "equals": "100px"
+     }
+    ],
+    "reference": {
+     "css": ".grid { grid-auto-rows: 100px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-auto-rows-minmax",
+   "title": "Строки не ниже, но растут",
+   "statement": "Неявные строки сетки .grid должны быть не ниже 80px, но вырастать, если текст в ячейке длиннее.",
+   "hint": "grid-auto-rows: minmax(80px, auto) — минимум 80px, максимум по содержимому.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><div>Короткий текст</div><div>Ещё один элемент</div><div>И третий</div><div>Длинный текст, который может не поместиться в строку высотой в восемьдесят пикселей и должен растянуть её</div><div>5</div><div>6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".grid",
+      "prop": "grid-auto-rows",
+      "one_of": [
+       "minmax(80px, auto)",
+       "minmax(80px,auto)",
+       "minmax(80px, max-content)",
+       "minmax(80px,max-content)"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".grid { grid-auto-rows: minmax(80px, auto); }"
+    }
+   }
+  },
+  {
+   "id": "w20-dense",
+   "title": "Плотная упаковка",
+   "statement": "В галерее .gallery есть широкие плитки (.wide), из-за них в сетке остаются дыры. Включите плотную упаковку, чтобы последующие плитки занимали пустые места, сохранив построчное заполнение.",
+   "hint": "grid-auto-flow: row dense (достаточно и одного слова dense).",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; } .wide { grid-column: span 2; }</style><div class=\"gallery\"><div class=\"wide\">1</div><div class=\"wide\">2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".gallery",
+      "prop": "grid-auto-flow",
+      "one_of": [
+       "row dense",
+       "dense",
+       "dense row"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".gallery { grid-auto-flow: row dense; }"
+    }
+   }
+  },
+  {
+   "id": "w20-sidebar",
+   "title": "Боковая панель и содержимое",
+   "statement": "Контейнер .layout должен быть сеткой из двух колонок: боковая панель фиксированной ширины 240px и резиновое содержимое, которое занимает всё остальное место. Между колонками — промежуток 24px.",
+   "hint": "grid-template-columns: 240px 1fr; gap: 24px.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"layout\"><aside>Панель</aside><main>Содержимое</main></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "240px 1fr",
+       "240px minmax(0, 1fr)",
+       "240px minmax(0,1fr)",
+       "240px auto"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".layout",
+      "prop": "column-gap",
+      "equals": "24px"
+     }
+    ],
+    "reference": {
+     "css": ".layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-narrow",
+   "title": "Одна колонка на узком окне",
+   "statement": "Сделайте .cards сеткой из трёх равных колонок с промежутком 16px, а на экранах не шире 600px — одной колонкой. Используйте @media (max-width: …).",
+   "hint": "Сначала обычные правила для широкого экрана: display: grid и repeat(3, 1fr). Потом @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"cards\"><div class=\"card\">Карточка 1</div><div class=\"card\">Карточка 2</div><div class=\"card\">Карточка 3</div><div class=\"card\">Карточка 4</div><div class=\"card\">Карточка 5</div><div class=\"card\">Карточка 6</div></div>",
+    "starter_css": "",
+    "viewport": 1000,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "gap",
+      "equals": "16px"
+     },
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "repeat(3, 1fr)",
+       "repeat(3,1fr)",
+       "1fr 1fr 1fr",
+       "repeat(3, minmax(0, 1fr))",
+       "repeat(3,minmax(0,1fr))",
+       "repeat(3, minmax(0,1fr))"
+      ],
+      "viewport": 1000
+     },
+     {
+      "t": "style",
+      "sel": ".cards",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "1fr",
+       "repeat(1, 1fr)",
+       "repeat(1,1fr)",
+       "minmax(0, 1fr)",
+       "minmax(0,1fr)",
+       "none"
+      ],
+      "viewport": 400
+     },
+     {
+      "t": "media",
+      "contains": "width"
+     }
+    ],
+    "reference": {
+     "css": ".cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }\n@media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }"
+    }
+   }
+  },
+  {
+   "id": "w20-nested",
+   "title": "Сетка внутри ячейки",
+   "statement": "Внешний контейнер .outer — сетка из двух равных колонок с промежутком 16px. Внутри каждой карточки блок .inner — своя сетка тоже из двух равных колонок с промежутком 8px.",
+   "hint": "Вложенная сетка — обычный контейнер: .inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px }.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"outer\"><div class=\"card\"><h3>Карточка 1</h3><div class=\"inner\"><span>1</span><span>2</span><span>3</span><span>4</span></div></div><div class=\"card\"><h3>Карточка 2</h3><div class=\"inner\"><span>1</span><span>2</span><span>3</span><span>4</span></div></div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".outer",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".outer",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "repeat(2, 1fr)",
+       "repeat(2,1fr)",
+       "1fr 1fr",
+       "repeat(2, minmax(0, 1fr))",
+       "repeat(2,minmax(0,1fr))"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".outer",
+      "prop": "gap",
+      "equals": "16px"
+     },
+     {
+      "t": "style",
+      "sel": ".inner",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".inner",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "repeat(2, 1fr)",
+       "repeat(2,1fr)",
+       "1fr 1fr",
+       "repeat(2, minmax(0, 1fr))",
+       "repeat(2,minmax(0,1fr))"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".inner",
+      "prop": "gap",
+      "equals": "8px"
+     }
+    ],
+    "reference": {
+     "css": ".outer { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }\n.inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-subgrid",
+   "title": "Карточки на общих строках",
+   "statement": "Внешняя сетка .cards уже построена: три колонки и три строки. Сделайте каждую карточку .card сеткой, которая занимает три строки родителя и берёт их себе (subgrid), чтобы заголовки, тексты и ссылки лежали на общих линиях.",
+   "hint": "Карточке нужны display: grid, grid-row: span 3 и grid-template-rows: subgrid.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.cards { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto 1fr auto; gap: 0 16px; }</style><div class=\"cards\"><article class=\"card\"><h3>Заголовок 1</h3><p>Текст карточки.</p><a href=\"#\">Подробнее</a></article><article class=\"card\"><h3>Заголовок 2</h3><p>Текст карточки.</p><a href=\"#\">Подробнее</a></article><article class=\"card\"><h3>Заголовок 3</h3><p>Текст карточки.</p><a href=\"#\">Подробнее</a></article></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "grid-row",
+      "one_of": [
+       "span 3",
+       "1 / span 3",
+       "1/span 3",
+       "1 / 4",
+       "1/4",
+       "auto / span 3",
+       "auto/span 3"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".card",
+      "prop": "grid-template-rows",
+      "equals": "subgrid"
+     }
+    ],
+    "reference": {
+     "css": ".card { display: grid; grid-row: span 3; grid-template-rows: subgrid; }"
+    }
+   }
+  },
+  {
+   "id": "w20-page-lines",
+   "title": "Страница по линиям",
+   "statement": "Соберите каркас .page без областей, только по линиям: две колонки (меню 200px и резиновое содержимое) и три строки (шапка по содержимому, основа занимает всё остальное, подвал по содержимому), высота — не меньше высоты окна (100vh). Шапка и подвал растянуты на обе колонки.",
+   "hint": "На .page: display: grid; grid-template-columns: 200px 1fr; grid-template-rows: auto 1fr auto; min-height: 100vh. Шапке и подвалу: grid-column: 1 / -1.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"page\"><header>Шапка</header><nav>Меню</nav><main>Содержимое</main><footer>Подвал</footer></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "200px 1fr",
+       "200px minmax(0, 1fr)",
+       "200px minmax(0,1fr)"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "grid-template-rows",
+      "one_of": [
+       "auto 1fr auto",
+       "auto minmax(0, 1fr) auto"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".page",
+      "prop": "min-height",
+      "one_of": [
+       "100vh",
+       "100dvh",
+       "100svh"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": "header",
+      "prop": "grid-column",
+      "one_of": [
+       "1 / -1",
+       "1/-1"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": "footer",
+      "prop": "grid-column",
+      "one_of": [
+       "1 / -1",
+       "1/-1"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".page { display: grid; grid-template-columns: 200px 1fr; grid-template-rows: auto 1fr auto; min-height: 100vh; }\nheader, footer { grid-column: 1 / -1; }"
+    }
+   }
+  },
+  {
+   "id": "w20-auto-fill",
+   "title": "Пустые дорожки остаются",
+   "statement": "В галерее .gallery всего три плитки, но колонки должны остаться на своих местах и не растягиваться на всю ширину: колонки не уже 120px, их столько, сколько поместится, пустые дорожки не схлопываются (auto-fill). Промежуток — 8px.",
+   "hint": "repeat(auto-fill, minmax(120px, 1fr)): в отличие от auto-fit, пустые дорожки сохраняются.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"gallery\"><div>1</div><div>2</div><div>3</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".gallery",
+      "prop": "display",
+      "equals": "grid"
+     },
+     {
+      "t": "style",
+      "sel": ".gallery",
+      "prop": "grid-template-columns",
+      "one_of": [
+       "repeat(auto-fill, minmax(120px, 1fr))",
+       "repeat(auto-fill,minmax(120px, 1fr))",
+       "repeat(auto-fill, minmax(120px,1fr))",
+       "repeat(auto-fill,minmax(120px,1fr))"
+      ]
+     },
+     {
+      "t": "style",
+      "sel": ".gallery",
+      "prop": "gap",
+      "equals": "8px"
+     }
+    ],
+    "reference": {
+     "css": ".gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }"
+    }
+   }
+  },
+  {
+   "id": "w20-row-span",
+   "title": "Высокая плитка",
+   "statement": "В галерее .gallery три колонки. Сделайте плитку .tall высотой в две строки сетки (grid-row).",
+   "hint": "grid-row: span 2 — по аналогии с grid-column: span 2.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.gallery { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 60px; gap: 8px; }</style><div class=\"gallery\"><div class=\"tall\">Высокая</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".tall",
+      "prop": "grid-row",
+      "one_of": [
+       "span 2",
+       "1 / span 2",
+       "1/span 2",
+       "1 / 3",
+       "1/3",
+       "2 / span 2",
+       "2/span 2",
+       "2 / 4",
+       "2/4"
+      ]
+     }
+    ],
+    "reference": {
+     "css": ".tall { grid-row: span 2; }"
+    }
+   }
+  }
+ ]
+}

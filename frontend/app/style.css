@@ -68,7 +68,15 @@
 }
 
 /* лаборатория «HTML и CSS»: предпросмотр в iframe */
-.lab-web-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start; }
+.lab-web { container-type: inline-size; }
+/* узко: редактор, предпросмотр, условия; широко: редактор и условия слева, предпросмотр справа */
+.lab-web-grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "ed" "pv" "co"; gap: 16px; align-items: start; }
+.web-ed { grid-area: ed; }
+.web-pv { grid-area: pv; }
+.web-co { grid-area: co; }
+@container (min-width: 900px) {
+  .lab-web-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "ed pv" "co pv"; }
+}
 .web-frame-wrap { overflow: auto; background: repeating-conic-gradient(var(--border) 0% 25%, transparent 0% 50%) 50% / 16px 16px; border: 1px solid var(--border); border-radius: 8px; min-height: 320px; }
 .web-frame { display: block; height: 420px; flex: none; border: 0; background: #fff; margin: 0 auto; }
 .lab-ok { margin: 12px 0 0; color: var(--s-accent); font-weight: 600; }

@@ -4,7 +4,7 @@
 #   arm64 — собирается здесь (Mac на Apple Silicon или любая ARM-машина), потому что бэкенду нужны закрытые библиотеки (каталог vendor), которых нет в CI.
 #
 # Использование: deploy/publish.sh <версия> <тег образов на сервере>      например: deploy/publish.sh 0.1.0 manual-2
-# Нужно: `docker login` в Docker Hub, ssh-доступ к серверу, каталог vendor ($VENDOR, по умолчанию /tmp/vendor-backend: `cd backend && cargo vendor --locked <каталог>`
+# Нужно: `docker login` в Docker Hub, ssh-доступ к серверу, каталог vendor ($VENDOR, по умолчанию ~/.cache/cs-core/vendor-backend: `cd backend && cargo vendor --locked <каталог>`
 # плюс `.cargo-config.toml` из docs/deploy.md). Переменные: DOCKERHUB_NAMESPACE (alexeirysev), DEPLOY_SSH (rysev-a@212.57.126.97), VENDOR.
 set -euo pipefail
 
@@ -12,7 +12,7 @@ VERSION="${1:?версия, например 0.1.0}"
 SERVER_TAG="${2:?тег образов на сервере, например manual-2}"
 NS="${DOCKERHUB_NAMESPACE:-alexeirysev}"
 HOST="${DEPLOY_SSH:-rysev-a@212.57.126.97}"
-VENDOR="${VENDOR:-/tmp/vendor-backend}"
+VENDOR="${VENDOR:-$HOME/.cache/cs-core/vendor-backend}"
 IMAGES="cs-core-api cs-core-proxy cs-core-worker"
 
 cd "$(dirname "$0")/.."

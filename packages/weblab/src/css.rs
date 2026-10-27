@@ -21,6 +21,8 @@ pub struct Rule {
     pub decls: Vec<Decl>,
     /// условие внешнего `@media`
     pub media: Option<String>,
+    /// условие внешнего `@container` (применяется только если проверка задала ширину контейнера)
+    pub container: Option<String>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -28,10 +30,121 @@ pub struct Stylesheet {
     pub rules: Vec<Rule>,
     pub errors: Vec<String>,
     pub media: Vec<String>,
+    /// условия `@container`
+    pub containers: Vec<String>,
+    /// `@keyframes`: имя и тело
+    pub keyframes: Vec<(String, String)>,
 }
 
 /// Свойства, о существовании которых мы знаем: опечатка вроде `colr` попадает в ошибки разбора.
-const KNOWN: &str = "align-content align-items align-self all animation animation-delay animation-direction animation-duration animation-fill-mode animation-iteration-count animation-name animation-play-state animation-timing-function appearance aspect-ratio backdrop-filter backface-visibility background background-attachment background-clip background-color background-image background-origin background-position background-repeat background-size border border-bottom border-bottom-color border-bottom-left-radius border-bottom-right-radius border-bottom-style border-bottom-width border-collapse border-color border-image border-left border-left-color border-left-style border-left-width border-radius border-right border-right-color border-right-style border-right-width border-spacing border-style border-top border-top-color border-top-left-radius border-top-right-radius border-top-style border-top-width border-width bottom box-shadow box-sizing caption-side caret-color clear clip clip-path color column-count column-gap column-rule column-width columns content counter-increment counter-reset cursor direction display empty-cells fill filter flex flex-basis flex-direction flex-flow flex-grow flex-shrink flex-wrap float font font-family font-feature-settings font-kerning font-size font-size-adjust font-stretch font-style font-variant font-weight gap grid grid-area grid-auto-columns grid-auto-flow grid-auto-rows grid-column grid-column-end grid-column-gap grid-column-start grid-gap grid-row grid-row-end grid-row-gap grid-row-start grid-template grid-template-areas grid-template-columns grid-template-rows height hyphens image-rendering inline-size inset inset-block inset-inline isolation justify-content justify-items justify-self left letter-spacing line-height list-style list-style-image list-style-position list-style-type margin margin-block margin-bottom margin-inline margin-left margin-right margin-top mask max-height max-width max-inline-size min-height min-width min-inline-size mix-blend-mode object-fit object-position opacity order orphans outline outline-color outline-offset outline-style outline-width overflow overflow-wrap overflow-x overflow-y overscroll-behavior padding padding-block padding-bottom padding-inline padding-left padding-right padding-top page-break-after page-break-before page-break-inside perspective place-content place-items place-self pointer-events position quotes resize right rotate row-gap scale scroll-behavior scroll-margin scroll-padding scroll-snap-align scroll-snap-type shape-outside stroke stroke-width tab-size table-layout text-align text-align-last text-decoration text-decoration-color text-decoration-line text-decoration-style text-decoration-thickness text-indent text-overflow text-shadow text-transform text-underline-offset top touch-action transform transform-origin transform-style transition transition-delay transition-duration transition-property transition-timing-function translate unicode-bidi user-select vertical-align visibility white-space widows width will-change word-break word-spacing word-wrap writing-mode z-index zoom";
+const KNOWN: &str = "align-content align-items align-self all animation animation-delay animation-direction animation-duration animation-fill-mode animation-iteration-count animation-name animation-play-state animation-timing-function appearance aspect-ratio backdrop-filter backface-visibility background background-attachment background-clip background-color background-image background-origin background-position background-repeat background-size border border-bottom border-bottom-color border-bottom-left-radius border-bottom-right-radius border-bottom-style border-bottom-width border-collapse border-color border-image border-left border-left-color border-left-style border-left-width border-radius border-right border-right-color border-right-style border-right-width border-spacing border-style border-top border-top-color border-top-left-radius border-top-right-radius border-top-style border-top-width border-width bottom box-shadow box-sizing caption-side caret-color clear clip clip-path color column-count column-gap column-rule column-width columns content counter-increment counter-reset cursor direction display empty-cells fill filter flex flex-basis flex-direction flex-flow flex-grow flex-shrink flex-wrap float font font-family font-feature-settings font-kerning font-size font-size-adjust font-stretch font-style font-variant font-weight gap grid grid-area grid-auto-columns grid-auto-flow grid-auto-rows grid-column grid-column-end grid-column-gap grid-column-start grid-gap grid-row grid-row-end grid-row-gap grid-row-start grid-template grid-template-areas grid-template-columns grid-template-rows height hyphens image-rendering inline-size inset inset-block inset-inline isolation justify-content justify-items justify-self left letter-spacing line-height list-style list-style-image list-style-position list-style-type margin margin-block margin-bottom margin-inline margin-left margin-right margin-top mask max-height max-width max-inline-size min-height min-width min-inline-size mix-blend-mode object-fit object-position opacity order orphans outline outline-color outline-offset outline-style outline-width overflow overflow-wrap overflow-x overflow-y overscroll-behavior padding padding-block padding-bottom padding-inline padding-left padding-right padding-top page-break-after page-break-before page-break-inside perspective place-content place-items place-self pointer-events position quotes resize right rotate row-gap scale scroll-behavior scroll-margin scroll-padding scroll-snap-align scroll-snap-type shape-outside stroke stroke-width tab-size table-layout text-align text-align-last text-decoration text-decoration-color text-decoration-line text-decoration-style text-decoration-thickness text-indent text-overflow text-shadow text-transform text-underline-offset top touch-action transform transform-origin transform-style transition transition-delay transition-duration transition-property transition-timing-function translate unicode-bidi user-select container container-name container-type accent-color color-scheme text-wrap text-underline-position block-size min-block-size max-block-size margin-inline-start margin-inline-end margin-block-start margin-block-end padding-inline-start padding-inline-end padding-block-start padding-block-end inset-inline-start inset-inline-end inset-block-start inset-block-end border-start-start-radius border-start-end-radius border-end-start-radius border-end-end-radius transition-behavior animation-composition animation-timeline view-transition-name scroll-snap-stop overflow-clip-margin vertical-align visibility white-space widows width will-change word-break word-spacing word-wrap writing-mode z-index zoom";
+
+/// Состояния, которые зависят от действий пользователя: правило с таким псевдоклассом применяется, только если проверка запросила состояние (`state`).
+const DYNAMIC: &[&str] = &[
+    "hover", "focus", "focus-visible", "focus-within", "active", "visited", "target", "placeholder-shown", "invalid", "valid", "user-invalid", "user-valid",
+    "indeterminate", "in-range", "out-of-range", "default",
+];
+/// Псевдоклассы, которые определяются разметкой, — заменяются на селекторы атрибутов.
+const STATIC: &[(&str, &str)] = &[
+    ("checked", "[checked]"), ("disabled", "[disabled]"), ("enabled", ":not([disabled])"), ("required", "[required]"), ("optional", ":not([required])"),
+    ("link", "[href]"), ("any-link", "[href]"),
+];
+const PSEUDO_ELEMENTS: &[&str] = &["before", "after", "first-line", "first-letter", "marker", "placeholder", "selection", "backdrop", "file-selector-button", "cue"];
+
+/// Селектор правила, разобранный по частям: то, что понимает сопоставление элементов, состояния и псевдоэлемент.
+pub struct SelectorParts {
+    pub selector: scraper::Selector,
+    pub states: Vec<String>,
+    pub pseudo: Option<String>,
+}
+
+/// Разбирает селектор CSS: состояния (`:hover`, `:focus`…) и псевдоэлементы (`::before`…) вынимаются отдельно, остальное разбирает движок.
+pub fn parse_selector(raw: &str) -> Result<SelectorParts, String> {
+    let chars: Vec<char> = raw.trim().chars().collect();
+    let (mut out, mut states, mut pseudo) = (String::new(), Vec::new(), None::<String>);
+    let (mut i, mut brackets, mut parens, mut quote) = (0usize, 0i32, 0i32, None::<char>);
+    while i < chars.len() {
+        let c = chars[i];
+        if let Some(q) = quote {
+            out.push(c);
+            if c == q {
+                quote = None;
+            }
+            i += 1;
+            continue;
+        }
+        match c {
+            '"' | '\'' => {
+                quote = Some(c);
+                out.push(c);
+                i += 1;
+            }
+            '[' => {
+                brackets += 1;
+                out.push(c);
+                i += 1;
+            }
+            ']' => {
+                brackets -= 1;
+                out.push(c);
+                i += 1;
+            }
+            '(' => {
+                parens += 1;
+                out.push(c);
+                i += 1;
+            }
+            ')' => {
+                parens -= 1;
+                out.push(c);
+                i += 1;
+            }
+            ':' if brackets == 0 && parens == 0 => {
+                let double = chars.get(i + 1) == Some(&':');
+                let start = i + if double { 2 } else { 1 };
+                let mut end = start;
+                while end < chars.len() && (chars[end].is_alphanumeric() || chars[end] == '-' || chars[end] == '_') {
+                    end += 1;
+                }
+                let name: String = chars[start..end].iter().collect::<String>().to_lowercase();
+                let functional = chars.get(end) == Some(&'(');
+                if !functional && (double || matches!(name.as_str(), "before" | "after" | "first-line" | "first-letter")) {
+                    if !PSEUDO_ELEMENTS.contains(&name.as_str()) {
+                        return Err(format!("псевдоэлемент ::{name} не поддерживается"));
+                    }
+                    pseudo = Some(name);
+                } else if !functional && DYNAMIC.contains(&name.as_str()) {
+                    states.push(name);
+                } else if let (false, Some((_, rep))) = (functional, STATIC.iter().find(|(n, _)| *n == name)) {
+                    out.push_str(rep);
+                } else {
+                    out.extend(&chars[i..end]);
+                }
+                i = end;
+            }
+            _ => {
+                out.push(c);
+                i += 1;
+            }
+        }
+    }
+    let t = out.trim_end();
+    if t.is_empty() || t.ends_with(['>', '+', '~', ',']) || out.ends_with(char::is_whitespace) {
+        out = format!("{}{}*", out.trim_end(), if t.is_empty() { "" } else { " " });
+    }
+    let selector = selector(&out).map_err(|_| format!("селектор «{raw}» не разобран"))?;
+    Ok(SelectorParts { selector, states, pseudo })
+}
+
+/// Какие состояния считаются включёнными, когда проверка просит `state`.
+fn active_states(state: Option<&str>) -> Vec<String> {
+    match state {
+        None => vec![],
+        Some("active") => vec!["hover".into(), "active".into()],
+        Some("focus") | Some("focus-visible") => vec!["focus".into(), "focus-visible".into(), "focus-within".into()],
+        Some(other) => vec![other.to_string()],
+    }
+}
 
 fn strip_comments(src: &str) -> String {
     let mut out = String::with_capacity(src.len());
@@ -149,11 +262,11 @@ impl Stylesheet {
     pub fn parse(src: &str) -> Stylesheet {
         let src: Vec<char> = strip_comments(src).chars().collect();
         let mut sheet = Stylesheet::default();
-        sheet.parse_into(&src, None);
+        sheet.parse_into(&src, None, None);
         sheet
     }
 
-    fn parse_into(&mut self, chars: &[char], media: Option<&str>) {
+    fn parse_into(&mut self, chars: &[char], media: Option<&str>, container: Option<&str>) {
         let mut i = 0;
         while i < chars.len() {
             while i < chars.len() && chars[i].is_whitespace() {
@@ -210,13 +323,23 @@ impl Stylesheet {
                                 let cond = at["media".len()..].trim().to_string();
                                 self.media.push(cond.clone());
                                 let inner: Vec<char> = body.chars().collect();
-                                self.parse_into(&inner, Some(&cond));
+                                self.parse_into(&inner, Some(&cond), container);
                             }
-                            "supports" | "layer" | "container" => {
+                            "container" => {
+                                let cond = at["container".len()..].trim().to_string();
+                                self.containers.push(cond.clone());
                                 let inner: Vec<char> = body.chars().collect();
-                                self.parse_into(&inner, media);
+                                self.parse_into(&inner, media, Some(&cond));
                             }
-                            _ => {} // keyframes, font-face, …
+                            "supports" | "layer" => {
+                                let inner: Vec<char> = body.chars().collect();
+                                self.parse_into(&inner, media, container);
+                            }
+                            "keyframes" | "-webkit-keyframes" => {
+                                let kf_name = at[name.len()..].trim().trim_matches(|c| c == '"' || c == '\'').to_string();
+                                self.keyframes.push((kf_name, body.clone()));
+                            }
+                            _ => {} // font-face, …
                         }
                     } else {
                         if head.is_empty() {
@@ -225,12 +348,12 @@ impl Stylesheet {
                         }
                         let selectors: Vec<String> = split_outside(&head, ',').into_iter().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
                         for s in &selectors {
-                            if selector(s).is_err() {
-                                self.errors.push(format!("селектор «{s}» не разобран"));
+                            if let Err(e) = parse_selector(s) {
+                                self.errors.push(e);
                             }
                         }
                         let decls = parse_decls(&body, &mut self.errors);
-                        self.rules.push(Rule { selectors, decls, media: media.map(String::from) });
+                        self.rules.push(Rule { selectors, decls, media: media.map(String::from), container: container.map(String::from) });
                     }
                 }
                 _ => {
@@ -254,6 +377,23 @@ impl Stylesheet {
 
 /// Выполняется ли условие `@media` при ширине окна `width`.
 pub fn media_matches(cond: &str, width: f64) -> bool {
+    media_matches_env(cond, width, &BTreeMap::new())
+}
+
+/// Значения признаков среды по умолчанию (светлая схема, обычное движение, мышь, альбомная ориентация).
+fn env_value<'a>(env: &'a BTreeMap<String, String>, key: &str) -> &'a str {
+    env.get(key).map(String::as_str).unwrap_or(match key {
+        "prefers-color-scheme" => "light",
+        "prefers-reduced-motion" => "no-preference",
+        "hover" => "hover",
+        "pointer" => "fine",
+        "orientation" => "landscape",
+        _ => "",
+    })
+}
+
+/// То же с заданной средой (`prefers-color-scheme: dark`, `prefers-reduced-motion: reduce`, `hover: none`, `pointer: coarse`, `orientation: portrait`).
+pub fn media_matches_env(cond: &str, width: f64, env: &BTreeMap<String, String>) -> bool {
     split_outside(cond, ',').iter().any(|q| {
         let q = q.trim().to_lowercase();
         if q.starts_with("not ") {
@@ -274,8 +414,7 @@ pub fn media_matches(cond: &str, width: f64) -> bool {
                 ("min-width", Some(v)) => ok &= width >= v,
                 ("max-width", Some(v)) => ok &= width <= v,
                 ("width", Some(v)) => ok &= (width - v).abs() < 0.5,
-                ("prefers-color-scheme", _) => ok &= val.trim() == "light",
-                ("prefers-reduced-motion", _) => ok &= val.trim() == "no-preference",
+                (f @ ("prefers-color-scheme" | "prefers-reduced-motion" | "hover" | "pointer" | "orientation"), _) => ok &= val.trim() == env_value(env, f),
                 _ => {}
             }
         }
@@ -350,6 +489,30 @@ pub fn color(token: &str) -> Option<String> {
     if let Some((_, (r, g, b))) = NAMED.iter().find(|(n, _)| *n == t) {
         return Some(rgb_string(*r, *g, *b, 1.0));
     }
+    if let Some(args) = t.strip_prefix("hsla(").or_else(|| t.strip_prefix("hsl(")).and_then(|x| x.strip_suffix(')')) {
+        let nums: Vec<f64> = args
+            .split(|c: char| c == ',' || c == '/' || c.is_whitespace())
+            .filter(|x| !x.is_empty())
+            .map(|x| x.trim_end_matches("deg").trim_end_matches('%').parse::<f64>().unwrap_or(f64::NAN))
+            .collect();
+        if nums.len() < 3 || nums.iter().any(|n| n.is_nan()) {
+            return None;
+        }
+        let (h, sat, light) = (nums[0].rem_euclid(360.0), (nums[1] / 100.0).clamp(0.0, 1.0), (nums[2] / 100.0).clamp(0.0, 1.0));
+        let c = (1.0 - (2.0 * light - 1.0).abs()) * sat;
+        let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
+        let m = light - c / 2.0;
+        let (r, g, b) = match (h / 60.0) as u32 {
+            0 => (c, x, 0.0),
+            1 => (x, c, 0.0),
+            2 => (0.0, c, x),
+            3 => (0.0, x, c),
+            4 => (x, 0.0, c),
+            _ => (c, 0.0, x),
+        };
+        let a = nums.get(3).copied().map(|a| if args.trim_end().ends_with('%') { a / 100.0 } else { a }).unwrap_or(1.0);
+        return Some(rgb_string(((r + m) * 255.0).round() as u8, ((g + m) * 255.0).round() as u8, ((b + m) * 255.0).round() as u8, a));
+    }
     let args = t.strip_prefix("rgba(").or_else(|| t.strip_prefix("rgb(")).and_then(|x| x.strip_suffix(')'))?;
     let nums: Vec<f64> = args.split(|c: char| c == ',' || c == '/' || c.is_whitespace()).filter(|s| !s.is_empty()).map(|s| match s.strip_suffix('%') {
         Some(p) => p.parse::<f64>().map(|x| x * 2.55),
@@ -363,17 +526,29 @@ pub fn color(token: &str) -> Option<String> {
     Some(rgb_string(nums[0].round().clamp(0.0, 255.0) as u8, nums[1].round().clamp(0.0, 255.0) as u8, nums[2].round().clamp(0.0, 255.0) as u8, a))
 }
 
+#[derive(Clone, Copy)]
 struct Ctx {
     /// размер шрифта элемента в px (для `em`)
     font: f64,
     viewport: f64,
+    /// свойство без единиц (`order`, `flex-grow`, `z-index`…): `0` остаётся `0`
+    unitless: bool,
+}
+
+/// Свойства, у которых число без единицы — обычное число, а не длина.
+fn is_unitless(prop: &str) -> bool {
+    matches!(
+        prop,
+        "flex-grow" | "flex-shrink" | "order" | "z-index" | "opacity" | "line-height" | "font-weight" | "animation-iteration-count" | "column-count" | "zoom" | "aspect-ratio" | "tab-size"
+            | "orphans" | "widows" | "scale"
+    )
 }
 
 /// Число с единицей → px, если единица известна; иначе исходный токен.
 fn length(token: &str, ctx: &Ctx) -> String {
     let t = token.trim().to_lowercase();
     if t == "0" {
-        return "0px".into();
+        return if ctx.unitless { "0".into() } else { "0px".into() };
     }
     let split = t.find(|c: char| c.is_alphabetic() || c == '%').unwrap_or(t.len());
     let (num, unit) = t.split_at(split);
@@ -390,9 +565,171 @@ fn length(token: &str, ctx: &Ctx) -> String {
     }
 }
 
+// ---------- calc(), clamp(), min(), max() ----------
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Val {
+    Len(f64),
+    Num(f64),
+}
+
+struct Math<'a> {
+    s: &'a [u8],
+    i: usize,
+    ctx: &'a Ctx,
+}
+
+impl Math<'_> {
+    fn ws(&mut self) {
+        while self.s.get(self.i).is_some_and(|c| c.is_ascii_whitespace()) {
+            self.i += 1;
+        }
+    }
+
+    fn eat(&mut self, c: u8) -> bool {
+        self.ws();
+        if self.s.get(self.i) == Some(&c) {
+            self.i += 1;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn sum(&mut self) -> Option<Val> {
+        let mut acc = self.term()?;
+        loop {
+            self.ws();
+            let op = match self.s.get(self.i) {
+                Some(b'+') => b'+',
+                Some(b'-') => b'-',
+                _ => return Some(acc),
+            };
+            self.i += 1;
+            let rhs = self.term()?;
+            acc = match (acc, rhs) {
+                (Val::Len(a), Val::Len(b)) => Val::Len(if op == b'+' { a + b } else { a - b }),
+                (Val::Num(a), Val::Num(b)) => Val::Num(if op == b'+' { a + b } else { a - b }),
+                _ => return None,
+            };
+        }
+    }
+
+    fn term(&mut self) -> Option<Val> {
+        let mut acc = self.primary()?;
+        loop {
+            self.ws();
+            let op = match self.s.get(self.i) {
+                Some(b'*') => b'*',
+                Some(b'/') => b'/',
+                _ => return Some(acc),
+            };
+            self.i += 1;
+            let rhs = self.primary()?;
+            acc = match (op, acc, rhs) {
+                (b'*', Val::Len(a), Val::Num(b)) | (b'*', Val::Num(b), Val::Len(a)) => Val::Len(a * b),
+                (b'*', Val::Num(a), Val::Num(b)) => Val::Num(a * b),
+                (b'/', Val::Len(a), Val::Num(b)) if b != 0.0 => Val::Len(a / b),
+                (b'/', Val::Num(a), Val::Num(b)) if b != 0.0 => Val::Num(a / b),
+                _ => return None,
+            };
+        }
+    }
+
+    fn args(&mut self, n: Option<usize>) -> Option<Vec<Val>> {
+        if !self.eat(b'(') {
+            return None;
+        }
+        let mut out = vec![self.sum()?];
+        while self.eat(b',') {
+            out.push(self.sum()?);
+        }
+        if !self.eat(b')') || n.is_some_and(|n| n != out.len()) {
+            return None;
+        }
+        Some(out)
+    }
+
+    fn primary(&mut self) -> Option<Val> {
+        self.ws();
+        let rest = std::str::from_utf8(&self.s[self.i..]).ok()?;
+        for name in ["calc", "clamp", "min", "max"] {
+            if rest.starts_with(name) && rest[name.len()..].trim_start().starts_with('(') {
+                self.i += name.len();
+                let a = self.args(match name {
+                    "calc" => Some(1),
+                    "clamp" => Some(3),
+                    _ => None,
+                })?;
+                let nums: Vec<f64> = a.iter().map(|v| match v { Val::Len(x) | Val::Num(x) => *x }).collect();
+                let all_len = a.iter().all(|v| matches!(v, Val::Len(_)));
+                let all_num = a.iter().all(|v| matches!(v, Val::Num(_)));
+                if name != "calc" && !(all_len || all_num) {
+                    return None;
+                }
+                let r = match name {
+                    "calc" => return a.into_iter().next(),
+                    "clamp" => nums[1].max(nums[0]).min(nums[2]),
+                    "min" => nums.iter().cloned().fold(f64::INFINITY, f64::min),
+                    _ => nums.iter().cloned().fold(f64::NEG_INFINITY, f64::max),
+                };
+                return Some(if all_len { Val::Len(r) } else { Val::Num(r) });
+            }
+        }
+        if self.eat(b'(') {
+            let v = self.sum()?;
+            return if self.eat(b')') { Some(v) } else { None };
+        }
+        // число с необязательной единицей
+        let start = self.i;
+        if matches!(self.s.get(self.i), Some(b'+') | Some(b'-')) {
+            self.i += 1;
+        }
+        while self.s.get(self.i).is_some_and(|c| c.is_ascii_digit() || *c == b'.') {
+            self.i += 1;
+        }
+        let n: f64 = std::str::from_utf8(&self.s[start..self.i]).ok()?.parse().ok()?;
+        let u = self.i;
+        while self.s.get(self.i).is_some_and(|c| c.is_ascii_alphabetic() || *c == b'%') {
+            self.i += 1;
+        }
+        let unit = std::str::from_utf8(&self.s[u..self.i]).ok()?;
+        Some(match unit {
+            "" => Val::Num(n),
+            "px" => Val::Len(n),
+            "rem" => Val::Len(n * 16.0),
+            "em" => Val::Len(n * self.ctx.font),
+            "vw" => Val::Len(n * self.ctx.viewport / 100.0),
+            "pt" => Val::Len(n * 96.0 / 72.0),
+            _ => return None, // %, vh, ch… — без раскладки не посчитать
+        })
+    }
+}
+
+/// Значение `calc()`/`clamp()`/`min()`/`max()` в px (или число), если все слагаемые известны без раскладки.
+fn math_value(v: &str, ctx: &Ctx) -> Option<String> {
+    let t = v.trim().to_lowercase();
+    if !["calc(", "clamp(", "min(", "max("].iter().any(|f| t.starts_with(f)) {
+        return None;
+    }
+    let mut m = Math { s: t.as_bytes(), i: 0, ctx };
+    let r = m.sum()?;
+    m.ws();
+    if m.i != t.len() {
+        return None;
+    }
+    Some(match r {
+        Val::Len(x) => format!("{}px", fmt_num(x)),
+        Val::Num(x) => fmt_num(x),
+    })
+}
+
 /// Значение в канонической записи: цвета — `rgb(…)`, длины — px, регистр и пробелы выровнены.
 fn norm(value: &str, ctx: &Ctx) -> String {
     let v = value.trim();
+    if let Some(m) = math_value(v, ctx) {
+        return m;
+    }
     if v.contains('(') && !v.to_lowercase().starts_with("rgb") && !v.to_lowercase().starts_with("hsl") && split_outside(v, ' ').len() == 1 {
         // функции (calc, var, url, repeat…) — только пробелы выровнены
         return v.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase();
@@ -401,7 +738,9 @@ fn norm(value: &str, ctx: &Ctx) -> String {
     let out: Vec<String> = tokens
         .iter()
         .map(|t| {
-            if let Some(c) = color(t) {
+            if let Some(m) = math_value(t, ctx) {
+                m
+            } else if let Some(c) = color(t) {
                 c
             } else if t.starts_with(|c: char| c.is_ascii_digit() || c == '.' || c == '-' || c == '+') && !t.contains('(') {
                 length(t, ctx)
@@ -427,6 +766,16 @@ fn sides(prefix: &str, suffix: &str, value: &str) -> Vec<(String, String)> {
         _ => return vec![],
     };
     [("top", t), ("right", r), ("bottom", b), ("left", l)].iter().map(|(s, x)| (format!("{prefix}-{s}{suffix}"), x.to_string())).collect()
+}
+
+fn is_time(t: &str) -> bool {
+    let t = t.to_lowercase();
+    (t.ends_with("ms") && t[..t.len() - 2].parse::<f64>().is_ok()) || (t.ends_with('s') && t[..t.len() - 1].parse::<f64>().is_ok())
+}
+
+fn is_timing(t: &str) -> bool {
+    let t = t.to_lowercase();
+    matches!(t.as_str(), "ease" | "linear" | "ease-in" | "ease-out" | "ease-in-out" | "step-start" | "step-end") || t.starts_with("cubic-bezier(") || t.starts_with("steps(")
 }
 
 fn is_style(t: &str) -> bool {
@@ -488,7 +837,194 @@ fn expand(prop: &str, value: &str) -> Vec<(String, String)> {
             }
             out
         }
-        "background" => split_outside(v, ' ').iter().filter(|t| color(t).is_some()).map(|t| ("background-color".to_string(), t.clone())).collect(),
+        "background" => split_outside(v, ' ')
+            .iter()
+            .filter_map(|t| {
+                let l = t.to_lowercase();
+                if color(t).is_some() {
+                    Some(("background-color".to_string(), t.clone()))
+                } else if l.starts_with("url(") || l.contains("-gradient(") {
+                    Some(("background-image".to_string(), t.clone()))
+                } else {
+                    None
+                }
+            })
+            .collect(),
+        "border-radius" => {
+            let h = v.split('/').next().unwrap_or("").trim();
+            let p: Vec<&str> = h.split_whitespace().collect();
+            let (tl, tr, br, bl) = match p.len() {
+                1 => (p[0], p[0], p[0], p[0]),
+                2 => (p[0], p[1], p[0], p[1]),
+                3 => (p[0], p[1], p[2], p[1]),
+                4 => (p[0], p[1], p[2], p[3]),
+                _ => return vec![],
+            };
+            vec![
+                ("border-top-left-radius".into(), tl.into()),
+                ("border-top-right-radius".into(), tr.into()),
+                ("border-bottom-right-radius".into(), br.into()),
+                ("border-bottom-left-radius".into(), bl.into()),
+            ]
+        }
+        "place-items" | "place-content" | "place-self" => {
+            let base = &prop["place-".len()..];
+            let p: Vec<&str> = v.split_whitespace().collect();
+            let (a, j) = match p.len() {
+                1 => (p[0], p[0]),
+                2 => (p[0], p[1]),
+                _ => return vec![],
+            };
+            vec![(format!("align-{base}"), a.into()), (format!("justify-{base}"), j.into())]
+        }
+        "margin-inline" | "padding-inline" | "margin-block" | "padding-block" | "inset-inline" | "inset-block" => {
+            let (kind, axis) = prop.rsplit_once('-').unwrap_or((prop, ""));
+            let (a, b) = if axis == "inline" { ("left", "right") } else { ("top", "bottom") };
+            let p: Vec<&str> = v.split_whitespace().collect();
+            let (x, y) = match p.len() {
+                1 => (p[0], p[0]),
+                2 => (p[0], p[1]),
+                _ => return vec![],
+            };
+            let name = |side: &str| if kind == "inset" { side.to_string() } else { format!("{kind}-{side}") };
+            vec![(name(a), x.into()), (name(b), y.into())]
+        }
+        "margin-inline-start" | "margin-inline-end" | "padding-inline-start" | "padding-inline-end" | "margin-block-start" | "margin-block-end" | "padding-block-start" | "padding-block-end" => {
+            let parts: Vec<&str> = prop.split('-').collect(); // margin, inline, start
+            let side = match (parts[1], parts[2]) {
+                ("inline", "start") => "left",
+                ("inline", _) => "right",
+                (_, "start") => "top",
+                _ => "bottom",
+            };
+            vec![(format!("{}-{side}", parts[0]), v.into())]
+        }
+        "text-decoration" => {
+            let (mut line, mut style, mut col) = (Vec::new(), "solid".to_string(), "currentcolor".to_string());
+            for t in split_outside(v, ' ').iter().filter(|t| !t.is_empty()) {
+                match t.to_lowercase().as_str() {
+                    "underline" | "overline" | "line-through" | "none" => line.push(t.clone()),
+                    "solid" | "double" | "dotted" | "dashed" | "wavy" => style = t.clone(),
+                    _ => col = t.clone(),
+                }
+            }
+            vec![("text-decoration-line".into(), if line.is_empty() { "none".into() } else { line.join(" ") }), ("text-decoration-style".into(), style), ("text-decoration-color".into(), col)]
+        }
+        "outline" => {
+            let (mut w, mut st, mut c) = ("medium".to_string(), "none".to_string(), "currentcolor".to_string());
+            for t in split_outside(v, ' ').iter().filter(|t| !t.is_empty()) {
+                if is_style(&t.to_lowercase()) {
+                    st = t.clone();
+                } else if color(t).is_some() || t.eq_ignore_ascii_case("currentcolor") {
+                    c = t.clone();
+                } else {
+                    w = t.clone();
+                }
+            }
+            vec![("outline-width".into(), w), ("outline-style".into(), st), ("outline-color".into(), c)]
+        }
+        "font" => {
+            let (mut style, mut weight, mut size, mut lh) = ("normal".to_string(), "normal".to_string(), String::new(), "normal".to_string());
+            let toks: Vec<String> = split_outside(v, ' ').into_iter().filter(|t| !t.is_empty()).collect();
+            let mut i = 0;
+            while i < toks.len() {
+                let t = toks[i].to_lowercase();
+                let is_size = t.split('/').next().is_some_and(|h| h.starts_with(|c: char| c.is_ascii_digit() || c == '.') && h.trim_start_matches(|c: char| c.is_ascii_digit() || c == '.').len() > 0)
+                    || matches!(t.as_str(), "small" | "medium" | "large" | "x-large" | "xx-large" | "x-small" | "xx-small" | "smaller" | "larger");
+                if is_size {
+                    let mut parts = toks[i].splitn(2, '/');
+                    size = parts.next().unwrap_or("").to_string();
+                    if let Some(l) = parts.next() {
+                        lh = l.to_string();
+                    }
+                    i += 1;
+                    break;
+                }
+                match t.as_str() {
+                    "italic" | "oblique" => style = t,
+                    "bold" | "bolder" | "lighter" => weight = t,
+                    "normal" | "small-caps" => {}
+                    n if n.parse::<u32>().is_ok() => weight = n.to_string(),
+                    _ => {}
+                }
+                i += 1;
+            }
+            let family = toks[i.min(toks.len())..].join(" ");
+            if size.is_empty() {
+                return vec![];
+            }
+            let mut out = vec![("font-style".to_string(), style), ("font-weight".to_string(), weight), ("font-size".to_string(), size), ("line-height".to_string(), lh)];
+            if !family.is_empty() {
+                out.push(("font-family".to_string(), family));
+            }
+            out
+        }
+        "transition" => {
+            let (mut props, mut durs, mut timings, mut delays) = (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+            for part in split_outside(v, ',') {
+                let (mut prop_name, mut dur, mut delay, mut timing) = ("all".to_string(), None, None, "ease".to_string());
+                for t in split_outside(&part, ' ').iter().map(|t| t.trim()).filter(|t| !t.is_empty()) {
+                    if is_time(t) {
+                        if dur.is_none() {
+                            dur = Some(t.to_string());
+                        } else {
+                            delay = Some(t.to_string());
+                        }
+                    } else if is_timing(t) {
+                        timing = t.to_string();
+                    } else {
+                        prop_name = t.to_string();
+                    }
+                }
+                props.push(prop_name);
+                durs.push(dur.unwrap_or_else(|| "0s".into()));
+                timings.push(timing);
+                delays.push(delay.unwrap_or_else(|| "0s".into()));
+            }
+            vec![
+                ("transition-property".into(), props.join(", ")),
+                ("transition-duration".into(), durs.join(", ")),
+                ("transition-timing-function".into(), timings.join(", ")),
+                ("transition-delay".into(), delays.join(", ")),
+            ]
+        }
+        "animation" => {
+            let mut cols: [Vec<String>; 8] = Default::default();
+            for part in split_outside(v, ',') {
+                let (mut name, mut dur, mut delay, mut timing, mut count, mut dir, mut fill, mut play) =
+                    ("none".to_string(), None, None, "ease".to_string(), "1".to_string(), "normal".to_string(), "none".to_string(), "running".to_string());
+                for t in split_outside(&part, ' ').iter().map(|t| t.trim()).filter(|t| !t.is_empty()) {
+                    let l = t.to_lowercase();
+                    if is_time(t) {
+                        if dur.is_none() {
+                            dur = Some(t.to_string());
+                        } else {
+                            delay = Some(t.to_string());
+                        }
+                    } else if is_timing(t) {
+                        timing = t.to_string();
+                    } else if l == "infinite" || l.parse::<f64>().is_ok() {
+                        count = l;
+                    } else if matches!(l.as_str(), "normal" | "reverse" | "alternate" | "alternate-reverse") {
+                        dir = l;
+                    } else if matches!(l.as_str(), "forwards" | "backwards" | "both") {
+                        fill = l;
+                    } else if matches!(l.as_str(), "running" | "paused") {
+                        play = l;
+                    } else {
+                        name = t.to_string();
+                    }
+                }
+                for (c, x) in cols.iter_mut().zip([name, dur.unwrap_or_else(|| "0s".into()), timing, delay.unwrap_or_else(|| "0s".into()), count, dir, fill, play]) {
+                    c.push(x);
+                }
+            }
+            ["animation-name", "animation-duration", "animation-timing-function", "animation-delay", "animation-iteration-count", "animation-direction", "animation-fill-mode", "animation-play-state"]
+                .iter()
+                .zip(cols.iter())
+                .map(|(n, c)| (n.to_string(), c.join(", ")))
+                .collect()
+        }
         "overflow" => {
             let p: Vec<&str> = v.split_whitespace().collect();
             match p.len() {
@@ -511,6 +1047,7 @@ fn parts_of(prop: &str) -> Option<Vec<String>> {
         "border-style" => four("border", "-style"),
         "border-color" => four("border", "-color"),
         "inset" => ["top", "right", "bottom", "left"].iter().map(|s| s.to_string()).collect(),
+        "border-radius" => ["top-left", "top-right", "bottom-right", "bottom-left"].iter().map(|c| format!("border-{c}-radius")).collect(),
         "gap" => vec!["row-gap".into(), "column-gap".into()],
         _ => return None,
     })
@@ -556,7 +1093,17 @@ fn initial(prop: &str) -> Option<&'static str> {
         "margin-top" | "margin-right" | "margin-bottom" | "margin-left" | "padding-top" | "padding-right" | "padding-bottom" | "padding-left" => "0px",
         "border-top-width" | "border-right-width" | "border-bottom-width" | "border-left-width" => "0px",
         "border-top-style" | "border-right-style" | "border-bottom-style" | "border-left-style" => "none",
-        "border-radius" => "0px",
+        "border-top-left-radius" | "border-top-right-radius" | "border-bottom-right-radius" | "border-bottom-left-radius" => "0px",
+        "transition-property" => "all",
+        "transition-duration" | "transition-delay" | "animation-duration" | "animation-delay" => "0s",
+        "transition-timing-function" | "animation-timing-function" => "ease",
+        "animation-name" => "none",
+        "animation-iteration-count" => "1",
+        "animation-direction" => "normal",
+        "animation-fill-mode" => "none",
+        "animation-play-state" => "running",
+        "outline-style" => "none",
+        "text-decoration-style" => "solid",
         _ => return None,
     })
 }
@@ -606,32 +1153,55 @@ pub struct Cascade<'a> {
     pub doc: &'a Doc,
     pub sheet: &'a Stylesheet,
     pub viewport: f64,
+    /// состояние, в котором считаются стили: `hover`, `focus`, `active`… (`None` — обычное)
+    pub state: Option<&'a str>,
+    /// ширина контейнера для правил `@container` (`None` — такие правила не применяются)
+    pub container: Option<f64>,
+    /// признаки среды для `@media`: `prefers-color-scheme: dark`, `prefers-reduced-motion: reduce`… (пусто — значения по умолчанию)
+    pub env: &'a BTreeMap<String, String>,
 }
 
 impl Cascade<'_> {
     /// Объявленные значения элемента после каскада, до наследования и разрешения единиц, и его пользовательские свойства.
-    fn declared(&self, el: &ElementRef, parent_customs: &BTreeMap<String, String>) -> (BTreeMap<String, (Weight, String)>, BTreeMap<String, String>) {
+    /// Подходит ли селектор правила элементу в запрошенном состоянии и для запрошенного псевдоэлемента.
+    fn applies(&self, raw: &str, el: &ElementRef, pseudo: Option<&str>) -> bool {
+        let Ok(parts) = parse_selector(raw) else { return false };
+        if parts.pseudo.as_deref() != pseudo {
+            return false;
+        }
+        let active = active_states(self.state);
+        parts.states.iter().all(|st| active.contains(st)) && parts.selector.matches(el)
+    }
+
+    fn declared(&self, el: &ElementRef, pseudo: Option<&str>, parent_customs: &BTreeMap<String, String>) -> (BTreeMap<String, (Weight, String)>, BTreeMap<String, String>) {
         let mut raw: Vec<(String, String, Weight)> = Vec::new();
         let mut order = 0usize;
-        for (p, v) in ua_style(el.value().name()) {
-            order += 1;
-            raw.push((p.into(), v.into(), (false, 0, [0; 3], order)));
+        if pseudo.is_none() {
+            for (p, v) in ua_style(el.value().name()) {
+                order += 1;
+                raw.push((p.into(), v.into(), (false, 0, [0; 3], order)));
+            }
         }
         for rule in &self.sheet.rules {
             if let Some(m) = &rule.media {
-                if !media_matches(m, self.viewport) {
+                if !media_matches_env(m, self.viewport, self.env) {
+                    continue;
+                }
+            }
+            if let Some(c) = &rule.container {
+                if !self.container.is_some_and(|w| media_matches_env(c, w, self.env)) {
                     continue;
                 }
             }
             // у правила со списком селекторов работает самый специфичный из совпавших
-            let sp = rule.selectors.iter().filter(|s| selector(s).is_ok_and(|sel| sel.matches(el))).map(|s| specificity(s)).max();
+            let sp = rule.selectors.iter().filter(|s| self.applies(s, el, pseudo)).map(|s| specificity(s)).max();
             let Some(sp) = sp else { continue };
             for d in &rule.decls {
                 order += 1;
                 raw.push((d.prop.clone(), d.value.clone(), (d.important, 1u8, sp, order)));
             }
         }
-        if let Some(style) = el.value().attr("style") {
+        if let Some(style) = el.value().attr("style").filter(|_| pseudo.is_none()) {
             let mut ignore = Vec::new();
             for d in parse_decls(style, &mut ignore) {
                 order += 1;
@@ -661,12 +1231,17 @@ impl Cascade<'_> {
 
     /// Вычисленные значения всех известных свойств элемента (с наследованием, `var()` и единицами в px).
     pub fn computed(&self, el: &ElementRef) -> BTreeMap<String, String> {
-        let parent = el.parent().and_then(ElementRef::wrap).map(|p| self.computed(&p));
+        self.computed_for(el, None)
+    }
+
+    /// То же для псевдоэлемента (`before`, `after`…): наследует от самого элемента.
+    pub fn computed_for(&self, el: &ElementRef, pseudo: Option<&str>) -> BTreeMap<String, String> {
+        let parent = if pseudo.is_some() { Some(self.computed_for(el, None)) } else { el.parent().and_then(ElementRef::wrap).map(|p| self.computed_for(&p, None)) };
         let parent_customs: BTreeMap<String, String> = parent.as_ref().map(|p| p.iter().filter(|(k, _)| k.starts_with("--")).map(|(k, v)| (k.clone(), v.clone())).collect()).unwrap_or_default();
-        let (declared, customs) = self.declared(el, &parent_customs);
+        let (declared, customs) = self.declared(el, pseudo, &parent_customs);
         let parent_font = parent.as_ref().and_then(|p| p.get("font-size")).and_then(|v| parse_px(v)).unwrap_or(16.0);
         let mut out: BTreeMap<String, String> = BTreeMap::new();
-        let font_ctx = Ctx { font: parent_font, viewport: self.viewport };
+        let font_ctx = Ctx { font: parent_font, viewport: self.viewport, unitless: false };
         let own_font = match declared.get("font-size") {
             Some((_, v)) => {
                 match v.trim() {
@@ -688,7 +1263,7 @@ impl Cascade<'_> {
             }
             None => parent_font,
         };
-        let ctx = Ctx { font: own_font, viewport: self.viewport };
+        let ctx = Ctx { font: own_font, viewport: self.viewport, unitless: false };
         for (k, v) in &customs {
             out.insert(k.clone(), v.clone());
         }
@@ -699,7 +1274,7 @@ impl Cascade<'_> {
                 "unset" => {
                     if inherited(prop) { parent.as_ref().and_then(|p| p.get(prop)).cloned() } else { initial(prop).map(String::from) }
                 }
-                _ => Some(if prop == "font-size" { format!("{}px", fmt_num(own_font)) } else { norm(&raw, &ctx) }),
+                _ => Some(if prop == "font-size" { format!("{}px", fmt_num(own_font)) } else { norm(&raw, &Ctx { unitless: is_unitless(prop), ..ctx }) }),
             };
             if let Some(v) = value {
                 out.insert(prop.clone(), v);
@@ -799,44 +1374,72 @@ pub fn run(doc: &Doc, sheet: &Stylesheet, user: &Stylesheet, check: &Check, view
                 Some(v) => format!("Используется `{p}: {v}`"),
                 None => format!("Используется `{p}`"),
             });
-            let ok = user.rules.iter().flat_map(|r| &r.decls).any(|d| d.prop == p && value.as_ref().is_none_or(|v| d.value.trim().eq_ignore_ascii_case(v.trim())));
+            let ctx0 = Ctx { font: 16.0, viewport: 1024.0, unitless: false };
+            let same = |a: &str, b: &str| a.trim().eq_ignore_ascii_case(b.trim()) || norm(a, &ctx0) == norm(b, &ctx0);
+            let ok = user.rules.iter().flat_map(|r| &r.decls).any(|d| d.prop == p && value.as_ref().is_none_or(|v| same(&d.value, v)));
             Item { text, ok, detail: "такого объявления нет в вашем CSS".into() }
+        }
+        Check::Keyframes { name, contains, msg } => {
+            let text = msg.clone().unwrap_or_else(|| match contains {
+                Some(c) => format!("Есть `@keyframes {name}` с `{c}`"),
+                None => format!("Есть `@keyframes {name}`"),
+            });
+            let found = user.keyframes.iter().find(|(n, _)| n == name);
+            let ok = found.is_some_and(|(_, body)| contains.as_ref().is_none_or(|c| body.to_lowercase().contains(&c.to_lowercase())));
+            Item { text, ok, detail: if found.is_some() { "в кадрах нет нужного свойства".into() } else { "такой анимации (@keyframes) нет в вашем CSS".into() } }
+        }
+        Check::Container { contains, msg } => {
+            let text = msg.clone().unwrap_or_else(|| format!("Есть `@container` с `{contains}`"));
+            let ok = user.containers.iter().any(|m| m.to_lowercase().contains(&contains.to_lowercase()));
+            Item { text, ok, detail: "правила `@container` с таким условием нет".into() }
         }
         Check::Media { contains, msg } => {
             let text = msg.clone().unwrap_or_else(|| format!("Есть `@media` с `{contains}`"));
             let ok = user.media.iter().any(|m| m.to_lowercase().contains(&contains.to_lowercase()));
             Item { text, ok, detail: "правила `@media` с таким условием нет".into() }
         }
-        Check::Style { sel, prop, equals, one_of, min, max, any, viewport: vp, msg } => {
+        Check::Style { sel, prop, equals, one_of, min, max, any, viewport: vp, state, pseudo, container_width, env, contains, msg } => {
             let prop = prop.to_lowercase();
             let width = vp.unwrap_or(viewport);
-            let want = equals.clone().or_else(|| (!one_of.is_empty()).then(|| one_of.join(" | "))).unwrap_or_else(|| match (min, max) {
+            let want = equals.clone().or_else(|| (!one_of.is_empty()).then(|| one_of.join(" | "))).or_else(|| contains.as_ref().map(|c| format!("содержит «{c}»"))).unwrap_or_else(|| match (min, max) {
                 (Some(a), Some(b)) => format!("от {} до {} px", fmt_num(*a), fmt_num(*b)),
                 (Some(a), None) => format!("не меньше {} px", fmt_num(*a)),
                 (None, Some(b)) => format!("не больше {} px", fmt_num(*b)),
                 _ => "задано".into(),
             });
-            let at = if vp.is_some() { format!(" при ширине {}px", fmt_num(width)) } else { String::new() };
-            let text = msg.clone().unwrap_or_else(|| format!("У `{sel}` {prop}: {want}{at}"));
+            let at = [
+                vp.map(|_| format!("при ширине {}px", fmt_num(width))),
+                state.as_ref().map(|st| format!("в состоянии :{st}")),
+                container_width.map(|w| format!("в контейнере {}px", fmt_num(w))),
+                (!env.is_empty()).then(|| env.iter().map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")),
+            ]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>()
+            .join(", ");
+            let at = if at.is_empty() { at } else { format!(" ({at})") };
+            let target = pseudo.as_ref().map(|p| format!("{sel}::{p}")).unwrap_or_else(|| sel.clone());
+            let text = msg.clone().unwrap_or_else(|| format!("У `{target}` {prop}: {want}{at}"));
             let els = match doc.select(sel) {
                 Err(e) => return Some(Item { text, ok: false, detail: e }),
                 Ok(v) if v.is_empty() => return Some(Item { text, ok: false, detail: "в разметке нет такого элемента".into() }),
                 Ok(v) => v,
             };
-            let cascade = Cascade { doc, sheet, viewport: width };
+            let cascade = Cascade { doc, sheet, viewport: width, state: state.as_deref(), container: *container_width, env };
             let mut first_bad = None;
             let mut good = 0;
             for el in &els {
-                let map = cascade.computed(el);
+                let map = cascade.computed_for(el, pseudo.as_deref());
                 let got = value_of(&map, &prop);
                 let font = map.get("font-size").and_then(|v| parse_px(v)).unwrap_or(16.0);
-                let ctx = Ctx { font, viewport: width };
+                let ctx = Ctx { font, viewport: width, unitless: is_unitless(&prop) };
                 let ok = match &got {
                     None => false,
                     Some(g) => {
                         let eq = |w: &str| norm(w, &ctx) == *g;
-                        let num = parse_px(g);
+                        let num = parse_px(g).or_else(|| g.trim().parse::<f64>().ok());
                         equals.as_deref().is_none_or(eq)
+                            && contains.as_ref().is_none_or(|c| g.to_lowercase().contains(&c.to_lowercase()))
                             && (one_of.is_empty() || one_of.iter().any(|w| eq(w)))
                             && min.is_none_or(|m| num.is_some_and(|n| n + 1e-6 >= m))
                             && max.is_none_or(|m| num.is_some_and(|n| n <= m + 1e-6))
@@ -874,7 +1477,7 @@ mod tests {
     fn style(html: &str, css: &str, sel: &str, prop: &str) -> Option<String> {
         let doc = Doc::parse(html);
         let sheet = Stylesheet::parse(css);
-        let c = Cascade { doc: &doc, sheet: &sheet, viewport: 1024.0 };
+        let c = Cascade { doc: &doc, sheet: &sheet, viewport: 1024.0, state: None, container: None, env: &Default::default() };
         let el = doc.select(sel).unwrap().into_iter().next().unwrap();
         value_of(&c.computed(&el), prop)
     }
@@ -919,7 +1522,7 @@ mod tests {
         let doc = Doc::parse("<p>x</p>");
         let sheet = Stylesheet::parse(css);
         let el = doc.select("p").unwrap().into_iter().next().unwrap();
-        let narrow = Cascade { doc: &doc, sheet: &sheet, viewport: 400.0 }.computed(&el);
+        let narrow = Cascade { doc: &doc, sheet: &sheet, viewport: 400.0, state: None, container: None, env: &Default::default() }.computed(&el);
         assert_eq!(narrow.get("color").map(String::as_str), Some("rgb(0, 0, 255)"));
     }
 
@@ -930,5 +1533,122 @@ mod tests {
         assert!(!Stylesheet::parse("p { color red }").errors.is_empty());
         assert!(!Stylesheet::parse("p { color: red ").errors.is_empty());
         assert!(!Stylesheet::parse("p color: red }").errors.is_empty());
+    }
+
+    fn style_in(html: &str, css: &str, sel: &str, prop: &str, state: Option<&str>, pseudo: Option<&str>, container: Option<f64>, viewport: f64) -> Option<String> {
+        let doc = Doc::parse(html);
+        let sheet = Stylesheet::parse(css);
+        let c = Cascade { doc: &doc, sheet: &sheet, viewport, state, container, env: &Default::default() };
+        let el = doc.select(sel).unwrap().into_iter().next().unwrap();
+        value_of(&c.computed_for(&el, pseudo), prop)
+    }
+
+    #[test]
+    fn state_pseudo_classes_apply_only_in_that_state() {
+        let css = "a { color: blue } a:hover { color: red } a:focus-visible { outline: 2px solid green }";
+        assert!(Stylesheet::parse(css).errors.is_empty(), "{:?}", Stylesheet::parse(css).errors);
+        let html = "<a href=x>t</a>";
+        assert_eq!(style_in(html, css, "a", "color", None, None, None, 1024.0).as_deref(), Some("rgb(0, 0, 255)"));
+        assert_eq!(style_in(html, css, "a", "color", Some("hover"), None, None, 1024.0).as_deref(), Some("rgb(255, 0, 0)"));
+        assert_eq!(style_in(html, css, "a", "outline-width", Some("focus"), None, None, 1024.0).as_deref(), Some("2px"));
+        assert_eq!(style_in(html, css, "a", "outline-width", None, None, None, 1024.0), None, "без фокуса правило не действует");
+    }
+
+    #[test]
+    fn attribute_based_pseudo_classes_and_pseudo_elements() {
+        let css = "input:checked + label { color: red } .card::before { content: \"→\"; color: blue } a:link { color: green }";
+        assert!(Stylesheet::parse(css).errors.is_empty(), "{:?}", Stylesheet::parse(css).errors);
+        let html = "<input type=checkbox checked><label>x</label><div class=card>c</div><a href=y>l</a>";
+        assert_eq!(style_in(html, css, "label", "color", None, None, None, 1024.0).as_deref(), Some("rgb(255, 0, 0)"));
+        assert_eq!(style_in(html, css, ".card", "content", None, None, None, 1024.0), None, "псевдоэлемент не красит сам элемент");
+        assert_eq!(style_in(html, css, ".card", "content", None, Some("before"), None, 1024.0).as_deref(), Some("\"→\""));
+        assert_eq!(style_in(html, css, ".card", "color", None, Some("before"), None, 1024.0).as_deref(), Some("rgb(0, 0, 255)"));
+        assert_eq!(style_in(html, css, "a", "color", None, None, None, 1024.0).as_deref(), Some("rgb(0, 128, 0)"));
+        assert!(Stylesheet::parse("a::nonsense { color: red }").errors.len() == 1);
+    }
+
+    #[test]
+    fn container_queries_follow_the_container_width() {
+        let css = ".card { display: block } @container (min-width: 400px) { .card { display: flex } }";
+        let html = "<div class=card></div>";
+        assert_eq!(style_in(html, css, ".card", "display", None, None, None, 1024.0).as_deref(), Some("block"));
+        assert_eq!(style_in(html, css, ".card", "display", None, None, Some(300.0), 1024.0).as_deref(), Some("block"));
+        assert_eq!(style_in(html, css, ".card", "display", None, None, Some(500.0), 1024.0).as_deref(), Some("flex"));
+        assert_eq!(Stylesheet::parse(css).containers, vec!["(min-width: 400px)".to_string()]);
+    }
+
+    #[test]
+    fn transition_animation_font_and_other_shorthands() {
+        let html = "<p class=a>x</p>";
+        let g = |css: &str, prop: &str| style_in(html, css, ".a", prop, None, None, None, 1024.0);
+        assert_eq!(g(".a { transition: color .3s ease-in, opacity 1s linear 0.5s }", "transition-property").as_deref(), Some("color, opacity"));
+        assert_eq!(g(".a { transition: color .3s ease-in, opacity 1s linear 0.5s }", "transition-delay").as_deref(), Some("0s, 0.5s"));
+        assert_eq!(g(".a { animation: spin 2s linear infinite }", "animation-name").as_deref(), Some("spin"));
+        assert_eq!(g(".a { animation: spin 2s linear infinite }", "animation-iteration-count").as_deref(), Some("infinite"));
+        assert_eq!(g(".a { place-items: center }", "align-items").as_deref(), Some("center"));
+        assert_eq!(g(".a { place-items: center start }", "justify-items").as_deref(), Some("start"));
+        assert_eq!(g(".a { font: italic bold 20px/1.5 Georgia, serif }", "font-size").as_deref(), Some("20px"));
+        assert_eq!(g(".a { font: italic bold 20px/1.5 Georgia, serif }", "font-weight").as_deref(), Some("bold"));
+        assert_eq!(g(".a { font: italic bold 20px/1.5 Georgia, serif }", "line-height").as_deref(), Some("1.5"));
+        assert_eq!(g(".a { border-radius: 8px 4px }", "border-radius").as_deref(), Some("8px 4px"));
+        assert_eq!(g(".a { border-radius: 50% }", "border-top-left-radius").as_deref(), Some("50%"));
+        assert_eq!(g(".a { margin-inline: auto }", "margin-right").as_deref(), Some("auto"));
+        assert_eq!(g(".a { padding-block: 8px 12px }", "padding-bottom").as_deref(), Some("12px"));
+        assert_eq!(g(".a { text-decoration: underline wavy red }", "text-decoration-style").as_deref(), Some("wavy"));
+        assert_eq!(g(".a { outline: 2px dashed blue }", "outline-style").as_deref(), Some("dashed"));
+        assert_eq!(g(".a { background: url(a.png) #fff }", "background-image").as_deref(), Some("url(a.png)"));
+    }
+
+    #[test]
+    fn calc_clamp_min_max_are_resolved_to_pixels() {
+        let html = "<div class=a><p class=b>x</p></div>";
+        let at = |css: &str, vp: f64| style_in(html, css, ".b", "font-size", None, None, None, vp);
+        assert_eq!(at(".b { font-size: calc(1rem + 4px) }", 1024.0).as_deref(), Some("20px"));
+        assert_eq!(at(".b { font-size: clamp(16px, 2vw, 32px) }", 1000.0).as_deref(), Some("20px"));
+        assert_eq!(at(".b { font-size: clamp(16px, 2vw, 32px) }", 400.0).as_deref(), Some("16px"));
+        assert_eq!(at(".b { font-size: clamp(16px, 2vw, 32px) }", 2000.0).as_deref(), Some("32px"));
+        assert_eq!(at(".b { font-size: min(3rem, 40px) }", 1024.0).as_deref(), Some("40px"));
+        assert_eq!(at(".b { font-size: max(1rem, calc(10px * 2)) }", 1024.0).as_deref(), Some("20px"));
+        // проценты без раскладки не посчитать — значение остаётся записью
+        assert_eq!(style_in(html, ".b { width: calc(100% - 20px) }", ".b", "width", None, None, None, 800.0).as_deref(), Some("calc(100% - 20px)"));
+    }
+
+    #[test]
+    fn keyframes_are_collected() {
+        let sheet = Stylesheet::parse("@keyframes spin { from { transform: rotate(0) } to { transform: rotate(360deg) } } .a { animation: spin 1s }");
+        assert!(sheet.errors.is_empty(), "{:?}", sheet.errors);
+        assert_eq!(sheet.keyframes.len(), 1);
+        assert_eq!(sheet.keyframes[0].0, "spin");
+        assert!(sheet.keyframes[0].1.contains("rotate(360deg)"));
+    }
+
+    #[test]
+    fn hsl_colors_and_unitless_zero() {
+        assert_eq!(color("hsl(0, 100%, 50%)").as_deref(), Some("rgb(255, 0, 0)"));
+        assert_eq!(color("hsl(120deg 100% 25%)").as_deref(), Some("rgb(0, 128, 0)"));
+        assert_eq!(color("hsla(240, 100%, 50%, 0.5)").as_deref(), Some("rgba(0, 0, 255, 0.5)"));
+        assert_eq!(color("hsl(200, 20%, 40%)").as_deref(), Some("rgb(82, 109, 122)"));
+        let html = "<div class=a></div>";
+        let g = |css: &str, prop: &str| style_in(html, css, ".a", prop, None, None, None, 1024.0);
+        assert_eq!(g(".a { order: 0; margin-top: 0 }", "order").as_deref(), Some("0"));
+        assert_eq!(g(".a { order: 0; margin-top: 0 }", "margin-top").as_deref(), Some("0px"));
+        assert_eq!(g(".a { flex-grow: 0 }", "flex-grow").as_deref(), Some("0"));
+    }
+
+    #[test]
+    fn media_environment_features() {
+        let css = "p { color: black } @media (prefers-color-scheme: dark) { p { color: white } } @media (prefers-reduced-motion: reduce) { p { transition: none } }";
+        let doc = Doc::parse("<p>x</p>");
+        let sheet = Stylesheet::parse(css);
+        let el = doc.select("p").unwrap().into_iter().next().unwrap();
+        let light = Default::default();
+        let dark: BTreeMap<String, String> = [("prefers-color-scheme".to_string(), "dark".to_string())].into();
+        let reduce: BTreeMap<String, String> = [("prefers-reduced-motion".to_string(), "reduce".to_string())].into();
+        let at = |env: &BTreeMap<String, String>, prop: &str| value_of(&Cascade { doc: &doc, sheet: &sheet, viewport: 1024.0, state: None, container: None, env }.computed(&el), prop);
+        assert_eq!(at(&light, "color").as_deref(), Some("rgb(0, 0, 0)"));
+        assert_eq!(at(&dark, "color").as_deref(), Some("rgb(255, 255, 255)"));
+        assert_eq!(at(&reduce, "transition-property").as_deref(), Some("none"));
+        assert!(media_matches_env("(hover: none)", 800.0, &[("hover".to_string(), "none".to_string())].into()));
+        assert!(!media_matches_env("(hover: none)", 800.0, &Default::default()));
     }
 }

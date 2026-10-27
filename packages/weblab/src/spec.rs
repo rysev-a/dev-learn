@@ -64,6 +64,16 @@ pub enum Check {
         #[serde(default)] any: bool,
         /// ширина окна для `@media` (по умолчанию — `viewport` задания)
         #[serde(default)] viewport: Option<f64>,
+        /// состояние элемента: `hover`, `focus`, `active`… (правила с `:hover` и т. п. применяются только в нём)
+        #[serde(default)] state: Option<String>,
+        /// псевдоэлемент: `before`, `after`, `marker`… (проверяются его собственные стили)
+        #[serde(default)] pseudo: Option<String>,
+        /// ширина контейнера в px для правил `@container` (без неё такие правила не применяются)
+        #[serde(default)] container_width: Option<f64>,
+        /// признаки среды: `{"prefers-color-scheme": "dark"}`, `{"prefers-reduced-motion": "reduce"}`, `hover`, `pointer`, `orientation`
+        #[serde(default)] env: std::collections::BTreeMap<String, String>,
+        /// подстрока вычисленного значения (без учёта регистра): для градиентов, теней, списков шрифтов и т. п.
+        #[serde(default)] contains: Option<String>,
         #[serde(default)] msg: Option<String>,
     },
     /// В таблице стилей объявлено свойство (и, если задано, значение) — для требований вида «используйте flex».
@@ -74,6 +84,10 @@ pub enum Check {
     NoIds,
     /// Таблица стилей разобрана без ошибок.
     CssValid,
+    /// Объявлен `@keyframes <name>`; `contains` — подстрока, которая должна встретиться в его теле (например `transform`).
+    Keyframes { name: String, #[serde(default)] contains: Option<String>, #[serde(default)] msg: Option<String> },
+    /// Есть правило `@container` с условием, содержащим подстроку.
+    Container { contains: String, #[serde(default)] msg: Option<String> },
     /// Есть правило `@media` с условием, содержащим подстроку (например `max-width`).
     Media { contains: String, #[serde(default)] msg: Option<String> },
 }

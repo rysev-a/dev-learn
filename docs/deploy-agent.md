@@ -102,7 +102,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env ps
 Проверка кода не работает, пока в `dind` нет образов. Они хранятся в томе `dind-data` и переживают перезапуск.
 
 ```bash
-docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks run --rm images
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images
 ```
 
 Скачиваются `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine` и **собирается `say-rust-crates:1`** (tokio, axum, sqlx, PostgreSQL — долго, 15–40 минут и несколько ГБ; нужен выход в интернет у `dind`).

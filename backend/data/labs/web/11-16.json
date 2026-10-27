@@ -1,0 +1,529 @@
+{
+ "book": 11,
+ "chapter": 16,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w16-sel-group",
+   "title": "Список селекторов",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны заголовки первого и второго уровня (одним правилом, через запятую).",
+   "hint": "Запятая объединяет селекторы: h1, h2.",
+   "spec": {
+    "kind": "selector",
+    "html": "<h1 id=\"t\">Название</h1><h2 id=\"s\">Раздел</h2><h3 id=\"u\">Подраздел</h3><p id=\"p\">Текст</p>",
+    "starter_css": "",
+    "want": [
+     "t",
+     "s"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "h1, h2"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-descendant",
+   "title": "Селектор потомков",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны абзацы внутри блока .article, в том числе вложенные глубже.",
+   "hint": "Пробел между селекторами означает «на любой глубине внутри».",
+   "spec": {
+    "kind": "selector",
+    "html": "<div class=\"article\"><h2 id=\"h\">Заголовок</h2><p id=\"p1\">Первый абзац</p><blockquote><p id=\"p2\">Абзац в цитате</p></blockquote></div><p id=\"out\">Абзац вне статьи</p>",
+    "starter_css": "",
+    "want": [
+     "p1",
+     "p2"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".article p"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-child",
+   "title": "Непосредственные дети",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только пункты верхнего уровня меню .menu, вложенные пункты не нужны.",
+   "hint": "Знак > выбирает только прямых детей.",
+   "spec": {
+    "kind": "selector",
+    "html": "<ul class=\"menu\"><li id=\"a\">Главная<ul><li id=\"a1\">Вложенный</li></ul></li><li id=\"b\">О нас</li></ul>",
+    "starter_css": "",
+    "want": [
+     "a",
+     "b"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".menu > li"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-sibling",
+   "title": "Соседний элемент",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужен только абзац, который стоит сразу после заголовка h2.",
+   "hint": "Знак + выбирает ближайшего следующего соседа, знак ~ — всех следующих.",
+   "spec": {
+    "kind": "selector",
+    "html": "<h2 id=\"t\">Заголовок</h2><p id=\"p1\">Сразу после заголовка</p><p id=\"p2\">Второй абзац</p><p id=\"p3\">Третий абзац</p>",
+    "starter_css": "",
+    "want": [
+     "p1"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "h2 + p"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-attr",
+   "title": "Атрибут и начало значения",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только внешние ссылки: адрес начинается с https.",
+   "hint": "Селектор атрибута: [href^=\"https\"] — значение начинается с «https».",
+   "spec": {
+    "kind": "selector",
+    "html": "<a id=\"l1\" href=\"https://a.example\">Один</a> <a id=\"l2\" href=\"/local\">Два</a> <a id=\"l3\" href=\"https://b.example\">Три</a>",
+    "starter_css": "",
+    "want": [
+     "l1",
+     "l3"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "a[href^=\"https\"]"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-ext",
+   "title": "Атрибут и конец значения",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только ссылки на файлы пдф: адрес заканчивается на .pdf.",
+   "hint": "Знак $ в селекторе атрибута: [href$=\".pdf\"] — значение заканчивается подстрокой.",
+   "spec": {
+    "kind": "selector",
+    "html": "<a id=\"f1\" href=\"report.pdf\">Отчёт</a> <a id=\"f2\" href=\"notes.txt\">Заметки</a> <a id=\"f3\" href=\"/docs/guide.pdf\">Руководство</a> <a id=\"f4\" href=\"https://a.example/pdf\">Раздел pdf</a>",
+    "starter_css": "",
+    "want": [
+     "f1",
+     "f3"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "a[href$=\".pdf\"]"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-nth",
+   "title": "Каждый третий",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны пункты списка с номерами 1, 4 и 7: каждый третий, начиная с первого.",
+   "hint": "В :nth-child принимается формула: an + b, где n пробегает 0, 1, 2…",
+   "spec": {
+    "kind": "selector",
+    "html": "<ul><li id=\"i1\">1</li><li id=\"i2\">2</li><li id=\"i3\">3</li><li id=\"i4\">4</li><li id=\"i5\">5</li><li id=\"i6\">6</li><li id=\"i7\">7</li></ul>",
+    "starter_css": "",
+    "want": [
+     "i1",
+     "i4",
+     "i7"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "li:nth-child(3n + 1)"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-first-last",
+   "title": "Первый и последний",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны первый и последний пункты списка.",
+   "hint": ":first-child и :last-child, объединённые запятой.",
+   "spec": {
+    "kind": "selector",
+    "html": "<ol><li id=\"f\">Первый</li><li id=\"m\">Средний</li><li id=\"l\">Последний</li></ol>",
+    "starter_css": "",
+    "want": [
+     "f",
+     "l"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": "li:first-child, li:last-child"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-not",
+   "title": "Всё, кроме",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны кнопки .btn, которые не отключены (у отключённых есть класс disabled).",
+   "hint": "Псевдокласс :not(...) исключает совпавшее.",
+   "spec": {
+    "kind": "selector",
+    "html": "<button id=\"b1\" class=\"btn\">Один</button> <button id=\"b2\" class=\"btn disabled\">Два</button> <button id=\"b3\" class=\"btn\">Три</button> <button id=\"b4\" class=\"disabled\">Четыре</button>",
+    "starter_css": "",
+    "want": [
+     "b1",
+     "b3"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".btn:not(.disabled)"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-is",
+   "title": "Короткая запись списка",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны заголовки h2 и абзацы внутри блока .article, но не списки и не то, что снаружи. Общую часть .article можно записать один раз.",
+   "hint": ":is(h2, p) подставляет список на место одного селектора: .article :is(…).",
+   "spec": {
+    "kind": "selector",
+    "html": "<div class=\"article\"><h2 id=\"h\">Заголовок</h2><p id=\"p1\">Текст</p><ul><li id=\"u\">Пункт</li></ul></div><h2 id=\"out1\">Заголовок снаружи</h2><p id=\"out2\">Абзац снаружи</p>",
+    "starter_css": "",
+    "want": [
+     "h",
+     "p1"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".article :is(h2, p)"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-has",
+   "title": "Родитель по содержимому",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны только карточки .card, в которых есть картинка.",
+   "hint": "Псевдокласс :has(...) выбирает элемент по тому, что лежит внутри него.",
+   "spec": {
+    "kind": "selector",
+    "html": "<div class=\"card\" id=\"c1\"><img src=\"a.jpg\" alt=\"Фото\"><p>С картинкой</p></div><div class=\"card\" id=\"c2\"><p>Без картинки</p></div><div class=\"card\" id=\"c3\"><img src=\"b.jpg\" alt=\"Фото\"></div>",
+    "starter_css": "",
+    "want": [
+     "c1",
+     "c3"
+    ],
+    "checks": [],
+    "reference": {
+     "selector": ".card:has(img)"
+    }
+   }
+  },
+  {
+   "id": "w16-sel-low-spec",
+   "title": "Селектор с низкой специфичностью",
+   "statement": "Напишите один селектор, который выбирает ровно подсвеченные в задании элементы (красная рамка в предпросмотре) и больше ничего. Нужны все элементы с классом note, но специфичность селектора не должна превышать (0, 1, 0), и идентификаторы запрещены.",
+   "hint": "Один класс даёт (0, 1, 0). Всё, что длиннее, уже тяжелее.",
+   "spec": {
+    "kind": "selector",
+    "html": "<div id=\"page\"><p id=\"n1\" class=\"note\">В странице</p><p id=\"n2\">Без класса</p></div><p id=\"n3\" class=\"note\">Снаружи</p>",
+    "starter_css": "#page .note",
+    "want": [
+     "n1",
+     "n3"
+    ],
+    "checks": [
+     {
+      "t": "no_ids"
+     }
+    ],
+    "reference": {
+     "selector": ".note"
+    },
+    "max_specificity": [
+     0,
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "id": "w16-css-hover",
+   "title": "Стиль при наведении",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У кнопки .btn обычный фон #2563eb уже задан. Сделайте так, чтобы при наведении курсора фон становился #1d4ed8, а в обычном состоянии оставался прежним.",
+   "hint": "Правило с псевдоклассом :hover применяется, пока курсор над элементом: .btn:hover { … }.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.btn { background: #2563eb; color: #fff; padding: 8px 16px; border: 0; }</style><button class=\"btn\" id=\"b\">Купить</button>",
+    "starter_css": ".btn { background: #1d4ed8; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#b",
+      "prop": "background-color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "style",
+      "sel": "#b",
+      "prop": "background-color",
+      "equals": "#1d4ed8",
+      "state": "hover"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".btn:hover { background: #1d4ed8; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-focus",
+   "title": "Видимый фокус клавиатуры",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У поля ввода есть тонкая серая рамка. Не убирая её, добавьте для фокуса с клавиатуры (:focus-visible) сплошной контур (outline) цвета #f59e0b толщиной не менее 2px.",
+   "hint": "input:focus-visible { outline: 2px solid …; } — контур рисуется вне рамки и не сдвигает вёрстку.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>input { border: 1px solid #94a3b8; padding: 6px; }</style><input id=\"f\" type=\"text\" placeholder=\"Ваше имя\">",
+    "starter_css": "input { border-color: #f59e0b; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#f",
+      "prop": "outline-style",
+      "equals": "solid",
+      "state": "focus"
+     },
+     {
+      "t": "style",
+      "sel": "#f",
+      "prop": "outline-color",
+      "equals": "#f59e0b",
+      "state": "focus"
+     },
+     {
+      "t": "style",
+      "sel": "#f",
+      "prop": "outline-width",
+      "min": 2,
+      "state": "focus"
+     },
+     {
+      "t": "style",
+      "sel": "#f",
+      "prop": "border-top-color",
+      "equals": "#94a3b8"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "input:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-checked",
+   "title": "Отмеченный чекбокс",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Подпись при чекбоксе должна становиться зелёной (#15803d), когда он отмечен; у неотмеченного подпись остаётся цвета #444. Используйте :checked и соседний комбинатор.",
+   "hint": "input:checked + label { … } — подпись стоит сразу после чекбокса.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>label { color: #444; }</style><p><input type=\"checkbox\" id=\"a\" checked><label id=\"la\" for=\"a\">Подписаться на рассылку</label></p><p><input type=\"checkbox\" id=\"b\"><label id=\"lb\" for=\"b\">Принять условия</label></p>",
+    "starter_css": "label { color: #15803d; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#la",
+      "prop": "color",
+      "equals": "#15803d"
+     },
+     {
+      "t": "style",
+      "sel": "#lb",
+      "prop": "color",
+      "equals": "#444"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "input:checked + label { color: #15803d; font-weight: bold; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-invalid",
+   "title": "Подсветка неверного поля",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У поля электронной почты рамка серая (#94a3b8). Когда значение не проходит проверку (состояние :invalid), рамка должна стать красной (#dc2626); в обычном состоянии рамка остаётся серой. Вручную классов не ставьте: пользуйтесь псевдоклассом.",
+   "hint": "Псевдокласс :invalid подходит полю, значение которого не проходит проверку, например type=\"email\" с текстом без собаки.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>input { border: 2px solid #94a3b8; padding: 6px; }</style><input id=\"bad\" type=\"email\" required value=\"не-почта\"> <input id=\"good\" type=\"email\" value=\"ivan@mail.ru\">",
+    "starter_css": "input { border-color: #dc2626; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "input",
+      "prop": "border-top-color",
+      "equals": "#dc2626",
+      "state": "invalid"
+     },
+     {
+      "t": "style",
+      "sel": "input",
+      "prop": "border-top-color",
+      "equals": "#94a3b8"
+     },
+     {
+      "t": "no_ids"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "input:invalid { border-color: #dc2626; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-after",
+   "title": "Стрелка через ::after",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. После текста ссылки .ext должна появляться стрелка «→», добавленная из CSS, синего цвета #2563eb и с отступом слева не менее 4px. Сам текст в разметке менять нельзя.",
+   "hint": "Псевдоэлемент a::after со свойством content: \"→\". Без content он не появится.",
+   "spec": {
+    "kind": "css",
+    "html": "<a class=\"ext\" id=\"l\" href=\"https://example.org\">Документация</a>",
+    "starter_css": ".ext { color: #2563eb; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#l",
+      "prop": "content",
+      "equals": "\"→\"",
+      "pseudo": "after"
+     },
+     {
+      "t": "style",
+      "sel": "#l",
+      "prop": "color",
+      "equals": "#2563eb",
+      "pseudo": "after"
+     },
+     {
+      "t": "style",
+      "sel": "#l",
+      "prop": "margin-left",
+      "min": 4,
+      "pseudo": "after"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".ext::after { content: \"→\"; color: #2563eb; margin-left: 4px; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-order",
+   "title": "Победить порядком",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Элементу с классами a b подходят два правила одинаковой специфичности: .a { color: red } и .b { color: green }, побеждает последнее. Сделайте текст красным, не усиливая селектор и не трогая !important.",
+   "hint": "При равной специфичности выигрывает правило, которое записано ниже. Ваш CSS идёт после того, что уже есть.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.a { color: red; } .b { color: green; }</style><p class=\"a b\" id=\"t\">Какого я цвета?</p>",
+    "starter_css": "p { color: red; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "red"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "no_ids"
+     }
+    ],
+    "reference": {
+     "css": ".a { color: red; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-specificity",
+   "title": "Победить по специфичности",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В документе уже есть правило #card .text { color: red }. Сделайте текст синим без !important: ваше правило должно оказаться специфичнее.",
+   "hint": "Селектор #card .text весит (1, 1, 0). Добавьте ещё один класс или тип, не трогая ничего другого.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>#card .text { color: red; }</style><div id=\"card\"><p class=\"text\" id=\"t\">Текст в карточке</p></div>",
+    "starter_css": ".text { color: blue; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "blue"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "#card .text.text { color: blue; }"
+    }
+   }
+  },
+  {
+   "id": "w16-css-no-important",
+   "title": "Без !important и без id",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В документе уже есть правило .list .item.active { color: gray }. Сделайте активный пункт красным, не прибегая ни к !important, ни к идентификаторам: спор решает порядок правил.",
+   "hint": "Повторите тот же вес — три класса — и запишите правило ниже: при равной специфичности побеждает последнее.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.list .item.active { color: gray; }</style><ul class=\"list\"><li class=\"item active\" id=\"t\">Текущий пункт</li><li class=\"item\">Обычный</li></ul>",
+    "starter_css": ".item { color: red; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "red"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "no_ids"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".list .item.active { color: red; }"
+    }
+   }
+  }
+ ]
+}
