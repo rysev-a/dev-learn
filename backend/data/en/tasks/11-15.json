@@ -1,0 +1,114 @@
+{
+ "book": 11,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "w15-login",
+   "title": "A login form",
+   "statement": "Build a login form: it is submitted with the POST method to the address /login; inside are an email field (type=email, name=email), a password field (type=password, name=password) and a submit button. Every field must have a label.",
+   "hint": "The form has two attributes: action and method. A label is a label with for equal to the field's id; the button has type=submit."
+  },
+  {
+   "id": "w15-search",
+   "title": "A search form",
+   "statement": "The search form sends the query with the GET method to /search. The field is type=search with the name q; it has no visible label, so name it for the screen reader with aria-label. Give the form role=\"search\" and the button the text “Найти” (Search).",
+   "hint": "GET puts the query in the address: /search?q=…. A field without a visible label gets its name from the aria-label attribute. The form's role is the role attribute."
+  },
+  {
+   "id": "w15-email-required",
+   "title": "A required email",
+   "statement": "A subscription form: the email field must be required and of type email, so that the browser checks the address format itself. Add the label “Почта” (Email); the field name is email.",
+   "hint": "required is a boolean attribute, written without a value. The email type turns on the built-in check for “something@something”. The label is label for=id."
+  },
+  {
+   "id": "w15-password-new",
+   "title": "A password at sign-up",
+   "statement": "A new-password field: type=password, name password, required, at least 8 characters long (minlength). The password manager must understand that this is a new password: autocomplete=\"new-password\". The field already has a label — do not lose it.",
+   "hint": "minlength=\"8\" sets a lower limit on length; when logging in to an existing account it would be current-password, at sign-up it is new-password."
+  },
+  {
+   "id": "w15-number",
+   "title": "Item quantity",
+   "statement": "The “Количество” (Quantity) field is a number from 1 to 10 in steps of 1, 1 by default. The field name is qty, the type is number; set the limits with browser attributes, not with a script.",
+   "hint": "number has the attributes min, max and step; the default value is set by value."
+  },
+  {
+   "id": "w15-radio-group",
+   "title": "A radio group",
+   "statement": "Choosing a delivery method: a group of two radio buttons (“Почтой” (By mail) with the value post and “Курьером” (By courier) with the value courier) sharing the name delivery. Wrap the group in a fieldset with the legend “Доставка” (Delivery); the courier is selected by default. Every button has a label.",
+   "hint": "Radio buttons with the same name form a group. fieldset gathers the group, and legend is its question (the first child of fieldset). checked selects a button."
+  },
+  {
+   "id": "w15-consent",
+   "title": "Consent with a checkbox",
+   "statement": "A checkbox for agreeing to the rules: type=checkbox, name agree, value yes. It is required, and its label, “Согласен с правилами” (I agree to the rules), must be tied to the checkbox so that clicking the text checks it.",
+   "hint": "The shortest way to tie a label is to wrap the checkbox in a label tag. Being required is the required attribute."
+  },
+  {
+   "id": "w15-select-groups",
+   "title": "A list with groups",
+   "statement": "A drop-down list of cities: a select with the name city, inside it two optgroup groups (each with a label), and at least four option elements across the groups. Give every option a value. The label of the list is “Город” (City).",
+   "hint": "Structure: select → optgroup label=\"…\" → option value=\"…\". The label for the select is the same label for."
+  },
+  {
+   "id": "w15-textarea",
+   "title": "A multi-line field",
+   "statement": "A message field: a textarea with the name message, 5 rows tall, at most 500 characters long. The label is “Сообщение” (Message).",
+   "hint": "The size of a textarea is set with rows and cols, the length limit with maxlength."
+  },
+  {
+   "id": "w15-datalist",
+   "title": "Suggestions in a field",
+   "statement": "The “Город” (City) field with suggestions: an input with the name city is tied to a datalist that has id=\"cities\" and at least three option elements. A person can pick from the list or type their own value. The field has a label.",
+   "hint": "The link between the two elements is the list attribute of the input, equal to the list's id. The datalist choices are option tags with value."
+  },
+  {
+   "id": "w15-describedby",
+   "title": "A hint for a field",
+   "statement": "The password field has the hint “Не короче 8 символов” (At least 8 characters). Give the hint paragraph id=\"hint\" and tie it to the field with aria-describedby, so that the screen reader reads it after the field's name.",
+   "hint": "The value of aria-describedby is the id of the element with the explanation (without a hash sign)."
+  },
+  {
+   "id": "w15-button-types",
+   "title": "Buttons inside a form",
+   "statement": "The form has two buttons. “Показать пароль” (Show password) is needed by a script and must not submit the form; “Войти” (Log in) does submit it. Set the types so that no button in the form is left without a type.",
+   "hint": "button has three types: submit (the default), button and reset. A button without a type inside a form is a submit button."
+  },
+  {
+   "id": "w15-file",
+   "title": "File upload",
+   "statement": "A photo upload form: a type=file field with the name photo that accepts only images (accept=\"image/*\") and lets the user pick several files (multiple). The label is “Фотографии” (Photos).",
+   "hint": "accept restricts the type of files that can be chosen; multiple is a boolean attribute without a value."
+  },
+  {
+   "id": "w15-hidden",
+   "title": "A service field",
+   "statement": "A record edit form: along with the visible field “Заголовок” (Title) (name title), the record number must go to the server — a hidden field with the name id and the value 42. The form is submitted with the POST method.",
+   "hint": "A hidden field is input type=hidden: it is not visible, but its name and value go into the request. It needs no label."
+  },
+  {
+   "id": "w15-refactor",
+   "title": "Fix the order form",
+   "statement": "The form is built on divs: the labels are just text, and the “button” is a div with onclick. Fix it: every field gets a real label, the phone field gets type tel, and instead of the div with a handler there is a button with type=submit and the text “Заказать” (Order). The onclick attribute is not needed in the form.",
+   "hint": "Use label for the labels (for + id, or a wrapper). Replace div[onclick] with button; the tel type gives the phone field a numeric keyboard."
+  },
+  {
+   "id": "w15-readonly-disabled",
+   "title": "readonly and disabled",
+   "statement": "The checkout form has two fields. “Страна” (Country) (name country, value “Россия”) must be visible and sent to the server, but the user cannot change it. “Промокод” (Promo code) (name promo) is switched off completely: it does not receive focus and is not sent to the server. Keep the labels.",
+   "hint": "readonly keeps the field in the request, disabled removes it. Both attributes are boolean."
+  },
+  {
+   "id": "w15-error-message",
+   "title": "An error message",
+   "statement": "The email field failed validation. The message “Неверная почта” (Invalid email) must be text with id=\"err\" and the role alert (announced immediately), tied to the field with aria-describedby and marked on the field as aria-invalid=\"true\". Keep the field's label.",
+   "hint": "Two attributes on the input: aria-invalid=\"true\" and aria-describedby with the id of the message. The message itself gets role=\"alert\"."
+  },
+  {
+   "id": "w15-autocomplete",
+   "title": "An address form with autofill",
+   "statement": "A delivery form with three fields: “ФИО” (Full name) (name fullname, autocomplete=\"name\"), “Почта” (Email) (name email, type email, autocomplete=\"email\") and “Индекс” (Postal code) (name zip, autocomplete=\"postal-code\", inputmode=\"numeric\"). The labels are already there.",
+   "hint": "autocomplete tells the browser what to fill in; inputmode=\"numeric\" only changes the keyboard, the type stays text."
+  }
+ ]
+}

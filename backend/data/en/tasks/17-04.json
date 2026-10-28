@@ -1,0 +1,60 @@
+{
+ "book": 17,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "virt-sim-ept",
+   "title": "Address translation simulator",
+   "statement": "Compare shadow page tables and nested EPT/NPT on four workloads. Change the mode and the guest and host page sizes, and watch the two-dimensional walk on a TLB miss and the total cost in memory accesses. The exercise is solved when all four goals are met.",
+   "hint": "A TLB entry covers a page of the smaller of the two sizes: a guest huge page is useless if the host pages are small."
+  },
+  {
+   "id": "virt-split-va",
+   "title": "Splitting a virtual address",
+   "statement": "Write a function split_va(addr): addr is a 48-bit x86-64 virtual address (an integer). The address is split into four 9-bit indexes (from most to least significant: PML4, PDPT, PD, PT) and a 12-bit offset within the page. Return the tuple ((i4, i3, i2, i1), offset).",
+   "hint": "Shift the address by 39, 30, 21, and 12 bits and take 9 bits each with the mask 511."
+  },
+  {
+   "id": "virt-walk-table",
+   "title": "Walking page tables",
+   "statement": "Write a function walk(tables, root, indexes): tables is a dictionary \"table name to table\", where a table is a dictionary \"index as a string to entry\"; an entry is either the name of the next table (a string) or a frame number (an integer). root is the name of the root table, indexes is the list of indexes per level. Walk through the tables and return the frame number found at the last level. If an entry is missing, if an intermediate level holds a frame instead of a table, or if the last level holds a table name, return None.",
+   "hint": "The indexes in the tables are strings: use str(i)."
+  },
+  {
+   "id": "virt-walk-cost",
+   "title": "Two-dimensional walk",
+   "statement": "Write a function walk_cost(g, h): g is the number of levels of the guest tables, h is the number of levels of the nested tables (EPT/NPT). Without virtualization a walk costs g memory accesses. With nested tables, each of the g guest steps and the final guest physical address are translated by a walk of h levels, and each guest step also reads its own entry. Return the tuple (accesses without virtualization, accesses with it): (g, (g + 1) * (h + 1) - 1).",
+   "hint": "For g = h = 4 you should get (4, 24)."
+  },
+  {
+   "id": "virt-shadow-events",
+   "title": "Shadow versus nested tables",
+   "statement": "Write a function memory_events(p2m, events, mode): p2m is a dictionary \"guest physical frame (a string) to host frame\", events is a list of events: [\"map\", gva, gpa] (the guest maps page gva to gpa), [\"unmap\", gva], [\"switch\"] (the guest changed CR3), and [\"load\", gva]. The guest's table is initially empty. The result of a load is: the host frame p2m[str(gpa)]; \"guest-fault\" if gva is not mapped by the guest; \"ept-violation\" if gpa is not in p2m. Return the tuple (list of the results of all loads, in order, number of exits into the hypervisor). With mode == \"shadow\", every map, unmap, and switch counts as an exit, and so does every load whose result is not a host frame. With mode == \"ept\", only a load with the result \"ept-violation\" counts as an exit.",
+   "hint": "The load results are the same in both modes, only the exit count differs."
+  },
+  {
+   "id": "virt-tlb-misses",
+   "title": "TLB misses and page size",
+   "statement": "Write a function tlb_misses(addrs, page_size, entries): addrs is a sequence of addresses, page_size is the page size in bytes, entries is the number of TLB entries. The page number is addr // page_size. The TLB holds the entries (a count) most recently used pages (the least recently used one is evicted, and on a hit the entry becomes the freshest). Return the number of misses.",
+   "hint": "Keep a list of pages from oldest to freshest; on a hit, move the page to the end."
+  },
+  {
+   "id": "virt-leaf-bytes",
+   "title": "Memory for leaf tables",
+   "statement": "Write a function leaf_table_bytes(mem_bytes, page_size): how many bytes the leaf entries of a table take when it maps mem_bytes bytes of memory with pages of size page_size. One entry is 8 bytes, the number of pages is rounded up; don't count the upper levels.",
+   "hint": "The number of pages is a division rounded up."
+  },
+  {
+   "id": "virt-ept-handle",
+   "title": "EPT violation handler",
+   "statement": "Write a function ept_handle(p2m, next_free, accesses): p2m is a dictionary \"guest frame (a string) to [host frame, writable or not]\", next_free is the next free host frame, accesses is a list of accesses [frame, \"r\" or \"w\"]. If there is no entry, a violation occurs: the hypervisor allocates frame next_free, creates the entry [frame, True], and increments next_free. If the entry exists but is read-only and the access is a write, a violation occurs: the hypervisor allocates a new frame (copy on write) and replaces the entry with [new frame, True]. All other accesses go through with no exit. Don't modify the input p2m. Return the tuple (new p2m, number of violations, new next_free).",
+   "hint": "Copy p2m, and replace an entry as a whole with a new list."
+  },
+  {
+   "id": "virt-gva-hpa",
+   "title": "Two-stage address translation",
+   "statement": "Write a function gva_to_hpa(gpt, p2m, gva): gpt is the guest's table \"virtual page number (a string) to guest physical page number\", p2m is the hypervisor's table \"guest physical page (a string) to host page\". Pages are 4096 bytes. Translate the guest virtual address gva into a host physical one. If the page is not in gpt, return \"guest-fault\"; if it is not in p2m, return \"ept-violation\".",
+   "hint": "The page number is gva // 4096, the offset is gva % 4096."
+  }
+ ]
+}

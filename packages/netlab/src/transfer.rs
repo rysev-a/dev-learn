@@ -126,7 +126,7 @@ fn failed(status: &str) -> TransferResult {
         bdp_kb: 0.0,
         rwnd_kb: 0.0,
         chart: None,
-        text: "нет связи: передавать некуда".into(),
+        text: i18n::tr("no connection: nothing to transfer to").into(),
     }
 }
 
@@ -206,25 +206,20 @@ pub fn transfer(state: &mut NetState, src_id: &str, dst: u32, bytes: f64) -> Tra
     let seconds = t / 1e6;
     let mbps = (sent.min(bytes) * 8.0) / 1e6 / seconds;
     let limit = if cc == Cc::Bbr {
-        "канал"
+        i18n::tr("link")
     } else if rwnd < bdp * 0.9 {
-        "окно приёма"
+        i18n::tr("receive window")
     } else if loss_p > 0.001 {
-        "потери (алгоритм сбрасывает окно)"
+        i18n::tr("loss (the algorithm shrinks the window)")
     } else {
-        "канал"
+        i18n::tr("link")
     };
     let text = [
-        format!("передано {} МБ за {} с — {} Мбит/с", to_fixed(bytes / 1e6, 0), to_fixed(seconds, 2), to_fixed(mbps, 1)),
-        format!(
-            "канал {} Мбит/с · RTT {} мс · BDP {} КБ",
-            crate::util::num_str(rate),
-            to_fixed(rtt0 / 1000.0, 1),
-            to_fixed(bdp / 1024.0, 0)
-        ),
-        format!("окно приёма {} КБ · алгоритм {} · потерь: {}", to_fixed(rwnd / 1024.0, 0), cc.as_str(), losses),
-        format!("RTT под нагрузкой до {} мс (очередь {} пакетов)", to_fixed(max_rtt / 1000.0, 0), crate::util::num_str(qlen)),
-        format!("ограничивает: {limit}"),
+        i18n::trf!("transferred {0} MB in {1} s — {2} Mbit/s", to_fixed(bytes / 1e6, 0), to_fixed(seconds, 2), to_fixed(mbps, 1)),
+        i18n::trf!("link {0} Mbit/s · RTT {1} ms · BDP {2} KB", crate::util::num_str(rate), to_fixed(rtt0 / 1000.0, 1), to_fixed(bdp / 1024.0, 0)),
+        i18n::trf!("receive window {0} KB · algorithm {1} · losses: {2}", to_fixed(rwnd / 1024.0, 0), cc.as_str(), losses),
+        i18n::trf!("RTT under load up to {0} ms ({1} packets queued)", to_fixed(max_rtt / 1000.0, 0), crate::util::num_str(qlen)),
+        i18n::trf!("limited by: {0}", limit),
     ]
     .join("\n");
     TransferResult {

@@ -1,0 +1,24 @@
+{
+ "book": 17,
+ "chapter": 10,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-migration",
+   "title": "Live migration simulator",
+   "statement": "Move a running machine with 16 GiB of memory to another server in three scenarios: a calm, an active and a very active guest. Tune the allowed downtime, vCPU throttling, compression and the moment of switching to post-copy, and watch how the pre-copy rounds reduce the remainder. The exercise is solved when the goals of all three scenarios are met.",
+   "hint": "Migration converges when the guest's write rate is lower than the network throughput; otherwise you need throttling, compression or post-copy.",
+   "spec_text": {
+    "/scenarios/0/title": "A calm guest",
+    "/scenarios/0/goal": "Pre-copy converged, downtime at most 100 ms",
+    "/scenarios/0/hint": "The allowed downtime is the stop threshold: the smaller it is, the more rounds, but the shorter the pause.",
+    "/scenarios/1/title": "An active guest",
+    "/scenarios/1/goal": "Without post-copy: the migration converged, downtime at most 600 ms",
+    "/scenarios/1/hint": "The guest writes faster than the network can send, so the remainder does not shrink. You need to throttle the vCPU.",
+    "/scenarios/2/title": "A very active guest",
+    "/scenarios/2/goal": "Hybrid: downtime at most 100 ms, total time at most 60 s",
+    "/scenarios/2/hint": "Switch to post-copy earlier: each pre-copy round here costs about 13 seconds."
+   }
+  }
+ ]
+}

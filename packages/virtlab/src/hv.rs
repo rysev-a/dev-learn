@@ -35,10 +35,10 @@ impl Program {
     /// Проверка: программа не пуста и все команды разбираются.
     pub fn validate(&self) -> Result<(), SpecError> {
         for c in &self.code {
-            Instr::parse(c).map_err(|e| SpecError::new(format!("программа {}: {e}", self.id)))?;
+            Instr::parse(c).map_err(|e| SpecError::new(i18n::trf!("program {0}: {1}", self.id, e)))?;
         }
         if self.code.is_empty() {
-            return Err(SpecError::new(format!("программа {}: пустая", self.id)));
+            return Err(SpecError::new(i18n::trf!("program {0}: empty", self.id)));
         }
         Ok(())
     }
@@ -75,7 +75,7 @@ impl Instr {
         let arg = it.next();
         let num = |name: &str| -> Result<i64, SpecError> {
             arg.and_then(|a| a.parse::<i64>().ok())
-                .ok_or_else(|| SpecError::new(format!("команда «{text}»: {name} требует целое число")))
+                .ok_or_else(|| SpecError::new(i18n::trf!("command “{0}”: {1} requires an integer", text, name)))
         };
         Ok(match op {
             "ADD" => Instr::Add(num("ADD")?),
@@ -180,80 +180,80 @@ pub fn inspect(ins: &Instr, s: &GuestState, translate: bool) -> Inspection {
     match ins {
         Instr::Add(_) | Instr::Other => Inspection::Direct,
         Instr::Cli => trap(
-            "CLI — запретить прерывания".into(),
+            i18n::tr("CLI — disable interrupts").into(),
             vec![
-                opt("виртуальный флаг vif ← 0", true, None),
+                opt(i18n::tr("virtual flag vif ← 0"), true, None),
                 opt(
-                    "выполнить CLI на настоящем процессоре",
+                    i18n::tr("run CLI on the real CPU"),
                     false,
-                    Some("монитор перестал бы получать прерывания таймера и потерял управление"),
+                    Some(i18n::tr("the monitor would stop receiving timer interrupts and lose control")),
                 ),
-                opt("vif ← 1", false, Some("это противоположное действие")),
+                opt("vif ← 1", false, Some(i18n::tr("this is the opposite action"))),
             ],
         ),
         Instr::Sti => trap(
-            "STI — разрешить прерывания".into(),
+            i18n::tr("STI — enable interrupts").into(),
             vec![
-                opt("vif ← 1 и доставить очередь", true, None),
-                opt("vif ← 1, очередь оставить", false, Some("прерывания, пришедшие раньше, так и не дойдут до гостя")),
+                opt(i18n::tr("vif ← 1 and deliver the queue"), true, None),
+                opt(i18n::tr("vif ← 1, keep the queue"), false, Some(i18n::tr("interrupts that arrived earlier would never reach the guest"))),
                 opt(
-                    "выполнить STI на настоящем процессоре",
+                    i18n::tr("run STI on the real CPU"),
                     false,
-                    Some("настоящий флаг и так включён: гость не получил бы своё состояние"),
+                    Some(i18n::tr("the real flag is already on: the guest would not get its own state")),
                 ),
             ],
         ),
         Instr::Wrcr3(n) => trap(
-            format!("MOV CR3, {n} — сменить таблицы страниц"),
+            i18n::trf!("MOV CR3, {0} — switch page tables", n),
             vec![
-                opt(format!("виртуальный vcr3 ← {n}"), true, None),
+                opt(i18n::trf!("virtual vcr3 ← {0}", n), true, None),
                 opt(
-                    format!("записать {n} в настоящий CR3"),
+                    i18n::trf!("write {0} to the real CR3", n),
                     false,
-                    Some("гость получил бы доступ к чужой памяти: настоящим CR3 владеет монитор"),
+                    Some(i18n::tr("the guest would gain access to foreign memory: the monitor owns the real CR3")),
                 ),
-                opt(format!("acc ← {n}"), false, Some("команда пишет в CR3, а не в аккумулятор")),
+                opt(format!("acc ← {n}"), false, Some(i18n::tr("the command writes to CR3, not to the accumulator"))),
             ],
         ),
         Instr::Rdcr3 => trap(
-            "MOV acc, CR3 — прочитать таблицы страниц".into(),
+            i18n::tr("MOV acc, CR3 — read the page tables").into(),
             vec![
-                opt("acc ← виртуальный vcr3", true, None),
-                opt("acc ← настоящий CR3", false, Some("гость увидел бы настоящее состояние хозяина, а не своё")),
-                opt("vcr3 ← 0", false, Some("чтение ничего не должно менять")),
+                opt(i18n::tr("acc ← virtual vcr3"), true, None),
+                opt(i18n::tr("acc ← real CR3"), false, Some(i18n::tr("the guest would see the host's real state instead of its own"))),
+                opt("vcr3 ← 0", false, Some(i18n::tr("a read must not change anything"))),
             ],
         ),
         Instr::Hlt => trap(
-            "HLT — остановить процессор".into(),
+            i18n::tr("HLT — halt the CPU").into(),
             vec![
-                opt("остановить виртуальный процессор гостя", true, None),
-                opt("остановить настоящий процессор", false, Some("остановились бы все остальные гости и сам монитор")),
-                opt("ничего не делать", false, Some("гость ждёт прерывания, а процессор хозяина молотил бы впустую")),
+                opt(i18n::tr("halt the guest's virtual CPU"), true, None),
+                opt(i18n::tr("halt the real CPU"), false, Some(i18n::tr("all other guests and the monitor itself would halt"))),
+                opt(i18n::tr("do nothing"), false, Some(i18n::tr("the guest is waiting for an interrupt, and the host CPU would spin in vain"))),
             ],
         ),
         Instr::Irq(n) => trap(
-            format!("внешнее прерывание {n} для гостя"),
+            i18n::trf!("external interrupt {0} for the guest", n),
             vec![
-                opt("доставить гостю сейчас", s.vif == 1, Some("гость запретил прерывания: доставлять нельзя")),
-                opt("поставить в очередь", s.vif == 0, Some("гость прерывания разрешил: ждать незачем")),
+                opt(i18n::tr("deliver to the guest now"), s.vif == 1, Some(i18n::tr("the guest has disabled interrupts: it cannot be delivered"))),
+                opt(i18n::tr("put in the queue"), s.vif == 0, Some(i18n::tr("the guest has enabled interrupts: no reason to wait"))),
             ],
         ),
         Instr::Popf(n) => {
             if !translate {
                 return Inspection::Silent {
-                    why: "В кольце 1 команда POPF не может изменить флаг IF, но и не вызывает ловушку: ничего не произошло, монитор не узнал."
+                    why: i18n::tr("In ring 1 the POPF instruction cannot change the IF flag, yet it does not raise a trap either: nothing happened, and the monitor never found out.")
                         .into(),
                 };
             }
             trap(
-                format!("POPF {n} — загрузить флаги (после трансляции — вызов монитора)"),
+                i18n::trf!("POPF {0} — load flags (after translation — a monitor call)", n),
                 vec![
                     opt(format!("vif ← {n}"), true, None),
-                    opt("игнорировать, как делает процессор", false, Some("ради этого и включили трансляцию")),
+                    opt(i18n::tr("ignore it, as the CPU does"), false, Some(i18n::tr("that is why translation was enabled"))),
                     opt(
-                        "выполнить POPF на настоящем процессоре",
+                        i18n::tr("run POPF on the real CPU"),
                         false,
-                        Some("настоящий IF не должен зависеть от гостя"),
+                        Some(i18n::tr("the real IF must not depend on the guest")),
                     ),
                 ],
             )
@@ -417,7 +417,7 @@ impl Session {
             Inspection::Trap { .. } => Stepped::Blocked,
             Inspection::Direct => {
                 let mut t = apply(&ins, &self.state);
-                t.log.push(format!("{text} — напрямую на процессоре"));
+                t.log.push(i18n::trf!("{0} — directly on the CPU", text));
                 self.state = t;
                 Stepped::Direct
             }
@@ -425,7 +425,7 @@ impl Session {
                 let mut t = self.state.clone();
                 t.pc += 1;
                 t.silent = true;
-                t.log.push(format!("{text} — без ловушки, ничего не изменилось"));
+                t.log.push(i18n::trf!("{0} — no trap, nothing changed", text));
                 self.state = t;
                 Stepped::Silent { why }
             }
@@ -448,7 +448,7 @@ impl Session {
         }
         let text = self.raw[self.state.pc].clone();
         let mut t = apply(&ins, &self.state);
-        t.log.push(format!("{text} — ловушка: {}", o.label));
+        t.log.push(i18n::trf!("{0} — trap: {1}", text, o.label));
         self.state = t;
         if self.state.halted {
             let f = self.make_finish();
@@ -495,30 +495,30 @@ pub fn replay(program: &Program, run: &Run) -> Result<Finish, SpecError> {
     let mut s = Session::new(&program.code, run.translate)?;
     for (i, st) in run.steps.iter().enumerate() {
         if s.finish().is_some() {
-            return Err(SpecError::new(format!("действие {}: после остановки гостя", i + 1)));
+            return Err(SpecError::new(i18n::trf!("action {0}: after the guest halted", i + 1)));
         }
-        let bad = |what: &str| SpecError::new(format!("действие {}: {what}", i + 1));
+        let bad = |what: &str| SpecError::new(i18n::trf!("action {0}: {1}", i + 1, what));
         match st {
             Step::Direct => match s.inspect() {
                 Some(Inspection::Direct) => {
                     s.step();
                 }
-                _ => return Err(bad("команда не прямая")),
+                _ => return Err(bad(i18n::tr("the command is not direct"))),
             },
             Step::Silent => match s.inspect() {
                 Some(Inspection::Silent { .. }) => {
                     s.step();
                 }
-                _ => return Err(bad("команда не «тихая»")),
+                _ => return Err(bad(i18n::tr("the command is not “silent”"))),
             },
             Step::Trap { label } => {
                 if s.choose(label) == Choice::Invalid {
-                    return Err(bad("такой ловушки или варианта нет"));
+                    return Err(bad(i18n::tr("there is no such trap or option")));
                 }
             }
         }
     }
-    s.finish().cloned().ok_or_else(|| SpecError::new("программа не доведена до остановки гостя"))
+    s.finish().cloned().ok_or_else(|| SpecError::new(i18n::tr("the program did not run until the guest halted")))
 }
 
 /// Идеальный прогон программы: на каждой ловушке верный вариант. Если без трансляции встретилась «тихая» команда,
@@ -539,7 +539,7 @@ pub fn ideal_run(program: &Program, translate: bool) -> Result<Run, SpecError> {
             }
             Some(Inspection::Trap { options, .. }) => {
                 let Some(o) = options.iter().find(|o| o.ok) else {
-                    return Err(SpecError::new("на ловушке нет верного варианта"));
+                    return Err(SpecError::new(i18n::tr("the trap has no correct option")));
                 };
                 s.choose(&o.label);
                 steps.push(Step::Trap { label: o.label.clone() });
@@ -565,21 +565,21 @@ pub fn default_programs() -> Vec<Program> {
     vec![
         p(
             "base",
-            "Привилегированные команды",
+            i18n::tr("Privileged instructions"),
             &["ADD 3", "CLI", "WRCR3 4096", "ADD 2", "RDCR3", "STI", "HLT"],
-            "Пройдите программу: на каждой ловушке выберите верную имитацию",
+            i18n::tr("Run the program: at every trap choose the correct emulation"),
         ),
         p(
             "irq",
-            "Прерывания",
+            i18n::tr("Interrupts"),
             &["CLI", "IRQ 1", "IRQ 2", "STI", "HLT"],
-            "Не потеряйте прерывания: они ждут в очереди, пока гость не разрешит",
+            i18n::tr("Do not lose interrupts: they wait in the queue until the guest enables them"),
         ),
         p(
             "popf",
-            "Проблема POPF",
+            i18n::tr("The POPF problem"),
             &["CLI", "POPF 1", "ADD 2", "HLT"],
-            "Выполните программу так, чтобы POPF изменила виртуальный флаг IF",
+            i18n::tr("Run the program so that POPF changes the virtual IF flag"),
         ),
     ]
 }

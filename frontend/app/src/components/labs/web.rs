@@ -64,7 +64,7 @@ fn solution_json(s: &Solution) -> String {
 pub fn WebLab(props: LabProps) -> impl IntoView {
     let task: Task = match serde_json::from_value(props.task.spec.clone()) {
         Ok(t) => t,
-        Err(e) => return view! { <p class="error">{format!("Неверное описание упражнения: {e}")}</p> }.into_any(),
+        Err(e) => return view! { <p class="error">{i18n::trf!("Invalid exercise description: {0}", e)}</p> }.into_any(),
     };
     let kind = task.kind;
     let draft: Solution = serde_json::from_str(&props.draft.get_untracked()).unwrap_or_else(|_| Solution { html: task.starter_html.clone(), css: task.starter_css.clone() });
@@ -98,9 +98,9 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
         on_draft.run(sol.with_untracked(solution_json));
     };
     let (title, lang, editor_value): (&str, Lang, Signal<String>) = match kind {
-        Kind::Html => ("Разметка", Lang::Html, Signal::derive(move || sol.with(|s| s.html.clone()))),
-        Kind::Css => ("Стили", Lang::Css, Signal::derive(move || sol.with(|s| s.css.clone()))),
-        Kind::Selector => ("Селектор", Lang::Css, Signal::derive(move || sol.with(|s| s.css.clone()))),
+        Kind::Html => (i18n::tr("Markup"), Lang::Html, Signal::derive(move || sol.with(|s| s.html.clone()))),
+        Kind::Css => (i18n::tr("Styles"), Lang::Css, Signal::derive(move || sol.with(|s| s.css.clone()))),
+        Kind::Selector => (i18n::tr("Selector"), Lang::Css, Signal::derive(move || sol.with(|s| s.css.clone()))),
     };
     let on_input = if kind == Kind::Html { edit_html } else { edit_css };
     let hint = props.task.hint.clone();
@@ -133,28 +133,28 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
                             <div class="lab-actions">
                                 {has_hint.then(|| view! {
                                     <button type="button" class="quiz-btn ghost" on:click=move |_| hint_open.update(|o| *o = !*o)>
-                                        {move || if hint_open.get() { "Скрыть подсказку" } else { "Подсказка" }}
+                                        {move || if hint_open.get() { i18n::tr("Hide hint") } else { i18n::tr("Hint") }}
                                     </button>
                                 })}
-                                <button type="button" class="quiz-btn ghost" on:click=restart>"Начать заново"</button>
+                                <button type="button" class="quiz-btn ghost" on:click=restart>{i18n::tr("Start over")}</button>
                             </div>
                         </div>
                         {move || (has_hint && hint_open.get()).then(|| view! { <p class="ex-hint">{hint.clone()}</p> })}
                         <CodeEditor value=editor_value on_input=on_input on_run=Callback::new(|()| ()) lang=lang accepted=solved autofocus=false />
                     </div>
                     <div class="lab-card web-co">
-                        <div class="lab-card-head"><h3>"Условия"</h3></div>
+                        <div class="lab-card-head"><h3>{i18n::tr("Requirements")}</h3></div>
                         <ul class="vl-goals">{items}</ul>
                         {move || solved.get().then(|| view! {
                             <p class="lab-ok">
-                                "Решено. "
-                                {move || has_next.get().then(|| view! { <button type="button" class="quiz-btn" on:click=move |_| on_next.run(())>"Дальше →"</button> })}
+                                {i18n::tr("Solved. ")}
+                                {move || has_next.get().then(|| view! { <button type="button" class="quiz-btn" on:click=move |_| on_next.run(())>{i18n::tr("Next →")}</button> })}
                             </p>
                         })}
                     </div>
                     <div class="lab-card web-pv">
                         <div class="lab-card-head">
-                            <h3>"Предпросмотр"</h3>
+                            <h3>{i18n::tr("Preview")}</h3>
                             <div class="lab-actions">
                                 {WIDTHS.iter().map(|(w, label)| {
                                     let w = *w;
@@ -165,7 +165,7 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
                             </div>
                         </div>
                         <div class="web-frame-wrap">
-                            <iframe class="web-frame" sandbox="" title="Предпросмотр" style=move || format!("width: {}px", width.get()) srcdoc=srcdoc></iframe>
+                            <iframe class="web-frame" sandbox="" title=i18n::tr("Preview") style=move || format!("width: {}px", width.get()) srcdoc=srcdoc></iframe>
                         </div>
                     </div>
             </div>
@@ -180,6 +180,7 @@ mod tests {
 
     #[test]
     fn scripts_are_removed_from_the_preview() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(strip_scripts("<p>a</p><script src=x></script><p>b</p>"), "<p>a</p><p>b</p>");
         assert_eq!(strip_scripts("<SCRIPT>alert(1)</SCRIPT>тут"), "тут");
         assert_eq!(strip_scripts("<p>без скриптов</p>"), "<p>без скриптов</p>");

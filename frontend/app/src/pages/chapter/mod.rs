@@ -54,13 +54,13 @@ pub type Tab = (&'static str, &'static str, Option<String>);
 pub fn tabs(theory: bool, quiz: usize, practice: bool, solved: Option<(usize, usize)>) -> Vec<Tab> {
     let mut out = Vec::new();
     if theory {
-        out.push(("", "Теория", None));
+        out.push(("", i18n::tr("Theory"), None));
     }
     if quiz > 0 {
-        out.push(("questions", "Вопросы", Some(quiz.to_string())));
+        out.push(("questions", i18n::tr("Questions"), Some(quiz.to_string())));
     }
     if practice {
-        out.push(("exercises", "Практика", solved.map(|(done, all)| format!("{done}/{all}"))));
+        out.push(("exercises", i18n::tr("Practice"), solved.map(|(done, all)| format!("{done}/{all}"))));
     }
     out
 }
@@ -123,8 +123,8 @@ fn ChapterInner(book: i64, id: i64) -> impl IntoView {
 fn TabBody() -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();
     move || match ctx.chapter.get() {
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
-        Load::Failed(_) => view! { <p class="error">"Урок не найден"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
+        Load::Failed(_) => view! { <p class="error">{i18n::tr("Lesson not found")}</p> }.into_any(),
         Load::Ready(_) => view! { <Outlet /> }.into_any(),
     }
 }
@@ -142,7 +142,7 @@ fn PlainChapter(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
                     .cloned()
                     .map(|ch| view! {
                         <p class="crumbs">{ch.section}</p>
-                        <h2>{format!("Урок {}. {}", ch.num, ch.title)}</h2>
+                        <h2>{i18n::trf!("Lesson {}. {}", ch.num, ch.title)}</h2>
                         <ChapterTabs book=book id=id tabs=tabs expand=true />
                     })
             }}
@@ -159,7 +159,7 @@ fn FsShell(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
     let slots = expect_context::<Slots>();
     let player = expect_context::<Player>();
     let navigate = use_navigate();
-    let caption = move || ctx.chapter.get().ready().map(|ch| format!("Урок {}. {}", ch.num, ch.title)).unwrap_or_else(|| "…".to_string());
+    let caption = move || ctx.chapter.get().ready().map(|ch| i18n::trf!("Lesson {}. {}", ch.num, ch.title)).unwrap_or_else(|| "…".to_string());
     // другая глава открывается с теории
     let open_chapter = Callback::new(move |target: i64| {
         player.stop();
@@ -173,11 +173,11 @@ fn FsShell(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
                     <span class="slide-fs-caption">{caption}</span>
                     <ChapterTabs book=book id=id tabs=tabs expand=false />
                     <span class="slide-fs-slot" node_ref=slots.head></span>
-                    <button class="slide-btn" title="Свернуть (Esc)" on:click=move |_| fs.set(false)>
+                    <button class="slide-btn" title=i18n::tr("Collapse (Esc)") on:click=move |_| fs.set(false)>
                         <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
                             <path d="M2 2l10 10M12 2L2 12" />
                         </svg>
-                        <span>"Свернуть"</span>
+                        <span>{i18n::tr("Collapse")}</span>
                     </button>
                 </div>
                 <div class="slide-fs-body">
@@ -199,7 +199,7 @@ fn ChapterTabs(book: i64, id: i64, tabs: Memo<Vec<Tab>>, expand: bool) -> impl I
         path.strip_prefix(&base).unwrap_or("").trim_matches('/') == sub
     };
     view! {
-        <nav class="ch-tabs" aria-label="Разделы урока">
+        <nav class="ch-tabs" aria-label=i18n::tr("Lesson sections")>
             {move || {
                 tabs.get()
                     .into_iter()
@@ -210,7 +210,7 @@ fn ChapterTabs(book: i64, id: i64, tabs: Memo<Vec<Tab>>, expand: bool) -> impl I
                     .collect_view()
             }}
             {expand.then(|| view! {
-                <button class="ch-expand" title="Весь экран" aria-label="Развернуть на весь экран" on:click=move |_| fs.set(true)>
+                <button class="ch-expand" title=i18n::tr("Full screen") aria-label=i18n::tr("Expand to full screen") on:click=move |_| fs.set(true)>
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 1H1v4M9 1h4v4M5 13H1V9M9 13h4V9" />
                     </svg>
@@ -229,7 +229,7 @@ mod tests {
         assert!(tabs(false, 0, false, None).is_empty());
         let all = tabs(true, 5, true, Some((2, 9)));
         let names: Vec<_> = all.iter().map(|t| t.1).collect();
-        assert_eq!(names, ["Теория", "Вопросы", "Практика"]);
+        assert_eq!(names, ["Theory", "Questions", "Practice"]);
         assert_eq!(all[1].2.as_deref(), Some("5"));
         assert_eq!(all[2].2.as_deref(), Some("2/9"));
         assert_eq!(tabs(false, 0, true, None)[0].2, None, "у практики без код-задач значка нет");

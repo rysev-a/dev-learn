@@ -77,6 +77,7 @@ fn state_to_ts_string(s: &NetState) -> String {
 
 #[test]
 fn данные_полны_и_согласованы() {
+    i18n::set_locale(i18n::Locale::Ru);
     let cs = chapters();
     assert_eq!(cs.len(), 18, "главы с лабораторией: 1–8, 10–13, 15–20");
     let mut ids = std::collections::HashSet::new();
@@ -98,6 +99,7 @@ fn данные_полны_и_согласованы() {
 /// Самопроверка: в исходной сети хотя бы одна цель не выполнена, эталон проходит.
 #[test]
 fn самопроверка_заготовка_не_проходит_эталон_проходит() {
+    i18n::set_locale(i18n::Locale::Ru);
     for t in tasks() {
         let start = check_goals(&t.spec.start_state(), &t.spec.goals);
         assert!(!start.iter().all(|r| r.ok), "{}: уже решено в заготовке", t.id);
@@ -111,6 +113,7 @@ fn самопроверка_заготовка_не_проходит_этало�
 
 #[test]
 fn файлы_данных_канонические_и_без_потерь() {
+    i18n::set_locale(i18n::Locale::Ru);
     for c in chapters() {
         let path = data_dir().join(c.file_name());
         let text = std::fs::read_to_string(&path).expect("файл");
@@ -125,6 +128,7 @@ fn файлы_данных_канонические_и_без_потерь() {
 
 #[test]
 fn состояние_туда_и_обратно() {
+    i18n::set_locale(i18n::Locale::Ru);
     for t in tasks() {
         let s = t.spec.start_state();
         let j = serde_json::to_string(&s).unwrap();
@@ -143,6 +147,7 @@ fn состояние_туда_и_обратно() {
 
 #[test]
 fn verify_принимает_эталон_и_отклоняет_заготовку() {
+    i18n::set_locale(i18n::Locale::Ru);
     for t in tasks() {
         let solved = t.spec.solved_state().expect("решение");
         let v = verify(&t.spec, &solved);
@@ -161,6 +166,7 @@ fn verify_принимает_эталон_и_отклоняет_заготовк
 
 #[test]
 fn verify_отклоняет_подделки() {
+    i18n::set_locale(i18n::Locale::Ru);
     let all = tasks();
     // закрытое устройство
     let t = all.iter().find(|t| t.spec.start.devices.iter().any(|d| d.locked)).expect("упражнение с закрытым устройством");
@@ -217,6 +223,7 @@ fn verify_отклоняет_подделки() {
 
 #[test]
 fn шаги_решения_в_данных_читаемы() {
+    i18n::set_locale(i18n::Locale::Ru);
     let all = tasks();
     let cmds = all.iter().flat_map(|t| t.spec.solution.iter()).filter(|s| matches!(s, Step::Cmd { .. })).count();
     let cables = all.iter().flat_map(|t| t.spec.solution.iter()).filter(|s| matches!(s, Step::Cable { .. })).count();

@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        crate: [content, highlight, gen, weblab, sdlab, netlab, archlab, riscvlab, virtlab]
+        crate: [i18n, content, highlight, gen, weblab, sdlab, netlab, archlab, riscvlab, virtlab]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

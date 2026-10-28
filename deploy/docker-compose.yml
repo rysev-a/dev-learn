@@ -2,13 +2,13 @@
 # Проверка кода (worker + dind) — отдельный профиль `checks`: `--profile checks`. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
 #   cp deploy/.env.example deploy/.env  (заполнить)
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
-# Вариант без сборки на сервере: образы собираются и публикуются на другой машине (SAY_REGISTRY=ghcr.io/владелец/, SAY_TAG=2026-10-26):
+# Вариант без сборки на сервере: образы собираются и публикуются на другой машине (CS_CORE_REGISTRY=ghcr.io/владелец/, CS_CORE_TAG=2026-10-26):
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env build && docker compose … push
 #   на сервере: docker compose … pull && docker compose … up -d --no-build
 #   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images   # один раз: образы песочниц
 # Сборка бэкенда идёт с секретом `lab_token` (токен gitness для приватного реестра crates): LAB_TOKEN=… в окружении при сборке.
 # Данные — в томе surreal-data (SurrealDB).
-name: say
+name: cs-core
 
 services:
   # единственная точка входа: Traefik принимает 80/443 и раздаёт по маршрутам из traefik/dynamic.yml (сокет Docker не монтируется)
@@ -28,12 +28,12 @@ services:
       - --log.level=INFO
       - --accesslog=true
     ports:
-      - "${SAY_HTTP_PORT:-80}:80"
-      - "${SAY_HTTPS_PORT:-443}:443"
+      - "${CS_CORE_HTTP_PORT:-80}:80"
+      - "${CS_CORE_HTTPS_PORT:-443}:443"
     environment:
-      SAY_DOMAIN: ${SAY_DOMAIN:-localhost}
+      CS_CORE_DOMAIN: ${CS_CORE_DOMAIN:-localhost}
     volumes:
-      - ${SAY_TRAEFIK_CONFIG:-./traefik/http.yml}:/etc/traefik/dynamic.yml:ro
+      - ${CS_CORE_TRAEFIK_CONFIG:-./traefik/http.yml}:/etc/traefik/dynamic.yml:ro
       - traefik-acme:/acme
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
@@ -49,11 +49,11 @@ services:
 
   # frontend: Caddy со статикой Leptos внутри сети (наружу не опубликован)
   proxy:
-    image: ${SAY_REGISTRY:-}cs-core-proxy:${SAY_TAG:-latest}
+    image: ${CS_CORE_REGISTRY:-}cs-core-proxy:${CS_CORE_TAG:-latest}
     build: { context: .., dockerfile: deploy/proxy.Dockerfile }
     restart: unless-stopped
     environment:
-      SAY_SITE: ":80"
+      CS_CORE_SITE: ":80"
     depends_on:
       api: { condition: service_healthy }
     networks: [front]
@@ -61,26 +61,26 @@ services:
     logging: *log
 
   api:
-    image: ${SAY_REGISTRY:-}cs-core-api:${SAY_TAG:-latest}
+    image: ${CS_CORE_REGISTRY:-}cs-core-api:${CS_CORE_TAG:-latest}
     build:
       context: ..
       dockerfile: deploy/backend.Dockerfile
       secrets: [lab_token]
       # готовый `cargo vendor` вместо реестра lab (если до него нет сети); по умолчанию пусто — работает реестр с токеном
       additional_contexts:
-        vendor: ${SAY_VENDOR_DIR:-./no-vendor}
+        vendor: ${CS_CORE_VENDOR_DIR:-./no-vendor}
     restart: unless-stopped
     environment:
-      SAY_WORKER_TOKEN: ${SAY_WORKER_TOKEN:?задайте SAY_WORKER_TOKEN в deploy/.env}
+      CS_CORE_WORKER_TOKEN: ${CS_CORE_WORKER_TOKEN:?задайте CS_CORE_WORKER_TOKEN в deploy/.env}
       # потолок очереди проверок: при превышении бэкенд отвечает 503, интерфейс показывает окно о перегрузке
-      SAY_QUEUE_LIMIT: ${SAY_QUEUE_LIMIT:-300}
+      CS_CORE_QUEUE_LIMIT: ${CS_CORE_QUEUE_LIMIT:-300}
       SURREALDB_URL: ws://surrealdb:8000
       SURREAL_USER: root
       SURREAL_PASS: ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env}
       DB_STRICT: "1" # без базы не стартуем: молча работать на базе в памяти нельзя
       ADMIN_EMAIL: ${ADMIN_EMAIL:?задайте ADMIN_EMAIL в deploy/.env}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?задайте ADMIN_PASSWORD в deploy/.env}
-      APP_URL: ${SAY_URL:-http://localhost}
+      APP_URL: ${CS_CORE_URL:-http://localhost}
       SITE_NAME: ${SITE_NAME:-CS.Core}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -109,7 +109,7 @@ services:
     # доступ с хоста для разработки (Surrealist, surreal sql): только на 127.0.0.1, наружу порт не выходит.
     # Сеть back внутренняя (без выхода наружу), поэтому для публикации порта база дополнительно подключена к front.
     ports:
-      - "127.0.0.1:${SAY_SURREAL_PORT:-18000}:8000"
+      - "127.0.0.1:${CS_CORE_SURREAL_PORT:-18000}:8000"
     healthcheck:
       test: ["CMD", "/surreal", "is-ready"]
       interval: 5s
@@ -132,8 +132,8 @@ services:
       - dind-data:/var/lib/docker
       # каталог с кодом ученика создаёт воркер, а монтирует в песочницу демон dind — путь должен быть один и тот же
       - sandboxes:/sandboxes
-    cpus: ${SAY_SANDBOX_CPUS:-3}
-    mem_limit: ${SAY_SANDBOX_MEM:-6g}
+    cpus: ${CS_CORE_SANDBOX_CPUS:-3}
+    mem_limit: ${CS_CORE_SANDBOX_MEM:-6g}
     healthcheck:
       test: ["CMD", "docker", "info"]
       interval: 10s
@@ -143,13 +143,13 @@ services:
     logging: *log
 
   worker:
-    image: ${SAY_REGISTRY:-}cs-core-worker:${SAY_TAG:-latest}
+    image: ${CS_CORE_REGISTRY:-}cs-core-worker:${CS_CORE_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
     profiles: [checks]
     restart: unless-stopped
-    command: ["python", "worker.py", "--server", "http://api:8000", "--name", "compose", "--light", "${SAY_LIGHT_SLOTS:-2}", "--heavy", "${SAY_HEAVY_SLOTS:-1}"]
+    command: ["python", "worker.py", "--server", "http://api:8000", "--name", "compose", "--light", "${CS_CORE_LIGHT_SLOTS:-2}", "--heavy", "${CS_CORE_HEAVY_SLOTS:-1}"]
     environment:
-      SAY_WORKER_TOKEN: ${SAY_WORKER_TOKEN}
+      CS_CORE_WORKER_TOKEN: ${CS_CORE_WORKER_TOKEN}
       DOCKER_HOST: tcp://dind:2375
       TMPDIR: /sandboxes
     volumes:
@@ -161,9 +161,9 @@ services:
     mem_limit: 256m
     logging: *log
 
-  # разово: заливает образы песочниц в dind (python, rust, node, say-rust-crates)
+  # разово: заливает образы песочниц в dind (python, rust, node, cs-core-rust-crates)
   images:
-    image: ${SAY_REGISTRY:-}cs-core-worker:${SAY_TAG:-latest}
+    image: ${CS_CORE_REGISTRY:-}cs-core-worker:${CS_CORE_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
     profiles: [setup]
     command: ["/app/init-images.sh"]
@@ -184,13 +184,13 @@ services:
       - |
         sleep 90
         while true; do
-          f=/backups/say-$$(date +%Y%m%d-%H%M%S).surql
-          if curl -fsS -u "root:$$SURREAL_PASS" -H "surreal-ns: stack" -H "surreal-db: say" -H "Accept: application/octet-stream" -o "$$f" http://surrealdb:8000/export; then
+          f=/backups/cs-core-$$(date +%Y%m%d-%H%M%S).surql
+          if curl -fsS -u "root:$$SURREAL_PASS" -H "surreal-ns: stack" -H "surreal-db: cs-core" -H "Accept: application/octet-stream" -o "$$f" http://surrealdb:8000/export; then
             echo "копия: $$f"
           else
             rm -f "$$f"; echo "ошибка копии"
           fi
-          ls -1t /backups/say-*.surql 2>/dev/null | tail -n +15 | xargs -r rm --
+          ls -1t /backups/cs-core-*.surql 2>/dev/null | tail -n +15 | xargs -r rm --
           sleep 86400
         done
     environment:

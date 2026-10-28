@@ -1,0 +1,63 @@
+{
+ "book": 13,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "build-list",
+   "title": "Your first list",
+   "statement": "Create a list of the numbers 10, 20, 30. Add 40 to the end with the append method, replace the first element with 99, and print the whole list. You should get [99, 20, 30, 40].",
+   "hint": "nums.append(40); nums[0] = 99; print(nums).",
+   "starter": "nums = [10, 20, 30]\n# append, assignment by index, print\n"
+  },
+  {
+   "id": "first-last",
+   "title": "First and last",
+   "statement": "Write a function first_last(nums) that returns a list of two elements: the first and the last element of nums. The list is not empty. Use a negative index for the last one.",
+   "hint": "return [nums[0], nums[-1]]. For a one-element list both indexes point to the same element."
+  },
+  {
+   "id": "total",
+   "title": "Sum of a list",
+   "statement": "Write a function total(nums): the sum of all elements of the list. For an empty list, return 0. Compute it with a loop and an accumulator, without the built-in sum function.",
+   "hint": "for x in nums: result += x. It is the same accumulator as in the chapter on loops."
+  },
+  {
+   "id": "biggest",
+   "title": "The largest element",
+   "statement": "Write a function biggest(nums): the largest element of a non-empty list. Do not use the built-in max. Hint: start not from zero but from the first element, otherwise a list of only negative numbers will give a wrong answer.",
+   "hint": "for x in nums: if x > best: best = x.",
+   "starter": "def biggest(nums):\n    best = nums[0]\n    # compare every element with best\n    return best\n"
+  },
+  {
+   "id": "count-greater",
+   "title": "How many above the limit",
+   "statement": "Write a function count_greater(nums, limit): how many elements of the list are strictly greater than limit.",
+   "hint": "A counter starting from zero; if x > limit: count += 1."
+  },
+  {
+   "id": "evens",
+   "title": "Pick the even ones",
+   "statement": "Write a function evens(nums) that returns a NEW list of the even elements of nums in their original order. Create an empty list and fill it with append.",
+   "hint": "if x % 2 == 0: result.append(x).",
+   "starter": "def evens(nums):\n    result = []\n    # for x in nums: if even, append\n    return result\n"
+  },
+  {
+   "id": "squares-list",
+   "title": "List of squares",
+   "statement": "Write a function squares(nums): a new list in which each element is the square of the corresponding element of nums.",
+   "hint": "result.append(x * x) on every pass of the loop."
+  },
+  {
+   "id": "average",
+   "title": "Arithmetic mean",
+   "statement": "Write a function average(nums): the arithmetic mean of a non-empty list, that is, the sum divided by the number of elements. The result is ordinary division (a float).",
+   "hint": "return sum(nums) / len(nums). The built-in sum and len are fine here."
+  },
+  {
+   "id": "without",
+   "title": "List without a value",
+   "statement": "Write a function without(nums, x): a new list with all elements of nums except those equal to x (remove all occurrences, not just the first). The original order is preserved.",
+   "hint": "Do not delete from the original list, fill a new one: if item != x: result.append(item)."
+  }
+ ]
+}

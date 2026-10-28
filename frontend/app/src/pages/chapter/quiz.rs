@@ -44,7 +44,7 @@ pub fn Quiz() -> impl IntoView {
     move || match ctx.chapter.get() {
         Load::Ready(ch) => view! { <QuizLoaded book=ctx.book num=ch.num /> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
     }
 }
 
@@ -54,7 +54,7 @@ fn QuizLoaded(book: i64, num: i64) -> impl IntoView {
     move || match data.get() {
         Load::Ready(q) => view! { <QuizBody book=book num=num quiz=q /> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
     }
 }
 
@@ -109,23 +109,23 @@ fn QuizBody(book: i64, num: i64, quiz: QuizData) -> impl IntoView {
                 {(0..total)
                     .map(|qi| {
                         let state = Signal::derive(move || item_state(reveal.with(|r| r[qi].clone()).as_ref(), picks.get().get(qi).copied().flatten()));
-                        view! { <FsItem num=qi + 1 state=state on_click=Callback::new(move |()| scroll_to_question(qi))>{format!("Вопрос {}", qi + 1)}</FsItem> }
+                        view! { <FsItem num=qi + 1 state=state on_click=Callback::new(move |()| scroll_to_question(qi))>{i18n::trf!("Question {}", qi + 1)}</FsItem> }
                     })
                     .collect_view()}
             </FsItems>
             <div class="quiz-head">
                 <h3>{quiz.title}</h3>
-                <span class="quiz-lang">{move || if answered() > 0 { format!("теория · {}/{}", score(), answered()) } else { "теория".to_string() }}</span>
+                <span class="quiz-lang">{move || if answered() > 0 { i18n::trf!("theory · {}/{}", score(), answered()) } else { i18n::tr("theory").to_string() }}</span>
             </div>
             {questions}
             {move || (answered() > 0).then(|| view! {
                 <div class="quiz-actions">
-                    <button class="quiz-btn ghost" on:click=move |_| { progress.reset_quiz(book, num); reveal.set(vec![None; total]) }>"Пройти ещё раз"</button>
+                    <button class="quiz-btn ghost" on:click=move |_| { progress.reset_quiz(book, num); reveal.set(vec![None; total]) }>{i18n::tr("Take again")}</button>
                 </div>
             })}
             {move || (answered() == total).then(|| view! {
                 <div class=format!("quiz-result {}", if score() == total { "ok" } else { "fail" })>
-                    <p class="quiz-ok-line">{if score() == total { format!("✓ Отлично: {}/{total}", score()) } else { format!("Результат: {}/{total}", score()) }}</p>
+                    <p class="quiz-ok-line">{if score() == total { i18n::trf!("✓ Excellent: {}/{}", score(), total) } else { i18n::trf!("Result: {}/{}", score(), total) }}</p>
                 </div>
             })}
         </section>

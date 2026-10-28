@@ -12,9 +12,9 @@ use super::common::{data, fmt_ru, GoalItem, GoalList, Goals};
 /// Подпись размера страницы в списке выбора.
 fn size_text(p: PageSize) -> &'static str {
     match p {
-        PageSize::K4 => "4 КиБ",
-        PageSize::M2 => "2 МиБ",
-        PageSize::G1 => "1 ГиБ",
+        PageSize::K4 => i18n::tr("4 KiB"),
+        PageSize::M2 => i18n::tr("2 MiB"),
+        PageSize::G1 => i18n::tr("1 GiB"),
     }
 }
 
@@ -61,7 +61,7 @@ pub fn walk_grid(mode: Mode, guest: PageSize, host: PageSize) -> WalkGrid {
 pub fn walk_formula(mode: Mode, guest: PageSize, host: PageSize) -> String {
     match mode {
         Mode::Ept => format!("({}+1)×({}+1)−1", guest.levels(), host.levels()),
-        Mode::Shadow => format!("{} уровня", ept::walk_cost(Mode::Shadow, guest, host)),
+        Mode::Shadow => i18n::trf!("{0} levels", ept::walk_cost(Mode::Shadow, guest, host)),
     }
 }
 
@@ -83,7 +83,7 @@ pub fn EptLab(workloads: Vec<Workload>, targets: Vec<EptGoal>, goals: Goals) -> 
         .iter()
         .map(|g| {
             let title = workloads.iter().find(|w| w.id == g.workload).map(|w| w.title.clone()).unwrap_or_default();
-            GoalItem::new(g.id.clone(), g.text.clone()).with_note(format!("нагрузка «{title}»"))
+            GoalItem::new(g.id.clone(), g.text.clone()).with_note(i18n::trf!("workload \"{0}\"", title))
         })
         .collect();
     let options = workloads
@@ -99,7 +99,7 @@ pub fn EptLab(workloads: Vec<Workload>, targets: Vec<EptGoal>, goals: Goals) -> 
         workloads.with_value(|ws| {
             let id = workload.get();
             let note = ws.iter().find(|w| w.id == id).map(|w| w.note.clone()).unwrap_or_default();
-            format!("{note}. TLB — {TLB_ENTRIES} записей; запись описывает страницу меньшего из двух размеров.")
+            i18n::trf!("{0}. The TLB holds {1} entries; an entry covers a page of the smaller of the two sizes.", note, TLB_ENTRIES)
         })
     };
 
@@ -118,34 +118,34 @@ pub fn EptLab(workloads: Vec<Workload>, targets: Vec<EptGoal>, goals: Goals) -> 
             <div class="vl-grid">
                 <div class="vl-card">
                     <div class="vl-field">
-                        <span class="s-label">"режим"</span>
+                        <span class="s-label">{i18n::tr("mode")}</span>
                         <div class="vl-seg">
-                            <ModeButton mode=mode value=Mode::Shadow title="теневые таблицы" />
+                            <ModeButton mode=mode value=Mode::Shadow title=i18n::tr("shadow tables") />
                             <ModeButton mode=mode value=Mode::Ept title="EPT / NPT" />
                         </div>
                     </div>
                     <div class="vl-row">
-                        <SizeSelect label="страница гостя" value=guest />
-                        <SizeSelect label="страница хозяина" value=host />
+                        <SizeSelect label=i18n::tr("guest page") value=guest />
+                        <SizeSelect label=i18n::tr("host page") value=host />
                     </div>
                     <label class="vl-field">
-                        <span>"нагрузка"</span>
+                        <span>{i18n::tr("workload")}</span>
                         <select on:change=move |ev| workload.set(event_target_value(&ev))>{options}</select>
                     </label>
                     <p class="vl-hint">{note}</p>
                     <div class="vl-actions">
-                        <button class="quiz-btn" on:click=run>"Запустить нагрузку"</button>
+                        <button class="quiz-btn" on:click=run>{i18n::tr("Run workload")}</button>
                     </div>
                     <GoalList goals=goals items=items />
                 </div>
 
                 <div class="vl-card">
                     <div class="pr-res-head">
-                        <span class="s-label">"промах TLB"</span>
+                        <span class="s-label">{i18n::tr("TLB miss")}</span>
                         <span class="pr-res-time">{move || walk_formula(mode.get(), guest.get(), host.get())}</span>
                     </div>
                     <Grid mode=mode guest=guest host=host />
-                    <p class="vl-hint">"Каждая клетка — одно обращение к памяти при промахе; зелёная — сами данные."</p>
+                    <p class="vl-hint">{i18n::tr("Each cell is one memory access on a miss; green is the data itself.")}</p>
                     {move || res.get().map(|r| view! { <RunResult run=r /> })}
                 </div>
             </div>
@@ -202,21 +202,21 @@ fn RunResult(run: SimRun) -> impl IntoView {
         <div class="vl-final">
             <table class="vl-stat">
                 <tbody>
-                    <tr><td>"обращений гостя"</td><td>{fmt_ru(run.accesses as f64)}</td></tr>
+                    <tr><td>{i18n::tr("guest accesses")}</td><td>{fmt_ru(run.accesses as f64)}</td></tr>
                     <tr>
-                        <td>"промахов TLB"</td>
-                        <td>{format!("{} (страница в TLB: {})", fmt_ru(run.misses as f64), size_key(run.eff_page))}</td>
+                        <td>{i18n::tr("TLB misses")}</td>
+                        <td>{i18n::trf!("{0} (page in TLB: {1})", fmt_ru(run.misses as f64), size_key(run.eff_page))}</td>
                     </tr>
-                    <tr><td>"цена одного промаха"</td><td>{format!("{} обращ.", run.walk)}</td></tr>
-                    <tr><td>"выходов из-за правок таблиц"</td><td>{fmt_ru(run.exits as f64)}</td></tr>
+                    <tr><td>{i18n::tr("cost of one miss")}</td><td>{i18n::trf!("{0} acc.", run.walk)}</td></tr>
+                    <tr><td>{i18n::tr("exits caused by table edits")}</td><td>{fmt_ru(run.exits as f64)}</td></tr>
                     <tr>
-                        <td><b>"всего обращений к памяти"</b></td>
+                        <td><b>{i18n::tr("total memory accesses")}</b></td>
                         <td><b>{fmt_ru(run.cost as f64)}</b></td>
                     </tr>
                 </tbody>
             </table>
             <p class="vl-hint">
-                {format!("Выход стоит {} обращений; попадание в TLB — одно обращение к данным.", fmt_ru(EXIT_COST as f64))}
+                {i18n::trf!("An exit costs {0} accesses; a TLB hit is one data access.", fmt_ru(EXIT_COST as f64))}
             </p>
         </div>
     }
@@ -230,6 +230,7 @@ mod tests {
 
     #[test]
     fn grid_for_ept_has_data_cell_last() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let g = walk_grid(Mode::Ept, PageSize::K4, PageSize::K4);
         assert_eq!(g.cols, 5);
         assert_eq!(g.cells.len(), 25);
@@ -241,6 +242,7 @@ mod tests {
 
     #[test]
     fn grid_for_shadow_is_one_row_of_min_levels() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // обход идёт по таблицам меньшей из двух страниц, то есть по большему числу уровней
         let g = walk_grid(Mode::Shadow, PageSize::K4, PageSize::M2);
         assert_eq!(g, WalkGrid { cols: 4, cells: vec![false; 4] });
@@ -260,12 +262,14 @@ mod tests {
 
     #[test]
     fn formula_matches_mode() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(walk_formula(Mode::Ept, PageSize::K4, PageSize::K4), "(4+1)×(4+1)−1");
         assert_eq!(walk_formula(Mode::Shadow, PageSize::M2, PageSize::G1), "3 уровня");
     }
 
     #[test]
     fn size_keys_roundtrip() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for p in PageSize::ALL {
             assert_eq!(parse_size(size_key(p)), Some(p));
         }
@@ -274,6 +278,7 @@ mod tests {
 
     #[test]
     fn default_walk_goal_is_reached_with_ept() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let (ws, gs) = (default_workloads(), default_goals());
         // 4 КиБ × 4 КиБ: промах стоит 24 обращения — цель «не больше 15» не достигается; 2 МиБ × 2 МиБ — ровно 15
         let cfg = SimInput { mode: Mode::Ept, guest: PageSize::K4, host: PageSize::K4, workload: "one".into() };

@@ -1,0 +1,36 @@
+{
+ "book": 18,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "sd13-shortener",
+   "title": "A link shortener",
+   "statement": "A shortener: 4000 redirects and 40 link creations per second, 500 GB of data, a working set of about 5 GB. The S database cannot take these reads. Add a cache (≥90% hits) with a replica so the design survives a cache failure, and stay within $1400 per month. Load at most 80%.",
+   "hint": "A 5 GB cache with TTL 3600 gives about 93%; with a replica it survives a failure. Eight M app servers; an S database is enough (almost all reads come from the cache)."
+  },
+  {
+   "id": "sd13-counter",
+   "title": "A view counter",
+   "statement": "View counters: 3000 updates per second plus 500 reads. Every update writes to the database, and it is overloaded: an M database handles 600 writes. Losing a few seconds of counts is acceptable. Enable deferred cache writes (write-back) and choose the database: load at most 80%, budget $1800 per month. The “NoSQL” type will help too.",
+   "hint": "Write-back leaves 40% of writes in the database: 1200 per second. A NoSQL M handles 1080 writes: two shards give 56%. The application needs seven M servers."
+  },
+  {
+   "id": "sd13-ratelimiter",
+   "title": "A shared rate limiter",
+   "statement": "A rate limiter spread across several servers must keep a shared counter in fast storage. Build the design: a rate limiter at the entrance (limit of at least 3000, otherwise we would cut ordinary traffic of 2700 requests), a cache for the shared counters with a replica (survives a failure), and app servers at most 80%.",
+   "hint": "lb → limiter → servers; the cache is connected to the servers, and the cache has a replica. Limit 3000–3500."
+  },
+  {
+   "id": "sd13-pastebin",
+   "title": "Storing snippets",
+   "statement": "A snippet storage service: 4000 requests per second to serve ready-made files, plus 800 reads and 50 writes of metadata. Right now the app servers serve the files. Move them out: a CDN in front of object storage (≥90%), with the servers and database handling metadata. Load at most 80%, budget $650 per month.",
+   "hint": "CDN → storage (static content bypasses the servers), dynamic requests go through the load balancer. Two M servers are enough, and an M database (800 metadata reads per second do not fit on an S)."
+  },
+  {
+   "id": "sd13-final",
+   "title": "A shortener with statistics",
+   "statement": "The chapter's final exercise. A shortener with a click counter: 3000 redirects and 3000 recorded click writes per second. Build the design: a cache with write-back and a replica (hits ≥70%: with half of operations being writes, the cache serves less), a NoSQL database with shards and a replica with automatic failover, load at most 80%, survives failure of the database, the cache and an app server, and a budget of $3200 per month.",
+   "hint": "Twelve M servers (6000 requests); a 4 GB cache with a replica and write-back; a NoSQL M: two shards with a replica and automatic failover."
+  }
+ ]
+}

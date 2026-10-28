@@ -11,7 +11,7 @@ pub struct Config {
     pub audio_dir: PathBuf,
     /// каталог собранного фронтенда (`frontend/dist`); пусто — API без статики
     pub static_dir: Option<PathBuf>,
-    /// общий секрет воркеров (`SAY_WORKER_TOKEN`); пусто — внутренний API воркеров недоступен
+    /// общий секрет воркеров (`CS_CORE_WORKER_TOKEN`); пусто — внутренний API воркеров недоступен
     pub worker_token: String,
     /// `auto` — пересеять курс, если исходники изменились; `always`; `off`
     pub seed: String,
@@ -32,9 +32,14 @@ impl Config {
             data_dir,
             audio_dir,
             static_dir,
-            worker_token: std::env::var("SAY_WORKER_TOKEN").unwrap_or_default(),
+            worker_token: std::env::var("CS_CORE_WORKER_TOKEN").unwrap_or_default(),
             seed: env_or("SEED", "auto"),
         }
+    }
+
+    /// Каталог перевода: `data/<язык>/` с той же раскладкой, что и у русского содержимого.
+    pub fn lang_dir(&self, lang: crate::lang::Lang) -> PathBuf {
+        self.data_dir.join(lang.code())
     }
 
     pub fn textbook_dir(&self) -> PathBuf {

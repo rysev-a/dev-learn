@@ -1,0 +1,189 @@
+{
+ "book": 11,
+ "chapter": 34,
+ "tasks": [
+  {
+   "id": "j26-parse-imports",
+   "title": "Finding imports in source",
+   "statement": "Write parseImports(src): an array of { type, spec } in the order they appear in the text. type 'static' is for \"import … from 'x'\", \"import 'x'\", \"export … from 'x'\" (any form of the name list, \"* as ns\", \"default\", \"{ a as b }\"); 'dynamic' is for \"import('x')\" with a literal string in single or double quotes. Comments (// to the end of the line and /* … */) are ignored. Ordinary declarations \"export const …\", \"export default …\" do not count as imports. Non-literal dynamic imports (import(x)) are skipped.",
+   "hint": "First cut out the comments, then use one regular expression with the g flag and loop over exec."
+  },
+  {
+   "id": "j26-resolve",
+   "title": "Resolving a module path",
+   "statement": "Write resolvePath(importer, spec, files): importer is the path of the importing file (POSIX, for example \"src/app/main.js\"), spec is the specifier, files is a \"path → code\" object. Bare specifiers (not starting with \".\") give null. Relative ones are resolved from the importer's directory (the \".\" and \"..\" segments are honored). Then the candidates are checked in order: the exact path, path + \".js\", path + \"/index.js\" — the first one that exists in files is returned, otherwise null. Going above the root with \"..\" simply drops the extra segments.",
+   "hint": "Build an array of the directory's segments, apply \".\" and \"..\", then try the candidates."
+  },
+  {
+   "id": "j26-graph",
+   "title": "Dependency graph",
+   "statement": "Write buildGraph(entry, files): files is { path: code }. Return { modules, order }. Breadth-first traversal from entry (a queue): for each module parse the imports (parseImports) and resolve the relative ones (resolvePath); bare specifiers are skipped. modules[path] = { deps, dynamic } — the unique resolved paths of static and dynamic imports in the order of appearance. order is the order in which modules were discovered (in the queue). A relative import that did not resolve gives Error(`Cannot resolve '${spec}' from '${path}'`). Cycles are allowed. parseImports and resolvePath are already provided.",
+   "hint": "A queue and a seen set; for each file collect two lists.",
+   "starter": "// Provided: find imports and resolve a relative path (do not change)\nfunction parseImports(src) {\n  const out = [];\n  const re = /\\b(?:import|export)\\s+(?:[^'\"()]*?\\s+from\\s+)?(['\"])([^'\"]+)\\1|\\bimport\\(\\s*(['\"])([^'\"]+)\\3\\s*\\)/g;\n  let m;\n  while ((m = re.exec(src))) {\n    if (m[2] !== undefined) out.push({ type: \"static\", spec: m[2] });\n    else out.push({ type: \"dynamic\", spec: m[4] });\n  }\n  return out;\n}\nfunction resolvePath(importer, spec, files) {\n  if (!spec.startsWith(\".\")) return null;\n  const parts = importer.split(\"/\").slice(0, -1);\n  for (const seg of spec.split(\"/\")) {\n    if (seg === \".\" || seg === \"\") continue;\n    if (seg === \"..\") parts.pop();\n    else parts.push(seg);\n  }\n  const base = parts.join(\"/\");\n  for (const cand of [base, base + \".js\", base + \"/index.js\"]) if (Object.hasOwn(files, cand)) return cand;\n  return null;\n}\nfunction buildGraph(entry, files) {\n}\n"
+  },
+  {
+   "id": "j26-bundle-order",
+   "title": "Module order in a bundle",
+   "statement": "Write bundleOrder(graph, entry): graph is { modules: { path: { deps, dynamic } } } (as from buildGraph). Return an array of paths in execution order: depth-first traversal over the static deps, a module is added after all its dependencies (post-order), entry comes last. Each module once; on a cycle the repeated entry is ignored. Dynamic imports are not counted. The deps are traversed in array order.",
+   "hint": "A recursive dfs with a visited set; add to the result after visiting the children."
+  },
+  {
+   "id": "j26-esm-to-cjs",
+   "title": "ESM → CommonJS (a subset)",
+   "statement": "Write transformEsm(src): it turns the source of an ES module into CommonJS code (for new Function('require','module','exports', code)). Each statement occupies its own line. Rules: \"import X from 'm';\" → \"const X = require('m').default;\"; \"import { a, b as c } from 'm';\" → \"const { a, b: c } = require('m');\"; \"import * as ns from 'm';\" → \"const ns = require('m');\"; \"import 'm';\" → \"require('m');\"; \"export const|let|var name = …;\" → the same line without export, then on the same line \" exports.name = name;\" (add it before the end of the line, after the last \";\"); \"export function name(\" → \"exports.name = name; function name(\"; \"export default expression;\" → \"exports.default = expression;\"; \"export { a, b as c };\" → \"exports.a = a; exports.c = b;\". Other lines are unchanged. Keep the quotes in import as they are.",
+   "hint": "Process line by line with regular expressions; for export const, find the name and append the assignment to the end of the line."
+  },
+  {
+   "id": "j26-make-bundle",
+   "title": "Building a bundle from CommonJS modules",
+   "statement": "Write makeBundle(files, entry, externals = {}): files is { path: CommonJS module code (module, exports, require) }. The result is a string of code which, when executed via new Function(code)(), returns the module.exports of the entry module. Relative require('./x') calls are resolved like resolvePath (the .js extension and index.js are allowed) and call the module from the table; each module runs once and the result is cached; with circular requires the already created (possibly incomplete) exports is returned. A bare require('name') takes its value from externals[name], otherwise it throws Error(\"Cannot find module 'name'\") when called. Only modules reachable from entry are needed. resolvePath is already provided.",
+   "hint": "Build a table {path: function(module, exports, require){...}}, and inside each substitute its own require that maps a specifier to a path from the table.",
+   "starter": "// Provided: find imports and resolve a relative path (do not change)\nfunction resolvePath(importer, spec, files) {\n  if (!spec.startsWith(\".\")) return null;\n  const parts = importer.split(\"/\").slice(0, -1);\n  for (const seg of spec.split(\"/\")) {\n    if (seg === \".\" || seg === \"\") continue;\n    if (seg === \"..\") parts.pop();\n    else parts.push(seg);\n  }\n  const base = parts.join(\"/\");\n  for (const cand of [base, base + \".js\", base + \"/index.js\"]) if (Object.hasOwn(files, cand)) return cand;\n  return null;\n}\nfunction makeBundle(files, entry, externals = {}) {\n}\n"
+  },
+  {
+   "id": "j26-tree-shake",
+   "title": "Tree shaking over a graph",
+   "statement": "Write shake(modules, entry): modules is { path: { imports: [{ from, names }], exports: [names], sideEffects } }, names is an array of names, '*' (all) or [] (an import for effect). Rules: all exports of entry count as used, entry is included. For an included module, process each of its imports: named names are marked used in the module from (within its exports list; '*' means all its exports); the module from is included if it has used exports, or if this is an import for effect ([]) and sideEffects === true. Repeat until nothing changes (imports of included modules are processed, those of excluded ones are not). Return { path: sorted array of used exports } for the included modules; keys in alphabetical order.",
+   "hint": "A fixed-point iteration: while something changes, go through all included modules."
+  },
+  {
+   "id": "j26-dce",
+   "title": "Dead code elimination",
+   "statement": "Write liveSet(decls, roots): decls is { name: { refs: [names the declaration refers to] } }, roots is an array of root names (what is exported or has side effects). Return a sorted array of all names reachable from roots through refs (including the roots themselves that exist in decls). Names from refs that are not in decls are ignored (external). Cycles are allowed.",
+   "hint": "Depth-first or breadth-first traversal with a visited set."
+  },
+  {
+   "id": "j26-short-names",
+   "title": "Short names for a minifier",
+   "statement": "Write nameSequence(count, reserved = []): the first count valid short names. The order: \"a\"…\"z\", \"A\"…\"Z\" (52 one-character names), then two-character \"aa\", \"ab\", …, \"aZ\", \"ba\", … (the first letter changes more slowly; the alphabet a–z, A–Z works like a numeral system, where after \"Z\" comes a carry), then three-character ones, and so on. Names from reserved are skipped (they don't count). Identifiers do not start with a digit (there are no digits in the alphabet).",
+   "hint": "Try lengths 1, 2, 3…: for each length, all combinations in lexicographic order of the alphabet."
+  },
+  {
+   "id": "j26-minify-css",
+   "title": "CSS minification",
+   "statement": "Write minifyCss(css): remove /* … */ comments; collapse any sequence of whitespace characters into one space; remove spaces around \"{\", \"}\", \":\", \";\", \",\", \">\" and at the edges of the text; remove \";\" before \"}\". Strings in single or double quotes are copied unchanged (inside them spaces, comments and special characters are not touched). The space between values (for example \"margin: 0 auto\") is kept. Selectors with a colon (a:hover) stay correct: the space after \":\" is removed everywhere.",
+   "hint": "A character-by-character pass with an \"inside a string\" state; or tokenize into strings and the rest, and make replacements only outside strings."
+  },
+  {
+   "id": "j26-hash-name",
+   "title": "File name with a content hash",
+   "statement": "Write hashedName(filename, content, len = 8) (node:crypto): the hash is the first len characters of the sha256 (hex) of the content (a string, UTF-8). The hash is inserted before the last extension: \"app.js\" → \"app.<hash>.js\"; \"a.b.css\" → \"a.b.<hash>.css\"; for a file without an extension (the last path segment has no dot, or the dot is only at the start, as in \".env\") the hash is appended to the end with a dot: \"LICENSE\" → \"LICENSE.<hash>\". Directories in the path are preserved.",
+   "hint": "Find the last dot in the base name; slice(0, i) + '.' + hash + slice(i)."
+  },
+  {
+   "id": "j26-manifest",
+   "title": "Build manifest and HTML",
+   "statement": "Write buildManifest(files) and rewriteHtml(html, manifest) (node:crypto). files is { name: content }; buildManifest returns { name: hashed name } for all files that have an extension (by the rule \"name.<first 8 hex of sha256>.extension\"), with keys in the order of files. rewriteHtml replaces the values of the src and href attributes (in double or single quotes) that equal a manifest key with the hashed name; other attributes and links are unchanged.",
+   "hint": "The regex /\\b(src|href)=(['\"])([^'\"]*)\\2/g with a replacement function."
+  },
+  {
+   "id": "j26-split-shared",
+   "title": "Shared chunk for several entries",
+   "statement": "Write splitChunks(graph, entries): graph is { modules: { path: { deps } } }, entries is an array of entry modules. For each entry find the set of modules reachable through deps (including the entry itself). A module reachable from two or more entries goes into the 'shared' chunk; the others go into the chunk of their own entry (the chunk name is the entry path). The result is { chunk name: sorted array of modules }; the 'shared' chunk is included only if it is not empty; keys are sorted, with 'shared' coming first. An entry module reachable from another entry also counts as shared.",
+   "hint": "Count for each module how many entries it is reachable from."
+  },
+  {
+   "id": "j26-async-chunks",
+   "title": "Async chunks",
+   "statement": "Write asyncChunks(graph, entry): graph is { modules: { path: { deps, dynamic } } }. main is all modules reachable from entry through static deps (including entry). Dynamic targets (from the dynamic of any module that is in main or in an already found async chunk) start async chunks: a target's chunk is the modules reachable from it through static deps and not in main. A module reachable from several async chunks goes to the one whose target comes first alphabetically. A target already in main creates no chunk. The result is { main, async } — main is sorted, async is { target: sorted array } with keys in alphabetical order.",
+   "hint": "First main; then iterate: find targets in main and in chunks, process targets in alphabetical order."
+  },
+  {
+   "id": "j26-budgets",
+   "title": "Size budgets",
+   "statement": "Write checkBudgets(sizes, budgets): sizes is { file: bytes }, budgets is { pattern: maximum bytes }. A pattern is an exact name or a mask \"*.extension\" (ends with the given text, for example \"*.css\"). For each file the strictest (minimum) of the matching budgets applies. A violation is a size greater than the maximum (equal is fine): the string \"file: size > maximum\". Return a sorted array of strings.",
+   "hint": "For a file, filter the matching patterns and take the min of the maximums."
+  },
+  {
+   "id": "j26-vlq",
+   "title": "VLQ for source maps",
+   "statement": "Write encodeVlq(n) and decodeVlq(str). The encoding is Base64 VLQ as in source maps: the sign is moved to the lowest bit (v = n < 0 ? ((-n) << 1) | 1 : n << 1), then the number is split into groups of 5 bits starting from the lowest; each group has 5 data bits and a high (sixth) continuation bit; the groups are encoded with the alphabet A–Z a–z 0–9 + /. decodeVlq(str) parses a string into an array of numbers (the string may contain several values in a row).",
+   "hint": "The base64 alphabet; the continuation bit is 32; when decoding, accumulate with shifts of 5."
+  },
+  {
+   "id": "j26-decode-mappings",
+   "title": "Parsing mappings",
+   "statement": "Write decodeMappings(mappings): the mappings string of a source map — output lines are separated by \";\", segments within a line by \",\", each segment is 1, 4 or 5 numbers in VLQ (decodeVlq already exists). The values are relative: the column in the generated file accumulates within a line (reset to 0 on each new line), while the source index, the line and column in the source, and the name index accumulate across the whole text. Return an array of lines, each an array of segments; a segment is an array of absolute numbers of the same length as in the record. An empty line between \";\" gives an empty array.",
+   "hint": "The state [src, line, col, name] lives outside the loop over lines; genCol lives inside a line.",
+   "starter": "const B64 = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\";\n// Provided: parsing a VLQ string into an array of numbers (do not change)\nfunction decodeVlq(str) {\n  const out = [];\n  let shift = 0, value = 0;\n  for (const ch of str) {\n    const d = B64.indexOf(ch);\n    value += (d & 31) << shift;\n    if (d & 32) shift += 5;\n    else {\n      out.push(value & 1 ? -(value >>> 1) : value >>> 1);\n      shift = 0;\n      value = 0;\n    }\n  }\n  return out;\n}\nfunction decodeMappings(mappings) {\n}\n"
+  },
+  {
+   "id": "j26-alias",
+   "title": "Path aliases",
+   "statement": "Write resolveAlias(spec, aliases): aliases is { key: replacement }. A key ending in \"$\" (\"react$\") matches only a specifier exactly equal to \"react\". An ordinary key matches a specifier equal to the key or starting with the key + \"/\" (then the remainder after the key is kept). The longest matching key wins (not counting \"$\"). If there is no match, the specifier is unchanged.",
+   "hint": "Loop over the keys, compute the match and its length; remember the best one."
+  },
+  {
+   "id": "j26-externals",
+   "title": "External dependencies",
+   "statement": "Write splitImports(specs, externals): specs is an array of specifiers; externals is an array of strings and RegExps. A string external matches a specifier equal to it or starting with the string + \"/\" (package subpaths); a RegExp matches if the specifier passes .test. Built-in modules (\"node:…\") are always external. Relative ones (starting with \".\" or \"/\") are always bundled. The result is { bundled, external } — unique specifiers in order of first appearance.",
+   "hint": "A function isExternal(spec); then distribute using a Set for uniqueness."
+  },
+  {
+   "id": "j26-define",
+   "title": "Constant substitution (define)",
+   "statement": "Write applyDefines(code, defines): defines is { 'process.env.NODE_ENV': 'production', 'import.meta.env.MODE': 'build', 'DEBUG': false, 'VERSION': undefined }. Each occurrence of a key in the text is replaced with JSON.stringify(value) (for undefined, the word undefined). Only a whole expression is replaced: the key must not be preceded by a character from [A-Za-z0-9_$.] nor followed by one from [A-Za-z0-9_$]. Longer keys take priority (so that \"process.env\" does not grab \"process.env.NODE_ENV\"). The contents of strings in quotes are not changed.",
+   "hint": "Split the code into string literals and the rest; in the rest apply replacements in order of decreasing key length."
+  },
+  {
+   "id": "j26-hmr",
+   "title": "Hot replacement boundaries (HMR)",
+   "statement": "Write hmrUpdate(parents, accepts, changed): parents is { module: [importers] }, accepts is an array of modules that accept updates (module.hot.accept), changed is the module that changed. If changed accepts the update itself — { type: 'update', modules: [changed] }. Otherwise climb up through the importers: for each chain upward to the first accepting module — it goes into the boundary. If some chain reaches a module with no importers (a root) without meeting an accepting one — { type: 'reload' }. If boundaries are found for all chains — { type: 'update', modules } (sorted, unique). Cycles: already visited modules are not traversed again (they do not count as a root).",
+   "hint": "A traversal upward with visited; a root is a module with no importers (parents[m] is empty or missing)."
+  },
+  {
+   "id": "j26-targets",
+   "title": "Is transpilation needed",
+   "statement": "Write needsTranspile(features, targets). The table of minimum versions is given by the constant MIN (in the starter): feature → { browser: version }. targets is { browser: version } (for example { chrome: 70, safari: 13 }). A feature requires transformation if for at least one browser in targets: the browser is not in MIN[feature] (unsupported) or the target version is lower than the minimum. An unknown feature (not in MIN) requires transformation. Return a sorted array of names of the features from features that require transformation.",
+   "hint": "every/some over the target browsers; Object.hasOwn(MIN, feature)."
+  },
+  {
+   "id": "j26-top-modules",
+   "title": "Heaviest modules",
+   "statement": "Write topModules(sizes, n): sizes is { path: bytes }. Return an array of { path, bytes, percent } for the n largest modules (by descending bytes, ties by path), percent is the share of the total of all modules rounded to 1 decimal place. If there are more than n modules, append at the end a record { path: '(others)', bytes: the sum of the rest, percent } (the percent also rounded to 1 decimal place). If the total is 0, percent is 0 for all.",
+   "hint": "Sort, slice, then sum the tail; round1 = x => Math.round(x * 10) / 10."
+  },
+  {
+   "id": "j26-package-sizes",
+   "title": "Bundle size by package",
+   "statement": "Write sizeByPackage(sizes): sizes is { module path: bytes }. The package is determined by the last \"node_modules/\" in the path: the name is the next segment, and for a \"@scope\" scope it is two segments (\"@scope/pkg\"). Modules without node_modules belong to \"(app)\". Sum the bytes by package. The result is an array of [name, bytes], by descending bytes, ties by name.",
+   "hint": "lastIndexOf('node_modules/'), then parse the segments after it."
+  },
+  {
+   "id": "j26-glob",
+   "title": "Path patterns (glob)",
+   "statement": "Write globToRegExp(glob): a RegExp that matches whole paths (with ^ and $) according to the mask. \"*\" is any characters except \"/\" (including the empty sequence); \"**\" is any characters including \"/\"; \"**/\" is zero or more directories (for example \"src/**/x.js\" matches both \"src/x.js\" and \"src/a/b/x.js\"); \"?\" is one character other than \"/\". Other characters are literal (escape regular expression special characters).",
+   "hint": "Walk through the mask's characters and build the regular expression string; for \"**/\" use (?:.*/)?"
+  },
+  {
+   "id": "j26-side-effects",
+   "title": "Files with side effects",
+   "statement": "Write hasSideEffects(file, sideEffects). sideEffects is the package.json field value: true or unset — every file has effects; false — none; an array of patterns — only files matching at least one pattern have effects. A pattern without \"/\" is compared with the file name (the last path segment) in any directory; a pattern with \"/\" is compared with the full relative path (a leading \"./\" of the pattern is dropped). The masks work as in globToRegExp (it is already in the starter).",
+   "hint": "For an array: for each pattern choose what to compare with — basename or the whole path."
+  },
+  {
+   "id": "j26-css-modules",
+   "title": "CSS Modules: local names",
+   "statement": "Write scopeCss(css, file) (node:crypto). Each class selector \".name\" (the name starts with a letter or \"_\", then letters, digits, \"-\", \"_\"; the dot must not be part of a number, as in \"1.5em\", and not inside url(…) or quotes — the tests have no such cases except numbers) is replaced with \".name_XXXXX\", where XXXXX is the first 5 hex characters of the sha1 of the string `${file}:${name}`. Return { css, map }: map is { original name: new name (without the dot) } in order of first appearance. Numbers like \".5s\" (a digit after the dot) are not touched.",
+   "hint": "css.replace(/(?<![\\w])\\.([A-Za-z_][\\w-]*)/g, …) — does not touch \"1.5em\" and \".5s\"."
+  },
+  {
+   "id": "j26-inline-asset",
+   "title": "Inlining assets",
+   "statement": "Write inlineAsset(name, bytes, mime, limit) (node:crypto): bytes is a Buffer. If bytes.length ≤ limit, return a data URL \"data:MIME;base64,…\" (Buffer.toString('base64')). Otherwise return the path \"/assets/NAME.HASH.EXT\", where NAME is the file name without extension and directory, HASH is the first 8 hex characters of the sha256 of bytes, EXT is what comes after the last dot (if there is no extension, the path is \"/assets/NAME.HASH\").",
+   "hint": "The base name is after the last \"/\"; the extension is after the last \".\" in it."
+  },
+  {
+   "id": "j26-polyfills",
+   "title": "Which polyfills are needed",
+   "statement": "Write neededPolyfills(code, targets). The starter gives tables of APIs: name → { detection regular expression, minimum browser versions }. For each API whose expression matches in code, check targets ({ browser: version }): the polyfill is needed if for some browser in targets it is absent from the version table or the target version is lower than the minimum. Return a sorted array of the names of the needed polyfills. Empty targets give [].",
+   "hint": "Filter by re.test(code), then some over the target browsers."
+  },
+  {
+   "id": "j26-compare-builds",
+   "title": "Comparing two builds",
+   "statement": "Write compareBuilds(before, after, threshold = 0.05): before and after are { chunk: bytes }. Return { added, removed, changed, regressions, total }. added are the chunks only in after, removed only in before (sorted); changed — for chunks present in both builds with different sizes, objects { name, before, after, delta, percent } (delta = after − before, percent = delta / before × 100 rounded to 1 decimal place; before = 0 gives percent 0), sorted by name; regressions are the names from changed for which delta / before > threshold (before > 0), sorted; total is { before, after, delta } over the sums of all chunks.",
+   "hint": "Merge the keys; for common ones compare sizes; compute sums over all chunks."
+  }
+ ]
+}

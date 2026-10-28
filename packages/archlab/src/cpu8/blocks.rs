@@ -47,7 +47,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-mux2",
-        "Мультиплексор 2→1 (бит)",
+        i18n::tr("Multiplexer 2→1 (bit)"),
         &[pin("s", Bit), pin("d0", Bit), pin("d1", Bit), pout("y", Bit)],
         |g| {
             let ns = g.not("s");
@@ -57,7 +57,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-ha",
-        "Полусумматор",
+        i18n::tr("Half adder"),
         &[pin("a", Bit), pin("b", Bit), pout("sum", Bit), pout("cout", Bit)],
         |g| {
             g.out("sum", g.xor("a", "b"));
@@ -67,7 +67,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-fa",
-        "Полный сумматор",
+        i18n::tr("Full adder"),
         &[pin("a", Bit), pin("b", Bit), pin("cin", Bit), pout("sum", Bit), pout("cout", Bit)],
         |g| {
             let p = g.xor("a", "b");
@@ -78,7 +78,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-reg1",
-        "Бит регистра с записью",
+        i18n::tr("Register bit with write"),
         &[pin("d", Bit), pin("load", Bit), pin("clk", Clk), pout("q", Bit)],
         |g| {
             // «себя или новое»: при load = 0 триггер получает собственный выход
@@ -92,7 +92,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-alu1",
-        "Разряд АЛУ",
+        i18n::tr("ALU bit slice"),
         &[
             pin("a", Bit),
             pin("b", Bit),
@@ -124,7 +124,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-cmp0",
-        "Сравнение: младший разряд",
+        i18n::tr("Compare: lowest bit"),
         &[pin("x", Bit), pin("y", Bit), pout("lt", Bit), pout("eq", Bit)],
         |g| {
             g.out("lt", g.and(g.not("x"), "y"));
@@ -134,7 +134,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-cmp1",
-        "Сравнение: разряд",
+        i18n::tr("Compare: bit slice"),
         &[pin("x", Bit), pin("y", Bit), pin("ltIn", Bit), pout("lt", Bit), pout("eq", Bit)],
         |g| {
             // x < y, если в этом разряде x = 0, а y = 1, или разряды равны и младшие уже дали «меньше»
@@ -144,12 +144,12 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         },
     ));
 
-    blocks.push(gate_block("c8-and8", "И из восьми", &[pin("x", Byte), pout("y", Bit)], |g| {
+    blocks.push(gate_block("c8-and8", i18n::tr("AND of eight"), &[pin("x", Byte), pout("y", Bit)], |g| {
         let xs: Vec<String> = BITS.iter().map(|i| bit("x", *i)).collect();
         g.out("y", g.and_all(&xs));
     }));
 
-    blocks.push(gate_block("c8-zero8", "Нулевой байт", &[pin("a", Clk), pout("y", Byte)], |g| {
+    blocks.push(gate_block("c8-zero8", i18n::tr("Zero byte"), &[pin("a", Clk), pout("y", Byte)], |g| {
         // сигнал И его инверсия — всегда 0
         let z = g.and("a", g.not("a"));
         for i in BITS {
@@ -157,7 +157,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         }
     }));
 
-    blocks.push(gate_block("c8-one8", "Число 1 (байт)", &[pin("a", Clk), pout("y", Byte)], |g| {
+    blocks.push(gate_block("c8-one8", i18n::tr("Constant 1 (byte)"), &[pin("a", Clk), pout("y", Byte)], |g| {
         let z = g.and("a", g.not("a"));
         g.out(bit("y", 0), g.not(&z));
         for i in &BITS[1..] {
@@ -167,7 +167,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-wdec",
-        "Дешифратор записи",
+        i18n::tr("Write decoder"),
         &[pin("s", Reg3), pin("we", Bit), pout("en", Oh8)],
         |g| {
             let (s2, s1, s0) = (bit("s", 2), bit("s", 1), bit("s", 0));
@@ -183,7 +183,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     /* ===================== Управление ===================== */
 
-    blocks.push(gate_block("c8-decode", "Декодер команд", &[pin("op", Op4), pout("ctl", Ctrl)], |g| {
+    blocks.push(gate_block("c8-decode", i18n::tr("Instruction decoder"), &[pin("op", Op4), pout("ctl", Ctrl)], |g| {
         let o: Vec<String> = (0..4).map(|i| bit("op", i)).collect();
         let neg: Vec<String> = o.iter().map(|x| g.not(x)).collect();
         let lit = |i: usize, v: usize| if v != 0 { &o[i] } else { &neg[i] };
@@ -223,7 +223,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-branch",
-        "Решение о переходе",
+        i18n::tr("Branch decision"),
         &[pin("ctl", Ctrl), pin("eq", Bit), pin("lt", Bit), pout("take", Bit)],
         |g| {
             let c = |f: &str| field("ctl", f);
@@ -237,7 +237,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-halt",
-        "Остановка",
+        i18n::tr("Halt"),
         &[pin("clk", Clk), pin("isHlt", Bit), pout("halted", Bit), pout("run", Bit)],
         |g| {
             // однажды встретив hlt, триггер держит единицу до конца работы
@@ -249,7 +249,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(gate_block(
         "c8-gate-en",
-        "Разрешения записи",
+        i18n::tr("Write enables"),
         &[pin("ctl", Ctrl), pin("run", Bit), pout("pcEn", Bit), pout("regWe", Bit), pout("ramWe", Bit)],
         |g| {
             // пока процессор не остановлен: счётчик команд шагает (кроме hlt), регистр и диск пишут по команде
@@ -272,7 +272,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
     }
     blocks.push(wire_block(
         "c8-immgen",
-        "Числа из команды",
+        i18n::tr("Immediates from instruction"),
         &[pin("instr", Instr16), pout("imm6", Byte), pout("imm8", Byte)],
         &pairs(&imm_links),
     ));
@@ -281,7 +281,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-mux2x8",
-        "Мультиплексор 2→1 (байт)",
+        i18n::tr("Multiplexer 2→1 (byte)"),
         &[pin("s", Bit), pin("d0", Byte), pin("d1", Byte), pout("y", Byte)],
         |h| {
             for i in BITS {
@@ -296,7 +296,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-mux2x3",
-        "Мультиплексор 2→1 (номер регистра)",
+        i18n::tr("Multiplexer 2→1 (register number)"),
         &[pin("s", Bit), pin("d0", Reg3), pin("d1", Reg3), pout("y", Reg3)],
         |h| {
             for i in [0, 1, 2] {
@@ -311,7 +311,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-reg8",
-        "Регистр на 8 бит",
+        i18n::tr("8-bit register"),
         &[pin("d", Byte), pin("load", Bit), pin("clk", Clk), pout("q", Byte)],
         |h| {
             for i in BITS {
@@ -326,7 +326,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-add8",
-        "Сумматор на 8 бит",
+        i18n::tr("8-bit adder"),
         &[pin("a", Byte), pin("b", Byte), pout("s", Byte)],
         |h| {
             for i in BITS {
@@ -343,7 +343,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-alu8",
-        "АЛУ на 8 бит",
+        i18n::tr("8-bit ALU"),
         &[
             pin("a", Byte),
             pin("b", Byte),
@@ -373,7 +373,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-cmp8",
-        "Сравнение байтов",
+        i18n::tr("Byte compare"),
         &[pin("x", Byte), pin("y", Byte), pout("eq", Bit), pout("lt", Bit)],
         |h| {
             for i in BITS {
@@ -395,7 +395,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-mux4x8",
-        "Мультиплексор 4→1 (байт)",
+        i18n::tr("Multiplexer 4→1 (byte)"),
         &[pin("s", Word2), pin("d0", Byte), pin("d1", Byte), pin("d2", Byte), pin("d3", Byte), pout("y", Byte)],
         |h| {
             h.inst("lo", "c8-mux2x8").inst("hi", "c8-mux2x8").inst("top", "c8-mux2x8");
@@ -408,7 +408,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
     let mut mux8_specs: Vec<PortSpec> = vec![pin("s", Reg3)];
     mux8_specs.extend(BITS.iter().map(|i| pin(format!("d{i}"), Byte)));
     mux8_specs.push(pout("y", Byte));
-    blocks.push(hier_block("c8-mux8x8", "Мультиплексор 8→1 (байт)", &mux8_specs, |h| {
+    blocks.push(hier_block("c8-mux8x8", i18n::tr("Multiplexer 8→1 (byte)"), &mux8_specs, |h| {
         h.inst("lo", "c8-mux4x8").inst("hi", "c8-mux4x8").inst("top", "c8-mux2x8");
         for (m, base) in [("lo", 0usize), ("hi", 4)] {
             h.link("$.s.R1", &format!("{m}.s.D1")).link("$.s.R0", &format!("{m}.s.D0"));
@@ -430,7 +430,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         pout("rd2", Byte),
     ];
     rf_specs.extend((1..=7).map(|k| pout(format!("r{k}"), Byte)));
-    blocks.push(hier_block("c8-regfile", "Регистровый файл", &rf_specs, |h| {
+    blocks.push(hier_block("c8-regfile", i18n::tr("Register file"), &rf_specs, |h| {
         h.inst("wdec", "c8-wdec").inst("z", "c8-zero8").inst("m1", "c8-mux8x8").inst("m2", "c8-mux8x8");
         h.link("$.wsel", "wdec.s").link("$.we", "wdec.we");
         h.link("$.clk", "z.a").link("z.y", "m1.d0").link("z.y", "m2.d0"); // r0 — всегда ноль
@@ -448,7 +448,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(hier_block(
         "c8-pc",
-        "Счётчик команд",
+        i18n::tr("Program counter"),
         &[
             pin("clk", Clk),
             pin("run", Bit),
@@ -471,7 +471,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     /* ===================== Память ===================== */
 
-    blocks.push(native_block("c8-rom", "ПЗУ: программа", &[pin("addr", Byte), pout("word", Instr16)], |def| NativeSolution {
+    blocks.push(native_block("c8-rom", i18n::tr("ROM: program"), &[pin("addr", Byte), pout("word", Instr16)], |def| NativeSolution {
         native: crate::model::NativeKind::Rom,
         addr: nodes_of("addr", Byte),
         din: None,
@@ -482,7 +482,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     blocks.push(native_block(
         "c8-ram",
-        "Диск (память данных)",
+        i18n::tr("Disk (data memory)"),
         &[pin("addr", Byte), pin("din", Byte), pin("we", Bit), pin("clk", Clk), pout("dout", Byte)],
         |def| NativeSolution {
             native: crate::model::NativeKind::Ram,
@@ -498,7 +498,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
 
     let mut cpu_specs: Vec<PortSpec> = vec![pin("clk", Clk), pout("pc", Byte), pout("halted", Bit)];
     cpu_specs.extend((1..=7).map(|k| pout(format!("r{k}"), Byte)));
-    blocks.push(hier_block("c8-cpu", "Процессор «Мини-8»", &cpu_specs, |h| {
+    blocks.push(hier_block("c8-cpu", i18n::tr("“Mini-8” processor"), &cpu_specs, |h| {
         // слева направо: выборка и декодирование → регистры и операнды → АЛУ, сравнение и диск
         let col = |n: usize, y: f64| (150.0 + n as f64 * 196.0, y);
         let put = |h: &mut HierBuilder, id: &str, block: &str, at: (f64, f64)| {

@@ -1,0 +1,51 @@
+{
+ "book": 13,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "numbered",
+   "title": "Numbered list",
+   "statement": "Print the names from the list with numbers starting at one, in the form «1. Аня». Use enumerate with the start parameter.",
+   "hint": "for i, name in enumerate(names, start=1): print(f\"{i}. {name}\").",
+   "starter": "names = [\"Аня\", \"Борис\", \"Вера\"]\n# for ..., ... in enumerate(names, start=1):\n"
+  },
+  {
+   "id": "index-of-max",
+   "title": "Where the maximum is",
+   "statement": "Write a function index_of_max(nums): the index of the largest element of a non-empty list. If there are several largest elements, return the index of the first one. It is convenient to loop with enumerate.",
+   "hint": "Compare strictly: if x > nums[best_i]: best_i = i. Then on a tie the first one stays."
+  },
+  {
+   "id": "pair-sums",
+   "title": "Pairwise sums",
+   "statement": "Write a function pair_sums(a, b): a new list whose i-th element is the sum of a[i] and b[i]. The lists have the same length. Pair them up with zip.",
+   "hint": "for x, y in zip(a, b): result.append(x + y)."
+  },
+  {
+   "id": "interleave",
+   "title": "Every other one",
+   "statement": "Write a function interleave(a, b): a list in which the elements of two lists (of the same length) alternate: a[0], b[0], a[1], b[1] and so on.",
+   "hint": "On every pass of zip, two appends: first x, then y."
+  },
+  {
+   "id": "flatten",
+   "title": "Flatten a table",
+   "statement": "Write a function flatten(matrix): matrix is a list of lists of numbers. Return one flat list with all the numbers in order: [[1, 2], [3], []] becomes [1, 2, 3].",
+   "hint": "for row in matrix: for x in row: result.append(x), or result.extend(row).",
+   "starter": "def flatten(matrix):\n    result = []\n    # outer loop over rows, inner loop over numbers\n    return result\n"
+  },
+  {
+   "id": "copy-demo",
+   "title": "A real copy",
+   "statement": "You are given a list a. Make a REAL copy b of it (not just a second name), add the number 4 to b, and print first a, then b. The original list a must stay without the four.",
+   "hint": "b = a.copy() (or a[:]); b = a only hangs a second name tag on the list.",
+   "starter": "a = [1, 2, 3]\n# b = a copy of a\n# add 4 to b\n# print(a), print(b)\n"
+  },
+  {
+   "id": "drop-negatives",
+   "title": "Remove the negatives",
+   "statement": "Write a function drop_negatives(nums): the list without negative numbers (zero stays). Do not delete elements from the list you are looping over: consecutive negatives get skipped that way. Build a new list.",
+   "hint": "if x >= 0: result.append(x)."
+  }
+ ]
+}

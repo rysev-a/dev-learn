@@ -1,9 +1,9 @@
 import { expect, loginFresh, test } from "../../support/fixtures";
 import { bookList, loadChapter, DM1, stored } from "../../support/shell";
 
-/* Левое меню разделов: список книг, подсветка текущей, сворачивание в колонку иконок (`say-aside-collapsed`). */
+/* Левое меню разделов: список книг, подсветка текущей, сворачивание в колонку иконок (`cs-core-aside-collapsed`). */
 
-const KEY = "say-aside-collapsed";
+const KEY = "cs-core-aside-collapsed";
 
 test("список книг: по порядку из API, с номерами и названиями", async ({ page, request, guard }) => {
   await loginFresh(page, request);

@@ -11,6 +11,7 @@ fn dir() -> PathBuf {
 
 #[test]
 fn every_task_has_a_working_reference() {
+    i18n::set_locale(i18n::Locale::Ru);
     let mut files: Vec<PathBuf> = std::fs::read_dir(dir()).expect("каталог labs/web").filter_map(Result::ok).map(|e| e.path()).filter(|p| p.extension().is_some_and(|e| e == "json")).collect();
     files.sort();
     assert!(!files.is_empty(), "нет файлов данных");

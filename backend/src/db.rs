@@ -1,6 +1,6 @@
 //! Подключение к SurrealDB и схема таблиц курса, прогресса и очереди проверок.
 //!
-//! Dev: один контейнер SurrealDB (`ws://127.0.0.1:8123`, root/devpass), ns `stack`, db `say`. Если адрес недоступен, а
+//! Dev: один контейнер SurrealDB (`ws://127.0.0.1:8123`, root/devpass), ns `stack`, db `cs-core`. Если адрес недоступен, а
 //! `DB_STRICT` не задан, приложение работает на базе в памяти (данные пересеваются при каждом запуске).
 
 use std::sync::Arc;
@@ -14,7 +14,7 @@ use surrealdb::{
 pub type Db = Arc<Surreal<Any>>;
 
 pub const NS: &str = "stack";
-pub const DB: &str = "say";
+pub const DB: &str = "cs-core";
 
 async fn connect_to(url: &str) -> anyhow::Result<Surreal<Any>> {
     let surreal = any::connect(url).await?;
@@ -88,6 +88,33 @@ DEFINE TABLE IF NOT EXISTS answer_sets SCHEMALESS;
 DEFINE INDEX IF NOT EXISTS answer_sets_key ON answer_sets FIELDS book, chapter UNIQUE;
 DEFINE TABLE IF NOT EXISTS answer_tasks SCHEMALESS;
 DEFINE INDEX IF NOT EXISTS answer_tasks_chapter ON answer_tasks FIELDS book, chapter;
+
+-- переводы содержимого: те же таблицы с суффиксом _i18n и полем lang; ключи (cid, sid, номера глав) общие с русскими строками
+DEFINE TABLE IF NOT EXISTS books_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS books_i18n_key ON books_i18n FIELDS bid, lang UNIQUE;
+DEFINE TABLE IF NOT EXISTS sections_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS sections_i18n_book ON sections_i18n FIELDS bid, lang;
+DEFINE TABLE IF NOT EXISTS chapters_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS chapters_i18n_key ON chapters_i18n FIELDS cid, lang UNIQUE;
+DEFINE INDEX IF NOT EXISTS chapters_i18n_book ON chapters_i18n FIELDS bid, lang;
+DEFINE TABLE IF NOT EXISTS lessons_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS lessons_i18n_chapter ON lessons_i18n FIELDS cid, lang;
+DEFINE TABLE IF NOT EXISTS slide_chapters_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS slide_chapters_i18n_key ON slide_chapters_i18n FIELDS book, chapter, lang UNIQUE;
+DEFINE TABLE IF NOT EXISTS slides_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS slides_i18n_key ON slides_i18n FIELDS book, chapter, idx, lang UNIQUE;
+DEFINE TABLE IF NOT EXISTS quizzes_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS quizzes_i18n_key ON quizzes_i18n FIELDS book, chapter, lang UNIQUE;
+DEFINE TABLE IF NOT EXISTS quiz_questions_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS quiz_questions_i18n_chapter ON quiz_questions_i18n FIELDS book, chapter, lang;
+DEFINE TABLE IF NOT EXISTS answer_sets_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS answer_sets_i18n_key ON answer_sets_i18n FIELDS book, chapter, lang UNIQUE;
+DEFINE TABLE IF NOT EXISTS answer_tasks_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS answer_tasks_i18n_chapter ON answer_tasks_i18n FIELDS book, chapter, lang;
+DEFINE TABLE IF NOT EXISTS tasks_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS tasks_i18n_key ON tasks_i18n FIELDS book, chapter, tid, lang UNIQUE;
+DEFINE TABLE IF NOT EXISTS lab_tasks_i18n SCHEMALESS;
+DEFINE INDEX IF NOT EXISTS lab_tasks_i18n_key ON lab_tasks_i18n FIELDS book, chapter, tid, lang UNIQUE;
 
 DEFINE TABLE IF NOT EXISTS slide_views SCHEMALESS;
 DEFINE INDEX IF NOT EXISTS slide_views_user ON slide_views FIELDS user;

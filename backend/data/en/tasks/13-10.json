@@ -1,0 +1,55 @@
+{
+ "book": 13,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "merge",
+   "title": "Merge settings",
+   "statement": "Write a function merge(defaults, custom) that returns a new dictionary containing all the pairs of both dictionaries; when keys match, custom wins. The original dictionaries must not be changed.",
+   "hint": "defaults | custom: the right dictionary overrides the left; or copy + update."
+  },
+  {
+   "id": "to-dict",
+   "title": "A dict from two lists",
+   "statement": "Write a function to_dict(keys, values) that returns a dictionary where the i-th key is paired with the i-th value. The lists have the same length. Use dict and zip.",
+   "hint": "return dict(zip(keys, values))."
+  },
+  {
+   "id": "invert",
+   "title": "Invert a dict",
+   "statement": "Write a function invert(d) that returns a dictionary with keys and values swapped. The values of the original dictionary are unique strings. Do it in a single expression with a dictionary comprehension.",
+   "hint": "{value: key for key, value in d.items()}."
+  },
+  {
+   "id": "group-by-first",
+   "title": "Words by first letter",
+   "statement": "Write a function group_by_first(words) that returns a dictionary where each key is the first letter of a word and each value is the list of words starting with that letter, in the original order. The words are non-empty.",
+   "hint": "groups.setdefault(word[0], []).append(word)."
+  },
+  {
+   "id": "most-common",
+   "title": "The most frequent word",
+   "statement": "Write a function most_common(words) that returns the most frequent word of a non-empty list. If several words tie, return the one that appeared earlier in the list. Count the frequencies and find the maximum by value.",
+   "hint": "max(counts, key=counts.get) returns the key with the largest value, and on a tie, the first one.",
+   "starter": "def most_common(words):\n    counts = {}\n    # count the frequencies, then max(counts, key=counts.get)\n"
+  },
+  {
+   "id": "adult-names",
+   "title": "Names of adults",
+   "statement": "Write a function adult_names(users), where users is a list of dictionaries {'name': ..., 'age': ...}. Return the list of names of those who are 18 or older, in the original order.",
+   "hint": "[u['name'] for u in users if u['age'] >= 18]."
+  },
+  {
+   "id": "sort-by-age",
+   "title": "Sort by age",
+   "statement": "Write a function sort_by_age(users) that returns a list of the same records {'name': ..., 'age': ...}, sorted by age from youngest to oldest. Define a small helper function to use as the sort key.",
+   "hint": "def get_age(user): return user['age'], and then sorted(users, key=get_age)."
+  },
+  {
+   "id": "grade-word",
+   "title": "Grade as a word",
+   "statement": "Write a function grade_word(grade): 5 -> «отлично», 4 -> «хорошо», 3 -> «удовлетворительно», 2 -> «плохо», anything else -> «неизвестно». No if chain: use a lookup table in a dictionary. The returned words must be exactly the Russian ones given in the guillemets.",
+   "hint": "`return words.get(grade, 'неизвестно')`, where the dictionary words holds pairs like `5: 'отлично'` and so on."
+  }
+ ]
+}

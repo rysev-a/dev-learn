@@ -1,0 +1,59 @@
+{
+ "book": 13,
+ "chapter": 39,
+ "tasks": [
+  {
+   "id": "tests-for-leap",
+   "title": "Tests for a leap year",
+   "statement": "Complete the class TestLeap (unittest): tests for the function is_leap(year). The checker runs your tests against a correct implementation (they must PASS) and against three broken ones (they must FAIL). Cover a typical year, century years, and years divisible by 400.",
+   "hint": "assertTrue(is_leap(2024)), assertFalse(is_leap(2023)), assertFalse(is_leap(1900)), assertTrue(is_leap(2000)).",
+   "starter": "import unittest\n\n\nclass TestLeap(unittest.TestCase):\n    def test_example(self):\n        pass  # call is_leap(year)\n"
+  },
+  {
+   "id": "tests-for-clamp",
+   "title": "Tests for clamp",
+   "statement": "Complete the class TestClamp: tests for the function clamp(x, low, high), which limits x to the range [low, high]. Your tests must pass on the correct implementation and fail on each of the three broken ones. Check values inside, below, above, and on the boundaries.",
+   "hint": "clamp(5, 0, 10) == 5; clamp(-3, 0, 10) == 0; clamp(42, 0, 10) == 10; and the boundaries themselves.",
+   "starter": "import unittest\n\n\nclass TestClamp(unittest.TestCase):\n    def test_example(self):\n        pass  # call clamp(x, low, high)\n"
+  },
+  {
+   "id": "tests-for-divide",
+   "title": "Tests for divide",
+   "statement": "Complete the class TestDivide: tests for the function divide(a, b), which is ordinary division and must raise ValueError when b == 0. Your tests must pass on the correct implementation and fail on three broken ones. Don't forget assertRaises.",
+   "hint": "self.assertEqual(divide(7, 2), 3.5); with self.assertRaises(ValueError): divide(1, 0).",
+   "starter": "import unittest\n\n\nclass TestDivide(unittest.TestCase):\n    def test_example(self):\n        pass  # call divide(a, b)\n"
+  },
+  {
+   "id": "tests-for-fizzbuzz",
+   "title": "Tests for fizzbuzz",
+   "statement": "Complete the class TestFizz: tests for the function fizzbuzz(n), which returns «FizzBuzz» for multiples of 15, «Fizz» for multiples of 3, «Buzz» for multiples of 5, and otherwise the number as a string. Your tests must pass on the correct implementation and fail on three broken ones.",
+   "hint": "assertEqual(fizzbuzz(15), \"FizzBuzz\"), 9, 5, 10 (for Buzz, both an odd and an even multiple), 7 → \"7\".",
+   "starter": "import unittest\n\n\nclass TestFizz(unittest.TestCase):\n    def test_example(self):\n        pass  # call fizzbuzz(n)\n"
+  },
+  {
+   "id": "tests-for-stack",
+   "title": "Tests for a stack",
+   "statement": "Complete the class TestStack: tests for the class Stack with the methods push(x), pop() (removes the top item; on an empty stack it raises IndexError), peek() (the top item without removing it), and size(). The tests must pass on the correct implementation and fail on three broken ones.",
+   "hint": "Push 1, 2, 3: pop() == 3, peek() == 2, size() == 2; on an empty stack: with self.assertRaises(IndexError): self.s.pop()."
+  },
+  {
+   "id": "doctest-abs-diff",
+   "title": "A function with doctest",
+   "statement": "Write a function abs_diff(a, b), the absolute difference of two numbers, and give its docstring at least three doctest examples (the format is «>>> abs_diff(5, 8)» with the answer on the next line). The checker will run your examples.",
+   "hint": ">>> abs_diff(5, 8)\\n    3: each example is a line with >>> and a line with the expected result.",
+   "starter": "def abs_diff(a, b):\n    \"\"\"Модуль разности.\n\n    Добавьте примеры в формате doctest.\n    \"\"\"\n    pass\n"
+  },
+  {
+   "id": "total-cost-mock",
+   "title": "Total through a client",
+   "statement": "Write a function total_cost(client, items): the sum of the prices of all goods in the list items; the price of each one is returned by client.get_price(item). The client is passed as a parameter, so it can be replaced in a test.",
+   "hint": "sum(client.get_price(i) for i in items)."
+  },
+  {
+   "id": "greeting-injected-time",
+   "title": "Time as a parameter",
+   "statement": "Write a function greeting(now), where now is a datetime object. Before 12 o'clock, return «Доброе утро»; from 12 to 18, «Добрый день»; later, «Добрый вечер». Do not call the current time inside.",
+   "hint": "if now.hour < 12: ...; elif now.hour < 18: ...; else: ..."
+  }
+ ]
+}

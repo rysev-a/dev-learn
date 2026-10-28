@@ -25,6 +25,7 @@ fn instr(s: &str) -> hv::Instr {
 
 #[test]
 fn hv_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let g = &g["hv"];
     let defaults = hv::default_programs();
@@ -70,6 +71,7 @@ fn hv_matches_ts() {
 
 #[test]
 fn ept_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let g = &g["ept"];
     let workloads = ept::default_workloads();
@@ -115,6 +117,7 @@ fn ept_matches_ts() {
 
 #[test]
 fn virtq_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let g = &g["virtq"];
     assert_eq!(g["size"].as_u64().unwrap(), u64::from(virtq::SIZE));
@@ -141,6 +144,7 @@ fn virtq_matches_ts() {
 
 #[test]
 fn numa_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let g = &g["numa"];
     let nodes: Vec<numa::Node> = get(g, "nodes");
@@ -173,6 +177,7 @@ fn numa_matches_ts() {
 
 #[test]
 fn qcow2_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let g = &g["qcow2"];
     let base: BTreeMap<u32, String> = get(g, "base");
@@ -222,6 +227,7 @@ fn qcow2_matches_ts() {
 
 #[test]
 fn migration_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let g = &g["migration"];
     assert_eq!(g["mem_mib"].as_f64().unwrap(), migration::MEM_MIB);

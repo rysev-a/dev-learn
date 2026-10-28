@@ -143,7 +143,7 @@ pub fn ResultAlert(
             </div>
             {on_next.map(|next| view! {
                 <button type="button" class="lab-alert-next" on:click=move |_| next.run(())>
-                    "Дальше"
+                    {i18n::tr("Next")}
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
                 </button>
             })}
@@ -157,6 +157,7 @@ mod tests {
 
     #[test]
     fn signal_value_classes_and_text() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!((node_class(Some(1)), node_class(Some(0)), node_class(None)), ("v1", "v0", "vx"));
         assert_eq!((node_text(Some(1)), node_text(Some(0)), node_text(None)), ("1".to_string(), "0".to_string(), "?".to_string()));
     }

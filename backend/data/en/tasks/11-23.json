@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "j14-tree-ops",
+   "title": "Mini-DOM: appendChild, insertBefore, removeChild",
+   "statement": "Nodes are objects { type, tag?, children?, parent }. Write the functions appendChild(parent, child) (if child already had a parent, it is first removed from there; returns child), insertBefore(parent, child, ref) (ref === null means append at the end; if ref is not a child of parent, throw Error(\"ref не потомок\")), removeChild(parent, child) (if child is not a child of parent, throw Error(\"не потомок\"); returns child and sets its parent to null), and replaceChild(parent, newChild, oldChild). Invariant: child.parent always equals the real parent.",
+   "hint": "A general detach(n) removes a node from its old parent; then insert by index."
+  },
+  {
+   "id": "j14-traverse",
+   "title": "Walking and siblings",
+   "statement": "Write the functions: walk(root, visit) (depth-first in document order: a node before its descendants; visit(node, depth)), firstChild(n), lastChild(n), nextSibling(n), previousSibling(n) (null if there is none), childElements(n) (elements only), depthOf(n) (the root is 0), path(n) → an array of indexes from the root to the node, and nodeAt(root, path).",
+   "hint": "Find siblings through the index in parent.children; the path is a list of indexes from the root."
+  },
+  {
+   "id": "j14-text-content",
+   "title": "textContent",
+   "statement": "Write the functions getTextContent(node) (the concatenated text of all text descendants in document order; for a text node, its own text) and setTextContent(node, text) (removes all children of the element and, if text is not empty, adds a single text node; the removed children get parent = null). For a text node, setTextContent changes its text.",
+   "hint": "Concatenate recursively; when writing, detach the old children."
+  },
+  {
+   "id": "j14-serialize",
+   "title": "outerHTML: serialization",
+   "statement": "Write the functions escapeText(s) (& < > → &amp; &lt; &gt;), escapeAttr(s) (& < > \" → &amp; &lt; &gt; &quot;) and outerHTML(node): <tag attributes>children</tag>; attributes go in object order as name=\"value\" (a boolean attribute with the value true is printed as the bare name; false and null are skipped); void tags br, hr, img, input, meta, link are printed without a closing tag and without children; text is escaped (except the content of script and style).",
+   "hint": "Recursion; text inside script/style is not escaped."
+  },
+  {
+   "id": "j14-parse-html",
+   "title": "Parsing HTML into a tree",
+   "statement": "Write the function parseHTML(html) for simplified HTML: tags with attributes (name=\"value\", name='value', name=value, a name without a value → true), void tags (br, hr, img, input, meta, link — no closing tag), text (with &amp; &lt; &gt; &quot; decoded), and comments <!-- … --> are skipped. It returns a fragment: a node { type: \"fragment\", children } whose descendants have correct parent links. A stray closing tag is ignored, and unclosed tags are closed at the end. Tag names are lowercase.",
+   "hint": "A single pass with a regular expression: comment, closing tag, opening tag with attributes, text; keep a stack of open elements."
+  },
+  {
+   "id": "j14-selector-parse",
+   "title": "Parsing a CSS selector",
+   "statement": "Write the function parseSelector(str). Compound selectors are supported: tag, #id, .class (several), [attribute], [attribute=value] (the value quoted or not), *, and the combinators: space (descendant), > (child), + (next sibling); a comma makes a list. The result is an array of alternatives; an alternative is an array of steps { combinator: \" \" | \">\" | \"+\" | null (for the first), tag?, id?, classes: [], attrs: [{ name, value? }] }. For an invalid selector, throw a SyntaxError.",
+   "hint": "Split into alternatives at commas, into steps at combinators, and parse each compound selector with regular expressions by prefix."
+  },
+  {
+   "id": "j14-matches",
+   "title": "matches and querySelectorAll",
+   "statement": "The selector is an already parsed list of alternatives (as in the previous task; format: [[{ combinator, tag?, id?, classes, attrs }, …], …]). Write matches(node, selectorAlternatives) (an element node matches if at least one alternative matches; combinators: \" \" — descendant, \">\" — child, \"+\" — immediately following sibling element) and querySelectorAll(root, selectorAlternatives) → the descendant elements of root (root itself is not included) in document order; querySelector returns the first one or null.",
+   "hint": "Match the selector right to left: first the last step against the node itself, then the combinator leads to the parent, ancestor or sibling."
+  },
+  {
+   "id": "j14-closest-delegate",
+   "title": "closest and delegation",
+   "statement": "Write the functions closest(node, pred) (the node itself or its nearest ancestor for which pred(n) is true; otherwise null) and findTarget(node, root, pred): it climbs from node up to root (root itself is not included) and returns the nearest node for which pred is true, but only if it lies inside root; otherwise null. And the function tagPath(node) → an array of tags from the root to the node (for debugging).",
+   "hint": "Climb through parent in a loop; for delegation, stop at root."
+  },
+  {
+   "id": "j14-live-collection",
+   "title": "A live collection",
+   "statement": "Write the function getElementsByClassName(root, cls) → a \"live\" collection object: a length property, an item(i) method, and [Symbol.iterator]; on every access it searches again for the descendant elements of root (in document order) with the class cls, so it reflects changes to the tree. And snapshot(root, cls) → an ordinary array as of the moment of the call.",
+   "hint": "Recompute the list by walking the tree every time."
+  },
+  {
+   "id": "j14-classlist",
+   "title": "classList",
+   "statement": "Write the function classList(el) → an object with the methods add(...names), remove(...names), toggle(name, force?) (returns the resulting presence), contains(name), replace(old, new) (true/false), item(i), length and toString(); it stores its state directly in el.attrs.class (a string, names separated by spaces, no duplicates; insertion order is kept). An empty name or a name with a space: throw a SyntaxError.",
+   "hint": "The state is a string in el.attrs.class: parse and rebuild it on every operation."
+  },
+  {
+   "id": "j14-dataset",
+   "title": "dataset and attribute names",
+   "statement": "Write the functions toDataAttr(prop) (\"userId\" → \"data-user-id\"), fromDataAttr(attr) (\"data-user-id\" → \"userId\"; for a non-data attribute, null) and dataset(el) → a proxy object: reading/writing/deleting properties (user.id → the attribute data-user-id), and enumeration of keys (Object.keys) — only data attributes, in attribute order; values are strings (a write converts to a string).",
+   "hint": "A Proxy with get/set/deleteProperty/has/ownKeys traps."
+  },
+  {
+   "id": "j14-style",
+   "title": "style: parsing and building cssText",
+   "statement": "Write the functions parseStyle(cssText) → an object { property: value } (hyphenated properties become camelCase: font-size → fontSize; surrounding spaces are trimmed; empty declarations are skipped; account for values with \";\" inside quotes and url(…)), stringifyStyle(obj) → \"font-size: 12px; color: red;\" (camelCase → hyphens, declarations separated by a space, a \";\" at the end; null/undefined/empty values are skipped) and setStyle(el, prop, value) (changes el.attrs.style; an empty value removes the property).",
+   "hint": "Do not split on \";\" blindly: account for quotes and parentheses (a regular expression with alternatives)."
+  },
+  {
+   "id": "j14-attr-prop",
+   "title": "Attributes and properties",
+   "statement": "Write the function reflect(el) → a \"view\" object of DOM properties over the attributes: id (a string, reads/writes attrs.id; \"\" by default), className (a string from attrs.class), disabled and checked (booleans: reading — whether the attribute is present (true or any string); writing true sets the attribute to true, false removes the attribute), href (for a: an absolute address — resolve a relative one with new URL(attr, \"https://example.com/dir/page\"); \"\" without the attribute), tabIndex (a number from attrs.tabindex; by default 0 for button/a/input and -1 for the rest). The original attrs are changed on write.",
+   "hint": "These are getters and setters over el.attrs; booleans work by presence."
+  },
+  {
+   "id": "j14-fragment",
+   "title": "DocumentFragment and replaceWith",
+   "statement": "Write the functions: createFragment(...nodes) (a node { type: \"fragment\", children, parent: null }; the children get parent = the fragment), appendFragment(parent, frag) (moves all children of the fragment to the end of parent; the fragment stays empty; returns the number inserted), append(parent, ...items) (items are nodes, strings (→ text nodes) or fragments (unpacked)), before(node, ...items), after(node, ...items), replaceWith(node, ...items), remove(node). All operations keep parent links correct and move a node from its previous place.",
+   "hint": "One shared detach helper and insertAt; a fragment is \"unpacked\" and emptied."
+  },
+  {
+   "id": "j14-clone",
+   "title": "cloneNode",
+   "statement": "Write the function cloneNode(node, deep = false): it makes a copy of a node: the same type/tag/text, a copy of attrs (an independent object), parent = null; with deep = true the descendants are copied too (with correct parent links), otherwise without children. Custom fields starting with \"on\" (handlers, such as onclick) are not copied. Then isEqualNode(a, b) → structural equality (type, tag, attrs, children, text; parent is not considered).",
+   "hint": "Copy attrs with spread; for deep, clone the children recursively and set parent."
+  },
+  {
+   "id": "j14-document-position",
+   "title": "contains and compareDocumentPosition",
+   "statement": "Write the functions contains(a, b) (b is a descendant of a, or a itself), compareDocumentPosition(a, b) → a bit mask as in the DOM, relative to a: 1 — different trees, 2 — b precedes a, 4 — b follows a, 8 — b contains a (b is an ancestor), 16 — b is contained in a (a descendant); ancestor/descendant combine: b is an ancestor of a → 8 | 2 = 10, b is a descendant of a → 16 | 4 = 20; for a === b → 0. And sortDocumentOrder(nodes) → a new array in document order (nodes from one tree).",
+   "hint": "Compare the ancestor chains: find the first divergence and compare the sibling indexes."
+  },
+  {
+   "id": "j14-tree-walker",
+   "title": "TreeWalker with a filter",
+   "statement": "Write the function createTreeWalker(root, whatToShow, filter): whatToShow is a mask (1 — elements, 4 — text; 5 — both; 0xFFFFFFFF — all); filter(node) → \"accept\" (1), \"reject\" (2: the node and its whole subtree are skipped) or \"skip\" (3: the node itself is skipped, its descendants are still considered); filter is optional. It returns an object with currentNode (initially root) and the methods nextNode() (the next accepted node in document order inside root, or null — currentNode does not change) and reset().",
+   "hint": "A document-order walk that honors the verdicts: reject skips the subtree, skip only the node."
+  },
+  {
+   "id": "j14-insert-adjacent",
+   "title": "insertAdjacentHTML",
+   "statement": "You are given a function parse(html) → an array of nodes (defined in the test environment, it parses markup). Write insertAdjacent(el, position, html): position is \"beforebegin\" (before el in its parent), \"afterbegin\" (as the first children of el), \"beforeend\" (as the last ones), \"afterend\" (after el in its parent). For beforebegin/afterend without a parent, throw Error(\"нет родителя\"); an unknown position is a SyntaxError. All parent links must be correct.",
+   "hint": "Parse the html, then insert the nodes in the right place and set parent."
+  },
+  {
+   "id": "j14-template",
+   "title": "A template with substitution",
+   "statement": "Write the function render(template, data): in the template string, {{path}} is replaced with the value from data at the dotted path (\"user.name\", \"items.0\"); values are escaped as HTML text (&, <, >, \"); {{{path}}} is unescaped; if there is no value (undefined/null), an empty string; spaces inside the braces are allowed: \"{{ user.name }}\". Blocks {{#each list}}…{{/each}} repeat their content for each item (inside, {{this}} and the item's fields are available; the index is {{@index}}).",
+   "hint": "Regular expressions for each blocks and for substitutions; escaping applies to double braces."
+  },
+  {
+   "id": "j14-sanitize",
+   "title": "An HTML sanitizer",
+   "statement": "Write the function sanitize(nodes, { allowedTags, allowedAttrs }): nodes is an array of nodes (elements { type, tag, attrs, children }, text { type: \"text\", text }); it returns a new tree with everything unneeded removed: elements whose tag is not in allowedTags are replaced by their (sanitized) descendants; script, style and iframe are removed together with their content; attributes not in allowedAttrs[tag] ∪ allowedAttrs[\"*\"] are removed; attributes starting with \"on\" are always removed; in href and src, values with the scheme javascript:, data: and vbscript: (ignoring case, spaces and control characters) are removed. The source nodes are not changed.",
+   "hint": "Recursively: a tag outside the whitelist is replaced by its descendants, dangerous attributes are dropped."
+  },
+  {
+   "id": "j14-tree-diff",
+   "title": "Diffing two trees",
+   "statement": "Write the function diffTrees(a, b): the trees are described as in the previous tasks (elements { type, tag, attrs, children }, text { type: \"text\", text }); it returns a list of operations in walk order: { op: \"replace\", path } (a different type or tag — replace the whole node), { op: \"text\", path, text } (the text changed), { op: \"setAttr\", path, name, value }, { op: \"removeAttr\", path, name }, { op: \"append\", path (the parent), index, node } (b has more children), { op: \"remove\", path (the parent), index } (fewer; remove from the end). A path is an array of child indexes from the root. Children are compared by position.",
+   "hint": "Recurse over the children by position; for different tags, replace; extra ones are append/remove."
+  },
+  {
+   "id": "j14-mutation-records",
+   "title": "MutationObserver: change records",
+   "statement": "Write the function observe(root, options, callback): options = { childList?, attributes?, characterData?, subtree? }; it returns an object with the methods setAttribute(node, name, value), removeAttribute(node, name), appendChild(parent, child), removeChild(parent, child), setText(textNode, text) — they change the tree and add a record to the queue if the node is being observed (root or, with subtree, its descendant): { type: \"attributes\"|\"childList\"|\"characterData\", target, attributeName?, oldValue? (for attributes and characterData), addedNodes?, removedNodes? }. Records are delivered in a batch as callback(records) as a microtask (queueMicrotask) after the current code. Options that are not enabled create no records.",
+   "hint": "A queue of records and one flag for scheduled delivery; the \"is observed\" check must account for subtree."
+  },
+  {
+   "id": "j14-intersection",
+   "title": "IntersectionObserver: computing visibility",
+   "statement": "Rectangles are { top, left, width, height }. Write the function intersection(target, viewport) → { isIntersecting, ratio, rect }: rect is the intersection (or a zero rectangle), ratio is the intersection area / the area of target (0 for zero area), isIntersecting is an intersection of nonzero area or an edge touch (the borders coincide, the area is 0, but ratio === 0 and the sides intersect inclusively — treat a touch as isIntersecting = true, as in the specification). And the function thresholdCrossings(ratios, thresholds): for a sequence of ratio values — the indexes at which at least one threshold is crossed (the index of the threshold \"bucket\" changed compared with the previous value; for the first value — always, if ratio > 0 or it is the observer's first call); it returns an array of the indexes of the values at which the callback is called.",
+   "hint": "The intersection is the max of the left/top edges and the min of the right/bottom edges; a threshold bucket is the number of thresholds not greater than ratio."
+  },
+  {
+   "id": "j14-resize",
+   "title": "ResizeObserver: size changes",
+   "statement": "Write the function createResizeObserver(callback): it returns { observe(el, size), unobserve(el), update(el, size), flush() }; size = { width, height }; update remembers the new size, flush() calls callback(entries) once for all observed elements whose size has changed since the last delivery (on the first observe, the initial size is always delivered); entries is [{ target, contentRect: { width, height } }] in observation order; a change of less than 0.5 px on each axis does not count as a change. unobserve stops observing.",
+   "hint": "Store the size and the last delivered size; flush compares them with a tolerance of 0.5."
+  },
+  {
+   "id": "j14-custom-elements",
+   "title": "A Custom Elements registry",
+   "statement": "Write the class CustomElementRegistry: define(name, ctor) (the name is lowercase letters, digits and hyphens, must contain a hyphen and not start with a digit; a duplicate name or constructor — an Error \"уже определён\"; an invalid name — a SyntaxError), get(name), and upgrade(root): it walks the tree (elements { tag, attrs, children, parent }), and for each element with a registered tag creates an instance new ctor(el) (field el) and, on connection, calls instance.connectedCallback(); for each name in ctor.observedAttributes that is present in attrs it calls instance.attributeChangedCallback(name, null, value) — before connectedCallback. Each element is upgraded once (el.__upgraded). The method setAttribute(el, name, value) calls attributeChangedCallback(name, old, value) only for observed attributes of an already upgraded element; remove(el) calls disconnectedCallback.",
+   "hint": "Check the name with a regular expression; upgrade is a tree walk; observed attributes come from static observedAttributes."
+  },
+  {
+   "id": "j14-shadow-slots",
+   "title": "Shadow DOM: selectors and slots",
+   "statement": "A host element may have a shadowRoot — a node { type: \"shadow\", children }. Write the functions: queryAll(root, pred) — all descendant elements of root that match pred, in document order, WITHOUT entering shadow trees (neither the host's shadowRoot nor anything below it); queryDeep(root, pred) — the same, but entering the shadow trees too (the host's shadowRoot is walked right after the host itself, before its light children); assignedNodes(host, slotName) — the light children of the host assigned to the slot: an element with the attribute slot=\"name\" goes to the slot with that name, the rest (including text) go to the unnamed slot (slotName = \"\" or undefined).",
+   "hint": "In queryDeep, when you meet a host, walk its shadowRoot right away, then the light children."
+  },
+  {
+   "id": "j14-range-text",
+   "title": "Range: text between positions",
+   "statement": "A position is { node (a text node), offset }. Write the function rangeToString(root, start, end) → the text between the positions (inclusive on the left, exclusive on the right) over all text nodes of root in document order; if start is after end, the positions are swapped; positions in different nodes include the nodes between them in full. And the function extractRange(root, start, end) → { text, root }: it removes this text from the corresponding text nodes (empty text nodes are removed from the tree).",
+   "hint": "Collect all text nodes in document order and work with their indexes."
+  },
+  {
+   "id": "j14-accessible-name",
+   "title": "The accessible name of an element",
+   "statement": "Write the function accessibleName(el, root): it computes the name by a simplified algorithm: 1) aria-labelledby (a list of ids separated by spaces → the texts of those elements in root, joined with spaces); 2) aria-label; 3) for img — alt; for input/select/textarea — the text of the <label for=id> with that id (if there is one), then title; 4) for button, a, h1–h6, li — the text content; 5) title; otherwise an empty string. Normalize whitespace (trim and collapse repeats). And the function roleOf(el): the explicit role, otherwise by tag: button→button, a[href]→link, h1…h6→heading, img→img, ul/ol→list, li→listitem, input[type=checkbox]→checkbox, input[type=text|not set]→textbox, nav→navigation, main→main, otherwise null.",
+   "hint": "The sequence of name sources: labelledby, label, alt/label/title, content, title."
+  },
+  {
+   "id": "j14-tab-order",
+   "title": "Tab order",
+   "statement": "Elements are { id, tag, attrs } in document order. Write the function tabOrder(elements): it returns an array of ids in the order the Tab key visits them: focusable ones are a[href], button, input (except type=hidden), select, textarea, and any element with tabindex; excluded are disabled ones (for button/input/select/textarea), the hidden attribute, and elements with tabindex < 0; first come the elements with a positive tabindex in ascending order (ties in document order), then the rest (tabindex=\"0\" and naturally focusable ones) in document order. And the function nextFocus(order, currentId, shift) → the next id, wrapping around (shift goes backwards); if currentId is not in the list, the first (or the last with shift).",
+   "hint": "Filter the focusable ones, then positive tabindex in ascending order, then the rest in document order."
+  },
+  {
+   "id": "j14-testing-queries",
+   "title": "Queries as in Testing Library",
+   "statement": "Write functions that find elements the way a user sees them: getByText(root, matcher, { exact = true } = {}) — elements whose own text (the concatenation of direct text children, trimmed, whitespace normalized) matches: matcher is a string (with exact=false, a case-insensitive substring) or a RegExp; getByRole(root, role, { name } = {}) — elements with the role (explicit role or implicit: button→button, a[href]→link, h1–h6→heading, input[type=checkbox]→checkbox, input without type→textbox, ul→list, li→listitem), optionally with a name (the text content or aria-label; a string means an exact match, a RegExp a test); getByLabelText(root, text) — an element by its associated label (<label for=id>); queryOne(list, what) — the only element in the list or null; if there is more than one element, throw Error(\"найдено несколько: N\"), if there are none, Error(\"не найдено: <what>\").",
+   "hint": "Own text is only the direct text children; the role is explicit or by tag."
+  }
+ ]
+}

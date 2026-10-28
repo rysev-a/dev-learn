@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 21,
+ "tasks": [
+  {
+   "id": "ds-fahrenheit",
+   "title": "Temperature: the fahrenheit property",
+   "statement": "Add a fahrenheit property to Temperature: reading gives degrees Fahrenheit by the formula C * 9 / 5 + 32, and writing converts back and stores the value in celsius.",
+   "hint": "@property def fahrenheit(self); @fahrenheit.setter def fahrenheit(self, value): self.celsius = (value - 32) * 5 / 9."
+  },
+  {
+   "id": "ds-age-validated",
+   "title": "Age with validation",
+   "statement": "Turn age into a property: the value must be an integer and non-negative, otherwise ValueError. The check must work both when the object is created (in __init__ assign via self.age) and on later assignment.",
+   "hint": "Store the number in self._age; in the setter: if not isinstance(value, int) or value < 0: raise ValueError."
+  },
+  {
+   "id": "ds-readonly-area",
+   "title": "Read-only",
+   "statement": "Add computed properties area and perimeter to Rect without setters: they are always recomputed from w and h, and trying to assign to area raises AttributeError.",
+   "hint": "@property def area(self): return self.w * self.h."
+  },
+  {
+   "id": "ds-positive",
+   "title": "The Positive descriptor",
+   "statement": "Write a data descriptor Positive: the value must be a positive number, otherwise ValueError. Store it in the instance under the field name (__set_name__ will give it) so values of different objects do not get mixed; when accessed through the class, return the descriptor itself.",
+   "hint": "__set_name__(self, owner, name): self.name = name; __set__: obj.__dict__[self.name] = value; __get__: if obj is None: return self."
+  },
+  {
+   "id": "ds-typed",
+   "title": "The Typed descriptor",
+   "statement": "Write a data descriptor Typed(expected_type): on assignment it checks isinstance and raises TypeError if the type is wrong. Values are stored in the instances (in obj.__dict__ under the field name).",
+   "hint": "In __set__: if not isinstance(value, self.expected_type): raise TypeError(...). __get__: return obj.__dict__[self.name]."
+  },
+  {
+   "id": "ds-lazy",
+   "title": "A lazy attribute",
+   "statement": "Write a non-data descriptor lazy (used as a decorator): on first access it calls the function, puts the result into obj.__dict__ under the same name and returns it, and afterwards the function never runs. When accessed through the class, return the descriptor itself.",
+   "hint": "__set_name__ remembers the name; in __get__: value = self.func(obj); obj.__dict__[self.name] = value; return value. There must be no __set__ method."
+  },
+  {
+   "id": "ds-classmethod",
+   "title": "Your own classmethod",
+   "statement": "Write a descriptor MyClassMethod, a simplified classmethod. In __get__ it returns a bound method with the class passed first (the one through which it was accessed, even if called via a subclass or an instance).",
+   "hint": "def __get__(self, obj, owner=None): if owner is None: owner = type(obj); return types.MethodType(self.func, owner)."
+  },
+  {
+   "id": "ds-slots-point",
+   "title": "Slots for Point",
+   "statement": "Add a __slots__ attribute with the fields x and y to Point, so that instances have no __dict__ and new attributes cannot be added.",
+   "hint": "__slots__ = (\"x\", \"y\") in the class body, before __init__."
+  },
+  {
+   "id": "ds-cached-report",
+   "title": "Caching a heavy sum",
+   "statement": "Report.total computes the sum of the values on every access (the calls counter grows). Make the sum computed once per instance, without changing the call r.total.",
+   "hint": "from functools import cached_property and replace @property with @cached_property."
+  }
+ ]
+}

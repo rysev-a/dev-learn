@@ -82,6 +82,7 @@ mod tests {
 
     #[test]
     fn gate_drawing_round_trips_through_json() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let d = sample();
         let json = d.json(Build::Gates);
         assert!(json.contains("\"gates\"") && json.contains("\"wires\""));
@@ -90,6 +91,7 @@ mod tests {
 
     #[test]
     fn block_drawing_round_trips_and_reads_the_old_camel_case_field() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let d = Drawing {
             instances: vec![BlockInstance { id: "i1".into(), block_id: "rom".into(), x: 10.0, y: 20.0 }],
             bus_wires: vec![],
@@ -104,6 +106,7 @@ mod tests {
 
     #[test]
     fn foreign_or_broken_drafts_give_an_empty_board() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let gates_json = sample().json(Build::Gates);
         assert!(restore(&gates_json, Build::Blocks).is_empty(Build::Blocks));
         assert_eq!(restore("", Build::Gates), Drawing::default());
@@ -113,6 +116,7 @@ mod tests {
 
     #[test]
     fn new_ids_continue_after_the_saved_ones() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let d = sample();
         let mut uid = UidGen::new();
         d.reserve_ids(&mut uid);
@@ -121,6 +125,7 @@ mod tests {
 
     #[test]
     fn instance_ids_skip_the_taken_ones() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mk = |id: &str| BlockInstance { id: id.into(), block_id: "x".into(), x: 0.0, y: 0.0 };
         assert_eq!(next_instance_id(&[]), "i1");
         assert_eq!(next_instance_id(&[mk("i2")]), "i3");

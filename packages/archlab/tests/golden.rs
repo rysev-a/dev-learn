@@ -52,6 +52,7 @@ fn nv(v: &Value) -> NodeValue {
 
 #[test]
 fn circuits_match_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let g = golden();
@@ -112,6 +113,7 @@ fn circuits_match_typescript() {
 
 #[test]
 fn reference_and_empty_verdicts_match_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let g = golden();
@@ -142,6 +144,7 @@ fn reference_and_empty_verdicts_match_typescript() {
 
 #[test]
 fn block_expansions_match_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let g = golden();
@@ -162,6 +165,7 @@ fn block_expansions_match_typescript() {
 
 #[test]
 fn cpu8_blocks_match_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let want = g["blocks"].as_array().expect("blocks");
     let have = cpu8_blocks().all();
@@ -184,6 +188,7 @@ fn cpu8_blocks_match_typescript() {
 
 #[test]
 fn assembler_matches_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let mut sources = 0;
     for e in g["assembler"].as_array().expect("assembler") {
@@ -216,6 +221,7 @@ fn view_json(v: &archlab::asm::MachineView) -> Value {
 
 #[test]
 fn cpu8_traces_match_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let list = g["cpu8"].as_array().expect("cpu8");
     assert!(list.len() >= 17);
@@ -265,6 +271,7 @@ fn cpu8_traces_match_typescript() {
 
 #[test]
 fn special_circuits_match_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let list = g["specials"].as_array().expect("specials");
     assert!(list.len() >= 15);
@@ -288,6 +295,7 @@ fn special_circuits_match_typescript() {
 
 #[test]
 fn step_order_fallback_matches_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     for e in g["steps_cases"].as_array().expect("steps_cases") {
         let name = e["name"].as_str().expect("name");

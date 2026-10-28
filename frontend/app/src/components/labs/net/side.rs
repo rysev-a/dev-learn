@@ -22,7 +22,7 @@ fn Alert(ok: bool, title: &'static str, #[prop(into)] text: Signal<String>, #[pr
             </div>
             {move || (ok && has_next.get()).then(|| view! {
                 <button type="button" class="lab-alert-next" on:click=move |_| on_next.run(())>
-                    "Дальше"
+                    {i18n::tr("Next")}
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M5 12h14M12 5l7 7-7 7"></path>
                     </svg>
@@ -66,16 +66,16 @@ pub fn Goals(
                             (!d.is_empty()).then(|| view! { <small>{d}</small> })
                         }}
                     </span>
-                    <button type="button" class="nl-play" title="Показать путь пакета" on:click=move |_| lab.play_goal(i)>"▶"</button>
+                    <button type="button" class="nl-play" title=i18n::tr("Show packet path") on:click=move |_| lab.play_goal(i)>"▶"</button>
                 </li>
             }
         })
         .collect_view();
     let verdict = Signal::derive(move || logic::verdict_text(solved_before, solved.get()).to_string());
-    let hint = Signal::derive(|| "Нажмите ▶ у цели — увидите, где пакет теряется, и поправьте настройки.".to_string());
+    let hint = Signal::derive(|| i18n::tr("Press ▶ next to a goal to see where the packet gets lost, then fix the settings.").to_string());
     view! {
         <div class="nl-goals">
-            <h4>"Цели"</h4>
+            <h4>{i18n::tr("Goals")}</h4>
             <ul>{items}</ul>
             <div class="nl-actions">
                 <button
@@ -86,14 +86,14 @@ pub fn Goals(
                         lab.checked.set(true);
                     }
                 >
-                    "Проверить"
+                    {i18n::tr("Check")}
                 </button>
             </div>
             {move || {
                 if lab.solved_now.get() {
-                    view! { <Alert ok=true title="Все цели выполнены" text=verdict has_next=has_next on_next=on_next /> }.into_any()
+                    view! { <Alert ok=true title=i18n::tr("All goals met") text=verdict has_next=has_next on_next=on_next /> }.into_any()
                 } else if lab.checked.get() {
-                    view! { <Alert ok=false title="Пока не всё работает" text=hint has_next=has_next on_next=on_next /> }.into_any()
+                    view! { <Alert ok=false title=i18n::tr("Not everything works yet") text=hint has_next=has_next on_next=on_next /> }.into_any()
                 } else {
                     ().into_any()
                 }
@@ -118,11 +118,11 @@ pub fn Log(lab: Lab) -> impl IntoView {
     };
     view! {
         <div class="nl-log">
-            <h4>"Журнал " {move || title().map(|t| view! { <small>{format!("· {t}")}</small> })}</h4>
+            <h4>{i18n::tr("Log ")} {move || title().map(|t| view! { <small>{format!("· {t}")}</small> })}</h4>
             {move || {
                 let l = lines();
                 if l.is_empty() {
-                    view! { <p class="nl-none">"Запустите ping в терминале или нажмите ▶ у цели — здесь появится путь пакета: ARP, пересылка, NAT, потери."</p> }.into_any()
+                    view! { <p class="nl-none">{i18n::tr("Run ping in the terminal or press ▶ next to a goal — the packet path will appear here: ARP, forwarding, NAT, losses.")}</p> }.into_any()
                 } else {
                     view! {
                         <ol>

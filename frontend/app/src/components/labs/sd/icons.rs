@@ -35,6 +35,7 @@ mod tests {
 
     #[test]
     fn every_kind_has_a_balanced_icon() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for k in Kind::ALL {
             let m = markup(k);
             assert!(m.starts_with('<') && m.ends_with("/>"), "{k}: {m}");

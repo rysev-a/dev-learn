@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 30,
+ "tasks": [
+  {
+   "id": "rf-public-data",
+   "title": "Public data of an object",
+   "statement": "Write public_data(obj): a sorted list of the names of the object's attributes (including class attributes) that do not start with an underscore and are not callable.",
+   "hint": "for name in dir(obj): if not name.startswith(\"_\") and not callable(getattr(obj, name))."
+  },
+  {
+   "id": "rf-dispatch",
+   "title": "Command dispatcher by name",
+   "statement": "Write dispatch(obj, command, *args): it calls the method of obj named cmd_<command> and returns the result. If there is no such method, raise ValueError(\"неизвестная команда: <command>\"), keeping the message text in Russian exactly as shown. Only methods with the cmd_ prefix may be accessed.",
+   "hint": "handler = getattr(obj, \"cmd_\" + command, None); if it is None, raise ValueError."
+  },
+  {
+   "id": "rf-param-info",
+   "title": "Describing a function's parameters",
+   "statement": "Write param_info(func): a list of tuples (name, kind, has_default) for each parameter of the function, based on its signature. The kind is the name of the inspect.Parameter.kind member (for example, KEYWORD_ONLY).",
+   "hint": "for p in inspect.signature(func).parameters.values(): p.name, p.kind.name, p.default is not inspect.Parameter.empty."
+  },
+  {
+   "id": "rf-resolve-args",
+   "title": "Which values the parameters got",
+   "statement": "Write resolve_args(func, *args, **kwargs): bind the call to the function's signature (bind), apply the default values, and return a plain dictionary \"parameter → value\". An invalid call must raise TypeError.",
+   "hint": "bound = inspect.signature(func).bind(*args, **kwargs); bound.apply_defaults(); return dict(bound.arguments)."
+  },
+  {
+   "id": "rf-closure-vars",
+   "title": "What the nested function carried off",
+   "statement": "Write captured(func): a dictionary \"free variable name → its value\" for a closure (use __code__.co_freevars and __closure__). For a function without a closure, the result is an empty dictionary.",
+   "hint": "dict(zip(func.__code__.co_freevars, (c.cell_contents for c in func.__closure__ or ())))."
+  },
+  {
+   "id": "rf-all-subclasses",
+   "title": "All descendants of a class",
+   "statement": "Write all_subclasses(cls): a sorted list of the names of all direct and indirect descendants of the class (without duplicates, even with diamond inheritance).",
+   "hint": "Walk cls.__subclasses__() recursively and collect the names in a set."
+  },
+  {
+   "id": "rf-to-dict",
+   "title": "Object to dictionary",
+   "statement": "Write to_dict(obj): a dictionary built from the instance's attributes (vars). Convert nested objects that have attributes recursively, process lists and tuples element by element (as lists), and leave simple values as they are.",
+   "hint": "A helper convert(value): if the value has __dict__, use to_dict; if it is a list/tuple, [convert(x) ...]; otherwise the value itself."
+  },
+  {
+   "id": "rf-caller-name",
+   "title": "Name of the calling function",
+   "statement": "Write caller_name(): it returns the name of the function it was called from (at module level, \"<module>\"). Use inspect.currentframe() and f_back; don't forget to delete the reference to the frame.",
+   "hint": "frame = inspect.currentframe().f_back; name = frame.f_code.co_name; del frame; return name."
+  },
+  {
+   "id": "rf-load-by-name",
+   "title": "Loading an object by a string",
+   "statement": "Write load(path): given a string like \"package.module.name\", it imports the module (importlib.import_module) and returns the object with that name. No such module means ImportError, no such name means AttributeError.",
+   "hint": "module_path, _, name = path.rpartition(\".\"); getattr(importlib.import_module(module_path), name)."
+  }
+ ]
+}

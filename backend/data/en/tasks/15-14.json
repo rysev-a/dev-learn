@@ -1,0 +1,84 @@
+{
+ "book": 15,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "net14-rest-get",
+   "title": "REST: reading resources",
+   "statement": "Write a class Handler (a subclass of BaseHTTPRequestHandler) with a do_GET method. The ITEMS dictionary is already defined. GET /items returns 200 and a JSON list of all the items, sorted by id. GET /items/<id> returns 200 and a JSON object, and if there is no such id, then 404 and the JSON {\"error\": \"not found\"}. Always send the header Content-Type: application/json.",
+   "hint": "Return json.dumps(...).encode(); send_response(code), send_header('Content-Type', 'application/json'), end_headers(), then wfile.write(body). For /items/<id>: int(self.path.split('/')[2]) inside a try."
+  },
+  {
+   "id": "net14-rest-post",
+   "title": "REST: creating a resource",
+   "statement": "Add a do_POST method for the path /items to Handler. The body is JSON {\"name\": ...}. Create an item with a new id (the maximum id + 1), return 201, a Location: /items/<id> header and the JSON of the created item. If the body is not JSON or has no non-empty name, return 400 and {\"error\": \"bad request\"}. Modify the ITEMS dictionary in place.",
+   "hint": "Body: n = int(self.headers['Content-Length']); json.loads(self.rfile.read(n)). Parse errors and a missing name mean 400. New id: max(ITEMS) + 1."
+  },
+  {
+   "id": "net14-paginate",
+   "title": "Pagination",
+   "statement": "Write a function paginate(items, page, per_page); pages are numbered from 1. Return a dictionary: {'items': the items of the page, 'page': page, 'pages': the total number of pages, 'next': the number of the next page or None}. If page is out of range (less than 1 or greater than pages), items is an empty list and next is None. For an empty list, pages = 0.",
+   "hint": "pages = -(-len(items) // per_page) is division rounded up; slice items[(page-1)*per_page : page*per_page]."
+  },
+  {
+   "id": "net14-etag",
+   "title": "ETag and conditional GET",
+   "statement": "Write make_etag(body: bytes), a quoted string made of the first 8 characters of the sha1 hash of the body (for example '\"a94a8fe5\"'), and conditional_get(headers: dict, body: bytes) -> (status, response_headers, response_body). If headers contains 'If-None-Match' equal to the ETag of the body, return (304, {'ETag': etag}, b''). Otherwise return (200, {'ETag': etag}, body).",
+   "hint": "hashlib.sha1(body).hexdigest()[:8] wrapped in quotes; compare the If-None-Match header with your own ETag."
+  },
+  {
+   "id": "net14-bearer",
+   "title": "Bearer token: 401 and 403",
+   "statement": "Write authorize(headers, tokens, scope), where tokens is a dictionary {token: set_of_permissions}. The header is 'Authorization: Bearer <token>'. Return (200, 'ok') if the token is known and scope is among its permissions; (401, 'unauthorized') if there is no header, the scheme is not Bearer, or the token is unknown; (403, 'forbidden') if the token is known but its permissions are not enough.",
+   "hint": "Parse the header with split(' ', 1); first check the scheme and that the token exists (401), then the permissions (403)."
+  },
+  {
+   "id": "net14-bucket",
+   "title": "Token bucket (rate limit)",
+   "statement": "Write a class TokenBucket(rate, capacity): the bucket holds capacity tokens and refills at rate tokens per second (refilling is fractional); it starts full. The method allow(now) takes the time in seconds (non-decreasing): first it refills the bucket for the elapsed time (but not above capacity), then, if there is at least 1 token, it takes one and returns True, otherwise False.",
+   "hint": "Store tokens and the time of the last refill; tokens = min(capacity, tokens + (now - last) * rate)."
+  },
+  {
+   "id": "net14-retry",
+   "title": "Retries that honor Retry-After",
+   "statement": "Write get_with_retry(fetch, retries, sleep): fetch() returns (status, headers). Retry on statuses 429 and 503, no more than retries times after the first attempt. The pause before a retry: if the response has Retry-After (seconds), that value, otherwise exponential 1, 2, 4, 8... Call sleep(pause). Return the last status (successful or not).",
+   "hint": "Loop over the number of retries: if the status is not 429/503, stop; otherwise pause = Retry-After or delay; delay *= 2; call fetch() again."
+  },
+  {
+   "id": "net14-idempotent",
+   "title": "Idempotent order creation",
+   "statement": "Write a class OrderService with a method create_order(key, payload). For a new key, create an order with the next id (1, 2, ...) and return {'id': id, 'payload': payload}. If the same key arrives again (even with a different payload), return the saved result of the first call and do not create a new order. The attribute created is the number of orders actually created.",
+   "hint": "Keep a dictionary of results by key; create a new order only if the key is not there yet."
+  },
+  {
+   "id": "net14-ws-accept",
+   "title": "WebSocket: the accept key",
+   "statement": "Write ws_accept(key: str) -> str: the value of the Sec-WebSocket-Accept header. Concatenate key and the GUID \"258EAFA5-E914-47DA-95CA-C5AB0DC85B11\", take the sha1 (as bytes) and encode it as base64 into a string.",
+   "hint": "base64.b64encode(hashlib.sha1((key + GUID).encode()).digest()).decode()."
+  },
+  {
+   "id": "net14-ws-frame",
+   "title": "WebSocket: frames",
+   "statement": "Write encode_text(text), a server (unmasked) text frame: the byte 0x81, then the length (for a length < 126, one byte; for 126...65535, the byte 126 and 2 bytes of length in big-endian), then UTF-8. And decode_frame(data) -> (opcode, payload_bytes) for a client frame: if the mask bit is set (the second byte & 0x80), 4 bytes of the mask key follow the length, and every data byte must be XORed with key[i % 4]. The opcode is the low 4 bits of the first byte.",
+   "hint": "A length < 126 fits in one byte; otherwise 126 + struct.pack('>H', n). Mask: payload[i] ^ key[i % 4]."
+  },
+  {
+   "id": "net14-sse",
+   "title": "Server-Sent Events: the format",
+   "statement": "Write sse_encode(events) and sse_decode(text). The events are a list of dictionaries with the key data (a string, possibly multi-line) and optional event and id. Encoding: for each event, the lines 'id: ...', 'event: ...' (if present), then for every line of data a 'data: ...' line, and an empty line at the end. Decoding is the reverse: blocks are separated by an empty line; multi-line data is joined with \\n. Return a list of dictionaries containing only the keys that were in the block.",
+   "hint": "Encoding: a list of lines and join('\\n'); decoding: split into blocks on the empty line, split each line with partition(': '), and collect data in a list."
+  },
+  {
+   "id": "net14-varint",
+   "title": "Protobuf: varint",
+   "statement": "Write encode_varint(n) -> bytes and decode_varint(data) -> (number, bytes_read). In a varint the number is split into 7-bit groups, the low groups come first, and every byte except the last has its top bit set to 1. For example, 300 -> b'\\xac\\x02'. Add pb_field(field_number, value) -> bytes: the field key varint((field_number << 3) | 0), then varint(value).",
+   "hint": "Loop: b = n & 0x7F; n >>= 7; if n is still not zero, append b | 0x80, otherwise b and stop. Decoding: n |= (b & 0x7F) << (7 * i)."
+  },
+  {
+   "id": "net14-grpc-frame",
+   "title": "gRPC: the message prefix",
+   "statement": "Every gRPC message comes with a 5-byte prefix: 1 byte of compression flag (0) and 4 bytes of length in big-endian. Write grpc_frame(payload) -> bytes and grpc_unframe(stream) -> a list of messages from a byte stream containing several frames in a row. If the last frame is truncated (there is less data than the declared length), ignore it.",
+   "hint": "struct.pack('>I', len(payload)) gives the 4 bytes of length; when parsing, move along the stream: 5 bytes of header + the length."
+  }
+ ]
+}

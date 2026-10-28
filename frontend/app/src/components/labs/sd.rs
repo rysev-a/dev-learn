@@ -30,11 +30,11 @@ use crate::dom;
 /// Что написать в итоге: решено раньше, засчитано только что или решение ещё проверяется на сервере.
 fn verdict_text(solved_before: bool, solved: bool) -> &'static str {
     if solved_before {
-        "Упражнение уже было решено."
+        i18n::tr("The exercise was already solved.")
     } else if solved {
-        "Упражнение засчитано."
+        i18n::tr("Exercise accepted.")
     } else {
-        "Проверяю решение на сервере…"
+        i18n::tr("Checking the solution on the server…")
     }
 }
 
@@ -128,7 +128,7 @@ fn BoardCard(lab: Lab, fullscreen: bool) -> impl IntoView {
     let edge_hint = move || {
         let e = lab.sel_edge.get()?;
         let name = |id: &str| lab.state.with(|s| s.node(id).map_or_else(|| id.to_owned(), |n| n.name.clone()));
-        Some(format!("Связь «{} → {}» выбрана — «Удалить» уберёт её.", name(&e.from), name(&e.to)))
+        Some(i18n::trf!("Link “{0} → {1}” selected — “Delete” will remove it.", name(&e.from), name(&e.to)))
     };
     view! {
         <div class="sd-boardcard">
@@ -151,6 +151,7 @@ mod tests {
 
     #[test]
     fn verdict_distinguishes_old_new_and_pending_solutions() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(verdict_text(true, true), "Упражнение уже было решено.");
         assert_eq!(verdict_text(false, true), "Упражнение засчитано.");
         assert_eq!(verdict_text(false, false), "Проверяю решение на сервере…");

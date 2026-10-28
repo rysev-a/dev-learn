@@ -1,0 +1,60 @@
+{
+ "book": 17,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "virt-sim-migration",
+   "title": "Live migration simulator",
+   "statement": "Move a running machine with 16 GiB of memory to another server in three scenarios: a calm, an active and a very active guest. Tune the allowed downtime, vCPU throttling, compression and the moment of switching to post-copy, and watch how the pre-copy rounds reduce the remainder. The exercise is solved when the goals of all three scenarios are met.",
+   "hint": "Migration converges when the guest's write rate is lower than the network throughput; otherwise you need throttling, compression or post-copy."
+  },
+  {
+   "id": "virt-precopy",
+   "title": "Pre-copy rounds",
+   "statement": "Write a function precopy(mem, dirty_rate, bw, threshold, max_rounds): mem is the guest memory (MiB), dirty_rate is how many MiB the guest dirties per second, bw is the network bandwidth (MiB/s), threshold is the remainder in MiB that can be sent during the stop, max_rounds is the limit on rounds. Initially the remainder equals mem. While the remainder is greater than threshold and there are fewer than max_rounds rounds, do a round: sending the remainder takes a whole number of seconds ceil(remainder / bw), during which the guest dirties dirty_rate * seconds MiB, but not more than mem — this is the new remainder. Return a tuple (number of rounds, remainder, downtime in milliseconds = remainder * 1000 / bw rounded up, whether migration converged: the remainder is not greater than threshold).",
+   "hint": "The round's seconds are a division rounded up: -(-remainder // bw)."
+  },
+  {
+   "id": "virt-dirty-track",
+   "title": "Dirty page tracking",
+   "statement": "Write a function track_dirty(events): the events are [\"write\", page] and [\"sync\"]. Initially all pages are write-protected. The first write to a protected page causes a fault (faults are counted) and marks the page dirty, removing the protection. Further writes to it cause no faults. sync collects the list of dirty pages (sorted) and protects all pages again. Return a tuple (list of the results of all syncs, total number of faults).",
+   "hint": "Keep a set of dirty pages; sync clears it."
+  },
+  {
+   "id": "virt-pml",
+   "title": "The PML log",
+   "statement": "Write a function pml_exits(page_writes, log_size): page_writes are the pages the guest writes to, in order. The hardware adds an entry to the PML log on the first write to a page (repeated writes to an already dirty page are not logged). When the log fills up with log_size entries, an exit happens and the log is cleared. Return a tuple (number of exits with PML, number of faults without PML — equal to the number of distinct pages written).",
+   "hint": "Exits with PML = the number of distinct pages divided by log_size using integer division."
+  },
+  {
+   "id": "virt-postcopy",
+   "title": "Page faults in post-copy",
+   "statement": "Write a function postcopy_faults(events, resident, latency_ms): after the switchover, the target already has the pages from the list resident. The events are [\"touch\", page] (the guest accesses a page) and [\"push\", page] (the source sends a page in the background). Accessing a missing page causes a fault: the guest waits latency_ms, and the page becomes available. push makes a page available without waiting. Return a tuple (number of faults, total wait in milliseconds).",
+   "hint": "Keep a set of available pages."
+  },
+  {
+   "id": "virt-auto-converge",
+   "title": "Auto-converge throttling",
+   "statement": "Write a function auto_converge(dirty_rate, bw, step): auto-converge throttles the guest's vCPUs by throttle percent (a multiple of step: step, 2·step, …, at most 99), and the write rate becomes dirty_rate * (100 - throttle) // 100. Return the smallest throttle at which it is strictly less than bw; 0 if throttling isn't needed (dirty_rate is already less than bw); None if even 99% doesn't help.",
+   "hint": "If throttling is needed, try throttle = step, 2·step, … until you exceed 99."
+  },
+  {
+   "id": "virt-migration-bytes",
+   "title": "How many bytes go over the network",
+   "statement": "Write a function migration_bytes(pages, page_size): pages is a list of page \"contents\", where 0 means a zero page. A zero page is sent as a short flag: 9 bytes. Any other page is page_size bytes of data plus an 8-byte header. Return the total number of bytes.",
+   "hint": "Sum over the pages: 9 for zeros, page_size + 8 for the rest."
+  },
+  {
+   "id": "virt-choose-migration",
+   "title": "Choosing a migration algorithm",
+   "statement": "Write a function choose_migration(dirty_rate, bw, reliable): reliable tells whether the network is reliable. If the guest's write rate is less than the bandwidth, \"precopy\" fits. Otherwise, if the network is reliable, choose \"hybrid\" (a few rounds of pre-copy and post-copy for the tail); if not, choose \"auto-converge\" (throttle the guest so that pre-copy converges).",
+   "hint": "Compare the rates first, then check reliability."
+  },
+  {
+   "id": "virt-downtime",
+   "title": "Downtime during the stop",
+   "statement": "Write a function downtime_ms(remaining_mb, state_mb, bw_mb_s): remaining_mb is the remaining memory, state_mb is the processor and device state (both in MiB), bw_mb_s is the network bandwidth (MiB/s, greater than zero). During the stop, the remainder and the state are transferred. Return the downtime in milliseconds, rounded up: (remainder + state) * 1000 / bw.",
+   "hint": "Rounding up for integers: -(-a // b)."
+  }
+ ]
+}

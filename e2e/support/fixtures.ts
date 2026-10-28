@@ -9,7 +9,7 @@ export async function loginViaApi(page: Page, request: APIRequestContext, who = 
   const res = await request.post("/api/auth/login", { data: { login: who.email, email: who.email, password: who.password } });
   expect(res.ok(), `вход ${who.email}: ${res.status()}`).toBeTruthy();
   const { token } = (await res.json()) as { token: string };
-  await page.addInitScript((t) => { if (window === window.top) window.localStorage.setItem("say-token", t); }, token);
+  await page.addInitScript((t) => { if (window === window.top) window.localStorage.setItem("cs-core-token", t); }, token);
   return token;
 }
 
@@ -28,7 +28,7 @@ export async function loginFresh(page: Page, request: APIRequestContext, prefix 
     const { token } = (await res.json()) as { token: string };
     const reset = await request.delete("/api/progress?scope=all", { headers: { Authorization: `Bearer ${token}` } });
     expect(reset.ok(), "сброс прогресса").toBeTruthy();
-    await page.addInitScript((t) => { if (window === window.top) window.localStorage.setItem("say-token", t); }, token);
+    await page.addInitScript((t) => { if (window === window.top) window.localStorage.setItem("cs-core-token", t); }, token);
     return { email, token };
   }
   const email = `${prefix}-${Date.now().toString(36)}-${counter++}@e2e.test`;
@@ -38,7 +38,7 @@ export async function loginFresh(page: Page, request: APIRequestContext, prefix 
   const res = await request.post("/api/auth/login", { data: { login: email, email, password } });
   expect(res.ok(), `вход ${email}`).toBeTruthy();
   const { token } = (await res.json()) as { token: string };
-  await page.addInitScript((t) => { if (window === window.top) window.localStorage.setItem("say-token", t); }, token);
+  await page.addInitScript((t) => { if (window === window.top) window.localStorage.setItem("cs-core-token", t); }, token);
   return { email, token };
 }
 

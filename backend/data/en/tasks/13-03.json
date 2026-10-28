@@ -1,0 +1,32 @@
+{
+ "book": 13,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "sign",
+   "title": "Sign of a number",
+   "statement": "Write a function sign(x) that returns the word «положительное» for x > 0, «отрицательное» for x < 0, and «ноль» for x = 0.",
+   "hint": "Three branches: if x > 0: ... elif x < 0: ... else: ...",
+   "starter": "def sign(x):\n    # if / elif / else — three roads\n    pass\n"
+  },
+  {
+   "id": "is-even",
+   "title": "Is the number even",
+   "statement": "Write a function is_even(n) that returns True if n is even and False if it is odd. Hint: the remainder of division is the % operator.",
+   "hint": "A comparison gives a bool by itself: return n % 2 == 0."
+  },
+  {
+   "id": "max2",
+   "title": "Maximum of two",
+   "statement": "Write a function max2(a, b) that returns the larger of two numbers. You may not use the built-in max() function, only if and else.",
+   "hint": "If a > b: return a, otherwise return b. For equal numbers, either branch works, so else will do."
+  },
+  {
+   "id": "ticket-price",
+   "title": "Ticket price",
+   "statement": "A cinema sets the price by age: up to and including 7 years old, 0; from 8 to 17 inclusive, 200; from 18 and older, 400. Write a function ticket_price(age) that returns the price.",
+   "hint": "Check from the youngest, top to bottom: if age <= 7 ... elif age <= 17 ... else ...",
+   "starter": "def ticket_price(age):\n    # an if / elif / else chain\n    pass\n"
+  }
+ ]
+}

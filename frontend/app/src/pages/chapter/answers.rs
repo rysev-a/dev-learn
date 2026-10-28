@@ -22,7 +22,7 @@ pub fn Answers() -> impl IntoView {
     move || match ctx.chapter.get() {
         Load::Ready(ch) => view! { <AnswersLoaded book=ctx.book num=ch.num /> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
     }
 }
 
@@ -32,7 +32,7 @@ fn AnswersLoaded(book: i64, num: i64) -> impl IntoView {
     move || match data.get() {
         Load::Ready(set) => view! { <AnswersBody book=book num=num set=set /> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
     }
 }
 
@@ -86,7 +86,7 @@ fn AnswersBody(book: i64, num: i64, set: PracticeSet) -> impl IntoView {
                     <div class="ex-row">
                         <input
                             class=class
-                            placeholder="Ответ"
+                            placeholder=i18n::tr("Answer")
                             prop:value=move || values.with(|v| v[i].clone())
                             disabled=move || verdicts.with(|v| v[i] == Verdict::Right)
                             on:input=move |ev| {
@@ -97,16 +97,16 @@ fn AnswersBody(book: i64, num: i64, set: PracticeSet) -> impl IntoView {
                             }
                             on:keydown=move |ev| if ev.key() == "Enter" { check(i) }
                         />
-                        <button class="quiz-btn" title="Проверить" disabled=move || busy.get() || verdicts.with(|v| v[i] == Verdict::Right) on:click=move |_| check(i)>
-                            {move || if verdicts.with(|v| v[i] == Verdict::Right) { "✓" } else { "Проверить" }}
+                        <button class="quiz-btn" title=i18n::tr("Check") disabled=move || busy.get() || verdicts.with(|v| v[i] == Verdict::Right) on:click=move |_| check(i)>
+                            {move || if verdicts.with(|v| v[i] == Verdict::Right) { "✓" } else { i18n::tr("Check") }}
                         </button>
                     </div>
-                    {move || (verdicts.with(|v| v[i] == Verdict::Wrong)).then(|| view! { <p class="ex-note">"Пока неверно — попробуй ещё раз или загляни в подсказку."</p> })}
+                    {move || (verdicts.with(|v| v[i] == Verdict::Wrong)).then(|| view! { <p class="ex-note">{i18n::tr("Not correct yet — try again or look at the hint.")}</p> })}
                     {(!hint.is_empty()).then(|| {
                         let hint = hint.clone();
                         view! {
                             <div class="ex-hint-row">
-                                <button class="quiz-btn ghost small" on:click=move |_| hints.update(|h| h[i] = !h[i])>{move || if hints.with(|h| h[i]) { "Скрыть подсказку" } else { "Подсказка" }}</button>
+                                <button class="quiz-btn ghost small" on:click=move |_| hints.update(|h| h[i] = !h[i])>{move || if hints.with(|h| h[i]) { i18n::tr("Hide hint") } else { i18n::tr("Hint") }}</button>
                                 {move || hints.with(|h| h[i]).then(|| view! { <p class="ex-hint">{hint.clone()}</p> })}
                             </div>
                         }
@@ -119,7 +119,7 @@ fn AnswersBody(book: i64, num: i64, set: PracticeSet) -> impl IntoView {
         <section class="quiz">
             <div class="quiz-head">
                 <h3>{set.title}</h3>
-                <span class="quiz-lang">{move || if solved() > 0 { format!("упражнения · решено {}/{total}", solved()) } else { "упражнения".to_string() }}</span>
+                <span class="quiz-lang">{move || if solved() > 0 { i18n::trf!("exercises · solved {}/{}", solved(), total) } else { i18n::tr("exercises").to_string() }}</span>
             </div>
             {rows}
             {move || (solved() > 0).then(|| view! {
@@ -129,10 +129,10 @@ fn AnswersBody(book: i64, num: i64, set: PracticeSet) -> impl IntoView {
                         values.set(vec![String::new(); total]);
                         verdicts.set(vec![Verdict::Open; total]);
                         hints.set(vec![false; total]);
-                    }>"Начать заново"</button>
+                    }>{i18n::tr("Start over")}</button>
                 </div>
             })}
-            {move || (solved() == total).then(|| view! { <div class="quiz-result ok"><p class="quiz-ok-line">{format!("✓ Все задачи решены: {}/{total}", solved())}</p></div> })}
+            {move || (solved() == total).then(|| view! { <div class="quiz-result ok"><p class="quiz-ok-line">{i18n::trf!("✓ All tasks solved: {}/{}", solved(), total)}</p></div> })}
         </section>
     }
 }

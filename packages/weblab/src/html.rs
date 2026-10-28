@@ -52,7 +52,7 @@ impl Doc {
 }
 
 pub fn selector(sel: &str) -> Result<Selector, String> {
-    Selector::parse(sel).map_err(|_| format!("селектор «{sel}» не разобран"))
+    Selector::parse(sel).map_err(|_| i18n::trf!("selector “{0}” could not be parsed", sel))
 }
 
 /// Текст элемента: пробельные символы схлопнуты, края обрезаны.
@@ -73,12 +73,7 @@ fn named(msg: &Option<String>, auto: String) -> String {
 }
 
 fn plural(n: usize) -> &'static str {
-    match (n % 10, n % 100) {
-        (_, 11..=14) => "элементов",
-        (1, _) => "элемент",
-        (2..=4, _) => "элемента",
-        _ => "элементов",
-    }
+    i18n::plural(n as u64, "element", "elements")
 }
 
 /// Проверка HTML-условия. `None` — условие относится к CSS.
@@ -86,16 +81,16 @@ pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
     Some(match check {
         Check::Exists { sel, min, max, msg } => {
             let text = named(msg, match max {
-                Some(m) if m == min => format!("Ровно {min} {} `{sel}`", plural(*min)),
-                Some(m) => format!("От {min} до {m} {} `{sel}`", plural(*m)),
-                None => format!("Есть `{sel}`{}", if *min > 1 { format!(" (не меньше {min})") } else { String::new() }),
+                Some(m) if m == min => i18n::trf!("Exactly {0} {1} `{2}`", min, plural(*min), sel),
+                Some(m) => i18n::trf!("From {0} to {1} {2} `{3}`", min, m, plural(*m), sel),
+                None => i18n::trf!("There is `{0}`{1}", sel, if *min > 1 { i18n::trf!(" (at least {0})", min) } else { String::new() }),
             });
             match doc.select(sel) {
                 Err(e) => item(text, false, e),
                 Ok(v) => {
                     let n = v.len();
                     let ok = n >= *min && max.is_none_or(|m| n <= m);
-                    item(text, ok, format!("найдено {n} {}", plural(n)))
+                    item(text, ok, i18n::trf!("found {0} {1}", n, plural(n)))
                 }
             }
         }
@@ -103,15 +98,15 @@ pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
             let text = named(msg, format!("{n} {} `{sel}`", plural(*n)));
             match doc.select(sel) {
                 Err(e) => item(text, false, e),
-                Ok(v) => item(text, v.len() == *n, format!("найдено {}", v.len())),
+                Ok(v) => item(text, v.len() == *n, i18n::trf!("found {0}", v.len())),
             }
         }
         Check::Text { sel, equals, contains, msg } => {
             let want = equals.as_ref().or(contains.as_ref()).cloned().unwrap_or_default();
-            let text = named(msg, if equals.is_some() { format!("`{sel}` с текстом «{want}»") } else { format!("`{sel}` с текстом, содержащим «{want}»") });
+            let text = named(msg, if equals.is_some() { i18n::trf!("`{0}` with text “{1}”", sel, want) } else { i18n::trf!("`{0}` with text containing “{1}”", sel, want) });
             match doc.select(sel) {
                 Err(e) => item(text, false, e),
-                Ok(v) if v.is_empty() => item(text, false, "такого элемента нет"),
+                Ok(v) if v.is_empty() => item(text, false, i18n::tr("no such element")),
                 Ok(v) => {
                     let ok = v.iter().any(|el| {
                         let t = lower(&text_of(el));
@@ -122,21 +117,21 @@ pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
                         }
                     });
                     let got = v.first().map(text_of).unwrap_or_default();
-                    item(text, ok, format!("сейчас: «{got}»"))
+                    item(text, ok, i18n::trf!("currently: “{0}”", got))
                 }
             }
         }
         Check::Attr { sel, name, present, equals, contains, all, msg } => {
             let what = match (present, equals, contains) {
-                (Some(false), _, _) => format!("без атрибута `{name}`"),
-                (_, Some(e), _) => format!("с `{name}=\"{e}\"`"),
-                (_, _, Some(c)) => format!("с `{name}`, содержащим «{c}»"),
-                _ => format!("с атрибутом `{name}`"),
+                (Some(false), _, _) => i18n::trf!("without attribute `{0}`", name),
+                (_, Some(e), _) => i18n::trf!("with `{0}=\"{1}\"`", name, e),
+                (_, _, Some(c)) => i18n::trf!("with `{0}` containing “{1}”", name, c),
+                _ => i18n::trf!("with attribute `{0}`", name),
             };
-            let text = named(msg, format!("{} `{sel}` {what}", if *all { "Каждый" } else { "Есть" }));
+            let text = named(msg, format!("{} `{sel}` {what}", if *all { i18n::tr("Every") } else { i18n::tr("Some") }));
             match doc.select(sel) {
                 Err(e) => item(text, false, e),
-                Ok(v) if v.is_empty() => item(text, false, "такого элемента нет"),
+                Ok(v) if v.is_empty() => item(text, false, i18n::tr("no such element")),
                 Ok(v) => {
                     let good = |el: &ElementRef| -> bool {
                         let val = el.value().attr(name);
@@ -149,56 +144,56 @@ pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
                     };
                     let hits = v.iter().filter(|e| good(e)).count();
                     let ok = if *all { hits == v.len() } else { hits > 0 };
-                    item(text, ok, format!("подходит {hits} из {}", v.len()))
+                    item(text, ok, i18n::trf!("{0} of {1} match", hits, v.len()))
                 }
             }
         }
         Check::Child { parent, child, direct, msg } => {
             let sel = if *direct { format!("{parent} > {child}") } else { format!("{parent} {child}") };
-            let text = named(msg, format!("`{child}` {} `{parent}`", if *direct { "прямо внутри" } else { "внутри" }));
+            let text = named(msg, format!("`{child}` {} `{parent}`", if *direct { i18n::tr("directly inside") } else { i18n::tr("inside") }));
             match doc.select(&sel) {
                 Err(e) => item(text, false, e),
-                Ok(v) => item(text, !v.is_empty(), "такой вложенности нет"),
+                Ok(v) => item(text, !v.is_empty(), i18n::tr("no such nesting")),
             }
         }
         Check::Order { before, after, msg } => {
-            let text = named(msg, format!("`{before}` идёт раньше `{after}`"));
+            let text = named(msg, i18n::trf!("`{0}` comes before `{1}`", before, after));
             match (doc.select(before), doc.select(after)) {
                 (Err(e), _) | (_, Err(e)) => item(text, false, e),
                 (Ok(a), Ok(b)) => match (a.first(), b.first()) {
-                    (Some(a), Some(b)) => item(text, doc.position(a) < doc.position(b), "порядок обратный"),
-                    _ => item(text, false, "одного из элементов нет"),
+                    (Some(a), Some(b)) => item(text, doc.position(a) < doc.position(b), i18n::tr("the order is reversed")),
+                    _ => item(text, false, i18n::tr("one of the elements is missing")),
                 },
             }
         }
         Check::Forbid { sel, msg } => {
-            let text = named(msg, format!("Нет `{sel}`"));
+            let text = named(msg, i18n::trf!("No `{0}`", sel));
             match doc.select(sel) {
                 Err(e) => item(text, false, e),
-                Ok(v) => item(text, v.is_empty(), format!("найдено {}", v.len())),
+                Ok(v) => item(text, v.is_empty(), i18n::trf!("found {0}", v.len())),
             }
         }
-        Check::Doctype => item("Документ начинается с `<!doctype html>`".into(), doc.has_doctype(), "объявления типа документа нет — браузер включит режим совместимости"),
+        Check::Doctype => item(i18n::tr("The document starts with `<!doctype html>`").into(), doc.has_doctype(), i18n::tr("there is no document type declaration — the browser will switch to quirks mode")),
         Check::Headings => headings(doc),
         Check::Labels => labels(doc),
         Check::ImgAlt => {
-            let text = "У каждой картинки есть `alt`".to_string();
+            let text = i18n::tr("Every image has `alt`").to_string();
             let v = doc.select("img").unwrap_or_default();
             let bad = v.iter().filter(|e| e.value().attr("alt").is_none()).count();
-            item(text, bad == 0, format!("без `alt`: {bad}"))
+            item(text, bad == 0, i18n::trf!("without `alt`: {0}", bad))
         }
         Check::CleanParse => {
             let errs = doc.parse_errors();
             // эти замечания есть у любого фрагмента без doctype и не говорят об ошибке ученика
             let real: Vec<&String> = errs.iter().filter(|e| !e.contains("doctype") && !e.contains("DOCTYPE")).collect();
-            item("Разметка без ошибок разбора".into(), real.is_empty(), real.first().map(|s| s.to_string()).unwrap_or_default())
+            item(i18n::tr("Markup without parse errors").into(), real.is_empty(), real.first().map(|s| s.to_string()).unwrap_or_default())
         }
         _ => return None,
     })
 }
 
 fn headings(doc: &Doc) -> Item {
-    let text = "Один `h1`, заголовки идут по уровням без пропусков".to_string();
+    let text = i18n::tr("A single `h1`, headings go by level without gaps").to_string();
     let mut levels: Vec<(usize, u8)> = Vec::new();
     for el in doc.html.tree.root().descendants().filter_map(ElementRef::wrap) {
         let n = el.value().name();
@@ -209,12 +204,12 @@ fn headings(doc: &Doc) -> Item {
     levels.sort();
     let h1 = levels.iter().filter(|(_, l)| *l == 1).count();
     if h1 != 1 {
-        return item(text, false, format!("`h1` должен быть один, сейчас {h1}"));
+        return item(text, false, i18n::trf!("there must be exactly one `h1`, currently {0}", h1));
     }
     let mut prev = 0u8;
     for (_, l) in &levels {
         if *l > prev + 1 {
-            return item(text, false, format!("после `h{prev}` сразу `h{l}`"));
+            return item(text, false, i18n::trf!("`h{1}` right after `h{0}`", prev, l));
         }
         prev = *l;
     }
@@ -222,7 +217,7 @@ fn headings(doc: &Doc) -> Item {
 }
 
 fn labels(doc: &Doc) -> Item {
-    let text = "У каждого поля есть подпись".to_string();
+    let text = i18n::tr("Every field has a label").to_string();
     let fields = doc.select("input, select, textarea").unwrap_or_default();
     let mut bad = Vec::new();
     for f in fields {
@@ -239,7 +234,7 @@ fn labels(doc: &Doc) -> Item {
             bad.push(v.attr("name").or(v.attr("id")).unwrap_or(v.name()).to_string());
         }
     }
-    item(text, bad.is_empty(), format!("без подписи: {}", bad.join(", ")))
+    item(text, bad.is_empty(), i18n::trf!("without a label: {0}", bad.join(", ")))
 }
 
 #[cfg(test)]

@@ -61,9 +61,14 @@ pub fn BookLayout(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
         }
         _ => ().into_any(),
     };
+    // книга без перевода на язык интерфейса показывается по-русски — говорим об этом
+    let untranslated = move || books.get().into_iter().find(|b| Some(b.id) == book.get()).is_some_and(|b| !b.in_language(i18n::locale().code()));
     view! {
         {menu}
-        <main class="content"><Outlet /></main>
+        <main class="content">
+            {move || untranslated().then(|| view! { <p class="lang-note">{i18n::tr("This book has not been translated yet — its content is shown in Russian.")}</p> })}
+            <Outlet />
+        </main>
     }
 }
 
@@ -74,7 +79,7 @@ pub fn ChaptersIndex() -> impl IntoView {
     let navigate = use_navigate();
     view! {
         {move || match ctx.course.get() {
-            Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+            Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
             Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
             Load::Ready(sections) => sections
                 .into_iter()
@@ -88,7 +93,7 @@ pub fn ChaptersIndex() -> impl IntoView {
                                 <button class="topic-card" on:click=move |_| navigate(&format!("/book/{}/chapter/{id}", ctx.book.get_untracked()), Default::default())>
                                     <span class="topic-num">{format!("{:02}", ch.num)}</span>
                                     <span class="topic-name">{ch.title}</span>
-                                    <span class="topic-meta">{format!("{} слайдов", ch.parts_count)}</span>
+                                    <span class="topic-meta">{format!("{} {}", ch.parts_count, i18n::plural(ch.parts_count as u64, "slide", "slides"))}</span>
                                 </button>
                             }
                         })

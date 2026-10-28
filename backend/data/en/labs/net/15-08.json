@@ -1,0 +1,43 @@
+{
+ "book": 15,
+ "chapter": 8,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n8-window",
+   "title": "The receive window does not let the link fill up",
+   "statement": "The server sends a file to the client over a 200 Mbit/s link with a high delay (RTT about 80 ms). Run `iperf3 10.1.0.10` on the server: the speed is about 6 Mbit/s, although the link is thirty times faster, because the client's receive window is only 64 KB. Increase the receive window on the client (the receiver) so that the speed exceeds 150 Mbit/s. The link capacity (BDP) is the amber line on the chart.",
+   "hint": "You need a window of at least the BDP, about 2 MB. On the client: in the card, “Receive window, KB” (set 4096), or in the terminal `sysctl -w net.ipv4.tcp_rmem=\"4096 131072 4194304\"`.",
+   "spec_text": {
+    "/goals/0/text": "Download at a speed of at least 150 Mbit/s",
+    "/start/devices/0/name": "Server",
+    "/start/devices/1/name": "Router",
+    "/start/devices/2/name": "Client"
+   }
+  },
+  {
+   "id": "n8-cc",
+   "title": "Radio link losses and the algorithm",
+   "statement": "The server sends data to the client over a satellite link: 100 Mbit/s, RTT about 100 ms and random loss of 0.5% of packets. The classic algorithm shrinks the window after every loss, and the speed drops to a few Mbit/s. The receive window is already large enough. Change the congestion control algorithm on the server (the sender) to one that does not treat every loss as congestion.",
+   "hint": "On the server: in the card, “Algorithm” is bbr, or `sysctl -w net.ipv4.tcp_congestion_control=bbr`. First run `iperf3 10.1.0.10`, then change the algorithm and repeat: the chart will show the difference.",
+   "spec_text": {
+    "/goals/0/text": "Speed of at least 60 Mbit/s",
+    "/start/devices/0/name": "Server",
+    "/start/devices/1/name": "Router",
+    "/start/devices/2/name": "Client"
+   }
+  },
+  {
+   "id": "n8-bufferbloat",
+   "title": "Bufferbloat",
+   "statement": "The client downloads a file through a home router with a narrow upstream link of 20 Mbit/s. The speed is great, but under load ping and calls “wobble”: the queue at the bottleneck holds 1000 packets, and each one waits hundreds of milliseconds in it. Reduce the queue on the router interface facing the narrow link so that the RTT under load is at most 80 ms, while the speed does not fall below 17 Mbit/s.",
+   "hint": "The queue is set on the interface that sends into the narrow link (eth1 of the router): in its card, the “queue” field, or `ip link set eth1 txqueuelen 30`. A queue that is too short is bad as well: the link will stop filling up.",
+   "spec_text": {
+    "/goals/0/text": "RTT under load ≤ 80 ms, speed ≥ 17 Mbit/s",
+    "/start/devices/0/name": "Server",
+    "/start/devices/1/name": "Home router",
+    "/start/devices/2/name": "Client"
+   }
+  }
+ ]
+}

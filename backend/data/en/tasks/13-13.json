@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "vector-class",
+   "title": "Vector",
+   "statement": "Define a class Vector(x, y) with the operators + (addition), - (subtraction), * by a number (scaling), == (equality by value) and a method __repr__ that returns «Vector(1, 2)». The operators return NEW vectors.",
+   "hint": "__add__, __sub__, __mul__, __eq__, __repr__: each one returns a result and does not change self."
+  },
+  {
+   "id": "money-class",
+   "title": "Money",
+   "statement": "Define a class Money(amount): objects are equal if their amounts are equal (__eq__); they can be sorted (__lt__); they can be used as dictionary keys (__hash__).",
+   "hint": "__hash__: return hash(self.amount); __lt__: compare the amounts."
+  },
+  {
+   "id": "playlist-class",
+   "title": "Playlist",
+   "statement": "Define a class Playlist(songs): len(p) returns the number of songs, p[i] returns the song by number, and \"title in p\" checks whether a song is present. An empty playlist must count as false in a condition.",
+   "hint": "__len__, __getitem__ and __contains__; bool() relies on __len__ by itself."
+  },
+  {
+   "id": "temperature-class",
+   "title": "Temperature",
+   "statement": "Define a class Temperature(celsius): a property celsius with validation (below -273.15 is a ValueError, including when the object is created) and a computed read-only property fahrenheit: celsius * 9 / 5 + 32.",
+   "hint": "In __init__ assign self.celsius = celsius so that the setter runs; store the value in self._celsius."
+  },
+  {
+   "id": "person-from-string",
+   "title": "A person from a string",
+   "statement": "Define a class Person(name, age) and a class method from_string(s) that parses a string like «Аня,20» and returns a Person (the age is a number). The method __str__ returns «Аня (20)».",
+   "hint": "@classmethod def from_string(cls, s): name, age = s.split(','); return cls(name, int(age))."
+  },
+  {
+   "id": "circle-property",
+   "title": "Circle",
+   "statement": "Define a class Circle(radius): a property radius (greater than 0, otherwise ValueError) and a read-only property area equal to 3.14159 * radius ** 2.",
+   "hint": "A property without a setter can't be assigned to: Python raises AttributeError by itself."
+  },
+  {
+   "id": "version-class",
+   "title": "Versions",
+   "statement": "Define a class Version(text): text is a string like «1.2.10». Versions are compared by numbers, not by text: 1.2.10 is greater than 1.2.9. You need __lt__, __eq__ and __str__ (which returns the original string).",
+   "hint": "Compare tuples of numbers: tuple(int(p) for p in self.text.split('.')); for > Python reverses __lt__ by itself."
+  }
+ ]
+}

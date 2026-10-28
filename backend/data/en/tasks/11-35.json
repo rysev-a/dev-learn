@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 35,
+ "tasks": [
+  {
+   "id": "j27-tokenize",
+   "title": "A JavaScript lexer",
+   "statement": "Write tokenize(src) → an array of { type, value }. Whitespace and comments (// to the end of the line, /* … */) are skipped. Types: 'ident' — [A-Za-z_$][A-Za-z0-9_$]*; 'number' — decimals (with a fractional part and exponent) and 0x…; 'string' — a string in '…', \"…\" or `…` in full with its quotes (the backslash escape is honored; value is the literal's source text); 'punct' — operators: === !== == != <= >= => && || ?? ?. ... ** ++ -- (longest first), otherwise a single character from «{}()[];,.:?<>=+-*/%!&|^~@#». Any other character — Error(`Unexpected character '${c}' at ${position}`). An unclosed string — Error('Unterminated string').",
+   "hint": "Loop over the position; at each step try a comment, whitespace, a string, a number, an identifier, an operator."
+  },
+  {
+   "id": "j27-strip-types",
+   "title": "Stripping types (a subset)",
+   "statement": "Write stripTypes(src): turns TypeScript into JavaScript for the following subset. 1) Lines starting with «interface » or «type » (single-line declarations) are removed entirely. 2) Annotations «: TYPE» after a variable or parameter name (in «const x: number =», «let y: string;», «(a: number, b?: string)») are removed; for an optional parameter the «?» is removed too. 3) A function return type «): TYPE {» → «) {». 4) « as TYPE» is removed. TYPE is a word of letters, digits, «_», «.», with optional «<…>» (no nested <>), optional «[]» and unions via « | » (for example «number | null», «Array<string>[]»). The rest of the text stays unchanged.",
+   "hint": "Regular expressions in order: remove the lines, then annotations, return types and as."
+  },
+  {
+   "id": "j27-type-of",
+   "title": "A value's type in TypeScript notation",
+   "statement": "Write typeOf(v) → a string, as TypeScript would show it for a literal: null → 'null', undefined → 'undefined', 'string', 'number', 'boolean', 'bigint'; a function → 'function'; Date → 'Date'. An array: empty — 'never[]'; otherwise the element types (recursively), unique, sorted as strings and joined with « | »; if there is more than one variant, in parentheses: '(number | string)[]', otherwise 'number[]'. A plain object: '{ key: type; … }' with keys in alphabetical order; empty — '{}'.",
+   "hint": "A recursive function that branches on typeof and Array.isArray."
+  },
+  {
+   "id": "j27-assignable",
+   "title": "Type compatibility",
+   "statement": "Write isAssignable(from, to) for string types: the primitives string, number, boolean, null, undefined; the special any, unknown, never; literals (\"abc\" in double quotes, numbers like 42, true, false); unions «A | B» (no parentheses); arrays «T[]». Rules: from === to — true; never is assignable to anything; everything is assignable to any and unknown; any is assignable to any type except never; unknown only to any/unknown; a literal is assignable to its base primitive (string → string, number → number, true/false → boolean) and to itself; a union in from — all members must fit; a union in to — fits if from is assignable to at least one member; an array is assignable to an array if the element types are compatible; otherwise false.",
+   "hint": "Split unions by « | » and go from general to specific: the from-union first, then the to-union."
+  },
+  {
+   "id": "j27-narrowing",
+   "title": "Discriminated unions",
+   "statement": "Write narrowByKind(variants, kind) and missingCases(variants, handled). variants is an array of variant descriptions { kind, … } (a union with a tag field). narrowByKind returns the array of variants with the given kind (in the original order; an empty array means the never type). missingCases is a sorted array of the kind values (unique) of the variants that are absent from the handled array (an exhaustiveness check). If handled contains unknown kind values, they are ignored.",
+   "hint": "filter by kind; a Set for unique tags."
+  },
+  {
+   "id": "j27-infer-decl",
+   "title": "Inferring a declaration's type",
+   "statement": "Write inferDecl(keyword, value, asConst = false) → a type string. keyword is 'const' or 'let'. Primitives: for const — a literal type (string → «\"abc\"», number → «42», boolean → «true»), for let — widened (string, number, boolean). Array: the element type is always widened (as in typeOf: unique, alphabetical, joined by « | »; several variants in parentheses; empty — never[]): 'string[]', '(number | string)[]'. Object: «{ k: type; … }», keys in alphabetical order, values widened. When asConst === true (like «as const»): everything stays literal and immutable: a primitive → a literal; an array → «readonly [literal, …]» (in element order); an object → «{ readonly k: literal; … }» (keys in alphabetical order), recursively.",
+   "hint": "Two functions: widen(value) and literal(value, constMode); asConst uses literal recursively."
+  },
+  {
+   "id": "j27-utility-types",
+   "title": "Utility types over a schema",
+   "statement": "An object schema is { key: { type, optional?, readonly? } }. Write partial(s) (every field gets optional: true), required(s) (optional is removed — the key must not be present), pick(s, keys) (only the listed existing keys), omit(s, keys) (all except the listed ones), record(keys, type) (each key → { type }) and keyOf(s) → a string «\"a\" | \"b\"» with keys in alphabetical order (an empty schema — 'never'). The functions do not modify the input objects; the result keys keep the order of the source schema (for record — the order of keys; keyOf — alphabetical).",
+   "hint": "Object.entries + fromEntries; spread to copy fields."
+  },
+  {
+   "id": "j27-intersect",
+   "title": "Type intersection",
+   "statement": "Write intersect(a, b): the schemas are { key: { type, optional? } }. The result is a schema with the union of keys (order: first the keys of a, then the new keys of b). For a shared key: if the types are equal the type is kept, otherwise type: 'never'; optional: true only if the field is optional in both schemas (otherwise there is no optional field). For a key present in only one schema the field is copied as is.",
+   "hint": "First go through the keys of a and merge with b, then add the remaining keys of b."
+  },
+  {
+   "id": "j27-check-object",
+   "title": "Structural object check",
+   "statement": "Write checkObject(value, schema, fresh = false): schema is { key: { type, optional? } } (type is 'string', 'number', 'boolean'). Return an array of errors sorted by key, then in the order «missing, type, extra»: for a required field that is absent (undefined) — «Property 'k' is missing»; for a present field of the wrong type — «Type 'ACTUAL' is not assignable to type 'EXPECTED' (property 'k')»; if fresh === true (a fresh literal), then for each key of value that is not in the schema — «Object literal may only specify known properties, and 'k' does not exist». An optional field allows absence and undefined. ACTUAL is the typeof of the value (null → 'null').",
+   "hint": "Combine the keys of the schema and of value, sort them; compute the errors for each key."
+  },
+  {
+   "id": "j27-unify",
+   "title": "Inferring generic parameters",
+   "statement": "Write unify(pattern, type): matches a pattern against a concrete type and returns the bindings of the type parameters, or null. Syntax (only these forms): a type name — a single capital letter (T, K, V…) or any concrete type identifier (number, string, User); an array «X[]»; a generic «Name<X, Y, …>» (arguments separated by commas, nesting allowed, for example «Map<K, Array<V>>»); an object «{ field: X; … }» (fields in the same order). A single capital letter is a variable: it is bound to the corresponding part. One variable must receive the same value everywhere, otherwise null. A structure mismatch — null. The result is an object { T: 'number', … }.",
+   "hint": "Parse both strings into trees (a recursive parser) and match them recursively."
+  },
+  {
+   "id": "j27-tsconfig-extends",
+   "title": "tsconfig inheritance",
+   "statement": "Write resolveTsconfig(name, configs): configs is { name: { extends?, compilerOptions?, include?, exclude?, … } }, extends is a name or an array of names (applied in order, later ones override earlier ones), then the config itself. Merging: compilerOptions are merged by key (the child overrides), the other fields (include, exclude, files and so on) are replaced entirely if set. The result has no extends field. A missing config — Error('Cannot find config NAME'); a cycle — Error('Circular extends: a -> b -> a') (the chain of names from the start to the repeat).",
+   "hint": "Recursion with a stack of visited names; merge(parent, child)."
+  },
+  {
+   "id": "j27-strict-flags",
+   "title": "What strict enables",
+   "statement": "Write enabledStrictFlags(options): options is compilerOptions. The strict family flags: alwaysStrict, noImplicitAny, noImplicitThis, strictBindCallApply, strictFunctionTypes, strictNullChecks, strictPropertyInitialization, useUnknownInCatchVariables. If strict === true, all of them are enabled except those explicitly set to false; if strict is not true, only those explicitly set to true are enabled. Return a sorted array of the enabled flags. Additionally: strictPropertyInitialization works only when strictNullChecks is enabled — if it is off, exclude strictPropertyInitialization from the result.",
+   "hint": "A list of flags; for each compute effective = options[f] ?? options.strict === true."
+  },
+  {
+   "id": "j27-gen-dts",
+   "title": "Generating .d.ts",
+   "statement": "Write genDts(items): items are descriptions { kind: 'function' | 'const' | 'interface' | 'type', … }. Each item produces a block of text, blocks are separated by an empty line. function { name, params: [{ name, type, optional? }], returns, generics? } → «export declare function name<GENERICS>(a: T, b?: U): R;» (generics is an array of strings joined with «, », angle brackets only if non-empty); const { name, type } → «export declare const name: type;»; type { name, type } → «export type Name = type;»; interface { name, fields: [{ name, type, optional?, readonly? }] } → «export interface Name {» + one line per field indented by 2 spaces «  readonly name?: type;» (readonly if set, «?» if optional) + «}». An empty list — an empty string.",
+   "hint": "map over the kinds, join('\\n\\n')."
+  },
+  {
+   "id": "j27-types-version",
+   "title": "Choosing an @types version",
+   "statement": "Write pickTypesVersion(libVersion, typesVersions): libVersion is a library version «M.m.p», typesVersions is an array of versions of the @types/… package. By DefinitelyTyped rules a types version M.m.* corresponds to library M.m. Return the highest version from typesVersions with the same M.m; if there is none — the highest version among those below M.m (by major, then minor); if there are none of those either — null. Versions are compared as numbers, not as strings. Invalid strings are ignored.",
+   "hint": "Parse the versions into triples of numbers; filter by (major, minor) and pick the maximum."
+  },
+  {
+   "id": "j27-validate",
+   "title": "A data validator (like zod)",
+   "statement": "Write validate(schema, data, path = 'value') → an array of error strings (empty — the data is valid). Schema: the strings 'string', 'number', 'boolean'; { array: schema }; { object: { key: schema } } (extra keys are allowed); { optional: schema } (undefined is allowed); { oneOf: [values] }. Messages: «PATH: expected number, got string» (got is the typeof, 'null' for null, 'array' for an array); for oneOf — «PATH: expected one of [a, b], got x» (values joined by «, » without quotes); for a missing required object field the path is «PATH.key» and «got undefined». The path of array elements is «PATH[0]», of fields — «PATH.key». Errors come in traversal order (keys in schema order).",
+   "hint": "Recursion over the schema; a function kind(data) for type names."
+  },
+  {
+   "id": "j27-guard",
+   "title": "A type guard from a description",
+   "statement": "Write createGuard(shape): shape is { key: 'string' | 'number' | 'boolean' | 'string?' | 'number?' | 'boolean?' } (the suffix «?» means an optional field that allows undefined). Return a predicate function (x) → boolean: true if x is a plain object (not null, not an array) in which each field from shape has the required type (typeof; NaN counts as an error for number). Extra fields are allowed.",
+   "hint": "A typeof check and handling of the «?» suffix."
+  },
+  {
+   "id": "j27-unused-vars",
+   "title": "Unused variables",
+   "statement": "Write findUnused(src): names declared with const, let or var (one per declaration: «const a = 1», «let b;», «var c = 2, d» — consider only the first name before «=»/«;»/«,») and functions function name( that occur in the code as a whole word exactly once (only their own declaration). Strings in quotes and comments (// and /* */) are not counted. The result is a sorted array of unique names.",
+   "hint": "First cut out comments and strings, then find the declarations and count occurrences of \\bname\\b."
+  },
+  {
+   "id": "j27-lint",
+   "title": "A mini linter",
+   "statement": "Write lint(src, rules): rules is { rule: level }, the level is 'off' | 'warn' | 'error' (for max-len — { level, max }, for example { level: 'warn', max: 40 }). Lines are numbered from 1. Rules: 'no-var' — the line contains the word var (do not distinguish strings and comments: search for \\bvar\\b) → «Unexpected var, use let or const»; 'eqeqeq' — there is == or != (but not === and !==) → «Expected '===' and instead saw '=='» (for != — «Expected '!==' and instead saw '!='»); 'no-console' — there is console. → «Unexpected console statement»; 'no-trailing-spaces' — the line ends with a space/tab → «Trailing spaces not allowed»; 'max-len' — the line length is greater than max → «This line has a length of N. Maximum allowed is M». The result is an array of { line, rule, severity, message }, sorted by line, then by the order of the rules in the list above; rules that are 'off' or absent are skipped.",
+   "hint": "A check function for each line; the rule order is a fixed array."
+  },
+  {
+   "id": "j27-rule-config",
+   "title": "Normalizing rule settings",
+   "statement": "Write normalizeRules(config): config is { rule: setting }. A setting is a level ('off' | 'warn' | 'error' | 0 | 1 | 2) or an array [level, ...options]. The result is { rule: { level, options } }, level is always a string 'off' | 'warn' | 'error' (0 → off, 1 → warn, 2 → error), options is an array (empty if there are no options). An unknown level — Error(`Invalid level for rule 'RULE'`). Keys keep their order.",
+   "hint": "A table of levels; for an array, the first element is the level and the rest are options."
+  },
+  {
+   "id": "j27-flat-config",
+   "title": "ESLint flat config",
+   "statement": "Write rulesFor(file, configs): configs is an array of objects { files?, ignores?, rules? } (a flat config, applied in order). An object with only ignores (no files and no rules) is a global ignore: if the file matches any of the patterns, the result is null. The other objects apply to the file if there is no files (all files) or the file matches any pattern in files, and it does not match the object's ignores; their rules are merged by key, later ones override earlier ones. Return the rules object. Patterns work like globToRegExp (already in the starter); a pattern without «/» is compared with the file name in any directory, one with «/» — with the full path.",
+   "hint": "A function matches(file, pattern) that accounts for the basename; then a single pass over configs."
+  },
+  {
+   "id": "j27-apply-fixes",
+   "title": "Applying autofixes",
+   "statement": "Write applyFixes(text, fixes): fixes is an array of { range: [start, end], text } (replace text.slice(start, end) with the new string; start ≤ end). Fixes are applied in ascending order of start; if one overlaps an already accepted fix (start is less than the end of the accepted one) it is skipped. An insertion at the same point (start === the end of the accepted one) is allowed. Fixes with equal start are sorted by their order in the array. Return { output, applied, skipped } — the number applied and skipped. Do not modify the source fixes array.",
+   "hint": "Sort a copy (stably), walk through it tracking the end of the last accepted fix; build the result piece by piece."
+  },
+  {
+   "id": "j27-walk-ast",
+   "title": "Walking a tree (AST)",
+   "statement": "Write walk(node, visitor) and findAll(node, type). A node is an object { type, ... }; the children are the field values that are nodes (an object with a type field) or arrays of nodes (in the order of the object's fields). walk calls visitor.enter(node, parent) before walking the children and visitor.leave(node, parent) after; if enter returned false, this node's children are skipped (leave is still called). The order is depth-first, left to right. findAll returns an array of nodes with the given type in order of entry (enter).",
+   "hint": "A function children(node) collects the nodes from the fields; walk is recursive."
+  },
+  {
+   "id": "j27-pretty-print",
+   "title": "Printing structures by width (like Prettier)",
+   "statement": "Write format(value, width = 40): prints a value in JSON style (strings in double quotes; object keys without quotes if they are identifiers, otherwise in quotes) by these rules: if the whole text fits within width characters (accounting for the level's indentation) — on one line: «[1, 2, 3]», «{ a: 1, b: 2 }» (spaces inside the curly braces, empty «[]» and «{}»); otherwise — each element on its own line, indented 2 spaces per level, with a comma after each except the last; the closing bracket goes on its own line with the parent's indentation. The current level's indentation counts toward the width check (level × 2 + length of the one-line text ≤ width; for a value inside an object the length of the text includes «key: »).",
+   "hint": "A recursive function fmt(value, level, prefixLen): first the one-line variant, check the width."
+  },
+  {
+   "id": "j27-quotes",
+   "title": "Normalizing quotes",
+   "statement": "Write normalizeQuotes(src, quote = '\"'): string literals in «'…'» and «\"…\"» are converted to the quote character quote. A literal is not changed if it contains more characters of the target quote than of the other one (then it is better to leave it as it is). When replacing: escaping of the target quote inside is added (\\\"), and the unneeded escaping of the other quote is removed (\\' → '). Template strings in backticks and comments (// and /* */) are not touched, but their content must not confuse the string parsing. The rest of the text stays unchanged.",
+   "hint": "Tokenize in turn: comment, template, string, other; rewrite the strings."
+  },
+  {
+   "id": "j27-asi",
+   "title": "Dangerous lines without semicolons",
+   "statement": "Write findAsiHazards(src): without semicolons trouble is possible — a line starting with «(», «[», «`», «+», «-», «/» (not the start of a comment «//» or «/*»), «*» continues the previous expression. Return a sorted array of line numbers (from 1) that start (after whitespace) with one of these characters, provided that the nearest previous non-empty line does not end with «;», «{», «}», «,», «(», «[» (after trimming whitespace and ignoring a trailing «// …» comment) and is not the start of the file. Empty lines and comment lines (// …) are skipped when looking for the previous one.",
+   "hint": "For each line find the previous significant one; strip the trailing // comment and whitespace."
+  },
+  {
+   "id": "j27-sort-imports",
+   "title": "Sorting imports",
+   "statement": "Write sortImports(lines): lines are import lines (one per line of the form «import … from 'module';» or «import 'module';»). Return a new array of lines, grouped and sorted: groups go in order — 1) built-ins («node:…» in the module), 2) packages (the module does not start with «.» or «/»), 3) relative («./», «../»); within a group — by module name (strings compared as is); for equal modules the original order. An empty line ('') is inserted between non-empty groups. Duplicate lines are not removed.",
+   "hint": "Extract the module with a regular expression; the sort key is (group, module, original index)."
+  },
+  {
+   "id": "j27-editorconfig",
+   "title": "Parsing .editorconfig",
+   "statement": "Write parseEditorConfig(text) and editorConfigFor(sections, file). parseEditorConfig: line by line; «#» and «;» at the start are comments; «[pattern]» opens a section; «key = value» (the key in lower case, whitespace trimmed) belongs to the last section (before the first section — ignored). Values: «true»/«false» → boolean, integers → number, anything else — a string (do not lower-case known values). The result is an array of { pattern, props }. editorConfigFor: the matching sections apply in order (later ones override); pattern: «*» — all files; «*.ext» — by extension; «*.{a,b}» — any of the extensions; an exact file name (without «/») is compared with the file name in any directory. Returns the merged properties object.",
+   "hint": "Convert the pattern to a RegExp: *.{a,b} → \\.(a|b)$; compare with the basename."
+  },
+  {
+   "id": "j27-lint-staged",
+   "title": "lint-staged commands",
+   "statement": "Write planCommands(files, config): files are the changed files, config is { pattern: command | [commands] }. Pattern: «*.ext», «*.{a,b}» or an exact name (compared with the file name in any directory). For each pattern (in config order) take the matching files (in files order); if there are none, the pattern is skipped. Each command of the pattern produces an entry { cmd, files }, where cmd is the command string + a space + the file names; a file name containing a space is wrapped in double quotes. Entries go in this order: patterns in config order, and within one — commands in order. The result is an array of command strings.",
+   "hint": "A function matches(pattern, file); then a double loop over patterns and commands."
+  },
+  {
+   "id": "j27-ci-jobs",
+   "title": "Which CI jobs to run",
+   "statement": "Write planJobs(changed, rules, needs): changed are the changed files, rules is [{ paths: [patterns], job }], needs is { job: [dependency jobs] }. Pattern: «**» — any file; «dir/**» — files inside a directory; «*.ext» — by extension in any directory; an exact file name. A job runs if at least one change matches at least one pattern of its rules. Then add all the transitive dependencies of the jobs that run. Return an array of jobs in run order: dependencies before dependents; among the ready ones — alphabetical. A dependency cycle — Error('Circular needs').",
+   "hint": "First the set of jobs to run, closed over needs, then a topological sort that picks the minimal name."
+  },
+  {
+   "id": "j27-tsconfig-diff",
+   "title": "tsconfig differences",
+   "statement": "Write diffCompilerOptions(a, b): a and b are compilerOptions. The result is { added, removed, changed, weakened }. added — keys only in b, removed — only in a, changed — { key, from, to } for shared keys with different values (compared via JSON.stringify); everything alphabetical by key. weakened — keys from the strict list (strict, noImplicitAny, strictNullChecks, noUncheckedIndexedAccess, exactOptionalPropertyTypes, noImplicitReturns) that were true in a and became false or disappeared in b (alphabetical).",
+   "hint": "The union of keys, then branching; weakened is a separate filter over the list."
+  }
+ ]
+}

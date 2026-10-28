@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 27,
+ "tasks": [
+  {
+   "id": "merge-dicts-reduce",
+   "title": "Merge many dictionaries",
+   "statement": "Write a function merge_all(dicts) that merges a list of dictionaries into one; when keys collide, the dictionary that comes later in the list wins. Use reduce (the initial value is an empty dictionary).",
+   "hint": "reduce(lambda acc, d: {**acc, **d}, dicts, {})."
+  },
+  {
+   "id": "int-parser-partial",
+   "title": "A number parser",
+   "statement": "Write a function int_parser(base) that returns a function converting a string to an integer in the given base. Use functools.partial.",
+   "hint": "return partial(int, base=base)."
+  },
+  {
+   "id": "fib-cache",
+   "title": "Fast Fibonacci",
+   "statement": "Write a recursive function fib(n) returning the n-th Fibonacci number (fib(0) = 0, fib(1) = 1). Without a cache it won't finish in time for large n, so add the lru_cache decorator.",
+   "hint": "@lru_cache(maxsize=None) above def fib(n): return n if n < 2 else fib(n - 1) + fib(n - 2)."
+  },
+  {
+   "id": "sort-by-fields",
+   "title": "Sort by two fields",
+   "statement": "Write a function sort_people(people), where people is a list of dictionaries {'city': ..., 'age': ...}. Sort by city (alphabetically), and for equal cities by age (ascending). Use operator.itemgetter with two keys.",
+   "hint": "sorted(people, key=itemgetter(\"city\", \"age\"))."
+  },
+  {
+   "id": "total-ordering-class",
+   "title": "A class with total_ordering",
+   "statement": "Define a class Card(rank) with the total_ordering decorator: define only __eq__ and __lt__ (by rank), and the other comparisons (<=, >, >=) must start working by themselves.",
+   "hint": "@total_ordering above the class; __eq__: compare the ranks; __lt__: self.rank < other.rank."
+  },
+  {
+   "id": "single-dispatch-describe",
+   "title": "Overloading by type",
+   "statement": "Write a function describe(x) using singledispatch: for int return «целое <x>», for str return «строка из <n> символов», for list return «список из <n> элементов», for everything else return «что-то». Output the Russian texts exactly as quoted, with <x> and <n> replaced by the value and the length.",
+   "hint": "@singledispatch above the base describe; @describe.register(int) def _(x): ... and the same for str and list."
+  },
+  {
+   "id": "cmp-to-key-sort",
+   "title": "Sorting through a comparison",
+   "statement": "Write a function sort_words(words): shorter words first, and for equal lengths alphabetically. Implement it with a function comparing two words and functools.cmp_to_key.",
+   "hint": "compare returns a negative number, 0 or a positive number; sorted(words, key=cmp_to_key(compare))."
+  },
+  {
+   "id": "column-itemgetter",
+   "title": "A table column",
+   "statement": "Write a function column(rows, i) returning the list of values in the i-th column of a table (rows is a list of lists). Use map and operator.itemgetter.",
+   "hint": "list(map(itemgetter(i), rows))."
+  }
+ ]
+}

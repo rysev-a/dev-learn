@@ -1,9 +1,9 @@
-# Инструкция для агента: развернуть «say» на сервере с docker compose
+# Инструкция для агента: развернуть «cs-core» на сервере с docker compose
 
 Это пошаговая инструкция для агента (или человека), который разворачивает сервис на **одной машине, где есть только Docker с compose-плагином**
 (ни Rust, ни Python, ни Node на хосте не нужны). Выбор схемы и порядок работ — в `docs/deploy.md`.
 
-Состав стека (`deploy/docker-compose.yml`, проект `say`):
+Состав стека (`deploy/docker-compose.yml`, проект `cs-core`):
 
 | Сервис | Что это |
 |---|---|
@@ -13,11 +13,11 @@
 | `surrealdb` | база (том `surreal-data`, порт 8000 только внутри сети; для разработки опубликован `127.0.0.1:18000`) |
 | `worker` | (профиль `checks`) воркер проверки кода: забирает задания у `api` и запускает песочницы |
 | `dind` | (профиль `checks`) **отдельный** Docker-демон (`privileged`) только для песочниц; образы лежат в томе `dind-data` |
-| `backup` | раз в сутки экспорт SurrealDB (`surreal export` по HTTP, файлы `say-*.surql`) в том `backups` (хранятся 14 последних) |
+| `backup` | раз в сутки экспорт SurrealDB (`surreal export` по HTTP, файлы `cs-core-*.surql`) в том `backups` (хранятся 14 последних) |
 | `images` | разовая задача (профиль `setup`): заливает образы песочниц в `dind` |
 
 Проверено локально: сборка всех образов, запуск, регистрация, закрытый `/internal`, воркер подключается, проверка кода проходит через всю цепочку
-(`api` → очередь → `worker` → `dind` → результат), e2e-тесты идут против готового стека (`e2e/README.md`, «Против готового стека»). Сборка образа `say-rust-crates:1`
+(`api` → очередь → `worker` → `dind` → результат), e2e-тесты идут против готового стека (`e2e/README.md`, «Против готового стека»). Сборка образа `cs-core-rust-crates:1`
 и проверка Rust/C/JS-задач долгие — проверьте на сервере (шаг 6).
 
 ---
@@ -36,10 +36,10 @@
 
 ## 1. Что нужно узнать у владельца до начала
 
-- **Домен** сайта (например `say.example.com`) и что его DNS `A`/`AAAA` указывает на сервер. Без домена можно проверить по HTTP: `SAY_SITE=:80`.
+- **Домен** сайта (например `cs-core.example.com`) и что его DNS `A`/`AAAA` указывает на сервер. Без домена можно проверить по HTTP: `CS_CORE_SITE=:80`.
 - **Свободны ли порты 80 и 443** на сервере. Если их уже держит другой прокси (Traefik/nginx) — см. шаг 3, вариант «за существующим прокси».
-- **Сколько ядер и памяти** отдать песочницам (`SAY_SANDBOX_CPUS`, `SAY_SANDBOX_MEM`): это потолок всех проверок кода сразу. Рекомендация: 50–70% ядер и памяти, остальное остаётся сайту.
-- Как получить код: репозиторий `git@github.com:rysev-a/dev-learn.git` (ветка `main`); нужен доступ (deploy key или токен). Уточните, где хранить код (например `/opt/say`).
+- **Сколько ядер и памяти** отдать песочницам (`CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`): это потолок всех проверок кода сразу. Рекомендация: 50–70% ядер и памяти, остальное остаётся сайту.
+- Как получить код: репозиторий `git@github.com:rysev-a/dev-learn.git` (ветка `main`); нужен доступ (deploy key или токен). Уточните, где хранить код (например `/opt/cs-core`).
 
 ## 2. Проверка сервера
 
@@ -55,7 +55,7 @@ docker info | grep -iE "storage driver|cgroup"   # overlay2, cgroup v2 жела�
 ## 3. Подготовка
 
 ```bash
-git clone git@github.com:rysev-a/dev-learn.git /opt/say && cd /opt/say     # путь уточните у владельца
+git clone git@github.com:rysev-a/dev-learn.git /opt/cs-core && cd /opt/cs-core     # путь уточните у владельца
 cp deploy/.env.example deploy/.env
 ```
 
@@ -63,14 +63,14 @@ cp deploy/.env.example deploy/.env
 
 ```bash
 # токен (общий секрет API и воркера)
-sed -i "s/^SAY_WORKER_TOKEN=.*/SAY_WORKER_TOKEN=$(openssl rand -hex 32)/" deploy/.env
+sed -i "s/^CS_CORE_WORKER_TOKEN=.*/CS_CORE_WORKER_TOKEN=$(openssl rand -hex 32)/" deploy/.env
 ```
 
 И вручную: `SURREAL_PASS` (пароль root SurrealDB), `ADMIN_EMAIL` и `ADMIN_PASSWORD` (начальный администратор, вход по email, пароль ≥ 8 символов),
-при необходимости `SMTP_*`/`MAIL_FROM` (без `SMTP_HOST` письма подтверждения никуда не уходят), `SAY_SITE` (домен), `SAY_SANDBOX_CPUS`, `SAY_SANDBOX_MEM`, `SAY_LIGHT_SLOTS`/`SAY_HEAVY_SLOTS` (слоты не больше `SAY_SANDBOX_CPUS`; обычно `light = ядра`, `heavy = ядра/2`).
+при необходимости `SMTP_*`/`MAIL_FROM` (без `SMTP_HOST` письма подтверждения никуда не уходят), `CS_CORE_SITE` (домен), `CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`, `CS_CORE_LIGHT_SLOTS`/`CS_CORE_HEAVY_SLOTS` (слоты не больше `CS_CORE_SANDBOX_CPUS`; обычно `light = ядра`, `heavy = ядра/2`).
 
-**Порты и HTTPS.** Вход — Traefik из этого же compose: он слушает `SAY_HTTP_PORT` (по умолчанию 80) и `SAY_HTTPS_PORT` (443). Если на машине эти порты уже заняты чужим прокси,
-задайте другие и направьте тот прокси на `127.0.0.1:<SAY_HTTP_PORT>` (HTTPS и сертификат тогда делает он). Пока домена нет, сайт работает по HTTP на адресе машины; с доменом — `SAY_DOMAIN`, `SAY_TRAEFIK_CONFIG=./traefik/tls.yml`
+**Порты и HTTPS.** Вход — Traefik из этого же compose: он слушает `CS_CORE_HTTP_PORT` (по умолчанию 80) и `CS_CORE_HTTPS_PORT` (443). Если на машине эти порты уже заняты чужим прокси,
+задайте другие и направьте тот прокси на `127.0.0.1:<CS_CORE_HTTP_PORT>` (HTTPS и сертификат тогда делает он). Пока домена нет, сайт работает по HTTP на адресе машины; с доменом — `CS_CORE_DOMAIN`, `CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml`
 (сертификат Let's Encrypt получается сам) — `docs/deploy.md`, раздел «HTTPS». Сервис `proxy` (frontend) наружу не публикуется.
 
 **Токен реестра crates.** Общие библиотеки лежат в приватном реестре `lab` (gitness); без токена бэкенд не соберётся. Токен выдаёт владелец (в `~/.cargo/credentials.toml`
@@ -79,7 +79,7 @@ sed -i "s/^SAY_WORKER_TOKEN=.*/SAY_WORKER_TOKEN=$(openssl rand -hex 32)/" deploy
 **Нет сети до реестра `lab`** (ошибка `Failed to connect to git.service-lab.dev`): подложите зависимости готовым каталогом. На машине, где реестр доступен (или
 есть кэш cargo): `cd backend && cargo vendor --locked /путь/vendor-backend`, затем положите в каталог файл `.cargo-config.toml` (замена источников на `/vendor`:
 `[source.crates-io] replace-with`, `[source."sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"] registry = … replace-with = "vendored-sources"`,
-`[source.vendored-sources] directory = "/vendor"`) и укажите `SAY_VENDOR_DIR=/путь/vendor-backend` в `deploy/.env`. По умолчанию (`deploy/no-vendor`) работает реестр с токеном.
+`[source.vendored-sources] directory = "/vendor"`) и укажите `CS_CORE_VENDOR_DIR=/путь/vendor-backend` в `deploy/.env`. По умолчанию (`deploy/no-vendor`) работает реестр с токеном.
 
 Проверьте конфигурацию:
 
@@ -105,17 +105,17 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env ps
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images
 ```
 
-Скачиваются `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine` и **собирается `say-rust-crates:1`** (tokio, axum, sqlx, PostgreSQL — долго, 15–40 минут и несколько ГБ; нужен выход в интернет у `dind`).
+Скачиваются `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine` и **собирается `cs-core-rust-crates:1`** (tokio, axum, sqlx, PostgreSQL — долго, 15–40 минут и несколько ГБ; нужен выход в интернет у `dind`).
 Если сборка упала — прочитайте вывод (обычно сеть/DNS или нехватка места) и повторите; уже скачанные слои сохранены.
 
 Проверьте: `docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec dind docker image ls`.
 
 ## 6. Проверка работы (обязательно, после каждой выкладки)
 
-Подставьте свой адрес (`https://<домен>` или `http://<адрес машины>:<SAY_HTTP_PORT>`):
+Подставьте свой адрес (`https://<домен>` или `http://<адрес машины>:<CS_CORE_HTTP_PORT>`):
 
 ```bash
-BASE=https://say.example.com
+BASE=https://cs-core.example.com
 curl -s -o /dev/null -w "главная %{http_code}\n" $BASE/                    # 200
 curl -s -o /dev/null -w "api     %{http_code}\n" $BASE/api/books           # 200
 curl -s -o /dev/null -w "internal %{http_code}\n" $BASE/internal/worker/jobs   # 404 — API воркеров наружу закрыт
@@ -141,26 +141,26 @@ sleep 5; curl -s -H "Authorization: Bearer $TOKEN" $BASE/api/exercises/run/$ID  
 ## 7. Обновление
 
 ```bash
-cd /opt/say && git pull
+cd /opt/cs-core && git pull
 LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 ```
 
-Нужен `LAB_TOKEN` (или `SAY_VENDOR_DIR`). `api` при старте пересеивает содержимое курса, только если изменился хеш исходников; прогресс пользователей не затрагивается.
+Нужен `LAB_TOKEN` (или `CS_CORE_VENDOR_DIR`). `api` при старте пересеивает содержимое курса, только если изменился хеш исходников; прогресс пользователей не затрагивается.
 Бэкенд должен работать **одним экземпляром** (очередь проверок под замком процесса). Образы песочниц обновлять нужно, только если менялся
 `worker/docker/rust-crates` или версии образов в `worker/runner.py` (тогда повторите шаг 5; кэш проверок хранится в базе и протухает за 7 дней сам).
 После выкладки повторите шаг 6.
 
 ## 8. Бэкапы и восстановление
 
-Раз в сутки сервис `backup` кладёт экспорт SurrealDB в том `backups` (`say-YYYYMMDD-HHMMSS.surql`, последние 14). Этого **недостаточно**: том живёт на той же машине. Договоритесь с владельцем о копии наружу (cron + `rsync`/объектное хранилище).
+Раз в сутки сервис `backup` кладёт экспорт SurrealDB в том `backups` (`cs-core-YYYYMMDD-HHMMSS.surql`, последние 14). Этого **недостаточно**: том живёт на той же машине. Договоритесь с владельцем о копии наружу (cron + `rsync`/объектное хранилище).
 
 Достать копию из тома:
 
 ```bash
-docker run --rm -v say_backups:/b -v "$PWD":/out alpine sh -c 'cp "$(ls -t /b/say-*.surql | head -1)" /out/say-latest.surql'
+docker run --rm -v cs-core_backups:/b -v "$PWD":/out alpine sh -c 'cp "$(ls -t /b/cs-core-*.surql | head -1)" /out/cs-core-latest.surql'
 ```
 
-Восстановить: остановить `api`, `surreal import` в чистую базу (пространство `stack`, база `say`), запустить `api`. Данные курса восстанавливать не нужно — сид пересоздаёт их из файлов;
+Восстановить: остановить `api`, `surreal import` в чистую базу (пространство `stack`, база `cs-core`), запустить `api`. Данные курса восстанавливать не нужно — сид пересоздаёт их из файлов;
 в копии важны пользователи и прогресс.
 
 ## 9. Журналы и диагностика
@@ -173,14 +173,14 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs --tail 1
 |---|---|
 | `dind` не становится `healthy` | Нужен `privileged` и rootful Docker; проверьте `docker compose logs dind` (часто — нет `overlay`/cgroup или мало места). Не заменяйте на монтирование сокета хоста |
 | `api` долго `starting` | идёт первый сид (`start_period: 180s`) или нет связи с `surrealdb`; смотрите `logs api surrealdb`. `DB_STRICT=1`: без базы бэкенд не стартует |
-| В `status` `workers: 0`, проверка отвечает 503 | воркер не подключился: `logs worker` (неверный `SAY_WORKER_TOKEN`, `api` не `healthy`, нет связи с `dind`); токен в `.env` одинаков для `api` и `worker` — после правки пересоздайте оба (`up -d`) |
-| Проверка зависает в «В очереди» | нет свободных слотов (`SAY_LIGHT_SLOTS`/`SAY_HEAVY_SLOTS`) или образа в `dind`: выполните шаг 5 |
+| В `status` `workers: 0`, проверка отвечает 503 | воркер не подключился: `logs worker` (неверный `CS_CORE_WORKER_TOKEN`, `api` не `healthy`, нет связи с `dind`); токен в `.env` одинаков для `api` и `worker` — после правки пересоздайте оба (`up -d`) |
+| Проверка зависает в «В очереди» | нет свободных слотов (`CS_CORE_LIGHT_SLOTS`/`CS_CORE_HEAVY_SLOTS`) или образа в `dind`: выполните шаг 5 |
 | В песочнице «файл не найден» / пустой каталог | не совпал путь каталога песочниц: воркер должен иметь `TMPDIR=/sandboxes`, а том `sandboxes` — смонтирован в `worker` и `dind` по пути `/sandboxes` (так в compose; не меняйте) |
-| сайт не открывается снаружи | `docker compose ps`: `traefik` должен быть `healthy`; порты `SAY_HTTP_PORT`/`SAY_HTTPS_PORT` свободны и открыты в файрволе; маршруты — `deploy/traefik/http.yml` или `tls.yml` |
-| Сборка `api` падает на `git.service-lab.dev` | нет токена или сети до реестра: `LAB_TOKEN` либо `SAY_VENDOR_DIR` (шаг 3) |
+| сайт не открывается снаружи | `docker compose ps`: `traefik` должен быть `healthy`; порты `CS_CORE_HTTP_PORT`/`CS_CORE_HTTPS_PORT` свободны и открыты в файрволе; маршруты — `deploy/traefik/http.yml` или `tls.yml` |
+| Сборка `api` падает на `git.service-lab.dev` | нет токена или сети до реестра: `LAB_TOKEN` либо `CS_CORE_VENDOR_DIR` (шаг 3) |
 | Нужно остановить всё | `docker compose -f deploy/docker-compose.yml --env-file deploy/.env stop` (тома сохраняются) |
 
-Лимиты ресурсов для всех песочниц сразу задаёт `dind` (`SAY_SANDBOX_CPUS`/`SAY_SANDBOX_MEM`). Если сайт тормозит во время проверок — уменьшите их и слоты, перезапустите `dind` и `worker`.
+Лимиты ресурсов для всех песочниц сразу задаёт `dind` (`CS_CORE_SANDBOX_CPUS`/`CS_CORE_SANDBOX_MEM`). Если сайт тормозит во время проверок — уменьшите их и слоты, перезапустите `dind` и `worker`.
 
 ## 10. Что сообщить владельцу после развёртывания
 

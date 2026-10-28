@@ -209,8 +209,8 @@ pub fn side_boxes(ports: &[BlockPort], expanded: &HashSet<String>, board_w: f64,
     let ins: Vec<BlockPort> = ports.iter().filter(|p| p.dir == Dir::In).cloned().collect();
     let outs: Vec<BlockPort> = ports.iter().filter(|p| p.dir == Dir::Out).cloned().collect();
     (
-        layout_box(TOP, "Входы", &ins, expanded, (6.0, y, SIDE_W), BoxKind::TopIn),
-        layout_box(TOP, "Выходы", &outs, expanded, (board_w - SIDE_W - 6.0, y, SIDE_W), BoxKind::TopOut),
+        layout_box(TOP, i18n::tr("Inputs"), &ins, expanded, (6.0, y, SIDE_W), BoxKind::TopIn),
+        layout_box(TOP, i18n::tr("Outputs"), &outs, expanded, (board_w - SIDE_W - 6.0, y, SIDE_W), BoxKind::TopOut),
     )
 }
 

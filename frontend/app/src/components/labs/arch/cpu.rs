@@ -46,6 +46,6 @@ pub fn CpuInspector(sim: RwSignal<Option<Sim>>) -> impl IntoView {
     });
     match top_level(scope) {
         Some(level) => view! { <Inspector top=Signal::stored(level) library=Signal::stored(cpu_library()) path=path cpu=true /> }.into_any(),
-        None => view! { <p class="lab-muted">"Каталог блоков процессора недоступен."</p> }.into_any(),
+        None => view! { <p class="lab-muted">{i18n::tr("The processor block catalog is unavailable.")}</p> }.into_any(),
     }
 }

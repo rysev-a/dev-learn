@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "j6-compose",
+   "title": "Composing two functions",
+   "statement": "Write a function compose(f, g) that returns a new function x => f(g(x)).",
+   "hint": "return (x) => f(g(x));"
+  },
+  {
+   "id": "j6-pipe",
+   "title": "pipe: a pipeline of functions",
+   "statement": "Write a function pipe(...fns) that returns a function which passes its argument to the first function, the result to the second, and so on; with no functions it returns the argument as is.",
+   "hint": "fns.reduce((acc, f) => f(acc), x)"
+  },
+  {
+   "id": "j6-counter",
+   "title": "A counter in a closure",
+   "statement": "Write a function makeCounter(start = 0) that returns a function which, on each call, increases an internal counter by 1 and returns the new value. Counters from different makeCounter calls are independent.",
+   "hint": "let n = start; return () => ++n;"
+  },
+  {
+   "id": "j6-once",
+   "title": "once: call only once",
+   "statement": "Write a function once(fn) that returns a function which, on the first call, calls fn with the passed arguments and remembers the result, and on later calls returns the remembered result without calling fn.",
+   "hint": "Keep a flag and the result in the closure."
+  },
+  {
+   "id": "j6-memoize",
+   "title": "Memoization",
+   "statement": "Write a function memoize(fn) that returns a function which, for identical single arguments, calls fn only once (the results are stored in a Map), including when the result is undefined.",
+   "hint": "Use cache.has(x), not a check of the value: the result may be undefined or 0."
+  },
+  {
+   "id": "j6-curry",
+   "title": "Currying for two arguments",
+   "statement": "Write a function curry2(f) that turns a function of two arguments into a chain curry2(f)(a)(b) whose result equals f(a, b).",
+   "hint": "return (a) => (b) => f(a, b);"
+  },
+  {
+   "id": "j6-partial",
+   "title": "Partial application",
+   "statement": "Write a function partial(fn, ...bound) that returns a function which calls fn, first supplying bound and then its own arguments.",
+   "hint": "return (...rest) => fn(...bound, ...rest);"
+  },
+  {
+   "id": "j6-sum-rest",
+   "title": "Sum with rest",
+   "statement": "Write a function sum(...nums): the sum of all arguments (0 for an empty call). You may not use the arguments object.",
+   "hint": "The rest parameter ...nums is a real array."
+  },
+  {
+   "id": "j6-defaults",
+   "title": "Default parameters",
+   "statement": "Write a function greet(name = \"гость\", greeting = \"Привет\") that returns «<greeting>, <name>!». Defaults are not applied for null.",
+   "hint": "function greet(name = \"гость\", greeting = \"Привет\")"
+  },
+  {
+   "id": "j6-box-options",
+   "title": "Options object",
+   "statement": "Write a function describeBox({ w, h = 10, color = \"red\" }) that returns the string «<w>x<h> <color>». Take the parameters apart right in the header.",
+   "hint": "function describeBox({ w, h = 10, color = \"red\" })"
+  },
+  {
+   "id": "j6-max-of",
+   "title": "Maximum of an array with spread",
+   "statement": "Write a function maxOf(arr): the largest number in the array, and -Infinity for an empty array. Use Math.max and the ... operator in the call; no loop is needed.",
+   "hint": "Math.max(...arr)"
+  },
+  {
+   "id": "j6-fix-loop",
+   "title": "Fix it: closures in a loop",
+   "statement": "The function makeFns(n) must return an array of n functions, where the i-th one returns the number i (0, 1, …). Right now all the functions return the same number. Fix it.",
+   "hint": "Replace var with let: every iteration gets its own variable."
+  },
+  {
+   "id": "j6-account",
+   "title": "Bank account: private state",
+   "statement": "Write a function createAccount(balance) that returns an object with the methods deposit(x) (adds), withdraw(x) (subtracts; if there is not enough money, throws a RangeError and the balance does not change) and getBalance(). The balance itself must not be a field of the object.",
+   "hint": "The balance is a function parameter; it lives in the closure of the methods."
+  },
+  {
+   "id": "j6-id-gen",
+   "title": "Identifier generator",
+   "statement": "Write a function makeIdGen(prefix) that returns a function which on each call gives «<prefix>1», «<prefix>2», … Different generators are independent.",
+   "hint": "let n = 0; return () => `${prefix}${++n}`;"
+  },
+  {
+   "id": "j6-my-map",
+   "title": "Your own map",
+   "statement": "Write a function myMap(arr, fn) that returns a new array of the results of fn(element, index) for each element. You may not use the Array.prototype.map method.",
+   "hint": "Loop over indices and push the result of fn(arr[i], i)."
+  },
+  {
+   "id": "j6-my-filter",
+   "title": "Your own filter",
+   "statement": "Write a function myFilter(arr, pred) that returns a new array of the elements for which pred(element, index) is true. You may not use the filter method.",
+   "hint": "if (pred(arr[i], i)) out.push(arr[i]);"
+  },
+  {
+   "id": "j6-my-reduce",
+   "title": "Your own reduce",
+   "statement": "Write a function myReduce(arr, fn, init) that folds an array from left to right: acc = init; for each element acc = fn(acc, x, i). If init is not passed (fewer than three arguments), the first element is the starting value and the traversal begins with the second; for an empty array without init, throw a TypeError.",
+   "hint": "To tell \"init not passed\" from \"init is undefined\", look at arguments.length or at the length of a rest array."
+  },
+  {
+   "id": "j6-group-by",
+   "title": "Grouping",
+   "statement": "Write a function groupBy(arr, keyFn): an object where the key is the result of keyFn(element) and the value is an array of the elements with that key in their original order.",
+   "hint": "(out[k] ??= []).push(x)"
+  },
+  {
+   "id": "j6-pluck",
+   "title": "pluck: a field from each object",
+   "statement": "Write a function pluck(arr, key) that returns an array of the values of the field key of each object (for a missing field, undefined, which JSON prints as null).",
+   "hint": "arr.map((o) => o[key])"
+  },
+  {
+   "id": "j6-apply-n",
+   "title": "Apply a function n times",
+   "statement": "Write a function applyN(fn, n, x) that applies fn to x exactly n times in a row (n ≥ 0) and returns the result; for n = 0 it returns x.",
+   "hint": "Loop from 0 to n: x = fn(x)."
+  },
+  {
+   "id": "j6-flip",
+   "title": "flip: swap the arguments",
+   "statement": "Write a function flip(fn) that returns a function which calls fn with the same arguments, but in reverse order.",
+   "hint": "return (...args) => fn(...args.reverse());"
+  },
+  {
+   "id": "j6-fix-this",
+   "title": "Fix it: lost this",
+   "statement": "The function makeGreeter(user) must return a function with no arguments that calls user.greet() and returns its result, even when called apart from the object. Right now it returns the \"bare\" method and loses this. Fix it.",
+   "hint": "user.greet.bind(user) or () => user.greet()"
+  },
+  {
+   "id": "j6-call-with",
+   "title": "Call with a given this",
+   "statement": "Write a function callWith(fn, thisArg, args) that calls fn with this equal to thisArg and the arguments from the array args, and returns the result. Use call or apply.",
+   "hint": "fn.apply(thisArg, args)"
+  },
+  {
+   "id": "j6-fix-arrow-method",
+   "title": "Fix it: an arrow as a method",
+   "statement": "The function createCounter() returns an object with a field count and a method inc() that increases count by 1. The method is written as an arrow, so this in it is not the object, and the call fails. Fix it.",
+   "hint": "Write an object method as a regular function: inc() { … }"
+  },
+  {
+   "id": "j6-fib-memo",
+   "title": "Fibonacci with memoization",
+   "statement": "Write a function fib(n): the n-th Fibonacci number (fib(0) = 0, fib(1) = 1) for n up to 70. Naive double recursion will not fit in the time limit, so store already computed values in a closure.",
+   "hint": "A Map inside a closure (or an outer variable) plus a check before the recursive call."
+  },
+  {
+   "id": "j6-flatten",
+   "title": "Deep array flattening",
+   "statement": "Write a recursive function flatten(arr) that returns a flat array with all the elements of nested arrays of any depth, in their original order. You may not use the flat and flatMap methods.",
+   "hint": "For a nested array, make a recursive call and spread the result."
+  },
+  {
+   "id": "j6-sum-tree",
+   "title": "Sum of tree values",
+   "statement": "A tree is given by objects { value, children: [...] }. Write a function sumTree(node): the sum of value over all nodes of the tree (recursively).",
+   "hint": "The node's value plus the sums of its children's subtrees."
+  },
+  {
+   "id": "j6-hanoi",
+   "title": "Towers of Hanoi",
+   "statement": "Write a function hanoi(n) that returns an array of moves [\"A→C\", …] that move n disks from peg A to peg C via B by the rules of the game (recursively, in the minimum number of moves).",
+   "hint": "Move n-1 to B, the disk to C, then n-1 from B to C: from, to and via can be passed as default parameters."
+  },
+  {
+   "id": "j6-stack",
+   "title": "A stack in a closure",
+   "statement": "Write a function createStack() that returns an object with the methods push(x), pop() (removes and returns the top, undefined for an empty stack), peek() (the top without removing it) and size(). The array with the data must not be accessible from outside.",
+   "hint": "Declare the items array inside createStack; it lives in the closure of the methods."
+  },
+  {
+   "id": "j6-fn-info",
+   "title": "A function's name and parameter count",
+   "statement": "Write a function fnInfo(fn) that returns the array [fn.name, fn.length]: the function's name and the number of its declared parameters (default and rest parameters do not count).",
+   "hint": "A function has the fields name and length."
+  }
+ ]
+}

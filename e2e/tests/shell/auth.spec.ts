@@ -2,7 +2,7 @@ import { bearer, expect, STUDENT, test } from "../../support/fixtures";
 import { stored } from "../../support/shell";
 import type { Page } from "@playwright/test";
 
-/* Вход и регистрация: без входа приложение закрыто, токен живёт в localStorage (`say-token`), выход его стирает. */
+/* Вход и регистрация: без входа приложение закрыто, токен живёт в localStorage (`cs-core-token`), выход его стирает. */
 
 let counter = 0;
 const newEmail = () => `auth-${Date.now().toString(36)}-${counter++}@e2e.test`;
@@ -24,7 +24,7 @@ test.describe("без входа", () => {
       await expect(page.locator(".topbar")).toHaveCount(0);
       await expect(page.locator(".sidebar")).toHaveCount(0);
       await expect(page.locator(".content")).toHaveCount(0);
-      expect(await stored(page, "say-token")).toBeNull();
+      expect(await stored(page, "cs-core-token")).toBeNull();
       guard.assertClean();
     });
   }
@@ -69,7 +69,7 @@ test.describe("без входа", () => {
     await expect(html).toHaveAttribute("data-theme", "dark");
     await page.getByRole("button", { name: "Переключить тему" }).click();
     await expect(html).toHaveAttribute("data-theme", "light");
-    expect(await stored(page, "say-theme")).toBe("light");
+    expect(await stored(page, "cs-core-theme")).toBe("light");
   });
 });
 
@@ -82,7 +82,7 @@ test.describe("вход", () => {
     await expect(page.locator(".auth-error")).not.toHaveText("");
     await expect(page.locator(".auth-card")).toBeVisible();
     await expect(page.locator(".topbar")).toHaveCount(0);
-    expect(await stored(page, "say-token")).toBeNull();
+    expect(await stored(page, "cs-core-token")).toBeNull();
     // кнопка снова доступна, повторная попытка возможна
     await expect(submit(page)).toBeEnabled();
     await expect(submit(page)).toHaveText("Войти");
@@ -95,7 +95,7 @@ test.describe("вход", () => {
     await fillForm(page, newEmail(), "correct-horse-1");
     await submit(page).click();
     await expect(page.locator(".auth-error")).toBeVisible();
-    expect(await stored(page, "say-token")).toBeNull();
+    expect(await stored(page, "cs-core-token")).toBeNull();
   });
 
   test("ошибка пропадает при переключении вкладки и после успешного входа", async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe("вход", () => {
     await expect(page.locator(".user-chip")).toHaveAttribute("title", STUDENT.email);
 
     // токен из хранилища принимается сервером
-    const token = await stored(page, "say-token");
+    const token = await stored(page, "cs-core-token");
     expect(token).toBeTruthy();
     const res = await request.get("/api/progress", { headers: bearer(token as string) });
     expect(res.status()).toBe(200);
@@ -159,21 +159,21 @@ test.describe("вход", () => {
     await fillForm(page, STUDENT.email, STUDENT.password);
     await submit(page).click();
     await expect(page.locator(".topbar")).toBeVisible();
-    const token = await stored(page, "say-token");
+    const token = await stored(page, "cs-core-token");
     await page.reload();
     await expect(page.locator(".topbar")).toBeVisible();
     await expect(page.locator(".auth-card")).toHaveCount(0);
-    expect(await stored(page, "say-token")).toBe(token);
+    expect(await stored(page, "cs-core-token")).toBe(token);
     // и на другой странице тоже
     await page.goto("/settings");
     await expect(page.locator(".set-card")).toBeVisible();
   });
 
   test("недействительный токен в хранилище: форма входа и токен стёрт", async ({ page }) => {
-    await page.addInitScript(() => window.localStorage.setItem("say-token", "not-a-real-token"));
+    await page.addInitScript(() => window.localStorage.setItem("cs-core-token", "not-a-real-token"));
     await page.goto("/");
     await expect(page.locator(".auth-card")).toBeVisible();
-    await expect.poll(() => stored(page, "say-token")).toBeNull();
+    await expect.poll(() => stored(page, "cs-core-token")).toBeNull();
   });
 });
 
@@ -187,7 +187,7 @@ test.describe("регистрация", () => {
     await expect(page.locator(".topbar")).toBeVisible();
     await expect(page.locator(".user-chip")).toContainText("Новичок");
     await expect(page.locator(".user-chip")).toHaveAttribute("title", email);
-    const token = await stored(page, "say-token");
+    const token = await stored(page, "cs-core-token");
     expect(token).toBeTruthy();
     expect((await request.get("/api/progress", { headers: bearer(token as string) })).status()).toBe(200);
     // у нового пользователя чистый прогресс
@@ -217,7 +217,7 @@ test.describe("регистрация", () => {
     await submit(page).click();
     await expect(page.locator(".auth-error")).toBeVisible();
     await expect(page.locator(".topbar")).toHaveCount(0);
-    expect(await stored(page, "say-token")).toBeNull();
+    expect(await stored(page, "cs-core-token")).toBeNull();
   });
 
   test("короткий пароль отвергается", async ({ page }) => {
@@ -236,11 +236,11 @@ test.describe("выход", () => {
     await fillForm(page, STUDENT.email, STUDENT.password);
     await submit(page).click();
     await expect(page.locator(".topbar")).toBeVisible();
-    const token = (await stored(page, "say-token")) as string;
+    const token = (await stored(page, "cs-core-token")) as string;
     await page.locator("button[title='Выйти']").click();
     await expect(page.locator(".auth-card")).toBeVisible();
     await expect(page.locator(".topbar")).toHaveCount(0);
-    expect(await stored(page, "say-token")).toBeNull();
+    expect(await stored(page, "cs-core-token")).toBeNull();
     expect((await request.get("/api/progress", { headers: bearer(token) })).status()).toBe(401);
     // после перезагрузки сессии нет
     await page.reload();

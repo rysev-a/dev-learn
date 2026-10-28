@@ -84,11 +84,11 @@ fn StepsCard(spec: Arc<CircuitSpec>, input_state: RwSignal<InputState>, values: 
                     <div>
                         <p class="lab-step-text">{st.text.clone()}</p>
                         <div class="lab-step-req">
-                            {pulses.map(|p| view! { <span class="lab-chip pulses">{format!("тактов: {p}")}</span> })}
+                            {pulses.map(|p| view! { <span class="lab-chip pulses">{i18n::trf!("ticks: {0}", p)}</span> })}
                             {in_chips}
                             <span class="lab-chip-sep">"→"</span>
                             {out_chips}
-                            {none_checked.then(|| view! { <span class="lab-chip out hit">"выход пока не проверяется"</span> })}
+                            {none_checked.then(|| view! { <span class="lab-chip out hit">{i18n::tr("output is not checked yet")}</span> })}
                         </div>
                     </div>
                 </div>
@@ -99,10 +99,10 @@ fn StepsCard(spec: Arc<CircuitSpec>, input_state: RwSignal<InputState>, values: 
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Сценарий проверки"</h3>
-                    <p>"Выполняйте шаги по порядку: устанавливайте тумблеры и добивайтесь нужных значений на выходах"</p>
+                    <h3>{i18n::tr("Check scenario")}</h3>
+                    <p>{i18n::tr("Follow the steps in order: set the switches and get the required values on the outputs")}</p>
                 </div>
-                <span class="lab-badge" class:ok=move || solved.get()>{move || format!("Шаг {} / {total}", shown_step(passed.get(), total))}</span>
+                <span class="lab-badge" class:ok=move || solved.get()>{move || i18n::trf!("Step {0} / {1}", shown_step(passed.get(), total), total)}</span>
             </div>
             <div class="lab-steps">{steps}</div>
         </div>
@@ -114,8 +114,8 @@ fn TableCard(spec: Arc<CircuitSpec>, input_state: RwSignal<InputState>, table: M
     let labels = spec.labels_or_ids();
     let total = spec.target.len();
     let heads_in = labels.iter().map(|l| view! { <th>{l.clone()}</th> }).collect_view();
-    let heads_target = spec.outputs.iter().map(|o| view! { <th class="sep">{format!("Цель {o}")}</th> }).collect_view();
-    let heads_actual = spec.outputs.iter().map(|o| view! { <th>{format!("Схема {o}")}</th> }).collect_view();
+    let heads_target = spec.outputs.iter().map(|o| view! { <th class="sep">{i18n::trf!("Target {0}", o)}</th> }).collect_view();
+    let heads_actual = spec.outputs.iter().map(|o| view! { <th>{i18n::trf!("Circuit {0}", o)}</th> }).collect_view();
     let inputs = spec.inputs.clone();
     let current = {
         let inputs = inputs.clone();
@@ -160,7 +160,7 @@ fn TableCard(spec: Arc<CircuitSpec>, input_state: RwSignal<InputState>, table: M
     view! {
         <div class="lab-card">
             <div class="lab-card-head">
-                <h3 title="Строка с подсветкой — текущее положение тумблеров на доске">"Таблица истинности"</h3>
+                <h3 title=i18n::tr("The highlighted row is the current position of the switches on the board")>{i18n::tr("Truth table")}</h3>
                 <span class="lab-badge" class:ok=move || solved.get()>{move || format!("{} / {total}", table.with(|t| t.matched))}</span>
             </div>
             <div class="lab-tt-scroll">
@@ -183,12 +183,12 @@ pub fn WaveDiagram(wave: Memo<Wave>, on_clear: Callback<()>) -> impl IntoView {
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Временная диаграмма"</h3>
-                    <p>"История сигналов: каждый столбец — одно изменение. Пунктир — значение пока не определено"</p>
+                    <h3>{i18n::tr("Timing diagram")}</h3>
+                    <p>{i18n::tr("Signal history: each column is one change. A dashed line means the value is not defined yet")}</p>
                 </div>
-                <button type="button" class="quiz-btn ghost" on:click=move |_| on_clear.run(())>"Очистить"</button>
+                <button type="button" class="quiz-btn ghost" on:click=move |_| on_clear.run(())>{i18n::tr("Clear")}</button>
             </div>
-            <svg class="lab-wave" viewBox=move || format!("0 0 {width} {}", wave.with(|w| w.height)) role="img" aria-label="Временная диаграмма сигналов">
+            <svg class="lab-wave" viewBox=move || format!("0 0 {width} {}", wave.with(|w| w.height)) role="img" aria-label=i18n::tr("Signal timing diagram")>
                 {move || wave.with(|w| {
                     let h = w.height;
                     let grid = w.cols.iter().map(|x| view! { <line class="wave-grid" x1=*x x2=*x y1="0" y2=h></line> }).collect_view();
@@ -254,6 +254,7 @@ mod tests {
 
     #[test]
     fn step_is_met_only_with_the_right_switches_and_outputs() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sp = spec();
         let mut on = InputState::zero();
         on.set(InputId::A, 1);
@@ -266,6 +267,7 @@ mod tests {
 
     #[test]
     fn unchecked_output_does_not_block_a_step() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut sp = spec();
         sp.steps[0].expect.clear();
         let mut on = InputState::zero();
@@ -275,6 +277,7 @@ mod tests {
 
     #[test]
     fn shown_step_never_runs_past_the_last() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(shown_step(0, 3), 1);
         assert_eq!(shown_step(2, 3), 3);
         assert_eq!(shown_step(3, 3), 3);

@@ -18,6 +18,16 @@ pub struct Book {
     pub sections_count: i64,
     pub lessons_count: i64,
     pub parts_count: i64,
+    /// Языки, на которых книга есть целиком (русский — всегда); у старого сервера поля нет.
+    #[serde(default)]
+    pub langs: Vec<String>,
+}
+
+impl Book {
+    /// Есть ли книга на языке `code` (`ru`, `en`); без списка языков считаем, что есть.
+    pub fn in_language(&self, code: &str) -> bool {
+        self.langs.is_empty() || self.langs.iter().any(|l| l == code)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]

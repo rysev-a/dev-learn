@@ -381,7 +381,7 @@ pub fn BlockBoard(
                 class:panning=move || view.panning.get()
                 viewBox=move || view.view_box()
                 role="img"
-                aria-label="Доска с блоками и шинами"
+                aria-label=i18n::tr("Board with blocks and buses")
                 on:pointerdown=move |e| ix.board_down(&e)
                 on:wheel=move |e| view.on_wheel(&e, fullscreen())
                 on:mousedown=|e| {
@@ -446,7 +446,7 @@ fn wire_view(ix: Ix, wires: Memo<Vec<WireView>>, id: String) -> impl IntoView {
                 }
             }
         >
-            {(!readonly).then(|| view! { <title>"Клик — удалить шину"</title> })}
+            {(!readonly).then(|| view! { <title>{i18n::tr("Click to delete the bus")}</title> })}
             <path class="bwire-hit" d=move || me.with(|w| w.as_ref().map(|w| w.d.clone()).unwrap_or_default())></path>
             <path class=move || format!("bwire-line {}", me.with(|w| w.as_ref().map_or("vx", |w| w.class))) d=move || me.with(|w| w.as_ref().map(|w| w.d.clone()).unwrap_or_default())></path>
             <g class="bwire-tag" transform=move || me.with(|w| w.as_ref().map(|w| format!("translate({} {})", w.mx, w.my)).unwrap_or_default())>
@@ -516,7 +516,7 @@ fn box_view(
                     }
                 }
             >
-                <title>"Заглянуть внутрь"</title>
+                <title>{i18n::tr("Look inside")}</title>
                 <circle r="9"></circle>
                 <circle class="lens" r="3.2" cx="-0.8" cy="-0.8"></circle>
                 <path class="lens" d="M1.6 1.6 L4.6 4.6"></path>
@@ -528,7 +528,7 @@ fn box_view(
                     on:pointerdown=|e| e.stop_propagation()
                     on:click=move |_| ix.remove_instance(&n_del)
                 >
-                    <title>"Убрать блок с доски"</title>
+                    <title>{i18n::tr("Remove block from the board")}</title>
                     <circle r="9"></circle>
                     <path d="M-3 -3 L3 3 M3 -3 L-3 3"></path>
                 </g>
@@ -593,7 +593,7 @@ fn row_view(
         let (cx, tx) = if row.side_in { (8.0 + depth * 10.0, 15.0 + depth * 10.0) } else { (w - 22.0 - depth * 10.0, w - 15.0 - depth * 10.0) };
         view! {
             <g class="caret" on:pointerdown=toggle>
-                <title>{move || if expanded.get() { "Свернуть поля" } else { "Показать поля" }}</title>
+                <title>{move || if expanded.get() { i18n::tr("Collapse fields") } else { i18n::tr("Show fields") }}</title>
                 <rect x=cx y="-9" width="14" height="18" rx="4"></rect>
                 <text x=tx y="4" text-anchor="middle">{move || if expanded.get() { "▾" } else { "▸" }}</text>
             </g>
@@ -635,7 +635,7 @@ fn row_view(
                                 }
                             }
                         >
-                            {(!readonly).then(|| view! { <title>"Клик — переключить"</title> })}
+                            {(!readonly).then(|| view! { <title>{i18n::tr("Click to toggle")}</title> })}
                             <rect x="0" y="-9" width="18" height="18" rx="5"></rect>
                             <text x="9" y="4" text-anchor="middle">{move || s2(&v2).map_or_else(|| "?".to_string(), |b| b.to_string())}</text>
                         </g>

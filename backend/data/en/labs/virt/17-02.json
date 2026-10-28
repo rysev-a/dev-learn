@@ -1,0 +1,21 @@
+{
+ "book": 17,
+ "chapter": 2,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-hv",
+   "title": "Mini-hypervisor simulator",
+   "statement": "You are the virtual machine monitor. The guest runs an unprivileged program: ordinary instructions go straight through, and on privileged ones the CPU raises a trap and you choose the correct emulation over the virtual state (interrupt flag, CR3, IRQ queue). In the third program the POPF instruction does not trap, so you will have to enable binary translation. The exercise is solved when all three programs are completed.",
+   "hint": "The real IF flag and the CR3 register belong to the monitor: the guest works only with their virtual copies.",
+   "spec_text": {
+    "/programs/0/title": "Privileged instructions",
+    "/programs/0/goal": "Complete the program: pick the correct emulation at every trap",
+    "/programs/1/title": "Interrupts",
+    "/programs/1/goal": "Do not lose interrupts: they wait in the queue until the guest allows them",
+    "/programs/2/title": "The POPF problem",
+    "/programs/2/goal": "Run the program so that POPF changes the virtual IF flag"
+   }
+  }
+ ]
+}

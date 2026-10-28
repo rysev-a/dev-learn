@@ -28,7 +28,7 @@ use crate::{
 };
 
 /// Ключ настройки: высота доски (px), выбранная «лапкой».
-const HEIGHT_KEY: &str = "say-lab-board-height";
+const HEIGHT_KEY: &str = "cs-core-lab-board-height";
 const HEIGHT_MIN: f64 = 220.0;
 const HEIGHT_MAX: f64 = 1400.0;
 /// Сдвиг (единицы доски), с которого перенос элемента считается настоящим (включает автопроводку).
@@ -176,7 +176,7 @@ impl Ix {
         match connect(&wires, &a, &b, self.steps_mode, || uid.try_update_value(|u| u.next("w")).unwrap_or_default()) {
             Connect::Rejected(msg) => self.on_message.run(msg.to_string()),
             Connect::Cycle(rest) => {
-                self.on_message.run("Так схема замкнётся в цикл — сигнал будет бежать по кругу".to_string());
+                self.on_message.run(i18n::tr("This would close the circuit into a loop — the signal would run in circles").to_string());
                 self.wires.set(rest);
                 self.on_edited.run(());
             }
@@ -528,7 +528,7 @@ pub fn GateBoard(
     view! {
         <div class="lab-board" class:fill=fullscreen>
             {move || (!palette.with(Vec::is_empty)).then(|| view! {
-                <div class="lab-palette" role="toolbar" aria-label="Элементы: перетащите на доску или кликните">{palette_buttons()}</div>
+                <div class="lab-palette" role="toolbar" aria-label=i18n::tr("Gates: drag onto the board or click")>{palette_buttons()}</div>
             })}
             <ZoomControls view=view />
             <svg
@@ -538,7 +538,7 @@ pub fn GateBoard(
                 viewBox=move || view.view_box()
                 style=move || manual.get().and(board_h.get()).map(|h| format!("height: {h}px")).unwrap_or_default()
                 role="img"
-                aria-label="Интерактивная доска с логическими элементами"
+                aria-label=i18n::tr("Interactive board with logic gates")
                 on:pointerdown=move |e| ix.board_down(&e)
                 on:wheel=move |e| view.on_wheel(&e, false)
                 on:mousedown=|e| {
@@ -578,8 +578,8 @@ pub fn GateBoard(
                     class="lab-resize-grip"
                     role="separator"
                     aria-orientation="horizontal"
-                    aria-label="Высота доски: потяните вверх или вниз, либо стрелками"
-                    title="Потяните, чтобы изменить высоту доски (двойной щелчок — по умолчанию)"
+                    aria-label=i18n::tr("Board height: drag up or down, or use the arrow keys")
+                    title=i18n::tr("Drag to change the board height (double-click to reset)")
                     on:pointerdown=start_resize
                     on:dblclick=move |_| {
                         board_h.set(None);
@@ -623,7 +623,7 @@ fn wire_view(ix: Ix, vals: Vals, id: String) -> impl IntoView {
                 }
             }
         >
-            <title>"Клик — удалить провод"</title>
+            <title>{i18n::tr("Click to delete the wire")}</title>
             <path class="wire-hit" d=d></path>
             <path class=class d=d></path>
         </g>
@@ -659,7 +659,7 @@ fn input_node(ix: Ix, vals: Vals, input_state: RwSignal<InputState>, spec: &Circ
                     }
                 }
             >
-                <title>{move || format!("Клик — переключить {title_label} ({} → {})", level(), 1 - level())}</title>
+                <title>{move || i18n::trf!("Click to toggle {0} ({1} → {2})", title_label, level(), 1 - level())}</title>
                 <rect class="node-box" x="10" y=y - 22.0 width="86" height="44" rx="10"></rect>
                 <text class="node-label" x="30" y=y + 5.0>{label}</text>
                 <rect class=move || format!("node-chip {}", node_class(Some(level()))) x="56" y=y - 12.0 width="26" height="24" rx="7"></rect>
@@ -723,7 +723,7 @@ fn gate_view(ix: Ix, vals: Vals, id: String, ty: GateType) -> impl IntoView {
                 on:pointerdown=|e| e.stop_propagation()
                 on:click=move |_| ix.remove_gate(&del_id)
             >
-                <title>"Удалить элемент"</title>
+                <title>{i18n::tr("Delete gate")}</title>
                 <circle cx="76" cy="0" r="8"></circle>
                 <path d="M73 -3 L79 3 M79 -3 L73 3"></path>
             </g>

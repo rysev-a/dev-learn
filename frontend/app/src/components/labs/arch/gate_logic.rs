@@ -44,7 +44,7 @@ pub enum Connect {
 pub fn connect(wires: &[Wire], a: &PinRef, b: &PinRef, steps_mode: bool, new_id: impl FnOnce() -> String) -> Connect {
     let (from, to) = if a.pin == PinKind::Out { (a, b) } else { (b, a) };
     if from.pin != PinKind::Out || to.pin == PinKind::Out || from.node == to.node {
-        return Connect::Rejected("Соединять нужно выход элемента со входом другого");
+        return Connect::Rejected(i18n::tr("Connect a gate's output to another gate's input"));
     }
     let rest: Vec<Wire> = wires.iter().filter(|w| w.to != *to).cloned().collect();
     if !steps_mode && creates_cycle(&Circuit::new(vec![], rest.clone()), from, to) {
@@ -77,12 +77,14 @@ mod tests {
 
     #[test]
     fn new_gate_is_centered_on_the_drop_point() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(gate_origin(Point::new(400.0, 200.0)), Point::new(368.0, 176.0));
         assert_eq!(gate_origin(Point::new(100_000.0, 100_000.0)), Point::new(3936.0, 2952.0));
     }
 
     #[test]
     fn dropping_on_the_palette_uses_a_column() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(palette_drop_spot(0), Point::new(400.0, 100.0));
         assert_eq!(palette_drop_spot(5), Point::new(400.0, 170.0));
         assert_eq!(palette_drop_spot(4), Point::new(400.0, 100.0));
@@ -90,6 +92,7 @@ mod tests {
 
     #[test]
     fn connect_takes_the_output_as_the_start_in_either_order() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let from = PinRef::out("A");
         let to = PinRef::inp("g1", PinKind::In0);
         for (a, b) in [(&from, &to), (&to, &from)] {
@@ -102,6 +105,7 @@ mod tests {
 
     #[test]
     fn connect_rejects_input_to_input_and_self_loops() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let (i0, i1) = (PinRef::inp("g1", PinKind::In0), PinRef::inp("g2", PinKind::In0));
         assert!(matches!(connect(&[], &i0, &i1, false, || "w".into()), Connect::Rejected(_)));
         let (o1, o2) = (PinRef::out("g1"), PinRef::out("g2"));
@@ -112,6 +116,7 @@ mod tests {
 
     #[test]
     fn one_input_takes_one_wire() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let old = [wire("w1", "A", "g1", PinKind::In0), wire("w2", "B", "g1", PinKind::In1)];
         match connect(&old, &PinRef::out("C"), &PinRef::inp("g1", PinKind::In0), false, || "w3".into()) {
             Connect::Added(w) => {
@@ -124,6 +129,7 @@ mod tests {
 
     #[test]
     fn cycles_are_refused_outside_step_mode_and_allowed_inside_it() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // g1 → g2, теперь g2 → g1 замкнёт круг
         let old = [wire("w1", "g1", "g2", PinKind::In0)];
         let (from, to) = (PinRef::out("g2"), PinRef::inp("g1", PinKind::In0));
@@ -133,6 +139,7 @@ mod tests {
 
     #[test]
     fn removing_a_gate_removes_its_wires() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut gates = vec![
             GateInstance { id: "g1".into(), ty: GateType::Not, x: 0.0, y: 0.0 },
             GateInstance { id: "g2".into(), ty: GateType::And, x: 0.0, y: 0.0 },
@@ -145,6 +152,7 @@ mod tests {
 
     #[test]
     fn auto_wires_of_the_ghost_move_to_the_real_gate() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let a = archlab::model::Point { x: 1.0, y: 2.0 };
         let held = [AutoWire { from: PinRef::out("A"), to: PinRef::inp(DROP_ID, PinKind::In0), a, b: a }, AutoWire { from: PinRef::out(DROP_ID), to: PinRef::inp("Y", PinKind::In0), a, b: a }];
         let real = remap_drop(&held, "g7");
@@ -155,6 +163,7 @@ mod tests {
 
     #[test]
     fn drop_target_must_be_the_opposite_kind_of_pin_on_another_node() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let out = PinRef::out("g1");
         assert!(can_drop(&out, &PinRef::inp("g2", PinKind::In0)));
         assert!(!can_drop(&out, &PinRef::inp("g1", PinKind::In0)));

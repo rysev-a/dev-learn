@@ -58,14 +58,14 @@ impl GateType {
     /// Русское название (`RU_NAMES` из `gate-shapes.ts`).
     pub fn ru_name(self) -> &'static str {
         match self {
-            GateType::And => "И",
-            GateType::Or => "ИЛИ",
-            GateType::Nor => "ИЛИ-НЕ",
-            GateType::Not => "НЕ",
-            GateType::Nand => "И-НЕ",
-            GateType::Xor => "искл. ИЛИ",
-            GateType::Xnor => "искл. ИЛИ-НЕ",
-            GateType::Dff => "D-триггер по фронту",
+            GateType::And => i18n::tr("AND"),
+            GateType::Or => i18n::tr("OR"),
+            GateType::Nor => i18n::tr("NOR"),
+            GateType::Not => i18n::tr("NOT"),
+            GateType::Nand => i18n::tr("NAND"),
+            GateType::Xor => i18n::tr("XOR"),
+            GateType::Xnor => i18n::tr("XNOR"),
+            GateType::Dff => i18n::tr("Edge-triggered D flip-flop"),
         }
     }
 

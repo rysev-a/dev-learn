@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 37,
+ "tasks": [
+  {
+   "id": "parse-cli-args",
+   "title": "Parsing arguments",
+   "statement": "Write a function parse_cli(argv): use argparse to parse a list of command-line arguments: a positional text, an optional --count (an integer, 1 by default) and a --upper flag. Return the tuple (text, count, upper).",
+   "hint": "p.add_argument('text'); p.add_argument('--count', type=int, default=1); p.add_argument('--upper', action='store_true')."
+  },
+  {
+   "id": "sum-cli-main",
+   "title": "A summing utility",
+   "statement": "Write a function main(argv): the arguments in argv are numbers (argparse, nargs='*', type=int). If there are no numbers, print «нет чисел» to stderr and return 1; otherwise print the sum and return 0.",
+   "hint": "p = argparse.ArgumentParser(); p.add_argument('nums', nargs='*', type=int); args = p.parse_args(argv)."
+  },
+  {
+   "id": "env-or-default",
+   "title": "A setting from the environment",
+   "statement": "Write a function get_port(): the value of the environment variable PORT as an integer; if the variable is missing, 8000.",
+   "hint": "int(os.environ.get('PORT', 8000))."
+  },
+  {
+   "id": "make-logger",
+   "title": "Your own logger",
+   "statement": "Write a function make_logger(stream): a logger named \"app\" that writes messages of level INFO and above to the given stream in the format \"LEVEL: message\" (turn propagate off).",
+   "hint": "StreamHandler(stream) + Formatter('%(levelname)s: %(message)s'); logger.setLevel(logging.INFO); logger.propagate = False."
+  },
+  {
+   "id": "run-python-subprocess",
+   "title": "Running a process",
+   "statement": "Write a function run_python(code): it runs a child interpreter (sys.executable) with the code code and returns a tuple (return code, output stripped at the edges). Use subprocess.run, capture_output and text.",
+   "hint": "r = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True); return r.returncode, r.stdout.strip()."
+  },
+  {
+   "id": "run-with-timeout",
+   "title": "A process with a timeout",
+   "statement": "Write a function run_limited(code, seconds): it runs the code in a child interpreter; if it does not finish within seconds seconds, return the string «таймаут», otherwise return its output stripped at the edges.",
+   "hint": "try: subprocess.run(..., timeout=seconds) / except subprocess.TimeoutExpired: return \"таймаут\"."
+  },
+  {
+   "id": "count-nonempty-stream",
+   "title": "Lines from a stream",
+   "statement": "Write a function count_lines(stream): how many non-empty lines (after strip) the file object stream contains. Work with the stream the way you would with standard input: iterate over it in a loop.",
+   "hint": "n = 0; for line in stream: if line.strip(): n += 1."
+  }
+ ]
+}

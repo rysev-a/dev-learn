@@ -15,14 +15,14 @@ pub struct Palette {
 pub const DEFAULT: &str = "default";
 
 pub const PALETTES: &[Palette] = &[
-    Palette { id: DEFAULT, name: "Тёмная", mode: Theme::Dark },
+    Palette { id: DEFAULT, name: i18n::t!("Dark"), mode: Theme::Dark },
     Palette { id: "dracula", name: "Dracula", mode: Theme::Dark },
     Palette { id: "one-dark", name: "One Dark", mode: Theme::Dark },
     Palette { id: "nord", name: "Nord", mode: Theme::Dark },
     Palette { id: "tokyo-night", name: "Tokyo Night", mode: Theme::Dark },
     Palette { id: "solarized-dark", name: "Solarized Dark", mode: Theme::Dark },
     Palette { id: "monokai", name: "Monokai", mode: Theme::Dark },
-    Palette { id: DEFAULT, name: "Светлая", mode: Theme::Light },
+    Palette { id: DEFAULT, name: i18n::t!("Light"), mode: Theme::Light },
     Palette { id: "github-light", name: "GitHub Light", mode: Theme::Light },
     Palette { id: "solarized-light", name: "Solarized Light", mode: Theme::Light },
     Palette { id: "one-light", name: "One Light", mode: Theme::Light },

@@ -219,7 +219,7 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
                 class:panning=move || view.panning.get()
                 viewBox=move || view.view_box()
                 role="img"
-                aria-label="Схема внутри блока (только просмотр)"
+                aria-label=i18n::tr("Circuit inside the block (view only)")
                 on:pointerdown=move |e| {
                     view.on_pointer_down(&e, is_background(e.target(), "cv-bg"));
                 }
@@ -317,7 +317,7 @@ pub fn Inspector(top: Signal<Level>, library: Signal<Lib>, path: RwSignal<Vec<St
         let Some(cur) = lvls.last().cloned() else { return ().into_any() };
         let stats = cpu.then(|| {
             let dffs = cur.expansion.circuit.gates.iter().filter(|g| g.ty == GateType::Dff).count();
-            format!("внутри: {} вентилей, {dffs} триггеров", cur.expansion.circuit.gates.len() - dffs)
+            i18n::trf!("inside: {0} gates, {1} flip-flops", cur.expansion.circuit.gates.len() - dffs, dffs)
         });
         let crumbs = lvls
             .iter()
@@ -363,8 +363,8 @@ pub fn Inspector(top: Signal<Level>, library: Signal<Lib>, path: RwSignal<Vec<St
             }
             Solution::Native(_) => view! {
                 <p class="lab-native">
-                    "Это встроенная память: ячейки здесь не из вентилей — как настоящая микросхема, у неё есть адрес, данные и (у диска) запись по такту. "
-                    "Содержимое — на карточке «Виртуальный диск» выше (для программы — в машинном коде слева)."
+                    {i18n::tr("This is built-in memory: its cells are not made of gates — like a real chip, it has an address, data and (for the disk) a clocked write. ")}
+                    {i18n::tr("The contents are on the “Virtual disk” card above (for a program, in the machine code on the left).")}
                 </p>
             }
             .into_any(),
@@ -373,10 +373,10 @@ pub fn Inspector(top: Signal<Level>, library: Signal<Lib>, path: RwSignal<Vec<St
         view! {
             <div class="lab-inspector">
                 <div class="lab-inspector-bar">
-                    <nav class="lab-crumbs" aria-label="Где вы находитесь">{crumbs}</nav>
+                    <nav class="lab-crumbs" aria-label=i18n::tr("You are here")>{crumbs}</nav>
                     <div class="lab-actions">
                         {stats.map(|s| view! { <span class="lab-edges">{s}</span> })}
-                        {can_back.then(|| view! { <button type="button" class="quiz-btn ghost" on:click=move |_| path.update(|p| { p.pop(); })>"← Назад"</button> })}
+                        {can_back.then(|| view! { <button type="button" class="quiz-btn ghost" on:click=move |_| path.update(|p| { p.pop(); })>{i18n::tr("← Back")}</button> })}
                     </div>
                 </div>
                 {scene}
@@ -396,6 +396,7 @@ mod tests {
 
     #[test]
     fn up_to_three_inputs_use_the_classic_rows() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let ys = named_input_ys(&names(3), 440.0);
         assert_eq!(ys.get("n0"), Some(80.0));
         assert_eq!(ys.get("n2"), Some(320.0));
@@ -403,6 +404,7 @@ mod tests {
 
     #[test]
     fn four_inputs_spread_over_the_board_and_many_inputs_over_its_height() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let four = named_input_ys(&names(4), 440.0);
         assert_eq!((four.get("n0"), four.get("n3")), (Some(50.0), Some(390.0)));
         let many = named_input_ys(&names(9), 800.0);
@@ -412,6 +414,7 @@ mod tests {
 
     #[test]
     fn view_size_grows_with_spread_and_ports() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let g = |x: f64, y: f64| GateInstance { id: "g".into(), ty: GateType::And, x, y };
         assert_eq!(gate_view_size(&[g(200.0, 100.0)], 2, 1, 1.0), (BOARD_W, BOARD_H, 0.0));
         let (w, h, extra) = gate_view_size(&[g(700.0, 400.0)], 2, 1, 2.0);
@@ -422,6 +425,7 @@ mod tests {
 
     #[test]
     fn processor_spread_depends_on_the_size_of_the_scheme() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(spread_for_blocks(2), 1.2);
         assert_eq!(spread_for_blocks(5), 1.4);
         assert_eq!(spread_for_blocks(12), 1.7);
@@ -432,6 +436,7 @@ mod tests {
 
     #[test]
     fn block_board_is_tall_enough_for_the_lowest_block() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let i = |y: f64| BlockInstance { id: "i".into(), block_id: "b".into(), x: 0.0, y };
         assert_eq!(block_board_height(&[i(10.0)]), BLOCKS_BOARD_H);
         assert_eq!(block_board_height(&[i(10.0), i(500.0)]), 790.0);

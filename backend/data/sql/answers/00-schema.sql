@@ -1,5 +1,5 @@
 -- Задачи с вводом ответа (дискретная математика). Выполнение этого файла очищает таблицы: дальше идут файлы книг.
--- Полная инициализация: sqlite3 say.db < app/data/sql/answers/*.sql (файлы выполняются по порядку имён).
+-- Полная инициализация: sqlite3 cs-core.db < app/data/sql/answers/*.sql (файлы выполняются по порядку имён).
 CREATE TABLE IF NOT EXISTS answer_sets (
     book_id INTEGER NOT NULL,
     chapter INTEGER NOT NULL,

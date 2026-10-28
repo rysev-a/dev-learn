@@ -39,9 +39,9 @@ fn PanelFor(lab: Lab, id: String) -> impl IntoView {
             <div class="nl-panel-head">
                 <h4>{name}</h4>
                 <span class="nl-kind">{logic::kind_title(kind)}</span>
-                {locked.then(|| view! { <span class="nl-lock">"только чтение"</span> })}
+                {locked.then(|| view! { <span class="nl-lock">{i18n::tr("read-only")}</span> })}
             </div>
-            <div class="nl-tabs">{tab_btn(Tab::Config, "Настройки")}{tab_btn(Tab::Term, "Терминал")}</div>
+            <div class="nl-tabs">{tab_btn(Tab::Config, i18n::tr("Settings"))}{tab_btn(Tab::Term, i18n::tr("Terminal"))}</div>
             {move || match tab.get() {
                 Tab::Config => view! { <Config ctx=ctx kind=kind tools=tools.clone() /> }.into_any(),
                 Tab::Term => view! { <Terminal lab=lab id=ctx.id() /> }.into_any(),
@@ -138,12 +138,14 @@ mod tests {
 
     #[test]
     fn host_gets_gateway_but_no_router_forms() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Host, &tools(|t| t.nat = true), false);
         assert!(s.interfaces && s.gateway && !s.routes && !s.nat && !s.forwarding && !s.services);
     }
 
     #[test]
     fn router_forms_follow_tools() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Router, &tools(|t| t.nat = true), false);
         assert!(s.routes && s.forwarding && s.nat && !s.fw && !s.gateway);
         let s = Sections::of(DeviceKind::Internet, &tools(|t| t.fw = true), false);
@@ -152,12 +154,14 @@ mod tests {
 
     #[test]
     fn switch_has_ports_and_no_interfaces() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Switch, &tools(|t| t.ssh = true), true);
         assert!(s.switch && !s.interfaces && !s.ssh && !s.gateway);
     }
 
     #[test]
     fn server_lists_listening_ports_and_ssh_when_open() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Server, &tools(|t| t.ssh = true), false);
         assert!(s.services && s.ssh);
         assert!(!Sections::of(DeviceKind::Router, &tools(|t| t.ssh = true), false).ssh, "роутер без SSH-сервера и не компьютер");
@@ -166,6 +170,7 @@ mod tests {
 
     #[test]
     fn tcp_dns_tls_forms_are_for_hosts_only() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let all = tools(|t| {
             t.tcp = true;
             t.dns = true;

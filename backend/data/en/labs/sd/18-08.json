@@ -1,0 +1,87 @@
+{
+ "book": 18,
+ "chapter": 8,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd08-spike",
+   "title": "Smoothing a write peak",
+   "statement": "At peak the service receives 2000 writes per second, while an M database handles 600: without a buffer it is overloaded. Put a queue with workers between the app server and the database. The workers must drain the queue no faster than the database can write: database load at most 80%, and after a 5-second peak the queue must drain in no more than 30 seconds.",
+   "hint": "The database accepts as many writes as the workers manage to push through: two S workers give 300 writes per second, so the database is 67% loaded (including reads). Backlog: (2000 − 300) / 300 × 5 ≈ 28 s.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd08-workers",
+   "title": "How many workers",
+   "statement": "A queue is already there, but there are too few workers: after a 20-second peak the queue takes too long to drain. 1500 writes per second arrive, and an L database accepts up to 1500. Choose the workers so that the queue drains in no more than 20 seconds while the database is at most 80% loaded.",
+   "hint": "Backlog = (inflow − drain) / drain × peak length. For 20 seconds you need a drain rate of at least 750 per second, but no more than 1200 (80% of the database). Two M workers give 800.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Queue",
+    "/start/nodes/4/name": "Worker",
+    "/start/nodes/5/name": "Database"
+   }
+  },
+  {
+   "id": "sd08-partitions",
+   "title": "Queue partitions",
+   "statement": "The stream is 30,000 messages per second, and one partition passes 20,000. Choose the number of partitions so that the queue is at most 80% loaded and survives the failure of a broker node (for that you need at least three partitions).",
+   "hint": "Two partitions give 40,000, which is 75%, but to survive a failure you need three: 30,000 / 60,000 = 50%.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Queue",
+    "/start/nodes/4/name": "Worker",
+    "/start/nodes/5/name": "Database"
+   }
+  },
+  {
+   "id": "sd08-dlq",
+   "title": "The dead-letter queue",
+   "statement": "Because of a single \"poison\" message, a worker loops and blocks the queue. Turn on the dead-letter queue (DLQ) and make processing idempotent so that retries are safe and the queue drains with no backlog.",
+   "hint": "The queue has the “Dead-letter queue” parameter, and the worker has “Idempotent processing” (both are shown in this exercise).",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Queue",
+    "/start/nodes/4/name": "Worker",
+    "/start/nodes/5/name": "Database"
+   }
+  },
+  {
+   "id": "sd08-spot",
+   "title": "Cheap workers",
+   "statement": "Nightly order processing is not urgent and can run on interruptible servers (spot): they are three times cheaper but may disappear. Move the workers to spot, keep at least two (so that losing one does not stop the queue), and fit the whole design within $850. The queue must still drain with no backlog.",
+   "hint": "The worker's “Pricing” parameter (visible in the exercise): spot costs 30% of the regular price. You need at least two instances, otherwise there is a single point of failure.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Queue",
+    "/start/nodes/4/name": "Worker",
+    "/start/nodes/5/name": "Database"
+   }
+  },
+  {
+   "id": "sd08-final",
+   "title": "The processing pipeline",
+   "statement": "The final exercise of the chapter. An order service: 600 reads and 900 writes per second, and after a 15-second peak the queue must drain in no more than 30 seconds. Build the design: a queue with a dead-letter queue, idempotent workers (at least two), database at most 80%, survival of a worker failure, budget of $1700 per month.",
+   "hint": "An L database accepts 1500 writes. Two M workers give 800 per second: 53% of the database, backlog (900 − 800)/800 × 15 ≈ 2 s. Turn on the DLQ and idempotency.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  }
+ ]
+}

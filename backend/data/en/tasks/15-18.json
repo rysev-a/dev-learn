@@ -1,0 +1,36 @@
+{
+ "book": 15,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "n18-keys",
+   "title": "Key login instead of a password",
+   "statement": "The server lets user alice in with the password alice123, and that is enough for bots. Switch to keys. On the PC create a key (`ssh-keygen`), copy it to the server (`ssh-copy-id -P alice123 alice@192.168.0.20`; the password is needed once), check the key login, and then turn off password login on the server (`sshd password off`).",
+   "hint": "Order matters: first the key and the copy, then disabling passwords — otherwise you lock yourself out. Check: `ssh alice@192.168.0.20` logs in with the key, `ssh -o PubkeyAuthentication=no -P alice123 alice@192.168.0.20` is refused."
+  },
+  {
+   "id": "n18-hostkey",
+   "title": "The host key has changed",
+   "statement": "After the server was reinstalled (the administrator confirmed that the key change was planned), login shows “REMOTE HOST IDENTIFICATION HAS CHANGED”. The client's known_hosts still holds the old key. Remove the stale entry for 192.168.0.20 (`ssh-keygen -R 192.168.0.20`) and log in again — the client will remember the new key.",
+   "hint": "`ssh-keygen -R 192.168.0.20`, then `ssh alice@192.168.0.20`. Do not turn host key checking off permanently: it protects against server impersonation."
+  },
+  {
+   "id": "n18-jump",
+   "title": "Bastion: logging in to the internal network",
+   "statement": "The server 10.0.2.20 in the internal network is reachable over SSH only from the bastion 10.0.1.5 — that is how the firewall is set up. It is not reachable directly from the PC. Set up the login `ssh -J alice@10.0.1.5 alice@10.0.2.20` (the client key already exists): authorize the PC key (`ssh-keygen -l` shows the fingerprint) both on the bastion and on the internal server for user alice. Password login is off there.",
+   "hint": "`ssh-keygen -l` on the PC → fingerprint. On the bastion and on the internal server: `sshd authorize alice <fingerprint>`. Then `ssh -J alice@10.0.1.5 alice@10.0.2.20`."
+  },
+  {
+   "id": "n18-vpn",
+   "title": "VPN between two offices",
+   "statement": "Offices A (192.168.1.0/24) and B (192.168.2.0/24) are connected only through the internet, and the internet does not route private addresses. Build a tunnel between the gateways: on gateway A the peer is 198.51.100.1 and the tunnel address is 10.9.0.1/30; on gateway B the peer is 203.0.113.1 and the address is 10.9.0.2/30; the shared secret is the same on both. Then add routes to the remote networks through the tunnel.",
+   "hint": "`vpn add wg0 --peer 198.51.100.1 --address 10.9.0.1/30 --key s3cr3t` on A and `vpn add wg0 --peer 203.0.113.1 --address 10.9.0.2/30 --key s3cr3t` on B. Routes: on A `ip route add 192.168.2.0/24 dev wg0`, on B `ip route add 192.168.1.0/24 dev wg0`. Press ▶ and find the “tunnel wg0” encapsulation in the log."
+  },
+  {
+   "id": "n18-split",
+   "title": "Split tunnel",
+   "statement": "An employee's laptop at home: the tunnel to the corporate gateway is already up, but the default route points into the tunnel — all internet traffic goes through the office, and the tunnel itself has lost its path to the peer (ping to the corporate network fails). Set up a split tunnel: the corporate network 10.0.0.0/8 goes into the tunnel (wg0), everything else goes directly through the home router 192.168.100.1.",
+   "hint": "`ip route del default`, then `ip route add default via 192.168.100.1` and `ip route add 10.0.0.0/8 dev wg0`. Check: ping 10.0.0.5 goes through the corporate gateway, ping 198.51.100.10 does not."
+  }
+ ]
+}

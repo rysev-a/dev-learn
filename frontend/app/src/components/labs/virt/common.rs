@@ -118,7 +118,7 @@ pub fn GoalList(goals: Goals, items: Vec<GoalItem>) -> impl IntoView {
         })
         .collect_view();
     view! {
-        <span class="s-label">"цели"</span>
+        <span class="s-label">{i18n::tr("goals")}</span>
         <ul class="vl-goals">{rows}</ul>
     }
 }
@@ -179,6 +179,7 @@ mod tests {
 
     #[test]
     fn solution_contains_every_goal_once() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut done = BTreeMap::new();
         assert!(insert_goal(&mut done, "a", json!({"x": 1})));
         assert!(!insert_goal(&mut done, "a", json!({"x": 2})), "повторная отметка не меняет данные");
@@ -188,6 +189,7 @@ mod tests {
 
     #[test]
     fn reached_requires_all_ids() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let ids = vec!["a".to_string(), "b".to_string()];
         let mut done = BTreeMap::new();
         insert_goal(&mut done, "a", Value::Bool(true));
@@ -199,12 +201,14 @@ mod tests {
 
     #[test]
     fn trace_goes_into_data() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let v = trace_data(&[virtlab::virtq::Action::Reap, virtlab::virtq::Action::Post { n: 3 }]);
         assert_eq!(v, json!({"trace": [{"op": "reap"}, {"op": "post", "n": 3}]}));
     }
 
     #[test]
     fn numbers_are_grouped_with_nbsp() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(fmt_ru(0.0), "0");
         assert_eq!(fmt_ru(999.0), "999");
         assert_eq!(fmt_ru(1000.0), "1\u{a0}000");
@@ -214,6 +218,7 @@ mod tests {
 
     #[test]
     fn percent_rounds() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(pct(0.0), "0%");
         assert_eq!(pct(0.25), "25%");
         assert_eq!(pct(0.5), "50%");

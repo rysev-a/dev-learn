@@ -47,6 +47,7 @@ fn programs(t: &Task) -> Vec<hv::Program> {
 
 #[test]
 fn hv_ideal_runs_reach_every_goal() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-hv");
     let mut submitted = serde_json::Map::new();
     for p in programs(&t) {
@@ -64,6 +65,7 @@ fn hv_ideal_runs_reach_every_goal() {
 
 #[test]
 fn hv_popf_without_translation_fails_and_silent_is_counted() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-hv");
     let p = programs(&t).into_iter().find(|p| p.id == "popf").unwrap();
     let run = hv::ideal_run(&p, false).unwrap();
@@ -77,6 +79,7 @@ fn hv_popf_without_translation_fails_and_silent_is_counted() {
 
 #[test]
 fn hv_session_behaves_like_the_react_lab() {
+    i18n::set_locale(i18n::Locale::Ru);
     let p = programs(&task("virt-sim-hv")).into_iter().find(|p| p.id == "irq").unwrap();
     let mut s = hv::Session::new(&p.code, false).unwrap();
     assert!(!s.started());
@@ -109,6 +112,7 @@ fn hv_session_behaves_like_the_react_lab() {
 
 #[test]
 fn hv_verify_rejects_forged_data() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-hv");
     let ps = programs(&t);
     let base = ps.iter().find(|p| p.id == "base").unwrap();
@@ -148,6 +152,7 @@ fn hv_verify_rejects_forged_data() {
 
 #[test]
 fn ept_solutions_reach_every_goal() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-ept");
     let sub = json!({
         "walk": { "mode": "ept", "guest": "1G", "host": "1G", "workload": "one" },
@@ -160,6 +165,7 @@ fn ept_solutions_reach_every_goal() {
 
 #[test]
 fn ept_verify_rejects_wrong_configs() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-ept");
     // 4K/4K в EPT — 24 обращения на промах: цель «не больше 15» не выполнена
     let sub = json!({ "walk": { "mode": "ept", "guest": "4K", "host": "4K", "workload": "one" } });
@@ -217,6 +223,7 @@ fn virtq_actions() -> Vec<virtq::Action> {
 
 #[test]
 fn virtq_trace_reaches_every_goal() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-virtqueue");
     let Spec::Virtq { size, goals } = &t.spec else { panic!() };
     let mut s = virtq::Session::new(*size, goals);
@@ -231,6 +238,7 @@ fn virtq_trace_reaches_every_goal() {
 
 #[test]
 fn virtq_model_rules() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-virtqueue");
     let Spec::Virtq { size, goals } = &t.spec else { panic!() };
     let mut s = virtq::Session::new(*size, goals);
@@ -257,6 +265,7 @@ fn virtq_model_rules() {
 
 #[test]
 fn virtq_verify_traces_and_legacy() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-virtqueue");
     // запись, в которой цель «suppress» не достигается
     let sub = json!({ "suppress": { "trace": [{"op": "post", "n": 3}] } });
@@ -300,6 +309,7 @@ fn qcow2_actions() -> Vec<qcow2::Action> {
 
 #[test]
 fn qcow2_trace_reaches_every_goal() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-qcow2");
     let Spec::Qcow2 { base, goals, .. } = &t.spec else { panic!() };
     let mut s = qcow2::Session::new(&virtlab::spec::base_map(base), goals);
@@ -315,6 +325,7 @@ fn qcow2_trace_reaches_every_goal() {
 
 #[test]
 fn qcow2_model_rules() {
+    i18n::set_locale(i18n::Locale::Ru);
     let base = qcow2::default_base();
     let chain = qcow2::initial_chain(&base);
     let c = qcow2::snapshot(&chain, 1);
@@ -339,6 +350,7 @@ fn qcow2_model_rules() {
 
 #[test]
 fn qcow2_verify_traces_and_legacy() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-qcow2");
     // чтение из базы при цепочке в 2 слоя — «deep» не достигается
     let sub = json!({ "deep": { "trace": [{"op": "snapshot"}, {"op": "read", "cluster": 0}] } });
@@ -355,6 +367,7 @@ fn qcow2_verify_traces_and_legacy() {
 
 #[test]
 fn numa_plans_reach_every_goal() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-numa");
     let sub = json!({
         "small": {
@@ -371,6 +384,7 @@ fn numa_plans_reach_every_goal() {
 
 #[test]
 fn numa_verify_rejects_bad_plans() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-numa");
     // всё на узле 0 не помещается (16 ядер на 8)
     let all0: Value = json!({"A": {"cpu": "0", "mem": "0", "vnuma": false}, "B": {"cpu": "0", "mem": "0", "vnuma": false},
@@ -402,6 +416,7 @@ fn numa_verify_rejects_bad_plans() {
 
 #[test]
 fn numa_threshold_boundary() {
+    i18n::set_locale(i18n::Locale::Ru);
     // граница: средняя доля ровно 0,1875 (vnuma) проходит порог 0,2, а 0,375 — нет
     let nodes = numa::default_nodes();
     let sc = numa::default_scenarios().remove(1);
@@ -426,6 +441,7 @@ fn migration_sub() -> Value {
 
 #[test]
 fn migration_params_reach_every_goal() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-migration");
     all_verified(&t, &migration_sub());
     // и сами симуляции дают нужные исходы
@@ -439,6 +455,7 @@ fn migration_params_reach_every_goal() {
 
 #[test]
 fn migration_verify_rejects_cheating() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-migration");
     let mut sub = migration_sub();
     // «активный гость» без замедления не сходится
@@ -474,6 +491,7 @@ fn migration_verify_rejects_cheating() {
 
 #[test]
 fn every_spec_has_goals_and_is_valid() {
+    i18n::set_locale(i18n::Locale::Ru);
     for c in build_chapters(DEFINITIONS).unwrap() {
         for t in &c.tasks {
             t.spec.validate().unwrap();

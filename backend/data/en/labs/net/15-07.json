@@ -1,0 +1,54 @@
+{
+ "book": 15,
+ "chapter": 7,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n7-triage",
+   "title": "Three servers: refusal, silence, success",
+   "statement": "The client tries to connect to port 80 on three servers. Server 1 replies with RST (a refusal), server 2 stays silent, server 3 works. Click ▶ on each goal and compare the logs: RST means the host is alive but the port is closed; silence means the packet vanished along the way. Fix both servers: start the service on the first, and free the second from the firewall rule.",
+   "hint": "Server 1: `nc -l 80` in its terminal. Server 2: on the router, in the “Firewall” section, find the DROP rule for tcp port 80 to 10.0.2.10 and delete it.",
+   "spec_text": {
+    "/goals/0/text": "Server 1: port 80 is open",
+    "/goals/1/text": "Server 2: port 80 is open",
+    "/goals/2/text": "Server 3: port 80 is open",
+    "/start/devices/0/name": "Client",
+    "/start/devices/1/name": "Router",
+    "/start/devices/2/name": "Server 1",
+    "/start/devices/3/name": "Server 2",
+    "/start/devices/4/name": "Server 3"
+   }
+  },
+  {
+   "id": "n7-sport",
+   "title": "The handshake breaks at the second step",
+   "statement": "The client cannot connect to the web server: no refusal and no reply. Click ▶ on the goal and look at the log: the SYN reaches the server, the server answers with SYN-ACK, but the reply vanishes at the router, because someone has forbidden forwarding packets from port 80. Find and delete that rule.",
+   "hint": "On the router, in the “Firewall” section, there is a DROP tcp rule; in the log it looks like “firewall: DROP”. Delete the rule that blocks source port 80.",
+   "spec_text": {
+    "/goals/0/text": "ping succeeds",
+    "/goals/1/text": "The client completes the handshake with port 80",
+    "/start/devices/0/name": "Client",
+    "/start/devices/1/name": "Router",
+    "/start/devices/2/name": "Web server"
+   }
+  },
+  {
+   "id": "n7-stateful",
+   "title": "A stateful firewall",
+   "statement": "A local network 192.0.2.0/24 holds a client and its own web server (port 80). Guests come from outside. The requirements: the client reaches the internet freely, a guest from outside can freely open only what is needed, but must not connect to the web server on the local network, while replies to the client's connections are accepted. Set the FORWARD policy to DROP, allow “already established” connections and new connections from your own network.",
+   "hint": "The rules in order: `iptables -P FORWARD DROP`, `iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT`, `iptables -A FORWARD -s 192.0.2.0/24 -j ACCEPT`. A new connection from outside (the guest's SYN) matches no allow rule, so the DROP policy discards it.",
+   "spec_text": {
+    "/goals/0/text": "The client opens an external website (tcp/80)",
+    "/goals/1/text": "The guest cannot open the web server on the local network",
+    "/goals/2/text": "The client still sees its own web server",
+    "/start/devices/0/name": "Client",
+    "/start/devices/1/name": "LAN web server",
+    "/start/devices/2/name": "Switch",
+    "/start/devices/3/name": "Gateway",
+    "/start/devices/4/name": "ISP",
+    "/start/devices/5/name": "Website",
+    "/start/devices/6/name": "Guest"
+   }
+  }
+ ]
+}

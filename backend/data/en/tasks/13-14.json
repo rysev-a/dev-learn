@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "animals-polymorphism",
+   "title": "Animals",
+   "statement": "Define Animal(name) with a method speak() (returns «...») and a method describe() (returns «<name>: <sound>», where the sound comes from speak). The subclasses Dog and Cat override speak: «Гав!» and «Мяу!». describe() should not be overridden.",
+   "hint": "In Animal: describe returns f'{self.name}: {self.speak()}'; self.speak() will call the subclass version."
+  },
+  {
+   "id": "employee-manager",
+   "title": "Employee and manager",
+   "statement": "Define Employee(name, salary) with a method pay() (the salary) and a subclass Manager(name, salary, bonus) whose pay() returns the salary plus the bonus. Use super() both in the constructor and in pay().",
+   "hint": "In Manager: super().__init__(name, salary); self.bonus = bonus; pay: return super().pay() + self.bonus."
+  },
+  {
+   "id": "shapes-abstract",
+   "title": "Abstract shape",
+   "statement": "Define an abstract class Shape (module abc) with an abstract method area(); Circle(r) with area 3.14159 * r ** 2 and Rect(w, h); and a function total_area(shapes) returning the sum of the areas. Creating a Shape directly must be impossible.",
+   "hint": "@abstractmethod above def area(self); Circle and Rect inherit from Shape and implement area."
+  },
+  {
+   "id": "car-composition",
+   "title": "Car and engine",
+   "statement": "Define Engine(power) with a method start() that returns «двигатель <power> л.с. запущен» (for power 150 that is «двигатель 150 л.с. запущен»), and Car(engine), whose method go() returns the result of engine.start() with «, поехали» appended. Car keeps the engine as an attribute (composition).",
+   "hint": "Car.go: return self.engine.start() + \", поехали\"."
+  },
+  {
+   "id": "greet-mixin",
+   "title": "The greeting mixin",
+   "statement": "Define a mixin GreetMixin with a method greet() that returns «Привет, я <name>» (the name comes from self.name), and the classes Person(name) and Robot(name) that mix it in.",
+   "hint": "greet lives in GreetMixin; Person and Robot only set self.name."
+  },
+  {
+   "id": "count-dogs",
+   "title": "How many dogs",
+   "statement": "You are given the classes Animal, Dog(Animal), Puppy(Dog) and Cat(Animal) (already defined in the checker). Write a function count_dogs(animals): how many objects in the list are dogs, puppies included. Use isinstance.",
+   "hint": "type(x) is Dog will not count puppies; isinstance(x, Dog) will."
+  },
+  {
+   "id": "base-repr",
+   "title": "A universal repr",
+   "statement": "Define a class Base(x) with a __repr__ method that returns «<ClassName>(<x>)» and works for any subclass without overriding: Base(1) -> «Base(1)», and for a subclass Child(2) -> «Child(2)».",
+   "hint": "return f\"{type(self).__name__}({self.x})\"."
+  }
+ ]
+}

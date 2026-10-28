@@ -106,6 +106,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "i18n"
+version = "0.1.0"
+
+[[package]]
 name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -486,6 +490,7 @@ name = "weblab"
 version = "0.1.0"
 dependencies = [
  "ego-tree",
+ "i18n",
  "scraper",
  "serde",
  "serde_json",

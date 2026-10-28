@@ -26,6 +26,7 @@ fn fmt_name(f: Fmt) -> &'static str {
 
 #[test]
 fn isa_tables_match_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden().isa;
     assert_eq!(g.abi, isa::ABI_NAMES.to_vec());
     assert_eq!(g.ops.len(), isa::OPS.len());
@@ -36,8 +37,8 @@ fn isa_tables_match_ts() {
         assert_eq!(a.f3, b.f3, "{}", a.mnemonic);
         assert_eq!(a.f7, b.f7, "{}", a.mnemonic);
         assert_eq!(a.ext, if b.ext == Ext::M { "M" } else { "I" });
-        assert_eq!(a.meaning, b.meaning);
-        assert_eq!(a.example, b.example);
+        assert_eq!(a.meaning, i18n::tr(b.meaning));
+        assert_eq!(a.example, i18n::tr(b.example));
     }
     for (i, o) in isa::OPS.iter().enumerate() {
         assert_eq!(o.op as usize, i, "порядок таблицы и перечисления: {}", o.mnemonic);
@@ -45,11 +46,11 @@ fn isa_tables_match_ts() {
     }
     assert_eq!(g.pseudo.len(), isa::PSEUDO.len());
     for (a, b) in g.pseudo.iter().zip(isa::PSEUDO) {
-        assert_eq!((a.example.as_str(), a.becomes.as_str()), (b.example, b.becomes));
+        assert_eq!((a.example.as_str(), a.becomes.as_str()), (i18n::tr(b.example), i18n::tr(b.becomes)));
     }
     assert_eq!(g.mmio.len(), MMIO_MAP.len());
     for (a, b) in g.mmio.iter().zip(MMIO_MAP) {
-        assert_eq!((a.name.as_str(), a.addr, a.note.as_str()), (b.name, b.addr, b.note));
+        assert_eq!((a.name.as_str(), a.addr, a.note.as_str()), (i18n::tr(b.name), b.addr, i18n::tr(b.note)));
     }
     for r in &g.reg_names {
         assert_eq!(isa::reg_num(&r.name), r.num, "регистр «{}»", r.name);
@@ -58,6 +59,7 @@ fn isa_tables_match_ts() {
 
 #[test]
 fn decode_disassemble_and_fields_match_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     assert!(g.decode.len() > 2000);
     for d in &g.decode {
@@ -81,6 +83,7 @@ fn decode_disassemble_and_fields_match_ts() {
 
 #[test]
 fn assembler_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     let mut with_errors = 0;
     for a in &g.asm {
@@ -141,6 +144,7 @@ fn final_of(m: &Machine) -> GFinal {
 
 #[test]
 fn execution_and_traces_match_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     let (mut traced, mut faulted, mut halted) = (0, 0, 0);
     for r in &g.runs {
@@ -184,6 +188,7 @@ fn execution_and_traces_match_ts() {
 
 #[test]
 fn run_traced_equals_run() {
+    i18n::set_locale(i18n::Locale::Ru);
     // трасса не меняет исход: то же состояние, что и у обычного run
     let g = load_golden();
     for r in g.runs.iter().filter(|r| r.name.starts_with("task:") || r.name.starts_with("limit:")) {
@@ -197,6 +202,7 @@ fn run_traced_equals_run() {
 
 #[test]
 fn alu_table_matches_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     assert!(g.alu.len() > 4000);
     for (mn, a, b, want) in &g.alu {
@@ -237,6 +243,7 @@ fn mutate(program: &str, mutation: &str, line: Option<usize>) -> String {
 
 #[test]
 fn verdicts_match_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     let chapters = [load_chapter(16), load_chapter(17)];
     let mut stats = std::collections::BTreeMap::<String, usize>::new();
@@ -273,6 +280,7 @@ fn verdicts_match_ts() {
 
 #[test]
 fn project_and_zip_match_ts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = load_golden().project;
     let files = project_files(&g.source);
     assert_eq!(files.len(), g.files.len());

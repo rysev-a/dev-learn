@@ -1,4 +1,4 @@
-# Фронтенд «say» на Leptos (CSR, trunk) по стандарту lab (web-services/standard.md).
+# Фронтенд «cs-core» на Leptos (CSR, trunk) по стандарту lab (web-services/standard.md).
 #
 # Версии и features — ТОЛЬКО здесь, в [workspace.dependencies]; список общих crates и внешних зависимостей совпадает с фронтенд-частью
 # /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (Cargo.lock взят оттуда же, поэтому версии те же). Отличия от lab —
@@ -25,7 +25,7 @@ wasm-bindgen = "0.2.106"
 web-sys = { version = "0.3", features = [
   "CssStyleDeclaration", "Document", "DomRect", "Element", "Event", "EventTarget", "HtmlElement", "HtmlInputElement",
   "HtmlTextAreaElement", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "Node", "NodeList", "PointerEvent",
-  "ResizeObserver", "ResizeObserverEntry", "Storage", "Window", "History", "WheelEvent", "SvgsvgElement",
+  "ResizeObserver", "ResizeObserverEntry", "Storage", "Window", "Navigator", "History", "WheelEvent", "SvgsvgElement",
   "Blob", "BlobPropertyBag", "HtmlAnchorElement", "Url",
 ] }
 
@@ -41,6 +41,7 @@ riscvlab = { path = "../packages/riscvlab" }
 netlab = { path = "../packages/netlab" }
 scene = { path = "crates/scene" }
 api = { path = "crates/api" }
+i18n = { path = "../packages/i18n" }
 
 [profile.release]
 opt-level = "s"

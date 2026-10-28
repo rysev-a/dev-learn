@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "countdown-iterator",
+   "title": "Countdown iterator",
+   "statement": "Define a class Countdown(n): an iterator (methods __iter__ and __next__) that produces the numbers from n down to 1 and then stops (StopIteration). For n = 0 it is empty right away.",
+   "hint": "__iter__ returns self; in __next__: if self.n <= 0, raise StopIteration, otherwise decrease it and return the previous value."
+  },
+  {
+   "id": "repeater-iterable",
+   "title": "Reusable iterable",
+   "statement": "Define a class Repeater(word, times): it can be looped over many times, and each time it produces the word exactly times times. __iter__ must return a NEW iterator each time.",
+   "hint": "def __iter__(self): return iter([self.word] * self.times) — each call builds a new iterator."
+  },
+  {
+   "id": "take-n",
+   "title": "Take the first n",
+   "statement": "Write a function take(iterator, n): a list of the first n elements of the iterator (or fewer, if there are not enough elements). Use next with a default value or a loop over the iterator.",
+   "hint": "Try next(iterator) n times inside try; on StopIteration leave the loop."
+  },
+  {
+   "id": "first-even",
+   "title": "First even",
+   "statement": "Write a function first_even(nums): the first even number in the list, or None. Use next with a default value and a generator expression — no loop and no indexes.",
+   "hint": "next((x for x in nums if x % 2 == 0), None)."
+  },
+  {
+   "id": "fib-iterator",
+   "title": "Infinite Fibonacci iterator",
+   "statement": "Define a class Fib: an infinite iterator that produces the Fibonacci numbers 1, 1, 2, 3, 5, 8, …",
+   "hint": "Keep two numbers a, b; in __next__: a, b = b, a + b; return a (start with a=0, b=1)."
+  },
+  {
+   "id": "evens-iterator",
+   "title": "Evens up to a limit",
+   "statement": "Define a class Evens(limit): an iterator over the even non-negative numbers 0, 2, 4, … strictly less than limit.",
+   "hint": "Keep the current number; in __next__: if it is >= limit, raise StopIteration, otherwise return it and add 2."
+  },
+  {
+   "id": "count-items",
+   "title": "How many elements",
+   "statement": "Write a function count_items(iterable): how many elements any iterable object produces (a list, a range, a generator, a file). You may not use len — work with a loop.",
+   "hint": "n = 0; for _ in iterable: n += 1; return n."
+  }
+ ]
+}

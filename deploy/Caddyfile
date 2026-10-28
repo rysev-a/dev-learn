@@ -1,5 +1,5 @@
-# Frontend за Traefik: внутри сети слушаем обычный HTTP (SAY_SITE=:80), HTTPS и сертификаты делает Traefik
-{$SAY_SITE:localhost} {
+# Frontend за Traefik: внутри сети слушаем обычный HTTP (CS_CORE_SITE=:80), HTTPS и сертификаты делает Traefik
+{$CS_CORE_SITE:localhost} {
 	encode zstd gzip
 
 	# API воркеров доступно только внутри сети compose (воркер ходит прямо на api:8000)

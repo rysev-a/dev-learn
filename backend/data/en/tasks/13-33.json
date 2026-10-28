@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 33,
+ "tasks": [
+  {
+   "id": "top-words",
+   "title": "Most frequent words",
+   "statement": "Write a function top_words(text, n): a list of the n most frequent words of the text (words are separated by spaces, ignore case) as tuples (word, count) in descending order of frequency. Use Counter.",
+   "hint": "Counter(text.lower().split()).most_common(n)."
+  },
+  {
+   "id": "anagram-counter",
+   "title": "Anagrams",
+   "statement": "Write a function is_anagram(a, b): True if the words consist of the same letters (case and spaces do not matter). Compare the letter counters.",
+   "hint": "Lowercase both, remove the spaces and compare Counter(a) == Counter(b)."
+  },
+  {
+   "id": "group-by-length",
+   "title": "Groups by length",
+   "statement": "Write a function group_by_length(words): a dictionary \"length → list of words of that length\" in the original order. Use defaultdict(list) and return an ordinary dict.",
+   "hint": "groups[len(w)].append(w); at the end return dict(groups)."
+  },
+  {
+   "id": "moving-average",
+   "title": "Moving average",
+   "statement": "Write a function moving_average(nums, k): the average of each window of k consecutive numbers (full windows only). Use a deque with maxlen=k.",
+   "hint": "window = deque(maxlen=k); for each x: append; if len(window) == k, add sum(window) / k."
+  },
+  {
+   "id": "bfs-order",
+   "title": "Breadth-first traversal",
+   "statement": "Write a function bfs_order(graph, start): the order of vertices in a breadth-first traversal of the graph. graph is a dictionary \"vertex → list of neighbors\". Use a deque; visit each vertex once.",
+   "hint": "queue = deque([start]); seen is a dictionary of visited vertices; popleft, then add the neighbors not seen yet."
+  },
+  {
+   "id": "namedtuple-distance",
+   "title": "A point as a namedtuple",
+   "statement": "Create a named tuple Point with fields x and y, and a function distance(p, q), the Euclidean distance between two points (use math.hypot).",
+   "hint": "Point = namedtuple(\"Point\", [\"x\", \"y\"]); distance: math.hypot(p.x - q.x, p.y - q.y)."
+  },
+  {
+   "id": "k-largest-heap",
+   "title": "k largest",
+   "statement": "Write a function k_largest(nums, k): the k largest numbers in descending order. Use the heapq module.",
+   "hint": "heapq.nlargest(k, nums) already returns them in descending order."
+  },
+  {
+   "id": "grade-bisect",
+   "title": "Grade from a score",
+   "statement": "Write a function grade(score): 0–59 → \"E\", 60–69 → \"D\", 70–79 → \"C\", 80–89 → \"B\", 90–100 → \"A\". Use bisect and a list of boundaries, with no chain of ifs.",
+   "hint": "bounds = [60, 70, 80, 90]; \"EDCBA\"[bisect.bisect(bounds, score)]."
+  },
+  {
+   "id": "merge-sorted-heap",
+   "title": "Merge sorted lists",
+   "statement": "Write a function merge_sorted(lists): one sorted list built from several already sorted lists. Use heapq.merge.",
+   "hint": "list(heapq.merge(*lists))."
+  }
+ ]
+}

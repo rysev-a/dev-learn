@@ -12,6 +12,7 @@ use serde_json::{json, Map, Value};
 
 use crate::{
     error::{i, s, ApiError, ApiResult},
+    lang::{self, Lang},
     progress::check_range,
     AppState,
 };
@@ -69,13 +70,17 @@ pub fn is_correct(given: &str, answers: &[String]) -> bool {
     })
 }
 
-async fn load(state: &AppState, book: i64, chapter: i64) -> ApiResult<Option<(String, Vec<Value>)>> {
+async fn load(state: &AppState, lang: Lang, book: i64, chapter: i64) -> ApiResult<Option<(String, Vec<Value>)>> {
+    let tr = lang::translated(&state.db, lang, book).await?;
+    let (sets_t, cond) = lang::source("answer_sets", tr);
+    let (tasks_t, _) = lang::source("answer_tasks", tr);
     let mut res = state
         .db
-        .query("SELECT title FROM answer_sets WHERE book = $b AND chapter = $c")
-        .query("SELECT q, answers, hint FROM answer_tasks WHERE book = $b AND chapter = $c ORDER BY ord")
+        .query(format!("SELECT title FROM {sets_t} WHERE book = $b AND chapter = $c{cond}"))
+        .query(format!("SELECT q, answers, hint FROM {tasks_t} WHERE book = $b AND chapter = $c{cond} ORDER BY ord"))
         .bind(("b", book))
         .bind(("c", chapter))
+        .bind(("l", lang.code()))
         .await?;
     let head: Vec<Value> = res.take(0)?;
     let Some(head) = head.into_iter().next() else { return Ok(None) };
@@ -83,8 +88,8 @@ async fn load(state: &AppState, book: i64, chapter: i64) -> ApiResult<Option<(St
 }
 
 /// Условия и подсказки; `solved` — решённые пользователем задачи с принятым ответом.
-async fn get_set(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
-    let (title, tasks) = load(&state, book, chapter).await?.ok_or_else(|| ApiError::not_found("У этой главы нет упражнений с вводом ответа"))?;
+async fn get_set(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
+    let (title, tasks) = load(&state, lang, book, chapter).await?.ok_or_else(|| ApiError::not_found("This chapter has no answer-entry exercises"))?;
     let mut res = state
         .db
         .query("SELECT idx, answer FROM answer_solved WHERE user = $u AND book = $b AND chapter = $c")
@@ -108,12 +113,12 @@ struct CheckIn {
 }
 
 /// Проверить ответ. Верный записывается как решённый; неверный ничего не меняет и верного ответа не раскрывает.
-async fn check(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>, Json(b): Json<CheckIn>) -> ApiResult<Json<Value>> {
+async fn check(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>, Json(b): Json<CheckIn>) -> ApiResult<Json<Value>> {
     check_range("task", b.task, 0, 500)?;
     if b.value.chars().count() > 200 {
-        return Err(ApiError::invalid("value: не длиннее 200 символов"));
+        return Err(ApiError::invalid("value: at most 200 characters"));
     }
-    let (_, tasks) = load(&state, book, chapter).await?.filter(|(_, t)| (b.task as usize) < t.len()).ok_or_else(|| ApiError::not_found("Задача не найдена"))?;
+    let (_, tasks) = load(&state, lang, book, chapter).await?.filter(|(_, t)| (b.task as usize) < t.len()).ok_or_else(|| ApiError::not_found("Task not found"))?;
     let answers: Vec<String> = tasks[b.task as usize].get("answers").and_then(Value::as_array).map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default();
     let ok = is_correct(&b.value, &answers);
     if ok {

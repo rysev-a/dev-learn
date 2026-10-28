@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "virt-ioctl-order",
+   "title": "Order of calls to /dev/kvm",
+   "statement": "Write a function ioctl_order(calls): calls is a list of QEMU's calls to KVM in order: \"CREATE_VM\", \"CREATE_VCPU\", \"SET_MEMORY\" (a region of guest memory) and \"RUN\". Return a list of \"ok\" or \"fail\" for each call. CREATE_VM is allowed once and first. CREATE_VCPU and SET_MEMORY are allowed only after CREATE_VM. RUN is allowed if there is already at least one virtual processor and at least one memory region. Any other call, as well as an unknown one, is fail; a failed call does not change the state.",
+   "hint": "Keep a flag for the created machine and counters of vCPUs and memory regions."
+  },
+  {
+   "id": "virt-vcpu-rr",
+   "title": "The Linux scheduler and vCPUs",
+   "statement": "Linux schedules virtual processors as ordinary threads. Write a function run_slices(threads, cores, slices): threads is a list of thread names in the queue, cores is the number of cores, slices is the number of time slices. On each slice, the first cores threads of the queue (or all of them, if there are fewer) each get a slice and go to the end of the queue in the same order. Return a dictionary \"name -> how many slices it got\".",
+   "hint": "Work with a list as a queue: slice off the front, then append to the end."
+  },
+  {
+   "id": "virt-exit-routing",
+   "title": "Where exits go",
+   "statement": "Write a function handle_exits(exits, ioeventfd): exits is a list of exits [reason, address], ioeventfd is a list of addresses with a registered ioeventfd. The kernel handles the reasons EXTERNAL_INTERRUPT, HLT, CPUID, EPT_VIOLATION, MSR on its own, as well as MMIO at an address from ioeventfd. Everything else goes to QEMU. Return a tuple (how many the kernel handled, how many went to QEMU, a sorted list of the distinct reasons that went to QEMU).",
+   "hint": "For MMIO, check the address separately."
+  },
+  {
+   "id": "virt-qmp",
+   "title": "QMP channel commands",
+   "statement": "Write a function qmp_commands(lines): lines is a list of strings, each of which should be a JSON object with a QMP command of the form {\"execute\": \"name\", \"arguments\": {...}} (the arguments field may be absent). Return a list of tuples (command name, number of arguments) for the valid commands, in order. Skip lines that do not parse as JSON, are not an object, or do not contain a string field execute.",
+   "hint": "Use json.loads and catch the parse error."
+  },
+  {
+   "id": "virt-vm-xml",
+   "title": "Machine description in XML",
+   "statement": "Write a function vm_config(xml): xml is a simplified libvirt-style machine description, for example <domain><name>web</name><memory unit=\"GiB\">2</memory><vcpu>4</vcpu><devices><disk/><disk/><interface/></devices></domain>. Return a dictionary with the keys \"name\", \"memory_mib\" (memory in MiB: units KiB, MiB or GiB, KiB by default), \"vcpus\", \"disks\" (the number of disk elements in devices) and \"nics\" (the number of interface elements).",
+   "hint": "Use xml.etree.ElementTree; convert the units with multipliers."
+  },
+  {
+   "id": "virt-qemu-cmd",
+   "title": "The QEMU command line",
+   "statement": "Write a function build_cmd(cfg): cfg is a dictionary with the fields \"cpu\" (a string), \"smp\" (a number), \"mem\" (MiB), \"disks\" (a list of [path, format]) and \"nics\" (a number). Return a list of arguments: [\"-machine\", \"q35,accel=kvm\", \"-cpu\", cpu, \"-smp\", \"<smp>\", \"-m\", \"<mem>M\"], then for each disk \"-drive\" and \"file=<path>,format=<format>,cache=none\", then for each network card with number i from zero \"-netdev\" and \"tap,id=n<i>,vhost=on\" and \"-device\" and \"virtio-net-pci,netdev=n<i>\".",
+   "hint": "Build the list in parts, in the stated order."
+  },
+  {
+   "id": "virt-sandbox",
+   "title": "Checking QEMU isolation",
+   "statement": "Write a function check_sandbox(cfg): cfg is a dictionary {\"user\": user name, \"seccomp\": bool, \"selinux\": bool, \"apparmor\": bool, \"cgroup\": bool}. Return a sorted list of problems: \"root\" if user equals \"root\"; \"no-seccomp\" if seccomp is off; \"no-mac\" if both selinux and apparmor are off; \"no-cgroup\" if cgroup is off. If there are no problems, return an empty list.",
+   "hint": "Check the conditions one by one and sort the result."
+  },
+  {
+   "id": "virt-accel",
+   "title": "KVM or TCG",
+   "statement": "Write a function pick_accel(host_arch, guest_arch, has_kvm): choose the QEMU accelerator. If the guest architecture matches the host architecture and KVM is available, return \"kvm\" (guest instructions run on the processor). Otherwise return \"tcg\" (software translation of every instruction).",
+   "hint": "Two conditions: the same architecture and the presence of KVM."
+  }
+ ]
+}

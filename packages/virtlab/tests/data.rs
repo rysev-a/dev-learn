@@ -24,6 +24,7 @@ fn round_trip<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(x: 
 
 #[test]
 fn data_files_are_canonical_and_up_to_date() {
+    i18n::set_locale(i18n::Locale::Ru);
     let built = build_chapters(include_str!("../data/tasks.json")).unwrap();
     assert_eq!(built.iter().map(|c| c.chapter).collect::<Vec<_>>(), [2, 4, 6, 9, 10, 11]);
     let mut files: Vec<_> =
@@ -45,6 +46,7 @@ fn data_files_are_canonical_and_up_to_date() {
 
 #[test]
 fn spec_files_serialize_with_sim_tag() {
+    i18n::set_locale(i18n::Locale::Ru);
     for c in build_chapters(include_str!("../data/tasks.json")).unwrap() {
         for t in &c.tasks {
             let v = serde_json::to_value(&t.spec).unwrap();
@@ -58,6 +60,7 @@ fn spec_files_serialize_with_sim_tag() {
 
 #[test]
 fn model_types_round_trip() {
+    i18n::set_locale(i18n::Locale::Ru);
     for id in virtlab::LAB_IDS {
         round_trip(&virtlab::builtin(id).unwrap());
     }
@@ -117,6 +120,7 @@ fn model_types_round_trip() {
 
 #[test]
 fn wire_formats_match_the_old_ts_client() {
+    i18n::set_locale(i18n::Locale::Ru);
     // так прежний клиент присылает параметры миграции и настройки трансляции
     let m: migration::MigrationInput = serde_json::from_str(
         r#"{"dirty":300,"bw":1250,"downtimeMs":300,"autoConverge":false,"compress":false,"postcopyAfter":null}"#,
@@ -144,6 +148,7 @@ fn wire_formats_match_the_old_ts_client() {
 
 #[test]
 fn validation_catches_broken_data() {
+    i18n::set_locale(i18n::Locale::Ru);
     let mut spec = virtlab::builtin("virt-sim-ept").unwrap();
     if let Spec::Ept { goals, .. } = &mut spec {
         goals[0].workload = "нет такой".into();

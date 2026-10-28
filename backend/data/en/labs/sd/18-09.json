@@ -1,0 +1,68 @@
+{
+ "book": 18,
+ "chapter": 9,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd09-limiter-attack",
+   "title": "A rate limiter against an attack",
+   "statement": "Normally the service gets about 1500 requests per second, but now there is an attack: 6000. The app servers (three M — 2100 requests) are overloaded. Put a rate limiter at the entrance and choose its limit: servers loaded at no more than 95%, and at least 28% of requests reaching the service (otherwise you cut off your own users along with the attack).",
+   "hint": "The limiter goes between the load balancer and the servers: lb → limiter → server. The limit is between 1700 and 1995: 6000 × 0.28 ≈ 1680, 2100 × 0.95 ≈ 1995.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd09-limit-normal",
+   "title": "Don't cut off your own users",
+   "statement": "A rate limiter is already in place, but its limit is too strict (800 requests per second) while the normal load is 1500. Some real users get rejected. Raise the limit so that at least 99% of requests get through but protection remains: the limit is at most 2500.",
+   "hint": "The limit should be slightly above the normal load (1500) but below the servers' capacity (2100).",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "Rate limiter",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Database"
+   }
+  },
+  {
+   "id": "sd09-fail-fast",
+   "title": "Database failure and retries",
+   "statement": "The application retries database requests up to three times with no pause. When the database fails, the retries pile onto the single copy like an avalanche and keep it from recovering. Make the design survive a database failure: a replica with automatic failover and a circuit breaker in the application.",
+   "hint": "The database needs “Replicas per shard” ≥ 1 and “Automatic failover”; the application needs a “Circuit breaker” (shown in this exercise).",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd09-degrade",
+   "title": "A cache for when things break",
+   "statement": "Product pages are read 2000 times per second, and when the database is overloaded or down, users see errors. Add a cache that serves almost all reads (at least 85%) and keeps the site working when the database is slow: the design must survive a cache failure (the cache has a replica) and have no single point of failure among the app servers.",
+   "hint": "Cache of about 6 GB with TTL 3600 and a replica; the working set is 6 GB. App servers: three or more.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd09-final",
+   "title": "A protective perimeter",
+   "statement": "The chapter's final exercise. Build a resilient design: a rate limiter at the entrance (limit 1500–2500 with a normal load of 1500), an application with a circuit breaker, a database with a replica and automatic failover, and a cache with a replica. The design survives failure of the database, the cache and an app server, servers are loaded at no more than 80%, and the budget is $1500 per month.",
+   "hint": "lb → limiter → servers; four M servers (headroom for losing one); a cache of about 4 GB with a replica; an M database with a replica and automatic failover.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  }
+ ]
+}

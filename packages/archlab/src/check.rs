@@ -223,44 +223,44 @@ fn validate(spec: &CircuitSpec, solution: &Solution, lib: &BlockLibrary) -> Resu
     match (spec.build, solution) {
         (Build::Gates, Solution::Gate(g)) => validate_gates(spec, g),
         (Build::Blocks, Solution::Block(b)) => validate_blocks(spec, b, lib),
-        (Build::Gates, _) => Err("Ожидалась схема из вентилей: {gates, wires}".into()),
-        (Build::Blocks, _) => Err("Ожидалась схема из блоков: {instances, bus_wires}".into()),
+        (Build::Gates, _) => Err(i18n::tr("Expected a gate circuit: {gates, wires}").into()),
+        (Build::Blocks, _) => Err(i18n::tr("Expected a block circuit: {instances, bus_wires}").into()),
     }
 }
 
 fn validate_gates(spec: &CircuitSpec, g: &GateSolution) -> Result<(), String> {
     if g.gates.len() > MAX_GATES || g.wires.len() > MAX_WIRES {
-        return Err(format!("Слишком большая схема: не больше {MAX_GATES} элементов и {MAX_WIRES} проводов"));
+        return Err(i18n::trf!("Circuit too large: at most {0} elements and {1} wires", MAX_GATES, MAX_WIRES));
     }
     let mut ids: HashSet<&str> = HashSet::new();
     for gate in &g.gates {
         if !spec.allowed.contains(&gate.ty) {
-            return Err(format!("Элемент {} недоступен в этом упражнении", gate.ty.name()));
+            return Err(i18n::trf!("Element {0} is not available in this exercise", gate.ty.name()));
         }
         if InputId::parse(&gate.id).is_some() || spec.outputs.contains(&gate.id) {
-            return Err(format!("Имя элемента «{}» занято входом или выходом", gate.id));
+            return Err(i18n::trf!("Element name “{0}” is already used by an input or output", gate.id));
         }
         if !ids.insert(gate.id.as_str()) {
-            return Err(format!("Два элемента с именем «{}»", gate.id));
+            return Err(i18n::trf!("Two elements are named “{0}”", gate.id));
         }
     }
     let active: HashSet<&str> = spec.inputs.iter().map(|i| i.as_str()).collect();
     let is_not = |id: &str| g.gates.iter().any(|x| x.id == id && x.ty == GateType::Not);
     for w in &g.wires {
         if w.from.pin != PinKind::Out {
-            return Err("Провод должен начинаться с выхода".into());
+            return Err(i18n::tr("A wire must start at an output").into());
         }
         if !active.contains(w.from.node.as_str()) && !ids.contains(w.from.node.as_str()) {
-            return Err(format!("Провод идёт от «{}», а такого входа или элемента нет", w.from.node));
+            return Err(i18n::trf!("The wire starts at “{0}”, but there is no such input or element", w.from.node));
         }
         let to_gate = ids.contains(w.to.node.as_str());
         let to_output = spec.outputs.contains(&w.to.node);
         if !(to_gate || to_output) {
-            return Err(format!("Провод идёт к «{}», а такого элемента или выхода нет", w.to.node));
+            return Err(i18n::trf!("The wire goes to “{0}”, but there is no such element or output", w.to.node));
         }
         match w.to.pin {
-            PinKind::Out => return Err("Провод должен заканчиваться на входе".into()),
-            PinKind::In1 if to_output || is_not(&w.to.node) => return Err(format!("У «{}» нет второго входа", w.to.node)),
+            PinKind::Out => return Err(i18n::tr("A wire must end at an input").into()),
+            PinKind::In1 if to_output || is_not(&w.to.node) => return Err(i18n::trf!("“{0}” has no second input", w.to.node)),
             _ => {}
         }
     }
@@ -269,19 +269,19 @@ fn validate_gates(spec: &CircuitSpec, g: &GateSolution) -> Result<(), String> {
 
 fn validate_blocks(spec: &CircuitSpec, b: &BlockSolution, lib: &BlockLibrary) -> Result<(), String> {
     if b.instances.len() > MAX_INSTANCES || b.bus_wires.len() > MAX_BUS_WIRES {
-        return Err(format!("Слишком большая схема: не больше {MAX_INSTANCES} блоков и {MAX_BUS_WIRES} шин"));
+        return Err(i18n::trf!("Circuit too large: at most {0} blocks and {1} buses", MAX_INSTANCES, MAX_BUS_WIRES));
     }
     let mut ids: HashSet<&str> = HashSet::new();
     for inst in &b.instances {
         if inst.id == TOP || !ids.insert(inst.id.as_str()) {
-            return Err(format!("Неверное или повторное имя блока «{}»", inst.id));
+            return Err(i18n::trf!("Invalid or duplicate block name “{0}”", inst.id));
         }
         if !spec.blocks.contains(&inst.block_id) {
-            return Err(format!("Блок «{}» недоступен в этом упражнении", inst.block_id));
+            return Err(i18n::trf!("Block “{0}” is not available in this exercise", inst.block_id));
         }
         if !lib.available(&inst.block_id) {
             let hint = lib.lock_hint(&inst.block_id);
-            return Err(format!("Блок «{}» закрыт. {hint}", inst.block_id));
+            return Err(i18n::trf!("Block “{0}” is locked. {1}", inst.block_id, hint));
         }
     }
     Ok(())
@@ -298,21 +298,21 @@ pub fn verify_circuit(spec: &CircuitSpec, solution: &Solution, lib: &BlockLibrar
             let t = check_table(spec, &circuit);
             let total = t.rows.len();
             let message = if t.ok {
-                format!("Схема работает — {} из {}! Формула: {}", t.matched, total, spec.formula)
+                i18n::trf!("The circuit works — {0} of {1}! Formula: {2}", t.matched, total, spec.formula)
             } else {
-                format!("Схема совпала с целью в {} строках из {}", t.matched, total)
+                i18n::trf!("The circuit matches the goal in {0} of {1} rows", t.matched, total)
             };
             Verdict { ok: t.ok, passed: t.matched, total, message, rows: t.rows, step_outputs: vec![] }
         }
         Mode::Steps => {
             let s = run_steps(spec, &circuit);
             let message = if s.ok {
-                format!("Схема работает как надо! Формула: {}", spec.formula)
+                i18n::trf!("The circuit works as required! Formula: {0}", spec.formula)
             } else if s.total == 0 {
-                "В упражнении нет шагов проверки".to_string()
+                i18n::tr("The exercise has no check steps").to_string()
             } else {
                 let text = spec.steps.get(s.passed).map_or("", |st| st.text.as_str());
-                format!("Шаг {} из {} не пройден: {}", s.passed + 1, s.total, text)
+                i18n::trf!("Step {0} of {1} failed: {2}", s.passed + 1, s.total, text)
             };
             Verdict { ok: s.ok, passed: s.passed, total: s.total, message, rows: vec![], step_outputs: s.got }
         }
@@ -322,11 +322,11 @@ pub fn verify_circuit(spec: &CircuitSpec, solution: &Solution, lib: &BlockLibrar
 /// Проверка программы ассемблера: сборка, запуск до остановки, сверка диска.
 pub fn verify_asm(spec: &AsmSpec, source: &str) -> Verdict {
     if source.len() > MAX_SOURCE {
-        return Verdict::fail("Слишком длинная программа");
+        return Verdict::fail(i18n::tr("Program too long"));
     }
     let asm = assemble(source);
     if let Some(e) = asm.errors.first() {
-        return Verdict::fail(format!("Строка {}: {}", e.line, e.message));
+        return Verdict::fail(i18n::trf!("Line {0}: {1}", e.line, e.message));
     }
     let mut m = Machine::new(&asm.words, &spec.disk.0);
     m.run(crate::asm::machine::RUN_LIMIT);
@@ -335,7 +335,7 @@ pub fn verify_asm(spec: &AsmSpec, source: &str) -> Verdict {
         return Verdict::fail(err);
     }
     if !view.halted {
-        return Verdict::fail("Программа не остановилась");
+        return Verdict::fail(i18n::tr("The program did not halt"));
     }
     let r = compare(&view.mem, &spec.expected.0);
     Verdict { ok: r.ok, passed: r.ok as usize, total: 1, message: r.message, rows: vec![], step_outputs: vec![] }
@@ -360,7 +360,7 @@ impl ArchLab {
     /// Проверка решения упражнения `task_id` главы `chapter`. Без `lib` блоки открыты эталонными решениями.
     pub fn verify(&self, chapter: u32, task_id: &str, submitted: &str, lib: Option<&BlockLibrary>) -> Verdict {
         let Some(task) = self.task(chapter, task_id) else {
-            return Verdict::fail(format!("Нет упражнения «{task_id}» в главе {chapter}"));
+            return Verdict::fail(i18n::trf!("No exercise “{0}” in chapter {1}", task_id, chapter));
         };
         match lib {
             Some(l) => verify(task, submitted, l),
@@ -377,7 +377,7 @@ impl ArchLab {
             if let (Build::Gates, Ok(Solution::Gate(g))) = (c.build, Solution::from_json(submitted)) {
                 let solved = |slug: &str, id: &str| store.load(slug, id).is_some();
                 if let Some(gate) = g.gates.iter().find(|x| !crate::progress::is_gate_unlocked(x.ty, &solved)) {
-                    return Verdict::fail(format!("Элемент {} закрыт. {}", gate.ty.name(), self.gate_lock_hint(gate.ty)));
+                    return Verdict::fail(i18n::trf!("Element {0} is locked. {1}", gate.ty.name(), self.gate_lock_hint(gate.ty)));
                 }
             }
         }

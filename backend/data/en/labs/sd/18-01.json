@@ -1,0 +1,89 @@
+{
+ "book": 18,
+ "chapter": 1,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd01-wire",
+   "title": "The first chain",
+   "statement": "A notes service: users read and write notes. Connect the users to the app server, and the app server to the database, so that requests reach storage. The components are already on the board; you only need the links: drag from the output port (right) of one component to the input port (left) of another.",
+   "hint": "Users → app server → database. The app server must not be bypassed on the way to the database.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  },
+  {
+   "id": "sd01-fleet",
+   "title": "How many servers you need",
+   "statement": "The notes service has grown: 600 reads and 120 writes per second. One S server handles about 300 requests per second; an S database handles 1000 reads and 200 writes. Add a load balancer and servers behind it so that no component is more than 80% loaded and the cost stays within $500 per month.",
+   "hint": "Load on the servers: 720 requests. Three S servers give 900, exactly 80% load. An S database is not enough: 600/1000 + 120/200 = 120%, so you need M.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  },
+  {
+   "id": "sd01-bottleneck",
+   "title": "The bottleneck",
+   "statement": "There are enough servers, yet the service is still slow and drops requests. Find the most loaded component on the diagram (shown in red) and fix exactly that one without wasting money: the budget is $460.",
+   "hint": "Look at the load bars. The app servers are idle while the database is overloaded, so servers are not the problem here.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd01-peak",
+   "title": "Peak load",
+   "statement": "At peak (a sale, Friday evening) the load is three times the average: 1800 reads and 300 writes per second. The design is sized for the average load. Bring it up to the peak: component load at most 85%, cost at most $1200 per month.",
+   "hint": "Estimate for the peak, not the average. App tier: 2100 requests, for example four M servers. An M database can no longer cope; you need L.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd01-latency",
+   "title": "Latency under load",
+   "statement": "The app servers are 90% loaded and users complain about slow responses. Load and latency are linked: the closer to 100%, the longer the queue. Achieve p99 of at most 150 ms and average latency of at most 70 ms.",
+   "hint": "Latency grows as 1/(1 − load). Remove the overheating where it occurs: add servers so that the load drops by about half.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd01-nines",
+   "title": "Three nines",
+   "statement": "By contract the service must be available at least 99.95% of the time. Right now every component is single, and the failure of any one stops the service. Add redundancy: the design must survive the failure of the load balancer, an app server and the database leader.",
+   "hint": "Availability of a chain is the product of the availabilities. Redundancy: two load balancers, three servers (after losing one, the rest must carry the load), and for the database a replica with automatic failover.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd01-budget",
+   "title": "Staying within budget",
+   "statement": "A startup: the budget is only $330 per month and the load is modest, 400 reads and 60 writes per second. Build the cheapest design that handles the load (load at most 85%) with no overloaded components. Choose the size and number of servers yourself.",
+   "hint": "Two S servers give 600 requests for a load of 460 (77%). A load balancer is needed if there is more than one server. An S database: 400/1000 + 60/200 = 70%, which is enough.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  }
+ ]
+}

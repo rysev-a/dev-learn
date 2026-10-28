@@ -230,7 +230,7 @@ impl<'de, V: Deserialize<'de>> Deserialize<'de> for OrdMap<V> {
         impl<'de, V: Deserialize<'de>> Visitor<'de> for Vis<V> {
             type Value = OrdMap<V>;
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("объект")
+                f.write_str(i18n::tr("an object"))
             }
             fn visit_map<A: MapAccess<'de>>(self, mut a: A) -> Result<Self::Value, A::Error> {
                 let mut out = OrdMap::new();

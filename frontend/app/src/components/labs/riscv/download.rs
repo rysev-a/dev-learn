@@ -15,7 +15,7 @@ pub fn save_bytes(bytes: &[u8], mime: &str, name: &str) -> Result<(), JsValue> {
     options.set_type(mime);
     let blob = Blob::new_with_u8_array_sequence_and_options(&parts, &options)?;
     let url = Url::create_object_url_with_blob(&blob)?;
-    let document = web_sys::window().and_then(|w| w.document()).ok_or_else(|| JsValue::from_str("нет документа"))?;
+    let document = web_sys::window().and_then(|w| w.document()).ok_or_else(|| JsValue::from_str(i18n::tr("no document")))?;
     let link: HtmlAnchorElement = document.create_element("a")?.dyn_into()?;
     link.set_href(&url);
     link.set_download(name);

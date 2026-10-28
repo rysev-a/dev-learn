@@ -89,10 +89,10 @@ pub fn Home(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
     view! {
         <main class="content home">
             <div class="dash-head">
-                <h2>"Прогресс"</h2>
-                <span class="dash-all">{move || { let (d, a) = totals(); format!("{}% · {d} из {a}", pct(d, a)) }}</span>
+                <h2>{i18n::tr("Progress")}</h2>
+                <span class="dash-all">{move || { let (d, a) = totals(); i18n::trf!("{}% · {} of {}", pct(d, a), d, a) }}</span>
             </div>
-            <h2 class="dash-sub">"Разделы"</h2>
+            <h2 class="dash-sub">{i18n::tr("Sections")}</h2>
             <div class="dash-grid">
                 {move || {
                     books
@@ -106,12 +106,13 @@ pub fn Home(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
                                 <section class="dash-card">
                                     <button class="dash-card-head" on:click=move |_| head_navigate(&format!("/book/{id}"), Default::default())>
                                         <span class="dash-title">{b.title.clone()}</span>
-                                        <span class="dash-meta">{format!("{} уроков", b.lessons_count)}</span>
+                                        {(!b.in_language(i18n::locale().code())).then(|| view! { <span class="lang-tag" title=i18n::tr("Available in Russian only")>"RU"</span> })}
+                                        <span class="dash-meta">{format!("{} {}", b.lessons_count, i18n::plural(b.lessons_count as u64, "lesson", "lessons"))}</span>
                                     </button>
-                                    {bar("Слайды", move || viewed(id), move || parts)}
-                                    {bar("Вопросы", move || quiz_done(id), move || quiz_total(id))}
-                                    {bar("Упражнения", move || practice_done(id), move || practice_total(id))}
-                                    <div class="dash-chapters" aria-label="Главы">
+                                    {bar(i18n::tr("Slides"), move || viewed(id), move || parts)}
+                                    {bar(i18n::tr("Questions"), move || quiz_done(id), move || quiz_total(id))}
+                                    {bar(i18n::tr("Exercises"), move || practice_done(id), move || practice_total(id))}
+                                    <div class="dash-chapters" aria-label=i18n::tr("Chapters")>
                                         {move || {
                                             let chapters = courses.get().ready().and_then(|all| all.iter().find(|(book, _)| *book == id)).map(|(_, sections)| sections.iter().flat_map(|s| s.chapters.clone()).collect::<Vec<_>>()).unwrap_or_default();
                                             chapters
@@ -133,7 +134,7 @@ pub fn Home(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
                                                     view! {
                                                         <button
                                                             class=format!("dash-ch l{}", level(done, all))
-                                                            title=format!("{}. {} — слайды {slides}/{}, вопросы {quiz}/{q}, упражнения {ex}/{}", ch.num, ch.title, ch.parts_count, a + k)
+                                                            title=i18n::trf!("{}. {} — slides {}/{}, questions {}/{}, exercises {}/{}", ch.num, ch.title, slides, ch.parts_count, quiz, q, ex, a + k)
                                                             on:click=move |_| navigate(&format!("/book/{id}/chapter/{chapter_id}"), Default::default())
                                                         >
                                                             {num}

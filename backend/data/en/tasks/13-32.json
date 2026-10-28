@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 32,
+ "tasks": [
+  {
+   "id": "ast-calc",
+   "title": "Safe calculator",
+   "statement": "Write calc(expr): parse the string with ast.parse(expr, mode=\"eval\") and evaluate it recursively, allowing only numbers (int, float), unary + and -, and binary + - * / // % **. Anything else (calls, names, strings) raises ValueError. The OPS and UNARY tables are already provided.",
+   "hint": "A recursive function over nodes: Constant gives the value, BinOp gives OPS[type(node.op)](...), UnaryOp gives UNARY[...](...), otherwise raise ValueError."
+  },
+  {
+   "id": "ast-literal-config",
+   "title": "Settings from literals only",
+   "statement": "Write parse_config(text): turn the string into a value with ast.literal_eval. If the string is not a literal (a call, an expression) or has a syntax error, raise ValueError(\"некорректная настройка\").",
+   "hint": "try: return ast.literal_eval(text) except (ValueError, SyntaxError): raise ValueError(\"некорректная настройка\")."
+  },
+  {
+   "id": "ast-called-names",
+   "title": "Which functions the code calls",
+   "statement": "Write called_names(source): a sorted list of the names of functions called by plain name (print(...), foo(...)). Ignore method calls like obj.method(). Use ast.NodeVisitor and remember to walk into nested calls.",
+   "hint": "In visit_Call: if isinstance(node.func, ast.Name): names.add(node.func.id); then self.generic_visit(node)."
+  },
+  {
+   "id": "ast-count-functions",
+   "title": "How many functions are defined",
+   "statement": "Write count_functions(source): the number of function and method definitions (def and async def, including nested ones); lambdas are not counted.",
+   "hint": "sum(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) for n in ast.walk(tree))."
+  },
+  {
+   "id": "ast-imports",
+   "title": "Which modules the code imports",
+   "statement": "Write imported_modules(source): a sorted list of the top-level module names that the source imports (import a.b gives a, from c.d import e gives c). Skip relative imports (from . import x).",
+   "hint": "ast.Import: node.names[i].name.split('.')[0]; ast.ImportFrom: if node.level == 0, use node.module.split('.')[0]."
+  },
+  {
+   "id": "ast-rename-var",
+   "title": "Renaming a variable",
+   "statement": "Write rename_var(source, old, new): use ast.NodeTransformer to rename all uses of the name old (Name nodes and function parameters arg) and return the text via ast.unparse.",
+   "hint": "visit_Name: if node.id == old: node.id = new; return node. For parameters use visit_arg: node.arg."
+  },
+  {
+   "id": "ast-fold-constants",
+   "title": "Folding constants in advance",
+   "statement": "Write fold_constants(source): a NodeTransformer replaces binary operations +, - and * on two numeric constants with a single constant, including nested ones. Return the result via ast.unparse.",
+   "hint": "In visit_BinOp first call self.generic_visit(node); if left and right are ast.Constant and op is Add/Sub/Mult, compute the value and return ast.Constant(value)."
+  },
+  {
+   "id": "ast-exec-namespace",
+   "title": "exec in its own namespace",
+   "statement": "Write build(source, name): run the source with exec in a new empty dictionary and return the object called name from it. The global names of your program must not change; if the name is missing, raise KeyError.",
+   "hint": "ns = {}; exec(source, ns); return ns[name]."
+  },
+  {
+   "id": "ast-dis-count",
+   "title": "Calls and loops in bytecode",
+   "statement": "Write count_calls(func), the number of call instructions (CALL, CALL_KW, CALL_FUNCTION_EX) in the function's bytecode, and has_loop(func), which reports whether there is a FOR_ITER instruction. Use dis.get_instructions.",
+   "hint": "ops = [i.opname for i in dis.get_instructions(func)]; count the elements that belong to the set {\"CALL\", \"CALL_KW\", \"CALL_FUNCTION_EX\"}."
+  }
+ ]
+}

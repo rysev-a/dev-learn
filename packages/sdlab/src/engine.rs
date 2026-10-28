@@ -615,11 +615,11 @@ fn build_links(state: &SdState, warnings: &mut Vec<String>) -> Vec<Vec<usize>> {
         let (Some(&a), Some(&b)) = (idx.get(e.from.as_str()), idx.get(e.to.as_str())) else { continue };
         let (na, nb) = (&state.nodes[a], &state.nodes[b]);
         if !can_link(na.kind, nb.kind) {
-            warnings.push(format!("связь «{} → {}» не работает: такие компоненты не соединяются", na.name, nb.name));
+            warnings.push(i18n::trf!("link “{0} → {1}” does not work: these components cannot be linked", na.name, nb.name));
             continue;
         }
         if reaches(&out, b, a) {
-            warnings.push(format!("связь «{} → {}» замыкает цикл и не учитывается", na.name, nb.name));
+            warnings.push(i18n::trf!("link “{0} → {1}” closes a cycle and is ignored", na.name, nb.name));
             continue;
         }
         out[a].push(b);
@@ -763,12 +763,12 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
                 ut = load / cap;
                 let h = if u > 0.0 { cdn_hit(n) } else { 0.0 };
                 cdn_hit_ratio = Some(h);
-                nt = format!("попаданий {}%", jsfmt::pct0(h));
+                nt = i18n::trf!("hits {0}%", jsfmt::pct0(h));
             }
             Kind::Limiter => {
                 cap = n.num("limit");
                 ut = load / cap;
-                nt = if ut > 1.0 { format!("отбрасывает {}%", jsfmt::pct0(1.0 - 1.0 / ut)) } else { String::new() };
+                nt = if ut > 1.0 { i18n::trf!("drops {0}%", jsfmt::pct0(1.0 - 1.0 / ut)) } else { String::new() };
             }
             Kind::Gateway => {
                 cap = r::GATEWAY.cap * u;
@@ -787,7 +787,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
                 cap = r::APP_CAP.get(size_of(i)) * u;
                 ut = by_cap(load, cap);
                 if n.num("instances") > 1.0 && n.text("sessions") == "local" {
-                    nt = "сессии в памяти: при балансировке пользователи «теряют» вход".into();
+                    nt = i18n::tr("sessions in memory: users “lose” their login when balanced").into();
                 }
             }
             Kind::Cache => {
@@ -796,7 +796,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
                 ut = if cap > 0.0 { load / cap } else { 0.0 };
                 let h = if u > 0.0 { cache_hit(n, wl) } else { 0.0 };
                 hit_ratio = Some(h);
-                nt = format!("попаданий {}%", jsfmt::pct0(h));
+                nt = i18n::trf!("hits {0}%", jsfmt::pct0(h));
             }
             Kind::Queue => {
                 load = a.queued;
@@ -836,7 +836,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
                 let per_shard = wl.data_gb / shards.max(1.0);
                 if per_shard > r::SEARCH_MAX_GB_PER_SHARD {
                     ut = ut.max(per_shard / r::SEARCH_MAX_GB_PER_SHARD);
-                    nt = format!("индекс {} ГБ на шард — слишком много", jsfmt::num(jsfmt::round(per_shard)));
+                    nt = i18n::trf!("index of {0} GB per shard — too much", jsfmt::num(jsfmt::round(per_shard)));
                 }
             }
             Kind::Db => {
@@ -877,7 +877,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
                 load = read_load + write_load;
                 cap = if ut > 0.0 { load / ut } else { read_base + write_base };
                 if shards > 1.0 && hot > 0.1 {
-                    nt = format!("горячий ключ: {}% нагрузки на один шард", jsfmt::pct0(share));
+                    nt = i18n::trf!("hot key: {0}% of the load on one shard", jsfmt::pct0(share));
                 }
             }
             Kind::Monitor => {
@@ -1096,7 +1096,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
             }
             let incoming = state.edges.iter().any(|e| e.to == n.id && idx.get(e.from.as_str()).is_some_and(|&f| can_link(nodes[f].kind, n.kind)));
             if !incoming && n.kind != Kind::Monitor {
-                warnings.push(format!("«{}» ни к чему не подключён — к нему не приходит нагрузка", n.name));
+                warnings.push(i18n::trf!("“{0}” is not connected to anything — no load reaches it", n.name));
             }
         }
     }

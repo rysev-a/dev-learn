@@ -1,0 +1,61 @@
+{
+ "book": 13,
+ "chapter": 42,
+ "tasks": [
+  {
+   "id": "mro-names",
+   "title": "Method resolution order",
+   "statement": "Write mro_names(cls): a list of class names in method resolution order (without object). Use cls.__mro__.",
+   "hint": "[c.__name__ for c in cls.__mro__ if c is not object]."
+  },
+  {
+   "id": "mro-super-chain",
+   "title": "A cooperative chain in a diamond",
+   "statement": "Class A is already written (it prints «A» and calls nothing further). Write B(A), C(A) and D(B, C): the hello() method of each prints its own name and calls super().hello(), so that D().hello() runs each class exactly once in the order D, B, C, A.",
+   "hint": "In each hello: print(\"X\"); super().hello(). The diamond will be walked in the MRO D, B, C, A."
+  },
+  {
+   "id": "mro-can-combine",
+   "title": "Can the bases be combined",
+   "statement": "Write can_combine(*bases): True if a class with these bases (in this order) can be created, and False if Python cannot build a consistent MRO (TypeError).",
+   "hint": "try: type(\"X\", bases, {}) except TypeError: return False; return True."
+  },
+  {
+   "id": "mro-coop-init",
+   "title": "Cooperative __init__",
+   "statement": "Write NameMixin and AgeMixin: each takes its own keyword parameter (name or age), stores it and passes the remaining parameters on via super().__init__(**kwargs). The Base class already absorbs the remaining parameters into the extra field. The order of the bases in Person must not affect the result.",
+   "hint": "def __init__(self, *, name, **kwargs): super().__init__(**kwargs); self.name = name."
+  },
+  {
+   "id": "mro-repr-mixin",
+   "title": "The ReprMixin mixin",
+   "statement": "Write a ReprMixin mixin: __repr__ returns the class name and \"field=value\" pairs of the instance attributes in creation order (Point(x=1, y=2)). It must work in combination with any class that has no __init__ of its own.",
+   "hint": "\", \".join(f\"{k}={v!r}\" for k, v in vars(self).items())."
+  },
+  {
+   "id": "mro-json-mixin",
+   "title": "The JsonMixin mixin",
+   "statement": "Write JsonMixin with a to_json() method: a JSON string of the instance attributes with sorted keys (json.dumps(..., sort_keys=True, ensure_ascii=False)) and a class method from_json(text) that creates an object without calling __init__ and writes the fields from the JSON into it.",
+   "hint": "from_json: obj = cls.__new__(cls); obj.__dict__.update(json.loads(text)); return obj."
+  },
+  {
+   "id": "mro-logging-mixin",
+   "title": "A wrapper mixin via super",
+   "statement": "The Model class already has save() (it returns «сохранено»). Write LoggingMixin: its save() appends the string «перед save» to the LOG list, calls super().save(), appends «после save» and returns the result. The mixin must be placed to the left of Model.",
+   "hint": "class LoggingMixin: def save(self): LOG.append(...); result = super().save(); LOG.append(...); return result.",
+   "starter": "LOG = []\n\n\nclass Model:\n    def save(self):\n        return \"сохранено\"\n"
+  },
+  {
+   "id": "mro-where-defined",
+   "title": "Where a method is defined",
+   "statement": "Write where_defined(cls, name): the name of the first class in the MRO that has the name `name` in its own __dict__, or None if there is none. Also write chain(cls, name): a list of the names of all classes in the MRO that define this name (in MRO order).",
+   "hint": "for c in cls.__mro__: if name in vars(c): ..."
+  },
+  {
+   "id": "mro-validators",
+   "title": "Checks on mixins",
+   "statement": "The base Validator.validate(value) returns an empty list. Write NotEmpty (the error «пусто» for an empty string) and NoDigits (the error «цифры» if the string contains a digit): each calls super().validate(value) and adds its own error. The classes can be combined in any way.",
+   "hint": "errors = super().validate(value); if not value: errors = errors + [\"пусто\"]; return errors."
+  }
+ ]
+}

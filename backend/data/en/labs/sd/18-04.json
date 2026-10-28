@@ -1,0 +1,79 @@
+{
+ "book": 18,
+ "chapter": 4,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd04-replicas",
+   "title": "Replicas for reads",
+   "statement": "There are 2500 reads per second with 100 writes. An S database handles 1000 reads and is overloaded. There is no cache. Add replicas (the database's “Replicas per shard” parameter): load at most 80%, cost at most $1200 per month. Think about which is cheaper: replicas or a bigger database?",
+   "hint": "Each S replica adds 1000 reads. You need 4 replicas: 2500 / 4000 = 63%. An M database with one replica gives 83%, which is not enough.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd04-failover",
+   "title": "Automatic leader failover",
+   "statement": "The database now has a replica, but when the leader fails nothing happens: writes stop until the administrator wakes up. Turn on automatic failover so that the design survives a failure of the database leader.",
+   "hint": "The database has “Automatic failover” and “Replicas per shard” parameters. You need at least one replica and automatic failover turned on.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd04-lag",
+   "title": "Replica lag",
+   "statement": "Users see stale data: the replicas are lagging. Writes load the S database the most: replica lag is over 100 ms. Reduce the lag to 50 ms without switching to synchronous replication: make the database bigger so that writes take less time on it.",
+   "hint": "Lag of asynchronous replicas grows with write load: on an M database with the same writes it is noticeably smaller.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd04-sync",
+   "title": "Synchronous replication",
+   "statement": "A payment service cannot lose an acknowledged write: after the leader fails, a replica must have all the data. Turn on synchronous replication so that the lag is zero, while keeping p99 at most 140 ms.",
+   "hint": "The database's “Replication” parameter: “synchronous”. It adds a few milliseconds to a write. The servers must not be overloaded, otherwise p99 will grow.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd04-nines",
+   "title": "Four nines",
+   "statement": "The contract requires availability of at least 99.99%. The load balancer and servers are already redundant, but there is a single database, and it is the one dragging availability down. Add a replica and automatic failover so that the availability of the design reaches 99.99%.",
+   "hint": "The availability of a single database is 99.9%. Two copies with automatic failover give about 99.9999%.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd04-lead-size",
+   "title": "A replica weaker than the leader",
+   "statement": "The constraint \"a replica is no weaker than the leader\" cannot be shown as a direct setting, but it can be checked through load: in this design the database is L with replicas, and after the leader fails the remaining replicas must carry the load. Choose the number of replicas so that the design survives a database failure with headroom: load during the failure at most 100%, in normal operation up to 70%.",
+   "hint": "When one replica fails, the rest share the reads. Two L replicas: reads 12,000 / 16,000 = 75%, too much; three replicas: after losing one, two remain, giving 75% during the failure and 50% normally.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  }
+ ]
+}

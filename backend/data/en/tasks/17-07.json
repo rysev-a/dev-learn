@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "virt-iommu-check",
+   "title": "IOMMU DMA check",
+   "statement": "Write a function iommu_check(domains, bdf, iova, write): domains is a dictionary \"device id -> list of mappings\" [iova_start, size, hpa_start, perms], where perms is \"r\" or \"rw\". The device bdf accesses address iova (write says whether it is a write or a read). Return the host address (hpa_start + iova - iova_start); \"fault:no-domain\" if the device has no domain; \"fault:unmapped\" if iova falls into no mapping; \"fault:write\" if the mapping is read-only and the access is a write.",
+   "hint": "A mapping covers iova from the start up to start + size, not including the end."
+  },
+  {
+   "id": "virt-iommu-groups",
+   "title": "IOMMU groups",
+   "statement": "Write a function iommu_groups(devices, acs): devices is a list of [device id, bridge it is attached to], acs is a list of bridges with isolation (ACS) enabled. The IOMMU cannot tell apart devices under one bridge without ACS, so they form one group. Each device under a bridge with ACS forms its own group. Return the list of groups (each a sorted list of ids), sorted by the first element of the group.",
+   "hint": "For a bridge without ACS, collect its devices into one shared list; for a bridge with ACS, one device per group."
+  },
+  {
+   "id": "virt-vfio-ready",
+   "title": "Group readiness for passthrough",
+   "statement": "Write a function vfio_ready(groups, drivers): groups is a list of IOMMU groups (each a list of device ids), drivers is a dictionary \"device -> driver name or None\". Devices with the driver \"pcieport\" (bridges) are ignored. A group is ready for passthrough if, after that, at least one counted device remains in it, and all counted devices have the driver \"vfio-pci\". Return a sorted list of numbers of ready groups (starting from zero).",
+   "hint": "Filter out the bridges and check that all the remaining ones are bound to vfio-pci."
+  },
+  {
+   "id": "virt-vf-assign",
+   "title": "Handing out virtual functions",
+   "statement": "Write a function assign_vfs(total_vfs, vms): the card has total_vfs virtual functions numbered from 1. vms is a list of [VM name, how many functions it needs]. Give machines functions consecutively in list order, but each gets everything it needs at once or nothing: if fewer free functions remain than needed, the machine gets None, and the following machines may get what is left. Return a dictionary \"name -> list of function numbers or None\".",
+   "hint": "Keep the number of the next free function."
+  },
+  {
+   "id": "virt-irq-exits",
+   "title": "Delivering interrupts to a guest",
+   "statement": "Write a function irq_exits(events, posted): events is a list of events \"irq\" (an interrupt arrived for the guest), \"halt\" (the virtual processor went to sleep) and \"run\" (it woke up and is running). At the start the processor is running. An interrupt to a running processor is delivered without an exit if posted (posted interrupts) is true, and causes one exit without posted. An interrupt to a sleeping processor always causes one exit (it has to be woken up), after which the processor is running. Return the number of exits.",
+   "hint": "Track the processor state: running or sleeping."
+  },
+  {
+   "id": "virt-pinned",
+   "title": "Pinned memory",
+   "statement": "Write a function free_for_overcommit(host_mb, reserve_mb, vms): host_mb is the host's memory, reserve_mb is the reserve for the host itself, vms is a list of [name, VM memory, whether a device is passed through]. The memory of machines with passthrough is pinned and not overcommitted. Return a tuple (total pinned, how much memory is left for the other machines: host minus reserve minus pinned). If the remainder is negative, return None instead of the tuple.",
+   "hint": "Sum the memory of the machines whose third field is true."
+  },
+  {
+   "id": "virt-migration-blockers",
+   "title": "What blocks live migration",
+   "statement": "Write a function migration_blockers(devices): devices is a list of the machine's device kinds: \"emulated\", \"virtio\", \"vdpa\", \"vfio\" (passthrough), \"vf\" (an SR-IOV virtual function), \"mdev\" (mediated). Live migration is blocked by devices of kinds vfio, vf and mdev. Return a tuple (whether migration is possible, a sorted list of blocking kinds without repeats).",
+   "hint": "Migration is possible when the list of blocking kinds is empty."
+  },
+  {
+   "id": "virt-choose-io",
+   "title": "Choosing an I/O method",
+   "statement": "Write a function choose_io(req): req is a dictionary with boolean fields \"legacy_guest\" (an old guest without virtio drivers), \"line_rate\" (hardware speed is needed) and \"migration\" (live migration is needed). Rules in order: an old guest gets \"emulated\"; hardware speed and migration needed gets \"vdpa\"; hardware speed needed gets \"sriov\"; otherwise \"virtio\".",
+   "hint": "Check the conditions strictly in the stated order."
+  }
+ ]
+}

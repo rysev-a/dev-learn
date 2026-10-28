@@ -70,7 +70,7 @@ impl Machine {
             return;
         }
         if self.pc < 0 || self.pc as usize >= self.program.len() {
-            self.error = Some(format!("Счётчик команд вышел за пределы программы (адрес {}). Не забыли hlt в конце?", self.pc));
+            self.error = Some(i18n::trf!("Program counter ran past the end of the program (address {0}). Forgot hlt at the end?", self.pc));
             return;
         }
         let word = self.program[self.pc as usize];
@@ -85,7 +85,7 @@ impl Machine {
         let mut next = self.pc + 1;
 
         let Some(def) = d.def else {
-            self.error = Some(format!("Неизвестная команда {} по адресу {}", disassemble(word), self.pc));
+            self.error = Some(i18n::trf!("Unknown instruction {0} at address {1}", disassemble(word), self.pc));
             return;
         };
         let set_reg = |m: &mut Machine, r: usize, v: i32| {
@@ -137,7 +137,7 @@ impl Machine {
             }
             "jmp" => next = self.pc + to_signed((word & 0xfff) as i32, 12),
             _ => {
-                self.error = Some(format!("Неизвестная команда {} по адресу {}", disassemble(word), self.pc));
+                self.error = Some(i18n::trf!("Unknown instruction {0} at address {1}", disassemble(word), self.pc));
                 return;
             }
         }
@@ -153,7 +153,7 @@ impl Machine {
             self.step();
         }
         if self.running() {
-            self.error = Some(format!("Превышен лимит в {max_steps} шагов — похоже, цикл не заканчивается."));
+            self.error = Some(i18n::trf!("Step limit of {0} exceeded — the loop probably never ends.", max_steps));
         }
     }
 

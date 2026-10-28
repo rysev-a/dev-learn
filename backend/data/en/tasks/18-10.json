@@ -1,0 +1,36 @@
+{
+ "book": 18,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "sd10-gateway",
+   "title": "A gateway at the entrance",
+   "statement": "A monolith sits behind a load balancer, and the team wants a single entry point for authentication, limits and routing. Add an API gateway between the users and the load balancer, and make it redundant (at least two instances) so that the gateway is not a single point of failure: the design survives a gateway failure.",
+   "hint": "Users → gateway → load balancer → servers. The gateway's “Instances” parameter is 2."
+  },
+  {
+   "id": "sd10-split",
+   "title": "Splitting the monolith",
+   "statement": "The monolith receives 2500 reads and 300 writes per second, and its single database is overloaded. Split it into two services: “Orders” (70% of traffic) and “Catalog” (30%), each with its own database. The gateway divides traffic by service weights (the “Traffic share” parameter: 7 and 3). All components are loaded at no more than 80%.",
+   "hint": "“Orders” — weight 7, an L database (it takes 1750 reads and 210 writes). “Catalog” — weight 3, an M database (750 reads, 90 writes). Servers: orders get four M (1960 requests at a capacity of 2800), catalog gets two M."
+  },
+  {
+   "id": "sd10-weights",
+   "title": "Traffic shares between services",
+   "statement": "Two services sit behind a gateway: “Primary” (four M servers) and “Secondary” (one M server). Traffic is split evenly, and the small service is overloaded. Set the traffic shares (the “Traffic share” parameter) in proportion to capacity: all components loaded at no more than 90%.",
+   "hint": "Capacity 2800 versus 700 is 4 : 1. Set weight 4 for the primary and 1 for the secondary."
+  },
+  {
+   "id": "sd10-own-db",
+   "title": "A database per service",
+   "statement": "Two services — “Orders” and “Payments” — use one shared database, and a deployment of one regularly breaks the other. Separate the storage: each service must have its own database. The databases are medium-sized, overall load is at most 80%, and the budget is $1900 per month.",
+   "hint": "You need two databases, each connected only to its own service. Add a second database and move the payments link to it."
+  },
+  {
+   "id": "sd10-final",
+   "title": "A shop of three services",
+   "statement": "The chapter's final exercise. Build a shop of three services — “Catalog” (weight 5), “Orders” (weight 3) and “Payments” (weight 2), each with its own database. The load is 3000 reads and 500 writes per second. The gateway has two instances, load is at most 80%, the design survives failure of the gateway and of an app server, and the budget is $3000 per month.",
+   "hint": "Shares of 5:3:2 are 1750, 1050 and 700 requests. Catalog: four M servers and an L database; orders: three M servers and an M database; payments: two M servers and an M database. Each service has headroom for losing one instance."
+  }
+ ]
+}

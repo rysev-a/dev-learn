@@ -59,7 +59,7 @@ fn sql_dataset(task: &Task, datasets: &StoredValue<HashMap<String, SqlDataset>>)
 /// Подпись справа от полосы прогресса: где выполняются упражнения главы.
 fn run_label(tasks: &[Task]) -> &'static str {
     if tasks.iter().all(|t| t.mode == "lab") {
-        return "интерактивно · в браузере";
+        return i18n::tr("interactive · in the browser");
     }
     match tasks.iter().find(|t| t.mode != "lab").map(|t| t.mode.as_str()) {
         Some("sql") => "sql · docker",
@@ -81,8 +81,8 @@ fn next_chapter(course: &[api::dto::Section], counts: &api::dto::Counts, book: i
 /// Сообщение об ожидании: место в очереди.
 pub fn queue_text(position: Option<i64>) -> String {
     match position {
-        Some(p) if p > 1 => format!("В очереди (перед вами {})…", p - 1),
-        _ => "В очереди…".to_string(),
+        Some(p) if p > 1 => i18n::trf!("Queued ({} ahead of you)…", p - 1),
+        _ => i18n::tr("Queued…").to_string(),
     }
 }
 
@@ -91,10 +91,10 @@ pub fn Exercises() -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();
     move || match (ctx.chapter.get(), ctx.tasks.get()) {
         (Load::Ready(ch), Load::Ready(t)) if !t.tasks.is_empty() => view! { <CodePractice book=ctx.book num=ch.num tasks=t.tasks datasets=t.datasets /> }.into_any(),
-        (Load::Ready(_), Load::Loading) | (Load::Loading, _) => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        (Load::Ready(_), Load::Loading) | (Load::Loading, _) => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
         (Load::Ready(_), _) if ctx.answer_count.get() > 0 => view! { <Answers /> }.into_any(),
         (Load::Failed(e), _) => view! { <p class="error">{e}</p> }.into_any(),
-        _ => view! { <p class="empty">"Для этой главы нет упражнений"</p> }.into_any(),
+        _ => view! { <p class="empty">{i18n::tr("This chapter has no exercises")}</p> }.into_any(),
     }
 }
 
@@ -113,7 +113,7 @@ fn CodePractice(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String,
     move || match state.get() {
         Load::Ready(s) => view! { <CodeBody book=book num=num tasks=tasks.get_value() datasets=datasets.get_value() state=s next=next /> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
     }
 }
 
@@ -227,11 +227,11 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                                 overload.raise(Overload::Busy);
                             }
                         }
-                        RunState::Running => phase.set("Выполняется в песочнице…".to_string()),
+                        RunState::Running => phase.set(i18n::tr("Running in the sandbox…").to_string()),
                     }
                     polls += 1;
                     if polls > MAX_POLLS {
-                        return Err(api::ApiError { status: 0, message: "Проверка слишком долго ждёт в очереди — попробуйте позже.".into() });
+                        return Err(api::ApiError { status: 0, message: i18n::tr("The check has been waiting in the queue too long — please try again later.").into() });
                     }
                     TimeoutFuture::new(POLL_MS).await;
                     st = c.run_state(&job).await?;
@@ -358,20 +358,20 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                 <CodeEditor value=value on_input=Callback::new(move |code| edit(id_for_edit.clone(), code)) on_run=primary lang=lang_of(&t.mode) accepted=Signal::derive(move || accepted.get()) />
                 <div class="ex-row">
                     {move || if go_mode() {
-                        view! { <button class="quiz-btn" on:click=move |_| go_next.run(()) title="Дальше (Ctrl+Enter)">"Дальше →"</button> }.into_any()
+                        view! { <button class="quiz-btn" on:click=move |_| go_next.run(()) title=i18n::tr("Next (Ctrl+Enter)")>{i18n::tr("Next →")}</button> }.into_any()
                     } else {
-                        view! { <button class="quiz-btn" on:click=move |_| run.run(()) disabled=move || running.get() title="Проверить (Ctrl+Enter)">{move || if running.get() { if phase.get().starts_with("В очереди") { "В очереди…" } else { "Проверяю…" } } else { "Проверить" }}</button> }.into_any()
+                        view! { <button class="quiz-btn" on:click=move |_| run.run(()) disabled=move || running.get() title=i18n::tr("Check (Ctrl+Enter)")>{move || if running.get() { if phase.get().starts_with(i18n::tr("Queued")) { i18n::tr("Queued…") } else { i18n::tr("Checking…") } } else { i18n::tr("Check") }}</button> }.into_any()
                     }}
-                    {move || go_mode().then(|| view! { <button class="quiz-btn ghost" on:click=move |_| run.run(()) disabled=move || running.get() title="Запустить проверку ещё раз">"Проверить ещё раз"</button> })}
+                    {move || go_mode().then(|| view! { <button class="quiz-btn ghost" on:click=move |_| run.run(()) disabled=move || running.get() title=i18n::tr("Run the check again")>{i18n::tr("Check again")}</button> })}
                     {(!hint.is_empty()).then(|| {
                         let hint_id = hint_id.clone();
                         let hint_id2 = hint_id.clone();
-                        view! { <button class="quiz-btn ghost" on:click=move |_| hints.update(|h| { let e = h.entry(hint_id.clone()).or_insert(false); *e = !*e })>{move || if hints.with(|h| h.get(&hint_id2).copied().unwrap_or(false)) { "Скрыть подсказку" } else { "Подсказка" }}</button> }
+                        view! { <button class="quiz-btn ghost" on:click=move |_| hints.update(|h| { let e = h.entry(hint_id.clone()).or_insert(false); *e = !*e })>{move || if hints.with(|h| h.get(&hint_id2).copied().unwrap_or(false)) { i18n::tr("Hide hint") } else { i18n::tr("Hint") }}</button> }
                     })}
-                    <button class="quiz-btn ghost" title="Вернуть исходный шаблон" on:click={
+                    <button class="quiz-btn ghost" title=i18n::tr("Restore the starter code") on:click={
                         let id = id.clone();
                         move |_| edit(id.clone(), starter.clone())
-                    }>"Сбросить"</button>
+                    }>{i18n::tr("Reset")}</button>
                 </div>
                 {move || {
                     let t = task();
@@ -392,7 +392,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                 <div class="pr-head">
                     <h3>{format!("{}. {}", i + 1, t.title)}</h3>
                     <span class="pr-badge" class:ok=move || st.get() == "ok" class:bad=move || st.get() == "bad">
-                        {move || match st.get().as_str() { "ok" => "выполнено", "bad" => "не пройдено", _ => "не решено" }}
+                        {move || match st.get().as_str() { "ok" => i18n::tr("done"), "bad" => i18n::tr("failed"), _ => i18n::tr("not solved") }}
                     </span>
                 </div>
                 <p class="pr-statement">{t.statement.clone()}</p>
@@ -408,14 +408,14 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
         <section class="pr" class:lab-pr=labs>
             <OverloadNotice state=overload />
             <div class="pr-top">
-                <span class="pr-top-label">{move || format!("Решено {} из {total}", done())}</span>
+                <span class="pr-top-label">{move || i18n::trf!("Solved {} of {}", done(), total)}</span>
                 <div class="pr-bar" role="progressbar" aria-valuemin="0" aria-valuemax=total>
                     <i style=move || format!("width: {}%", done() * 100 / total.max(1))></i>
                 </div>
                 <span class="pr-top-label">{run_label(&tasks.with_value(|t| t.clone()))}</span>
             </div>
             <div class="pr-body">
-                <aside class="pr-list" aria-label="Упражнения">{list}</aside>
+                <aside class="pr-list" aria-label=i18n::tr("Exercises")>{list}</aside>
                 {main}
             </div>
         </section>
@@ -440,9 +440,9 @@ mod tests {
 
     #[test]
     fn queue_message_counts_those_ahead() {
-        assert_eq!(queue_text(Some(1)), "В очереди…");
-        assert_eq!(queue_text(Some(4)), "В очереди (перед вами 3)…");
-        assert_eq!(queue_text(None), "В очереди…");
+        assert_eq!(queue_text(Some(1)), "Queued…");
+        assert_eq!(queue_text(Some(4)), "Queued (3 ahead of you)…");
+        assert_eq!(queue_text(None), "Queued…");
     }
 
     #[test]
@@ -461,7 +461,7 @@ mod tests {
         let t = |mode: &str| Task { id: "x".into(), mode: mode.into(), title: String::new(), statement: String::new(), starter: String::new(), hint: String::new(), dataset: None };
         assert_eq!(run_label(&[t("sql")]), "sql · docker");
         assert_eq!(run_label(&[t("func"), t("stdout")]), "python · docker");
-        assert_eq!(run_label(&[t("lab")]), "интерактивно · в браузере");
+        assert_eq!(run_label(&[t("lab")]), "interactive · in the browser");
         assert_eq!(run_label(&[t("lab"), t("rust")]), "rust · docker");
     }
 

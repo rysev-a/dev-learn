@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "j2-semver-parse",
+   "title": "Parsing a semver version",
+   "statement": "Write a function parseSemver(s): “1.2.3”, “v1.2.3”, “1.2.3-beta.1”, “1.2.3+build5” → { major, minor, patch, pre } (pre is an array of prerelease parts, numeric parts as numbers, [] when there is no prerelease; build metadata is discarded). For an invalid string return null.",
+   "hint": "A regular expression with groups for major, minor, patch, prerelease and build."
+  },
+  {
+   "id": "j2-semver-compare",
+   "title": "Comparing semver versions",
+   "statement": "Write a function compareSemver(a, b) (version strings): -1, 0 or 1. major, minor and patch are compared as numbers. A version with a prerelease is lower than the same one without it; prereleases are compared part by part: numeric parts as numbers, string parts alphabetically, a numeric part is lower than a string one, and a shorter set of parts is lower if all of its parts matched. Build metadata is ignored.",
+   "hint": "First the numbers major/minor/patch, then the prereleases part by part: number < string; no prerelease means higher."
+  },
+  {
+   "id": "j2-semver-satisfies",
+   "title": "Version ranges: ^, ~, >=",
+   "statement": "Write a function satisfies(version, range) for versions without prereleases: range is “1.2.3” (exact), “^1.2.3” (≥1.2.3 and <2.0.0; for “^0.2.3” — <0.3.0; for “^0.0.3” — only 0.0.3), “~1.2.3” (≥1.2.3 and <1.3.0), “>=1.2.3”, “>1.2.3”, “<=1.2.3”, “<1.2.3”, “*” (any).",
+   "hint": "For ^ the upper bound is the next “significant” position: major if it is > 0, otherwise minor, otherwise patch."
+  },
+  {
+   "id": "j2-semver-bump",
+   "title": "Bumping a version",
+   "statement": "Write a function bump(version, kind): kind is “major”, “minor” or “patch”; it returns the new version string (when a higher position is bumped, the lower ones are reset to 0); prerelease and build are discarded. For an unknown kind throw an Error.",
+   "hint": "Destructuring assignment resets the lower positions: [minor, patch] = [minor + 1, 0]."
+  },
+  {
+   "id": "j2-require",
+   "title": "A CommonJS module loader",
+   "statement": "Write a function makeRequire(files): files is an object “name → function (module, exports, require)”; makeRequire returns a function require(name). A module runs once (the result is cached), require returns module.exports; assigning module.exports = … must work the same as writing to exports. For an unknown name throw Error(\"Cannot find module '<name>'\").",
+   "hint": "Cache by name: first put module into the cache, then run the file."
+  },
+  {
+   "id": "j2-require-cycle",
+   "title": "Circular dependencies in require",
+   "statement": "Modules may require each other in a circle. Write a function makeRequire(files) as a CommonJS loader (cache + module.exports) that, on a cycle, hands out the module's “unfinished” export, as Node.js does: the module is put into the cache before it runs.",
+   "hint": "Put module into the cache before calling the module function."
+  },
+  {
+   "id": "j2-path",
+   "title": "The path module: basename, dirname, extname",
+   "statement": "Write the functions basename(p, ext?) (the last part of the path; if ext is passed and the name ends with it, without it), dirname(p) (everything before the last “/”; “.” if there is no slash; “/” for the root) and extname(p) (the extension with a dot from the last part; “” if there is no dot or it is the first character of the name). Ignore trailing “/”. You must not use the path module.",
+   "hint": "lastIndexOf(\"/\") and lastIndexOf(\".\"); do not forget the special cases: the root, an empty part, hidden files."
+  },
+  {
+   "id": "j2-emitter",
+   "title": "EventEmitter as in Node.js",
+   "statement": "Write a class EventEmitter with the methods on(event, fn), once(event, fn), off(event, fn), emit(event, ...args) (returns true if the event had handlers) and listenerCount(event). Handlers are called in subscription order; once fires a single time; emit('error') with no handlers throws the error that was passed. The methods on/once/off return this.",
+   "hint": "Store handlers with a once flag; iterate over a copy of the array in emit."
+  },
+  {
+   "id": "j2-fake-clock",
+   "title": "Fake timers",
+   "statement": "Write a class FakeClock: the method setTimeout(fn, ms) → id (starting at 1), clearTimeout(id), now() (virtual time, 0 at the start) and advance(ms): it moves time forward and runs all timers whose time has come, in order of due time (for ties, in creation order); inside a callback now() equals the firing time; timers created while callbacks run also fire if they fit within advance.",
+   "hint": "Each time pick the nearest timer with at <= end, move now to its due time and call it."
+  },
+  {
+   "id": "j2-order-tick",
+   "title": "Order: nextTick and a timer",
+   "statement": "Write a function run() that prints lines with console.log in this order: «1: синхронно», «2: nextTick», «3: таймер». Use process.nextTick and setTimeout (with zero delay); the code that prints the “synchronous” line must come at the end of the function.",
+   "hint": "nextTick runs after the current operation but before timers."
+  },
+  {
+   "id": "j2-order-timers",
+   "title": "Order of timers",
+   "statement": "Write a function run(): three setTimeout calls with delays of 30, 10 and 20 ms print «C», «A» and «B» respectively (so by time the order is A, B, C, but you will call them in the order C, A, B). After all three have printed, print «готово» — via a fourth timer that fires after the others.",
+   "hint": "The firing order is determined by the due time, not by the order of setTimeout calls."
+  },
+  {
+   "id": "j2-order-microtask",
+   "title": "Order: a microtask and a timer",
+   "statement": "Write a function run(): print «sync», then «micro» (queueMicrotask), then «timer» (setTimeout with zero delay). Schedule everything in any order, but so that the output comes out exactly like this; «sync» goes at the end of the function body.",
+   "hint": "Microtasks run right after the current synchronous code, before any timers."
+  },
+  {
+   "id": "j2-worker-pool",
+   "title": "The blocking model: a thread pool",
+   "statement": "Write a function totalTime(durations, workers): tasks (durations in ms) are handed out in order to free threads; a thread that frees up takes the next task; return the completion time of the last one. This is how you compute how long a “thread per connection” server spends when there are few threads.",
+   "hint": "Track when each thread becomes free; the next task goes to the earliest free one."
+  },
+  {
+   "id": "j2-max-concurrent",
+   "title": "How many concurrent connections",
+   "statement": "Write a function maxConcurrent(requests): requests is an array of [start, end) (milliseconds, the end is not included); return the largest number of simultaneously open connections.",
+   "hint": "“Start” events (+1) and “end” events (−1); at equal moments the end comes before the start."
+  },
+  {
+   "id": "j2-parse-request",
+   "title": "Parsing an HTTP request",
+   "statement": "Write a function parseRequest(text): a raw request «GET /path?a=1&b=2 HTTP/1.1\\r\\nHost: x\\r\\nContent-Type: text/plain\\r\\n\\r\\nтело» → { method, path, query (an object of strings), headers (keys in lower case), body }. Headers go up to the first empty line; query may be absent.",
+   "hint": "Split on «\\r\\n\\r\\n» into head and body; then by lines, and headers by the first «:»."
+  },
+  {
+   "id": "j2-router",
+   "title": "A router with parameters",
+   "statement": "Write a function createRouter(routes): routes is an array of [pattern, handler], with a pattern like “/users/:id/posts/:post”; it returns a function route(path) that finds the first matching pattern (segments are split on “/”, “:name” is a parameter that matches a non-empty segment) and returns handler(params); if nothing matches — null. A trailing “/” is ignored.",
+   "hint": "Compare segments pairwise; a pattern segment starting with “:” records a parameter."
+  },
+  {
+   "id": "j2-middleware",
+   "title": "A middleware chain",
+   "statement": "Write a function createApp(): it returns an object with the methods use(fn) (fn(ctx, next)) and run(ctx) → calls the chain in order; next() starts the next handler (after the last one — nothing); calling next() twice from the same handler throws Error(\"next() вызван дважды\"). run returns ctx.",
+   "hint": "dispatch(i) calls stack[i](ctx, () => dispatch(i + 1)); remember the index of the last call."
+  },
+  {
+   "id": "j2-json-api",
+   "title": "A mini API: a request handler",
+   "statement": "Write a function handle(req, db): req = { method, path, body }, db is an array of objects { id, text }. Routes: GET /items → 200 and the list; GET /items/<id> → 200 and the item or 404; POST /items (body is an object with text) → 201 and the created item { id: the next number, text } (add it to db; without text — 400); everything else — 404 «не найдено». Return { status, body }.",
+   "hint": "A single route pattern /items(/id)? and then branching on the method."
+  },
+  {
+   "id": "j2-line-splitter",
+   "title": "Streaming line parsing",
+   "statement": "Data arrives in chunks, and the chunk boundaries are arbitrary. Write a function createLineParser(onLine): it returns an object with the methods write(chunk) (for each completed line it calls onLine(line) without the “\\n”; “\\r\\n” also counts as a line end) and end() (emits the last unfinished line if it is not empty).",
+   "hint": "Keep a buffer of the unprocessed remainder and look for a newline in it."
+  },
+  {
+   "id": "j2-utf8",
+   "title": "UTF-8 by hand",
+   "statement": "Write the functions utf8Encode(str) → an array of bytes and utf8Decode(bytes) → a string (by the UTF-8 rules: 1–4 bytes per character; get code points via codePointAt and String.fromCodePoint). You must not use TextEncoder, TextDecoder or Buffer.",
+   "hint": "The first byte determines the byte count: 0xxxxxxx, 110xxxxx, 1110xxxx, 11110xxx."
+  },
+  {
+   "id": "j2-base64",
+   "title": "Base64 by hand",
+   "statement": "Write the functions base64Encode(bytes) (an array of bytes 0–255 → a string with “=” padding) and base64Decode(str) → an array of bytes. You must not use btoa, atob or Buffer.",
+   "hint": "Three bytes = 24 bits = four groups of 6 bits; an incomplete triple is padded with “=”."
+  },
+  {
+   "id": "j2-pipeline",
+   "title": "A transform pipeline (like stream.pipeline)",
+   "statement": "Write a function pipeline(source, ...transforms): source is an iterable, each transform is a generator function that takes an iterable and returns an iterable; pipeline returns the resulting iterator of the chain source → t1 → t2 → … (lazy: nothing is computed until values are needed).",
+   "hint": "Each stage takes the result of the previous one: cur = t(cur)."
+  },
+  {
+   "id": "j2-parse-args",
+   "title": "Parsing command-line arguments",
+   "statement": "Write a function parseArgs(argv): argv is an array of strings (like process.argv.slice(2)). The result is { _: [positional], …options }. “--name=value” and “--name value” set a value (a string), “--flag” without a value is true, “--no-flag” is false, “-abc” is three flags a, b, c with the value true; “--” makes everything after it positional. The value in “--name value” is taken only if the next element does not start with “-”.",
+   "hint": "Walk argv by index: the value in “--name value” consumes the next element."
+  },
+  {
+   "id": "j2-load-env",
+   "title": "Parsing .env",
+   "statement": "Write a function loadEnv(text): lines of the form “KEY=VALUE”; empty lines and lines starting with “#” are skipped; spaces around the key and value are trimmed; a value in single or double quotes is returned without the quotes (inside quotes “#” is not a comment); for an unquoted value, a comment after “ #” is dropped; in double quotes “\\n” turns into a newline. For a repeated key the last value wins.",
+   "hint": "Check for quotes first, and only if there are none, drop the comment."
+  },
+  {
+   "id": "j2-three-way-merge",
+   "title": "A three-way JSON merge",
+   "statement": "Forks are merged the same way as edits: write a function merge3(base, a, b) for flat objects: for each key, if a and b are equal, the common value is taken; if only one side changed (or deleted) it, that side's value is taken; if both changed it differently — a conflict. Return { merged, conflicts } (conflicts is a sorted array of keys; in merged a conflicting key gets the value from a). Deletion means the key is absent.",
+   "hint": "For each key compare a with base and b with base: did the side change the value."
+  },
+  {
+   "id": "j2-common-ancestor",
+   "title": "A common ancestor of commits",
+   "statement": "A project's history is a commit graph: { id: [parents] }. Write a function commonAncestor(graph, x, y): the nearest common ancestor of two commits (a commit counts as its own ancestor): among the common ancestors, the one from which no other common ancestor can be reached; if there are several — the lexicographically smallest id; if there are no common ones — null. This is the point where Node.js and io.js diverged.",
+   "hint": "The ancestors of each commit come from a graph traversal; “nearest” is a common ancestor that is not an ancestor of another common one."
+  },
+  {
+   "id": "j2-next-version",
+   "title": "The next version from commit messages",
+   "statement": "Write a function nextVersion(current, commits): commits is an array of message strings (Conventional Commits). If there is a message with “!” after the type (“feat!: …”) or a line “BREAKING CHANGE”, major is bumped; otherwise if there is a “feat”, minor; otherwise if there is a “fix” (or “perf”), patch; otherwise the version does not change. For 0.x versions “major” becomes minor and “minor” becomes patch (the convention before version 1.0).",
+   "hint": "Find the highest level among the commits, then apply it with the 0.x adjustment."
+  },
+  {
+   "id": "j2-install-plan",
+   "title": "What npm will install",
+   "statement": "The registry is given as { name: { version: { dependencies: { name: range } } } } (versions like “1.2.3”). Write a function installPlan(registry, deps): deps is { name: range }; for each dependency (recursively) the highest version matching the range is chosen (“1.2.3”, “^1.2.3”, “~1.2.3”, “*”). Return an object “name → version” (if one name is needed in two versions, take the version that matches all the ranges, and if that is impossible — Error(\"конфликт: <имя>\")); if there is no matching version — Error(\"нет версии: <имя>@<диапазон>\").",
+   "hint": "Collect ranges by name and pick the highest version matching all of them; then walk its dependencies."
+  },
+  {
+   "id": "j2-diff-deps",
+   "title": "The difference between two package.json files",
+   "statement": "Write a function diffDeps(oldDeps, newDeps): objects “name → range”. Return { added: [names], removed: [names], changed: [[name, was, now]] } — all lists are sorted by name; unchanged dependencies are not included.",
+   "hint": "Three passes: what is only in the new one, only in the old one, and for the common ones — a difference in values."
+  },
+  {
+   "id": "j2-event-loop-sim",
+   "title": "An event loop model",
+   "statement": "Write a function simulate(ops): ops is an array of the program's operations in order: { type: \"sync\" | \"nextTick\" | \"microtask\" | \"timeout\" | \"immediate\", label, delay? }. Return an array of labels in execution order by the Node.js rules: first all sync (in order of appearance); then the nextTick queue; then the microtask queue (after each of them nextTick again goes first, but for simplicity treat the queues as independent: all nextTick, then all microtask); then timers by ascending delay (for ties, in creation order; delay defaults to 0); then all immediate.",
+   "hint": "The output is a concatenation of queues: sync, nextTick, microtask, timeout (sorted), immediate."
+  }
+ ]
+}

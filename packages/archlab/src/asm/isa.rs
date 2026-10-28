@@ -47,21 +47,21 @@ const fn op(mnemonic: &'static str, opcode: u16, format: Format, meaning: &'stat
 
 /// Все команды.
 pub const OPS: [OpDef; 15] = [
-    op("hlt", 0x0, Format::None, "остановить процессор", "hlt"),
-    op("li", 0x1, Format::Li, "rd = число (0…255)", "li r1, 72"),
+    op("hlt", 0x0, Format::None, i18n::t!("halt the processor"), "hlt"),
+    op("li", 0x1, Format::Li, i18n::t!("rd = number (0…255)"), "li r1, 72"),
     op("add", 0x2, Format::R, "rd = rs + rt", "add r1, r2, r3"),
     op("sub", 0x3, Format::R, "rd = rs − rt", "sub r1, r2, r3"),
-    op("and", 0x4, Format::R, "rd = rs И rt (побитово)", "and r1, r2, r3"),
-    op("or", 0x5, Format::R, "rd = rs ИЛИ rt (побитово)", "or r1, r2, r3"),
-    op("xor", 0x6, Format::R, "rd = rs XOR rt (побитово)", "xor r1, r2, r3"),
-    op("addi", 0x7, Format::I, "rd = rs + число (−32…31)", "addi r1, r1, 1"),
-    op("lb", 0x8, Format::Mem, "rd = байт из памяти [rs + смещение]", "lb r1, 0(r2)"),
-    op("sb", 0x9, Format::Mem, "память [rs + смещение] = rd", "sb r1, 0(r2)"),
-    op("beq", 0xa, Format::Branch, "если ra = rb — перейти на метку", "beq r1, r2, конец"),
-    op("bne", 0xb, Format::Branch, "если ra ≠ rb — перейти на метку", "bne r1, r2, цикл"),
-    op("bltu", 0xc, Format::Branch, "если ra < rb (без знака) — перейти", "bltu r1, r2, дальше"),
-    op("bgeu", 0xd, Format::Branch, "если ra ≥ rb (без знака) — перейти", "bgeu r1, r2, дальше"),
-    op("jmp", 0xe, Format::Jump, "безусловный переход на метку", "jmp цикл"),
+    op("and", 0x4, Format::R, i18n::t!("rd = rs AND rt (bitwise)"), "and r1, r2, r3"),
+    op("or", 0x5, Format::R, i18n::t!("rd = rs OR rt (bitwise)"), "or r1, r2, r3"),
+    op("xor", 0x6, Format::R, i18n::t!("rd = rs XOR rt (bitwise)"), "xor r1, r2, r3"),
+    op("addi", 0x7, Format::I, i18n::t!("rd = rs + number (−32…31)"), "addi r1, r1, 1"),
+    op("lb", 0x8, Format::Mem, i18n::t!("rd = byte from memory [rs + offset]"), "lb r1, 0(r2)"),
+    op("sb", 0x9, Format::Mem, i18n::t!("memory [rs + offset] = rd"), "sb r1, 0(r2)"),
+    op("beq", 0xa, Format::Branch, i18n::t!("if ra = rb, jump to label"), i18n::t!("beq r1, r2, end")),
+    op("bne", 0xb, Format::Branch, i18n::t!("if ra ≠ rb, jump to label"), i18n::t!("bne r1, r2, loop")),
+    op("bltu", 0xc, Format::Branch, i18n::t!("if ra < rb (unsigned), jump"), i18n::t!("bltu r1, r2, next")),
+    op("bgeu", 0xd, Format::Branch, i18n::t!("if ra ≥ rb (unsigned), jump"), i18n::t!("bgeu r1, r2, next")),
+    op("jmp", 0xe, Format::Jump, i18n::t!("unconditional jump to label"), i18n::t!("jmp loop")),
 ];
 
 /// Псевдокоманда: сокращение, которое ассемблер сам заменяет настоящей.
@@ -78,11 +78,11 @@ pub const PSEUDO: [Pseudo; 9] = [
     Pseudo { name: "mv", example: "mv r1, r2", becomes: "addi r1, r2, 0" },
     Pseudo { name: "inc", example: "inc r1", becomes: "addi r1, r1, 1" },
     Pseudo { name: "dec", example: "dec r1", becomes: "addi r1, r1, -1" },
-    Pseudo { name: "beqz", example: "beqz r1, метка", becomes: "beq r1, r0, метка" },
-    Pseudo { name: "bnez", example: "bnez r1, метка", becomes: "bne r1, r0, метка" },
-    Pseudo { name: "bgtu", example: "bgtu r1, r2, метка", becomes: "bltu r2, r1, метка" },
-    Pseudo { name: "bleu", example: "bleu r1, r2, метка", becomes: "bgeu r2, r1, метка" },
-    Pseudo { name: "j", example: "j метка", becomes: "jmp метка" },
+    Pseudo { name: "beqz", example: i18n::t!("beqz r1, label"), becomes: i18n::t!("beq r1, r0, label") },
+    Pseudo { name: "bnez", example: i18n::t!("bnez r1, label"), becomes: i18n::t!("bne r1, r0, label") },
+    Pseudo { name: "bgtu", example: i18n::t!("bgtu r1, r2, label"), becomes: i18n::t!("bltu r2, r1, label") },
+    Pseudo { name: "bleu", example: i18n::t!("bleu r1, r2, label"), becomes: i18n::t!("bgeu r2, r1, label") },
+    Pseudo { name: "j", example: i18n::t!("j label"), becomes: i18n::t!("jmp label") },
 ];
 
 /// Команда по мнемонике.

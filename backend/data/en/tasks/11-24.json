@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 24,
+ "tasks": [
+  {
+   "id": "j16-dispatch",
+   "title": "The event path: capturing, target, bubbling",
+   "statement": "A node: { id, parent, listeners: [{ type, fn, capture, once, passive }] }. Write the function dispatch(target, event): event = { type, bubbles = true, cancelable = true }. First the path from the root to target; the capturing phase: listeners with capture === true on the ancestors (top to bottom); the target phase: all listeners of target (capture ones first, then the rest, in the order they were added); the bubbling phase (if bubbles): listeners without capture on the ancestors, bottom to top. Every fn is passed an object e: { type, target, currentTarget, eventPhase (1, 2, 3), defaultPrevented, preventDefault() (only if cancelable and the listener is not passive), stopPropagation(), stopImmediatePropagation() }. A once listener is removed before it is called. Returns true if preventDefault was not called.",
+   "hint": "Path = the ancestors from the root; three passes: capture on the ancestors, the target, bubble on the ancestors; check the stop flags after every handler."
+  },
+  {
+   "id": "j16-event-target",
+   "title": "Your own EventTarget",
+   "statement": "Write the class MyEventTarget: addEventListener(type, fn, options) (options is a boolean (capture) or { once, signal, capture }); the same triple (type, fn, capture) is not added twice; signal — on abort the listener is removed (if the signal is already aborted, it is not added); removeEventListener(type, fn, options); dispatchEvent(event) → true if not canceled (event.preventDefault() sets event.defaultPrevented = true for cancelable events): it calls a copy of the listener list taken at the start of dispatch; a listener removed during dispatch and not yet called is not called; fn can be a function or an object with handleEvent; event gets target and currentTarget. The capture flag does not affect the order (for a plain EventTarget all listeners are called in the order they were added).",
+   "hint": "A list of listeners; dispatch works with a copy, but checks before each call that the listener is still there."
+  },
+  {
+   "id": "j16-delegate",
+   "title": "Event delegation",
+   "statement": "Nodes are { tag, attrs, children, parent } (as in the DOM chapter). Write the function delegate(container, matcher, handler) → a function listener(event): event = { target }: it climbs from event.target up to container (not including container) and finds the nearest node that fits matcher (a function or a string: \"tag\", \".class\", \"[attribute]\"); if it found one and the node lies inside container, it calls handler(event, matchedNode) and returns true, otherwise false. A matching node is an element only (text nodes {type: \"text\"} are skipped while climbing).",
+   "hint": "Climb through parent up to the container (not including it), skipping text nodes."
+  },
+  {
+   "id": "j16-shortcut-parse",
+   "title": "Hotkeys: parsing and matching",
+   "statement": "Write the function parseShortcut(str) → { ctrl, shift, alt, meta, key } (key in lowercase; the case of modifiers and the spaces around \"+\" do not matter; \"Ctrl\", \"Control\", \"Cmd\"/\"Command\"/\"Meta\", \"Option\"/\"Alt\", \"Mod\" = meta on Mac and ctrl otherwise — see the isMac parameter of the second function) and matches(event, shortcut, isMac = false): event = { key, ctrlKey, shiftKey, altKey, metaKey }; a match requires the exact set of modifiers (extra pressed ones mean no match) and a case-insensitive match of key; for a shortcut with \"Mod\" it is meta when isMac, otherwise ctrl. An unknown construct (an empty key, two keys) throws an Error.",
+   "hint": "Split on \"+\"; Mod is a special modifier that is resolved at comparison time."
+  },
+  {
+   "id": "j16-key-sequences",
+   "title": "Multi-key combinations (chords)",
+   "statement": "Write the function createHotkeys(now, timeout = 1000): it returns an object { bind(sequence, fn), press(key) → boolean (true if the keypress is absorbed — the beginning or the whole of a sequence matched), reset() }. sequence is a string of keys separated by spaces (\"g i\", \"g g\", \"Escape\"); the gap between presses is at most timeout ms (now() is the clock); on a wrong key the sequence is reset, but that key may itself start a new one; if one sequence is the beginning of another, the shorter one would fire only after a pause of timeout — let us simplify: it fires at once on a full match; fn is called with the sequence.",
+   "hint": "A buffer of pressed keys; compare it with all bindings as prefixes; the timeout resets the buffer."
+  },
+  {
+   "id": "j16-debounce",
+   "title": "debounce with leading/trailing",
+   "statement": "You are given the factory FAKE() — virtual clocks {now, setTimeout, clearTimeout, advance}. Write the function debounce(fn, ms, { leading = false, trailing = true } = {}, timers): it returns a wrapper function; trailing — a call ms after the last invocation, with the arguments of the last one; leading — a call right away on the first invocation in a \"series\" (a series ends when ms have passed without invocations); if both leading and trailing are set, the trailing call happens only if there was more than one invocation in the series. The wrapper has the methods cancel() (cancel the pending call) and flush() (run the pending call immediately, if there is one). timers is an object with setTimeout/clearTimeout.",
+   "hint": "One timer: reset it on every call; leading is a call at the start of a series, trailing at the end."
+  },
+  {
+   "id": "j16-throttle",
+   "title": "throttle",
+   "statement": "Write the function throttle(fn, ms, { leading = true, trailing = true } = {}, timers): fn is called at most once per ms; leading — a call right away on the first invocation (if at least ms have passed since the previous call); trailing — the last \"skipped\" call runs at the end of the interval with the latest arguments. timers is { now, setTimeout, clearTimeout }. The method cancel() resets the state.",
+   "hint": "Track the time of the last call and one deferred \"trailing\" call."
+  },
+  {
+   "id": "j16-raf-throttle",
+   "title": "Processing at most once per frame",
+   "statement": "You are given a frame scheduler sched = { requestAnimationFrame(cb) → id, cancelAnimationFrame(id) }. Write the function rafThrottle(fn, sched): it returns a wrapper function that remembers the latest arguments and calls fn(...args) once in the nearest frame (if there were several invocations during a frame, a call with the latest arguments); wrapped.cancel() cancels the scheduled call. The return value of fn is not needed.",
+   "hint": "One scheduled frame; on every invocation update the latest arguments."
+  },
+  {
+   "id": "j16-drag-fsm",
+   "title": "Dragging as a state machine",
+   "statement": "Write the function createDrag({ threshold = 5, onStart, onMove, onDrop, onCancel }) → an object with the method handle(e), where e = { type: \"down\"|\"move\"|\"up\"|\"key\", x, y, key? }. States: idle → pressed (down) → dragging (a move with a distance from the down point ≥ threshold: onStart({x, y, startX, startY}) is called, then onMove({x, y, dx, dy}) for this and the following moves); up in pressed — just back to idle (a click, no callbacks); up in dragging — onDrop({x, y}) and idle; key = \"Escape\" in pressed/dragging — onCancel() (in dragging) and idle. The method state returns the name of the state. move/up/key in idle are ignored.",
+   "hint": "Keep the state and the press point in a closure; the distance threshold is Math.hypot."
+  },
+  {
+   "id": "j16-swipe",
+   "title": "Recognizing a swipe",
+   "statement": "Write the function detectSwipe(points, { minDistance = 50, maxTime = 600, maxOffAxis = 0.5 }): points is an array of { x, y, t } of one touch (ordered by time); it returns { direction: \"left\"|\"right\"|\"up\"|\"down\", distance, duration, velocity (px/ms, 3 decimals) } or null: the distance between the first and last points ≥ minDistance, the time ≤ maxTime, and the shift along the secondary axis is at most maxOffAxis of the shift along the main one (otherwise it is a diagonal, not a swipe). For fewer than two points, null.",
+   "hint": "The main axis is the one with the larger shift; the secondary one is at most a fraction of the main."
+  },
+  {
+   "id": "j16-long-press",
+   "title": "Long press",
+   "statement": "Write the function createLongPress({ delay = 500, tolerance = 10, onLongPress, onTap }, timers): timers = { setTimeout, clearTimeout }. It returns an object { down(x, y), move(x, y), up() }: down starts a timer for delay; a move farther than tolerance (Euclidean distance from the down point) cancels the gesture (neither onLongPress nor onTap); when the timer fires — onLongPress({x, y}) once; up before it fires — onTap({x, y}); up after it fired calls nothing; a repeated down during the gesture is ignored.",
+   "hint": "States: idle, pressed, fired, cancelled; the timer starts on down."
+  },
+  {
+   "id": "j16-double-click",
+   "title": "Single and double click",
+   "statement": "Write the function createClickClassifier({ interval = 300, distance = 10, onSingle, onDouble }, timers): click(x, y) registers a click: if the previous click was no farther than distance away and no earlier than interval ms ago, onDouble({x, y}) (the point of the second click) is called instead of a single one and the gesture is finished (a third click starts a new one); otherwise (the second click is far away or there was no first one) the pending previous click, if there is one, is issued immediately as onSingle(its point), and the current one starts waiting for interval ms: if there was no second click during that time, onSingle({x, y}) is called. A single click is delayed, not immediate. timers = { setTimeout, clearTimeout }.",
+   "hint": "Keep one \"pending\" click with a timer; a second click nearby cancels the timer and gives a double."
+  },
+  {
+   "id": "j16-pinch",
+   "title": "Pinch: scale and center",
+   "statement": "Two pointers are given by their positions { x, y }. Write the class PinchTracker: pointerDown(id, x, y), pointerMove(id, x, y), pointerUp(id); while exactly two pointers are down, the method state() returns { scale, cx, cy, rotation } relative to the moment the second one went down: scale = current distance / initial distance (3 decimals), the center is the midpoint between the pointers (cx, cy), rotation is the change of angle in degrees (−180…180, 1 decimal); with any other number of pointers state() = null; releasing one resets the base (the next press starts a new gesture).",
+   "hint": "The base is the distance and angle at the moment of the second press; compare the current values with the base."
+  },
+  {
+   "id": "j16-hit-test",
+   "title": "Hit testing: which element is under the cursor",
+   "statement": "Elements: { id, x, y, w, h, z = 0, pointerEvents = \"auto\"|\"none\", parent? (the parent's id), clip? (true — clips its descendants to its own borders) }. Write the function hitTest(elements, px, py): it returns an array of ids from the topmost element to the bottom one (by z-index, with ties the later one in the list is higher) that contain the point (the borders are included on the left/top and excluded on the right/bottom), skipping pointerEvents = none; a descendant is clipped if some ancestor has clip = true and the point is outside that ancestor. The first element of the result is the target; for an empty intersection, [].",
+   "hint": "Filters: contains the point, not pointer-events: none, not clipped by an ancestor; sort by z and by order."
+  },
+  {
+   "id": "j16-pointer-capture",
+   "title": "Pointer capture",
+   "statement": "Write the function createPointerRouter(hit): hit(x, y) → the id of the topmost element under the point, or null (the function is passed in from outside). It returns an object: setCapture(pointerId, elementId), releaseCapture(pointerId), route(pointerId, type, x, y) → the id of the event's receiver: if the pointer has a capture — the capturing element (regardless of position); otherwise — hit(x, y); on the \"pointerup\" and \"pointercancel\" events the capture is released automatically after delivery; the state is kept per pointerId separately for each pointer; a receiver of null means the event goes to nobody. The method captured(pointerId) → an id or null.",
+   "hint": "A Map \"pointerId → element\"; on up and cancel the capture is released after the receiver is determined."
+  },
+  {
+   "id": "j16-coords",
+   "title": "Event coordinates",
+   "statement": "An element: { left, top, width, height } (in window coordinates — getBoundingClientRect), scroll = { x, y } is the document scroll, scale is the element's scale factor (CSS transform: scale). Write the functions pageToClient(p, scroll) / clientToPage(p, scroll), clientToElement(p, rect, scale = 1) → { x, y } in local coordinates (without scale: divided by scale; for an element with transform-origin: top left), and relative(p, rect) → { rx, ry } as fractions 0–1 of the size (clamped to the range 0–1) — for sliders: rx is the fraction from left to right.",
+   "hint": "Simple arithmetic; for scale, divide by scale."
+  },
+  {
+   "id": "j16-hover-enter-leave",
+   "title": "mouseenter and mouseleave from movements",
+   "statement": "The elements form a tree with parent links. Write the function hoverEvents(prev, next): prev and next are the nodes under the cursor before and after the movement (or null). It returns an array of events in the order they are sent: first mouseout for prev (it bubbles) and mouseleave for every node the cursor has left (from the innermost to the outermost; they do not bubble), then mouseover for next and mouseenter for every node entered (from the outermost to the innermost). Format: \"type:id\". If prev === next, empty. The common ancestor of prev and next stays \"hovered\" (no events for it).",
+   "hint": "The ancestor chains of prev and next; drop the shared nodes; order: leave from inside out, enter from outside in."
+  },
+  {
+   "id": "j16-focus-trap",
+   "title": "A focus trap in a modal window",
+   "statement": "The focusable elements are given as an array of ids in Tab order inside the modal window; focus is the current id or null (focus is outside). Write the function trapFocus(items, focus, shiftKey) → the id that gets focus when Tab is pressed (shiftKey means Shift+Tab): wrapping around inside the window; if focus is outside (null or an id not in the list) — the first element (the last with Shift); if the list is empty — null. And the function restoreFocus(stack) → the id where focus should return when the top window closes: stack is an array of the ids of elements that had focus at the moment the windows were opened (the last one is for the top window); it returns the last one and removes it from the array (it mutates stack), or null.",
+   "hint": "An index that wraps around; for focus outside, the first or the last."
+  },
+  {
+   "id": "j16-listbox-nav",
+   "title": "Keyboard navigation in a list",
+   "statement": "Write the function listboxKey(state, key): state = { items: [strings], active: an index or -1, typed: \"\", typedAt: 0 } (the time now in ms is passed as the third argument). Keys: ArrowDown/ArrowUp (no wrap-around — they stop at the bounds; from -1 ArrowDown gives 0 and ArrowUp gives the last), Home, End, and a single printable character — \"type-ahead search\": if less than 500 ms have passed since the last character, the characters are joined into a search string, otherwise a new one starts; the active item becomes the first one (starting at active + 1, wrapping around, if one character was typed; for a string of several — starting from the current one) whose beginning matches, ignoring case; if none is found, active does not change. It returns the new state (the original is not changed): { ...state, active, typed, typedAt }.",
+   "hint": "Type-ahead search: accumulate the string if the pause is under 500 ms; search with wrap-around from the right position."
+  },
+  {
+   "id": "j16-click-outside",
+   "title": "A click outside a component",
+   "statement": "Write the function createOutsideClick(isInside, onOutside): isInside(node) → boolean says whether the node is inside the component. It returns { pointerDown(event), pointerUp(event), click(event) } (event = { target, composedPath? [nodes] }): a click counts as outside when both the press and the release were outside the component (so that a mouse selection that started inside and ended outside does not close the window); with composedPath any node of the path is checked (Shadow DOM), otherwise target. If stopPropagation was called inside for the same click (event.cancelBubble === true at the time of click), closing still happens — but it does not happen if event.defaultPrevented. onOutside(event) is called from click.",
+   "hint": "Remember where the press and the release were; click compares both and resets the flags."
+  },
+  {
+   "id": "j16-event-bus",
+   "title": "An event bus with wildcards",
+   "statement": "Write the function createBus(): it returns { on(pattern, fn) → off, once(pattern, fn), emit(topic, payload) → the number of handlers called, off(pattern, fn), clear() }. Topics are \"user.login\", \"cart.item.added\"; pattern: an exact topic, \"user.*\" (one part in place of the asterisk), \"user.**\" (one or more parts), \"**\" (any). Handlers are called in subscription order; fn(payload, topic); an exception in one does not prevent the others and is collected: after all the calls, emit throws an AggregateError with the errors (if there were any).",
+   "hint": "Turn the pattern into a regular expression: * is one part, ** is one or more; collect errors in an array."
+  },
+  {
+   "id": "j16-wheel",
+   "title": "Normalizing the mouse wheel",
+   "statement": "The wheel event has deltaMode: 0 — pixels, 1 — lines, 2 — pages. Write the function normalizeWheel(e, { lineHeight = 16, pageHeight = 800 }): e = { deltaX, deltaY, deltaMode, shiftKey? } → { x, y } in pixels; if shiftKey and deltaX = 0, vertical scrolling is turned into horizontal (x = the converted y, y = 0). And the function accumulate(events, threshold): trackpad scrolling gives small values; accumulate collects deltaY (after normalization) and returns an array of steps: each time the accumulated value reaches threshold (in absolute value) it emits a step of ±1 and subtracts threshold (the remainder is kept).",
+   "hint": "deltaMode gives the multiplier in pixels; accumulation keeps the remainder after subtracting a step."
+  },
+  {
+   "id": "j16-key-repeat",
+   "title": "Key auto-repeat",
+   "statement": "A stream of keyboard events: { type: \"down\"|\"up\", code, t }. When a key is held, the browser sends repeated keydown events (repeat: true) without keyup. Write the function processKeys(events): it returns { actions: [\"code:down\"/\"code:up\" only for the first presses and releases], repeats: the number of suppressed repeats, held: a sorted array of the codes still pressed at the end }. A repeated down of the same key without an up counts as a repeat; an up without a preceding down is ignored (it does not go into actions).",
+   "hint": "A set of pressed keys: a down for an already pressed key is a repeat."
+  },
+  {
+   "id": "j16-composition",
+   "title": "Input through an IME",
+   "statement": "Write the function createInputProcessor(onCommit): the method handle(e), where e = { type: \"compositionstart\"|\"compositionupdate\"|\"compositionend\"|\"input\"|\"keydown\", data?, key? }. While a composition is in progress, input and keydown events are not handled as text input (they are ignored), and at compositionend the final text data is committed: onCommit(data) once; outside a composition, input with data commits data, keydown with a key of length 1 (without modifiers) commits key, Enter commits \"\\n\". The method state() is { composing, preedit } (preedit is the last data from compositionupdate; empty outside a composition). A compositionend followed immediately by an input with the same data (as in some browsers) must not commit twice.",
+   "hint": "A composing flag and the \"last committed\" text to suppress the duplicate input after compositionend."
+  },
+  {
+   "id": "j16-phone-mask",
+   "title": "A phone input mask",
+   "statement": "Write the function formatPhone(raw): digits are taken from any characters entered; a leading \"8\" or \"7\" is replaced by \"7\" (a Russian number); the result is \"+7 (999) 123-45-67\" as the user types: \"+7\", \"+7 (9\", \"+7 (999\", \"+7 (999) 1\", …, \"+7 (999) 123-45-67\"; extra digits after the 11th are dropped; empty input gives an empty string. And the function nextCaret(formatted, digitsBefore) → the caret index in the formatted string after the given number of digits (to recompute the position when editing).",
+   "hint": "Keep the digits, remove the leading 7/8, then add separators according to the length."
+  },
+  {
+   "id": "j16-disposables",
+   "title": "Component subscriptions and removing them",
+   "statement": "Write the class Disposables: add(fn) (registers a cleanup function; returns that same function), listen(target, type, handler, options) (target.addEventListener and registration of the removal through removeEventListener with the same options), interval(fn, ms, timers) (setInterval through timers = { setInterval, clearInterval }; the removal is clearInterval), and dispose() — calls all the cleanups in reverse order, once (a repeated dispose does nothing); an error in one cleanup does not prevent the others and is collected: after all of them an AggregateError is thrown. The property size is the number of registered cleanups.",
+   "hint": "An array of cleanup functions; dispose goes from the end and collects the exceptions."
+  },
+  {
+   "id": "j16-recorder",
+   "title": "Recording and replaying events",
+   "statement": "Write the function createRecorder(now): it returns { record(event), stop() → an array of records { event, dt (ms since the start of the recording) }, } and the function replay(log, dispatch, timers, speed = 1): it schedules a call dispatch(event) through setTimeout at the moments dt / speed (timers = { setTimeout }); it returns a function cancel() that cancels the ones not yet run. record before the start is ignored: recording goes between the first record (moment 0) and stop; after stop, record is ignored.",
+   "hint": "dt is counted from the first record; replay sets timers dividing by the speed."
+  },
+  {
+   "id": "j16-tap-vs-scroll",
+   "title": "A touch: tap, scroll or hold",
+   "statement": "Write the function classifyTouch(points, { tapMaxMove = 10, tapMaxTime = 300 }): points is an array of { x, y, t } of one touch (the first is touchstart, the last is touchend). The result: \"tap\" (the movement from the start point is at most tapMaxMove during the whole touch and the total time ≤ tapMaxTime), \"long-press\" (small movement, time greater than tapMaxTime), \"scroll-v\" (the maximum vertical displacement is greater than tapMaxMove and greater in absolute value than the horizontal one), \"scroll-h\" (likewise for horizontal). For a single point, \"tap\".",
+   "hint": "The maximum deviation from the start point over the whole touch, then the time."
+  },
+  {
+   "id": "j16-activate",
+   "title": "Keyboard activation of a \"button\"",
+   "statement": "An element with role=\"button\" must behave like a <button>: Enter triggers the action on keydown (and repeats while held, if repeat), Space on keyup (and only if the Space keydown was on this same element), and on the Space keydown the page scroll must be canceled (preventDefault). Write the function createButtonKeys(activate): it returns { keydown(e), keyup(e) } with e = { key, repeat?, preventDefault() }; activate() is called as for a real button; Space does not activate while held (consecutive keydown events); losing focus — the method blur() resets the pending Space. Other keys are ignored (preventDefault is not called).",
+   "hint": "The \"space is down\" flag is set on keydown and cleared on keyup/blur."
+  },
+  {
+   "id": "j16-drag-sort",
+   "title": "Sorting by dragging",
+   "statement": "The list items are stacked in a column, the height of each is heights[i]. Write the function dropIndex(heights, from, y): the index where the dragged element from will land if it is released with its center at the point y (measured from the top of the list, while the element is taken out of the list): the positions of the centers of the remaining elements are computed; the element is placed before the first element whose center is below y, otherwise at the end. And reorder(items, from, to) → a new array with the element moved to position to (an index in the resulting list); the original is not changed.",
+   "hint": "Take the dragged element out of the calculation and look for the first center below y."
+  }
+ ]
+}

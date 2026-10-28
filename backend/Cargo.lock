@@ -119,6 +119,7 @@ dependencies = [
 name = "archlab"
 version = "0.1.0"
 dependencies = [
+ "i18n",
  "serde",
  "serde_json",
 ]
@@ -869,6 +870,42 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453"
 dependencies = [
  "hybrid-array",
+]
+
+[[package]]
+name = "cs-core-backend"
+version = "0.1.0"
+dependencies = [
+ "admin_api",
+ "anyhow",
+ "archlab",
+ "auth",
+ "auth_api",
+ "axum",
+ "chrono",
+ "content",
+ "dotenvy",
+ "http-body-util",
+ "i18n",
+ "mail",
+ "netlab",
+ "observability",
+ "rand 0.10.3",
+ "riscvlab",
+ "rusqlite",
+ "sdlab",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "surrealdb",
+ "system_tasks",
+ "tokio",
+ "tower",
+ "tower-http 0.7.1",
+ "tracing",
+ "uuid",
+ "virtlab",
+ "weblab",
 ]
 
 [[package]]
@@ -2119,6 +2156,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "i18n"
+version = "0.1.0"
+
+[[package]]
 name = "i_float"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2841,6 +2882,7 @@ dependencies = [
 name = "netlab"
 version = "0.1.0"
 dependencies = [
+ "i18n",
  "serde",
  "serde_json",
 ]
@@ -3979,6 +4021,7 @@ dependencies = [
 name = "riscvlab"
 version = "0.1.0"
 dependencies = [
+ "i18n",
  "serde",
  "serde_json",
 ]
@@ -4319,41 +4362,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "say-backend"
-version = "0.1.0"
-dependencies = [
- "admin_api",
- "anyhow",
- "archlab",
- "auth",
- "auth_api",
- "axum",
- "chrono",
- "content",
- "dotenvy",
- "http-body-util",
- "mail",
- "netlab",
- "observability",
- "rand 0.10.3",
- "riscvlab",
- "rusqlite",
- "sdlab",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "surrealdb",
- "system_tasks",
- "tokio",
- "tower",
- "tower-http 0.7.1",
- "tracing",
- "uuid",
- "virtlab",
- "weblab",
-]
-
-[[package]]
 name = "schannel"
 version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4398,6 +4406,7 @@ dependencies = [
 name = "sdlab"
 version = "0.1.0"
 dependencies = [
+ "i18n",
  "serde",
  "serde_json",
 ]
@@ -6232,6 +6241,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "virtlab"
 version = "0.1.0"
 dependencies = [
+ "i18n",
  "serde",
  "serde_json",
 ]
@@ -6421,6 +6431,7 @@ name = "weblab"
 version = "0.1.0"
 dependencies = [
  "ego-tree",
+ "i18n",
  "scraper",
  "serde",
  "serde_json",

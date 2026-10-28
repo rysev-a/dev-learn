@@ -174,8 +174,8 @@ fn label(el: &scraper::ElementRef) -> String {
 pub fn check_selector(task: &Task, answer: &str) -> Vec<Item> {
     let mut items = Vec::new();
     let answer = answer.trim();
-    let parsed = if answer.is_empty() { Err("селектор не написан".to_string()) } else { selector(answer) };
-    items.push(Item { text: "Селектор записан верно".into(), ok: parsed.is_ok(), detail: parsed.as_ref().err().cloned().unwrap_or_default() });
+    let parsed = if answer.is_empty() { Err(i18n::tr("selector not written").to_string()) } else { selector(answer) };
+    items.push(Item { text: i18n::tr("The selector is written correctly").into(), ok: parsed.is_ok(), detail: parsed.as_ref().err().cloned().unwrap_or_default() });
     let Ok(sel) = parsed else { return items };
     let doc = Doc::parse(&task.html);
     let got: Vec<scraper::ElementRef> = doc.html.select(&sel).collect();
@@ -184,20 +184,20 @@ pub fn check_selector(task: &Task, answer: &str) -> Vec<Item> {
     let missing: Vec<&String> = want.difference(&got_ids).collect();
     let extra: Vec<&String> = got_ids.difference(&want).collect();
     let detail = [
-        (!missing.is_empty()).then(|| format!("не выбраны: {}", missing.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "))),
-        (!extra.is_empty()).then(|| format!("лишние: {}", extra.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "))),
+        (!missing.is_empty()).then(|| i18n::trf!("not selected: {0}", missing.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "))),
+        (!extra.is_empty()).then(|| i18n::trf!("extra: {0}", extra.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "))),
     ]
     .into_iter()
     .flatten()
     .collect::<Vec<_>>()
     .join("; ");
-    items.push(Item { text: format!("Выбирает ровно {}", want.iter().cloned().collect::<Vec<_>>().join(", ")), ok: missing.is_empty() && extra.is_empty(), detail });
+    items.push(Item { text: i18n::trf!("Selects exactly {0}", want.iter().cloned().collect::<Vec<_>>().join(", ")), ok: missing.is_empty() && extra.is_empty(), detail });
     if let Some(max) = task.max_specificity {
         let sp = specificity(answer);
         items.push(Item {
-            text: format!("Специфичность не выше ({}, {}, {})", max[0], max[1], max[2]),
+            text: i18n::trf!("Specificity no higher than ({0}, {1}, {2})", max[0], max[1], max[2]),
             ok: sp <= max,
-            detail: format!("у вашего селектора ({}, {}, {})", sp[0], sp[1], sp[2]),
+            detail: i18n::trf!("your selector has ({0}, {1}, {2})", sp[0], sp[1], sp[2]),
         });
     }
     items

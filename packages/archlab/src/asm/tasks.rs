@@ -29,15 +29,15 @@ pub fn compare(mem: &[u8], expected: &[u8]) -> CheckResult {
     let at = |s: &[u8], i: usize| s.get(i).copied().unwrap_or(0);
     let diffs: Vec<usize> = (0..MEM_SIZE).filter(|i| mem.get(*i) != expected.get(*i)).collect();
     let Some(&first) = diffs.first() else {
-        return CheckResult { ok: true, message: "Диск совпал с ожидаемым — задание выполнено!".into() };
+        return CheckResult { ok: true, message: i18n::tr("Disk matches the expected contents — exercise complete!").into() };
     };
     let more = if diffs.len() > 1 {
-        format!(" (и ещё {} {})", diffs.len() - 1, if diffs.len() == 2 { "байт" } else { "байт(а)" })
+        i18n::trf!(" (and {0} more {1})", diffs.len() - 1, if diffs.len() == 2 { i18n::tr("byte") } else { i18n::tr("bytes") })
     } else {
         String::new()
     };
     CheckResult {
         ok: false,
-        message: format!("Адрес {}: ожидалось {}, а лежит {}{more}", hex(first as u8), show(at(expected, first)), show(at(mem, first))),
+        message: i18n::trf!("Address {0}: expected {1}, found {2}{3}", hex(first as u8), show(at(expected, first)), show(at(mem, first)), more),
     }
 }

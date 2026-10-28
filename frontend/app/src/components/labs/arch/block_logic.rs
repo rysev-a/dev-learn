@@ -134,7 +134,7 @@ pub fn layout_boxes(
         let empty: &[BlockPort] = &[];
         layouts.push(layout_box(
             &inst.id,
-            def.map_or("Неизвестный блок", |d| d.title.as_str()),
+            def.map_or(i18n::tr("Unknown block"), |d| d.title.as_str()),
             def.map_or(empty, |d| d.iface.ports.as_slice()),
             expanded,
             (x, y, BLOCK_W),
@@ -262,6 +262,7 @@ mod tests {
 
     #[test]
     fn layout_has_two_side_columns_and_one_box_per_block() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let lib = BlockLibrary::builtin();
         let boxes = layout_boxes(&iface(), &lib, &[inst("i1", "adapter-w2a", 200.0, 20.0)], &HashSet::new(), &HashMap::new(), BLOCKS_BOARD_W, 1.0);
         assert_eq!(boxes.len(), 3);
@@ -275,6 +276,7 @@ mod tests {
 
     #[test]
     fn expanding_a_port_adds_its_fields_and_pins_resolve_to_the_nearest_visible_row() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let lib = BlockLibrary::builtin();
         let ins = [inst("i1", "adapter-w2a", 200.0, 20.0)];
         let closed = layout_boxes(&iface(), &lib, &ins, &HashSet::new(), &HashMap::new(), BLOCKS_BOARD_W, 1.0);
@@ -293,6 +295,7 @@ mod tests {
 
     #[test]
     fn moved_blocks_keep_the_screen_position() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let lib = BlockLibrary::builtin();
         let ins = [inst("i1", "adapter-w2a", 200.0, 20.0)];
         let moved = HashMap::from([("i1".to_string(), Point::new(333.0, 77.0))]);
@@ -302,6 +305,7 @@ mod tests {
 
     #[test]
     fn collapsing_a_row_closes_its_nested_fields_only() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut set: HashSet<String> = ["n|p|", "n|p|op", "n|p|op.x", "n|q|"].iter().map(|s| s.to_string()).collect();
         toggle_expanded(&mut set, "n|p|op");
         assert!(set.contains("n|p|") && set.contains("n|q|"));
@@ -312,6 +316,7 @@ mod tests {
 
     #[test]
     fn box_kinds_survive_the_round_trip_through_a_tag() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for kind in [BoxKind::TopIn, BoxKind::TopOut, BoxKind::Block] {
             assert_eq!(kind_of(kind_tag(kind)), kind);
         }
@@ -319,6 +324,7 @@ mod tests {
 
     #[test]
     fn bus_ids_skip_taken_ones() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let w = |id: &str| BusWire { id: id.into(), from: BusEnd::new("a", "b", ""), to: BusEnd::new("c", "d", "") };
         assert_eq!(next_bus_id(&[]), "b1");
         assert_eq!(next_bus_id(&[w("b2")]), "b3");
@@ -326,6 +332,7 @@ mod tests {
 
     #[test]
     fn joining_is_checked_in_either_order_and_types_must_match() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let lib = BlockLibrary::builtin();
         let ins = [inst("i1", "adapter-w2a", 200.0, 20.0)];
         let iface = iface();
@@ -345,6 +352,7 @@ mod tests {
 
     #[test]
     fn spread_grows_the_board_with_the_blocks() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let ins = [inst("i1", "x", 200.0, 20.0), inst("i2", "x", 600.0, 400.0)];
         assert_eq!(board_size(&ins, 1.0, 560.0), (BLOCKS_BOARD_W, 560.0));
         let (w, h) = board_size(&ins, 1.7, 560.0);
@@ -355,6 +363,7 @@ mod tests {
 
     #[test]
     fn wire_class_follows_the_width() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(wire_class(&[Some(1)], 1), "v1");
         assert_eq!(wire_class(&[Some(0)], 1), "v0");
         assert_eq!(wire_class(&[None], 1), "vx");

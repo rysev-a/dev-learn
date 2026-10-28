@@ -106,9 +106,9 @@ pub struct LabChapter {
 impl LabChapter {
     /// Разобрать файл данных.
     pub fn from_json(s: &str) -> Result<LabChapter, String> {
-        let c: LabChapter = serde_json::from_str(s).map_err(|e| format!("файл главы: {e}"))?;
+        let c: LabChapter = serde_json::from_str(s).map_err(|e| i18n::trf!("chapter file: {0}", e))?;
         if c.lab != "net" {
-            return Err(format!("файл главы: ожидалась лаборатория «net», а не «{}»", c.lab));
+            return Err(i18n::trf!("chapter file: expected the “net” lab, not “{0}”", c.lab));
         }
         Ok(c)
     }
@@ -205,12 +205,12 @@ pub fn check_integrity(spec: &NetSpec, sub: &NetState) -> Result<(), String> {
     sub.validate()?;
     let start = &spec.start;
     if sub.devices.len() != start.devices.len() {
-        return Err("набор устройств не совпадает с упражнением".into());
+        return Err(i18n::tr("the set of devices does not match the exercise").into());
     }
     for d0 in start.devices.iter() {
-        let Some(d) = sub.devices.get(&d0.id) else { return Err(format!("нет устройства «{}»", d0.id)) };
+        let Some(d) = sub.devices.get(&d0.id) else { return Err(i18n::trf!("no device “{0}”", d0.id)) };
         if d.kind != d0.kind || d.name != d0.name {
-            return Err(format!("устройство «{}» подменено", d0.id));
+            return Err(i18n::trf!("device “{0}” was tampered with", d0.id));
         }
         if d0.locked {
             let mut same = d.clone();
@@ -219,21 +219,21 @@ pub fn check_integrity(spec: &NetSpec, sub: &NetState) -> Result<(), String> {
             // знание хоста об SSH-ключах — состояние клиента, а не настройка
             same.known_hosts = d0.known_hosts.clone();
             if same != *d0 {
-                return Err(format!("устройство «{}» закрыто для настройки, а его изменили", d0.name));
+                return Err(i18n::trf!("device “{0}” is locked for configuration, but it was changed", d0.name));
             }
         }
     }
     if sub.pki != start.pki {
-        return Err("инфраструктура ключей изменена".into());
+        return Err(i18n::tr("the key infrastructure was changed").into());
     }
     let same_links = sub.links.len() == start.links.len() && start.links.iter().all(|l| sub.links.contains(l));
     if !same_links {
         if !spec.tools.cable {
-            return Err("в этом упражнении кабели менять нельзя".into());
+            return Err(i18n::tr("cables cannot be changed in this exercise").into());
         }
         for l in &sub.links {
             if !start.links.contains(l) && !default_cable(l) {
-                return Err("кабель с необычными свойствами".into());
+                return Err(i18n::tr("a cable with unusual properties").into());
             }
         }
     }

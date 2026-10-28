@@ -58,9 +58,9 @@ pub fn SlidePanel(
         view! {
             <span class="slide-panel-num">{move || format!("{:02} / {count:02}", idx.get() + 1)}</span>
             <span class="s-time-mono">{move || { let (t, d) = time.get(); format!("{} / {}", fmt_time(t), fmt_time(d)) }}</span>
-            <button class="slide-btn" on:click=move |_| if playing.get() { on_pause.run(()) } else { on_play.run(()) } title=move || if playing.get() { "Пауза" } else { "Играть" }>
+            <button class="slide-btn" on:click=move |_| if playing.get() { on_pause.run(()) } else { on_play.run(()) } title=move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }>
                 {move || if playing.get() { pause_icon().into_any() } else { play_icon().into_any() }}
-                <span>{move || if playing.get() { "Пауза" } else { "Играть" }}</span>
+                <span>{move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }}</span>
             </button>
         }
     };
@@ -90,7 +90,7 @@ pub fn SlidePanel(
         .into_any();
     }
     let dots = (0..count)
-        .map(|i| view! { <button class="slide-dot" class:on=move || idx.get() == i on:click=move |_| on_pick.run(i) title=format!("Слайд {}", i + 1)></button> })
+        .map(|i| view! { <button class="slide-dot" class:on=move || idx.get() == i on:click=move |_| on_pick.run(i) title=i18n::trf!("Slide {}", i + 1)></button> })
         .collect_view();
     view! {
         <aside class="slide-panel">

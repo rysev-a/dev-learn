@@ -181,9 +181,9 @@ test("сервер: решение с закрытым составным эле
 
 /* ——— доска из вентилей: руками ——— */
 
-/** Автосвязывание выключено (настройка `say-autowire-lab`): провода ставятся только руками. */
+/** Автосвязывание выключено (настройка `cs-core-autowire-lab`): провода ставятся только руками. */
 async function noAutowire(page: Page) {
-  await page.addInitScript(() => window.localStorage.setItem("say-autowire-lab", "0"));
+  await page.addInitScript(() => window.localStorage.setItem("cs-core-autowire-lab", "0"));
 }
 
 /** Протяжка провода от контакта к контакту. */
@@ -328,7 +328,7 @@ test("доска: автопроводка предлагает связи пу�
   await expect(page.locator(".wire-auto")).toHaveCount(0);
 
   // выключаем автосвязывание в настройках → элемент встаёт без проводов
-  await page.evaluate(() => window.localStorage.setItem("say-autowire-lab", "0"));
+  await page.evaluate(() => window.localStorage.setItem("cs-core-autowire-lab", "0"));
   await openTask(page, request, 6, "and");
   await page.getByRole("button", { name: "Добавить элемент AND, И" }).click();
   const from2 = await centerOf(page.getByRole("button", { name: "Добавить элемент AND, И" }));

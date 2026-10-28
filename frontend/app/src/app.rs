@@ -27,6 +27,7 @@ use crate::{
 
 #[component]
 pub fn App() -> impl IntoView {
+    settings::init_locale();
     let theme = RwSignal::new(settings::read_theme());
     settings::apply_theme(theme.get_untracked());
     let session = provide_session();
@@ -47,7 +48,7 @@ fn Gate(theme: RwSignal<Theme>) -> impl IntoView {
     view! {
         {move || {
             if !session.checked.get() {
-                view! { <div class="boot">"Загрузка…"</div> }.into_any()
+                view! { <div class="boot">{i18n::tr("Loading…")}</div> }.into_any()
             } else if session.identity.get().is_none() {
                 view! { <AuthPage theme=theme /> }.into_any()
             } else {
@@ -70,7 +71,7 @@ fn Shell(theme: RwSignal<Theme>) -> impl IntoView {
                         <Topbar theme=theme />
                         <div class="layout">
                             <Aside books=list />
-                            <Routes fallback=|| view! { <main class="content"><p class="empty">"Страница не найдена"</p></main> }>
+                            <Routes fallback=|| view! { <main class="content"><p class="empty">{i18n::tr("Page not found")}</p></main> }>
                                 <Route path=path!("") view=move || view! { <Home books=list /> } />
                                 <Route path=path!("settings") view=move || view! { <SettingsPage theme=theme /> } />
                                 <ParentRoute path=path!("book/:book") view=move || view! { <BookLayout books=list /> }>
@@ -87,9 +88,9 @@ fn Shell(theme: RwSignal<Theme>) -> impl IntoView {
                 }
                 .into_any()
             } else {
-                view! { <div class="boot">"Загрузка…"</div> }.into_any()
+                view! { <div class="boot">{i18n::tr("Loading…")}</div> }.into_any()
             }
         }}
-        {move || matches!(books.get(), Load::Failed(_)).then(|| view! { <p class="error">"Не удалось загрузить разделы"</p> })}
+        {move || matches!(books.get(), Load::Failed(_)).then(|| view! { <p class="error">{i18n::tr("Could not load the sections")}</p> })}
     }
 }

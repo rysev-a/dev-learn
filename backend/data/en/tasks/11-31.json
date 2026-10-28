@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 31,
+ "tasks": [
+  {
+   "id": "j23-permissions",
+   "title": "Permission model",
+   "statement": "Write isAllowed(perms, kind, target). perms = { allow: { read, write, net, env }, deny: { … } }, where each value is true (everything) or an array of entries. If target matches deny[kind], return false. Otherwise return true if allow[kind] === true or target matches an entry of allow[kind]; otherwise false. Matching rules: for read/write, the entry «/data» matches «/data» and «/data/…» (but not «/database»), and a trailing «/» in an entry is ignored; for net, the entry «host» matches «host» and «host:port», and the entry «host:port» matches only the exact «host:port»; for env, an exact name match.",
+   "hint": "A function matches(kind, entry, target) and the order of checks: deny first, then allow."
+  },
+  {
+   "id": "j23-perm-flags",
+   "title": "Parsing permission flags",
+   "statement": "Write parsePermissionFlags(args), where args is an array of command-line strings. Recognize the flags --allow-KIND and --deny-KIND (KIND: read, write, net, env, run), with an optional value «=a,b» (a comma-separated list). Without a value it means true (everything). The result is { allowAll, allow: {…}, deny: {…} }: allowAll is true if --allow-all or -A appeared; allow/deny contain only the kinds that were mentioned (in order of first mention). Repeats are merged into one array; if the flag appeared without a value at least once, the value is true. Other arguments are ignored.",
+   "hint": "Regex /^--(allow|deny)-(read|write|net|env|run)(?:=(.*))?$/; when merging, take true into account."
+  },
+  {
+   "id": "j23-runner",
+   "title": "Mini test runner",
+   "statement": "Write createRunner(): it returns { test, beforeEach, afterEach, run }. test(name, fn, { timeout = 100 } = {}) registers a test; beforeEach/afterEach(fn) are hooks for all tests. run() (async) executes the tests strictly one after another in registration order and returns an array of { name, status, error? }: the beforeEach hooks are called before a test, and afterEach after it (even if the test failed). status is 'pass', 'fail' (fn or a hook threw an exception or rejected a promise; error is the message) or 'timeout' (fn did not finish within timeout ms; error is 'timeout').",
+   "hint": "Promise.race between the call to fn and a timer; don't forget to clear the timer."
+  },
+  {
+   "id": "j23-describe",
+   "title": "describe and it",
+   "statement": "Write collectTests(build), where build is a function (describe, it) => … that describes tests. describe(name, fn) calls fn immediately and nests the names; it(name, fn) registers a test. collectTests returns an array of full names in registration order, with parts joined by « › » (space, arrow, space). A test outside any describe has just its own name.",
+   "hint": "A stack of names: describe pushes the name, calls fn, then pops the name."
+  },
+  {
+   "id": "j23-deep-equal",
+   "title": "Deep comparison",
+   "statement": "Write deepEqual(a, b). Primitives are compared with Object.is (NaN equals NaN, +0 does not equal -0). Arrays are compared by length and element by element. Objects are compared by their set of own enumerable keys (order does not matter) and by values. Date is compared by getTime(), RegExp by toString(), Map by size and pairs (keys compared with Object.is, values deeply), Set by size and the presence of each primitive element (for objects in a Set you may search with deep equality). Values of different kinds (an array and an object, a Date and an object, etc.) are not equal.",
+   "hint": "Object.is first, then branch on Array.isArray, instanceof Date/RegExp/Map/Set, and plain objects."
+  },
+  {
+   "id": "j23-assert-throws",
+   "title": "assertThrows and assertRejects",
+   "statement": "Write assertThrows(fn, expected) and async assertRejects(promiseOrFn, expected). They check that fn threw an exception (for rejects: that the promise, or the result of calling the function, was rejected). expected is an error class (checked with instanceof), a RegExp (checked against message), a string (message includes it) or not given (anything matches). On success, return true. If there was no exception, throw Error('Missing expected exception'); if the error did not match expected, throw Error('Unexpected error: ' + the error's message).",
+   "hint": "A shared matcher(err, expected); for rejects: await, then try/catch."
+  },
+  {
+   "id": "j23-mock-fn",
+   "title": "Mock function",
+   "statement": "Write mockFn(impl). The returned function f calls impl (if given) and returns its result; otherwise it returns undefined. f has: f.calls — an array of argument arrays; f.results — an array of { type: 'return', value } or { type: 'throw', value } (the exception is rethrown); f.returnOnce(v) — the next call returns v instead of calling impl (several returnOnce calls form a queue); f.reset() — clears calls, results and the queue.",
+   "hint": "Keep an onceValues queue; in f, check it before calling impl."
+  },
+  {
+   "id": "j23-spy-on",
+   "title": "spyOn and restore",
+   "statement": "Write spyOn(obj, method): it replaces obj[method] with a wrapper that calls the original (with the same this and arguments), returns its result and records the calls. It returns a spy object: spy.calls — an array of { args, result } (for a call that threw: { args, error }, and the exception is rethrown), spy.restore() — puts back the original method. The wrapper is available as obj[method].",
+   "hint": "const orig = obj[method]; obj[method] = function (...args) { … orig.apply(this, args) … }."
+  },
+  {
+   "id": "j23-fake-clock",
+   "title": "Fake timers",
+   "statement": "Write createFakeClock(): { now, setTimeout, setInterval, clear, advance }. now() is the current fake time (initially 0). setTimeout(fn, ms) and setInterval(fn, ms) return a numeric id (1, 2, 3…) and schedule fn at now + ms; clear(id) cancels. advance(ms) moves time forward to now + ms, running all due timers in order of time (for equal times, by id); at the moment a timer runs, now() equals its firing time. Timers set during advance also fire if they are due in time; for an interval with ms ≤ 0, treat ms as 1.",
+   "hint": "Keep a list of timers; in a loop pick the nearest one with time ≤ target; after an interval fires, move it to time + ms."
+  },
+  {
+   "id": "j23-case-names",
+   "title": "Test names from a table",
+   "statement": "Write caseNames(name, cases), where cases is an array of { args, expected }. Return an array of names of the form `${name} #${number starting at 1}: ${args joined with «, »} → ${expected}`; strings in the arguments and in the result are put in double quotes (JSON.stringify), other values are converted with String(); for undefined and null, use the words undefined and null. An array argument is printed with JSON.stringify.",
+   "hint": "A function show(v): typeof v === 'string' ? JSON.stringify(v) : Array.isArray(v) || (v && typeof v === 'object') ? JSON.stringify(v) : String(v)."
+  },
+  {
+   "id": "j23-snapshot",
+   "title": "Serialization for snapshots",
+   "statement": "Write serialize(value): a stable text representation for snapshots. Strings — JSON.stringify; numbers, booleans, null, undefined — as is (NaN; -0 → «-0»; Infinity); bigint — the number with an n suffix; Date — «Date(ISO)»; functions — «[Function name]» («anonymous» for unnamed ones); an array — «[» elements «]» indented by 2 spaces per level, each element on its own line; an object — «{» lines «key: value» (keys in alphabetical order) «}»; an empty array — «[]», an empty object — «{}»; Map — «Map {…}» with entries «key => value» in insertion order, Set — «Set […]». There are no commas after elements.",
+   "hint": "Recursion with an indentation level; one shared helper pad(n)."
+  },
+  {
+   "id": "j23-coverage",
+   "title": "Line coverage",
+   "statement": "Write coverage(files, executed): files is { path: [numbers of executable lines] }, executed is { path: [numbers of executed lines] } (it may contain extra numbers and may lack a file). The result is { files: { path: { covered, total, pct } }, total: { covered, total, pct } }. covered is the number of executable lines found in executed (without duplicates); pct is a percentage rounded to 2 decimal places (for total = 0 it is 100). total holds the sums over the files. Then write meetsThreshold(result, min): return { ok, failing } — ok if total.pct ≥ min and every file is ≥ min; failing is the sorted paths of the files below min.",
+   "hint": "A Set from executed[path]; pct = Math.round(covered / total * 10000) / 100."
+  },
+  {
+   "id": "j23-bench-stats",
+   "title": "Measurement statistics",
+   "statement": "Write stats(samples), where samples is an array of numbers (ms). The result is { n, min, max, mean, median, p95, stddev }; for an empty array, null. All fractional numbers are rounded to 3 decimal places. median — for even n, the average of the two middle values. p95 — the nearest-rank method: the element of the sorted array with rank ceil(0.95 × n) (rank counted from 1). stddev — the population standard deviation (dividing by n). Do not modify the input array.",
+   "hint": "Copy and sort; round3 = x => Math.round(x * 1000) / 1000."
+  },
+  {
+   "id": "j23-bench-run",
+   "title": "Running a benchmark with warm-up",
+   "statement": "Write bench(fn, { warmup, iterations }, now), where now is a function returning the current time in ms (injected for determinism). First call fn warmup times without measuring, then iterations measured times: for each one, the sample = now() after − now() before. The result is { samples, median } (median is the median of the samples: for an even count, the average of the two middle values; for an empty one, null). Async support is not needed.",
+   "hint": "Two loops: warm-up and measurements; compute the median on a sorted copy."
+  },
+  {
+   "id": "j23-tap",
+   "title": "TAP format report",
+   "statement": "Write formatTap(results), where results is an array of { name, status, error? } and status is 'pass', 'fail' or 'skip'. It returns an array of lines. The first is «1..N». Then, for each test with number i (from 1): «ok i - name» for pass, «not ok i - name» for fail, «ok i - name # SKIP» for skip. After a «not ok» with an error, add three lines: «  ---», «  message: error», «  ...». The last lines are «# pass P», then «# fail F» (skipped tests are not counted in P). An empty list gives «1..0», «# pass 0», «# fail 0».",
+   "hint": "Build a lines array and push in order; count pass/fail in the loop."
+  },
+  {
+   "id": "j23-filter-tests",
+   "title": "Filtering tests by name",
+   "statement": "Write filterTests(tests, { pattern, only }), where tests is an array of { name, only? }. If at least one test has only: true and the only option is on (opts.only === true), keep only such tests. Then, if pattern is given (a string, the body of a regular expression), keep the tests whose name matches RegExp(pattern, 'i'). Order is preserved. Return an array of names.",
+   "hint": "Filter by only first, then by the regular expression; treat an empty pattern as not given."
+  },
+  {
+   "id": "j23-with-timeout",
+   "title": "Promise with a timeout",
+   "statement": "Write withTimeout(promise, ms): it returns a promise with the result of promise if it finished within ms milliseconds; otherwise it rejects with Error('timeout after Nms') (N is ms). If promise rejected earlier, pass its error through. The timer must be cleared as soon as the outcome is known (the process must not hang).",
+   "hint": "new Promise + setTimeout + promise.then(resolve, reject); clearTimeout in both cases."
+  },
+  {
+   "id": "j23-map-limit",
+   "title": "Limited concurrency",
+   "statement": "Write async mapLimit(items, limit, fn): it applies the asynchronous fn(item, index) to all items, running at most limit calls at the same time; results are returned in the order of the original array. If any call rejects, the mapLimit promise rejects with its error (new calls need not be started). Treat a limit below 1 as 1.",
+   "hint": "A pool of \"workers\": each takes the next index until they run out; Promise.all over the workers."
+  },
+  {
+   "id": "j23-detect-runtime",
+   "title": "Detecting the runtime",
+   "statement": "Write detectRuntime(g), where g is a \"global scope\" object. Checks in order: if g.Deno?.version — 'deno'; else g.Bun?.version — 'bun'; else g.process?.versions?.node — 'node'; else if g.window and g.document exist — 'browser'; else 'unknown'. Then write featureReport(g): an object with boolean values for the names fetch, Request, Response, URL, AbortController, ReadableStream, structuredClone, EventTarget — true if typeof g[name] !== 'undefined'.",
+   "hint": "The optional chaining operator ?. and a list of names for featureReport."
+  },
+  {
+   "id": "j23-engines",
+   "title": "Checking engines",
+   "statement": "Write satisfies(range, version) and checkEngines(engines, versions). Versions are «x», «x.y» or «x.y.z» (missing parts are 0). A range is one or more sets separated by «||»; a set is comparators separated by spaces (AND); a comparator is an operator >=, >, <=, <, = (or no operator, same as =) and a version. satisfies is true if at least one set matches. checkEngines(engines, versions): engines is { name: range }, versions is { name: version }; return a sorted array of names for which the version does not match or is missing from versions.",
+   "hint": "parseVersion → [x, y, z]; cmp compares part by part; check the longer operators (>=, <=) before the shorter ones."
+  },
+  {
+   "id": "j23-import-map",
+   "title": "Import map",
+   "statement": "Write resolveImport(specifier, importMap, base): importMap = { imports: { key: value } }. Algorithm: if specifier is an absolute URL (has a scheme like «xxx:»), return it as is; if it starts with «./», «../» or «/», resolve it against base with new URL(...).href; otherwise (a bare specifier) look it up in imports: an exact key match; otherwise the longest key that ends with «/» and is a prefix of specifier — replace the prefix with the value. If the mapped result starts with «./», «../» or «/», resolve it against base. If nothing matches, throw TypeError('Unmapped bare specifier \"' + specifier + '\"').",
+   "hint": "First check the scheme with the regex /^[a-z][a-z0-9+.-]*:/i; then relative paths; then the map."
+  },
+  {
+   "id": "j23-classify-specifier",
+   "title": "Classifying a specifier",
+   "statement": "Write classifySpecifier(spec). The result is an object: for «npm:» and «jsr:» — { scheme, name, version, subpath }: after the scheme comes the name (two segments for «@scope/pkg»), then an optional «@version» (up to «/» or the end), then an optional subpath (starting with «/»); missing parts are null. For «node:» — { scheme: 'node', name } (name is everything after «node:»). For «http:» and «https:» — { scheme: 'url' }. Starts with «./» or «../» — { scheme: 'relative' }; with «/» — { scheme: 'absolute' }. Otherwise — { scheme: 'bare', name: spec }.",
+   "hint": "A regex for npm/jsr: ^(npm|jsr):((?:@[^/@]+/)?[^/@]+)(?:@([^/]+))?(/.*)?$"
+  },
+  {
+   "id": "j23-integrity",
+   "title": "Integrity check (SRI)",
+   "statement": "Write makeIntegrity(content, alg = 'sha256') and verifyIntegrity(content, integrity) (node:crypto). makeIntegrity returns the string «algorithm-base64 of the hash of the UTF-8 content», for example «sha256-…». verifyIntegrity: integrity is one or more hashes separated by spaces; true if the content matches at least one known (sha256, sha384, sha512) hash; hashes of unknown algorithms and malformed entries are ignored; an empty string or no matching hash gives false.",
+   "hint": "createHash(alg).update(content).digest('base64'); for verify — split(/\\s+/) and compare strings."
+  },
+  {
+   "id": "j23-fetch-handler",
+   "title": "Portable Request → Response handler",
+   "statement": "Write async handle(request) using web standards (Request, Response, URL). GET /hello — the text «Hello, NAME» (NAME is the query parameter name, «world» by default), Content-Type text/plain;charset=UTF-8 (the default for a string). GET /json — Response.json({ ok: true, path }) with the request path. Any other method or path — a Response with status 404 and the body «Not Found». HEAD and other methods on /hello and /json also give 404.",
+   "hint": "const url = new URL(request.url); new Response(text) sets text/plain;charset=UTF-8 itself."
+  },
+  {
+   "id": "j23-abort-timeout",
+   "title": "Cancel on timeout (AbortController)",
+   "statement": "Write fetchWithTimeout(task, ms), where task(signal) is an async function that accepts an AbortSignal. Create an AbortController, call abort() after ms milliseconds, and pass the signal to task. If task finished in time, return its result (and clear the timer). If the signal fired first, reject with Error('aborted'), even if task itself throws nothing later (that is, the result is not needed). If task threw its own exception before the timeout, pass it through.",
+   "hint": "Promise.race between task(signal) and a promise that rejects on the signal's abort event."
+  },
+  {
+   "id": "j23-web-streams",
+   "title": "Web Streams: transformation",
+   "statement": "Write async transformChunks(chunks, fn), where chunks is an array of values: create a ReadableStream from these values, pipe it through a TransformStream that applies fn to each value (fn may be async), and read the result into an array via a reader. Return the array of results in the same order. An exception from fn must reject the resulting promise.",
+   "hint": "new ReadableStream({ start(c) { chunks.forEach(x => c.enqueue(x)); c.close(); } }).pipeThrough(new TransformStream({ async transform(ch, c) { c.enqueue(await fn(ch)); } }))."
+  },
+  {
+   "id": "j23-event-bus",
+   "title": "Event bus on EventTarget",
+   "statement": "Write createBus() on top of EventTarget and CustomEvent: it returns { on, once, emit }. on(name, fn) subscribes fn(detail) and returns an unsubscribe function; once(name, fn) subscribes for a single firing; emit(name, detail) dispatches the event synchronously and returns the number of subscribers that received it (for once — only if it fired). Events with different names are independent.",
+   "hint": "Keep a Map from name to subscriber count, or count through your own wrappers; CustomEvent(name, { detail })."
+  },
+  {
+   "id": "j23-retry-test",
+   "title": "Retrying a flaky test",
+   "statement": "Write async runWithRetries(testFn, retries): it runs testFn(attempt) (attempt from 1) and on an exception or rejection retries, for at most retries + 1 attempts in total. It returns { passed, attempts, error? }: passed is true on the first successful attempt (attempts is its number); if all fail — passed: false, attempts = retries + 1, error is the message of the last error. Treat retries < 0 as zero.",
+   "hint": "A loop over attempts with try/catch and await; remember the message of the last error."
+  },
+  {
+   "id": "j23-summary",
+   "title": "Test results summary",
+   "statement": "Write summarize(results), where results is an array of { name, status, ms } and status is 'pass', 'fail' or 'skip'. The result is { total, passed, failed, skipped, durationMs, failures } — durationMs is the sum of ms (a missing value counts as 0), failures are the names of the failed tests in order. Then write formatSummary(s): an array of lines «tests N», «pass P», «fail F», «skipped S», «duration D ms»; if there are failures, after them add «FAILED: name1, name2», otherwise «OK».",
+   "hint": "One pass with reduce, or a loop with counters."
+  },
+  {
+   "id": "j23-diff-lines",
+   "title": "Line-by-line snapshot diff",
+   "statement": "Write diffLines(a, b), where a and b are multi-line strings (separator «\\n»). Return an array of diff lines: «  » + the line for common ones, «- » + the line for ones removed from a, «+ » + the line for ones added in b. Use the longest common subsequence of lines (LCS). Traversal order: while both lines exist — if a[i] === b[j], it is a common line; otherwise, if the LCS without a[i] is not smaller than the LCS without b[j], output the removal of a[i], else the addition of b[j]; the remainders are removals from a, then additions from b.",
+   "hint": "An lcs[i][j] table for suffixes; then walk with two pointers by the rules in the statement."
+  }
+ ]
+}

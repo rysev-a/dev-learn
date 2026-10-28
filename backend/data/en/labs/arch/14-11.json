@@ -1,0 +1,126 @@
+{
+ "book": 14,
+ "chapter": 11,
+ "lab": "arch",
+ "tasks": [
+  {
+   "id": "logic-select",
+   "title": "Operation select: AND or OR",
+   "statement": "The simplest ALU performs two operations on bits A and B. Input Op selects which one: Op = 0 gives Y = A AND B, Op = 1 gives Y = A OR B. Both operations are always computed, but only the selected one reaches the output.",
+   "hint": "Two compute units, A AND B and A OR B, and a multiplexer at the output: Y = ¬Op·(A·B) OR Op·(A+B). You built the multiplexer in the section on signal selection.",
+   "spec_text": {
+    "/formula": "Y = ¬Op·(A·B) + Op·(A+B)",
+    "/success": "This is the main idea of the ALU: all operations are computed at the same time, and the operation code merely selects whose result goes on. The extra computations are “free”: they run in parallel."
+   }
+  },
+  {
+   "id": "logic4",
+   "title": "Four logic operations",
+   "statement": "Add more operations. Code Op1 Op0 selects: 00 is A AND B, 01 is A OR B, 10 is A XOR B, 11 is NOT A (B is ignored). Output Y is the result of the selected operation.",
+   "hint": "Four compute units (AND, OR, XOR, NOT A) and a 4→1 multiplexer driven by Op1 Op0: a tree of three 2→1 multiplexers, as in the section on signal selection. If XOR is locked, build it from AND, OR and NOT.",
+   "spec_text": {
+    "/formula": "Y = [A·B, A+B, A⊕B, ¬A][Op1 Op0]",
+    "/success": "This is already a real “logic unit” of an ALU. The more operations there are, the wider the output multiplexer, but the principle is the same. In real processors the operation code comes from the instruction itself."
+   }
+  },
+  {
+   "id": "flags2",
+   "title": "Result flags",
+   "statement": "An ALU does not just produce a number: it also reports “flags” about it. From the two-bit result R1 R0, produce three: Z, the result is zero; N, the result is negative (the top bit in two's complement is the sign); Pe, the number of ones in the result is even.",
+   "hint": "Z is a single NOR gate: zero when both bits are zero. N is just a wire from R1. Pe is bit equality (XNOR): the number of ones is even when the bits are the same.",
+   "spec_text": {
+    "/block/title": "Result flags",
+    "/formula": "Z = ¬(R1+R0); N = R1; Pe = R1⊙R0",
+    "/success": "Flags are a “cheat sheet” about the result that the following instructions read. We will use the “is zero” check (Z) for conditional jumps at the end of this section."
+   }
+  },
+  {
+   "id": "incdec2",
+   "title": "Increment and decrement",
+   "statement": "Two special ALU actions: “+1” and “−1”. The two-bit value A1 A0 changes by one in either direction, wrapping around: with Dec = 0 the result is A + 1 (11 → 00), with Dec = 1 it is A − 1 (00 → 11). Output R1 R0.",
+   "hint": "The low bit always flips: R0 = ¬A0. The high bit: for +1 it flips if A0 = 1 (R1 = A1⊕A0); for −1 it flips if A0 = 0 (R1 = A1⊕¬A0 = A1⊕A0⊕1). Both cases combine into R1 = A1⊕A0⊕Dec.",
+   "spec_text": {
+    "/formula": "R0 = ¬A0; R1 = A1⊕A0⊕Dec",
+    "/success": "Increment and decrement are needed for counters and addresses: “next cell” and “previous cell”. Notice how little circuitry this took: one XOR per bit."
+   }
+  },
+  {
+   "id": "overflow2",
+   "title": "Overflow flag",
+   "statement": "Two-bit signed numbers (in two's complement) range from −2 to 1: 00 = 0, 01 = 1, 10 = −2, 11 = −1. Add A and B and output V = 1 if the true result does NOT fit in this range (for example, 01 + 01 = 2 is an overflow).",
+   "hint": "Overflow happens only when the operands have the same sign (A1 = B1) and the sum's sign S1 is different. S1 needs the carry from the low bit, c = A0·B0: S1 = A1⊕B1⊕c. Then V = (A1 ⊙ B1) · (A1 ⊕ S1).",
+   "spec_text": {
+    "/success": "A positive plus a positive cannot give a negative; if it does, an overflow occurred. Flag V warns the program that the result is wrong; without it, numbers would silently wrap around the boundary."
+   }
+  },
+  {
+   "id": "shifter2",
+   "title": "Shifter",
+   "statement": "A shift is also an ALU operation: multiplication or division by two. The two-bit value A1 A0 is shifted left (Dir = 0: R = A0 0) or right (Dir = 1: R = 0 A1). The bit that “falls off” goes to output Co.",
+   "hint": "Each output is a choice by Dir. R1 = ¬Dir·A0 (on a right shift the top bit is zero); R0 = Dir·A1; Co = ¬Dir·A1 OR Dir·A0. One inverter for Dir.",
+   "spec_text": {
+    "/formula": "R1 = ¬Dir·A0; R0 = Dir·A1; Co = ¬Dir·A1 + Dir·A0",
+    "/success": "A one-bit shift left is multiplication by 2; a shift right is division by 2 with the remainder discarded (Co takes it). A shifter is just multiplexers: each output bit picks its left or right neighbor."
+   }
+  },
+  {
+   "id": "alu-slice",
+   "title": "ALU bit slice",
+   "statement": "Build one bit slice of an ALU. Inputs: A, B, carry Cin and operation code Op1 Op0: 00 is addition (A + B + Cin), 01 is subtraction (A + ¬B + Cin), 10 is A AND B, 11 is A OR B. Outputs: result bit R and carry Co (for logic operations Co = 0).",
+   "hint": "Three blocks. Arithmetic: bx = B⊕Op0 (inverts B for subtraction), then a full adder on A, bx, Cin. Logic: an AND / OR multiplexer driven by Op0. Final: a multiplexer driven by Op1, arithmetic (Op1 = 0) or logic (Op1 = 1). Take the carry Co only when Op1 = 0.",
+   "spec_text": {
+    "/formula": "R = ¬Op1·(A + (B⊕Op0) + Cin) + Op1·(Op0 ? A+B : A·B)",
+    "/success": "This is the ALU “building brick”: n such slices linked by a carry chain (Co of one → Cin of the next) make an n-bit ALU. The operation code drives all the slices at once, which is what makes it an “arithmetic logic unit”."
+   }
+  },
+  {
+   "id": "alu2-arith",
+   "title": "Arithmetic: addition and subtraction",
+   "statement": "The arithmetic block of a two-bit ALU. Mode M = 0 is A + B, M = 1 is A − B (that is, A + ¬B + 1). Outputs: R1 R0 is the result, Co is the carry out of the top bit (in subtraction Co = 1 means “no borrow”, i.e. A ≥ B).",
+   "hint": "A controlled inverter on B: bm = B⊕M for each bit. Then the two-bit adder from the previous section, but the carry into the low bit equals M: R0 = A0⊕bm0⊕M, c0 = A0·bm0 OR (A0⊕bm0)·M, then the high bit as usual.",
+   "spec_text": {
+    "/formula": "R = A + (B⊕M) + M; Co is the carry out of the top bit",
+    "/success": "One adder and one inverter per bit, and subtraction comes “for free”. This is how real processors subtract: there is no separate subtractor."
+   }
+  },
+  {
+   "id": "alu2-bitwise",
+   "title": "Two-bit logic",
+   "statement": "The logic block of a two-bit ALU. Input Op selects the operation on each pair of bits: Op = 0 is bitwise AND, Op = 1 is bitwise OR. Output R1 R0.",
+   "hint": "Two identical “bit slices” sharing Op: each computes AND and OR, and a multiplexer driven by Op picks one of them. You need only one inverter for Op, shared by both bits.",
+   "spec_text": {
+    "/formula": "Ri = ¬Op·(Ai·Bi) + Op·(Ai+Bi)",
+    "/success": "Bitwise operations do not link the bits: each bit is computed on its own. Arithmetic is different: the carry runs from the low bit to the high one. That is why the logic block is “wide” and fast."
+   }
+  },
+  {
+   "id": "alu2",
+   "title": "Two-bit ALU",
+   "statement": "The finale: combine arithmetic and logic. Code Op1 Op0 selects the operation on A1 A0 and B1 B0: 00 is A + B, 01 is A − B, 10 is A AND B, 11 is A OR B. Output R1 R0 is the result (modulo 4).",
+   "hint": "Do not rebuild everything: these are the same two blocks. Arithmetic: M = Op0, with the result R1 R0 from the previous exercise (Co is not needed). Logic: Op = Op0. Then at each output a multiplexer driven by Op1: arithmetic when Op1 = 0, logic when Op1 = 1. About thirty gates in all, so build it in parts.",
+   "spec_text": {
+    "/success": "This is the ALU: all of the processor's arithmetic and logic in one circuit. By changing two bits of the operation code you choose which operation it performs. Everything else in the processor is registers that feed it numbers and logic that decides which code to supply."
+   }
+  },
+  {
+   "id": "compare-sub",
+   "title": "Comparison via subtraction",
+   "statement": "How does a processor compare numbers? It subtracts and looks at the result! For two-bit unsigned A and B, produce Lt (A < B), Eq (A = B), Gt (A > B) using the subtraction A − B = A + ¬B + 1.",
+   "hint": "Subtractor: nb = ¬B. The low bit with carry-in 1 simplifies: R0 = A0⊙nb0, c0 = A0 OR nb0. The high bit: x = A1⊕nb1, R1 = x⊕c0, Co = A1·nb1 + x·c0. Then: Eq = ¬(R1+R0) (the difference is zero), Lt = ¬Co (there was a borrow), Gt = Co·¬Eq.",
+   "spec_text": {
+    "/formula": "Lt = ¬Co; Eq = (R = 0); Gt = Co·¬Eq",
+    "/success": "This is why a processor usually has no separate “compare” instruction: it subtracts, throws the result away and keeps only the flags. The carry flag and the zero flag are the whole answer to “greater, less or equal”."
+   }
+  },
+  {
+   "id": "branch-cond",
+   "title": "Branch condition",
+   "statement": "Flags are needed to decide whether the program continues or jumps. From flags Z (zero), N (sign), V (overflow) and condition code C1 C0, produce T, “condition met”: 00 is “equal” (Z), 01 is “not equal” (¬Z), 10 is “less” (N⊕V), 11 is “less or equal” (Z OR N⊕V).",
+   "hint": "First compute all four conditions: Z, ¬Z, lt = N⊕V and le = Z OR lt. Then a 4→1 multiplexer driven by C1 C0 selects one: a tree of three 2→1 multiplexers.",
+   "spec_text": {
+    "/formula": "T = [Z, ¬Z, N⊕V, Z+N⊕V][C1 C0]",
+    "/success": "The sign of a subtraction result that means “less” is N⊕V, not just N: on overflow the sign bit lies, and V corrects it. Signal T is the decision to “jump”, and it goes to the program counter. Next comes the processor proper: fetch, decode and execute, clock by clock."
+   }
+  }
+ ]
+}

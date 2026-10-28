@@ -101,7 +101,7 @@ pub fn Terminal(lab: Lab, id: String) -> impl IntoView {
             }
         >
             <div class="nl-term-out" node_ref=out_ref>
-                {move || lines.with(Vec::is_empty).then(|| view! { <div class="nl-term-hint">"Введите «help», чтобы увидеть команды."</div> })}
+                {move || lines.with(Vec::is_empty).then(|| view! { <div class="nl-term-hint">{i18n::tr("Type “help” to see the commands.")}</div> })}
                 {move || {
                     let p = shown_prompt.clone();
                     lines
@@ -124,7 +124,7 @@ pub fn Terminal(lab: Lab, id: String) -> impl IntoView {
                     spellcheck="false"
                     autocapitalize="off"
                     autocomplete="off"
-                    aria-label="Командная строка"
+                    aria-label=i18n::tr("Command line")
                 />
             </form>
         </div>

@@ -1,0 +1,60 @@
+{
+ "book": 17,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "virt-sim-hv",
+   "title": "Mini-hypervisor simulator",
+   "statement": "You are the virtual machine monitor. The guest runs an unprivileged program: ordinary instructions go straight through, and on privileged ones the CPU raises a trap and you choose the correct emulation over the virtual state (interrupt flag, CR3, IRQ queue). In the third program the POPF instruction does not trap, so you will have to enable binary translation. The exercise is solved when all three programs are completed.",
+   "hint": "The real IF flag and the CR3 register belong to the monitor: the guest works only with their virtual copies."
+  },
+  {
+   "id": "virt-trap-run",
+   "title": "The monitor emulates the guest",
+   "statement": "Write a function run_guest(program): program is a list of guest kernel instructions. The monitor keeps virtual registers: acc = 0, vif (the virtual interrupt flag) = 1, vcr3 = 0. \"ADD n\" adds n to acc and runs directly. The other instructions are traps, and each one is counted: \"CLI\" sets vif = 0, \"STI\" sets vif = 1, \"WRCR3 v\" sets vcr3 = v, \"RDCR3\" writes the value of vcr3 into acc, \"HLT\" (also a trap) stops the guest, and the instructions after it are not executed. Return a tuple (acc, vif, vcr3, number of traps).",
+   "hint": "Parse each line with split(); ADD does not increase the trap counter, everything else does."
+  },
+  {
+   "id": "virt-vif-queue",
+   "title": "Virtual interrupts",
+   "statement": "Write a function deliver(events): events are the events that arrive at the monitor: \"CLI\" (the guest disabled interrupts), \"STI\" (enabled them), \"IRQ n\" (an interrupt with number n arrived). At first the virtual flag is enabled. An IRQ with the flag enabled is delivered to the guest immediately; with the flag disabled it waits in a queue. \"STI\" enables the flag and delivers the whole queue in order of arrival. Return a tuple (the list of delivered numbers in order, the list of numbers left in the queue).",
+   "hint": "Keep the flag and the queue; on STI move the queue into the delivered list."
+  },
+  {
+   "id": "virt-popf",
+   "title": "POPF in different rings",
+   "statement": "Write a function popf(ring, flags, new): ring is the protection ring (0-3), flags is the current flags register, new is the value taken off the stack by the POPF instruction. In ring 0 the instruction writes all the flags: the result equals new. In rings 1-3 the IF bit (value 512, bit 9) stays as it was, and the other bits are taken from new, silently, with no error and no trap. Return the new flags register.",
+   "hint": "IF = 512. The result outside ring 0: (new without bit 512) | (flags & 512)."
+  },
+  {
+   "id": "virt-ring-counts",
+   "title": "What happens to the guest kernel",
+   "statement": "The guest kernel runs in ring ring (0-3). Write a function outcome_counts(kinds, ring): kinds is a list of instruction kinds: \"normal\" (ordinary), \"privileged\" (privileged), \"sensitive\" (sensitive but not privileged). An ordinary instruction always runs directly. A privileged one runs directly only in ring 0, otherwise it causes a trap. A sensitive one works correctly in ring 0, and in the other rings it executes silently: with no trap, but incorrectly. Return a tuple (direct, traps, silent errors).",
+   "hint": "Keep three counters and walk through kinds."
+  },
+  {
+   "id": "virt-translate",
+   "title": "Binary translation of blocks",
+   "statement": "Write a function translate(code, unsafe): code is a list of guest kernel instructions (strings like \"add eax, 2\"; the mnemonic is the first word), unsafe is a list of dangerous mnemonics. The translator cuts the code into basic blocks: a block ends with a jump instruction (mnemonics jmp, jz, jnz, call, ret), including it; the next block starts with the next instruction, and a remainder without a jump is also a block. Dangerous instructions are replaced with \"call vmm_<mnemonic>\", the others stay. The end of a block is determined by the original instruction. Return a list of tuples (index of the block's first instruction, list of the block's instructions).",
+   "hint": "Accumulate the current block and close it when you see a jump; do not forget the last block."
+  },
+  {
+   "id": "virt-hypercall",
+   "title": "Hypercall dispatcher",
+   "statement": "Write a function hypercall(vm, nr, args): vm is a dictionary {\"frames\": [numbers of machine frames that belong to the guest], \"timer\": None or a number, \"console\": a string, \"p2m\": a dictionary}, nr is the call number, args is a list of arguments. The calls: 0 - yield, returns 0; 1 - set_timer(ns): if ns >= 0, writes timer = ns and returns 0, otherwise returns -22; 2 - console_write(text): appends text to console and returns the length of text; 3 - map_page(gfn, mfn): if mfn is not in frames, returns -1, otherwise writes p2m[str(gfn)] = mfn and returns 0; any other number - -38. Do not change the passed vm: return a tuple (code, new vm).",
+   "hint": "Start with copy.deepcopy(vm) and make the changes in the copy."
+  },
+  {
+   "id": "virt-multicall",
+   "title": "Batched hypercalls",
+   "statement": "A paravirtualized kernel can send hypercalls in batches. Write a function batch_cost(n_calls, batch, trap, per_call): n_calls is how many requests must be performed, batch is the maximum number of requests in one hypercall, trap is the price of one trap in cycles, per_call is the price of performing one request. Return a tuple (number of traps, total price in cycles). For n_calls = 0 - (0, 0).",
+   "hint": "The number of traps is a division rounded up: -(-n_calls // batch)."
+  },
+  {
+   "id": "virt-cheapest",
+   "title": "Which method is cheaper",
+   "statement": "Write a function cheapest(n_ops, strategies): strategies is a list of [name, one_time_price, price_per_operation] of virtualization methods (trapping, translation, paravirtualization). The price of a method for n_ops operations is one_time_price + price_per_operation * n_ops. Return the name of the cheapest method; on a tie, the one that comes earlier in the list.",
+   "hint": "min with a key will do: it returns the first of the equal ones."
+  }
+ ]
+}

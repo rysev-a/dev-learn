@@ -15,7 +15,7 @@ pub fn TaskData(data: String) -> impl IntoView {
     (!data.trim().is_empty()).then(|| {
         view! {
             <div class="lab-card">
-                <p class="lab-data-title">"Данные задания (доступны по меткам, менять нельзя):"</p>
+                <p class="lab-data-title">{i18n::tr("Exercise data (available by labels, cannot be changed):")}</p>
                 <pre class="lab-data mono">{data}</pre>
             </div>
         }
@@ -33,7 +33,7 @@ pub fn ProgramCard(session: Session, hint: String, #[prop(into)] solved: Signal<
                 <ul class="lab-errors" role="alert">
                     {errors
                         .into_iter()
-                        .map(|e| view! { <li><strong>{format!("Строка {}:", e.line)}</strong>" "{e.message}</li> })
+                        .map(|e| view! { <li><strong>{i18n::trf!("Line {0}:", e.line)}</strong>" "{e.message}</li> })
                         .collect_view()}
                 </ul>
             }
@@ -42,14 +42,14 @@ pub fn ProgramCard(session: Session, hint: String, #[prop(into)] solved: Signal<
     view! {
         <div class="lab-card">
             <div class="lab-card-head">
-                <h3>"Программа"</h3>
+                <h3>{i18n::tr("Program")}</h3>
                 <div class="lab-actions">
                     {has_hint.then(|| view! {
                         <button type="button" class="quiz-btn ghost" on:click=move |_| session.hint_open.update(|o| *o = !*o)>
-                            {move || if session.hint_open.get() { "Скрыть подсказку" } else { "Подсказка" }}
+                            {move || if session.hint_open.get() { i18n::tr("Hide hint") } else { i18n::tr("Hint") }}
                         </button>
                     })}
-                    <button type="button" class="quiz-btn ghost" on:click=move |_| session.restart()>"Начать заново"</button>
+                    <button type="button" class="quiz-btn ghost" on:click=move |_| session.restart()>{i18n::tr("Start over")}</button>
                 </div>
             </div>
             {move || (has_hint && session.hint_open.get()).then(|| view! { <p class="ex-hint">{hint.clone()}</p> })}
@@ -74,17 +74,17 @@ pub fn ListingCard(session: Session) -> impl IntoView {
     let body = move || {
         let rows = rows.get();
         if rows.is_empty() {
-            return view! { <p class="lab-muted">"Команд пока нет."</p> }.into_any();
+            return view! { <p class="lab-muted">{i18n::tr("No instructions yet.")}</p> }.into_any();
         }
         view! {
             <div class="lab-scroll">
                 <table class="lab-table">
                     <thead>
                         <tr>
-                            <th>"адрес"</th>
+                            <th>{i18n::tr("address")}</th>
                             <th>"hex"</th>
-                            <th class="left">"поля (старшие биты слева)"</th>
-                            <th class="left">"команда"</th>
+                            <th class="left">{i18n::tr("fields (most significant bits on the left)")}</th>
+                            <th class="left">{i18n::tr("instruction")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,10 +99,9 @@ pub fn ListingCard(session: Session) -> impl IntoView {
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Машинный код"</h3>
+                    <h3>{i18n::tr("Machine code")}</h3>
                     <p>
-                        "Что ассемблер сделал из вашей программы: каждая команда — одно настоящее 32-битное слово RISC-V. \
-                         Цветом выделены поля; нажмите на строку, чтобы увидеть формат команды."
+                        {i18n::tr("What the assembler made of your program: each instruction is one real 32-bit RISC-V word. Fields are color-coded; click a row to see the instruction format.")}
                     </p>
                 </div>
             </div>
@@ -133,7 +132,7 @@ fn ListingLine(row: ListingRow, session: Session, pc: Memo<Option<u32>>) -> impl
             view! {
                 <tr class="explain-row">
                     <td colspan="4">
-                        <div class="lab-legend"><strong>{format!("Формат {fmt}.")}</strong>{items}</div>
+                        <div class="lab-legend"><strong>{i18n::trf!("Format {0}.", fmt)}</strong>{items}</div>
                     </td>
                 </tr>
             }

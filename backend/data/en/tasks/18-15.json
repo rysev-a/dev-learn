@@ -1,0 +1,42 @@
+{
+ "book": 18,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "sd15-zone-app",
+   "title": "Servers across zones",
+   "statement": "The database is already placed in three zones, but the app servers are in one: when that zone fails, they all vanish. Spread the servers across three zones (the “Placement” parameter) and add enough of them that after losing a zone (minus a third of the servers) the rest can handle 1700 requests per second. The design must survive a zone failure.",
+   "hint": "Five M servers: after losing a zone three remain — 2100 requests. Four is too few: two would remain (1400)."
+  },
+  {
+   "id": "sd15-zone-db",
+   "title": "The database across zones",
+   "statement": "The app servers are spread across zones, but the database sits in one zone together with its replica: losing the zone stops writes. Place the database in three zones with a replica and automatic failover so that the design survives a zone failure.",
+   "hint": "The database's “Placement” parameter is “three zones of a region”; the replica and automatic failover must be on."
+  },
+  {
+   "id": "sd15-zone-cache",
+   "title": "The cache across zones",
+   "statement": "The design has a cache, but it sits in one zone, and without the cache the database cannot handle 3000 reads per second. Place the cache in three zones with a replica (≥85% hits) so that the design survives a zone failure. The other components are already placed correctly.",
+   "hint": "The cache needs the “three zones of a region” placement and at least one replica."
+  },
+  {
+   "id": "sd15-region",
+   "title": "Surviving a region failure",
+   "statement": "The service must survive the failure of an entire region, and for that it is placed in two regions. After losing a region, half of the servers remain. Switch the servers, cache and database to the “two regions” placement and choose the number of servers so that 3000 requests per second can still be handled after a region failure. The budget is $2800 per month.",
+   "hint": "Ten M servers: after losing a region five remain — 3500. The cache and database need replicas (and the database needs automatic failover)."
+  },
+  {
+   "id": "sd15-budget",
+   "title": "A reliability level within budget",
+   "statement": "An internal reporting service does not need a second region, but downtime from losing a zone is unacceptable. Build a design that survives a zone failure and fits in $1600 per month at a load of 1500 requests per second. Do not place it in two regions — that costs more.",
+   "hint": "The “three zones of a region” placement; four or five M servers (after losing a zone 2/3 remain), an M database with a replica and automatic failover."
+  },
+  {
+   "id": "sd15-final",
+   "title": "A payment service in two regions",
+   "statement": "The chapter's final exercise. 3000 reads and 300 writes per second, 150 GB of data, a working set of 12 GB. Build a design in two regions: servers, cache (≥85%) and database are spread out, the design survives a zone failure and a region failure, load is at most 80%, and the budget is $4500 per month.",
+   "hint": "Twelve M servers (after losing a region six remain — 4200, after losing a zone eight — 5600); a 12 GB cache with a replica; an L or M database with a replica, automatic failover and the “two regions” placement."
+  }
+ ]
+}

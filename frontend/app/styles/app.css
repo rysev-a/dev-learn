@@ -276,6 +276,70 @@ button {
   color: var(--s-accent);
 }
 
+/* переключатель языка (EN / RU) */
+.lang-switch {
+  display: inline-flex;
+  height: 36px;
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--s-bg);
+}
+
+.lang-btn {
+  min-width: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--s-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.lang-btn + .lang-btn {
+  border-left: 1px solid var(--s-border);
+}
+
+.lang-btn:hover {
+  background: var(--s-panel2);
+}
+
+.lang-btn.on {
+  background: var(--s-panel2);
+  color: var(--s-accent);
+}
+
+.lang-tag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--s-border);
+  border-radius: 4px;
+  color: var(--s-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 16px;
+}
+
+.lang-note {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+  background: var(--s-panel2);
+  color: var(--s-muted);
+  font-size: 0.9rem;
+}
+
+.auth-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .menu {
   align-items: center;
   gap: 8px;

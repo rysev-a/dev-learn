@@ -21,12 +21,12 @@ impl LabChapter {
     pub fn parse(json: &str) -> Result<LabChapter, SdError> {
         let mut ch: LabChapter = serde_json::from_str(json)?;
         if ch.lab != LAB {
-            return Err(SdError::new(format!("глава {}: лаборатория «{}», а ожидается «{LAB}»", ch.chapter, ch.lab)));
+            return Err(SdError::new(i18n::trf!("chapter {0}: lab “{1}”, but “{2}” is expected", ch.chapter, ch.lab, LAB)));
         }
         let mut ids = HashSet::new();
         for t in &mut ch.tasks {
             if !ids.insert(t.id.clone()) {
-                return Err(SdError::new(format!("глава {}: id упражнения повторяется: {}", ch.chapter, t.id)));
+                return Err(SdError::new(i18n::trf!("chapter {0}: exercise id is repeated: {1}", ch.chapter, t.id)));
             }
             t.spec.start.normalize();
             t.spec.solution.normalize();
@@ -60,7 +60,7 @@ pub fn read_dir(dir: &Path) -> Result<Vec<LabChapter>, SdError> {
     for c in &chapters {
         for t in &c.tasks {
             if !ids.insert(t.id.as_str()) {
-                return Err(SdError::new(format!("id упражнения повторяется между главами: {}", t.id)));
+                return Err(SdError::new(i18n::trf!("exercise id is repeated across chapters: {0}", t.id)));
             }
         }
     }

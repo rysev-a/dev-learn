@@ -1,0 +1,42 @@
+{
+ "book": 18,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "sd23-s1-catalog",
+   "title": "Stage 1. Restaurant catalog",
+   "statement": "The catalog: 3,000 opens per second, half of them searches for nearby restaurants by cuisine and address, the rest restaurant pages and menus. Add a search index and a menu cache (≥85%, 3 GB working set). Search and everything else at most 80%, the design survives a search replica failure, and the budget is $1,800 per month.",
+   "hint": "Search: 1 shard × 3 replicas (1,500 requests per second; after one replica fails, 2,400 remain). A 3 GB cache with TTL 3600. Six M servers."
+  },
+  {
+   "id": "sd23-s2-order",
+   "title": "Stage 2. Order and payment",
+   "statement": "Checkout: every request checks auth, and 5% go to the payment gateway. Connect the auth service (2 instances) and a payment gateway with two channels; protect payments: idempotency keys, retries and a circuit breaker. The design survives an auth and a payment channel failure, and the budget is $2,200 per month.",
+   "hint": "Server → auth and gateway. In the app, enable “Idempotency keys”, “DB retries” ≥ 1 and “Circuit breaker”. Auth ×2: after one fails, 4,000 remain at a load of 3,100."
+  },
+  {
+   "id": "sd23-s3-couriers",
+   "title": "Stage 3. Couriers and delivery time",
+   "statement": "Couriers have been added: 20,000 position updates per second, 10% of requests pick a courier in the geo service, another 10% estimate the delivery time with a model. Connect the geo service and the ranking service: load at most 80%, the design survives a failure of both, and the budget is $3,200 per month.",
+   "hint": "Geo service: 5 instances (30,000; after one fails — 24,000). Ranking: 3 instances (900; after a failure — 600 at a load of 312)."
+  },
+  {
+   "id": "sd23-s4-tracking",
+   "title": "Stage 4. Tracking and events",
+   "statement": "Customers follow their order: 120,000 connections receive 0.03 events per second each (3,600 per second). Add WebSocket gateways, route the events through a stream and connect notifications and analytics (demand and preparation time): gateways and consumers at most 80%, and the budget is $5,200 per month.",
+   "hint": "WebSocket gateways — 11 (120,000 / 15,000 = 8 at 73%). 13 M servers (they receive the events too). Notifications — 4 instances."
+  },
+  {
+   "id": "sd23-s5-reliability",
+   "title": "Stage 5. Reliability and peaks",
+   "statement": "The service must be ready for the lunch peak. Spread the servers and database across zones, add a database replica with automatic failover, a CDN for menu images, a rate limiter at the entry (limit at least the load of 6,700), a second load balancer and monitoring. The design survives a zone, deployment, server, database, cache and search failure, load is at most 80%, and the budget is $7,000 per month.",
+   "hint": "18 M servers across three zones (after losing a zone, 12 remain — 8,400 at a load of 6,700). An L database with a replica, the rate limiter’s limit is about 20,000."
+  },
+  {
+   "id": "sd23-exam",
+   "title": "Exam. The whole food delivery service",
+   "statement": "Final assignment. The lunch peak of a large city: 9,000 catalog opens (half of them searches) and 600 orders per second, 40,000 courier position updates, 200,000 connections for order tracking (6,000 events per second); 10% of requests pick a courier, 10% estimate the time, 5% go to the payment gateway, and each one checks auth. Build the design from scratch: search, a menu cache, auth, a payment gateway (2 channels), a geo service, ranking, a stream with notifications and analytics, WebSocket gateways, a CDN, a database with a replica, a rate limiter, monitoring, two load balancers and payment protection. It survives a zone, deployment, server, database, cache, search, auth, payment channel, geo service and ranking failure; load at most 80%; budget $12,500 per month.",
+   "hint": "35 M servers across three zones, search 1×5 (4,500 requests per second), geo service 10, ranking 5, auth 4, ws gateways 18, notifications 7, analytics 2, an L database with a replica."
+  }
+ ]
+}

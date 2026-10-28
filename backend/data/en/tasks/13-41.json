@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 41,
+ "tasks": [
+  {
+   "id": "tp-closeable",
+   "title": "The Closeable protocol",
+   "statement": "Write a Protocol Closeable with a method close() (with the runtime_checkable decorator) and a function close_all(items): it closes everything that matches the protocol and returns how many objects were closed. Skip the others.",
+   "hint": "@runtime_checkable class Closeable(Protocol): def close(self) -> None: ...; in close_all: if isinstance(item, Closeable): item.close()."
+  },
+  {
+   "id": "tp-data-protocol",
+   "title": "A protocol with an attribute",
+   "statement": "Write a runtime_checkable protocol HasName with an attribute name: str and a function names(items): a list of the name values of the objects that match the protocol (the others are skipped).",
+   "hint": "class HasName(Protocol): name: str - and @runtime_checkable; in names: [x.name for x in items if isinstance(x, HasName)]."
+  },
+  {
+   "id": "tp-generic-stack",
+   "title": "A generic stack",
+   "statement": "Write a generic Stack(Generic[T]) with methods push(x), pop() (IndexError on an empty stack), peek() and __len__. The form Stack[int]() must also create a working stack.",
+   "hint": "class Stack(Generic[T]) with a list inside; pop() on an empty list already raises IndexError."
+  },
+  {
+   "id": "tp-pep695-box",
+   "title": "Box in the new syntax",
+   "statement": "Write a class Box[T] using the new type parameter syntax (Python 3.12+, without Generic and TypeVar): a field value, a method map(f) that returns a new Box holding f(value), and a __repr__ of the form Box(3).",
+   "hint": "class Box[T]: def __init__(self, value: T): ...; def map[U](self, f) -> \"Box[U]\": return Box(f(self.value))."
+  },
+  {
+   "id": "tp-typevar-bound",
+   "title": "TypeVar with a bound",
+   "statement": "Define a protocol Comparable (method __lt__(self, other) -> bool), a type variable T = TypeVar(\"T\", bound=Comparable) and a function biggest(items: list[T]) -> T that returns the largest element.",
+   "hint": "class Comparable(Protocol): def __lt__(self, other) -> bool: ...; T = TypeVar(\"T\", bound=Comparable)."
+  },
+  {
+   "id": "tp-overload",
+   "title": "Overloading for the type checker",
+   "statement": "Define a function first with two @overload stubs (str → str and list[int] → int) and one real implementation that returns the first element. typing.get_overloads(first) must see the two stubs.",
+   "hint": "@overload def first(x: str) -> str: ...; @overload def first(x: list[int]) -> int: ...; then def first(x): return x[0]."
+  },
+  {
+   "id": "tp-self-builder",
+   "title": "Method chains with Self",
+   "statement": "Write a class Query with methods where(cond) and limit(n): both store the settings in the instance, return self, and are annotated with the result typing.Self (so that subclasses keep their own type). The method build() returns a string like «WHERE a AND b LIMIT 3».",
+   "hint": "build: parts = []; if there are conds - \"WHERE \" + \" AND \".join(conds); if limit is not None - \"LIMIT n\"; join with a space."
+  },
+  {
+   "id": "tp-typeddict-validate",
+   "title": "Validating a dict against a TypedDict",
+   "statement": "Write validate(data, schema): using the TypedDict hints (typing.get_type_hints(schema)), return a sorted list of errors: «нет ключа K» (missing key), «лишний ключ K» (extra key), and «K: ожидался T» (expected T, the type name) if the value has the wrong type.",
+   "hint": "hints = typing.get_type_hints(schema); walk over the keys of hints and over the keys of data."
+  },
+  {
+   "id": "tp-describe-type",
+   "title": "A type in words",
+   "statement": "Write describe_type(tp): a string like «list[int]», «dict[str, list[int]]», «int | None» built from an annotation (use typing.get_origin and get_args; for ordinary classes the class name, for NoneType «None», for unions join the parts with « | »).",
+   "hint": "origin = typing.get_origin(tp); args = typing.get_args(tp); for Union and UnionType join with \" | \"; print Ellipsis as «...»."
+  }
+ ]
+}

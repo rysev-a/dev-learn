@@ -47,18 +47,18 @@ pub enum Problem {
 impl std::fmt::Display for Problem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Problem::NoClients => f.write_str("на схеме нет компонента «Пользователи»"),
-            Problem::ManyClients { count } => write!(f, "компонент «Пользователи» должен быть один, а их {count}"),
-            Problem::Empty => f.write_str("схема пуста"),
-            Problem::DuplicateNode { id } => write!(f, "id компонента повторяется: {id}"),
-            Problem::TooManyNodes { count, max } => write!(f, "на схеме {count} компонентов, а разрешено не больше {max}"),
-            Problem::UnknownEdgeEnd { from, to } => write!(f, "связь {from} → {to} ведёт к несуществующему компоненту"),
-            Problem::BadLink { from, to } => write!(f, "связь {from} → {to}: такие компоненты не соединяются"),
-            Problem::DuplicateEdge { from, to } => write!(f, "связь {from} → {to} повторяется"),
-            Problem::Cycle { from, to } => write!(f, "связь {from} → {to} замыкает цикл"),
-            Problem::OutsidePalette { node, kind } => write!(f, "компонент {node} ({kind}) недоступен в этом упражнении"),
-            Problem::BadParam { node, key, reason } => write!(f, "компонент {node}: параметр {key}: {reason}"),
-            Problem::HiddenParam { node, key } => write!(f, "компонент {node}: параметр {key} в этом упражнении менять нельзя"),
+            Problem::NoClients => f.write_str(i18n::tr("the diagram has no “Users” component")),
+            Problem::ManyClients { count } => write!(f, "{}", i18n::trf!("there must be exactly one “Users” component, but there are {0}", count)),
+            Problem::Empty => f.write_str(i18n::tr("the diagram is empty")),
+            Problem::DuplicateNode { id } => write!(f, "{}", i18n::trf!("component id is repeated: {0}", id)),
+            Problem::TooManyNodes { count, max } => write!(f, "{}", i18n::trf!("the diagram has {0} components, but at most {1} are allowed", count, max)),
+            Problem::UnknownEdgeEnd { from, to } => write!(f, "{}", i18n::trf!("link {0} → {1} points to a nonexistent component", from, to)),
+            Problem::BadLink { from, to } => write!(f, "{}", i18n::trf!("link {0} → {1}: these components cannot be linked", from, to)),
+            Problem::DuplicateEdge { from, to } => write!(f, "{}", i18n::trf!("link {0} → {1} is repeated", from, to)),
+            Problem::Cycle { from, to } => write!(f, "{}", i18n::trf!("link {0} → {1} closes a cycle", from, to)),
+            Problem::OutsidePalette { node, kind } => write!(f, "{}", i18n::trf!("component {0} ({1}) is not available in this exercise", node, kind)),
+            Problem::BadParam { node, key, reason } => write!(f, "{}", i18n::trf!("component {0}: parameter {1}: {2}", node, key, reason)),
+            Problem::HiddenParam { node, key } => write!(f, "{}", i18n::trf!("component {0}: parameter {1} cannot be changed in this exercise", node, key)),
         }
     }
 }
@@ -80,7 +80,7 @@ impl Verdict {
         if let Some(p) = self.problems.first() {
             return Some(p.to_string());
         }
-        self.goals.iter().find(|g| !g.ok).map(|g| format!("цель не выполнена: {} ({})", g.text, g.detail))
+        self.goals.iter().find(|g| !g.ok).map(|g| i18n::trf!("goal not met: {0} ({1})", g.text, g.detail))
     }
 }
 
@@ -88,7 +88,7 @@ impl Verdict {
 /// объект; терпимо к обёрткам `{"state": …}` / `{"solution": …}`, двойной сериализации, пропущенным названиям и координатам.
 pub fn parse_solution(raw: &str) -> Result<SdState, SdError> {
     if raw.len() > MAX_SOLUTION_BYTES {
-        return Err(SdError::new("решение слишком большое"));
+        return Err(SdError::new(i18n::tr("the solution is too large")));
     }
     state_from_value(serde_json::from_str(raw)?)
 }
@@ -103,18 +103,18 @@ pub fn state_from_value(v: Value) -> Result<SdState, SdError> {
                 let inner = m.get("state").or_else(|| m.get("solution")).cloned();
                 match inner {
                     Some(i) => v = i,
-                    None => return Err(SdError::new("в решении нет поля nodes")),
+                    None => return Err(SdError::new(i18n::tr("the solution has no nodes field"))),
                 }
             }
             Value::Object(_) => {
-                let mut s: SdState = serde_json::from_value(v).map_err(|e| SdError::new(format!("схема разобрана неверно: {e}")))?;
+                let mut s: SdState = serde_json::from_value(v).map_err(|e| SdError::new(i18n::trf!("the diagram could not be parsed: {0}", e)))?;
                 s.normalize();
                 return Ok(s);
             }
-            _ => return Err(SdError::new("решение должно быть объектом со списками nodes и edges")),
+            _ => return Err(SdError::new(i18n::tr("the solution must be an object with nodes and edges lists"))),
         }
     }
-    Err(SdError::new("решение вложено слишком глубоко"))
+    Err(SdError::new(i18n::tr("the solution is nested too deeply")))
 }
 
 /// Нарушения ограничений упражнения (без расчёта).
@@ -189,23 +189,23 @@ fn references(sc: &Scenario, kind: Kind, key: &str) -> bool {
 
 fn param_problem(kind: Kind, key: &str, value: &ParamValue) -> Option<String> {
     let Some(spec) = param_spec(kind, key) else {
-        return Some("неизвестный параметр".into());
+        return Some(i18n::tr("unknown parameter").into());
     };
     match (spec.ty, value) {
         (ParamType::Bool, ParamValue::Bool(_)) => None,
-        (ParamType::Bool, _) => Some("ожидается да/нет".into()),
+        (ParamType::Bool, _) => Some(i18n::tr("yes/no expected").into()),
         (ParamType::Int, ParamValue::Num(x)) => {
             let (lo, hi) = (spec.min.unwrap_or(f64::MIN), spec.max.unwrap_or(f64::MAX));
             if !x.is_finite() || x.fract() != 0.0 {
-                Some("ожидается целое число".into())
+                Some(i18n::tr("an integer expected").into())
             } else if *x < lo || *x > hi {
-                Some(format!("значение вне диапазона {lo}–{hi}"))
+                Some(i18n::trf!("value out of range {0}–{1}", lo, hi))
             } else {
                 None
             }
         }
-        (ParamType::Int, _) => Some("ожидается число".into()),
-        (ParamType::Select, v) => (!spec.options.iter().any(|o| &o.value == v)).then(|| "значения нет в списке".to_owned()),
+        (ParamType::Int, _) => Some(i18n::tr("a number expected").into()),
+        (ParamType::Select, v) => (!spec.options.iter().any(|o| &o.value == v)).then(|| i18n::tr("value is not in the list").to_owned()),
     }
 }
 

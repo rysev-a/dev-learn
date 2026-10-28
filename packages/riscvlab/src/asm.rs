@@ -338,7 +338,7 @@ impl Ctx {
     fn eval(&mut self, expr: &str, line: u32, addr_of: AddrOf) -> Option<i64> {
         let e = js::trim(expr);
         if e.is_empty() {
-            self.fail(line, "Пустое выражение");
+            self.fail(line, i18n::tr("Empty expression"));
             return None;
         }
         // %hi(...) и %lo(...)
@@ -361,7 +361,7 @@ impl Ctx {
         let strip = |u: &[u16]| -> Vec<u16> { u.iter().copied().filter(|x| !js::is_space_unit(*x)).collect() };
         let joined: Vec<u16> = parts.iter().flat_map(|p| p.iter().copied()).collect();
         if parts.is_empty() || strip(&joined) != strip(&units) {
-            self.fail(line, format!("Не понимаю выражение «{e}»"));
+            self.fail(line, i18n::trf!("Cannot understand the expression “{0}”", e));
             return None;
         }
         let mut total: i64 = 0;
@@ -392,15 +392,15 @@ impl Ctx {
                 let v = addr_of.and_then(|f| f(t));
                 if v.is_none() {
                     if addr_of.is_some() {
-                        self.fail(line, format!("Нет метки «{t}»"));
+                        self.fail(line, i18n::trf!("No label “{0}”", t));
                     } else {
-                        self.fail(line, format!("Метки здесь нельзя использовать (нужно число): «{t}»"));
+                        self.fail(line, i18n::trf!("Labels cannot be used here (a number is needed): “{0}”", t));
                     }
                     return None;
                 }
                 v
             } else {
-                self.fail(line, format!("Не понимаю «{t}»"));
+                self.fail(line, i18n::trf!("Cannot understand “{0}”", t));
                 return None;
             };
             total = total.wrapping_add(sign.wrapping_mul(v?));
@@ -481,7 +481,7 @@ pub fn assemble(source: &str) -> AsmResult {
         // метки в начале строки (их может быть несколько)
         while let Some((name, rest)) = split_label(&text) {
             if labels.contains_key(&name) {
-                cx.fail(line, format!("Метка «{name}» уже объявлена"));
+                cx.fail(line, i18n::trf!("Label “{0}” is already defined", name));
             } else {
                 let off = size[section as usize];
                 labels.insert(name.clone(), (section, off));
@@ -516,7 +516,7 @@ pub fn assemble(source: &str) -> AsmResult {
                 ".equ" | ".set" => {
                     let v = if ops.len() == 2 { cx.eval(&ops[1], line, None) } else { None };
                     if ops.len() != 2 || !js::is_ident(&ops[0]) {
-                        cx.fail(line, "Нужно так: .equ ИМЯ, число");
+                        cx.fail(line, i18n::tr("Usage: .equ NAME, number"));
                     } else if let Some(v) = v {
                         cx.equ.insert(ops[0].clone(), v);
                     }
@@ -542,7 +542,7 @@ pub fn assemble(source: &str) -> AsmResult {
                     for o in &ops {
                         match parse_string(o) {
                             None => {
-                                cx.fail(line, format!("Ожидалась строка в кавычках, а здесь «{o}»"));
+                                cx.fail(line, i18n::trf!("Expected a quoted string, but found “{0}”", o));
                                 continue;
                             }
                             Some(s) => {
@@ -567,7 +567,7 @@ pub fn assemble(source: &str) -> AsmResult {
                             usize::try_from(n).unwrap_or(usize::MAX),
                             Vec::new(),
                         ),
-                        _ => cx.fail(line, "Нужно так: .space число_байт"),
+                        _ => cx.fail(line, i18n::tr("Usage: .space number_of_bytes")),
                     }
                 }
                 ".align" | ".balign" => {
@@ -591,16 +591,16 @@ pub fn assemble(source: &str) -> AsmResult {
                                 }
                             }
                         }
-                        _ => cx.fail(line, format!("Нужно так: {mn} число")),
+                        _ => cx.fail(line, i18n::trf!("Usage: {0} number", mn)),
                     }
                 }
-                _ => cx.fail(line, format!("Неизвестная директива «{mn}»")),
+                _ => cx.fail(line, i18n::trf!("Unknown directive “{0}”", mn)),
             }
             continue;
         }
 
         if section != Section::Text {
-            cx.fail(line, "Команды можно писать только в секции .text (сейчас включена .data)");
+            cx.fail(line, i18n::tr("Instructions can only be written in the .text section (.data is currently active)"));
             continue;
         }
         let words = insn_words(&mut cx, &mn, &ops, line);
@@ -617,14 +617,11 @@ pub fn assemble(source: &str) -> AsmResult {
     if size_text > DATA_BASE as usize {
         cx.fail(
             1,
-            format!(
-                "Программа слишком длинная: команды ({size_text} байт) не помещаются до адреса данных 0x{:x}",
-                DATA_BASE
-            ),
+            i18n::trf!("The program is too long: the instructions ({0} bytes) do not fit before the data address 0x{1}", size_text, format!("{:x}", DATA_BASE)),
         );
     }
     if (DATA_BASE as usize).saturating_add(size_data) > RAM_SIZE - STACK_RESERVE {
-        cx.fail(1, format!("Слишком много данных: {size_data} байт; нужно оставить {STACK_RESERVE} байт под стек"));
+        cx.fail(1, i18n::trf!("Too much data: {0} bytes; {1} bytes must be left for the stack", size_data, STACK_RESERVE));
     }
 
     // адреса меток
@@ -740,21 +737,21 @@ impl<'a> Enc<'a> {
             return true;
         }
         let word = if n == 1 {
-            "операнд"
+            i18n::tr("operand")
         } else if n < 5 {
-            "операнда"
+            i18n::tr("operands")
         } else {
-            "операндов"
+            i18n::tr("operands (in total)")
         };
         let mn = self.mn;
-        self.fail(format!("«{mn}» принимает {n} {word}: {usage}"));
+        self.fail(i18n::trf!("“{0}” takes {1} {2}: {3}", mn, n, word, usage));
         false
     }
 
     fn reg(&mut self, t: Option<&str>) -> Option<u8> {
         let r = t.and_then(reg_num);
         if r.is_none() {
-            self.fail(format!("Ожидался регистр (x0…x31 или zero, ra, sp, a0…), а здесь «{}»", t.unwrap_or("")));
+            self.fail(i18n::trf!("Expected a register (x0…x31 or zero, ra, sp, a0…), but found “{0}”", t.unwrap_or("")));
         }
         r
     }
@@ -772,7 +769,7 @@ impl<'a> Enc<'a> {
     fn num(&mut self, t: &str, min: i64, max: i64, what: &str) -> Option<i64> {
         let v = self.eval(t)?;
         if v < min || v > max {
-            self.fail(format!("{what}: {v} не помещается — допустимо от {min} до {max}"));
+            self.fail(i18n::trf!("{0}: {1} does not fit — allowed range is {2} to {3}", what, v, min, max));
             return None;
         }
         Some(v)
@@ -788,11 +785,11 @@ impl<'a> Enc<'a> {
         }?;
         let lim: i64 = 1 << (bits - 1);
         if off % 2 != 0 {
-            self.fail(format!("Смещение {off} должно быть чётным"));
+            self.fail(i18n::trf!("Offset {0} must be even", off));
             return None;
         }
         if off < -lim || off >= lim {
-            self.fail(format!("Метка «{t}» слишком далеко: {off} байт (можно от {} до {})", -lim, lim - 2));
+            self.fail(i18n::trf!("Label “{0}” is too far away: {1} bytes (allowed from {2} to {3})", t, off, -lim, lim - 2));
             return None;
         }
         Some(off)
@@ -851,14 +848,14 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
         "seqz" => Some(two_regs(e, "seqz rd, rs").map(|(rd, rs)| vec![enc_i(opi(Op::Sltiu), rd, rs, 1)])),
         "snez" => Some(two_regs(e, "snez rd, rs").map(|(rd, rs)| vec![enc_r(opi(Op::Sltu), rd, 0, rs)])),
         "li" => {
-            if !e.need(2, "li rd, число") {
+            if !e.need(2, i18n::tr("li rd, number")) {
                 return Some(None);
             }
             let rd = e.reg(e.op(0));
             let raw = e.cx.eval(&ops[1], e.line, None);
             let (Some(rd), Some(raw)) = (rd, raw) else { return Some(None) };
             if !(-0x8000_0000..=0xffff_ffff).contains(&raw) {
-                e.fail(format!("Число {raw} не помещается в 32 бита"));
+                e.fail(i18n::trf!("Number {0} does not fit in 32 bits", raw));
                 return Some(None);
             }
             let v = i32w(raw); // 0xFFFFFFFF и −1 — одно и то же 32-битное слово
@@ -875,7 +872,7 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
         }
         "la" | "call" | "tail" => {
             let is_la = mn == "la";
-            let usage = if is_la { "la rd, метка".to_string() } else { format!("{mn} метка") };
+            let usage = if is_la { i18n::tr("la rd, label").to_string() } else { i18n::trf!("{0} label", mn) };
             if !e.need(if is_la { 2 } else { 1 }, &usage) {
                 return Some(None);
             }
@@ -901,7 +898,7 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
         }
         "j" | "jal" => {
             if mn == "j" || ops.len() == 1 {
-                if !e.need(1, &format!("{mn} метка")) {
+                if !e.need(1, &i18n::trf!("{0} label", mn)) {
                     return Some(None);
                 }
                 let off = e.target(&ops[0], 21);
@@ -917,7 +914,7 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
             Some(rs.map(|rs| vec![enc_i(opi(Op::Jalr), 0, rs, 0)]))
         }
         "beqz" | "bnez" | "blez" | "bgez" | "bltz" | "bgtz" => {
-            if !e.need(2, &format!("{mn} rs, метка")) {
+            if !e.need(2, &i18n::trf!("{0} rs, label", mn)) {
                 return Some(None);
             }
             let rs = e.reg(e.op(0));
@@ -934,7 +931,7 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
             Some(Some(vec![enc_b(opi(m), if swap { 0 } else { rs }, if swap { rs } else { 0 }, off as i32)]))
         }
         "bgt" | "ble" | "bgtu" | "bleu" => {
-            if !e.need(3, &format!("{mn} rs1, rs2, метка")) {
+            if !e.need(3, &i18n::trf!("{0} rs1, rs2, label", mn)) {
                 return Some(None);
             }
             let (a, b) = (e.reg(e.op(0)), e.reg(e.op(1)));
@@ -958,7 +955,7 @@ fn real(e: &mut Enc) -> Option<Vec<u32>> {
     let ops = e.ops;
     let Some(def) = op_by_mnemonic(mn) else {
         // в сообщении — мнемоника как написана (она уже строчная, как и в прежней версии)
-        e.fail(format!("Неизвестная команда «{mn}»"));
+        e.fail(i18n::trf!("Unknown instruction “{0}”", mn));
         return None;
     };
     match def.fmt {
@@ -976,38 +973,38 @@ fn real(e: &mut Enc) -> Option<Vec<u32>> {
             Some(vec![enc_r(def, rd?, a?, b?)])
         }
         Fmt::I => {
-            if !e.need(3, &format!("{mn} rd, rs1, число")) {
+            if !e.need(3, &i18n::trf!("{0} rd, rs1, number", mn)) {
                 return None;
             }
             let (rd, rs) = (e.reg(e.op(0)), e.reg(e.op(1)));
-            let v = e.num(&ops[2], -2048, 2047, "Число");
+            let v = e.num(&ops[2], -2048, 2047, i18n::tr("Number"));
             Some(vec![enc_i(def, rd?, rs?, v? as i32)])
         }
         Fmt::SH => {
-            if !e.need(3, &format!("{mn} rd, rs1, число 0…31")) {
+            if !e.need(3, &i18n::trf!("{0} rd, rs1, number 0…31", mn)) {
                 return None;
             }
             let (rd, rs) = (e.reg(e.op(0)), e.reg(e.op(1)));
-            let v = e.num(&ops[2], 0, 31, "Величина сдвига");
+            let v = e.num(&ops[2], 0, 31, i18n::tr("Shift amount"));
             Some(vec![enc_sh(def, rd?, rs?, v? as i32)])
         }
         Fmt::L | Fmt::S => {
-            if !e.need(2, &format!("{mn} регистр, смещение(регистр)")) {
+            if !e.need(2, &i18n::trf!("{0} register, offset(register)", mn)) {
                 return None;
             }
             let r = e.reg(e.op(0));
             let Some((off_t, base_t)) = parse_mem_operand(&ops[1]) else {
-                e.fail(format!("Адрес пишется как смещение(регистр), например 4(sp), а здесь «{}»", ops[1]));
+                e.fail(i18n::trf!("An address is written as offset(register), for example 4(sp), but found “{0}”", ops[1]));
                 return None;
             };
             let base = e.reg(Some(&base_t));
             let off =
-                if js::trim(&off_t).is_empty() { Some(0) } else { e.num(&off_t, -2048, 2047, "Смещение") };
+                if js::trim(&off_t).is_empty() { Some(0) } else { e.num(&off_t, -2048, 2047, i18n::tr("Offset")) };
             let (r, base, off) = (r?, base?, off? as i32);
             Some(vec![if def.fmt == Fmt::L { enc_i(def, r, base, off) } else { enc_s(def, r, base, off) }])
         }
         Fmt::B => {
-            if !e.need(3, &format!("{mn} rs1, rs2, метка")) {
+            if !e.need(3, &i18n::trf!("{0} rs1, rs2, label", mn)) {
                 return None;
             }
             let (a, b) = (e.reg(e.op(0)), e.reg(e.op(1)));
@@ -1015,15 +1012,15 @@ fn real(e: &mut Enc) -> Option<Vec<u32>> {
             Some(vec![enc_b(def, a?, b?, off? as i32)])
         }
         Fmt::U => {
-            if !e.need(2, &format!("{mn} rd, число")) {
+            if !e.need(2, &i18n::trf!("{0} rd, number", mn)) {
                 return None;
             }
             let rd = e.reg(e.op(0));
-            let v = e.num(&ops[1], -0x80000, 0xfffff, "Число");
+            let v = e.num(&ops[1], -0x80000, 0xfffff, i18n::tr("Number"));
             Some(vec![enc_u(def, rd?, v? as i32)])
         }
         Fmt::J => {
-            if !e.need(2, "jal rd, метка") {
+            if !e.need(2, i18n::tr("jal rd, label")) {
                 return None;
             }
             let rd = e.reg(e.op(0));
@@ -1038,19 +1035,19 @@ fn real(e: &mut Enc) -> Option<Vec<u32>> {
             }
             if ops.len() == 2 {
                 let Some((off_t, rs_t)) = parse_mem_operand(&ops[1]) else {
-                    e.fail(format!("Нужно так: jalr rd, смещение(rs), а здесь «{}»", ops[1]));
+                    e.fail(i18n::trf!("Expected: jalr rd, offset(rs), but found “{0}”", ops[1]));
                     return None;
                 };
                 let (rd, rs) = (e.reg(e.op(0)), e.reg(Some(&rs_t)));
                 let off =
-                    if js::trim(&off_t).is_empty() { Some(0) } else { e.num(&off_t, -2048, 2047, "Смещение") };
+                    if js::trim(&off_t).is_empty() { Some(0) } else { e.num(&off_t, -2048, 2047, i18n::tr("Offset")) };
                 return Some(vec![enc_i(def, rd?, rs?, off? as i32)]);
             }
-            if !e.need(3, "jalr rd, rs, смещение") {
+            if !e.need(3, i18n::tr("jalr rd, rs, offset")) {
                 return None;
             }
             let (rd, rs) = (e.reg(e.op(0)), e.reg(e.op(1)));
-            let off = e.num(&ops[2], -2048, 2047, "Смещение");
+            let off = e.num(&ops[2], -2048, 2047, i18n::tr("Offset"));
             Some(vec![enc_i(def, rd?, rs?, off? as i32)])
         }
     }

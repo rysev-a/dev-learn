@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "virt-exits",
+   "title": "Which instructions cause an exit",
+   "statement": "Write a function exits(program, controls): program is a list of the guest's instruction mnemonics, controls is a list of the intercept bits enabled in the VMCS. These always cause an exit: CPUID, VMCALL, VMXON, VMLAUNCH. The rest depends on the bits: HLT needs \"hlt_exiting\", IN and OUT need \"io_exiting\", MOV_CR3 needs \"cr3_load_exiting\", RDMSR and WRMSR need \"msr_exiting\". Other instructions (ADD, MOV, and so on) never cause an exit. Return the list of indexes of the instructions on which the guest exits to the monitor.",
+   "hint": "Make a dictionary \"mnemonic to bit\" and a set of unconditional exits."
+  },
+  {
+   "id": "virt-vmcs-cycle",
+   "title": "Entry and exit through the VMCS",
+   "statement": "Write a function vm_cycle(host, guest, events): host and guest are dictionaries of registers (for example {\"rip\": 100, \"rsp\": 200}), events is a list of events. At the start, cpu is a copy of host, vmcs_host is a copy of host, and vmcs_guest is a copy of guest. The events: [\"enter\"] (VM entry) saves cpu into vmcs_host and loads a copy of vmcs_guest into cpu; [\"run\", fields] and [\"monitor\", fields] update the cpu registers (the guest or the monitor is executing); [\"exit\", reason] (VM exit) saves cpu into vmcs_guest, loads a copy of vmcs_host into cpu, and appends the reason to the log; [\"vmwrite\", fields] updates vmcs_guest. Return the tuple (cpu, vmcs_host, vmcs_guest, log of reasons).",
+   "hint": "Copy dictionaries with dict(...) so the originals aren't changed."
+  },
+  {
+   "id": "virt-exit-profile",
+   "title": "Exit profile",
+   "statement": "Write a function exit_profile(log, costs): log is a list of reasons for exits from the guest, costs is a dictionary \"reason to the cost of one exit in cycles\". If a reason is missing from costs, its cost is 1500. Return a list of tuples (reason, how many times, total cycles), sorted by total cycles in descending order and, on ties, by reason name.",
+   "hint": "Count the exits with a dictionary, then sort with the key (-cycles, reason)."
+  },
+  {
+   "id": "virt-exit-budget",
+   "title": "Exit budget",
+   "statement": "Write a function max_exits(hz, exit_cost, overhead_percent): hz is the processor frequency in hertz, exit_cost is the cost of one exit in cycles, overhead_percent is the whole percentage of processor time that may be spent on exits. Return the integer number of exits per second that does not exceed the budget (round down; use integer arithmetic).",
+   "hint": "The budget of cycles per second is hz * percent // 100. Divide it by the cost of an exit."
+  },
+  {
+   "id": "virt-arm-el",
+   "title": "Where an exception goes on ARM",
+   "statement": "Write a function target_el(instr, el, tsc=False): instr is the instruction (\"SVC\", \"HVC\", or \"SMC\"), el is the current exception level (0, 1, or 2), tsc says whether SMC trapping is enabled (the HCR_EL2.TSC bit). Return the level the exception goes to, or the string \"undef\" if the instruction is undefined at that level. SVC goes to the same level, but not below 1. HVC is undefined from EL0, and from EL1 and EL2 it goes to EL2. SMC is undefined from EL0; from EL1 with tsc it goes to EL2; in all other cases it goes to EL3.",
+   "hint": "Handle the three instructions in separate branches."
+  },
+  {
+   "id": "virt-riscv-csr",
+   "title": "CSR access in RISC-V with the H extension",
+   "statement": "Write a function csr_access(mode, csr): mode is the mode (\"M\", \"HS\", \"U\", \"VS\", \"VU\"), csr is the register name (\"mstatus\", \"satp\", \"sstatus\", \"vsatp\", \"vsstatus\", \"hgatp\", \"hstatus\"). Return the name of the register the instruction actually accesses, or the name of the exception. M: any register is available under its own name. HS: everything is available except mstatus, which gives \"illegal-instruction\". VS: satp and sstatus are replaced by vsatp and vsstatus; mstatus gives \"illegal-instruction\"; the others (vsatp, vsstatus, hgatp, hstatus) give \"virtual-instruction\". U: any register gives \"illegal-instruction\". VU: any register gives \"virtual-instruction\".",
+   "hint": "Start with the modes U, VU, and M, then handle HS and VS."
+  },
+  {
+   "id": "virt-vmx-lifecycle",
+   "title": "The VMX lifecycle",
+   "statement": "Write a function vmx_run(ops): ops is a list of VMX operations of the form [\"VMXON\"], [\"VMPTRLD\", id], [\"VMLAUNCH\"], [\"VMRESUME\"], [\"VMCLEAR\", id], [\"VMXOFF\"]. For each one, return \"ok\" or \"fail\". Before VMXON and after VMXOFF any operation other than VMXON is a fail; a repeated VMXON is a fail. VMPTRLD makes the VMCS with the given id current. VMLAUNCH is ok if there is a current VMCS and it hasn't been launched yet (after that it is \"launched\"). VMRESUME is ok if there is a current VMCS and it is launched. VMCLEAR resets the \"launched\" state of the VMCS with the given id, and if it is the current one, it makes it no longer current. VMXOFF turns the mode off and clears the current VMCS. The \"launched\" state belongs to the VMCS and survives a VMPTRLD of another VMCS and back.",
+   "hint": "Keep on, the id of the current VMCS, and a dictionary \"id to whether it is launched\"."
+  },
+  {
+   "id": "virt-kvm-run",
+   "title": "The KVM_RUN loop",
+   "statement": "Write a function kvm_run(exits): exits is a list of the guest's exit reasons, in order. The Linux kernel handles these itself: EXTERNAL_INTERRUPT, HLT, CPUID, EPT_VIOLATION, MSR. Everything else (IO, MMIO, SHUTDOWN, and unknown reasons) the kernel returns to the user process, and the KVM_RUN call ends. After SHUTDOWN the guest stops, and later exits are not considered. Return the tuple (how many exits the kernel handled, how many were returned to the user process).",
+   "hint": "Walk through the list and stop after the first SHUTDOWN."
+  }
+ ]
+}

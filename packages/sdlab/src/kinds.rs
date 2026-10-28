@@ -117,35 +117,35 @@ fn n(v: i32) -> ParamValue {
 }
 
 fn size() -> ParamSpec {
-    ParamSpec::select("size", "Размер", &[(s("S"), "S — малый"), (s("M"), "M — средний"), (s("L"), "L — большой")], s("S"))
+    ParamSpec::select("size", i18n::tr("Size"), &[(s("S"), i18n::tr("S — small")), (s("M"), i18n::tr("M — medium")), (s("L"), i18n::tr("L — large"))], s("S"))
 }
 
 fn zone() -> ParamSpec {
     ParamSpec::select(
         "zone",
-        "Размещение",
-        &[(s("single"), "одна зона"), (s("multi"), "три зоны региона"), (s("regions"), "два региона")],
+        i18n::tr("Placement"),
+        &[(s("single"), i18n::tr("single zone")), (s("multi"), i18n::tr("three zones of a region")), (s("regions"), i18n::tr("two regions"))],
         s("single"),
     )
-    .help("отказ зоны: «одна зона» теряет всё, остальные — треть; отказ региона: два региона теряют половину")
+    .help(i18n::tr("zone failure: “single zone” loses everything, the others lose a third; region failure: two regions lose half"))
 }
 
 fn ttl() -> ParamSpec {
-    ParamSpec::select("ttl", "TTL, с", &[(n(30), "30"), (n(300), "300"), (n(3600), "3600")], n(300))
+    ParamSpec::select("ttl", i18n::tr("TTL, s"), &[(n(30), "30"), (n(300), "300"), (n(3600), "3600")], n(300))
 }
 
 fn pricing(spot: &'static str) -> ParamSpec {
     ParamSpec::select(
         "pricing",
-        "Тариф",
-        &[(s("ondemand"), "по требованию"), (s("reserved"), "резерв (−40%)"), (s("spot"), spot)],
+        i18n::tr("Pricing"),
+        &[(s("ondemand"), i18n::tr("on demand")), (s("reserved"), i18n::tr("reserved (−40%)")), (s("spot"), spot)],
         s("ondemand"),
     )
     .advanced()
 }
 
 fn instances(max: i32) -> ParamSpec {
-    ParamSpec::int("instances", "Экземпляры", 1, max, 1)
+    ParamSpec::int("instances", i18n::tr("Instances"), 1, max, 1)
 }
 
 fn mk(kind: Kind, label: &'static str, about: &'static str, col: usize, params: Vec<ParamSpec>) -> KindSpec {
@@ -155,99 +155,99 @@ fn mk(kind: Kind, label: &'static str, about: &'static str, col: usize, params: 
 fn build() -> Vec<KindSpec> {
     // порядок — как в `Kind::ALL`
     let mut v = vec![
-        mk(Kind::Clients, "Пользователи", "источник нагрузки", 0, vec![]),
-        mk(Kind::Cdn, "CDN", "раздаёт статику с ближайших серверов", 1, vec![ttl().help("чем больше TTL, тем выше доля попаданий")]),
-        mk(Kind::Lb, "Балансировщик", "делит запросы между серверами", 3, vec![
-            ParamSpec::int("instances", "Экземпляры", 1, 3, 1),
-            ParamSpec::select("layer", "Уровень", &[(s("L4"), "L4 (TCP)"), (s("L7"), "L7 (HTTP)")], s("L4")),
+        mk(Kind::Clients, i18n::tr("Users"), i18n::tr("source of the load"), 0, vec![]),
+        mk(Kind::Cdn, "CDN", i18n::tr("serves static content from the nearest servers"), 1, vec![ttl().help(i18n::tr("the larger the TTL, the higher the hit ratio"))]),
+        mk(Kind::Lb, i18n::tr("Load balancer"), i18n::tr("splits requests between servers"), 3, vec![
+            ParamSpec::int("instances", i18n::tr("Instances"), 1, 3, 1),
+            ParamSpec::select("layer", i18n::tr("Layer"), &[(s("L4"), "L4 (TCP)"), (s("L7"), "L7 (HTTP)")], s("L4")),
         ]),
-        mk(Kind::Gateway, "API-шлюз", "вход: авторизация, маршрутизация, лимиты", 2, vec![ParamSpec::int("instances", "Экземпляры", 1, 4, 1)]),
-        mk(Kind::Limiter, "Ограничитель", "пропускает не больше N запросов в секунду", 2, vec![ParamSpec::int("limit", "Предел, запр/с", 100, 50000, 2000)]),
-        mk(Kind::App, "Сервер приложения", "бизнес-логика без состояния", 4, vec![
+        mk(Kind::Gateway, i18n::tr("API gateway"), i18n::tr("entry point: authorization, routing, limits"), 2, vec![ParamSpec::int("instances", i18n::tr("Instances"), 1, 4, 1)]),
+        mk(Kind::Limiter, i18n::tr("Rate limiter"), i18n::tr("lets through at most N requests per second"), 2, vec![ParamSpec::int("limit", i18n::tr("Limit, req/s"), 100, 50000, 2000)]),
+        mk(Kind::App, i18n::tr("App server"), i18n::tr("stateless business logic"), 4, vec![
             // верхний предел 40, а не 30, как в TypeScript-версии: эталоны итоговых заданий (глав 22–24) требуют 33–35 серверов
             instances(40),
             size(),
-            ParamSpec::select("sessions", "Сессии", &[(s("local"), "в памяти сервера"), (s("external"), "во внешнем хранилище")], s("local")),
+            ParamSpec::select("sessions", i18n::tr("Sessions"), &[(s("local"), i18n::tr("in server memory")), (s("external"), i18n::tr("in external storage"))], s("local")),
             zone(),
-            ParamSpec::int("weight", "Доля трафика", 1, 10, 1).advanced().help("вес сервиса при делении трафика между сервисами"),
-            ParamSpec::flag("idempotency", "Ключи идемпотентности").advanced().inert(),
-            ParamSpec::int("retries", "Повторы к БД", 0, 3, 0).advanced().help("повторы без паузы усиливают перегрузку"),
-            ParamSpec::flag("breaker", "Автомат разрыва").advanced().help("обрывает повторы, когда база перегружена"),
+            ParamSpec::int("weight", i18n::tr("Traffic share"), 1, 10, 1).advanced().help(i18n::tr("service weight when traffic is split between services")),
+            ParamSpec::flag("idempotency", i18n::tr("Idempotency keys")).advanced().inert(),
+            ParamSpec::int("retries", i18n::tr("DB retries"), 0, 3, 0).advanced().help(i18n::tr("retries without a pause make overload worse")),
+            ParamSpec::flag("breaker", i18n::tr("Circuit breaker")).advanced().help(i18n::tr("stops retries when the database is overloaded")),
             ParamSpec::select(
                 "feed",
-                "Лента",
-                &[(s("pull"), "pull — собирать при чтении"), (s("push"), "push — раскладывать при записи"), (s("hybrid"), "гибрид")],
+                i18n::tr("Feed"),
+                &[(s("pull"), i18n::tr("pull — build on read")), (s("push"), i18n::tr("push — fan out on write")), (s("hybrid"), i18n::tr("hybrid"))],
                 s("pull"),
             )
             .advanced(),
             ParamSpec::select(
                 "deploy",
-                "Выкладка",
-                &[(s("all"), "всё сразу"), (s("rolling"), "по одному (rolling)"), (s("bluegreen"), "blue/green")],
+                i18n::tr("Deployment"),
+                &[(s("all"), i18n::tr("all at once")), (s("rolling"), i18n::tr("one at a time (rolling)")), (s("bluegreen"), "blue/green")],
                 s("all"),
             )
             .advanced()
-            .help("blue/green держит вторую копию — расход ×2"),
-            pricing("спот (−70%, прерывается)"),
+            .help(i18n::tr("blue/green keeps a second copy — cost ×2")),
+            pricing(i18n::tr("spot (−70%, can be interrupted)")),
         ]),
-        mk(Kind::Cache, "Кэш", "быстрая память для горячих данных", 5, vec![
-            ParamSpec::int("size_gb", "Память, ГБ", 1, 128, 4),
+        mk(Kind::Cache, i18n::tr("Cache"), i18n::tr("fast memory for hot data"), 5, vec![
+            ParamSpec::int("size_gb", i18n::tr("Memory, GB"), 1, 128, 4),
             ttl(),
             ParamSpec::select(
                 "policy",
-                "Политика записи",
+                i18n::tr("Write policy"),
                 &[(s("aside"), "cache-aside"), (s("through"), "write-through"), (s("back"), "write-back")],
                 s("aside"),
             )
-            .help("write-back снимает нагрузку записи с БД, но данные могут пропасть")
+            .help(i18n::tr("write-back takes write load off the DB, but data may be lost"))
             .advanced(),
-            ParamSpec::int("replicas", "Реплики", 0, 2, 0),
+            ParamSpec::int("replicas", i18n::tr("Replicas"), 0, 2, 0),
             zone(),
         ]),
-        mk(Kind::Db, "База данных", "постоянное хранилище", 7, vec![
+        mk(Kind::Db, i18n::tr("Database"), i18n::tr("persistent storage"), 7, vec![
             size(),
-            ParamSpec::int("replicas", "Реплики на шард", 0, 5, 0),
-            ParamSpec::int("shards", "Шарды", 1, 16, 1),
-            ParamSpec::flag("failover", "Автопереключение").help("при отказе лидера реплика занимает его место"),
-            ParamSpec::select("engine", "Тип", &[(s("sql"), "SQL"), (s("nosql"), "NoSQL")], s("sql")),
-            ParamSpec::select("sync", "Репликация", &[(s("async"), "асинхронная"), (s("sync"), "синхронная")], s("async"))
+            ParamSpec::int("replicas", i18n::tr("Replicas per shard"), 0, 5, 0),
+            ParamSpec::int("shards", i18n::tr("Shards"), 1, 16, 1),
+            ParamSpec::flag("failover", i18n::tr("Automatic failover")).help(i18n::tr("when the leader fails, a replica takes its place")),
+            ParamSpec::select("engine", i18n::tr("Type"), &[(s("sql"), "SQL"), (s("nosql"), "NoSQL")], s("sql")),
+            ParamSpec::select("sync", i18n::tr("Replication"), &[(s("async"), i18n::tr("asynchronous")), (s("sync"), i18n::tr("synchronous"))], s("async"))
                 .advanced()
-                .help("синхронная: реплики не отстают, но запись медленнее"),
-            ParamSpec::select("shard_key", "Ключ шардирования", &[(s("hash"), "хеш"), (s("range"), "диапазон")], s("hash")).advanced(),
+                .help(i18n::tr("synchronous: replicas never lag, but writes are slower")),
+            ParamSpec::select("shard_key", i18n::tr("Shard key"), &[(s("hash"), i18n::tr("hash")), (s("range"), i18n::tr("range"))], s("hash")).advanced(),
             zone(),
         ]),
-        mk(Kind::Queue, "Очередь", "буфер между производителями и обработчиками", 5, vec![
-            ParamSpec::int("partitions", "Партиции", 1, 16, 1),
-            ParamSpec::flag("dlq", "Очередь недоставленных").advanced().inert(),
+        mk(Kind::Queue, i18n::tr("Queue"), i18n::tr("buffer between producers and workers"), 5, vec![
+            ParamSpec::int("partitions", i18n::tr("Partitions"), 1, 16, 1),
+            ParamSpec::flag("dlq", i18n::tr("Dead-letter queue")).advanced().inert(),
         ]),
-        mk(Kind::Worker, "Обработчик", "разбирает очередь", 6, vec![
+        mk(Kind::Worker, i18n::tr("Worker"), i18n::tr("consumes the queue"), 6, vec![
             instances(30),
-            ParamSpec::select("size", "Размер", &[(s("S"), "S — малый"), (s("M"), "M — средний")], s("S")),
+            ParamSpec::select("size", i18n::tr("Size"), &[(s("S"), i18n::tr("S — small")), (s("M"), i18n::tr("M — medium"))], s("S")),
             zone(),
-            ParamSpec::flag("idempotent", "Идемпотентная обработка").advanced().inert().help("повторная доставка не портит данные"),
-            pricing("спот (−70%)"),
+            ParamSpec::flag("idempotent", i18n::tr("Idempotent processing")).advanced().inert().help(i18n::tr("redelivery does not corrupt data")),
+            pricing(i18n::tr("spot (−70%)")),
         ]),
-        mk(Kind::Blob, "Объектное хранилище", "файлы и медиа", 7, vec![ParamSpec::select(
+        mk(Kind::Blob, i18n::tr("Object storage"), i18n::tr("files and media"), 7, vec![ParamSpec::select(
             "tier",
-            "Класс хранения",
-            &[(s("hot"), "горячее ($23/ТБ)"), (s("mix"), "горячее + холодное ($10/ТБ)"), (s("cold"), "холодное ($4/ТБ)")],
+            i18n::tr("Storage class"),
+            &[(s("hot"), i18n::tr("hot ($23/TB)")), (s("mix"), i18n::tr("hot + cold ($10/TB)")), (s("cold"), i18n::tr("cold ($4/TB)"))],
             s("hot"),
         )
         .advanced()
-        .help("холодное дешевле, но доступ к объектам медленнее")]),
-        mk(Kind::Search, "Поиск", "полнотекстовый индекс", 7, vec![
-            ParamSpec::int("shards", "Шарды", 1, 16, 1),
-            ParamSpec::int("replicas", "Реплики", 1, 6, 1),
+        .help(i18n::tr("cold is cheaper, but object access is slower"))]),
+        mk(Kind::Search, i18n::tr("Search"), i18n::tr("full-text index"), 7, vec![
+            ParamSpec::int("shards", i18n::tr("Shards"), 1, 16, 1),
+            ParamSpec::int("replicas", i18n::tr("Replicas"), 1, 6, 1),
         ]),
-        mk(Kind::Ws, "WebSocket-шлюз", "держит постоянные соединения", 3, vec![instances(40)]),
-        mk(Kind::Monitor, "Мониторинг", "метрики, журналы, оповещения", 6, vec![]),
-        mk(Kind::Auth, "Сервис входа", "аутентификация и права: проверка токенов и сессий", 5, vec![instances(20)]),
-        mk(Kind::Geo, "Геосервис", "геопоиск и положения в памяти: ближайшие водители, курьеры, рестораны", 5, vec![instances(30)]),
-        mk(Kind::Ml, "Сервис ранжирования", "модель рекомендаций и оценок: дорогие вычисления на запрос", 5, vec![instances(20)]),
-        mk(Kind::Pay, "Платёжный шлюз", "внешний платёжный провайдер: медленный и дорогой вызов", 5, vec![ParamSpec::int("instances", "Каналы провайдера", 1, 4, 1)]),
-        mk(Kind::Stream, "Поток событий", "журнал событий с партициями: каждый потребитель получает свою копию", 5, vec![ParamSpec::int("partitions", "Партиции", 1, 32, 1)]),
-        mk(Kind::Notify, "Уведомления", "рассылка пушей и писем из очереди или потока", 6, vec![instances(20)]),
-        mk(Kind::Analytics, "Аналитика", "хранилище событий для отчётов и метрик продукта", 6, vec![instances(10)]),
+        mk(Kind::Ws, i18n::tr("WebSocket gateway"), i18n::tr("holds persistent connections"), 3, vec![instances(40)]),
+        mk(Kind::Monitor, i18n::tr("Monitoring"), i18n::tr("metrics, logs, alerts"), 6, vec![]),
+        mk(Kind::Auth, i18n::tr("Auth service"), i18n::tr("authentication and permissions: token and session checks"), 5, vec![instances(20)]),
+        mk(Kind::Geo, i18n::tr("Geo service"), i18n::tr("in-memory geosearch and locations: nearest drivers, couriers, restaurants"), 5, vec![instances(30)]),
+        mk(Kind::Ml, i18n::tr("Ranking service"), i18n::tr("recommendation and scoring model: expensive computation per request"), 5, vec![instances(20)]),
+        mk(Kind::Pay, i18n::tr("Payment gateway"), i18n::tr("external payment provider: a slow and expensive call"), 5, vec![ParamSpec::int("instances", i18n::tr("Provider channels"), 1, 4, 1)]),
+        mk(Kind::Stream, i18n::tr("Event stream"), i18n::tr("partitioned event log: each consumer gets its own copy"), 5, vec![ParamSpec::int("partitions", i18n::tr("Partitions"), 1, 32, 1)]),
+        mk(Kind::Notify, i18n::tr("Notifications"), i18n::tr("sends pushes and emails from a queue or stream"), 6, vec![instances(20)]),
+        mk(Kind::Analytics, i18n::tr("Analytics"), i18n::tr("event store for reports and product metrics"), 6, vec![instances(10)]),
     ];
     // приводим к порядку Kind::ALL
     v.sort_by_key(|k| k.kind.index());

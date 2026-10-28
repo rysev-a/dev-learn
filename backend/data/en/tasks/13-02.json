@@ -1,0 +1,25 @@
+{
+ "book": 13,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "greet",
+   "title": "Greeting",
+   "statement": "Write a function greet(name) that returns a string like «Привет, Аня!», that is, «Привет, » + the name + an exclamation mark. Use an f-string.",
+   "hint": "f\"Привет, {name}!\" — the curly braces substitute the value.",
+   "starter": "def greet(name):\n    # return an f-string with the name inside\n    pass\n"
+  },
+  {
+   "id": "area",
+   "title": "Area of a rectangle",
+   "statement": "Write a function area(a, b) that returns the area of a rectangle with sides a and b.",
+   "hint": "The area is the product of the sides: return a * b."
+  },
+  {
+   "id": "to-celsius",
+   "title": "Fahrenheit to Celsius",
+   "statement": "Write a function to_celsius(f) that converts a temperature from Fahrenheit to Celsius using the formula (f - 32) * 5 / 9 and returns the result.",
+   "hint": "The formula is already in the statement: return (f - 32) * 5 / 9. In Python, parentheses set the order."
+  }
+ ]
+}

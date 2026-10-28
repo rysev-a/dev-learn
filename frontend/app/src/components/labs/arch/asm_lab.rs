@@ -148,12 +148,12 @@ pub fn MemoryGrid(#[prop(into)] rows: Signal<Vec<(usize, Vec<MemCell>)>>) -> imp
             <div class="lab-disk-head">
                 <span></span>
                 {(0..ROW_LEN).map(|i| view! { <span>{format!("{i:X}")}</span> }).collect_view()}
-                <span class="lab-ascii-head">"текст"</span>
+                <span class="lab-ascii-head">{i18n::tr("text")}</span>
             </div>
             {move || rows.get().into_iter().map(|(addr, cells)| view! {
                 <div class="lab-disk-row">
                     <span class="lab-addr">{format!("{addr:02X}")}</span>
-                    {cells.iter().map(|c| view! { <span class=cell_class(c) title=format!("адрес 0x{:02X}", c.addr)>{c.hex.clone()}</span> }).collect_view()}
+                    {cells.iter().map(|c| view! { <span class=cell_class(c) title=i18n::trf!("address 0x{0}", format!("{:02X}", c.addr))>{c.hex.clone()}</span> }).collect_view()}
                     <span class="lab-ascii">{cells.iter().map(|c| view! { <span class=if c.ch == '·' { "dot" } else { "" }>{c.ch.to_string()}</span> }).collect_view()}</span>
                 </div>
             }).collect_view()}
@@ -313,14 +313,14 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
             view! {
                 <tr>
                     <td class="left mono"><strong>{o.mnemonic}</strong></td>
-                    <td class="left mono">{o.example}</td>
-                    <td class="left">{o.meaning}</td>
+                    <td class="left mono">{i18n::tr(o.example)}</td>
+                    <td class="left">{i18n::tr(o.meaning)}</td>
                     <td class="mono">{format!("{:04b}", o.opcode)}</td>
                 </tr>
             }
         })
         .collect_view();
-    let pseudo = PSEUDO.iter().map(|p| view! { <tr><td class="left mono"><strong>{p.example}</strong></td><td class="left mono">{format!("= {}", p.becomes)}</td></tr> }).collect_view();
+    let pseudo = PSEUDO.iter().map(|p| view! { <tr><td class="left mono"><strong>{i18n::tr(p.example)}</strong></td><td class="left mono">{format!("= {}", i18n::tr(p.becomes))}</td></tr> }).collect_view();
 
     view! {
         <div class="lab lab-asm">
@@ -328,10 +328,10 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                 <section class="lab-col">
                     <div class="lab-card">
                         <div class="lab-card-head">
-                            <h3>"Программа"</h3>
+                            <h3>{i18n::tr("Program")}</h3>
                             <div class="lab-actions">
-                                <button type="button" class="quiz-btn ghost" on:click=move |_| hint_open.update(|v| *v = !*v)>{move || if hint_open.get() { "Скрыть подсказку" } else { "Подсказка" }}</button>
-                                <button type="button" class="quiz-btn ghost" on:click=restart>"Начать заново"</button>
+                                <button type="button" class="quiz-btn ghost" on:click=move |_| hint_open.update(|v| *v = !*v)>{move || if hint_open.get() { i18n::tr("Hide hint") } else { i18n::tr("Hint") }}</button>
+                                <button type="button" class="quiz-btn ghost" on:click=restart>{i18n::tr("Start over")}</button>
                             </div>
                         </div>
                         {move || hint_open.get().then(|| view! { <p class="ex-hint">{hint.clone()}</p> })}
@@ -339,7 +339,7 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                             class="lab-editor"
                             spellcheck="false"
                             rows="16"
-                            aria-label="Текст программы на ассемблере"
+                            aria-label=i18n::tr("Assembly program text")
                             prop:value=move || source.get()
                             on:input=move |e| edit(event_target_value(&e))
                             on:keydown=on_key
@@ -348,7 +348,7 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                             let errors = asm.with(|a| a.errors.clone());
                             (!errors.is_empty()).then(|| view! {
                                 <ul class="lab-errors" role="alert">
-                                    {errors.into_iter().map(|e| view! { <li><strong>{format!("Строка {}:", e.line)}</strong>{format!(" {}", e.message)}</li> }).collect_view()}
+                                    {errors.into_iter().map(|e| view! { <li><strong>{i18n::trf!("Line {0}:", e.line)}</strong>{format!(" {}", e.message)}</li> }).collect_view()}
                                 </ul>
                             })
                         }}
@@ -357,18 +357,18 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                     <div class="lab-card">
                         <div class="lab-card-head">
                             <div>
-                                <h3>"Машинный код"</h3>
-                                <p>"Что ассемблер сделал из вашей программы: каждая команда — одно 16-битное слово из полей «код · A · B · C». Нажмите на строку, чтобы разобрать её по битам."</p>
+                                <h3>{i18n::tr("Machine code")}</h3>
+                                <p>{i18n::tr("What the assembler made of your program: each instruction is one 16-bit word with the fields “opcode · A · B · C”. Click a row to break it down by bits.")}</p>
                             </div>
                         </div>
                         {move || if asm.with(|a| a.lines.is_empty()) {
-                            view! { <p class="lab-muted">"Команд пока нет."</p> }.into_any()
+                            view! { <p class="lab-muted">{i18n::tr("No instructions yet.")}</p> }.into_any()
                         } else {
                             view! {
                                 <div class="lab-scroll">
                                     <table class="lab-table">
                                         <thead>
-                                            <tr><th>"адрес"</th><th>"hex"</th><th>"код"</th><th>"A"</th><th>"B"</th><th>"C"</th><th class="left">"команда"</th></tr>
+                                            <tr><th>{i18n::tr("address")}</th><th>"hex"</th><th>{i18n::tr("code")}</th><th>"A"</th><th>"B"</th><th>"C"</th><th class="left">{i18n::tr("instruction")}</th></tr>
                                         </thead>
                                         <tbody>{listing}</tbody>
                                     </table>
@@ -377,8 +377,8 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                         }}
                         {move || selected.get().is_some().then(|| view! {
                             <p class="lab-explain">
-                                "Первые четыре бита — " <strong>"код операции"</strong>
-                                ": по ним процессор понимает, что делать. Дальше поля A, B и C: в зависимости от команды это номера регистров, число или смещение перехода. Подробности — в справочнике ниже."
+                                {i18n::tr("The first four bits are the ")} <strong>{i18n::tr("opcode")}</strong>
+                                {i18n::tr(": the processor uses it to know what to do. Then come the fields A, B and C: depending on the instruction they are register numbers, a number or a jump offset. Details are in the reference below.")}
                             </p>
                         })}
                     </div>
@@ -387,29 +387,29 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                 <section class="lab-col">
                     <div class="lab-card">
                         <div class="lab-card-head">
-                            <h3>"Процессор"</h3>
-                            <div class="lab-seg" role="group" aria-label="Чем выполнять программу">
-                                <button type="button" class:on=move || engine.get() == Engine::Emu on:click=move |_| engine.set(Engine::Emu) title="Быстрая программа-эмулятор">"Эмулятор"</button>
-                                <button type="button" class:on=move || engine.get() == Engine::Gates on:click=move |_| engine.set(Engine::Gates) title="Тот же процессор, собранный из вентилей: каждая команда считается схемой">"Схема из вентилей"</button>
+                            <h3>{i18n::tr("Processor")}</h3>
+                            <div class="lab-seg" role="group" aria-label=i18n::tr("What runs the program")>
+                                <button type="button" class:on=move || engine.get() == Engine::Emu on:click=move |_| engine.set(Engine::Emu) title=i18n::tr("Fast emulator program")>{i18n::tr("Emulator")}</button>
+                                <button type="button" class:on=move || engine.get() == Engine::Gates on:click=move |_| engine.set(Engine::Gates) title=i18n::tr("The same processor built from gates: each instruction is computed by the circuit")>{i18n::tr("Gate-level circuit")}</button>
                             </div>
                             <div class="lab-actions">
-                                <button type="button" class="quiz-btn" on:click=step disabled=move || !can_step()>"Шаг ▸"</button>
-                                <button type="button" class="quiz-btn ghost" on:click=run disabled=move || !can_step()>"Выполнить"</button>
-                                <button type="button" class="quiz-btn ghost" on:click=move |_| reset_key.update(|n| *n += 1)>"Сбросить"</button>
+                                <button type="button" class="quiz-btn" on:click=step disabled=move || !can_step()>{i18n::tr("Step ▸")}</button>
+                                <button type="button" class="quiz-btn ghost" on:click=run disabled=move || !can_step()>{i18n::tr("Run")}</button>
+                                <button type="button" class="quiz-btn ghost" on:click=move |_| reset_key.update(|n| *n += 1)>{i18n::tr("Reset")}</button>
                             </div>
                         </div>
                         {move || match view.get() {
                             Some(v) => view! {
                                 <div class="lab-regs">{regs()}</div>
                                 <div class="lab-status">
-                                    <span class="lab-badge">{format!("следующая команда: {}", v.pc)}</span>
-                                    <span class="lab-badge">{format!("выполнено шагов: {}", v.steps)}</span>
-                                    {v.halted.then(|| view! { <span class="lab-badge ok">"остановлен (hlt)"</span> })}
+                                    <span class="lab-badge">{i18n::trf!("next instruction: {0}", v.pc)}</span>
+                                    <span class="lab-badge">{i18n::trf!("steps executed: {0}", v.steps)}</span>
+                                    {v.halted.then(|| view! { <span class="lab-badge ok">{i18n::tr("halted (hlt)")}</span> })}
                                 </div>
                             }.into_any(),
                             None => match sim_error.get() {
-                                Some(e) => view! { <p class="lab-muted">{format!("Процессор на вентилях не собрался: {e}")}</p> }.into_any(),
-                                None => view! { <p class="lab-muted">"Исправьте ошибки в программе — тогда её можно запустить."</p> }.into_any(),
+                                Some(e) => view! { <p class="lab-muted">{i18n::trf!("The gate-level processor could not be built: {0}", e)}</p> }.into_any(),
+                                None => view! { <p class="lab-muted">{i18n::tr("Fix the errors in the program — then you can run it.")}</p> }.into_any(),
                             },
                         }}
                     </div>
@@ -417,7 +417,7 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                     {move || result.get().map(|(ok, message)| view! {
                         <ResultAlert
                             ok=ok
-                            title=move || if ok { "Задание выполнено!" } else { "Пока не то" }
+                            title=move || if ok { i18n::tr("Exercise complete!") } else { i18n::tr("Not there yet") }
                             text=message
                             on_next=(ok && has_next.get()).then_some(on_next)
                         />
@@ -426,8 +426,8 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                     <div class="lab-card">
                         <div class="lab-card-head">
                             <div>
-                                <h3>"Виртуальный диск"</h3>
-                                <p>"256 байт памяти. Жёлтым подсвечены байты, которые ваша программа изменила; зелёным — записанный последним, синим — прочитанный."</p>
+                                <h3>{i18n::tr("Virtual disk")}</h3>
+                                <p>{i18n::tr("256 bytes of memory. Yellow marks bytes your program changed; green is the last one written, blue is the one read.")}</p>
                             </div>
                         </div>
                         <div class="lab-regions">{region_chips}</div>
@@ -440,10 +440,10 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
                 <div class="lab-card">
                     <div class="lab-card-head">
                         <div>
-                            <h3>"Устройство процессора"</h3>
+                            <h3>{i18n::tr("Processor internals")}</h3>
                             <p>
-                                "Сейчас программу выполняет не эмулятор, а схема из вентилей: каждый такт в ней — целая команда. Кнопка с лупой на блоке показывает, из чего он собран, "
-                                "вплоть до отдельных вентилей; значения на проводах — живые, по текущему шагу."
+                                {i18n::tr("The program is now run not by the emulator but by a circuit of gates: each clock cycle in it is a whole instruction. The magnifier button on a block shows what it is built from, ")}
+                                {i18n::tr("down to individual gates; the values on the wires are live, for the current step.")}
                             </p>
                         </div>
                     </div>
@@ -454,22 +454,22 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
             <div class="lab-card">
                 <div class="lab-card-head">
                     <div>
-                        <h3>"Справочник: команды процессора Мини-8"</h3>
+                        <h3>{i18n::tr("Reference: Mini-8 processor instructions")}</h3>
                         <p>
-                            "8 регистров r0…r7 (r0 всегда равен нулю), числа — байты 0…255. Команда занимает 16 бит: "
-                            <span class="mono">"код(4) · A(3) · B(3) · C(6)"</span>
-                            ". Комментарии — после «;». Метки — «имя:» в начале строки; константы — «.equ ИМЯ, число»."
+                            {i18n::tr("8 registers r0…r7 (r0 is always zero), numbers are bytes 0…255. An instruction takes 16 bits: ")}
+                            <span class="mono">{i18n::tr("op(4) · A(3) · B(3) · C(6)")}</span>
+                            {i18n::tr(". Comments start with “;”. Labels are “name:” at the start of a line; constants are “.equ NAME, number”.")}
                         </p>
                     </div>
                 </div>
                 <div class="lab-scroll">
                     <table class="lab-table ref">
                         <thead>
-                            <tr><th class="left">"команда"</th><th class="left">"пример"</th><th class="left">"что делает"</th><th>"код"</th></tr>
+                            <tr><th class="left">{i18n::tr("instruction")}</th><th class="left">{i18n::tr("example")}</th><th class="left">{i18n::tr("what it does")}</th><th>{i18n::tr("code")}</th></tr>
                         </thead>
                         <tbody>{ops}</tbody>
                     </table>
-                    <h4 class="lab-ref-sub">"Псевдокоманды — сокращения, которые ассемблер разворачивает сам"</h4>
+                    <h4 class="lab-ref-sub">{i18n::tr("Pseudo-instructions — shortcuts the assembler expands by itself")}</h4>
                     <table class="lab-table ref"><tbody>{pseudo}</tbody></table>
                 </div>
             </div>
@@ -505,6 +505,7 @@ mod tests {
 
     #[test]
     fn broken_program_has_no_machine() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let asm = assemble("zzz r1");
         assert!(!asm.errors.is_empty());
         assert!(matches!(Sim::build(Engine::Emu, &asm, &[0; 256]), Ok(None)));
@@ -512,6 +513,7 @@ mod tests {
 
     #[test]
     fn result_is_known_only_after_halt_or_error() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut expected = vec![0u8; 256];
         expected[0] = 7;
         let running = MachineView { regs: vec![0; 8], pc: 0, mem: vec![0; 256], halted: false, error: None, steps: 0, last_read: None, last_write: None, last_reg: None };
@@ -527,6 +529,7 @@ mod tests {
 
     #[test]
     fn memory_grid_marks_changes_reads_writes_and_regions() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let disk = vec![0u8; 256];
         // li, sb — записали 65 по адресу 3
         let wrote = after_steps("li r1, 65\nsb r1, 3(r0)\nlb r2, 4(r0)\nhlt", &disk, 2);
@@ -550,12 +553,14 @@ mod tests {
 
     #[test]
     fn region_lookup_is_half_open() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let regions = [region("a", 0, 4), region("b", 4, 4)];
         assert_eq!((region_of(&regions, 3), region_of(&regions, 4), region_of(&regions, 8)), (Some(0), Some(1), None));
     }
 
     #[test]
     fn gate_machine_runs_the_same_program_as_the_emulator() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let asm = assemble("li r1, 5\nli r2, 3\nadd r3, r1, r2\nsb r3, 0(r0)\nhlt");
         let mut gates = Sim::build(Engine::Gates, &asm, &[0; 256]).expect("процессор собирается").expect("без ошибок");
         gates.run(RUN_LIMIT);

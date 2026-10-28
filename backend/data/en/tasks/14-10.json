@@ -1,0 +1,78 @@
+{
+ "book": 14,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "clocked-latch",
+   "title": "Latch driven by a clock",
+   "statement": "The clock signal CLK is just a wire that keeps rising to 1 and falling to 0. Feed it to the enable input of a D latch: while CLK = 1 the latch is open and follows D; when CLK = 0 it holds.",
+   "hint": "This is the ordinary D latch from the previous section: S = D·CLK, R = NOT-D·CLK, then two cross-coupled NORs. CLK plays the role of enable E."
+  },
+  {
+   "id": "latch-low",
+   "title": "Latch open on low clock",
+   "statement": "Build a mirror latch: open while CLK = 0 (follows D) and locked when CLK = 1 (holds). This is half of the future flip-flop.",
+   "hint": "You need an inverter on the clock: E = NOT-CLK. The rest is the same D latch (two ANDs, NOT on D, two NORs), only NOT-CLK goes into the “keys” instead of CLK."
+  },
+  {
+   "id": "dff",
+   "title": "Edge-triggered D flip-flop",
+   "statement": "Place the latches one after another: the “master” is open at CLK = 0 and takes D, the “slave” is open at CLK = 1 and takes the value from the master. Output Q changes only at the moment CLK rises from 0 to 1, on the EDGE. Q and nQ are the outputs of the slave latch.",
+   "hint": "The master is from the previous exercise (E = NOT-CLK): NOT on CLK, NOT on D, two ANDs with NOT-CLK, two NORs. The slave is a latch with E = CLK, whose data D is the master's output Q. Take Q and nQ from the slave. About ten gates in total."
+  },
+  {
+   "id": "toggle",
+   "title": "Divide by two",
+   "statement": "Connect the flip-flop's output back to its own D input through an inverter: D = NOT-Q. Each CLK edge will flip Q. Press “Tick”: Q should go 1, 0, 1, 0. A ready-made flip-flop starts at zero on power-up.",
+   "hint": "Two elements: DFF and NOT. The DFF output goes to the NOT input, and the NOT output goes back to the flip-flop's D input. Feed the clock to the flip-flop's CLK."
+  },
+  {
+   "id": "reg1-load",
+   "title": "Register with load enable",
+   "statement": "Keep the value while there is no command, and store a new one only when LD = 1: on a CLK edge Q takes D if LD = 1, and stays the same if LD = 0. Every processor register has a load enable.",
+   "hint": "Put a multiplexer in front of the flip-flop's D input: D' = LD·D OR NOT-LD·Q. With LD = 0 the flip-flop receives its own output, so the value does not change. The flip-flop's output Q returns to the multiplexer."
+  },
+  {
+   "id": "reg-clear",
+   "title": "Synchronous reset",
+   "statement": "Add a clear input CLR to the register: when CLR = 1, Q becomes 0 on the next edge (otherwise Q takes D). The reset is “synchronous”: by itself, without a clock, nothing changes.",
+   "hint": "Data for the flip-flop: D' = D·NOT-CLR. While CLR = 1, the flip-flop's input is zero, and the next edge will store it."
+  },
+  {
+   "id": "register4",
+   "title": "Four-bit register",
+   "statement": "One word is four bits D3…D0. Build the register: one flip-flop per digit, with a common clock. On a CLK edge the register captures the whole number at once; between edges it holds it, however the inputs change.",
+   "hint": "Four DFF elements. Their D inputs are D3…D0, their clock inputs are all connected to one CLK, and their outputs go to Q3…Q0. The clock wire branches."
+  },
+  {
+   "id": "shift4",
+   "title": "Shift register",
+   "statement": "Chain four flip-flops: Din goes into the first, the first's output into the second, and so on. On every edge the number shifts by one digit, and a new bit Din enters on the right. Q0 is the “freshest” bit, Q3 is the oldest.",
+   "hint": "Four DFFs with their clock inputs tied together. Din → D of the first; Q of the first → D of the second; Q of the second → D of the third; Q of the third → D of the fourth. Q0 is the output of the first flip-flop, Q3 of the fourth."
+  },
+  {
+   "id": "counter2",
+   "title": "Two-bit counter",
+   "statement": "Build a modulo-4 counter: after every edge Q1 Q0 grows by one: 00, 01, 10, 11, then 00 again. This is the “incrementer” from the adders section, closed into a register.",
+   "hint": "You need two flip-flops. The low one: D0 = NOT-Q0 (flips every clock). The high one: D1 = Q1⊕Q0 (flips only when Q0 = 1). The flip-flop outputs Q0 and Q1 return to the logic inputs."
+  },
+  {
+   "id": "counter-en",
+   "title": "Counter with enable",
+   "statement": "A counter that counts only while EN = 1. With EN = 0 an edge changes nothing: Q1 Q0 stay as they were. This lets you “stop” counting without touching the clock.",
+   "hint": "The same counter, but “+1” is replaced by “+EN”: D0 = Q0⊕EN; D1 = Q1⊕(Q0·EN). With EN = 0 each XOR with zero returns the same value, so the digit does not change."
+  },
+  {
+   "id": "johnson2",
+   "title": "Johnson counter",
+   "statement": "A clever counter with two flip-flops and ONE inverter: Q1 takes the previous Q0, and Q0 takes NOT-Q1. The states go around a circle: 00 → 01 → 11 → 10 → 00. Between neighboring states only one bit changes.",
+   "hint": "This is a two-flip-flop shift register whose input is the NOT of the last output: D0 = NOT-Q1, D1 = Q0. Output Q1 goes both to the output and to the inverter."
+  },
+  {
+   "id": "accumulator",
+   "title": "Accumulator",
+   "statement": "The finale of the section is the “brain” of the arithmetic cycle. A two-bit register Q1 Q0 holds the accumulated number. On every edge the input number IN1 IN0 is added to it (modulo 4) and the sum is written back into the register. The adder and the register are closed into a loop.",
+   "hint": "The two-bit adder from the previous section: S0 = Q0⊕IN0, carry c = Q0·IN0, S1 = Q1⊕IN1⊕c. Feed sums S0 and S1 to D of two flip-flops, and outputs Q0 and Q1 back to the adder's input. The high carry is simply unused."
+  }
+ ]
+}

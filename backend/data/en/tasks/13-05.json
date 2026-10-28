@@ -1,0 +1,65 @@
+{
+ "book": 13,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "letters",
+   "title": "Letters one by one",
+   "statement": "Print each letter of the word «привет» on a separate line. Use a for loop over the string.",
+   "hint": "for ch in word: print(ch) — on each pass, ch is the next letter.",
+   "starter": "word = \"привет\"\n# for ... in ...:\n"
+  },
+  {
+   "id": "countdown",
+   "title": "Countdown",
+   "statement": "Print the numbers from 5 down to 1, each on its own line, and at the end the line «Старт!». Use a while loop and do not forget to decrease the counter.",
+   "hint": "while n > 0: print n, then n -= 1. «Старт!» comes after the loop, without indentation."
+  },
+  {
+   "id": "squares",
+   "title": "Squares of numbers",
+   "statement": "Print the squares of the numbers from 1 to 5, each on its own line. Get the numbers through range.",
+   "hint": "range(1, 6) — six is not included. Inside the loop: print(i * i)."
+  },
+  {
+   "id": "sum-to",
+   "title": "Sum from 1 to n",
+   "statement": "Write a function sum_to(n) that returns the sum of all integers from 1 to n inclusive. Compute it with a loop and an accumulator, not with a formula. For n = 0 the sum is 0.",
+   "hint": "for i in range(1, n + 1): total += i — the right bound of range has to be shifted by one.",
+   "starter": "def sum_to(n):\n    total = 0\n    # loop with an accumulator\n    return total\n"
+  },
+  {
+   "id": "odds",
+   "title": "Odd numbers only",
+   "statement": "Print the odd numbers from 1 to 10, each on its own line. Skip the even ones with the continue command.",
+   "hint": "if i % 2 == 0: continue — after it, only the odd numbers reach print.",
+   "starter": "# for i in range(1, 11):\n#     if even, continue\n"
+  },
+  {
+   "id": "factorial",
+   "title": "Factorial",
+   "statement": "Write a function factorial(n): the product of all integers from 1 to n. For n = 0 the result is 1. The accumulator for a product starts at one, not at zero.",
+   "hint": "for i in range(1, n + 1): result *= i. Zero gives an empty loop and the answer 1, just as needed.",
+   "starter": "def factorial(n):\n    result = 1\n    # loop with an accumulator\n    return result\n"
+  },
+  {
+   "id": "first-digit",
+   "title": "First digit in a string",
+   "statement": "Write a function first_digit(s) that returns the first digit character of the string s (as a string too). If there are no digits, return None. Leave the loop as soon as a digit is found. The method ch.isdigit() will help you check a character.",
+   "hint": "Inside the loop: if ch.isdigit(): return ch — return also ends the loop at once."
+  },
+  {
+   "id": "reverse-word",
+   "title": "Word backwards",
+   "statement": "Write a function reverse_word(s) that returns the string s written backwards: «привет» becomes «тевирп». Build the result with a loop, attaching each next letter to the BEGINNING of the accumulator. You may not use the ready-made slice [::-1].",
+   "hint": "result = ch + result — the new letter goes in front of everything accumulated."
+  },
+  {
+   "id": "count-pairs",
+   "title": "How many pairs",
+   "statement": "Write a function count_pairs(n): how many pairs of numbers (i, j) exist with 1 <= i < j <= n. Go through the pairs with two nested loops and count them with a counter.",
+   "hint": "for i in range(1, n + 1): for j in range(i + 1, n + 1): count += 1 — the inner loop starts at i + 1.",
+   "starter": "def count_pairs(n):\n    count = 0\n    # outer loop over i, inner over j\n    return count\n"
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 34,
+ "tasks": [
+  {
+   "id": "lcm-all",
+   "title": "Common multiple of a list",
+   "statement": "Write a function lcm_all(nums): the least common multiple of all numbers in the list; for an empty list, 1. Use math.lcm.",
+   "hint": "math.lcm(*nums): with no arguments lcm returns 1."
+  },
+  {
+   "id": "nearly-equal",
+   "title": "Nearly equal",
+   "statement": "Write a function nearly_equal(a, b): True if the floats are equal within tolerance (math.isclose).",
+   "hint": "return math.isclose(a, b)."
+  },
+  {
+   "id": "round-half-up",
+   "title": "School rounding",
+   "statement": "Write a function round_half_up(text, digits): the number is given as a STRING; return a string rounded to digits places after the decimal point by the school rules (0.5 rounds up). Use Decimal and quantize with ROUND_HALF_UP.",
+   "hint": "str(Decimal(text).quantize(Decimal(1).scaleb(-digits), rounding=ROUND_HALF_UP)), or Decimal(\"0.01\") for two places."
+  },
+  {
+   "id": "total-decimal",
+   "title": "Receipt total",
+   "statement": "Write a function total_price(prices): prices is a list of prices as STRINGS («19.99»). Return the sum as a string with two digits after the decimal point. Use Decimal (no floats).",
+   "hint": "total = sum((Decimal(p) for p in prices), Decimal(\"0\")); str(total.quantize(Decimal(\"0.01\")))."
+  },
+  {
+   "id": "fraction-sum",
+   "title": "Sum of fractions",
+   "statement": "Write a function fraction_sum(pairs): pairs is a list of [numerator, denominator] pairs. Return the sum of the fractions as a string in lowest terms («1/2» or «3» for a whole number). Use Fraction.",
+   "hint": "str(sum((Fraction(a, b) for a, b in pairs), Fraction(0))): Fraction reduces itself and prints a whole number without a denominator."
+  },
+  {
+   "id": "roll-dice-seed",
+   "title": "Repeatable dice",
+   "statement": "Write a function roll_dice(n, seed): a list of n die rolls (numbers 1-6). The same seed must give the same result: set the seed with random.seed.",
+   "hint": "random.seed(seed); return [random.randint(1, 6) for _ in range(n)]."
+  },
+  {
+   "id": "stats-summary",
+   "title": "Data summary",
+   "statement": "Write a function stats_summary(data): a tuple (mean, median, mode) of a list of numbers. Use the statistics module.",
+   "hint": "return statistics.mean(data), statistics.median(data), statistics.mode(data)."
+  },
+  {
+   "id": "random-password",
+   "title": "A secure password",
+   "statement": "Write a function make_password(length): a string of length random characters, Latin letters and digits. For security use the secrets module, not random.",
+   "hint": "\"\".join(secrets.choice(alphabet) for _ in range(length)), where alphabet = string.ascii_letters + string.digits."
+  },
+  {
+   "id": "binary-info",
+   "title": "Binary notation",
+   "statement": "Write a function binary_info(n): a tuple (the binary notation of n WITHOUT the 0b prefix, the number of ones in it) for non-negative n.",
+   "hint": "b = f\"{n:b}\"; return b, b.count(\"1\")."
+  }
+ ]
+}

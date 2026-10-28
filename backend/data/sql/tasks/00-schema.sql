@@ -1,5 +1,5 @@
 -- Таблица упражнений. Выполнение этого файла очищает её: дальше идут файлы книг с INSERT.
--- Полная инициализация: sqlite3 say.db < app/data/sql/tasks/*.sql (файлы выполняются по порядку имён).
+-- Полная инициализация: sqlite3 cs-core.db < app/data/sql/tasks/*.sql (файлы выполняются по порядку имён).
 CREATE TABLE IF NOT EXISTS tasks (
     book_id   INTEGER NOT NULL,
     chapter   INTEGER NOT NULL,

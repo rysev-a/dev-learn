@@ -61,7 +61,7 @@ impl TryFrom<String> for Place {
         if s == "wide" {
             return Ok(Place::Wide);
         }
-        s.parse::<u8>().map(Place::Node).map_err(|_| format!("размещение «{s}»: ожидается номер узла или «wide»"))
+        s.parse::<u8>().map(Place::Node).map_err(|_| i18n::trf!("placement “{0}”: expected a node number or “wide”", s))
     }
 }
 
@@ -175,11 +175,11 @@ pub fn evaluate(nodes: &[Node], vms: &[Vm], plan: &Plan) -> Result<Evaluation, S
     let mut total = 0.0;
     let mut per = Vec::with_capacity(vms.len());
     for vm in vms {
-        let p = plan.get(&vm.name).ok_or_else(|| SpecError::new(format!("нет размещения машины {}", vm.name)))?;
+        let p = plan.get(&vm.name).ok_or_else(|| SpecError::new(i18n::trf!("no placement for machine {0}", vm.name)))?;
         for place in [p.cpu, p.mem] {
             if let Place::Node(n) = place {
                 if usize::from(n) >= nodes.len() {
-                    return Err(SpecError::new(format!("машина {}: нет узла {n}", vm.name)));
+                    return Err(SpecError::new(i18n::trf!("machine {0}: no node {1}", vm.name, n)));
                 }
             }
         }
@@ -243,16 +243,16 @@ pub fn default_scenarios() -> Vec<Scenario> {
     vec![
         Scenario {
             id: "small".into(),
-            title: "Четыре небольшие машины".into(),
+            title: i18n::tr("Four small machines").into(),
             vms: vec![vm("A", 4, 16), vm("B", 4, 12), vm("C", 4, 16), vm("D", 4, 12)],
-            goal: "Всё помещается, и удалённых обращений нет совсем (0%)".into(),
+            goal: i18n::tr("Everything fits, and there are no remote accesses at all (0%)").into(),
             max: 0.0,
         },
         Scenario {
             id: "wide".into(),
-            title: "Большая машина".into(),
+            title: i18n::tr("A large machine").into(),
             vms: vec![vm("E", 12, 40), vm("F", 2, 8), vm("G", 2, 8)],
-            goal: "Всё помещается, а средняя доля удалённых обращений (по vCPU) не больше 20%".into(),
+            goal: i18n::tr("Everything fits, and the average share of remote accesses (per vCPU) is at most 20%").into(),
             max: 0.2,
         },
     ]

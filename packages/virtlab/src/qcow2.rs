@@ -28,13 +28,13 @@ pub struct Layer {
 
 /// Цепочка из одного базового слоя с кластерами `base`.
 pub fn initial_chain(base: &BTreeMap<u32, String>) -> Vec<Layer> {
-    vec![Layer { name: "база".into(), data: base.clone() }]
+    vec![Layer { name: i18n::tr("base").into(), data: base.clone() }]
 }
 
 /// Снимок: сверху добавляется пустой слой «слой n».
 pub fn snapshot(chain: &[Layer], n: u32) -> Vec<Layer> {
     let mut v = Vec::with_capacity(chain.len() + 1);
-    v.push(Layer { name: format!("слой {n}"), data: BTreeMap::new() });
+    v.push(Layer { name: i18n::trf!("layer {0}", n), data: BTreeMap::new() });
     v.extend_from_slice(chain);
     v
 }
@@ -327,17 +327,17 @@ pub fn default_goals() -> Vec<Qcow2Goal> {
     vec![
         Qcow2Goal {
             id: "deep".into(),
-            text: "Прочитайте кластер из базы при цепочке в 4 слоя и больше: чтение стоит 4 обращения и больше".into(),
+            text: i18n::tr("Read a cluster from the base with a chain of 4 or more layers: the read costs 4 or more lookups").into(),
             rule: Qcow2Rule::Deep { min_chain: 4, min_lookups: 4 },
         },
         Qcow2Goal {
             id: "squash".into(),
-            text: "Слейте слои (commit), чтобы цепочка из 4 слоёв сократилась до двух".into(),
+            text: i18n::tr("Merge the layers (commit) so that the 4-layer chain shrinks to two").into(),
             rule: Qcow2Rule::Squash { min_chain: 4, max_after: 2 },
         },
         Qcow2Goal {
             id: "rollback".into(),
-            text: "Запишите кластер в верхний слой, откатите слой — и убедитесь, что старые данные вернулись".into(),
+            text: i18n::tr("Write a cluster to the top layer, roll the layer back — and make sure the old data is back").into(),
             rule: Qcow2Rule::Rollback,
         },
     ]

@@ -134,18 +134,18 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
             <div class="vl-grid">
                 <div class="vl-card">
                     <div class="vl-facts">
-                        <span><b>{format!("{} ГиБ", MEM_MIB / 1024.0)}</b>" памяти гостя"</span>
-                        <span>"гость пишет "<b>{move || scenario().map(|s| format!("{} МиБ/с", fmt_ru(s.dirty)))}</b></span>
-                        <span>"сеть "<b>{move || scenario().map(|s| format!("{} МиБ/с", fmt_ru(s.bw)))}</b>" (≈10 Гбит/с)"</span>
+                        <span><b>{i18n::trf!("{0} GiB", MEM_MIB / 1024.0)}</b>{i18n::tr(" of guest memory")}</span>
+                        <span>{i18n::tr("guest writes ")}<b>{move || scenario().map(|s| i18n::trf!("{0} MiB/s", fmt_ru(s.dirty)))}</b></span>
+                        <span>{i18n::tr("network ")}<b>{move || scenario().map(|s| i18n::trf!("{0} MiB/s", fmt_ru(s.bw)))}</b>{i18n::tr(" (≈10 Gbit/s)")}</span>
                     </div>
                     <p class="vl-goal">
-                        <span class="s-label">"цель"</span>
+                        <span class="s-label">{i18n::tr("goal")}</span>
                         " "
                         {move || scenario().map(|s| s.goal)}
                     </p>
 
                     <label class="vl-field">
-                        <span>"допустимый простой: "<b>{move || format!("{} мс", settings.get().downtime_ms)}</b></span>
+                        <span>{i18n::tr("allowed downtime: ")}<b>{move || i18n::trf!("{0} ms", settings.get().downtime_ms)}</b></span>
                         <input
                             type="range"
                             min="20"
@@ -165,7 +165,7 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
                             prop:checked=move || settings.get().auto_converge
                             on:change=toggle(|s, on| s.auto_converge = on)
                         />
-                        <span>"auto-converge: притормаживать vCPU (20%, затем +10% за круг)"</span>
+                        <span>{i18n::tr("auto-converge: throttle the vCPUs (20%, then +10% per round)")}</span>
                     </label>
                     <label class="vl-check">
                         <input
@@ -173,7 +173,7 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
                             prop:checked=move || settings.get().compress
                             on:change=toggle(|s, on| s.compress = on)
                         />
-                        <span>"сжатие страниц (канал ×1,5)"</span>
+                        <span>{i18n::tr("page compression (link ×1.5)")}</span>
                     </label>
                     <label class="vl-check row">
                         <input
@@ -181,7 +181,7 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
                             prop:checked=move || settings.get().hybrid
                             on:change=toggle(|s, on| s.hybrid = on)
                         />
-                        <span>"гибрид: перейти на post-copy после"</span>
+                        <span>{i18n::tr("hybrid: switch to post-copy after")}</span>
                         <select
                             prop:disabled=move || !settings.get().hybrid
                             on:change=move |ev| {
@@ -192,23 +192,23 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
                         >
                             {after_options}
                         </select>
-                        <span>"кругов"</span>
+                        <span>{i18n::tr("rounds")}</span>
                     </label>
                     <div class="vl-actions">
-                        <button class="quiz-btn" on:click=start>"Запустить миграцию"</button>
+                        <button class="quiz-btn" on:click=start>{i18n::tr("Start migration")}</button>
                     </div>
                     <p class="vl-hint">{move || scenario().map(|s| s.hint)}</p>
                 </div>
 
                 <div class="vl-card">
                     <div class="pr-res-head">
-                        <span class="s-label">"круги pre-copy"</span>
-                        {move || run.with(|r| r.as_ref().map(|p| format!("порог остановки ≈ {} МиБ", fmt_ru(p.result.limit))))
+                        <span class="s-label">{i18n::tr("pre-copy rounds")}</span>
+                        {move || run.with(|r| r.as_ref().map(|p| i18n::trf!("stop threshold ≈ {0} MiB", fmt_ru(p.result.limit))))
                             .map(|t| view! { <span class="pr-res-time">{t}</span> })}
                     </div>
                     {move || run.with(Option::is_none).then(|| view! {
                         <p class="pr-empty">
-                            "Нажмите «Запустить миграцию»: здесь по кругам будет уменьшаться остаток памяти."
+                            {i18n::tr("Press \"Start migration\": the remaining memory will shrink here round by round.")}
                         </p>
                     })}
                     {move || run.get().map(|p| view! { <Rounds playing=p /> })}
@@ -232,15 +232,10 @@ fn Rounds(playing: Playing) -> impl IntoView {
         .iter()
         .take(playing.shown)
         .map(|r| {
-            let tail = format!(
-                "{} МиБ · {:.1} с{}",
-                fmt_ru(r.sent),
-                r.secs,
-                if r.throttle > 0.0 { format!(" · тормоз {}%", r.throttle) } else { String::new() }
-            );
+            let tail = i18n::trf!("{0} MiB · {1} s{2}", fmt_ru(r.sent), format!("{:.1}", r.secs), if r.throttle > 0.0 { i18n::trf!(" · throttle {0}%", r.throttle) } else { String::new() });
             view! {
                 <li>
-                    <span class="vl-rk">{format!("круг {}", r.k)}</span>
+                    <span class="vl-rk">{i18n::trf!("round {0}", r.k)}</span>
                     <div class="vl-bar">
                         <i style=format!("width: {}%", bar_percent(r.sent)) class:full=bar_full(r.sent)></i>
                     </div>
@@ -258,33 +253,29 @@ fn Final(result: Simulation, reached: bool) -> impl IntoView {
     let text = match result.outcome {
         Outcome::Precopy => view! {
             <p>
-                {format!("Остаток {} МиБ помещается в порог: машина остановлена на ", fmt_ru(result.remaining))}
-                <b>{format!("{} мс", result.downtime)}</b>
-                ", миграция заняла "
-                <b>{format!("{} с", result.total)}</b>
+                {i18n::trf!("The remaining {0} MiB fits the threshold: the VM was stopped for ", fmt_ru(result.remaining))}
+                <b>{i18n::trf!("{0} ms", result.downtime)}</b>
+                {i18n::tr(", the migration took ")}
+                <b>{i18n::trf!("{0} s", result.total)}</b>
                 "."
             </p>
         }
         .into_any(),
         Outcome::Postcopy => view! {
             <p>
-                "Гость переключён на цель с простоем "
-                <b>{format!("{} мс", result.downtime)}</b>
-                {format!(", остаток {} МиБ подтягивается по требованию (≈{} ошибок страниц). Всего ", fmt_ru(result.remaining), result.faults)}
-                <b>{format!("{} с", result.total)}</b>
-                ". Пока память разбросана между серверами, сбой сети потерял бы машину."
+                {i18n::tr("The guest was switched to the target with a downtime of ")}
+                <b>{i18n::trf!("{0} ms", result.downtime)}</b>
+                {i18n::trf!(", the remaining {0} MiB is pulled on demand (≈{1} page faults). Total ", fmt_ru(result.remaining), result.faults)}
+                <b>{i18n::trf!("{0} s", result.total)}</b>
+                {i18n::tr(". While memory is scattered across servers, a network failure would lose the VM.")}
             </p>
         }
         .into_any(),
         Outcome::Failed => view! {
             <p>
-                {format!(
-                    "Миграция не сошлась за {} кругов: остаток {} МиБ, остановка длилась бы ",
-                    virtlab::migration::MAX_ROUNDS,
-                    fmt_ru(result.remaining)
-                )}
-                <b>{format!("{} мс", fmt_ru(result.downtime as f64))}</b>
-                ". Гость пишет быстрее, чем уходит по сети."
+                {i18n::trf!("Migration did not converge in {0} rounds: remaining {1} MiB, the stop would last ", virtlab::migration::MAX_ROUNDS, fmt_ru(result.remaining))}
+                <b>{i18n::trf!("{0} ms", fmt_ru(result.downtime as f64))}</b>
+                {i18n::tr(". The guest writes faster than the network can send.")}
             </p>
         }
         .into_any(),
@@ -293,7 +284,7 @@ fn Final(result: Simulation, reached: bool) -> impl IntoView {
         <div class=format!("vl-final {}", outcome_class(result.outcome))>
             {text}
             <p class={if reached { "vl-yes" } else { "vl-no" }}>
-                {if reached { "✓ Цель сценария достигнута" } else { "Цель сценария не достигнута — измените параметры" }}
+                {if reached { i18n::tr("✓ Scenario goal reached") } else { i18n::tr("Scenario goal not reached — change the settings") }}
             </p>
         </div>
     }
@@ -311,6 +302,7 @@ mod tests {
 
     #[test]
     fn params_take_speeds_from_scenario() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sc = scenario("busy");
         let p = params(&sc, &Settings { downtime_ms: 250.0, auto_converge: true, ..Settings::default() });
         assert_eq!((p.dirty, p.bw, p.downtime_ms), (2000.0, 1250.0, 250.0));
@@ -322,6 +314,7 @@ mod tests {
 
     #[test]
     fn default_settings_reach_calm_goal_only() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // спокойный гость сходится с настройками по умолчанию и укладывается в 100 мс при малом простое
         let sc = scenario("calm");
         let small = Settings { downtime_ms: 100.0, ..Settings::default() };
@@ -336,6 +329,7 @@ mod tests {
 
     #[test]
     fn goal_data_is_accepted_by_server() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // сценарий «wild»: гибрид после первого круга
         let sc = scenario("wild");
         let s = Settings { downtime_ms: 100.0, hybrid: true, after: 1, ..Settings::default() };
@@ -350,6 +344,7 @@ mod tests {
 
     #[test]
     fn playback_finishes_one_tick_after_last_round() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sc = scenario("calm");
         let result = virtlab::migration::simulate(&params(&sc, &Settings::default()));
         let n = result.rounds.len();
@@ -363,6 +358,7 @@ mod tests {
 
     #[test]
     fn bars() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(bar_percent(MEM_MIB), 100.0);
         assert!(bar_full(MEM_MIB) && !bar_full(MEM_MIB / 2.0));
         assert_eq!(outcome_class(Outcome::Failed), "failed");

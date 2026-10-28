@@ -1,0 +1,55 @@
+{
+ "book": 13,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "top3",
+   "title": "Top three",
+   "statement": "Write a function top3(nums): a list of the three largest elements in descending order. If there are fewer than three elements, return as many as there are. The original list must not be changed: use sorted, not sort.",
+   "hint": "sorted(nums, reverse=True)[:3] -- the slice is safe for short lists too."
+  },
+  {
+   "id": "by-length",
+   "title": "By word length",
+   "statement": "Write a function by_length(words): a new list of the words sorted by length from shortest to longest. Words of the same length keep their original order. Use the key parameter.",
+   "hint": "sorted(words, key=len) -- the sort is stable: words of equal length are not reordered."
+  },
+  {
+   "id": "word-lengths",
+   "title": "Word lengths",
+   "statement": "Write a function word_lengths(words): a list of the word lengths in the same order. Write it in one line, with a list comprehension.",
+   "hint": "return [len(w) for w in words]."
+  },
+  {
+   "id": "even-squares",
+   "title": "Squares of the even ones",
+   "statement": "Write a function even_squares(nums): a list of the squares of only the even elements, in the original order. Use a single list comprehension with a condition.",
+   "hint": "[x * x for x in nums if x % 2 == 0] -- the if goes after the for."
+  },
+  {
+   "id": "all-even",
+   "title": "Are all even",
+   "statement": "Write a function all_even(nums): True if all elements are even, otherwise False. For an empty list, return True. Try the built-in function all.",
+   "hint": "return all(x % 2 == 0 for x in nums)."
+  },
+  {
+   "id": "unique-sorted",
+   "title": "No repeats, in order",
+   "statement": "Write a function unique_sorted(nums): a list sorted in ascending order with no repeats: [3, 1, 3, 2, 1] becomes [1, 2, 3]. Do not use sets (set) yet: pick the new elements with an in check.",
+   "hint": "if x not in seen: seen.append(x); at the end seen.sort() and return seen.",
+   "starter": "def unique_sorted(nums):\n    seen = []\n    # if x is not in seen yet -- add it\n    return seen\n"
+  },
+  {
+   "id": "balanced",
+   "title": "Brackets in order",
+   "statement": "Write a function balanced(s): True if the round brackets in the string s are placed correctly: every \"(\" has its own \")\" to the right, and no \")\" stands before its pair. Ignore all other characters. Use a list as a stack: append on \"(\", pop on \")\".",
+   "hint": "On \")\" first check that the stack is not empty: if it is empty, there is nothing to close -- return False right away (otherwise pop fails with an error)."
+  },
+  {
+   "id": "second-largest",
+   "title": "Second largest",
+   "statement": "Write a function second_largest(nums): the second largest DISTINCT value in a list of at least two different numbers: for [3, 1, 4, 1, 5] it is 4, for [10, 10, 5] it is 5.",
+   "hint": "Remove the repeats (as in unique_sorted), sort, and take the next to last: items[-2]."
+  }
+ ]
+}

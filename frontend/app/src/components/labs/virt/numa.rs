@@ -16,8 +16,8 @@ pub struct Msg {
 
 /// Варианты размещения: каждый узел и «растянуть» (значение — как в данных: номер узла или `wide`).
 pub fn place_options(nodes: usize) -> Vec<(String, String)> {
-    let mut v: Vec<(String, String)> = (0..nodes).map(|i| (i.to_string(), format!("узел {i}"))).collect();
-    v.push(("wide".to_string(), "растянуть".to_string()));
+    let mut v: Vec<(String, String)> = (0..nodes).map(|i| (i.to_string(), i18n::trf!("node {0}", i))).collect();
+    v.push(("wide".to_string(), i18n::tr("span").to_string()));
     v
 }
 
@@ -29,14 +29,14 @@ fn parse_place(s: &str) -> Option<Place> {
 pub fn accept_outcome(nodes: &[Node], sc: &Scenario, plan: &Plan) -> (Msg, bool) {
     match numa::accept(nodes, sc, plan) {
         Ok(Accept::Over) => (
-            Msg { bad: true, text: "Размещение не помещается: на каком-то узле не хватает ядер или памяти.".to_string() },
+            Msg { bad: true, text: i18n::tr("The placement does not fit: some node lacks cores or memory.").to_string() },
             false,
         ),
         Ok(Accept::TooRemote { avg, max }) => (
-            Msg { bad: true, text: format!("Удалённых обращений {} — больше допустимых {}.", pct(avg), pct(max)) },
+            Msg { bad: true, text: i18n::trf!("Remote accesses {0} exceed the allowed {1}.", pct(avg), pct(max)) },
             false,
         ),
-        Ok(Accept::Ok { avg }) => (Msg { bad: false, text: format!("✓ Принято: удалённых обращений {}.", pct(avg)) }, true),
+        Ok(Accept::Ok { avg }) => (Msg { bad: false, text: i18n::trf!("✓ Accepted: remote accesses {0}.", pct(avg)) }, true),
         Err(e) => (Msg { bad: true, text: e.to_string() }, false),
     }
 }
@@ -121,17 +121,17 @@ pub fn NumaLab(nodes: Vec<Node>, scenarios: Vec<Scenario>, goals: Goals) -> impl
             <div class="vl-grid">
                 <div class="vl-card">
                     <p class="vl-goal">
-                        <span class="s-label">"цель"</span>
+                        <span class="s-label">{i18n::tr("goal")}</span>
                         " "
                         {move || scenario().map(|s| s.goal)}
                     </p>
                     <table class="vl-vms">
                         <thead>
                             <tr>
-                                <th>"машина"</th>
-                                <th>"процессоры"</th>
-                                <th>"память"</th>
-                                <th>"удалённых"</th>
+                                <th>{i18n::tr("VM")}</th>
+                                <th>{i18n::tr("CPUs")}</th>
+                                <th>{i18n::tr("memory")}</th>
+                                <th>{i18n::tr("remote")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -167,7 +167,7 @@ pub fn NumaLab(nodes: Vec<Node>, scenarios: Vec<Scenario>, goals: Goals) -> impl
                                             <td>
                                                 <b>{vm.name.clone()}</b>
                                                 <br />
-                                                <span class="vl-hint">{format!("{} vCPU · {} ГиБ", vm.vcpus, vm.mem)}</span>
+                                                <span class="vl-hint">{i18n::trf!("{0} vCPU · {1} GiB", vm.vcpus, vm.mem)}</span>
                                             </td>
                                             {selects}
                                             <td>{remote}</td>
@@ -183,16 +183,16 @@ pub fn NumaLab(nodes: Vec<Node>, scenarios: Vec<Scenario>, goals: Goals) -> impl
                             prop:checked=move || plan().values().any(|p| p.vnuma)
                             on:change=move |ev| set_vnuma(event_target_checked(&ev))
                         />
-                        <span>"виртуальная топология NUMA для растянутых машин"</span>
+                        <span>{i18n::tr("virtual NUMA topology for spanning VMs")}</span>
                     </label>
                     <div class="vl-actions">
-                        <button class="quiz-btn" on:click=accept>"Принять размещение"</button>
+                        <button class="quiz-btn" on:click=accept>{i18n::tr("Accept placement")}</button>
                     </div>
                     {move || msg.get().map(|m| view! { <p class={if m.bad { "vl-no" } else { "vl-yes" }}>{m.text}</p> })}
                 </div>
 
                 <div class="vl-card">
-                    <span class="s-label">"узлы хоста"</span>
+                    <span class="s-label">{i18n::tr("host nodes")}</span>
                     {move || {
                         let ev = evaluation();
                         nodes.with_value(|ns| {
@@ -201,9 +201,9 @@ pub fn NumaLab(nodes: Vec<Node>, scenarios: Vec<Scenario>, goals: Goals) -> impl
                                 let (cores, mem) = load.map_or((0.0, 0.0), |l| (l.cores, l.mem));
                                 view! {
                                     <div class="vl-node">
-                                        <b>{format!("узел {i}")}</b>
-                                        <Meter label="ядра" used=cores max=n.cores />
-                                        <Meter label="память, ГиБ" used=mem max=n.mem />
+                                        <b>{i18n::trf!("node {0}", i)}</b>
+                                        <Meter label=i18n::tr("cores") used=cores max=n.cores />
+                                        <Meter label=i18n::tr("memory, GiB") used=mem max=n.mem />
                                     </div>
                                 }
                             }).collect_view()
@@ -212,13 +212,13 @@ pub fn NumaLab(nodes: Vec<Node>, scenarios: Vec<Scenario>, goals: Goals) -> impl
                     <table class="vl-stat">
                         <tbody>
                             <tr>
-                                <td><b>"средняя доля удалённых обращений"</b></td>
+                                <td><b>{i18n::tr("average share of remote accesses")}</b></td>
                                 <td><b>{move || evaluation().map(|e| pct(e.avg)).unwrap_or_else(|| "—".to_string())}</b></td>
                             </tr>
                         </tbody>
                     </table>
                     <p class="vl-hint">
-                        "Своя память — 0%, чужой узел — 100%, растянутое — 50% (с виртуальной NUMA у полностью растянутой машины — 25%)."
+                        {i18n::tr("Own memory is 0%, another node is 100%, spanning is 50% (with virtual NUMA, a fully spanning VM gets 25%).")}
                     </p>
                 </div>
             </div>
@@ -256,6 +256,7 @@ mod tests {
 
     #[test]
     fn options_cover_nodes_and_wide() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let o = place_options(2);
         assert_eq!(o.iter().map(|(v, _)| v.as_str()).collect::<Vec<_>>(), ["0", "1", "wide"]);
         assert_eq!(o[2].1, "растянуть");
@@ -267,6 +268,7 @@ mod tests {
 
     #[test]
     fn default_plan_does_not_fit() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sc = scenario("small");
         let (m, ok) = accept_outcome(&default_nodes(), &sc, &default_plan(&sc.vms));
         assert!(!ok && m.bad);
@@ -275,6 +277,7 @@ mod tests {
 
     #[test]
     fn too_remote_and_accepted_messages() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let nodes = default_nodes();
         let sc = scenario("small");
         // всё помещается, но у A и C память на чужом узле: удалённых обращений половина
@@ -296,6 +299,7 @@ mod tests {
 
     #[test]
     fn accepted_plan_is_verified_by_server_model() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let (nodes, sc) = (default_nodes(), scenario("small"));
         let mut plan = default_plan(&sc.vms);
         for (name, node) in [("A", 0), ("B", 0), ("C", 1), ("D", 1)] {
@@ -310,6 +314,7 @@ mod tests {
 
     #[test]
     fn set_place_edits_one_field() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sc = scenario("small");
         let mut plan = default_plan(&sc.vms);
         set_place(&mut plan, "B", true, Place::Node(1));
@@ -322,6 +327,7 @@ mod tests {
 
     #[test]
     fn meter_fill_is_capped() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(fill_percent(4.0, 8), 50.0);
         assert_eq!(fill_percent(12.0, 8), 100.0);
         assert_eq!(fill_percent(1.0, 0), 100.0);

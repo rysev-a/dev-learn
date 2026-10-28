@@ -5,6 +5,7 @@ use riscvlab::{assemble, Machine, Options, TaskSpec};
 
 #[test]
 fn extreme_numbers_do_not_panic() {
+    i18n::set_locale(i18n::Locale::Ru);
     let src = "
   li a0, 0xffffffffffffffffffff
   li a0, 99999999999999999999
@@ -31,6 +32,7 @@ fn extreme_numbers_do_not_panic() {
 
 #[test]
 fn weird_text_does_not_panic() {
+    i18n::set_locale(i18n::Locale::Ru);
     // псевдослучайные строки из «неудобных» символов
     let alphabet: Vec<char> = "ab01 \t\r\n,:()%'\"\\+-#;/.$_xX😀ЖжЁё\u{0}\u{a0}\u{2028}\u{feff}é".chars().collect();
     let mut seed: u64 = 0x9e37_79b9_7f4a_7c15;
@@ -66,6 +68,7 @@ fn weird_text_does_not_panic() {
 
 #[test]
 fn verify_never_panics_on_junk_programs() {
+    i18n::set_locale(i18n::Locale::Ru);
     let spec = TaskSpec {
         profile: Profile::Board,
         starter: String::new(),

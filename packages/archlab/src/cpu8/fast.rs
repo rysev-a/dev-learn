@@ -21,7 +21,7 @@ pub struct CombinationalLoopError {
 impl fmt::Display for CombinationalLoopError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let head: Vec<&str> = self.nodes.iter().take(5).map(String::as_str).collect();
-        write!(f, "В схеме есть петля без триггера: {}…", head.join(", "))
+        write!(f, "{}", i18n::trf!("The circuit has a loop without a flip-flop: {0}…", head.join(", ")))
     }
 }
 
@@ -384,7 +384,7 @@ impl CompiledSim {
     /// Один период такта: CLK = 0, затем фронт 0 → 1 и снова 0. Триггеры и запись в память берут
     /// значения, посчитанные ДО фронта. Нет узла такта — ошибка с понятным текстом.
     pub fn pulse(&mut self, clk_node: &str) -> Result<(), String> {
-        let c = *self.index.get(clk_node).ok_or_else(|| format!("Нет узла такта «{clk_node}»"))?;
+        let c = *self.index.get(clk_node).ok_or_else(|| i18n::trf!("No clock node “{0}”", clk_node))?;
         self.v[c] = 0;
         self.settle();
         for d in &mut self.dffs {
@@ -435,7 +435,7 @@ impl CompiledSim {
     fn native_mut(&mut self, id: &str, kind: NativeKind) -> Result<&mut Native, String> {
         match self.natives.iter_mut().find(|n| n.id == id && n.kind == kind) {
             Some(n) => Ok(n),
-            None => Err(format!("Нет памяти «{id}» вида {}", if kind == NativeKind::Rom { "rom" } else { "ram" })),
+            None => Err(i18n::trf!("No memory “{0}” of kind {1}", id, if kind == NativeKind::Rom { "rom" } else { "ram" })),
         }
     }
 
@@ -467,7 +467,7 @@ impl CompiledSim {
 
     /// Копия содержимого памяти.
     pub fn memory(&self, id: &str) -> Result<Vec<u16>, String> {
-        self.natives.iter().find(|n| n.id == id).map(|n| n.data.clone()).ok_or_else(|| format!("Нет памяти «{id}»"))
+        self.natives.iter().find(|n| n.id == id).map(|n| n.data.clone()).ok_or_else(|| i18n::trf!("No memory “{0}”", id))
     }
 
     /// Есть ли память с таким id.

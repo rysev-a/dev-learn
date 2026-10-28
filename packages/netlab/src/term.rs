@@ -47,7 +47,7 @@ fn done(err: Option<String>) -> CmdResult {
 
 fn no(d: &Device) -> Option<String> {
     if d.locked {
-        Some(format!("Permission denied: «{}» принадлежит провайдеру — настраивать его нельзя", d.name))
+        Some(i18n::trf!("Permission denied: \"{0}\" belongs to the provider and cannot be configured", d.name))
     } else {
         None
     }
@@ -76,7 +76,7 @@ pub fn set_addr(d: &mut Device, if_name: &str, cidr: &str) -> Option<String> {
     let Some(i) = d.iface_mut(if_name) else { return Some(format!("Cannot find device \"{if_name}\"")) };
     let Some((ip, prefix)) = parse_cidr(cidr) else { return Some(format!("Error: inet prefix is expected rather than \"{cidr}\".")) };
     if i.ip.is_some() {
-        return Some(format!("RTNETLINK answers: File exists (сначала ip addr flush dev {if_name})"));
+        return Some(i18n::trf!("RTNETLINK answers: File exists (run ip addr flush dev {0} first)", if_name));
     }
     i.ip = Some(ip_str(ip));
     i.prefix = prefix as u8;
@@ -126,10 +126,10 @@ pub fn add_route(d: &mut Device, dst: Option<&str>, via: Option<&str>, dev: Opti
             x.ip.is_some() && x.up && in_net(Some(v), Some(network_of(parse_ip_opt(x.ip.as_deref()), x.prefix as u32)), x.prefix as u32)
         });
         if !ok {
-            return Some("Error: Nexthop has invalid gateway. (шлюз должен лежать в одной из подключённых подсетей)".into());
+            return Some(i18n::tr("Error: Nexthop has invalid gateway. (the gateway must lie in one of the connected subnets)").into());
         }
     } else if !dev.map(|x| !x.is_empty() && d.iface(x).is_some()).unwrap_or(false) {
-        return Some("Error: нужно указать via <шлюз> или dev <интерфейс>".into());
+        return Some(i18n::tr("Error: specify via <gateway> or dev <interface>").into());
     }
     let dup = d.routes.iter().any(|r| r.dst == key);
     if dup || (prefix != 0 && route_table(d, false).iter().any(|r| r.connected && r.net == net && r.prefix == prefix)) {
@@ -197,14 +197,7 @@ fn show_addr(d: &Device) -> String {
         .join("\n")
 }
 
-const HELP: &str = "Доступные команды:
-  ip addr [add|del|flush ...]    ip link [set <if> up|down]
-  ip route [add|del|get ...]     ip neigh   (или arp -n)
-  ping [-c N] [-t TTL] <ip>      traceroute <ip>
-  curl <ip>[:порт]               nc -zv <ip> <порт>    nc -l <порт>
-  ss -ltn                        sysctl net.ipv4.ip_forward|tcp_rmem|tcp_congestion_control
-  iperf3 <ip> [-n МБ]            ip link set <if> txqueuelen N
-  iptables [-t nat] -L|-A|-I|-D|-F|-P ...   hostname   clear";
+const HELP: &str = i18n::t!("Available commands:\n  ip addr [add|del|flush ...]    ip link [set <if> up|down]\n  ip route [add|del|get ...]     ip neigh   (or arp -n)\n  ping [-c N] [-t TTL] <ip>      traceroute <ip>\n  curl <ip>[:port]               nc -zv <ip> <port>    nc -l <port>\n  ss -ltn                        sysctl net.ipv4.ip_forward|tcp_rmem|tcp_congestion_control\n  iperf3 <ip> [-n MB]            ip link set <if> txqueuelen N\n  iptables [-t nat] -L|-A|-I|-D|-F|-P ...   hostname   clear");
 
 /* ---- iptables ---- */
 
@@ -283,7 +276,7 @@ fn parse_rule_spec(tokens: &[&str]) -> RuleSpec {
                 i += 1;
             }
             _ => {
-                r.error = Some(format!("iptables: неизвестный параметр «{t}»"));
+                r.error = Some(i18n::trf!("iptables: unknown option \"{0}\"", t));
                 return r;
             }
         }
@@ -350,7 +343,7 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
         i = 2;
     }
     if table != "nat" && table != "filter" {
-        return out(format!("iptables: таблица «{table}» не поддерживается"));
+        return out(i18n::trf!("iptables: table \"{0}\" is not supported", table));
     }
     let op = tokens.get(i).copied();
     let chain = tokens.get(i + 1).copied();
@@ -366,7 +359,7 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
         let mut lines: Vec<String> = Vec::new();
         for c in want {
             if !chains.contains(&c) {
-                return out(format!("iptables: нет цепочки «{c}» в таблице {table}"));
+                return out(i18n::trf!("iptables: no chain \"{0}\" in table {1}", c, table));
             }
             if nat {
                 lines.push(format!("Chain {c} (policy ACCEPT)"));
@@ -420,10 +413,10 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
     }
     if op == Some("-P") {
         if nat || chain != Some("FORWARD") {
-            return out("iptables: политику можно задать только для FORWARD");
+            return out(i18n::tr("iptables: a policy can only be set for FORWARD"));
         }
         let pol = rest.first().and_then(|p| FwAction::parse(p)).filter(|p| *p != FwAction::Reject);
-        let Some(pol) = pol else { return out("iptables: политика — ACCEPT или DROP") };
+        let Some(pol) = pol else { return out(i18n::tr("iptables: the policy is ACCEPT or DROP")) };
         d.fw.policy = pol;
         return changed("");
     }
@@ -441,23 +434,23 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
         if let Some(e) = r.error {
             return out(e);
         }
-        let Some(action) = r.action.clone().filter(|a| !a.is_empty()) else { return out("iptables: не указана цель (-j)") };
+        let Some(action) = r.action.clone().filter(|a| !a.is_empty()) else { return out(i18n::tr("iptables: no target specified (-j)")) };
         let chain_s = chain.unwrap_or("undefined");
         if nat {
             let ch = match chain_s {
                 "PREROUTING" => NatChain::Prerouting,
                 "POSTROUTING" => NatChain::Postrouting,
-                _ => return out("iptables: в таблице nat моделируются цепочки PREROUTING и POSTROUTING"),
+                _ => return out(i18n::tr("iptables: the nat table models the PREROUTING and POSTROUTING chains")),
             };
             if ch == NatChain::Postrouting && action != "MASQUERADE" {
-                return out("iptables: в POSTROUTING поддерживается цель MASQUERADE");
+                return out(i18n::tr("iptables: POSTROUTING supports the MASQUERADE target"));
             }
             if ch == NatChain::Prerouting && (action != "DNAT" || r.to.as_deref().map(|t| t.is_empty()).unwrap_or(true)) {
-                return out("iptables: в PREROUTING нужна цель DNAT --to-destination адрес[:порт]");
+                return out(i18n::tr("iptables: PREROUTING needs the target DNAT --to-destination address[:port]"));
             }
             if let Some(to) = r.to.as_deref().filter(|t| !t.is_empty()) {
                 if parse_ip(to.split(':').next().unwrap_or("")).is_none() {
-                    return out(format!("iptables: неверный адрес «{to}»"));
+                    return out(i18n::trf!("iptables: invalid address \"{0}\"", to));
                 }
             }
             let act = if action == "MASQUERADE" { NatAction::Masquerade } else { NatAction::Dnat };
@@ -475,7 +468,7 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
                 state: r.state,
             };
             if op == "-D" {
-                let Some(k) = d.nat.iter().position(|n| *n == rule) else { return out("iptables: такого правила нет") };
+                let Some(k) = d.nat.iter().position(|n| *n == rule) else { return out(i18n::tr("iptables: no such rule")) };
                 d.nat.remove(k);
             } else if op == "-I" {
                 let first = d.nat.iter().position(|n| n.chain == ch);
@@ -489,9 +482,9 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
             return changed("");
         }
         if chain_s != "FORWARD" {
-            return out("iptables: в этом симуляторе фильтруется только цепочка FORWARD");
+            return out(i18n::tr("iptables: this simulator filters only the FORWARD chain"));
         }
-        let Some(act) = FwAction::parse(&action) else { return out("iptables: цель — ACCEPT, DROP или REJECT") };
+        let Some(act) = FwAction::parse(&action) else { return out(i18n::tr("iptables: the target is ACCEPT, DROP or REJECT")) };
         let fw = FwRule {
             action: act,
             src: r.src.clone(),
@@ -505,7 +498,7 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
             to: r.to.clone(),
         };
         if op == "-D" {
-            let Some(k) = d.fw.rules.iter().position(|n| *n == fw) else { return out("iptables: такого правила нет") };
+            let Some(k) = d.fw.rules.iter().position(|n| *n == fw) else { return out(i18n::tr("iptables: no such rule")) };
             d.fw.rules.remove(k);
         } else if op == "-I" {
             splice_at(&mut d.fw.rules, pos, fw);
@@ -514,7 +507,7 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
         }
         return changed("");
     }
-    out("iptables: неизвестная операция. Пример: iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE")
+    out(i18n::tr("iptables: unknown operation. Example: iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE"))
 }
 
 /* ---- имена: hosts → DNS-запрос к резолверу ---- */
@@ -540,27 +533,27 @@ fn rerr(s: impl Into<String>, run: Option<ProbeRun>) -> ResolveErr {
 
 /// Имя или адрес → адрес (hosts, затем DNS-запрос резолверу устройства).
 pub fn to_ip(state: &mut NetState, dev_id: &str, arg: &str) -> Result<Resolved, ResolveErr> {
-    let Some(d) = state.devices.get(dev_id) else { return Err(rerr(format!("нет устройства «{dev_id}»"), None)) };
+    let Some(d) = state.devices.get(dev_id) else { return Err(rerr(i18n::trf!("no device \"{0}\"", dev_id), None)) };
     let l = local_lookup(d, arg);
     let ask = match l {
         LocalLookup::Ip(Some(ip), from) => return Ok(Resolved { ip, from, run: None }),
         LocalLookup::Error(e) => return Err(rerr(format!("Temporary failure in name resolution ({e})"), None)),
         LocalLookup::Ip(None, _) | LocalLookup::Ask(None) => {
-            return Err(rerr("Temporary failure in name resolution (в /etc/resolv.conf нет DNS-сервера)", None));
+            return Err(rerr(i18n::tr("Temporary failure in name resolution (no DNS server in /etc/resolv.conf)"), None));
         }
         LocalLookup::Ask(Some(a)) => a,
     };
     let run = dns1(state, dev_id, ask, DnsQuestion { name: fqdn(arg), typ: "A".into() }, true);
     let dns = match (&run.status, &run.dns) {
         (ProbeStatus::Reply, Some(dns)) => dns.clone(),
-        _ => return Err(rerr("Temporary failure in name resolution (DNS-сервер не отвечает)", Some(run))),
+        _ => return Err(rerr(i18n::tr("Temporary failure in name resolution (the DNS server does not respond)"), Some(run))),
     };
     match answer_ip(Some(&dns)) {
         None => {
             let msg = if dns.rcode == Some(Rcode::NxDomain) {
                 "Name or service not known (NXDOMAIN)".to_string()
             } else {
-                format!("имя не разрешилось ({})", dns.rcode.map(|r| r.as_str()).unwrap_or("undefined"))
+                i18n::trf!("name did not resolve ({0})", dns.rcode.map(|r| r.as_str()).unwrap_or("undefined"))
             };
             Err(rerr(msg, Some(run)))
         }
@@ -590,18 +583,18 @@ fn do_dig(state: &mut NetState, dev_id: &str, a: &[&str], nslookup: bool) -> Cmd
         }
     }
     let Some(name) = name.filter(|n| !n.is_empty()) else {
-        return out("dig: укажите имя: dig www.example.org [A|CNAME|NS] [@сервер]");
+        return out(i18n::tr("dig: specify a name: dig www.example.org [A|CNAME|NS] [@server]"));
     };
     let Some(server) = server else {
-        return out("dig: нет DNS-сервера: добавьте «nameserver …» в /etc/resolv.conf или укажите @сервер");
+        return out(i18n::tr("dig: no DNS server: add \"nameserver …\" to /etc/resolv.conf or specify @server"));
     };
     let run = dns1(state, dev_id, server, DnsQuestion { name: fqdn(name), typ: typ.clone() }, true);
     let dns = match (&run.status, &run.dns) {
         (ProbeStatus::Reply, Some(dns)) => dns.clone(),
-        _ => return probe(format!(";; соединение не удалось: DNS-сервер {} не отвечает (timed out)", ip_str(server)), Some(run)),
+        _ => return probe(i18n::trf!(";; connection failed: DNS server {0} is not responding (timed out)", ip_str(server)), Some(run)),
     };
     let text =
-        [format!(";; опрос {}, вопрос «{} {}», время {}", ip_str(server), fqdn(name), typ, fmt_ms(run.rtt_us)), fmt_dns(&dns)].join("\n");
+        [i18n::trf!(";; query to {0}, question \"{1} {2}\", time {3}", ip_str(server), fqdn(name), typ, fmt_ms(run.rtt_us)), fmt_dns(&dns)].join("\n");
     probe(text, Some(run))
 }
 
@@ -610,19 +603,19 @@ fn dns_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     let sub = a.first().copied();
     let g = |i: usize| a.get(i).copied();
     if sub == Some("show") || sub.is_none() {
-        let Some(dns) = &d.dns else { return out("DNS-сервер на этом устройстве не включён (dns enable)") };
-        let mut l = vec![format!("режим: {}", if dns.recursive { "рекурсивный резолвер" } else { "авторитативный сервер" })];
+        let Some(dns) = &d.dns else { return out(i18n::tr("The DNS server is not enabled on this device (dns enable)")) };
+        let mut l = vec![i18n::trf!("mode: {0}", if dns.recursive { i18n::tr("recursive resolver") } else { i18n::tr("authoritative server") })];
         if !dns.zones.is_empty() {
-            l.push(format!("зоны: {}", dns.zones.join(", ")));
+            l.push(i18n::trf!("zones: {0}", dns.zones.join(", ")));
         }
         if !dns.roots.is_empty() {
-            l.push(format!("корневые серверы: {}", dns.roots.join(", ")));
+            l.push(i18n::trf!("root servers: {0}", dns.roots.join(", ")));
         }
         for r in &dns.records {
             l.push(format!("{}.  {}  IN  {}  {}", r.name, r.ttl.unwrap_or(300), r.typ, r.value));
         }
         for x in &dns.delegations {
-            l.push(format!("делегирование: {} → NS {}", x.zone, x.ns));
+            l.push(i18n::trf!("delegation: {0} → NS {1}", x.zone, x.ns));
         }
         return out(l.join("\n"));
     }
@@ -634,30 +627,30 @@ fn dns_admin(d: &mut Device, a: &[&str]) -> CmdResult {
         if d.dns.is_none() {
             d.dns = Some(new_dns());
         }
-        return changed("DNS-сервер включён (слушает udp/53)");
+        return changed(i18n::tr("DNS server enabled (listening on udp/53)"));
     }
-    let Some(dns) = d.dns.as_mut() else { return out("сначала включите DNS-сервер: dns enable") };
+    let Some(dns) = d.dns.as_mut() else { return out(i18n::tr("enable the DNS server first: dns enable")) };
     match sub {
         "recursive" => {
             dns.recursive = g(1) != Some("off");
-            changed(format!("рекурсия: {}", if dns.recursive { "включена" } else { "выключена" }))
+            changed(i18n::trf!("recursion: {0}", if dns.recursive { i18n::tr("enabled") } else { i18n::tr("disabled") }))
         }
         "root" => {
             if parse_ip(g(1).unwrap_or("")).is_none() {
-                return out("dns root <ip корневого сервера>");
+                return out(i18n::tr("dns root <root server ip>"));
             }
             dns.roots = vec![g(1).unwrap_or("").to_string()];
-            changed("корневой сервер задан")
+            changed(i18n::tr("root server set"))
         }
         "zone" => {
             let z = fqdn(g(1).unwrap_or(""));
             if z.is_empty() {
-                return out("dns zone <зона>");
+                return out(i18n::tr("dns zone <zone>"));
             }
             if !dns.zones.contains(&z) {
                 dns.zones.push(z.clone());
             }
-            changed(format!("зона {z} обслуживается этим сервером"))
+            changed(i18n::trf!("zone {0} is served by this server", z))
         }
         "add" => {
             let name = g(1);
@@ -665,13 +658,13 @@ fn dns_admin(d: &mut Device, a: &[&str]) -> CmdResult {
             let v: Vec<&str> = if a.len() > 3 { a[3..].to_vec() } else { vec![] };
             let value = v.first().copied();
             let (Some(name), Some(value)) = (name.filter(|n| !n.is_empty()), value.filter(|v| !v.is_empty())) else {
-                return out("dns add <имя> <A|CNAME|MX|TXT> <значение> [ttl]");
+                return out(i18n::tr("dns add <name> <A|CNAME|MX|TXT> <value> [ttl]"));
             };
             if !["A", "CNAME", "NS", "MX", "TXT"].contains(&typ.as_str()) {
-                return out("dns add <имя> <A|CNAME|MX|TXT> <значение> [ttl]");
+                return out(i18n::tr("dns add <name> <A|CNAME|MX|TXT> <value> [ttl]"));
             }
             if typ == "A" && parse_ip(value).is_none() {
-                return out(format!("неверный IPv4-адрес «{value}»"));
+                return out(i18n::trf!("invalid IPv4 address \"{0}\"", value));
             }
             let ttl = num_or(v.get(1).copied(), 300.0);
             dns.records.push(DnsRecord {
@@ -680,7 +673,7 @@ fn dns_admin(d: &mut Device, a: &[&str]) -> CmdResult {
                 value: if typ == "CNAME" { fqdn(value) } else { value.to_string() },
                 ttl: Some(ttl.clamp(0.0, u32::MAX as f64) as u32),
             });
-            changed("запись добавлена")
+            changed(i18n::tr("record added"))
         }
         "del" => {
             let name = fqdn(g(1).unwrap_or(""));
@@ -688,26 +681,26 @@ fn dns_admin(d: &mut Device, a: &[&str]) -> CmdResult {
             let n = dns.records.len();
             dns.records.retain(|r| !(fqdn(&r.name) == name && t.as_ref().map(|t| *t == r.typ).unwrap_or(true)));
             if dns.records.len() < n {
-                changed("запись удалена")
+                changed(i18n::tr("record removed"))
             } else {
-                out("такой записи нет")
+                out(i18n::tr("no such record"))
             }
         }
         "delegate" => {
             if g(1).map(|x| x.is_empty()).unwrap_or(true) || parse_ip(g(2).unwrap_or("")).is_none() {
-                return out("dns delegate <зона> <ip сервера имён>");
+                return out(i18n::tr("dns delegate <zone> <name server ip>"));
             }
             let z = fqdn(g(1).unwrap_or(""));
             dns.delegations.retain(|x| fqdn(&x.zone) != z);
             dns.delegations.push(DnsDelegation { zone: z.clone(), ns: g(2).unwrap_or("").to_string() });
-            changed(format!("зона {z} делегирована {}", g(2).unwrap_or("")))
+            changed(i18n::trf!("zone {0} delegated to {1}", z, g(2).unwrap_or("")))
         }
         "undelegate" => {
             let z = fqdn(g(1).unwrap_or(""));
             dns.delegations.retain(|x| fqdn(&x.zone) != z);
-            changed("делегирование убрано")
+            changed(i18n::tr("delegation removed"))
         }
-        _ => out("dns show | enable | recursive on|off | root <ip> | zone <z> | add … | del … | delegate <зона> <ip> | undelegate <зона>"),
+        _ => out(i18n::tr("dns show | enable | recursive on|off | root <ip> | zone <z> | add … | del … | delegate <zone> <ip> | undelegate <zone>")),
     }
 }
 
@@ -752,14 +745,14 @@ fn file_write(d: &mut Device, line: &str) -> Option<CmdResult> {
             .map(|r| r.trim_start())
             .filter(|r| !r.is_empty() && !r.contains(char::is_whitespace));
         let Some(ip) = ip.filter(|ip| parse_ip(ip).is_some()) else {
-            return Some(out("в resolv.conf нужна строка вида: nameserver 10.0.0.53"));
+            return Some(out(i18n::tr("resolv.conf needs a line like: nameserver 10.0.0.53")));
         };
         d.resolver = Some(ip.to_string());
         return Some(changed(""));
     }
     let toks: Vec<&str> = body.split_whitespace().collect();
     if toks.len() != 2 || parse_ip(toks[0]).is_none() {
-        return Some(out("в hosts нужна строка вида: 10.0.0.5 имя"));
+        return Some(out(i18n::tr("hosts needs a line like: 10.0.0.5 name")));
     }
     if op == ">" {
         d.hosts = OrdMap::new();
@@ -808,7 +801,7 @@ fn do_curl(state: &mut NetState, dev_id: &str, a: &[&str]) -> CmdResult {
         i += 1;
     }
     let Some(mut url) = url.filter(|u| !u.is_empty()) else {
-        return out("curl: укажите адрес, например curl -v http://www.example.org/");
+        return out(i18n::tr("curl: specify a URL, for example curl -v http://www.example.org/"));
     };
     let lower = url.to_lowercase();
     if !(lower.starts_with("http://") || lower.starts_with("https://")) {
@@ -828,7 +821,7 @@ fn web_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     let sub = a.first().copied();
     let g = |i: usize| a.get(i).copied();
     if sub.is_none() || sub == Some("show") {
-        let Some(http) = &d.http else { return out("веб-сервер не включён (web enable)") };
+        let Some(http) = &d.http else { return out(i18n::tr("the web server is not enabled (web enable)")) };
         let rows: Vec<String> = http
             .routes
             .iter()
@@ -842,7 +835,7 @@ fn web_admin(d: &mut Device, a: &[&str]) -> CmdResult {
                 format!("{}  {}{}{}", r.path, r.status.unwrap_or(200), loc, hs)
             })
             .collect();
-        return out(if rows.is_empty() { "(маршрутов нет)".to_string() } else { rows.join("\n") });
+        return out(if rows.is_empty() { i18n::tr("(no routes)").to_string() } else { rows.join("\n") });
     }
     if let Some(bad) = bad {
         return out(bad);
@@ -855,27 +848,27 @@ fn web_admin(d: &mut Device, a: &[&str]) -> CmdResult {
         if !d.services.iter().any(|s| s.proto == Proto::Tcp && s.port == 80) {
             d.services.push(Service { proto: Proto::Tcp, port: 80, bind: None, name: None });
         }
-        return changed("веб-сервер включён на tcp/80");
+        return changed(i18n::tr("web server enabled on tcp/80"));
     }
-    let Some(http) = d.http.as_mut() else { return out("сначала: web enable") };
+    let Some(http) = d.http.as_mut() else { return out(i18n::tr("first: web enable")) };
     let path = g(1);
     match sub {
         "route" => {
             let status = js_num(g(2).unwrap_or("200"));
             let ok_path = path.map(|p| p.starts_with('/')).unwrap_or(false);
             if !ok_path || !(status >= 100.0 && status < 600.0) {
-                return out("web route /путь <код> [текст ответа]");
+                return out(i18n::tr("web route /path <code> [response text]"));
             }
             let path = path.unwrap_or("");
             http.routes.retain(|r| r.path != path);
             let body = if a.len() > 3 { a[3..].join(" ") } else { String::new() };
             http.routes.push(HttpRoute { path: path.into(), status: Some(status as u32), body: if body.is_empty() { None } else { Some(body) }, ..Default::default() });
-            changed(format!("маршрут {path} → {}", num_str(status)))
+            changed(i18n::trf!("route {0} → {1}", path, num_str(status)))
         }
         "redirect" => {
             let status = js_num(g(2).unwrap_or("301"));
             if path.map(|p| p.is_empty()).unwrap_or(true) || g(3).map(|x| x.is_empty()).unwrap_or(true) || ![301.0, 302.0, 307.0, 308.0].contains(&status) {
-                return out("web redirect /старый <301|302|307|308> /новый");
+                return out(i18n::tr("web redirect /old <301|302|307|308> /new"));
             }
             let path = path.unwrap_or("");
             http.routes.retain(|r| r.path != path);
@@ -883,10 +876,10 @@ fn web_admin(d: &mut Device, a: &[&str]) -> CmdResult {
             changed(format!("{path} → {} → {}", num_str(status), g(3).unwrap_or("")))
         }
         "header" => {
-            let Some(r) = http.routes.iter_mut().find(|x| Some(x.path.as_str()) == path) else { return out(format!("нет маршрута {}", und(path))) };
-            let Some(name) = g(2).filter(|x| !x.is_empty()) else { return out("web header /путь Имя значение") };
+            let Some(r) = http.routes.iter_mut().find(|x| Some(x.path.as_str()) == path) else { return out(i18n::trf!("no route {0}", und(path))) };
+            let Some(name) = g(2).filter(|x| !x.is_empty()) else { return out(i18n::tr("web header /path Name value")) };
             r.headers.insert(name.to_lowercase(), if a.len() > 3 { a[3..].join(" ") } else { String::new() });
-            changed("заголовок добавлен")
+            changed(i18n::tr("header added"))
         }
         "protocol" => {
             let proto = match g(1) {
@@ -896,20 +889,20 @@ fn web_admin(d: &mut Device, a: &[&str]) -> CmdResult {
                 _ => return out("web protocol h1|h2|h3"),
             };
             http.protocol = Some(proto);
-            let tail = if proto == HttpProto::H3 { " (нужен открытый UDP/443)" } else { "" };
-            changed(format!("сервер предлагает {}{tail}", proto.name()))
+            let tail = if proto == HttpProto::H3 { i18n::tr(" (needs open UDP/443)") } else { "" };
+            changed(i18n::trf!("the server offers {0}{1}", proto.name(), tail))
         }
         "etag" => {
             let r = http.routes.iter_mut().find(|x| Some(x.path.as_str()) == path);
-            let (Some(r), Some(e)) = (r, g(2).filter(|x| !x.is_empty())) else { return out("web etag /путь значение") };
+            let (Some(r), Some(e)) = (r, g(2).filter(|x| !x.is_empty())) else { return out(i18n::tr("web etag /path value")) };
             r.etag = Some(e.to_string());
-            changed("ETag задан")
+            changed(i18n::tr("ETag set"))
         }
         "del" => {
             http.routes.retain(|r| Some(r.path.as_str()) != path);
-            changed("маршрут удалён")
+            changed(i18n::tr("route removed"))
         }
-        _ => out("web show | enable | protocol h1|h2|h3 | route /p код [текст] | redirect /p код /куда | header /p Имя знач | etag /p знач | del /p"),
+        _ => out(i18n::tr("web show | enable | protocol h1|h2|h3 | route /p code [text] | redirect /p code /to | header /p Name val | etag /p val | del /p")),
     }
 }
 
@@ -919,16 +912,16 @@ fn tls_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
     let sub = a.first().copied();
     let g = |i: usize| a.get(i).copied();
     if sub.is_none() || sub == Some("show") {
-        let Some(tls) = &d.tls else { return out("TLS на этом устройстве не включён (tls enable)") };
+        let Some(tls) = &d.tls else { return out(i18n::tr("TLS is not enabled on this device (tls enable)")) };
         let c = &tls.cert;
-        let chain = if tls.chain.is_empty() { "(только свой сертификат)".to_string() } else { tls.chain.join(" → ") };
+        let chain = if tls.chain.is_empty() { i18n::tr("(its own certificate only)").to_string() } else { tls.chain.join(" → ") };
         return out([
-            format!("сертификат: CN={}", c.cn),
+            i18n::trf!("certificate: CN={0}", c.cn),
             format!("  SAN: {}", c.san.join(", ")),
-            format!("  издатель: {}", c.issuer),
-            format!("  действует до: {} (сегодня {})", c.not_after, NOW),
-            format!("цепочка, которую сервер присылает: {chain}"),
-            format!("версии TLS: {}", tls.versions.join(", ")),
+            i18n::trf!("  issuer: {0}", c.issuer),
+            i18n::trf!("  valid until: {0} (today {1})", c.not_after, NOW),
+            i18n::trf!("chain the server sends: {0}", chain),
+            i18n::trf!("TLS versions: {0}", tls.versions.join(", ")),
         ]
         .join("\n"));
     }
@@ -943,9 +936,9 @@ fn tls_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
         if !d.services.iter().any(|s| s.proto == Proto::Tcp && s.port == 443) {
             d.services.push(Service { proto: Proto::Tcp, port: 443, bind: None, name: None });
         }
-        return changed("TLS включён на tcp/443");
+        return changed(i18n::tr("TLS enabled on tcp/443"));
     }
-    let Some(tls) = d.tls.as_mut() else { return out("сначала: tls enable") };
+    let Some(tls) = d.tls.as_mut() else { return out(i18n::tr("first: tls enable")) };
     if sub == "cert" && g(1) == Some("new") {
         let rest: Vec<&str> = if a.len() > 2 { a[2..].to_vec() } else { vec![] };
         let iss = index_of(&rest, "--issuer");
@@ -960,14 +953,14 @@ fn tls_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
             .collect();
         let issuer = issuer.filter(|i| !i.is_empty());
         let (Some(issuer), false) = (issuer, names.is_empty()) else {
-            return out("tls cert new <имя> [доп. имена…] --issuer <CA> --days <N>");
+            return out(i18n::tr("tls cert new <name> [extra names…] --issuer <CA> --days <N>"));
         };
         if !(n >= 1.0) {
-            return out("tls cert new <имя> [доп. имена…] --issuer <CA> --days <N>");
+            return out(i18n::tr("tls cert new <name> [extra names…] --issuer <CA> --days <N>"));
         }
         if !cas.contains_key(issuer) {
             let list: Vec<&str> = cas.keys().map(|k| k.as_str()).collect();
-            return out(format!("неизвестный издатель «{issuer}» (доступны: {})", list.join(", ")));
+            return out(i18n::trf!("unknown issuer \"{0}\" (available: {1})", issuer, list.join(", ")));
         }
         tls.cert = TlsCert {
             cn: names[0].to_string(),
@@ -975,28 +968,22 @@ fn tls_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
             issuer: issuer.to_string(),
             not_after: add_days(n),
         };
-        return changed(format!(
-            "выпущен сертификат CN={} SAN={} издатель {} до {}",
-            names[0],
-            names.join(","),
-            issuer,
-            tls.cert.not_after
-        ));
+        return changed(i18n::trf!("issued certificate CN={0} SAN={1} issuer {2} until {3}", names[0], names.join(","), issuer, tls.cert.not_after));
     }
     if sub == "chain" {
         if g(1) == Some("clear") {
             tls.chain.clear();
-            return changed("цепочка очищена: сервер присылает только свой сертификат");
+            return changed(i18n::tr("chain cleared: the server sends only its own certificate"));
         }
         if g(1) == Some("add") {
             let ca = g(2).unwrap_or("undefined");
             if !cas.contains_key(ca) {
-                return out(format!("неизвестный CA «{}»", g(2).unwrap_or("")));
+                return out(i18n::trf!("unknown CA \"{0}\"", g(2).unwrap_or("")));
             }
             if !tls.chain.iter().any(|x| x == ca) {
                 tls.chain.push(ca.to_string());
             }
-            return changed(format!("в цепочку добавлен {ca}"));
+            return changed(i18n::trf!("{0} added to the chain", ca));
         }
     }
     if sub == "versions" {
@@ -1005,9 +992,9 @@ fn tls_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
             return out("tls versions 1.2,1.3");
         }
         tls.versions = v.clone();
-        return changed(format!("версии: {}", v.join(", ")));
+        return changed(i18n::trf!("versions: {0}", v.join(", ")));
     }
-    out("tls show | enable | cert new <имя> [имена…] --issuer <CA> --days N | chain add <CA> | chain clear | versions 1.2,1.3")
+    out(i18n::tr("tls show | enable | cert new <name> [names…] --issuer <CA> --days N | chain add <CA> | chain clear | versions 1.2,1.3"))
 }
 
 fn trust_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
@@ -1016,7 +1003,7 @@ fn trust_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
     let g = |i: usize| a.get(i).copied();
     if sub.is_none() || sub == Some("show") {
         let t = d.trust.clone().unwrap_or_else(default_trust);
-        return out(format!("доверенные корневые CA: {}", t.join(", ")));
+        return out(i18n::trf!("trusted root CAs: {0}", t.join(", ")));
     }
     if let Some(bad) = no(d) {
         return out(bad);
@@ -1026,19 +1013,19 @@ fn trust_admin(pki: &Pki, d: &mut Device, a: &[&str]) -> CmdResult {
             let ca = g(1).unwrap_or("undefined");
             if !cas.contains_key(ca) {
                 let list: Vec<&str> = cas.keys().map(|k| k.as_str()).collect();
-                return out(format!("неизвестный CA «{}» (доступны: {})", g(1).unwrap_or(""), list.join(", ")));
+                return out(i18n::trf!("unknown CA \"{0}\" (available: {1})", g(1).unwrap_or(""), list.join(", ")));
             }
             let mut t = d.trust.clone().unwrap_or_else(default_trust);
             if !t.iter().any(|x| x == ca) {
                 t.push(ca.to_string());
             }
             d.trust = Some(t);
-            changed(format!("корневой CA {ca} добавлен в хранилище доверия"))
+            changed(i18n::trf!("root CA {0} added to the trust store", ca))
         }
         "del" => {
             let t: Vec<String> = d.trust.clone().unwrap_or_else(default_trust).into_iter().filter(|x| Some(x.as_str()) != g(1)).collect();
             d.trust = Some(t);
-            changed("удалён из хранилища")
+            changed(i18n::tr("removed from the store"))
         }
         _ => out("trust show | add <CA> | del <CA>"),
     }
@@ -1050,12 +1037,8 @@ fn proxy_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     let g = |i: usize| a.get(i).copied();
     if sub.is_none() || sub == Some("show") {
         return out(match &d.proxy {
-            Some(p) => format!(
-                "прокси на tcp/{}; запрещены: {}",
-                p.port.unwrap_or(3128),
-                if p.deny.is_empty() { "(нет)".to_string() } else { p.deny.join(", ") }
-            ),
-            None => "прокси не включён (proxy enable)".to_string(),
+            Some(p) => i18n::trf!("proxy on tcp/{0}; denied: {1}", p.port.unwrap_or(3128), if p.deny.is_empty() { i18n::tr("(none)").to_string() } else { p.deny.join(", ") }),
+            None => i18n::tr("the proxy is not enabled (proxy enable)").to_string(),
         });
     }
     if let Some(bad) = bad {
@@ -1070,22 +1053,22 @@ fn proxy_admin(d: &mut Device, a: &[&str]) -> CmdResult {
         if !d.services.iter().any(|s| s.proto == Proto::Tcp && s.port == port) {
             d.services.push(Service { proto: Proto::Tcp, port, bind: None, name: None });
         }
-        return changed(format!("HTTP-прокси включён на tcp/{port}"));
+        return changed(i18n::trf!("HTTP proxy enabled on tcp/{0}", port));
     }
-    let Some(p) = d.proxy.as_mut() else { return out("сначала: proxy enable") };
+    let Some(p) = d.proxy.as_mut() else { return out(i18n::tr("first: proxy enable")) };
     if let Some(h) = g(1).filter(|x| !x.is_empty()) {
         if sub == "deny" {
             if !p.deny.iter().any(|x| x == h) {
                 p.deny.push(h.to_string());
             }
-            return changed(format!("{h} запрещён"));
+            return changed(i18n::trf!("{0} denied", h));
         }
         if sub == "allow" {
             p.deny.retain(|x| x != h);
-            return changed(format!("{h} разрешён"));
+            return changed(i18n::trf!("{0} allowed", h));
         }
     }
-    out("proxy show | enable | deny <хост> | allow <хост>")
+    out(i18n::tr("proxy show | enable | deny <host> | allow <host>"))
 }
 
 fn lb_admin(d: &mut Device, a: &[&str]) -> CmdResult {
@@ -1093,26 +1076,23 @@ fn lb_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     let sub = a.first().copied();
     let g = |i: usize| a.get(i).copied();
     if sub.is_none() || sub == Some("show") {
-        let Some(lb) = &d.lb else { return out("на этом узле нет балансировщика") };
+        let Some(lb) = &d.lb else { return out(i18n::tr("there is no load balancer on this node")) };
         let mut l = vec![
-            format!("виртуальный адрес {}:{}", lb.vip, lb.port),
-            format!(
-                "алгоритм: {}",
-                if lb.algo == Some(LbAlgo::Hash) {
-                    "хеш по адресу клиента (привязка)"
+            i18n::trf!("virtual address {0}:{1}", lb.vip, lb.port),
+            i18n::trf!("algorithm: {0}", if lb.algo == Some(LbAlgo::Hash) {
+                    i18n::tr("hash by client address (sticky)")
                 } else {
-                    "по кругу"
-                }
-            ),
-            format!("проверка здоровья: {}", if lb.health { "включена" } else { "выключена" }),
+                    i18n::tr("round robin")
+                }),
+            i18n::trf!("health check: {0}", if lb.health { i18n::tr("enabled") } else { i18n::tr("disabled") }),
         ];
-        l.extend(lb.backends.iter().map(|b| format!("  сервер {}:{}", b.ip, b.port)));
+        l.extend(lb.backends.iter().map(|b| i18n::trf!("  server {0}:{1}", b.ip, b.port)));
         return out(l.join("\n"));
     }
     if let Some(bad) = bad {
         return out(bad);
     }
-    let Some(lb) = d.lb.as_mut() else { return out("на этом узле нет балансировщика") };
+    let Some(lb) = d.lb.as_mut() else { return out(i18n::tr("there is no load balancer on this node")) };
     match sub.unwrap_or("") {
         "add" => {
             let spec = g(1).unwrap_or("");
@@ -1120,44 +1100,44 @@ fn lb_admin(d: &mut Device, a: &[&str]) -> CmdResult {
             let ip = parts.next().unwrap_or("");
             let port = parts.next();
             if parse_ip(ip).is_none() {
-                return out("lb add <ip>:<порт>");
+                return out(i18n::tr("lb add <ip>:<port>"));
             }
             let p = match port {
                 Some(p) => to_int(js_num(p)),
                 None => lb.port,
             };
             if lb.backends.iter().any(|b| b.ip == ip && b.port == p) {
-                return out("такой сервер уже в пуле");
+                return out(i18n::tr("this server is already in the pool"));
             }
             lb.backends.push(LbBackend { ip: ip.to_string(), port: p });
-            changed(format!("сервер {ip}:{} добавлен в пул", port.map(|s| s.to_string()).unwrap_or_else(|| lb.port.to_string())))
+            changed(i18n::trf!("server {0}:{1} added to the pool", ip, port.map(|s| s.to_string()).unwrap_or_else(|| lb.port.to_string())))
         }
         "del" => {
             let n = lb.backends.len();
             let ip = g(1).unwrap_or("").split(':').next().unwrap_or("").to_string();
             lb.backends.retain(|b| b.ip != ip);
             if lb.backends.len() < n {
-                changed("удалён из пула")
+                changed(i18n::tr("removed from the pool"))
             } else {
-                out("такого сервера нет")
+                out(i18n::tr("no such server"))
             }
         }
         "algo" => match g(1) {
             Some("rr") => {
                 lb.algo = Some(LbAlgo::Rr);
-                changed("алгоритм: rr")
+                changed(i18n::tr("algorithm: rr"))
             }
             Some("hash") => {
                 lb.algo = Some(LbAlgo::Hash);
-                changed("алгоритм: hash")
+                changed(i18n::tr("algorithm: hash"))
             }
-            _ => out("lb algo rr (по кругу) | hash (привязка по адресу клиента)"),
+            _ => out(i18n::tr("lb algo rr (round robin) | hash (sticky by client address)")),
         },
         "health" => {
             lb.health = g(1) != Some("off");
-            changed(format!("проверка здоровья {}", if lb.health { "включена" } else { "выключена" }))
+            changed(i18n::trf!("health check {0}", if lb.health { i18n::tr("enabled") } else { i18n::tr("disabled") }))
         }
-        _ => out("lb show | add ip:порт | del ip | algo rr|hash | health on|off"),
+        _ => out(i18n::tr("lb show | add ip:port | del ip | algo rr|hash | health on|off")),
     }
 }
 
@@ -1177,17 +1157,17 @@ fn rproxy_admin(d: &mut Device, a: &[&str]) -> CmdResult {
                             r.host.as_deref().unwrap_or("*"),
                             r.path.as_deref().unwrap_or("/"),
                             r.backend,
-                            if r.cache { "  [кэш]" } else { "" }
+                            if r.cache { i18n::tr("  [cache]") } else { "" }
                         )
                     })
                     .collect();
                 if rows.is_empty() {
-                    "(правил нет)".to_string()
+                    i18n::tr("(no rules)").to_string()
                 } else {
                     rows.join("\n")
                 }
             }
-            None => "обратный прокси не включён (rproxy enable)".to_string(),
+            None => i18n::tr("the reverse proxy is not enabled (rproxy enable)").to_string(),
         });
     }
     if let Some(bad) = bad {
@@ -1201,16 +1181,16 @@ fn rproxy_admin(d: &mut Device, a: &[&str]) -> CmdResult {
         if !d.services.iter().any(|s| s.proto == Proto::Tcp && s.port == 80) {
             d.services.push(Service { proto: Proto::Tcp, port: 80, bind: None, name: None });
         }
-        return changed("обратный прокси включён на tcp/80");
+        return changed(i18n::tr("reverse proxy enabled on tcp/80"));
     }
-    let Some(rp) = d.rproxy.as_mut() else { return out("сначала: rproxy enable") };
+    let Some(rp) = d.rproxy.as_mut() else { return out(i18n::tr("first: rproxy enable")) };
     match sub {
         "add" => {
             let (host, path, backend) = (g(1), g(2), g(3));
             let ok = path.map(|p| p.starts_with('/')).unwrap_or(false)
                 && backend.map(|b| !b.is_empty() && parse_ip(b.split(':').next().unwrap_or("")).is_some()).unwrap_or(false);
             if !ok {
-                return out("rproxy add <хост|*> </путь> <ip:порт>");
+                return out(i18n::tr("rproxy add <host|*> </path> <ip:port>"));
             }
             let (path, backend) = (path.unwrap_or(""), backend.unwrap_or(""));
             rp.rules.retain(|r| !(r.host.as_deref().unwrap_or("*") == host.unwrap_or("undefined") && r.path.as_deref() == Some(path)));
@@ -1220,21 +1200,21 @@ fn rproxy_admin(d: &mut Device, a: &[&str]) -> CmdResult {
                 backend: backend.to_string(),
                 cache: false,
             });
-            changed(format!("правило: {}{path} → {backend}", und(host)))
+            changed(i18n::trf!("rule: {0}{1} → {2}", und(host), path, backend))
         }
         "del" => {
             rp.rules.retain(|r| r.path.as_deref() != g(1));
-            changed("правило удалено")
+            changed(i18n::tr("rule removed"))
         }
         "cache" => {
             let Some(r) = rp.rules.iter_mut().find(|x| x.path.as_deref() == g(1)) else {
-                return out(format!("нет правила для {}", g(1).unwrap_or("")));
+                return out(i18n::trf!("no rule for {0}", g(1).unwrap_or("")));
             };
             r.cache = g(2) != Some("off");
             let on = r.cache;
-            changed(format!("кэш для {}: {}", g(1).unwrap_or("undefined"), if on { "включён" } else { "выключен" }))
+            changed(i18n::trf!("cache for {0}: {1}", g(1).unwrap_or("undefined"), if on { i18n::tr("on") } else { i18n::tr("off") }))
         }
-        _ => out("rproxy show | enable | add <хост|*> /путь ip:порт | del /путь | cache /путь on|off"),
+        _ => out(i18n::tr("rproxy show | enable | add <host|*> /path ip:port | del /path | cache /path on|off")),
     }
 }
 
@@ -1247,12 +1227,12 @@ fn ssh_client(state: &mut NetState, dev_id: &str, cmd: &str, a: &[&str]) -> CmdR
             } else {
                 d.known_hosts.remove("undefined");
             }
-            return changed(format!("адрес {} удалён из known_hosts", a.get(1).copied().unwrap_or("")));
+            return changed(i18n::trf!("address {0} removed from known_hosts", a.get(1).copied().unwrap_or("")));
         }
         if a.first() == Some(&"-l") {
             return out(match &d.ssh_key {
                 Some(k) if !k.is_empty() => format!("256 {k} (ED25519)"),
-                _ => "ключа нет: ssh-keygen".to_string(),
+                _ => i18n::tr("no key: ssh-keygen").to_string(),
             });
         }
         if let Some(bad) = no(d) {
@@ -1260,7 +1240,7 @@ fn ssh_client(state: &mut NetState, dev_id: &str, cmd: &str, a: &[&str]) -> CmdR
         }
         let k = make_key(d);
         d.ssh_key = Some(k.clone());
-        return changed(format!("Создана пара ключей ED25519. Отпечаток: {k}"));
+        return changed(i18n::trf!("ED25519 key pair created. Fingerprint: {0}", k));
     }
     let mut pass: Option<String> = None;
     let mut jump: Option<String> = None;
@@ -1290,7 +1270,7 @@ fn ssh_client(state: &mut NetState, dev_id: &str, cmd: &str, a: &[&str]) -> CmdR
         (None, target)
     };
     let (Some(user), false) = (user.filter(|u| !u.is_empty()), host.is_empty()) else {
-        return out(format!("{cmd}: укажите пользователя и узел: {cmd} alice@10.0.0.5"));
+        return out(i18n::trf!("{0}: specify a user and a host: {0} alice@10.0.0.5", cmd));
     };
     let res = match to_ip(state, dev_id, host) {
         Ok(r) => r,
@@ -1301,12 +1281,12 @@ fn ssh_client(state: &mut NetState, dev_id: &str, cmd: &str, a: &[&str]) -> CmdR
         let jh = if j.contains('@') { j.split('@').nth(1).unwrap_or("") } else { j };
         match to_ip(state, dev_id, jh) {
             Ok(r) => jump_ip = Some(r.ip),
-            Err(e) => return out(format!("ssh: бастион {jh}: {}", e.err)),
+            Err(e) => return out(i18n::trf!("ssh: bastion {0}: {1}", jh, e.err)),
         }
     }
     if cmd == "ssh-copy-id" {
         let key = state.devices.get(dev_id).and_then(|d| d.ssh_key.clone()).filter(|k| !k.is_empty());
-        let Some(key) = key else { return out("ssh-copy-id: у вас нет ключа — выполните ssh-keygen") };
+        let Some(key) = key else { return out(i18n::tr("ssh-copy-id: you have no key — run ssh-keygen")) };
         let r = ssh_connect(state, dev_id, user, res.ip, jump_ip, pass.as_deref(), true);
         let Some(srv) = r.srv.clone().filter(|_| r.ok) else { return probe(r.error.clone().unwrap_or_default(), r.run.clone()) };
         if let Some(sd) = state.devices.get_mut(&srv.id) {
@@ -1317,7 +1297,7 @@ fn ssh_client(state: &mut NetState, dev_id: &str, cmd: &str, a: &[&str]) -> CmdR
             }
         }
         return CmdResult {
-            out: format!("Ключ {key} добавлен на {} для пользователя {user}", srv.name),
+            out: i18n::trf!("Key {0} added to {1} for user {2}", key, srv.name, user),
             changed: Some(true),
             probe: r.run,
             ..Default::default()
@@ -1326,7 +1306,7 @@ fn ssh_client(state: &mut NetState, dev_id: &str, cmd: &str, a: &[&str]) -> CmdR
     let r = ssh_connect(state, dev_id, user, res.ip, jump_ip, pass.as_deref(), no_key);
     let Some(srv) = r.srv.clone().filter(|_| r.ok) else { return probe(r.error.clone().unwrap_or_default(), r.run.clone()) };
     let mut lines = r.lines.clone();
-    lines.push(format!("{user}@{}:~$ (сеанс установлен; exit — выйти)", srv.name));
+    lines.push(i18n::trf!("{0}@{1}:~$ (session established; exit to leave)", user, srv.name));
     probe(lines.join("\n"), r.run)
 }
 
@@ -1335,14 +1315,14 @@ fn sshd_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     let sub = a.first().copied();
     let g = |i: usize| a.get(i).copied();
     if sub.is_none() || sub == Some("show") {
-        let Some(ssh) = &d.ssh else { return out("SSH-сервер не включён (sshd enable)") };
+        let Some(ssh) = &d.ssh else { return out(i18n::tr("The SSH server is not enabled (sshd enable)")) };
         let mut l = vec![
-            format!("ключ хоста: {}", ssh.host_key),
-            format!("вход по паролю: {}", if ssh.password_auth { "разрешён" } else { "выключен" }),
+            i18n::trf!("host key: {0}", ssh.host_key),
+            i18n::trf!("password login: {0}", if ssh.password_auth { i18n::tr("allowed") } else { i18n::tr("off") }),
         ];
         for (u, v) in ssh.users.iter() {
             let keys = if v.keys.is_empty() { String::new() } else { format!(" ({})", v.keys.join(", ")) };
-            l.push(format!("пользователь {u}: ключей {}{keys}", v.keys.len()));
+            l.push(i18n::trf!("user {0}: {1} key(s){2}", u, v.keys.len(), keys));
         }
         return out(l.join("\n"));
     }
@@ -1357,32 +1337,32 @@ fn sshd_admin(d: &mut Device, a: &[&str]) -> CmdResult {
         if !d.services.iter().any(|s| s.proto == Proto::Tcp && s.port == 22) {
             d.services.push(Service { proto: Proto::Tcp, port: 22, bind: None, name: None });
         }
-        return changed("SSH-сервер включён на tcp/22");
+        return changed(i18n::tr("SSH server enabled on tcp/22"));
     }
     let id = d.id.clone();
-    let Some(ssh) = d.ssh.as_mut() else { return out("сначала: sshd enable") };
+    let Some(ssh) = d.ssh.as_mut() else { return out(i18n::tr("first: sshd enable")) };
     match sub {
         "user" => {
-            let Some(name) = g(1).filter(|x| !x.is_empty()) else { return out("sshd user <имя> [пароль]") };
+            let Some(name) = g(1).filter(|x| !x.is_empty()) else { return out(i18n::tr("sshd user <name> [password]")) };
             let old = ssh.users.get(name).cloned();
             let keys = old.as_ref().map(|u| u.keys.clone()).unwrap_or_default();
             let password = g(2).map(|s| s.to_string()).or_else(|| old.and_then(|u| u.password));
             ssh.users.insert(name, SshUser { keys, password });
-            changed(format!("пользователь {name} создан"))
+            changed(i18n::trf!("user {0} created", name))
         }
         "authorize" => {
             let (Some(u), Some(k)) = (ssh.users.get_mut(g(1).unwrap_or("undefined")), g(2).filter(|x| !x.is_empty())) else {
-                return out("sshd authorize <пользователь> <отпечаток ключа>");
+                return out(i18n::tr("sshd authorize <user> <key fingerprint>"));
             };
             if !u.keys.iter().any(|x| x == k) {
                 u.keys.push(k.to_string());
             }
-            changed(format!("ключ {k} разрешён для {}", g(1).unwrap_or("")))
+            changed(i18n::trf!("key {0} authorized for {1}", k, g(1).unwrap_or("")))
         }
         "password" => match g(1) {
             Some("on") | Some("off") => {
                 ssh.password_auth = g(1) == Some("on");
-                changed(format!("вход по паролю {}", if ssh.password_auth { "разрешён" } else { "выключен" }))
+                changed(i18n::trf!("password login {0}", if ssh.password_auth { i18n::tr("allowed") } else { i18n::tr("off") }))
             }
             _ => out("sshd password on|off"),
         },
@@ -1391,9 +1371,9 @@ fn sshd_admin(d: &mut Device, a: &[&str]) -> CmdResult {
             ssh.rot = Some(rot);
             let sum: u64 = id.chars().map(|c| c as u64).sum();
             ssh.host_key = format!("SHA256:hostKey{}", sum * 31 + rot as u64);
-            changed(format!("ключ хоста заменён: {}", ssh.host_key))
+            changed(i18n::trf!("host key replaced: {0}", ssh.host_key))
         }
-        _ => out("sshd show | enable | user <имя> [пароль] | authorize <пользователь> <отпечаток> | password on|off | hostkey"),
+        _ => out(i18n::tr("sshd show | enable | user <name> [password] | authorize <user> <fingerprint> | password on|off | hostkey")),
     }
 }
 
@@ -1403,21 +1383,12 @@ fn vpn_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     if sub.is_none() || sub == Some("show") {
         let t: Vec<&Iface> = d.ifaces.iter().filter(|i| i.tun.is_some()).collect();
         return out(if t.is_empty() {
-            "туннелей нет".to_string()
+            i18n::tr("no tunnels").to_string()
         } else {
             t.iter()
                 .map(|i| {
                     let tun = i.tun.as_ref();
-                    format!(
-                        "{}: {}/{} ↔ {}:{}  ключ {}  {}",
-                        i.name,
-                        i.ip.as_deref().unwrap_or("null"),
-                        i.prefix,
-                        tun.map(|t| t.peer.as_str()).unwrap_or("undefined"),
-                        tun.map(|t| t.port.to_string()).unwrap_or_else(|| "undefined".into()),
-                        if tun.map(|t| !t.key.is_empty()).unwrap_or(false) { "задан" } else { "нет" },
-                        if i.up { "up" } else { "down" }
-                    )
+                    i18n::trf!("{0}: {1}/{2} ↔ {3}:{4}  key {5}  {6}", i.name, i.ip.as_deref().unwrap_or("null"), i.prefix, tun.map(|t| t.peer.as_str()).unwrap_or("undefined"), tun.map(|t| t.port.to_string()).unwrap_or_else(|| "undefined".into()), if tun.map(|t| !t.key.is_empty()).unwrap_or(false) { i18n::tr("defined") } else { i18n::tr("no") }, if i.up { "up" } else { "down" })
                 })
                 .collect::<Vec<_>>()
                 .join("\n")
@@ -1436,10 +1407,10 @@ fn vpn_admin(d: &mut Device, a: &[&str]) -> CmdResult {
             let (Some(name), true, Some((cip, cpre)), Some(key)) =
                 (name.filter(|n| !n.is_empty()), parse_ip(peer.unwrap_or("")).is_some(), c, key.filter(|k| !k.is_empty()))
             else {
-                return out("vpn add wg0 --peer <внешний IP пира> --address 10.9.0.1/30 --key <общий секрет>");
+                return out(i18n::tr("vpn add wg0 --peer <peer public IP> --address 10.9.0.1/30 --key <shared secret>"));
             };
             if d.iface(name).is_some() {
-                return out(format!("интерфейс {name} уже есть"));
+                return out(i18n::trf!("interface {0} already exists", name));
             }
             let peer = peer.unwrap_or("");
             d.ifaces.push(Iface {
@@ -1454,17 +1425,15 @@ fn vpn_admin(d: &mut Device, a: &[&str]) -> CmdResult {
                 tun: Some(Tun { peer: peer.to_string(), port: 51820, key: key.to_string() }),
                 txqueuelen: None,
             });
-            changed(format!(
-                "туннель {name} создан: пир {peer}, UDP/51820. Теперь добавьте маршруты в чужие сети: ip route add <сеть> dev {name}"
-            ))
+            changed(i18n::trf!("tunnel {0} created: peer {1}, UDP/51820. Now add routes to the remote networks: ip route add <network> dev {0}", name, peer))
         }
         "del" => {
             let name = a.get(1).copied();
             d.ifaces.retain(|i| !(i.tun.is_some() && Some(i.name.as_str()) == name));
             d.routes.retain(|r| r.dev.as_deref() != name);
-            changed("туннель удалён")
+            changed(i18n::tr("tunnel removed"))
         }
-        _ => out("vpn show | add <имя> --peer <ip> --address <ip/маска> --key <секрет> | del <имя>"),
+        _ => out(i18n::tr("vpn show | add <name> --peer <ip> --address <ip/mask> --key <secret> | del <name>")),
     }
 }
 
@@ -1499,7 +1468,7 @@ fn do_ping(state: &mut NetState, dev_id: &str, args: &[&str]) -> CmdResult {
         }
         i += 1;
     }
-    let Some(name) = rest.first().cloned().filter(|n| !n.is_empty()) else { return out("ping: укажите адрес или имя") };
+    let Some(name) = rest.first().cloned().filter(|n| !n.is_empty()) else { return out(i18n::tr("ping: specify an address or a name")) };
     let res = match to_ip(state, dev_id, &name) {
         Ok(r) => r,
         Err(e) => return probe(format!("ping: {name}: {}", e.err), e.run),
@@ -1586,28 +1555,24 @@ fn do_connect(state: &mut NetState, dev_id: &str, host: &str, port: f64, mode: &
     let r = tcp1(state, dev_id, dst, to_int(port), 50000, session);
     let p = num_str(port);
     let text = match r.status {
-        ProbeStatus::Connected => format!(
-            "соединение с {host}:{p} установлено (SYN → SYN-ACK → ACK) за {}{}",
-            fmt_ms(r.rtt_us),
-            if session {
-                "; запрос 100 Б, ответ 1000 Б, закрыто (FIN). Подробности — в журнале ниже"
+        ProbeStatus::Connected => i18n::trf!("connection to {0}:{1} established (SYN → SYN-ACK → ACK) in {2}{3}", host, p, fmt_ms(r.rtt_us), if session {
+                i18n::tr("; request 100 B, response 1000 B, closed (FIN). Details are in the log below")
             } else {
                 ""
-            }
-        ),
-        ProbeStatus::Refused => format!("{mode}: Connection refused — порт {p} никто не слушает"),
-        ProbeStatus::Timeout => format!("{mode}: Connection timed out — ответа нет (пакет потерян или отфильтрован)"),
-        ProbeStatus::Unreach => format!("{mode}: Destination unreachable от {}", r.from.map(ip_str).unwrap_or_else(|| "?".into())),
-        ProbeStatus::Ttl => format!("{mode}: TTL истёк"),
+            }),
+        ProbeStatus::Refused => i18n::trf!("{0}: Connection refused — nothing is listening on port {1}", mode, p),
+        ProbeStatus::Timeout => i18n::trf!("{0}: Connection timed out — no reply (the packet was lost or filtered)", mode),
+        ProbeStatus::Unreach => i18n::trf!("{0}: Destination unreachable from {1}", mode, r.from.map(ip_str).unwrap_or_else(|| "?".into())),
+        ProbeStatus::Ttl => i18n::trf!("{0}: TTL expired", mode),
         other => other.as_str().to_string(),
     };
     probe(text, Some(r))
 }
 
 fn do_udp(state: &mut NetState, dev_id: &str, host: &str, port: f64) -> CmdResult {
-    let Some(dst) = parse_ip(host) else { return out("nc -u: нужно nc -u <ip> <порт>") };
+    let Some(dst) = parse_ip(host) else { return out(i18n::tr("nc -u: usage is nc -u <ip> <port>")) };
     if port.is_nan() || port == 0.0 {
-        return out("nc -u: нужно nc -u <ip> <порт>");
+        return out(i18n::tr("nc -u: usage is nc -u <ip> <port>"));
     }
     let Some(d) = state.devices.get(dev_id).cloned() else { return out("") };
     if lookup(&d, Some(dst), false).is_none() {
@@ -1616,12 +1581,9 @@ fn do_udp(state: &mut NetState, dev_id: &str, host: &str, port: f64) -> CmdResul
     let r = udp1(state, dev_id, dst, to_int(port), 50001);
     let from = r.from.map(ip_str).unwrap_or_else(|| "?".into());
     let msg = match r.status {
-        ProbeStatus::Reply => format!("ответная датаграмма от {host}:{} за {}", num_str(port), fmt_ms(r.rtt_us)),
-        ProbeStatus::Unreach => format!(
-            "ICMP: {} (от {from}) — «Connection refused»",
-            if r.code == Some(IcmpCode::Port) { "порт недоступен" } else { "узел недоступен" }
-        ),
-        _ => "тишина: ответа нет (датаграмма потеряна, отфильтрована или сервер молчит) — UDP не сообщит об этом сам".to_string(),
+        ProbeStatus::Reply => i18n::trf!("reply datagram from {0}:{1} in {2}", host, num_str(port), fmt_ms(r.rtt_us)),
+        ProbeStatus::Unreach => i18n::trf!("ICMP: {0} (from {1}) — \"Connection refused\"", if r.code == Some(IcmpCode::Port) { i18n::tr("port unreachable") } else { i18n::tr("host unreachable") }, from),
+        _ => i18n::tr("silence: no reply (the datagram was lost, filtered or the server is silent) — UDP will not report this by itself").to_string(),
     };
     probe(msg, Some(r))
 }
@@ -1631,7 +1593,7 @@ fn do_udp(state: &mut NetState, dev_id: &str, host: &str, port: f64) -> CmdResul
 /// Показ ARP-кэша.
 fn arp(state: &NetState, dev_id: &str) -> CmdResult {
     let Some(d) = state.devices.get(dev_id) else { return out("") };
-    let mut rows: Vec<String> = d.arp_static.iter().map(|(ip, mac)| format!("{ip}  {mac}  (статическая)")).collect();
+    let mut rows: Vec<String> = d.arp_static.iter().map(|(ip, mac)| i18n::trf!("{0}  {1}  (static)", ip, mac)).collect();
     if let Some(c) = state.rt.arp.get(dev_id) {
         for (ip, e) in c {
             if d.arp_static.get(&ip_str(*ip)).map(|m| !m.is_empty()).unwrap_or(false) {
@@ -1641,7 +1603,7 @@ fn arp(state: &NetState, dev_id: &str) -> CmdResult {
         }
     }
     out(if rows.is_empty() {
-        "(кэш ARP пуст — пока ни с кем не говорили)".to_string()
+        i18n::tr("(ARP cache is empty — nobody has been contacted yet)").to_string()
     } else {
         rows.join("\n")
     })
@@ -1649,7 +1611,7 @@ fn arp(state: &NetState, dev_id: &str) -> CmdResult {
 
 /// Выполнить строку терминала на устройстве. Меняет состояние сети (и кэши симулятора).
 pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
-    let Some(d0) = state.devices.get(dev_id) else { return out(format!("нет устройства «{dev_id}»")) };
+    let Some(d0) = state.devices.get(dev_id) else { return out(i18n::trf!("no device \"{0}\"", dev_id)) };
     let (kind, dname) = (d0.kind, d0.name.clone());
     let tokens: Vec<&str> = line.split_whitespace().collect();
     if tokens.is_empty() {
@@ -1679,7 +1641,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         return CmdResult { clear: true, ..Default::default() };
     }
     if cmd == "help" || cmd == "?" {
-        return out(HELP);
+        return out(i18n::tr(HELP));
     }
     if cmd == "hostname" {
         return out(dname);
@@ -1687,7 +1649,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
 
     if kind == DeviceKind::Hub {
         return out(
-            "Хаб — повторитель: у него нет ни настроек, ни таблицы адресов. Всё, что пришло на порт, он повторяет на все остальные.",
+            i18n::tr("A hub is a repeater: it has no settings and no address table. Whatever arrives on a port, it repeats on all the others."),
         );
     }
 
@@ -1696,9 +1658,9 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             let rows: Vec<String> =
                 state.rt.mac.get(dev_id).map(|m| m.iter().map(|(m, p)| format!("{m}  {p}")).collect()).unwrap_or_default();
             return out(if rows.is_empty() {
-                "Таблица MAC пуста — коммутатор ещё ничего не видел".to_string()
+                i18n::tr("The MAC table is empty — the switch has not seen anything yet").to_string()
             } else {
-                format!("MAC-адрес          порт\n{}", rows.join("\n"))
+                i18n::trf!("MAC address        port\n{0}", rows.join("\n"))
             });
         }
         if cmd == "show" && g(0) == Some("ports") {
@@ -1723,14 +1685,14 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
                 return out(bad);
             }
             let Some(i) = d.iface_mut(g(0).unwrap_or("undefined")) else {
-                return out(format!("нет порта «{}»", g(0).unwrap_or("")));
+                return out(i18n::trf!("no port \"{0}\"", g(0).unwrap_or("")));
             };
             if g(1) == Some("trunk") {
                 i.trunk = true;
             } else {
                 let v = if g(1) == Some("vlan") { js_num(g(2).unwrap_or("undefined")) } else { 1.0 };
                 if !(v >= 1.0 && v <= 4094.0) {
-                    return out("VLAN — число от 1 до 4094");
+                    return out(i18n::tr("VLAN is a number from 1 to 4094"));
                 }
                 i.trunk = false;
                 i.vlan = Some(v as u32);
@@ -1744,7 +1706,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             }
             return done(set_up(d, g(0).unwrap_or("undefined"), g(1) == Some("up")));
         }
-        return out("Коммутатор: show mac — таблица MAC-адресов, show ports — состояние портов, port <порт> up|down, port <порт> vlan <номер>, port <порт> trunk. IP-адресов у него нет.");
+        return out(i18n::tr("Switch: show mac — MAC address table, show ports — port status, port <port> up|down, port <port> vlan <number>, port <port> trunk. It has no IP addresses."));
     }
 
     if cmd == "ip" {
@@ -1811,10 +1773,10 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             if verb.is_none() || verb == Some("show") {
                 let d = dev!().clone();
                 let rows: Vec<String> = route_table(&d, false).iter().map(|x| route_line(x, &d)).collect();
-                return out(if rows.is_empty() { "(таблица маршрутов пуста)".to_string() } else { rows.join("\n") });
+                return out(if rows.is_empty() { i18n::tr("(the routing table is empty)").to_string() } else { rows.join("\n") });
             }
             if verb == Some("get") {
-                let Some(dst) = parse_ip(r.first().copied().unwrap_or("")) else { return out("Error: неверный адрес") };
+                let Some(dst) = parse_ip(r.first().copied().unwrap_or("")) else { return out(i18n::tr("Error: invalid address")) };
                 let d = dev!().clone();
                 let Some(rt) = lookup(&d, Some(dst), false) else { return out("RTNETLINK answers: Network is unreachable") };
                 let src = d.iface(&rt.dev).and_then(|i| i.ip.clone()).unwrap_or_else(|| "null".into());
@@ -1837,7 +1799,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         if matches!(obj, Some("neigh") | Some("n")) {
             return arp(state, dev_id);
         }
-        return out("ip: неизвестная команда. Введите «help».");
+        return out(i18n::tr("ip: unknown command. Type \"help\"."));
     }
     if cmd == "dig" {
         return do_dig(state, dev_id, a, false);
@@ -1878,9 +1840,9 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         let port = js_num(g(1).unwrap_or("undefined"));
         d.services.retain(|x| !(Some(x.proto.as_str()) == g(0) && x.port as f64 == port));
         return if d.services.len() < n {
-            changed(format!("{}/{} закрыт", g(0).unwrap_or("undefined"), g(1).unwrap_or("undefined")))
+            changed(i18n::trf!("{0}/{1} closed", g(0).unwrap_or("undefined"), g(1).unwrap_or("undefined")))
         } else {
-            out("close <tcp|udp> <порт>: такого слушающего порта нет")
+            out(i18n::tr("close <tcp|udp> <port>: there is no such listening port"))
         };
     }
     if cmd == "tcpdump" {
@@ -1894,7 +1856,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         };
         if iface != "any" && d.iface(&iface).is_none() {
             let names: Vec<&str> = d.ifaces.iter().map(|x| x.name.as_str()).collect();
-            return out(format!("tcpdump: нет интерфейса «{iface}» (есть: {}, any)", names.join(", ")));
+            return out(i18n::trf!("tcpdump: no interface \"{0}\" (available: {1}, any)", iface, names.join(", ")));
         }
         let c = index_of(a, "-c");
         let count = if c >= 0 { num_or(a.get((c + 1) as usize).copied(), 20.0) } else { 20.0 };
@@ -1908,7 +1870,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             .collect();
         let lines = capture_lines(state, dev_id, &iface, &filters, count as i64);
         return out(if lines.is_empty() {
-            format!("tcpdump: listening on {iface}\n(перехваченных пакетов нет — сначала пустите трафик: ping, curl)")
+            i18n::trf!("tcpdump: listening on {0}\n(no packets captured — generate some traffic first: ping, curl)", iface)
         } else {
             format!("tcpdump: listening on {iface}\n{}\n{} packets captured", lines.join("\n"), lines.len())
         });
@@ -1921,14 +1883,14 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         let (proto, port, addr) = (g(0), g(1), g(2));
         let pn = js_num(port.unwrap_or("undefined"));
         let Some(s) = d.services.iter_mut().find(|x| Some(x.proto.as_str()) == proto && x.port as f64 == pn) else {
-            return out(format!("listen <tcp|udp> <порт> <адрес>: на {}/{} ничего не слушает", und(proto), und(port)));
+            return out(i18n::trf!("listen <tcp|udp> <port> <address>: nothing is listening on {0}/{1}", und(proto), und(port)));
         };
         if addr != Some("0.0.0.0") && addr != Some("127.0.0.1") && parse_ip(addr.unwrap_or("")).is_none() {
-            return out("адрес: 0.0.0.0 (везде), 127.0.0.1 (только локально) или адрес интерфейса");
+            return out(i18n::tr("address: 0.0.0.0 (everywhere), 127.0.0.1 (local only) or an interface address"));
         }
         let addr = addr.unwrap_or("undefined");
         s.bind = Some(addr.to_string());
-        return changed(format!("{}/{} теперь слушает {addr}", und(proto), und(port)));
+        return changed(i18n::trf!("{0}/{1} is now listening on {2}", und(proto), und(port), addr));
     }
     if cmd == "tls" {
         let pki = state.pki.clone().unwrap_or_else(default_pki);
@@ -1945,7 +1907,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         let host = parts.next().unwrap_or("");
         let port = parts.next();
         if g(0) != Some("s_client") || k < 0 || host.is_empty() {
-            return out("openssl s_client -connect www.example.org:443 [-servername имя]");
+            return out(i18n::tr("openssl s_client -connect www.example.org:443 [-servername name]"));
         }
         let sn = index_of(a, "-servername");
         let res = match to_ip(state, dev_id, host) {
@@ -1976,7 +1938,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             String::new()
         };
         if scheme_len == 0 || host.is_empty() {
-            return out("pageload https://www.example.org/ — измерить загрузку страницы");
+            return out(i18n::tr("pageload https://www.example.org/ — measure page load"));
         }
         let res = match to_ip(state, dev_id, &host) {
             Ok(r) => r,
@@ -1989,7 +1951,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         if g(0) == Some("/etc/resolv.conf") {
             return out(match d.resolver.as_deref().filter(|r| !r.is_empty()) {
                 Some(r) => format!("nameserver {r}"),
-                None => "(файл пуст — DNS-сервер не задан)".to_string(),
+                None => i18n::tr("(the file is empty — no DNS server set)").to_string(),
             });
         }
         if g(0) == Some("/etc/hosts") {
@@ -1997,7 +1959,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             l.extend(d.hosts.iter().map(|(n, ip)| format!("{ip} {n}")));
             return out(l.join("\n"));
         }
-        return out(format!("cat: {}: нет такого файла (доступны /etc/resolv.conf и /etc/hosts)", g(0).unwrap_or("")));
+        return out(i18n::trf!("cat: {0}: no such file (available: /etc/resolv.conf and /etc/hosts)", g(0).unwrap_or("")));
     }
     if cmd == "arp" {
         if g(0) == Some("-s") {
@@ -2006,7 +1968,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
                 return out(bad);
             }
             if parse_ip(g(1).unwrap_or("")).is_none() || !is_mac(g(2).unwrap_or("")) {
-                return out("arp -s <ip> <mac в виде 28:28:00:00:00:01>");
+                return out(i18n::tr("arp -s <ip> <mac like 28:28:00:00:00:01>"));
             }
             let (ip_s, mac) = (g(1).unwrap_or(""), g(2).unwrap_or("").to_lowercase());
             d.arp_static.insert(ip_s, mac);
@@ -2015,12 +1977,12 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
                     c.remove(&key);
                 }
             }
-            return changed(format!("статическая запись ARP: {} = {}", g(1).unwrap_or(""), g(2).unwrap_or("")));
+            return changed(i18n::trf!("static ARP entry: {0} = {1}", g(1).unwrap_or(""), g(2).unwrap_or("")));
         }
         if g(0) == Some("-d") {
             let d = dev!();
             d.arp_static.remove(g(1).unwrap_or("undefined"));
-            return changed("статическая запись удалена");
+            return changed(i18n::tr("static entry removed"));
         }
         return arp(state, dev_id);
     }
@@ -2044,14 +2006,14 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
             }
             let port = js_num(rest.first().copied().unwrap_or("undefined"));
             if port.is_nan() || port == 0.0 {
-                return out("nc: укажите порт: nc -l 8080 (или nc -u -l 5000 для UDP)");
+                return out(i18n::tr("nc: specify a port: nc -l 8080 (or nc -u -l 5000 for UDP)"));
             }
             let proto = if udp { Proto::Udp } else { Proto::Tcp };
             let pn = to_int(port);
             if !d.services.iter().any(|s| s.port == pn && s.proto == proto) {
                 d.services.push(Service { proto, port: pn, bind: None, name: None });
             }
-            return changed(format!("слушаю {}-порт {}", proto.as_str(), num_str(port)));
+            return changed(i18n::trf!("listening on {0} port {1}", proto.as_str(), num_str(port)));
         }
         let host = rest.first().copied().unwrap_or("");
         let port = js_num(rest.get(1).copied().unwrap_or("undefined"));
@@ -2062,7 +2024,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
     }
     if cmd == "iperf3" || cmd == "iperf" {
         let Some(ip) = a.iter().find(|x| parse_ip(x).is_some()).copied() else {
-            return out("iperf3: укажите адрес сервера: iperf3 10.0.0.5 [-n МБ]");
+            return out(i18n::tr("iperf3: specify the server address: iperf3 10.0.0.5 [-n MB]"));
         };
         let k = index_of(a, "-n");
         let mb = if k >= 0 { num_or(a.get((k + 1) as usize).copied(), 50.0) } else { 50.0 };
@@ -2080,7 +2042,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
     if cmd == "ss" || cmd == "netstat" {
         let d = dev!();
         return out(if d.services.is_empty() {
-            "(слушающих портов нет)".to_string()
+            i18n::tr("(no listening ports)").to_string()
         } else {
             d.services
                 .iter()
@@ -2099,7 +2061,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
         let t: &[&str] = if cmd == "sudo" { &a[1..] } else { a };
         return iptables(dev!(), t);
     }
-    out(format!("{cmd}: команда не найдена. Введите «help»."))
+    out(i18n::trf!("{0}: command not found. Type \"help\".", cmd))
 }
 
 /// Найти `=`, за которым (после пробелов) идёт символ из `ok`; вернуть этот символ.
@@ -2182,13 +2144,13 @@ fn sysctl(d: &mut Device, cmd: &str, text: &str) -> CmdResult {
         }
         let max_b = nums.last().copied();
         if !max_b.map(|m| m >= 4096.0).unwrap_or(false) {
-            return out("sysctl: максимальный размер буфера должен быть не меньше 4096 байт");
+            return out(i18n::tr("sysctl: the maximum buffer size must be at least 4096 bytes"));
         }
         let max_b = max_b.unwrap_or(0.0);
         let r = crate::util::js_round(max_b / 1024.0);
         d.rwnd = Some(r as u32);
         let mid = if nums.len() > 2 { num_str(nums[1]) } else { num_str(max_b) };
-        return changed(format!("net.ipv4.tcp_rmem = 4096 {mid} {}  (окно приёма до {} КБ)", num_str(max_b), num_str(r)));
+        return changed(i18n::trf!("net.ipv4.tcp_rmem = 4096 {0} {1}  (receive window up to {2} KB)", mid, num_str(max_b), num_str(r)));
     }
     if text.contains("tcp_syncookies") {
         let Some(m) = after_eq(text, |c| c == '0' || c == '1') else {
@@ -2211,7 +2173,7 @@ fn sysctl(d: &mut Device, cmd: &str, text: &str) -> CmdResult {
             "reno" => Cc::Reno,
             "cubic" => Cc::Cubic,
             "bbr" => Cc::Bbr,
-            _ => return out("sysctl: доступны reno, cubic, bbr"),
+            _ => return out(i18n::tr("sysctl: available: reno, cubic, bbr")),
         };
         d.cc = Some(cc);
         return changed(format!("net.ipv4.tcp_congestion_control = {m}"));
@@ -2220,7 +2182,7 @@ fn sysctl(d: &mut Device, cmd: &str, text: &str) -> CmdResult {
         if cmd == "echo" {
             return out(text);
         }
-        return out("sysctl: поддерживаются net.ipv4.ip_forward, net.ipv4.tcp_rmem, net.ipv4.tcp_congestion_control");
+        return out(i18n::tr("sysctl: supported: net.ipv4.ip_forward, net.ipv4.tcp_rmem, net.ipv4.tcp_congestion_control"));
     }
     let val = after_eq(text, |c| c == '0' || c == '1').or_else(|| {
         let mut ch = text.chars();

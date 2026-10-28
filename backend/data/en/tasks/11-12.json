@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "j12-curry-placeholder",
+   "title": "Currying with a placeholder (like R.__)",
+   "statement": "Write a function curryR(fn) and a constant PH (a placeholder; any unique object). The curried function accumulates arguments; a position occupied by PH counts as «skipped» and is filled by the first of the following arguments; fn is called when all fn.length positions are filled. For example, curryR(sub)(PH, 10)(25) = sub(25, 10).",
+   "hint": "Store the accumulated arguments; on a new call fill the holes first, then append to the end."
+  },
+  {
+   "id": "j12-assoc",
+   "title": "Ramda-like assoc, dissoc, path",
+   "statement": "Write immutable functions in the Ramda style (data last, no currying): assoc(key, value, obj), assocPath(path, value, obj) (the path is an array; for numeric keys, if the container is missing, an array is created, otherwise an object), dissoc(key, obj), dissocPath(path, obj), path(pathArr, obj), pathOr(def, pathArr, obj). The source data is not changed, and untouched branches are not copied.",
+   "hint": "Recurse along the path; for a missing container choose an array if the next key is an index."
+  },
+  {
+   "id": "j12-collections",
+   "title": "Collection utilities (lodash-like)",
+   "statement": "Write the functions: groupBy(f, xs) (an object key → array), indexBy(f, xs) (key → last element), countBy(f, xs), partition(p, xs) → [matching, the rest], uniqBy(f, xs) (the first in order), sortWith(comparators, xs) (a new array; comparators applied in turn), zipObj(keys, values), pickBy(p, obj) (p(value, key)), mapObj(f, obj) (f(value, key)). Data last, the source is not changed.",
+   "hint": "All of them are short folds; the data is the last argument."
+  },
+  {
+   "id": "j12-lens-basic",
+   "title": "Lenses: lens, view, set, over",
+   "statement": "Write the functions lens(getter, setter) (setter(value, whole) returns a new structure), view(l, whole), set(l, value, whole), over(l, fn, whole), and also lensProp(key) and lensIndex(i) (immutably: for an array a copy is returned). A lens is an object { get, set }.",
+   "hint": "lens(get, set) stores two functions; over = set(fn(get(whole)), whole)."
+  },
+  {
+   "id": "j12-lens-compose",
+   "title": "Lens composition and lensPath",
+   "statement": "Write composeLenses(...lenses) (lenses left to right: the outer one first), lensPath(path) (an array of keys/indices; properties are created on write; reading a missing one gives undefined) and a function modify(l, fn) → a function that applies over to a structure (the curried form).",
+   "hint": "Composition: get goes down the chain, set recursively writes the inner result into the outer part."
+  },
+  {
+   "id": "j12-lens-laws",
+   "title": "Lens laws",
+   "statement": "Write a function checkLensLaws(l, whole, value): it returns { getSet, setGet, setSet }: getSet means set(l, view(l, whole), whole) is deeply equal to whole; setGet means view(l, set(l, value, whole)) equals value; setSet means writing a second value over the first gives the same as writing only the second (value1 = value, value2 = \"второе\" over value). A lens is an object { get, set(value, whole) }. Compare with JSON.stringify.",
+   "hint": "Three equalities, compared through JSON.stringify."
+  },
+  {
+   "id": "j12-produce",
+   "title": "Mini-Immer: produce",
+   "statement": "Write a function produce(base, recipe): recipe(draft) changes the draft in the familiar way (property assignment, delete, nested objects, arrays: push/pop/splice/indices); produce returns a new value: changed nodes are copied, the others stay the same references; if there were no changes, base is returned. base is not changed (even a frozen one). Implement it with a Proxy that copies on first write. Support objects and arrays.",
+   "hint": "A Proxy for each node; on the first write copy the node and all its ancestors; at the end unwrap the drafts into plain objects."
+  },
+  {
+   "id": "j12-patches",
+   "title": "Patches: changes and rollback",
+   "statement": "Write a function diffPatches(before, after) for JSON-like data: it returns an array of patches { op: \"add\"|\"replace\"|\"remove\", path: [...], value? } (deep comparison of objects; arrays are compared element by element by index; the order is: by keys in the traversal order of before, then the keys added in after) and applyPatches(base, patches) → a new value (immutably). It must hold that applyPatches(a, diffPatches(a, b)) is deeply equal to b.",
+   "hint": "Compare recursively; remove array items from the end so the indices do not shift."
+  },
+  {
+   "id": "j12-persistent-list",
+   "title": "A persistent list",
+   "statement": "Write an immutable singly linked list: a constant EMPTY and the functions cons(head, tail), head(list), tail(list), isEmpty(list), toArray(list), fromArray(arr), map(f, list), concat(a, b) (shared tail b: the tail of the result === b), size(list). Operations do not change existing lists; cons(x, list) shares the whole list.",
+   "hint": "A list is a chain of { head, tail } pairs with a shared end EMPTY; concat rebuilds only the first list."
+  },
+  {
+   "id": "j12-persistent-map",
+   "title": "A persistent map with shared parts",
+   "statement": "Write a class PMap, an immutable map built on «buckets»: a fixed number of 8 buckets (the index is the hash of the key string by the formula sum of character codes % 8), and a bucket is an array of pairs. The methods set(k, v) and delete(k) return a new PMap, copying only the changed bucket (the other buckets are the same references); get(k), has(k), size, toObject() (keys in alphabetical order), buckets (an array of buckets for checking the sharing). The original is not changed.",
+   "hint": "Only the bucket with the changed key is copied; the others are reused."
+  },
+  {
+   "id": "j12-queue",
+   "title": "A persistent queue",
+   "statement": "Write an immutable queue on two lists (input and output): the functions emptyQueue(), enqueue(q, x), dequeue(q) → { value, queue } (for an empty one, { value: undefined, queue: q }), peek(q), sizeOf(q), toArray(q) (from head to tail). Old versions of the queue stay usable; amortized O(1): reverse the input into the output only when the output is empty.",
+   "hint": "Two lists; dequeue takes from the output, and when the output is empty it reverses the input."
+  },
+  {
+   "id": "j12-task",
+   "title": "Task: lazy asynchrony",
+   "statement": "Write a function Task(computation): computation(reject, resolve) is called only on fork(onError, onSuccess). Methods: map(f), chain(f) (f returns a Task), mapError(f), fork. Static Task.of(v), Task.rejected(e), Task.all(tasks) (in parallel, results in the order of the tasks; the first error is the error of the whole) and fromPromise(fn) (fn is a function returning a promise, called on fork). Any Task can be run again, anew each time.",
+   "hint": "Task is a wrapper around a function; everything runs only in fork."
+  },
+  {
+   "id": "j12-reader",
+   "title": "Reader: dependencies as a parameter",
+   "statement": "Write a function Reader(run): run(env) returns a value; methods map(f), chain(f) (f returns a Reader), local(fn) (changes the environment before the call: Reader.local(fn).run(env) = run(fn(env))), run(env). Static Reader.of(v), Reader.ask() (returns the environment). The usual check: the logic does not know where the config comes from.",
+   "hint": "run(env) passes the environment through the whole chain."
+  },
+  {
+   "id": "j12-validation",
+   "title": "Validation: accumulating errors",
+   "statement": "Write Success(value) and Failure(errors) (errors is an array) and a function validate(form, rules): rules is an object field → array of checks (value) → an error string or null; for each field all the checks are run (the field's errors are collected), and the errors of all fields are merged into one array in field order, without repeats (by text). It returns Success(form) if there are no errors, otherwise Failure(an array of strings of the form field: error, that is, the field name, a colon, a space and the error text). The values have the methods map(f) (for Success), fold(onFailure, onSuccess) and toString().",
+   "hint": "Each field's checks are in an array; add an error only if it is not there yet."
+  },
+  {
+   "id": "j12-traverse",
+   "title": "sequence and traverse for Maybe and Either",
+   "statement": "Maybe values are given as objects { tag: \"just\", value } / { tag: \"nothing\" } and Either as { tag: \"right\", value } / { tag: \"left\", error }. Write sequenceMaybe(list) (all Just → Just(array of values), otherwise Nothing), traverseMaybe(f, xs) (f returns a Maybe), sequenceEither(list) (the first Left or Right(array)), traverseEither(f, xs). Define the factories Just/Nothing/Right/Left yourself.",
+   "hint": "Walk left to right, stopping at the first Nothing/Left."
+  },
+  {
+   "id": "j12-transducers",
+   "title": "Transducers: map, filter, take",
+   "statement": "Write the transducers mapT(f), filterT(p), takeT(n) (it stops the traversal after n elements, which needs a «finished» marker: the reducer may return an object { reduced: value }), and the functions compose(...fns) (left to right in the order data is transformed: the first is applied first), transduce(xf, step, init, coll) (stops as soon as reduced is received) and into(init, xf, coll) for an array target (a push-like reducer that copies).",
+   "hint": "A transducer is (step) => (acc, x) => …; for take, return { reduced } after n elements."
+  },
+  {
+   "id": "j12-observable-basic",
+   "title": "Mini-RxJS: Observable, map, filter, take",
+   "statement": "Write a class Observable(subscribeFn): subscribeFn(observer) calls observer.next/error/complete and returns an unsubscribe function (optional); the method subscribe(observer | next function) → { unsubscribe() } (after unsubscribe or complete/error no more values arrive, and the unsubscribe function from subscribeFn is called once); pipe(...operators); static of(...values), from(iterable); the operators map, filter, take(n) (after n values: complete and unsubscribe from the source), toArray(observable) → a promise.",
+   "hint": "An operator is a function Observable → Observable; the unsubscribe function is returned from subscribeFn and called once."
+  },
+  {
+   "id": "j12-rx-scan",
+   "title": "The operators scan, distinctUntilChanged, startWith",
+   "statement": "You are given the Observable from the mini-RxJS task (the class is already defined in the test environment as Observable; operators are written as functions Observable → Observable via new Observable). Write the operators scan(f, seed) (accumulation), distinctUntilChanged(eq = (a, b) => a === b), startWith(...values), pairwise() (pairs of adjacent values), tap(fn). Errors and completion are passed through; unsubscription goes down the chain.",
+   "hint": "Each operator is a new Observable that subscribes to the source and returns its unsubscribe."
+  },
+  {
+   "id": "j12-debounce-time",
+   "title": "debounceTime on virtual time",
+   "statement": "Time is moved into a scheduler: scheduler = { setTimeout(fn, ms) → id, clearTimeout(id) }. Write a function debounceTime(ms, scheduler) → an operator (Observable → Observable): a value is emitted if no new one arrives within ms milliseconds; when the source completes, the last pending value is emitted at once, then complete; unsubscribing cancels the timer. The Observable class (as in the previous tasks) is already defined.",
+   "hint": "One pending timer: on every value cancel the previous one and set a new one."
+  },
+  {
+   "id": "j12-switchmap",
+   "title": "switchMap and mergeMap",
+   "statement": "Write the operators switchMap(project) (a new outer value unsubscribes from the previous inner stream and starts a new one; complete happens when the outer stream has finished and so has the inner one) and mergeMap(project) (all inner streams in parallel; complete when the outer one and all inner ones have finished). project(v) returns an Observable. The Observable class (as in the previous tasks) is defined; errors are passed through.",
+   "hint": "Track a counter of active inner streams and a flag for the outer one finishing; unsubscribing closes everything."
+  },
+  {
+   "id": "j12-combine-latest",
+   "title": "combineLatest, merge and Subject",
+   "statement": "Write: Subject (a subclass of Observable: next(v), error(e), complete(); several subscribers receive the values; after complete, new subscribers get complete at once), combineLatest(...observables) (emits an array of the latest values once each has at least one; complete when all have finished), merge(...observables) (values as they arrive; complete when all have finished). The Observable class is defined.",
+   "hint": "Subject keeps a set of subscribers; combineLatest keeps an array of latest values and «has a value» flags."
+  },
+  {
+   "id": "j12-from-event",
+   "title": "fromEvent, takeUntil and subscriptions",
+   "statement": "Write the functions fromEvent(target, name) (an Observable of event values: target.addEventListener(name, handler) / removeEventListener on unsubscribe), takeUntil(notifier) (an operator: while notifier has not emitted a value, the source runs; then complete and unsubscribe from both) and a function typeahead(input$, search, debounce): input$ is an Observable of strings; the result is an Observable of the results of search(text) (asynchronous, returns a promise) that arrive only for the latest text (stale ones are ignored); empty strings are skipped. Implement the debounce in ms with setTimeout. The Observable class is defined.",
+   "hint": "Subscribe to the event and remove the listener in the unsubscribe function; for typeahead, a request counter and a comparison of the number."
+  },
+  {
+   "id": "j12-lodash-paths",
+   "title": "get/set by string path and orderBy",
+   "statement": "Write the functions parsePath(str) («a[0].b.c» → [\"a\", 0, \"b\", \"c\"]; numbers in brackets are numbers; quotes in brackets give strings: «a[\\\"x y\\\"]»), get(obj, str, default), set(obj, str, value), immutably, and orderBy(xs, keys, orders): keys are functions or field names, orders is \"asc\"/\"desc\" for each key (asc by default); the sort is stable, strings are compared with localeCompare('ru'), numbers by difference.",
+   "hint": "parsePath is a regular expression with alternatives: a name, [number], [\"string\"]."
+  },
+  {
+   "id": "j12-point-free",
+   "title": "Refactoring into a pipeline",
+   "statement": "Rewrite the function normalizeUsers(users) as a pipeline of small pure functions assembled with pipe (define pipe yourself): keep the users with the status «active», turn the name into the form \"Last, F.\" from the string \"First Last\" (the names are Russian, and in lowercase \"ада лавлейс\" → \"Лавлейс, А.\"), remove duplicates by e-mail (case-insensitive; keep the first), and sort by last name by Russian language rules. The result is an array of { name, email } (the e-mail in lowercase). The original array is not changed.",
+   "hint": "Each step is a small function; pipe glues them left to right."
+  },
+  {
+   "id": "j12-state-monad",
+   "title": "State: stateful computations",
+   "statement": "Write the State monad: State(run) where run(s) returns [value, newState]; methods map(f), chain(f) (f returns a State), runState(s) → [value, state], evalState(s), execState(s); static State.of(v), State.get() (the value is the state), State.put(s), State.modify(f). Then use them to write counterDemo(): increment a counter three times and return the list of seen values, and the stack operations push(x), pop() on an array state.",
+   "hint": "State is a function of the state; chain passes the new state to the next step."
+  },
+  {
+   "id": "j12-writer",
+   "title": "Writer: computation with a log",
+   "statement": "Write Writer(value, log) (log is an array): methods map(f) (the log stays the same), chain(f) (f(value) returns a Writer; the logs are joined), Writer.of(v), and a function tell(msg) → Writer(undefined, [msg]). And the functions: factorialW(n) (the log «база: 1», then «умножаю на k» for k from 2 to n; the result is n!) and collatzW(n) (the value is the number of steps to 1; the log is «n → next» at each step).",
+   "hint": "chain joins the logs: [...log, ...w.log]."
+  },
+  {
+   "id": "j12-prism",
+   "title": "Prisms",
+   "statement": "Write the functions prism(preview, review) (preview(whole) → a value or undefined, review(value, whole?) → whole), preview(p, whole), review(p, value, whole), over(p, fn, whole) (if the prism does not match, return whole unchanged), and ready-made prisms: tagged(tag) for objects { tag, value } and prismIndex(i) for the i-th element of an array (if it exists). Prisms work with variants where «the part may be absent».",
+   "hint": "preview returns undefined if the variant is absent; over then changes nothing."
+  },
+  {
+   "id": "j12-traversal",
+   "title": "Traversals: many parts at once",
+   "statement": "A traversal is a lens on several parts. Write the functions traversed() (an object { toList(whole), over(fn, whole) } for an array: all elements), field(key) (a traversal of a single field), composeT(t1, t2) (apply t2 inside every part of t1), toListOf(t, whole), overT(t, fn, whole), setT(t, value, whole). Everything is immutable.",
+   "hint": "toList returns all the parts, over applies the function to all of them; composition nests the second traversal inside the first."
+  },
+  {
+   "id": "j12-memoize-weak",
+   "title": "Memoization by reference (WeakMap)",
+   "statement": "Write a function memoizeByRef(fn): fn takes one argument; for objects and functions the result is cached in a WeakMap by reference (the entry disappears when the key is garbage collected), for primitives (including null) in an ordinary Map. The returned function has a method calls(): how many times fn was really called. The same object with changed contents counts as the same key (the cache is not reset).",
+   "hint": "WeakMap for objects and functions, Map for everything else."
+  },
+  {
+   "id": "j12-kleisli",
+   "title": "Composing functions that return a Result",
+   "statement": "Write a function composeK(...fns) (left to right): each function takes a value and returns a Result, either { ok: true, value } or { ok: false, error }; the composition passes value to the next function and stops at the first error (the remaining functions are not called). With no functions, ok(x). Also write liftA(f) (an ordinary function → a «function with a result»: ok(f(x)), an exception becomes an error with error = the message) and asyncComposeK(...fns), the same for asynchronous functions (they return a promise of a result).",
+   "hint": "A loop over the functions: on an error return immediately, otherwise pass the value on."
+  }
+ ]
+}

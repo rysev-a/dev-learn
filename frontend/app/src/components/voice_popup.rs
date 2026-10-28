@@ -108,13 +108,13 @@ pub fn VoicePopup(text: String, #[prop(into)] t: Signal<Option<f64>>, d: f64) ->
         .collect_view();
 
     view! {
-        <div class="voice-pop" role="region" aria-label="Текст озвучки" node_ref=pop>
+        <div class="voice-pop" role="region" aria-label=i18n::tr("Voice-over text") node_ref=pop>
             <div
                 class="voice-pop-grip"
                 role="separator"
                 aria-orientation="horizontal"
-                aria-label="Высота окна"
-                title="Потяните вверх или вниз, чтобы изменить высоту (двойной клик — по умолчанию)"
+                aria-label=i18n::tr("Window height")
+                title=i18n::tr("Drag up or down to change the height (double-click resets it)")
                 on:pointerdown=start_resize
                 on:dblclick=move |_| {
                     height.set(None);
@@ -123,7 +123,7 @@ pub fn VoicePopup(text: String, #[prop(into)] t: Signal<Option<f64>>, d: f64) ->
             >
                 <i></i>
             </div>
-            <div class="voice-pop-tag">"За кадром"</div>
+            <div class="voice-pop-tag">{i18n::tr("Voice-over")}</div>
             <p class="voice-pop-text" node_ref=body style=move || height.get().map(|h| format!("max-height: min({h}px, 70vh)"))>
                 {word_views}
             </p>

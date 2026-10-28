@@ -1,0 +1,30 @@
+{
+ "book": 15,
+ "chapter": 16,
+ "tasks": [
+  {
+   "id": "n16-portfwd",
+   "title": "Two services behind one address",
+   "statement": "From the outside only one gateway address, 203.0.113.2, is visible. Behind it are two servers: web (192.168.0.10, port 80) and SSH (192.168.0.20, port 22). Forward 8080 → 192.168.0.10:80 and 2222 → 192.168.0.20:22. The FORWARD policy is DROP: remember that the filter already sees the internal addresses and ports, so those are what you must allow. Everything else must stay closed from the outside.",
+   "hint": "DNAT: `iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 8080 -j DNAT --to-destination 192.168.0.10:80` (and 2222 → 192.168.0.20:22). Permissions: `iptables -A FORWARD -p tcp -d 192.168.0.10 --dport 80 -j ACCEPT` and `iptables -A FORWARD -p tcp -d 192.168.0.20 --dport 22 -j ACCEPT`."
+  },
+  {
+   "id": "n16-dmz",
+   "title": "Zones: LAN, DMZ and the internet",
+   "statement": "A three-legged firewall: eth0 is the internal network LAN, eth1 is the demilitarized zone with a web server, eth2 is the internet. The FORWARD policy is DROP. Configure the rules: from the LAN anywhere is allowed; from the internet only HTTPS (tcp/443) to the web server in the DMZ; from the DMZ to the internal network nothing; replies to allowed connections are let through.",
+   "hint": "1) `iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT`; 2) `iptables -A FORWARD -i eth0 -j ACCEPT` (everything coming from the LAN); 3) `iptables -A FORWARD -p tcp -d 203.0.113.2 --dport 443 -j ACCEPT`. Everything else, including DMZ → LAN, is stopped by the DROP policy."
+  },
+  {
+   "id": "n16-hairpin",
+   "title": "Loop through the gateway (hairpin NAT)",
+   "statement": "The forward 203.0.113.2:8080 → 192.168.0.20:80 works for guests from the internet, but an internal client opening the same public address gets silence: the server replies to it directly, while the client was waiting for a reply from 203.0.113.2 and drops the unexpected one. On the gateway add source substitution for LAN traffic to the server through interface eth0.",
+   "hint": "`iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -d 192.168.0.20 -o eth0 -j MASQUERADE` — then the server sees the gateway as the source and sends the reply to it, and the gateway translates it back."
+  },
+  {
+   "id": "n16-proxy",
+   "title": "Internet access only through a proxy",
+   "statement": "Workstations must not reach the internet directly: the firewall lets through only the proxy server 192.168.0.5. Right now the proxy cannot reach websites (its traffic is blocked too), and the proxy policy forbids nothing. Allow the proxy server outbound traffic on the gateway and block the site social.example on the proxy. Check: `curl -x 192.168.0.5:3128 http://news.example/` must return 200, and social.example must return 403 from the proxy.",
+   "hint": "On the gateway: `iptables -A FORWARD -s 192.168.0.5 -j ACCEPT`. On the proxy: `proxy deny social.example` or the “block” form. Direct requests from the workstation stay closed."
+  }
+ ]
+}

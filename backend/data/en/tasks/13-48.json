@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 48,
+ "tasks": [
+  {
+   "id": "in-pyc-path",
+   "title": "Where the .pyc lives",
+   "statement": "Write pyc_path(source): the path to the bytecode cache file for a source file (use importlib.util.cache_from_source). For /app/mod.py this is /app/__pycache__/mod.<version-tag>.pyc.",
+   "hint": "importlib.util.cache_from_source(source)."
+  },
+  {
+   "id": "in-switch-interval",
+   "title": "A temporary switch interval",
+   "statement": "Write a context manager switch_interval(value): inside the block sys.getswitchinterval() equals value, and after leaving it (even on an error) the previous value is restored. Implement it with @contextmanager and sys.setswitchinterval.",
+   "hint": "old = sys.getswitchinterval(); sys.setswitchinterval(value); try: yield; finally: sys.setswitchinterval(old)."
+  },
+  {
+   "id": "in-locked-account",
+   "title": "A lock against a race",
+   "statement": "In Account, the deposit method reads the balance, pauses (time.sleep(0) hands control to another thread) and writes the result, which is why parallel deposits get lost. Fix the class with a threading.Lock so that 4 threads making 100 deposits each give exactly 400.",
+   "hint": "self._lock = threading.Lock() in __init__; in deposit: with self._lock: ..."
+  },
+  {
+   "id": "in-parallel-map",
+   "title": "A parallel map on threads",
+   "statement": "Write parallel_map(func, items, workers=4): apply func to the items in a thread pool (ThreadPoolExecutor) and return the list of results in input order. An exception from func must propagate to the caller.",
+   "hint": "with ThreadPoolExecutor(workers) as pool: return list(pool.map(func, items))."
+  },
+  {
+   "id": "in-queue-pipeline",
+   "title": "Producer and consumer",
+   "statement": "Write consume_sum(items): a producer thread puts numbers into a queue.Queue and finally an end marker None; a consumer thread sums the numbers up to None. Return the sum. Shared data is passed only through the queue.",
+   "hint": "q = queue.Queue(); producer: for x in items: q.put(x); q.put(None); consumer: while (x := q.get()) is not None: total += x."
+  },
+  {
+   "id": "in-global-names",
+   "title": "Which global names a function reads",
+   "statement": "Write global_names(func): a sorted list of the names the function reads as globals (LOAD_GLOBAL instructions from dis.get_instructions); parameters and local names do not count.",
+   "hint": "{i.argval for i in dis.get_instructions(func) if i.opname == \"LOAD_GLOBAL\"}."
+  },
+  {
+   "id": "in-runtime-info",
+   "title": "The interpreter's passport",
+   "statement": "Write runtime_info(): a dict with the keys gil_enabled (sys._is_gil_enabled(), or True if the function does not exist), free_threaded_build (bool of sysconfig.get_config_var(\"Py_GIL_DISABLED\")) and switch_interval (sys.getswitchinterval()).",
+   "hint": "check = getattr(sys, \"_is_gil_enabled\", lambda: True); bool(sysconfig.get_config_var(\"Py_GIL_DISABLED\"))."
+  },
+  {
+   "id": "in-compile-run",
+   "title": "Compile once, run many times",
+   "statement": "Write compile_expr(source): compile the expression once (compile in eval mode, with the file name «<expr>») and return a function evaluate(**names) that computes it for the given variable values without parsing the text again.",
+   "hint": "code = compile(source, \"<expr>\", \"eval\"); def evaluate(**names): return eval(code, {\"__builtins__\": {}}, names)."
+  },
+  {
+   "id": "in-thread-local",
+   "title": "Each thread gets its own data",
+   "statement": "The function worker_values(n) starts n threads: each writes its own number (the index) into the shared object state, waits, and reads it back. Right now state is shared, so the threads overwrite each other. Replace state with threading.local() so that every thread has its own data and the result matches the indexes.",
+   "hint": "state = threading.local() — the attributes of such an object are separate for every thread."
+  }
+ ]
+}

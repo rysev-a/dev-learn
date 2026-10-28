@@ -84,10 +84,10 @@ impl ExportChapter {
             };
             let v = verify(&spec, &spec.reference);
             if !v.ok {
-                return Err(ExportError(format!("эталон задачи {} не проходит проверку: {}", t.id, v.message)));
+                return Err(ExportError(i18n::trf!("reference solution of task {0} fails verification: {1}", t.id, v.message)));
             }
             if verify(&spec, "").ok {
-                return Err(ExportError(format!("пустая программа проходит задачу {}", t.id)));
+                return Err(ExportError(i18n::trf!("the empty program passes task {0}", t.id)));
             }
             tasks.push(Task { id: t.id, title: t.title, statement: t.text, hint: t.hint, spec });
         }

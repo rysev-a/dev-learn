@@ -107,22 +107,22 @@ impl Iface {
     /// Короткое пояснение для подсказок на доске.
     pub fn title(self) -> &'static str {
         match self {
-            Iface::Bit => "один бит",
-            Iface::Clk => "такт",
-            Iface::Word2 => "двухбитное слово",
-            Iface::Addr2 => "двухбитный адрес",
-            Iface::Op2 => "код операции",
-            Iface::Instr => "команда: код операции и операнд",
-            Iface::Flags => "флаги результата",
-            Iface::Ctl => "управляющие сигналы",
-            Iface::Phases => "фазы такта",
-            Iface::Byte => "байт (8 бит)",
-            Iface::Reg3 => "номер регистра (3 бита)",
-            Iface::Op4 => "код операции (4 бита)",
-            Iface::Imm6 => "число из команды (6 бит)",
-            Iface::Instr16 => "команда (16 бит)",
-            Iface::Oh8 => "один из восьми",
-            Iface::Ctrl => "сигналы управления процессора",
+            Iface::Bit => i18n::tr("single bit"),
+            Iface::Clk => i18n::tr("clock"),
+            Iface::Word2 => i18n::tr("two-bit word"),
+            Iface::Addr2 => i18n::tr("two-bit address"),
+            Iface::Op2 => i18n::tr("opcode"),
+            Iface::Instr => i18n::tr("instruction: opcode and operand"),
+            Iface::Flags => i18n::tr("result flags"),
+            Iface::Ctl => i18n::tr("control signals"),
+            Iface::Phases => i18n::tr("clock phases"),
+            Iface::Byte => i18n::tr("byte (8 bits)"),
+            Iface::Reg3 => i18n::tr("register number (3 bits)"),
+            Iface::Op4 => i18n::tr("opcode (4 bits)"),
+            Iface::Imm6 => i18n::tr("immediate from instruction (6 bits)"),
+            Iface::Instr16 => i18n::tr("instruction (16 bits)"),
+            Iface::Oh8 => i18n::tr("one of eight"),
+            Iface::Ctrl => i18n::tr("processor control signals"),
         }
     }
 

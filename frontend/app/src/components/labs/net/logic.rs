@@ -13,7 +13,7 @@ const MARK_TTL: f64 = 5.0;
 
 /// Сценарий упражнения из `spec` задачи (эталонного решения в нём нет — его сервер не отдаёт).
 pub fn parse_spec(raw: &Value) -> Result<NetSpec, String> {
-    serde_json::from_value(raw.clone()).map_err(|e| format!("Неверное описание упражнения: {e}"))
+    serde_json::from_value(raw.clone()).map_err(|e| i18n::trf!("Invalid exercise description: {0}", e))
 }
 
 /// Состояние сети из JSON: каноническая запись или прежняя запись клиента.
@@ -160,7 +160,7 @@ pub fn marks(run: &RunView, slot: f64) -> Vec<Mark> {
 pub fn caption(run: &RunView, slot: f64) -> String {
     match dots(run, slot).into_iter().next() {
         Some(d) => d.label,
-        None if slot >= run.tl.len() as f64 => "готово".to_string(),
+        None if slot >= run.tl.len() as f64 => i18n::tr("ready").to_string(),
         None => "…".to_string(),
     }
 }
@@ -217,12 +217,12 @@ pub fn frame_class(k: FrameKind) -> &'static str {
 /// Вид устройства для шапки карточки.
 pub fn kind_title(k: DeviceKind) -> &'static str {
     match k {
-        DeviceKind::Host => "компьютер",
-        DeviceKind::Server => "сервер",
-        DeviceKind::Router => "маршрутизатор",
-        DeviceKind::Switch => "коммутатор",
-        DeviceKind::Hub => "хаб (повторитель)",
-        DeviceKind::Internet => "интернет (провайдер)",
+        DeviceKind::Host => i18n::tr("computer"),
+        DeviceKind::Server => i18n::tr("server"),
+        DeviceKind::Router => i18n::tr("router"),
+        DeviceKind::Switch => i18n::tr("switch"),
+        DeviceKind::Hub => i18n::tr("hub (repeater)"),
+        DeviceKind::Internet => i18n::tr("internet (provider)"),
     }
 }
 
@@ -270,11 +270,11 @@ pub fn all_ok(goals: &[GoalView]) -> bool {
 /// Итог под списком целей: решено раньше, засчитано сейчас или решение ещё проверяется на сервере.
 pub fn verdict_text(solved_before: bool, solved: bool) -> &'static str {
     if solved_before {
-        "Упражнение уже было решено."
+        i18n::tr("The exercise was already solved.")
     } else if solved {
-        "Упражнение засчитано."
+        i18n::tr("Exercise accepted.")
     } else {
-        "Проверяю решение на сервере…"
+        i18n::tr("Checking the solution on the server…")
     }
 }
 
@@ -289,7 +289,7 @@ pub fn digits(s: &str, max: usize) -> String {
 /// `Some(текст)` — ошибка для ученика, `None` — успех (или нечего менять).
 pub fn commit_iface_addr(d: &mut Device, name: &str, ip: &str, prefix: &str) -> Option<String> {
     let ip = ip.trim();
-    let Some(cur) = d.iface(name) else { return Some(format!("нет интерфейса {name}")) };
+    let Some(cur) = d.iface(name) else { return Some(i18n::trf!("no interface {0}", name)) };
     let (old_ip, old_prefix) = (cur.ip.clone().filter(|s| !s.is_empty()), cur.prefix);
     if ip.is_empty() {
         return if old_ip.is_some() { netlab::term::clear_addr(d, name) } else { None };
@@ -311,7 +311,7 @@ pub fn commit_iface_addr(d: &mut Device, name: &str, ip: &str, prefix: &str) -> 
 pub fn commit_resolver(d: &mut Device, value: &str) -> Option<String> {
     let v = value.trim();
     if !v.is_empty() && netlab::ip::parse_ip(v).is_none() {
-        return Some("нужен IPv4-адрес DNS-сервера".into());
+        return Some(i18n::tr("a DNS server IPv4 address is required").into());
     }
     d.resolver = (!v.is_empty()).then(|| v.to_string());
     None
@@ -332,7 +332,7 @@ pub fn route_rows(d: &Device) -> Vec<RouteRow> {
         .into_iter()
         .map(|r| RouteRow {
             dst: if r.prefix == 0 { "default".into() } else { netlab::ip::net_str(Some(r.net), r.prefix) },
-            via: r.via.map(|v| format!("via {}", netlab::ip::ip_str(v))).unwrap_or_else(|| "напрямую".into()),
+            via: r.via.map(|v| format!("via {}", netlab::ip::ip_str(v))).unwrap_or_else(|| i18n::tr("direct").into()),
             dev: r.dev,
             connected: r.connected,
         })
@@ -420,6 +420,7 @@ mod tests {
 
     #[test]
     fn timeline_is_sorted_and_unique() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let r = run();
         assert_eq!(r.tl, vec![0.0, 100.0, 250.0]);
         assert_eq!(r.total_slots(), 6.0);
@@ -430,6 +431,7 @@ mod tests {
 
     #[test]
     fn dots_run_along_the_cable_between_two_slots() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let r = run();
         assert_eq!(dots(&r, 0.5)[0].p, 0.5);
         // в момент 1 первый переход закончился, второй только начинается
@@ -444,6 +446,7 @@ mod tests {
 
     #[test]
     fn a_hop_never_runs_faster_than_zero_point_six_of_a_slot() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // оба конца в одном моменте: переход растягивается на 0,6 момента
         let r = RunView::new(vec![hop(10.0, 10.0, "мгновенно")], vec![], "x").expect("проба");
         assert!(dots(&r, 0.3)[0].p > 0.4);
@@ -452,6 +455,7 @@ mod tests {
 
     #[test]
     fn events_appear_when_their_moment_comes_and_marks_expire() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let r = run();
         assert_eq!(shown_events(&r, 0.5).len(), 0);
         assert_eq!(shown_events(&r, 1.0).len(), 1);
@@ -463,6 +467,7 @@ mod tests {
 
     #[test]
     fn marks_of_one_device_stack_in_rows() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let r = RunView::new(vec![], vec![event(1.0, "r1", EventKind::Nat, "a"), event(2.0, "r1", EventKind::Fw, "b"), event(3.0, "r2", EventKind::Drop, "c"), event(4.0, "r1", EventKind::Info, "d")], "x").expect("проба");
         let m = marks(&r, 3.0);
         assert_eq!(m.iter().map(|x| (x.dev.as_str(), x.row)).collect::<Vec<_>>(), vec![("r1", 0), ("r1", 1), ("r2", 0)]);
@@ -470,6 +475,7 @@ mod tests {
 
     #[test]
     fn long_mark_text_is_cut() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let long = "я".repeat(50);
         let s = short_text(&long);
         assert_eq!(s.chars().count(), 37);
@@ -479,12 +485,14 @@ mod tests {
 
     #[test]
     fn prompt_has_no_spaces() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(prompt("ПК 1"), "ПК-1# ");
         assert_eq!(prompt("r1"), "r1# ");
     }
 
     #[test]
     fn history_walks_back_and_forth() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let hist = vec!["ping b".to_string(), "ip a".to_string()];
         assert_eq!(history_step(&hist, -1, "ArrowUp"), Some((0, "ping b".into())));
         assert_eq!(history_step(&hist, 0, "ArrowUp"), Some((1, "ip a".into())));
@@ -498,12 +506,14 @@ mod tests {
 
     #[test]
     fn digits_are_filtered_and_capped() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(digits("8a0b80", 6), "8080");
         assert_eq!(digits("12345", 3), "123");
     }
 
     #[test]
     fn firewall_command_skips_empty_fields() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(fw_rule_command("DROP", "", "", "", "", ""), "iptables -A FORWARD  -j DROP");
         assert_eq!(
             fw_rule_command("ACCEPT", "tcp", "10.0.0.0/24", "", "80", "NEW"),
@@ -513,12 +523,14 @@ mod tests {
 
     #[test]
     fn web_redirect_is_chosen_for_30x() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(web_route_command("/a", 301, "/b"), "web redirect /a 301 /b");
         assert_eq!(web_route_command("/a", 404, "нет"), "web route /a 404 нет");
     }
 
     #[test]
     fn tls_versions_keep_their_order() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let cur = vec!["1.2".to_string()];
         assert_eq!(toggle_tls_version(&cur, "1.3", true), vec!["1.2", "1.3"]);
         assert_eq!(toggle_tls_version(&cur, "1.0", true), vec!["1.0", "1.2"]);
@@ -533,6 +545,7 @@ mod tests {
 
     #[test]
     fn address_form_sets_replaces_and_clears() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut d = host();
         assert_eq!(commit_iface_addr(&mut d, "eth0", "10.0.0.5", "24"), None);
         assert_eq!(d.iface("eth0").and_then(|i| i.ip.clone()).as_deref(), Some("10.0.0.5"));
@@ -554,6 +567,7 @@ mod tests {
 
     #[test]
     fn resolver_must_be_an_ipv4_address() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut d = host();
         assert!(commit_resolver(&mut d, "dns.local").is_some());
         assert_eq!(commit_resolver(&mut d, " 192.168.0.53 "), None);
@@ -564,6 +578,7 @@ mod tests {
 
     #[test]
     fn route_rows_show_connected_networks_first() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut d = host();
         netlab::term::set_addr(&mut d, "eth0", "192.168.0.2/24");
         netlab::term::set_gateway(&mut d, Some("192.168.0.1"));
@@ -575,6 +590,7 @@ mod tests {
 
     #[test]
     fn goal_views_and_verdicts() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let g = |ok| GoalView { text: "t".into(), ok, detail: String::new() };
         assert!(!all_ok(&[]));
         assert!(!all_ok(&[g(true), g(false)]));
@@ -588,6 +604,7 @@ mod tests {
     /// а испорченный или чужой черновик заменяется исходной сетью.
     #[test]
     fn every_exercise_spec_parses_without_solution() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/net");
         let Ok(entries) = std::fs::read_dir(&dir) else { return };
         let mut n = 0;

@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 26,
+ "tasks": [
+  {
+   "id": "j18-parse-headers",
+   "title": "Parsing raw headers",
+   "statement": "Write a function parseHeaders(raw): raw is a block of headers, lines separated by \"\\r\\n\" or \"\\n\"; a line is \"Name: value\". Rules: the name is lowercased, the value is trimmed at both ends; a repeated name is joined with \", \" in order of appearance, except set-cookie — for it always an array of values (even a single one); a line starting with a space or a tab continues the previous value (joined by one space after trimming); lines without a colon and empty lines are ignored; the result is a plain object.",
+   "hint": "First join the continuation lines, then parse \"name: value\"; collect set-cookie into an array."
+  },
+  {
+   "id": "j18-headers-class",
+   "title": "Your own Headers",
+   "statement": "Write a class MyHeaders(init): init is an object, an array of pairs or another MyHeaders (optional). Methods: append(name, value) (repeats are joined with \", \"; set-cookie is stored as separate values), set(name, value) (replaces), get(name) → a string or null, has, delete, getSetCookie() → an array, entries() → an iterator of [name, value] pairs in ascending order of names (names lowercase; each set-cookie value as a separate pair), keys(), values(), forEach(cb) (cb(value, name)), [Symbol.iterator]. The name is case-insensitive; values are trimmed at both ends; an empty name or a name with a space is a TypeError.",
+   "hint": "A Map from name to string plus a separate array for set-cookie; sort entries by name."
+  },
+  {
+   "id": "j18-build-url",
+   "title": "Building a request address",
+   "statement": "Write a function buildUrl(base, path, params): base is an address like \"https://api.ru/v1/\" (with or without a trailing slash), path is a string \"/users\" (with or without a leading slash) or an array of segments [\"users\", \"a/b\", 42] (each segment is encoded as a whole, a slash inside a segment becomes %2F); they are joined with exactly one \"/\". params is an object: values null and undefined are skipped, an array repeats the key, booleans and numbers become strings, a Date becomes ISO, a nested plain object becomes a JSON string; keys and values are encoded with encodeURIComponent, but a space in a value is \"%20\". If there are no parameters — no \"?\". The order of parameters is as in the object.",
+   "hint": "First join the base and the path with one slash, then build the query string from the pairs."
+  },
+  {
+   "id": "j18-content-type",
+   "title": "Content-Type and body kind",
+   "statement": "Write the functions parseContentType(header) and bodyKind(header). parseContentType → { type, subtype, suffix, params } or null if the value is not of the form \"type/subtype\": type and subtype lowercase, suffix is the part of the subtype after the last \"+\" (or null), params is an object of parameters (names lowercase, values without quotes, \"\\\"\" inside quotes is unescaped; a value may contain \";\" inside quotes). bodyKind → \"json\" (subtype json or suffix json), \"form\" (application/x-www-form-urlencoded), \"multipart\" (type multipart), \"text\" (type text, subtype xml, suffix xml, javascript), \"binary\" (everything else, including an invalid header and an empty string).",
+   "hint": "A regular expression for \"type/subtype\" plus a loop over the parameters with quotes."
+  },
+  {
+   "id": "j18-response",
+   "title": "Your own Response",
+   "statement": "Write a class MyResponse(body, init): body is a string or null; init = { status = 200, statusText = \"\", headers = {} }. Properties: status, statusText, ok (200–299), headers (an object with lowercase names), bodyUsed (false until the body is read). Methods (all return a promise): text() → a string (null → \"\"), json() → JSON.parse(text) (a parse error is a SyntaxError, the promise rejects), clone() → a copy (synchronous; if the body is already read — TypeError; the copy and the original are read independently). Reading the body again rejects with a TypeError. Statics: MyResponse.json(data, init) — the body is JSON.stringify and the header content-type: application/json (if not set), and MyResponse.error() → a response with status 0, type \"error\", ok false.",
+   "hint": "A \"body used\" flag and a private field with the body; clone creates a new object before reading."
+  },
+  {
+   "id": "j18-fetch-json",
+   "title": "The fetchJson wrapper",
+   "statement": "Write a function fetchJson(fetchFn, url, options = {}), and a class HttpError (extends Error; name \"HttpError\", fields status, statusText, body; message \"HTTP <status>\"). options: { method = \"GET\", body, headers = {} }. If body is an object or an array, it is sent with JSON.stringify and the header \"content-type\": \"application/json\". The header accept: \"application/json\" is always added. Headers from options.headers are added last and override the general ones (keys are case-insensitive — use lowercase). The call: fetchFn(url, { method, headers, body }) (body only if given). The response res has ok, status, statusText, headers.get(name), json(), text(). If !res.ok — throw an HttpError with body: the parsed json if content-type contains \"json\", otherwise the text. Status 204 → null (do not read the body). Otherwise → await res.json().",
+   "hint": "Build the headers, then check ok first, then 204, then parse the JSON."
+  },
+  {
+   "id": "j18-stream-text",
+   "title": "Reading a stream with progress",
+   "statement": "Write a function readText(stream, onProgress, total): stream is a ReadableStream that yields Uint8Array; read via getReader(). The result is the full string decoded by a TextDecoder in streaming mode (a UTF-8 character may be split between chunks). After each chunk onProgress({ loaded, total, percent }) is called: loaded is the accumulated bytes, total is the passed number or null, percent is the integer part of the percentage (0–100, but not more than 100) or null if total is not set or equals 0. If onProgress is not passed — just read silently. At the end call reader.releaseLock().",
+   "hint": "Accumulate text via decode(value, {stream: true}) and at the end call decode() with no arguments."
+  },
+  {
+   "id": "j18-ndjson",
+   "title": "A stream of JSON lines (NDJSON)",
+   "statement": "Write an async generator ndjson(stream): stream is a ReadableStream of Uint8Array. It decodes the stream (UTF-8 may be split between chunks), splits it into lines by \"\\n\" (\"\\r\\n\" is allowed) — lines may be split between chunks — and for each non-empty line yields JSON.parse. The last line without a line break is processed too. Empty lines are skipped (but counted in numbering). If a line is not JSON — throw an Error with the message «Строка N: невалидный JSON» (the text stays in Russian exactly as written; it means \"Line N: invalid JSON\"), where N is the line number starting from 1; objects already yielded stay yielded.",
+   "hint": "Accumulate a buffer; while it contains \"\\n\" — cut off a line and parse it; process the tail after the end of the stream."
+  },
+  {
+   "id": "j18-progress",
+   "title": "Upload progress tracker",
+   "statement": "Write a function createProgress(total, now): now is a \"time in milliseconds\" function; the moment of creation counts as the start. It returns { update(loaded), snapshot() }. update remembers the number of loaded bytes (no more than total if total is set; no less than the previous value). snapshot → { loaded, total, percent, rate, eta, done }: percent is the integer part of the percentage or null if total is not set (null/0); rate is bytes per second over the whole time since the start (loaded / seconds; 0 if 0 ms have passed); eta is the remaining seconds rounded up (null if total is not set or rate = 0; 0 if the load is complete); done — loaded ≥ total (false if total is not set).",
+   "hint": "Store start and loaded; compute everything else in snapshot."
+  },
+  {
+   "id": "j18-abort-controller",
+   "title": "Your own AbortController",
+   "statement": "Write the classes MyAbortSignal and MyAbortController. The controller: the property signal, the method abort(reason) (a repeated call does nothing; reason defaults to an Error with name \"AbortError\" and message \"This operation was aborted\"). The signal: aborted, reason (undefined until aborted), addEventListener(\"abort\", fn, { once }), removeEventListener, onabort (a handler property, called first, then the listeners in order of adding; a listener receives an object { type: \"abort\", target }), throwIfAborted() (throws reason), statics MyAbortSignal.abort(reason) → an already aborted signal and MyAbortSignal.any(signals) → a signal that aborts with the reason of the first aborted one (if one of them is already aborted — it is aborted at once). A listener added after the abort is not called.",
+   "hint": "The state (aborted, reason, listeners) lives in the signal; the controller only calls an internal abort method."
+  },
+  {
+   "id": "j18-abortable",
+   "title": "An abortable operation",
+   "statement": "Write a function abortable(fn, signal): fn(signal) returns a promise. abortable returns a promise that: if the signal is already aborted — rejects with signal.reason without calling fn; otherwise calls fn(signal) and, when the signal aborts, rejects at once with signal.reason (without waiting for fn); if fn finished earlier — its result or error; fn finishing after the abort is ignored (no unhandled errors). The abort listener must be removed after completion.",
+   "hint": "Wrap in new Promise; route the abort and the completion of fn to resolve/reject — the first one to fire wins."
+  },
+  {
+   "id": "j18-latest-only",
+   "title": "Only the latest request",
+   "statement": "Write a function createLatest(fetcher): fetcher(arg, signal) → a promise. It returns a function run(arg) → a promise. Each new call cancels the previous one (calls abort() on its AbortController) and calls fetcher(arg, signal) with a new signal. The result: { stale: false, value } — if it is still the latest call by the time it finishes; { stale: true } — if the call has already been superseded by a newer one (and then its error is not propagated, but simply { stale: true }). The error of the latest call is propagated as is.",
+   "hint": "A call counter and a shared AbortController; compare the call number with the current one after await."
+  },
+  {
+   "id": "j18-timeout",
+   "title": "Request timeout",
+   "statement": "Write a function withTimeout(fn, ms, timers): timers = { setTimeout, clearTimeout } (virtual clocks). fn(signal) → a promise. Create an AbortController, start fn(signal) and a timer for ms. If fn finished earlier — return its result (or rethrow the error) and clear the timer. If the timer fired earlier — call abort(reason), where reason is an Error with name \"TimeoutError\" and message «Превышено время ожидания: <ms> мс» (the message stays in Russian exactly as written; it means \"Timeout exceeded: <ms> ms\"), and reject the promise with this same error; a late finish of fn is ignored. After any outcome no active timers remain.",
+   "hint": "Timer → abort(reason) + reject; fn finishing → resolve/reject; in both cases clear the timer."
+  },
+  {
+   "id": "j18-retry",
+   "title": "Retry with exponential delay",
+   "statement": "Write an async function retry(fn, options): fn(attempt) → a promise (attempt starts from 0). options: { retries = 3, base = 100, factor = 2, max = 2000, jitter = \"none\", rand = Math.random, sleep, shouldRetry = () => true, onRetry }. There are retries + 1 attempts in total. After a failed attempt n (from 0), if attempts remain and shouldRetry(error, n) is truthy: delay = min(max, base × factor^n); with jitter \"full\" delay = floor(rand() × delay); with \"equal\" delay = floor(delay / 2) + floor(rand() × (delay / 2)) (the division is floating-point, as is); call onRetry?.({ attempt: n, delay, error }), then await sleep(delay) and the next attempt. If shouldRetry returned false or the attempts ran out — rethrow the last error. On success — return the value.",
+   "hint": "A loop over attempts with try/catch; compute the delay by the formula before sleep."
+  },
+  {
+   "id": "j18-retry-after",
+   "title": "The Retry-After header",
+   "statement": "Write a function parseRetryAfter(value, nowMs) → the number of milliseconds to wait or null. value is the header value: an integer number of seconds (\"120\"; spaces at the ends are allowed; fractional, negative and values with letters — null) or a date in HTTP format (\"Wed, 21 Oct 2026 07:28:00 GMT\"; a date in the past gives 0). Anything else (empty, not a string, an unparseable date) — null. The result is at most 24 hours: a longer wait is capped at 86 400 000.",
+   "hint": "Two branches: only digits → seconds; otherwise parse the date and subtract the current time."
+  },
+  {
+   "id": "j18-retry-rules",
+   "title": "When a request may be retried",
+   "statement": "Write a function shouldRetry({ method, status, attempt, retries = 3, hasIdempotencyKey = false }) → boolean. status not set (undefined) is a network error. attempt is how many retries have already been made; if attempt ≥ retries — false. An idempotent method: GET, HEAD, OPTIONS, PUT, DELETE (case does not matter); POST and PATCH — only with hasIdempotencyKey. Rules: a network error → retry if the method is idempotent or there is a key; statuses 408, 425, 500, 502, 503, 504 → the same; status 429 → retry for any method (the server did not process the request); other statuses (including 2xx, 3xx, 4xx, 501) — false.",
+   "hint": "First the attempt limit check, then \"is the method safe\", then the status table."
+  },
+  {
+   "id": "j18-origin",
+   "title": "The origin of an address",
+   "statement": "Write the functions originOf(url) and sameOrigin(a, b). originOf → a string \"scheme://host[:port]\" in lowercase; the default port (80 for http, 443 for https) is not written; for addresses with a nested origin (blob:https://x.ru/uuid) — the origin of the nested address; for other schemes (file:, data:, about:, javascript:) and invalid strings — \"null\". sameOrigin(a, b) — true if the origins are equal and neither is \"null\". Non-standard ports distinguish origins; \"example.com\" and \"www.example.com\" are different.",
+   "hint": "The URL class gives protocol and host (it already removes the default port)."
+  },
+  {
+   "id": "j18-simple-request",
+   "title": "Is it a simple CORS request",
+   "statement": "Write a function needsPreflight({ method, headers = {}, streamBody = false }) → true if the browser will first send a preflight OPTIONS request. A simple request (no preflight needed): the method is GET, HEAD or POST (case does not matter); all headers (names case-insensitive) are from the list: accept, accept-language, content-language, content-type, range (range — only of the form \"bytes=number-\", \"bytes=number-number\"); content-type — only application/x-www-form-urlencoded, multipart/form-data or text/plain (parameters after \";\" are ignored, case does not matter); the value of any header is no longer than 128 characters; a stream body (streamBody) makes the request non-simple. Any violation — true.",
+   "hint": "The method, then each header against the table of allowed ones; any violation — true."
+  },
+  {
+   "id": "j18-cors-server",
+   "title": "A server that allows CORS",
+   "statement": "Write a function createCors(config) → handle(req) → { status, headers, next }. config: { origins (\"*\" | an array of strings and RegExp), credentials = false, methods = [\"GET\",\"HEAD\",\"POST\"], allowedHeaders (an array; if not set — reflect access-control-request-headers), exposedHeaders = [], maxAge }. req = { method, headers } (the keys of headers are lowercase). Rules: no origin header → { status: null, headers: {}, next: true }. The origin is not allowed: a preflight (OPTIONS with access-control-request-method) → { status: 403, headers: {}, next: false }, an ordinary request → { status: null, headers: {}, next: true } (the browser will block it itself). A preflight from an allowed origin: if the request method is not in methods — { status: 405, headers: {}, next: false }; otherwise { status: 204, next: false } and the headers: access-control-allow-origin (the origin itself; \"*\" only if origins === \"*\" and there are no credentials), access-control-allow-methods (methods joined with \", \"), access-control-allow-headers (allowedHeaders joined with \", \" or the reflected ones; if empty — do not add), access-control-allow-credentials: \"true\" (if credentials), access-control-max-age (a string, if set), vary (the value \"Origin\", and when headers are reflected — \"Origin, Access-Control-Request-Headers\"; do not add when answering \"*\"). An ordinary request from an allowed origin → { status: null, next: true } and the headers allow-origin, allow-credentials, access-control-expose-headers (if any), vary: Origin (if not \"*\").",
+   "hint": "Separate the preflight from the ordinary request; build headers by the rule table, vary as a separate list."
+  },
+  {
+   "id": "j18-cors-check",
+   "title": "Will the browser let the response be read",
+   "statement": "Write a function checkCors({ pageOrigin, requestUrl, credentials, responseHeaders }) → { allowed, reason }. credentials is \"omit\", \"same-origin\" or \"include\"; responseHeaders is an object with lowercase keys. If the origin of requestUrl matches pageOrigin (scheme, host, port) — { allowed: true, reason: \"same-origin\" }. Otherwise look at access-control-allow-origin: no header → { false, \"нет Access-Control-Allow-Origin\" }; the value \"*\": with credentials \"include\" — { false, \"звёздочка недопустима с credentials\" }, otherwise { true, \"ok\" }; the value equals pageOrigin: with credentials \"include\" access-control-allow-credentials must be exactly \"true\", otherwise { false, \"нет Access-Control-Allow-Credentials\" }; when everything is fine — { true, \"ok\" }; any other value — { false, \"источник не совпадает\" }. The reason texts in Russian stay exactly as written; they mean \"no Access-Control-Allow-Origin\", \"asterisk not allowed with credentials\", \"no Access-Control-Allow-Credentials\" and \"origin does not match\".",
+   "hint": "First same-origin, then the Allow-Origin value: absent, \"*\", matches or not."
+  },
+  {
+   "id": "j18-freshness",
+   "title": "Response freshness in an HTTP cache",
+   "statement": "Write the functions parseCacheControl(header) and freshness(res, now). parseCacheControl → an object: directives without a value become true (names lowercase: \"no-store\" → \"no-store\": true), numeric ones become numbers (\"max-age=60\" → \"max-age\": 60), others become strings without quotes; empty or not a string — {}. freshness(res, now): res = { headers (lowercase keys; may include cache-control, age (seconds), date, expires, last-modified), storedAt (ms) } → { state, ttl, canServeStale }. state: \"no-store\" — if no-store; \"revalidate\" — if no-cache; otherwise compute the age = now − storedAt + (the age header in seconds) × 1000 and the lifetime: max-age × 1000; otherwise (expires − date) in ms (if both are set, not less than 0); otherwise a heuristic — 10% of (date − last-modified), if both are set; otherwise 0. age < lifetime → \"fresh\" (ttl = lifetime − age); otherwise \"stale\" (ttl = 0), and with must-revalidate — \"revalidate\". canServeStale — true only if state is \"stale\" and stale-while-revalidate (seconds) is set and age − lifetime < swr × 1000. In all other cases ttl = 0 and canServeStale = false.",
+   "hint": "Priority: no-store, no-cache, then the lifetime from max-age / expires / the heuristic; compare the age with the lifetime."
+  },
+  {
+   "id": "j18-http-cache",
+   "title": "An HTTP cache with conditional requests",
+   "statement": "Write a function createHttpCache(origin, now): origin(url, headers) → a promise { status, headers (lowercase), body }; now() is the time in ms. It returns { get(url) → a promise { body, from } }, where from is \"network\", \"cache\" or \"revalidated\". The algorithm: no entry → a request to origin without headers; a 200 response is stored (storedAt = now()) if cache-control has no no-store (otherwise it is not stored; the result is \"network\"). There is an entry: if the entry's cache-control contains max-age and age = now − storedAt < max-age × 1000 (without no-cache) — return from the cache without contacting origin (\"cache\"). Otherwise — a conditional request: the headers if-none-match (if the entry has an etag) and if-modified-since (if it has last-modified); a 304 response — the entry stays, storedAt = now(), the cache-control/etag/last-modified headers are updated from the response if present there, the entry's body is returned (\"revalidated\"); a 200 response — the entry is replaced (\"network\"); any other status — return it as is (\"network\"), do not change the entry; an origin error — rethrow.",
+   "hint": "A Map url → entry; when stale send a conditional request and update storedAt on a 304."
+  },
+  {
+   "id": "j18-swr",
+   "title": "Stale-while-revalidate on the client",
+   "statement": "Write a function createSWR({ fetcher, now, ttl, staleTtl, onUpdate }): fetcher(key) → a promise; now() is ms. It returns { get(key), mutate(key, data), inflight() }. get(key) → a promise { data, state }: no entry or age ≥ ttl + staleTtl → wait for fetcher (\"miss\"; an error rejects the promise, the entry does not change); age < ttl → { data, state: \"fresh\" } with no requests; ttl ≤ age < ttl + staleTtl → at once { data, state: \"stale\" } and start a background refresh: on success the entry is updated (time = now()) and onUpdate(key, data) is called; a background error is silently ignored (the old data stays). Simultaneous requests for one key (both miss and background) use one fetcher call; if a background refresh is already running, a new get does not start it and does not call onUpdate — onUpdate fires exactly once per refresh started by get. mutate writes data manually (time = now()). inflight() — the number of active requests.",
+   "hint": "A cache {data, at} and a \"key → promise in flight\" table; the background part — without await and swallowing the error."
+  },
+  {
+   "id": "j18-dedupe",
+   "title": "Merging identical requests",
+   "statement": "Write a function dedupe(fn, keyFn = (...args) => JSON.stringify(args)): it returns a function wrapped(...args) → a promise. While a call of fn with a given key is not yet finished, repeated calls with the same key return the same promise (fn is not called again). After completion (successful or not) the key is released, and the next call starts fn anew. Different keys do not interfere with each other. wrapped.pending() — the number of unfinished keys. Synchronous exceptions of fn become a rejected promise.",
+   "hint": "A Map key → promise; remove the key in finally."
+  },
+  {
+   "id": "j18-auth-refresh",
+   "title": "Refreshing a token on 401",
+   "statement": "Write a function createAuthClient({ token, request, refresh, onLogout }): request(req, token) → a promise { status, body }; refresh() → a promise of a new token; onLogout() is called when access is finally lost. It returns { call(req) → a promise { status, body }, token() → the current token }. The algorithm: call performs request(req, the current token). If the response is not 401 — return it. If it is 401 and the token has already changed since sending (another parallel call refreshed it) — just repeat with the current token. Otherwise start refresh() — with parallel 401s the refresh is started once and shared among the waiting ones; the new token is saved. Then repeat the request once with the new token: if it also gives 401 — call onLogout() (once for everyone) and reject with Error(\"unauthorized\"). If refresh rejected — also onLogout() (once) and Error(\"unauthorized\"). A repeated request after a successful refresh does not trigger another refresh.",
+   "hint": "One shared refresh promise; remember the token the request went out with, to tell that it has already been replaced."
+  },
+  {
+   "id": "j18-ws-frame",
+   "title": "WebSocket frames",
+   "statement": "Write the functions encodeFrame({ fin = true, opcode, payload, maskKey = null }) → Uint8Array and decodeFrame(bytes) per RFC 6455. payload is a string (encoded as UTF-8) or a Uint8Array; opcode is a number (1 text, 2 binary, 8 close, 9 ping, 10 pong). The format: byte 0 = (fin ? 0x80 : 0) | opcode; byte 1 = (mask ? 0x80 : 0) | length, where a length < 126 is the length itself; from 126 to 65535 — the value 126 and then 2 bytes of length (big-endian); larger — the value 127 and 8 bytes; then, if there is a mask (maskKey is 4 bytes), the key itself, then the data (with a mask, each data byte is xor key[i % 4]). decodeFrame returns null if there are not enough bytes for a full frame, otherwise { fin, opcode, masked, payload (Uint8Array, already unmasked), length (how many bytes of the frame were read), text } — text exists only for opcode 1 (a UTF-8 string). Other data may follow the frame in the buffer — do not touch it.",
+   "hint": "The first two bytes are flags and length; the extended length and the mask come next; first check that there are enough bytes."
+  },
+  {
+   "id": "j18-ws-accept",
+   "title": "WebSocket handshake on the server",
+   "statement": "Write the functions computeAccept(key) (async) and validateHandshake(req) (async). computeAccept: base64 of the SHA-1 of the string key + \"258EAFA5-E914-47DA-95CA-C5AB0DC85B11\" (use crypto.subtle.digest and btoa). validateHandshake({ method, headers }) (the keys of headers are lowercase) → { ok, status, headers, accept? }. Checks in order: the method is GET (otherwise 405); upgrade case-insensitively equals \"websocket\" (otherwise 400); connection contains the token \"upgrade\" (comma-separated tokens, case does not matter; otherwise 400); sec-websocket-version equals \"13\" (otherwise 426 and headers { \"sec-websocket-version\": \"13\" }); sec-websocket-key is base64 of exactly 16 bytes (22 characters and \"==\"; otherwise 400). Success: { ok: true, status: 101, headers: { upgrade: \"websocket\", connection: \"Upgrade\", \"sec-websocket-accept\": <accept> } }. For errors headers is {} (except 426), ok: false.",
+   "hint": "Check in order: method, upgrade, connection, version, key; crypto.subtle computes the sha-1."
+  },
+  {
+   "id": "j18-ws-client",
+   "title": "A WebSocket client with reconnection",
+   "statement": "Write a function createSocketClient({ WS, url, timers, baseDelay = 1000, maxDelay = 8000, pingInterval = 5000, pongTimeout = 2000 }): WS is a socket constructor (new WS(url) with the fields onopen, onmessage(e) (e.data), onclose(e) (e.code) and the methods send(data), close(code)); timers = { setTimeout, clearTimeout }. The client connects at once. API: send(msg) (in the \"open\" state — ws.send, otherwise the message is queued and goes out in order on opening; in the \"closed\" state — throw Error(\"Сокет закрыт\") (the message stays in Russian exactly as written; it means \"Socket closed\")), on(event, fn) for the events \"open\", \"message\" (fn(data)), \"reconnect\" (fn({ attempt, delay })), close(), and state: \"connecting\" → \"open\"; on a drop \"reconnecting\"; after close() — \"closed\". While the connection is open, a \"ping\" is sent every pingInterval; if no \"pong\" arrives within pongTimeout (such a message is not passed to subscribers) — call ws.close(4000). On a drop (the close event, if it is not the client's close()) attempt n (from 0) reconnects after min(maxDelay, baseDelay × 2ⁿ); the attempt counter is reset on a successful open. Events of old sockets are ignored. The client's close(): ws.close(1000), clears all timers, no more reconnections.",
+   "hint": "Keep the ping, pong and reconnect timers separately; in handlers compare the socket with the current one."
+  },
+  {
+   "id": "j18-sse-parser",
+   "title": "A Server-Sent Events stream parser",
+   "statement": "Write a function createSSEParser() → { feed(chunk) → an array of events, lastEventId() }. chunk is a string (a piece of the stream, which may cut a line and even a \"\\r\\n\" pair in the middle). A line ends with \"\\n\", \"\\r\" or \"\\r\\n\". Rules: an empty line is the end of an event; a line starting with \":\" is a comment; otherwise \"field: value\" (one space after the colon is dropped; a line without a colon is the whole field name and an empty value). Fields: data (repeats are joined with \"\\n\"), event (the type; \"message\" by default), id (remembered as lastEventId if it does not contain the character \\u0000; kept between events), retry (digits only → a number, otherwise ignored). An event is created only if there was at least one data field: { type, data, lastEventId, retry? } (retry only if the field was in this block). A block without data is discarded. A leading BOM (﻿) in the stream is dropped. An unfinished block at the end of the stream is lost.",
+   "hint": "Accumulate a buffer; do not parse a line ending in a lone \"\\r\" at the very end of the buffer — wait for the next chunk."
+  },
+  {
+   "id": "j18-sse-client",
+   "title": "An EventSource client with reconnection",
+   "statement": "Write a function createSSEClient({ connect, createParser, timers, onEvent }): connect(headers) → a promise { status, chunks } (chunks is an async iterable stream of strings); createParser() — as in the previous parser: parser.feed(chunk) → events { type, data, lastEventId, retry? }; timers = { setTimeout, clearTimeout }. It returns { start(), stop(), delay() }. The loop: connect({ accept: \"text/event-stream\", \"cache-control\": \"no-cache\" }) plus the header \"last-event-id\" with the last received id, if it is non-empty. Status 204 — stop forever; a status other than 200 or a connection error — wait for delay and repeat; for 200 read chunks, and for each event: if it has retry — remember it as the new delay, then call onEvent(event). The parser is created anew for each connection, the id is remembered between connections. When the stream ended or broke (including with an error) — wait for delay (3000 by default) and connect again. stop() stops everything at once, including the waiting. delay() — the current delay.",
+   "hint": "An async loop: connect → read chunks → wait → again; stop() must work during the wait."
+  }
+ ]
+}

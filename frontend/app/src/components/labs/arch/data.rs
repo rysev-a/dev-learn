@@ -88,12 +88,12 @@ pub fn build_lab(chapters: Vec<(u32, api::dto::LabChapter)>) -> Result<ArchLab, 
     for (n, ch) in chapters {
         let mut tasks = Vec::new();
         for t in ch.tasks {
-            let spec: Spec = serde_json::from_value(t.spec).map_err(|e| broken(&format!("Сценарий «{}» повреждён", t.id), e))?;
+            let spec: Spec = serde_json::from_value(t.spec).map_err(|e| broken(&i18n::trf!("Scenario “{0}” is corrupted", t.id), e))?;
             tasks.push(Task { id: t.id, title: t.title, statement: t.statement, hint: t.hint, spec });
         }
         list.push(LabChapter { book: ARCH_BOOK, chapter: n, lab: "arch".into(), tasks });
     }
-    ArchLab::from_chapters(list).map_err(|e| broken("Сценарии лаборатории", e))
+    ArchLab::from_chapters(list).map_err(|e| broken(i18n::tr("Lab scenarios"), e))
 }
 
 /// Сценарии глав со схемами с сервера и сборка движка.
@@ -212,6 +212,7 @@ mod tests {
 
     #[test]
     fn new_solution_replaces_the_old_draft_of_the_same_exercise() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut p = Progress::default();
         p.add(6, "simple-circuits", "xor", "{\"a\":1}");
         p.add(6, "simple-circuits", "xor", "{\"a\":2}");
@@ -240,6 +241,7 @@ mod tests {
 
     #[test]
     fn client_builds_the_engine_from_what_the_server_sends() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let lab = build_lab(server_chapters()).expect("движок собрался");
         assert_eq!(lab.chapters().count(), 9);
         let nand = lab.circuit_task("simple-circuits", "nand").expect("упражнение про NAND");
@@ -249,6 +251,7 @@ mod tests {
 
     #[test]
     fn blocks_open_from_the_students_own_solutions_and_the_processor_exercise_accepts_them() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         use archlab::blocks::Solution;
         // эталонные решения как «решения ученика»: JSON, как их хранит кабинет
         let reference = ArchLab::load_dir(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/arch")).expect("данные");
@@ -279,6 +282,7 @@ mod tests {
 
     #[test]
     fn join_all_collects_results_in_order() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let futs: Vec<_> = (0..4).map(|i| async move { i * 2 }).collect();
         let out = futures_lite_block_on(join_all(futs));
         assert_eq!(out, vec![0, 2, 4, 6]);

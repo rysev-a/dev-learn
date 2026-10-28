@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 45,
+ "tasks": [
+  {
+   "id": "tcp-roundtrip",
+   "title": "Your own TCP server",
+   "statement": "Write a coroutine shout(text): start an asyncio server on 127.0.0.1 (port 0) that reads a line and replies with the same line in capital letters; connect with a client, send text plus a newline, and return the server's reply (without the newline).",
+   "hint": "start_server(handle, '127.0.0.1', 0); the port is server.sockets[0].getsockname()[1]; do not forget drain and closing the writer."
+  },
+  {
+   "id": "async-run-commands",
+   "title": "Commands at the same time",
+   "statement": "Write a coroutine run_codes(codes): for each code string, start a child interpreter (sys.executable, '-c', code) through asyncio.create_subprocess_exec, and return the list of outputs (stdout stripped of surrounding whitespace) in the original order. All the processes must run at the same time.",
+   "hint": "async def one(code): proc = await asyncio.create_subprocess_exec(sys.executable, '-c', code, stdout=asyncio.subprocess.PIPE); out, _ = await proc.communicate(); return out.decode().strip()."
+  },
+  {
+   "id": "async-first-success",
+   "title": "Who is first",
+   "statement": "Write a coroutine first_of(coros): it runs the coroutines concurrently, returns the result of the FIRST one to finish and cancels the rest (asyncio.wait, FIRST_COMPLETED).",
+   "hint": "tasks = [asyncio.create_task(c) for c in coros]; done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED); cancel the pending ones and wait for them (gather with return_exceptions)."
+  },
+  {
+   "id": "backoff-delays",
+   "title": "A growing delay",
+   "statement": "Write a coroutine retry_backoff(func, tries, base): it calls the coroutine function func(); on a ConnectionError it waits base * 2 ** i seconds (i is the zero-based number of the failed attempt) with asyncio.sleep and tries again; on the last failure it raises the exception.",
+   "hint": "for i in range(tries): try: return await func() / except ConnectionError: if i == tries - 1: raise; await asyncio.sleep(base * 2 ** i)."
+  },
+  {
+   "id": "graceful-workers",
+   "title": "A clean shutdown",
+   "statement": "Write a coroutine run_workers(names, duration): start one worker coroutine per name; a worker loops doing await asyncio.sleep(0.01) until the stop event is set, and on completion (in finally) adds its name to a list. After duration seconds set the event and return the sorted list of names of the workers that stopped.",
+   "hint": "stop = asyncio.Event(); async with asyncio.TaskGroup() as tg: create the tasks; await asyncio.sleep(duration); stop.set()."
+  },
+  {
+   "id": "ctxvar-request-id",
+   "title": "A request id in the context",
+   "statement": "Define a variable request_id = contextvars.ContextVar(..., default='-') and a coroutine handle(rid): it stores rid in request_id, waits 0.01 s and returns the string «<rid>:<request_id value>». Parallel handlers must not interfere with each other.",
+   "hint": "request_id = contextvars.ContextVar(\"request_id\", default=\"-\"); gather wraps each coroutine into a task with a copy of the context."
+  },
+  {
+   "id": "async-tests-for-total",
+   "title": "Tests for an async function",
+   "statement": "Complete the class TestTotal (unittest.IsolatedAsyncioTestCase): tests for the coroutine total(prices), the sum of the numbers in a list (0 for an empty one). The tests must pass on the correct implementation and fail on each of the three broken ones. Call the coroutine with await.",
+   "hint": "assertEqual(await total([1, 2, 3]), 6); an empty list gives 0; negative numbers: await total([5, -3]) == 2; one more element at the start."
+  }
+ ]
+}

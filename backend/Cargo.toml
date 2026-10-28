@@ -1,10 +1,10 @@
-# Параллельный бэкенд «say»: axum + SurrealDB по стандарту lab (web-services/standard.md).
+# Параллельный бэкенд «cs-core»: axum + SurrealDB по стандарту lab (web-services/standard.md).
 #
 # Версии и features — ТОЛЬКО в [workspace.dependencies], и список общих crates и внешних зависимостей совпадает 1 в 1 со списком в
 # /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (тот же Cargo.lock → те же версии, готовые базовые образы
 # backend.base собираются один раз). Добавлено только то, чего нет в lab: rusqlite (чтение SQL-файлов инициализации), sha2 (ключ кэша проверок).
 [package]
-name = "say-backend"
+name = "cs-core-backend"
 version = "0.1.0"
 edition = "2021"
 publish = false
@@ -15,6 +15,7 @@ members = ["."]
 
 [workspace.dependencies]
 # данные курса (слайды, сцены), общий crate с фронтендом и генераторами: packages/content
+i18n = { path = "../packages/i18n" }
 content = { path = "../packages/content" }
 # движки лабораторий: сервер перепроверяет присланные решения теми же крейтами, что собираются в wasm для интерфейса
 sdlab = { path = "../packages/sdlab" }
@@ -57,6 +58,7 @@ rusqlite = { version = "0.37", features = ["bundled"] }
 sha2 = "0.11"
 
 [dependencies]
+i18n.workspace = true
 content.workspace = true
 sdlab.workspace = true
 virtlab.workspace = true

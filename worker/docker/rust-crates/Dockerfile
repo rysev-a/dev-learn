@@ -1,7 +1,7 @@
 # Образ песочницы для Rust-упражнений с крейтами: rust:1.97-slim + заранее собранные tokio, axum, sqlx (PostgreSQL),
 # serde, tower, tungstenite, argon2 и др., а также сервер PostgreSQL с готовым кластером /opt/pgdata
 # (его запускает раннер перед проверкой: см. PG_START в app/exercises/runner.py). Сборка (нужна сеть один раз):
-#   docker build -t say-rust-crates:1 backend/docker/rust-crates
+#   docker build -t cs-core-rust-crates:1 backend/docker/rust-crates
 # Во время проверки сеть отключена: код ученика собирается напрямую rustc, а --extern на все готовые rlib
 # лежат в /opt/ext/externs (по одной строке `--extern имя=путь`).
 FROM rust:1.97-slim

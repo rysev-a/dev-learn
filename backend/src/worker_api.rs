@@ -1,5 +1,5 @@
 //! Внутренний API воркеров проверки (как `exercises/worker_api.py`): забрать задание, подтвердить жизнь, вернуть результат.
-//! Закрыт токеном `SAY_WORKER_TOKEN` (`Authorization: Bearer …`); без токена в окружении недоступен вовсе (404).
+//! Закрыт токеном `CS_CORE_WORKER_TOKEN` (`Authorization: Bearer …`); без токена в окружении недоступен вовсе (404).
 
 use std::time::{Duration, Instant};
 
@@ -47,7 +47,7 @@ fn authorize(state: &AppState, headers: &HeaderMap) -> ApiResult<()> {
     if constant_eq(given.as_bytes(), token.as_bytes()) {
         Ok(())
     } else {
-        Err(ApiError::new(401, "Неверный токен воркера"))
+        Err(ApiError::new(401, "Invalid worker token"))
     }
 }
 
@@ -85,7 +85,7 @@ struct ResultIn {
 
 fn check_name(name: &str) -> ApiResult<()> {
     if name.is_empty() || name.chars().count() > 64 {
-        return Err(ApiError::invalid("name: от 1 до 64 символов"));
+        return Err(ApiError::invalid("name: 1 to 64 characters"));
     }
     Ok(())
 }
@@ -117,6 +117,6 @@ async fn result(State(state): State<AppState>, Path(job_id): Path<String>, Json(
     if jobs::complete(&state, &job_id, &b.name, b.result).await? {
         Ok(StatusCode::NO_CONTENT)
     } else {
-        Err(ApiError::new(409, "Задание уже не за этим воркером (аренда истекла или результат принят)"))
+        Err(ApiError::new(409, "The task is no longer assigned to this worker (lease expired or result accepted)"))
     }
 }

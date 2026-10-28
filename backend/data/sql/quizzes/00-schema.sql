@@ -1,5 +1,5 @@
 -- Квизы на теорию. Выполнение этого файла очищает таблицы: дальше идут файлы книг с INSERT.
--- Полная инициализация: sqlite3 say.db < app/data/sql/quizzes/*.sql (файлы выполняются по порядку имён).
+-- Полная инициализация: sqlite3 cs-core.db < app/data/sql/quizzes/*.sql (файлы выполняются по порядку имён).
 CREATE TABLE IF NOT EXISTS quizzes (
     book_id INTEGER NOT NULL,
     chapter INTEGER NOT NULL,

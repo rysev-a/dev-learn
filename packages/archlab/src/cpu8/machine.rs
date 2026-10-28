@@ -32,7 +32,7 @@ fn template() -> Result<&'static CompiledSim, String> {
     static TEMPLATE: OnceLock<Result<CompiledSim, String>> = OnceLock::new();
     TEMPLATE
         .get_or_init(|| {
-            let exp = cpu_expansion().ok_or("нет блока c8-cpu")?;
+            let exp = cpu_expansion().ok_or(i18n::tr("no block c8-cpu"))?;
             CompiledSim::new(&exp.circuit).map_err(|e| e.to_string())
         })
         .as_ref()
@@ -108,7 +108,7 @@ impl GateMachine {
             return;
         }
         if self.pc() as usize >= self.program.len() {
-            self.error = Some(format!("Счётчик команд вышел за пределы программы (адрес {}). Не забыли hlt в конце?", self.pc()));
+            self.error = Some(i18n::trf!("Program counter ran past the end of the program (address {0}). Forgot hlt at the end?", self.pc()));
             return;
         }
         let regs_before = self.regs();
@@ -142,7 +142,7 @@ impl GateMachine {
             self.step();
         }
         if self.running() {
-            self.error = Some(format!("Превышен лимит в {max_steps} шагов — похоже, цикл не заканчивается."));
+            self.error = Some(i18n::trf!("Step limit of {0} exceeded — the loop probably never ends.", max_steps));
         }
     }
 

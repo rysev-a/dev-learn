@@ -1,0 +1,24 @@
+{
+ "book": 15,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "n12-h2",
+   "title": "Many files and high latency",
+   "statement": "A page of 41 files loads from a distant server (RTT about 120 ms) over HTTP/1.1: the browser fetches resources six at a time, and each “wave” costs a full round trip. Run `pageload https://www.example.org/` on the PC — the table shows how long the load would take for each version. Enable on the server the protocol that delivers all resources in parallel over one connection, and bring the load down to 1.3 seconds.",
+   "hint": "On the server: the “protocol” switch in the card, or `web protocol h2`. HTTP/3 is not needed here: the link has no loss."
+  },
+  {
+   "id": "n12-h3",
+   "title": "Lossy mobile network: HTTP/3 needed",
+   "statement": "Clients use a mobile network: RTT about 120 ms and 2% loss. With loss, HTTP/2 suffers from TCP head-of-line blocking, and the load takes several seconds. Switch the site to HTTP/3, but remember: it runs over UDP/443. Press “Check” and read the reason: the server must listen on udp/443, and the router firewall must not block that port. The goal is a load time of no more than 2 s.",
+   "hint": "Three steps: 1) `web protocol h3`; 2) make the server listen on UDP: `nc -u -l 443` or the “Listening ports” form (udp, 443); 3) on the router delete the rule that blocks UDP/443. Check with `pageload https://www.example.org/` (it also shows the fallback to HTTP/2)."
+  },
+  {
+   "id": "n12-choose",
+   "title": "Newer is not always better",
+   "statement": "Two sites in different conditions. The first (`www.example.org`) is far away, with no loss. The second (`app.example.org`) is over an unreliable link with 2% loss, and corporate policy blocks UDP entirely, so HTTP/3 is unavailable. On each server choose the protocol that loads the page faster: the first must load in 1.6 s, the second in 2.5 s.",
+   "hint": "First: HTTP/2 — no loss, so multiplexing wins. Second: of the available HTTP/1.1 and HTTP/2, HTTP/1.1 is better under loss: six connections do not block each other. Compare the `pageload` tables."
+  }
+ ]
+}

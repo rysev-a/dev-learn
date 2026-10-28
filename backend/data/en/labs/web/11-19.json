@@ -1,0 +1,154 @@
+{
+ "book": 11,
+ "chapter": 19,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w19-bar",
+   "title": "A flexbox bar",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Turn .bar into a horizontal bar: items in a row, pushed to the edges, vertically centered, with a gap of at least 16 pixels.",
+   "hint": "display: flex turns on flexbox; justify-content distributes items along the main axis, align-items across it, and gap sets the spacing.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-column",
+   "title": "A column instead of a row",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Make .stack a flex container whose items go in a column: the main axis is vertical. Leave a gap of at least 8 pixels between items.",
+   "hint": "flex-direction sets the direction of the main axis. The value column runs it top to bottom.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-justify",
+   "title": "Equal spacing",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Lay out the .toolbar buttons in a row so that the free space goes both between the buttons and to the edges (space-around or space-evenly will do).",
+   "hint": "justify-content: space-around gives each item equal margins on both sides; space-evenly makes all gaps equal, including the outer ones.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-baseline",
+   "title": "A shared baseline",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. A large number .num and a small label .cur sit on one line. Make .price a flex container and align the items to the text baseline so the label does not “float”.",
+   "hint": "align-items: baseline aligns items by the baseline of their first line of text.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-gaps",
+   "title": "Different gaps",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .chip items wrap onto several lines inside the .board container. Set a gap of 8 pixels between rows and 24 pixels between columns with the single gap property.",
+   "hint": "gap takes two values: first the row gap (row-gap), then the column gap (column-gap).",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-wrap",
+   "title": "Wrapping lines",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .tag items do not fit on one line. Make .tags a flex container that wraps items onto a new line, with a gap of at least 8 pixels both between rows and between columns.",
+   "hint": "flex-wrap: wrap allows wrapping. The gap on both axes is set by gap (or row-gap and column-gap).",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-grow",
+   "title": "Flex proportions",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .row is a flex container; the left column .a takes 1 part and the right column .b takes 2 parts of the free space (use the flex shorthand).",
+   "hint": "flex: 1 and flex: 2 set flex-grow to 1 and 2 (and flex-basis to 0%).",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-sidebar",
+   "title": "A sidebar that does not shrink",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Make .layout a flex container. The .side column has a basis of exactly 240 pixels and never shrinks; .main takes all the remaining space.",
+   "hint": "flex: 0 0 240px means do not grow, do not shrink, basis 240px. For the main part, flex: 1 is enough.",
+   "spec_text": {
+    "/checks/3/msg": "`.main` has flex-grow: 1 or more"
+   }
+  },
+  {
+   "id": "w19-center",
+   "title": "Centered on both axes",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .box block is inside .hero, which already has a minimum height. Place .box exactly in the center of .hero, both horizontally and vertically.",
+   "hint": "Three properties on the container: display: flex, justify-content: center (along the axis) and align-items: center (across it).",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-auto",
+   "title": "margin-left: auto",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Make .top a flex container: all the links go on the left, while “Log in” (.login) moves to the right edge. You may not change justify-content on .top; use an auto margin.",
+   "hint": "An auto left margin takes all the free space and pushes the item to the right.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-self",
+   "title": "align-self on a single item",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The cards sit at the top edge of the .row. Move only the .warn card down to the bottom edge, without changing the row's alignment or the other cards.",
+   "hint": "align-self on an individual item overrides the container's align-items. The rule is needed only for .warn.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-order",
+   "title": "Pinned entry first",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. In the markup the pinned entry .pin comes last, but on screen it must come first. Without touching the markup or the column direction, reorder only that item.",
+   "hint": "order is zero by default; a negative number sends an item ahead of all the others.",
+   "spec_text": {
+    "/checks/0/msg": "`.pin` has order: a negative number"
+   }
+  },
+  {
+   "id": "w19-reverse",
+   "title": "Steps from right to left",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .step items are 1, 2, 3 in the markup, but they must be shown right to left: 3, 2, 1. Make .steps a flex container with a reversed row.",
+   "hint": "flex-direction: row-reverse flips the main axis to run right to left; there is no need to reorder items with order.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-cards",
+   "title": "Equal-height cards",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .cards row is a flex container, but cards of different heights are pushed to the top. Make every card stretch to the height of the tallest one in the row, and make all cards share the row equally.",
+   "hint": "align-items: stretch is the default; flex-start overrides it. To share the row equally, each card needs flex: 1.",
+   "spec_text": {
+    "/checks/2/msg": "`.card` has flex-grow: 1 or more"
+   }
+  },
+  {
+   "id": "w19-sticky",
+   "title": "A “sticky” footer",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .page is a column at least as tall as the window (100vh). The main part takes all the free space so the footer stays at the bottom even when there is little content.",
+   "hint": "On the container: display: flex, flex-direction: column and min-height: 100vh. On main: flex: 1 (or flex-grow: 1).",
+   "spec_text": {
+    "/checks/3/msg": "`main` has flex-grow: 1 or more"
+   }
+  },
+  {
+   "id": "w19-ellipsis",
+   "title": "Truncating text: min-width: 0",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The file name .title does not fit and stretches the .row. Allow it to shrink (min-width: 0) and cut the text to one line with an ellipsis: hidden overflow, text-overflow, white-space.",
+   "hint": "Four properties on .title: min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap.",
+   "spec_text": {}
+  },
+  {
+   "id": "w19-media",
+   "title": "Responsive flex",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Make .cols a flex container with a gap of at least 8 pixels: on a wide window the columns sit side by side, and on a narrow one (up to 600 pixels) they stack on top of each other.",
+   "hint": "On a narrow window, override the direction: @media (max-width: 600px) { .cols { flex-direction: column; } }.",
+   "spec_text": {
+    "/checks/2/msg": "On a wide window (1024px) the columns are side by side: flex-direction: row",
+    "/checks/3/msg": "On a narrow window (480px) the columns are stacked: flex-direction: column"
+   }
+  },
+  {
+   "id": "w19-holy",
+   "title": "The holy grail",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Build the page layout: .page is a column the full height of the window; .mid takes all the free height and is itself a row; inside it the side columns nav and aside keep a width of 160 pixels and do not shrink, while main stretches.",
+   "hint": "Two nested flex containers: .page (column, min-height: 100vh) and .mid (row). Give .mid and main flex: 1; give the side columns flex: 0 0 160px.",
+   "spec_text": {
+    "/checks/4/msg": "`.mid` has flex-grow: 1 or more",
+    "/checks/5/msg": "`main` has flex-grow: 1 or more"
+   }
+  },
+  {
+   "id": "w19-sel-items",
+   "title": "Menu flex items",
+   "statement": "Write a single selector that selects exactly the elements highlighted in the task (the red outline in the preview) and nothing else. You need only the direct children of the .menu list, since those would be the flex items; do not touch the nested list or the links inside the items.",
+   "hint": "The “>” sign between selectors means “direct child”. A space would select descendants at any depth.",
+   "spec_text": {}
+  }
+ ]
+}

@@ -63,7 +63,8 @@ pub fn Aside(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
                     view! {
                         <button class="slide-fs-toc-item" class:on=move || active.get() == Some(id) on:click=open>
                             <span class="slide-fs-toc-num">{format!("{:02}", i + 1)}</span>
-                            <span class="slide-fs-toc-name">{b.title}</span>
+                            <span class="slide-fs-toc-name">{b.title.clone()}</span>
+                            {(!b.in_language(i18n::locale().code())).then(|| view! { <span class="lang-tag" title=i18n::tr("Available in Russian only")>"RU"</span> })}
                         </button>
                     }
                     .into_any()
@@ -74,11 +75,11 @@ pub fn Aside(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
     view! {
         <aside class="sidebar" class:collapsed=move || collapsed.get()>
             <div class="aside-head">
-                {move || (!collapsed.get()).then(|| view! { <div class="s-label">"Разделы"</div> })}
+                {move || (!collapsed.get()).then(|| view! { <div class="s-label">{i18n::tr("Sections")}</div> })}
                 <button
                     class="aside-toggle"
-                    title=move || if collapsed.get() { "Развернуть меню" } else { "Свернуть меню" }
-                    aria-label="Свернуть или развернуть меню разделов"
+                    title=move || if collapsed.get() { i18n::tr("Expand menu") } else { i18n::tr("Collapse menu") }
+                    aria-label=i18n::tr("Collapse or expand the sections menu")
                     on:click=move |_| aside.set(!collapsed.get_untracked())
                 >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

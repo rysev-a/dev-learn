@@ -862,7 +862,7 @@ impl<'de> Deserialize<'de> for Devices {
         impl<'de> Visitor<'de> for Vis {
             type Value = Devices;
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("массив устройств или объект «id → устройство»")
+                f.write_str(i18n::tr("an array of devices or an object \"id → device\""))
             }
             fn visit_seq<A: SeqAccess<'de>>(self, mut a: A) -> Result<Devices, A::Error> {
                 let mut out = Devices::new();

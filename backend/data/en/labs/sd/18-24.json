@@ -1,0 +1,126 @@
+{
+ "book": 18,
+ "chapter": 24,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd24-s1-storage",
+   "title": "Stage 1. Chat storage",
+   "statement": "Messages: 5,000 history reads and 3,000 writes per second, 600 GB, message identifiers grow over time, and 10% of requests hit the most active chats. The database is currently sharded by range, so all new messages go to the last shard. Change the sharding method and add a cache for recent messages (≥70%; 8 GB working set): load at most 80%, the busiest shard gets at most 45% of requests, and the budget is $3,600 per month.",
+   "hint": "The shard key is a hash of the chat ID. An L database with three shards: the hot shard will get 10% + 90%/3 = 40%. Eight M servers, an 8 GB cache.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Cache",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Object storage"
+   }
+  },
+  {
+   "id": "sd24-s2-gateways",
+   "title": "Stage 2. Gateways, stream and pushes",
+   "statement": "Persistent connections have been added: 300,000 clients receive 0.02 events per second each (6,000 per second). Add WebSocket gateways, route the events through a stream, connect notifications for users who are offline, and analytics (delivery latency, losses). Gateways and consumers at most 80%, and the budget is $8,200 per month.",
+   "hint": "WebSocket gateways — 26 (300,000 / 15,000 = 20 at 77%). 22 M servers (they receive the events too), notifications — 8, analytics — 2.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Cache",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Object storage"
+   }
+  },
+  {
+   "id": "sd24-s3-groups",
+   "title": "Stage 3. Groups and channels",
+   "statement": "Groups: on average a message is received by 100 participants, so storage writes are multiplied. Group delivery is handled by a queue with idempotent workers on spot instances; after a 10-second peak there must be no lag. Everything at most 80%, and the budget is $8,700 per month.",
+   "hint": "A queue and 14 M workers (storage writes are multiplied by 100 recipients), with the connection app → queue → workers → database. The spot price is lower; enable idempotency.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Cache",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Object storage",
+    "/start/nodes/6/name": "WebSocket gateway",
+    "/start/nodes/7/name": "Event stream",
+    "/start/nodes/8/name": "Notifications",
+    "/start/nodes/9/name": "Analytics"
+   }
+  },
+  {
+   "id": "sd24-s4-media",
+   "title": "Stage 4. Photos and video in conversations",
+   "statement": "Attachments: 20,000 file requests per second, 800 TB in storage. Put a CDN in front of storage (≥95%) and move the files to a cheap storage class: hot costs $23 per TB, which is 18,400 per month. Load at most 80%, budget $17,000 per month.",
+   "hint": "CDN → storage, TTL 3600. The “Storage class” “hot + cold” costs $10 per TB (20,000), “cold” — $4.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Cache",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Object storage",
+    "/start/nodes/6/name": "Queue",
+    "/start/nodes/7/name": "Worker",
+    "/start/nodes/8/name": "WebSocket gateway",
+    "/start/nodes/9/name": "Event stream",
+    "/start/nodes/10/name": "Notifications",
+    "/start/nodes/11/name": "Analytics"
+   }
+  },
+  {
+   "id": "sd24-s5-abuse",
+   "title": "Stage 5. Auth and spam protection",
+   "statement": "Every request checks auth, and 10% of messages pass through the ranking service, which filters out spam. Connect the auth service and ranking: load at most 80%, the design survives a failure of each of them, and the budget is $18,000 per month.",
+   "hint": "Auth: 3 instances, ranking: 4 (after one fails, 900 requests remain).",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/2/name": "Load balancer",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Cache",
+    "/start/nodes/5/name": "Database",
+    "/start/nodes/6/name": "Object storage",
+    "/start/nodes/7/name": "Queue",
+    "/start/nodes/8/name": "Worker",
+    "/start/nodes/9/name": "WebSocket gateway",
+    "/start/nodes/10/name": "Event stream",
+    "/start/nodes/11/name": "Notifications",
+    "/start/nodes/12/name": "Analytics"
+   }
+  },
+  {
+   "id": "sd24-s6-reliability",
+   "title": "Stage 6. Reliability and regions",
+   "statement": "The messenger must not go silent. Spread the servers, cache, workers and database across zones, enable a rolling deployment, a database replica with automatic failover, a second load balancer, a rate limiter at the entry (limit at least the load of 8,000) and monitoring. The design survives a zone, deployment, server, database, cache, auth and ranking failure, load is at most 80%, and the budget is $20,500 per month.",
+   "hint": "26 M servers across three zones. An L database with three shards and a replica, the rate limiter’s limit is about 20,000.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/2/name": "Load balancer",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Cache",
+    "/start/nodes/5/name": "Database",
+    "/start/nodes/6/name": "Object storage",
+    "/start/nodes/7/name": "Queue",
+    "/start/nodes/8/name": "Worker",
+    "/start/nodes/9/name": "WebSocket gateway",
+    "/start/nodes/10/name": "Event stream",
+    "/start/nodes/11/name": "Notifications",
+    "/start/nodes/12/name": "Analytics",
+    "/start/nodes/13/name": "Auth service",
+    "/start/nodes/14/name": "Ranking service"
+   }
+  },
+  {
+   "id": "sd24-exam",
+   "title": "Exam. The whole messenger",
+   "statement": "Final assignment. The messenger at peak: 4,500 history reads and 2,500 messages per second, 600 GB with active chats (10% of requests), 320,000 connections (6,400 events per second), groups of 100 participants, 22,000 attachment requests, 800 TB of files, auth on every request, 10% of messages pass through anti-spam. Build the design from scratch: a cache, a hash-sharded database with a replica, WebSocket gateways, a stream with notifications and analytics, a queue and workers on spot instances, a CDN and a cheap storage class, auth, ranking, a rate limiter, monitoring, two load balancers. It survives a zone, deployment, server, database, cache, auth and ranking failure; load at most 80%; budget $24,000 per month.",
+   "hint": "30 M servers across three zones, ws gateways — 34, M workers — 16, an L database with four shards and a replica, notifications — 8, auth — 4, ranking — 5.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  }
+ ]
+}

@@ -94,6 +94,7 @@ fn compare_summary(id: &str, what: &str, got: &[Value], want: &Value, errs: &mut
 
 #[test]
 fn цели_совпадают_с_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     let all = tasks();
@@ -111,6 +112,7 @@ fn цели_совпадают_с_typescript() {
 
 #[test]
 fn решённая_сеть_совпадает_с_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     for t in &tasks() {
@@ -165,6 +167,7 @@ fn run_cmds(id: &str, label: &str, state: &NetState, cmds: &Value, errs: &mut Ve
 
 #[test]
 fn команды_терминала_совпадают_с_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     let mut total = 0;
@@ -179,6 +182,7 @@ fn команды_терминала_совпадают_с_typescript() {
 
 #[test]
 fn решение_применяется_без_ошибок() {
+    i18n::set_locale(i18n::Locale::Ru);
     for t in &tasks() {
         let mut s = t.spec.start_state();
         apply_ops(&mut s, &t.spec.solution).unwrap_or_else(|e| panic!("{}: {e}", t.id));
@@ -187,6 +191,7 @@ fn решение_применяется_без_ошибок() {
 
 #[test]
 fn краевые_команды_совпадают_с_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
@@ -222,6 +227,7 @@ fn краевые_команды_совпадают_с_typescript() {
 
 #[test]
 fn цели_на_промежуточных_и_испорченных_сетях_совпадают_с_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
@@ -257,6 +263,7 @@ fn цели_на_промежуточных_и_испорченных_сетях
 
 #[test]
 fn синтетические_цели_совпадают_с_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     let mut n = 0;

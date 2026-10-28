@@ -79,10 +79,10 @@ fn unique(kind: &str, ids: impl Iterator<Item = String>) -> Result<(), SpecError
     let mut seen = std::collections::BTreeSet::new();
     for id in ids {
         if id.is_empty() {
-            return Err(SpecError::new(format!("{kind}: пустой идентификатор")));
+            return Err(SpecError::new(i18n::trf!("{0}: empty identifier", kind)));
         }
         if !seen.insert(id.clone()) {
-            return Err(SpecError::new(format!("{kind}: повтор идентификатора «{id}»")));
+            return Err(SpecError::new(i18n::trf!("{0}: duplicate identifier “{1}”", kind, id)));
         }
     }
     Ok(())
@@ -115,9 +115,9 @@ impl Spec {
 
     /// Проверка целостности данных: идентификаторы уникальны, ссылки на нагрузки есть, команды разбираются.
     pub fn validate(&self) -> Result<(), SpecError> {
-        unique("цели", self.goals().into_iter().map(|g| g.id))?;
+        unique(i18n::tr("goals"), self.goals().into_iter().map(|g| g.id))?;
         if self.goals().is_empty() {
-            return Err(SpecError::new("нет целей"));
+            return Err(SpecError::new(i18n::tr("no goals")));
         }
         match self {
             Spec::Hv { programs } => {
@@ -126,38 +126,38 @@ impl Spec {
                 }
             }
             Spec::Ept { workloads, goals } => {
-                unique("нагрузки", workloads.iter().map(|w| w.id.clone()))?;
+                unique(i18n::tr("workloads"), workloads.iter().map(|w| w.id.clone()))?;
                 for g in goals {
                     if !workloads.iter().any(|w| w.id == g.workload) {
-                        return Err(SpecError::new(format!("цель {}: нет нагрузки «{}»", g.id, g.workload)));
+                        return Err(SpecError::new(i18n::trf!("goal {0}: no workload “{1}”", g.id, g.workload)));
                     }
                 }
             }
             Spec::Virtq { size, .. } => {
                 if *size == 0 {
-                    return Err(SpecError::new("очередь без дескрипторов"));
+                    return Err(SpecError::new(i18n::tr("queue without descriptors")));
                 }
             }
             Spec::Numa { nodes, scenarios } => {
                 if nodes.is_empty() || nodes.len() > 255 {
-                    return Err(SpecError::new("число узлов должно быть от 1 до 255"));
+                    return Err(SpecError::new(i18n::tr("the number of nodes must be from 1 to 255")));
                 }
                 for s in scenarios {
-                    unique("машины", s.vms.iter().map(|v| v.name.clone()))?;
+                    unique(i18n::tr("machines"), s.vms.iter().map(|v| v.name.clone()))?;
                     if !s.max.is_finite() || s.max < 0.0 {
-                        return Err(SpecError::new(format!("сценарий {}: недопустимая доля", s.id)));
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: invalid fraction", s.id)));
                     }
                 }
             }
             Spec::Qcow2 { clusters, base, .. } => {
                 if base.iter().any(|c| c.cluster >= *clusters) {
-                    return Err(SpecError::new("кластер базового слоя вне диапазона"));
+                    return Err(SpecError::new(i18n::tr("base layer cluster out of range")));
                 }
             }
             Spec::Migration { scenarios } => {
                 for s in scenarios {
                     if !(s.dirty.is_finite() && s.bw.is_finite() && s.bw > 0.0 && s.dirty >= 0.0) {
-                        return Err(SpecError::new(format!("сценарий {}: недопустимые скорости", s.id)));
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: invalid rates", s.id)));
                     }
                 }
             }

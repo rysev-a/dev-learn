@@ -1,0 +1,61 @@
+{
+ "book": 13,
+ "chapter": 35,
+ "tasks": [
+  {
+   "id": "days-between",
+   "title": "Days between dates",
+   "statement": "Write a function days_between(a, b): how many days from date a to date b (may be negative). The dates are strings «YYYY-MM-DD».",
+   "hint": "(date.fromisoformat(b) - date.fromisoformat(a)).days."
+  },
+  {
+   "id": "add-days",
+   "title": "Add days",
+   "statement": "Write a function add_days(day, n): the date n days later (n may be negative). The input and the result are strings «YYYY-MM-DD».",
+   "hint": "(date.fromisoformat(day) + timedelta(days=n)).isoformat()."
+  },
+  {
+   "id": "format-date-ru",
+   "title": "Date in the Russian style",
+   "statement": "Write a function format_ru(day): from «YYYY-MM-DD» produce «DD.MM.YYYY». Use datetime and strftime.",
+   "hint": "date.fromisoformat(day).strftime(\"%d.%m.%Y\")."
+  },
+  {
+   "id": "weekday-name",
+   "title": "Day of the week",
+   "statement": "Write a function weekday_name(day): the name of the day of the week in Russian («понедельник», «вторник», ...) for a date «YYYY-MM-DD».",
+   "hint": "NAMES[date.fromisoformat(day).weekday()].",
+   "starter": "from datetime import date\n\nNAMES = [\"понедельник\", \"вторник\", \"среда\", \"четверг\", \"пятница\", \"суббота\", \"воскресенье\"]\n\n\ndef weekday_name(day):\n    pass\n"
+  },
+  {
+   "id": "age-years",
+   "title": "Age",
+   "statement": "Write a function age(born, today): the number of full years between the date of birth and the date «today» (strings «YYYY-MM-DD»). If the birthday has not yet come this year, that year does not count.",
+   "hint": "years = today.year - born.year; if (today.month, today.day) < (born.month, born.day), subtract 1."
+  },
+  {
+   "id": "workdays-count",
+   "title": "Workdays",
+   "statement": "Write a function workdays(start, end): how many weekdays (Mon-Fri) are in the range from start to end inclusive. The dates are strings «YYYY-MM-DD».",
+   "hint": "Loop from start to end and count the days where weekday() < 5."
+  },
+  {
+   "id": "last-day-month",
+   "title": "Last day of the month",
+   "statement": "Write a function last_day(year, month): the number of days in the month. Use the calendar module.",
+   "hint": "calendar.monthrange(year, month)[1]."
+  },
+  {
+   "id": "utc-to-offset",
+   "title": "From UTC to local",
+   "statement": "Write a function to_offset(iso_utc, hours): the time «YYYY-MM-DDTHH:MM» given in UTC, convert it to the zone with an offset of hours hours and return it as a string «YYYY-MM-DD HH:MM». Use timezone and timedelta.",
+   "hint": "dt = datetime.fromisoformat(s).replace(tzinfo=timezone.utc); dt.astimezone(timezone(timedelta(hours=hours))).strftime(...)."
+  },
+  {
+   "id": "parse-log-line",
+   "title": "A log line",
+   "statement": "Write a function parse_log(line): a log line like «2024-03-05 09:07:03 ERROR сбой диска». Return a tuple (the time in ISO format with the letter T, the level).",
+   "hint": "date_part, time_part, level, *_ = line.split(); datetime.fromisoformat(date_part + ' ' + time_part).isoformat()."
+  }
+ ]
+}

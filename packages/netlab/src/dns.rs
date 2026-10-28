@@ -118,8 +118,8 @@ impl<'a> Sim<'a> {
         let Some(cfg) = d.dns.as_ref() else { return false };
         let q = m.q.clone();
         let name = fqdn(&q.name);
-        let who = if cfg.recursive && m.rd == Some(true) { "резолвер" } else { "сервер" };
-        self.log(at, &d.id, EventKind::Dns, format!("{who}: вопрос «{name} {}»", q.typ));
+        let who = if cfg.recursive && m.rd == Some(true) { i18n::tr("resolver") } else { i18n::tr("server") };
+        self.log(at, &d.id, EventKind::Dns, i18n::trf!("{0}: question “{1} {2}”", who, name, q.typ));
         let reply_msg = |extra: DnsMessage| {
             let mut r = Packet::new(Proto::Udp, 0);
             r.sport = Some(53);
@@ -132,7 +132,7 @@ impl<'a> Sim<'a> {
             let hit = self.rt.dns_cache.get(&d.id).and_then(|c| c.get(&key)).cloned();
             if let Some(hit) = hit {
                 let vals: Vec<&str> = hit.iter().map(|a| a.value.as_str()).collect();
-                self.log(at, &d.id, EventKind::Dns, format!("ответ из кэша: {}", vals.join(", ")));
+                self.log(at, &d.id, EventKind::Dns, i18n::trf!("answer from cache: {0}", vals.join(", ")));
                 let mut msg = dns_msg(m.id, q);
                 msg.answers = Some(hit);
                 msg.ra = Some(true);
@@ -142,7 +142,7 @@ impl<'a> Sim<'a> {
             let own = auth_answer(cfg, &q);
             if !own.answers.is_empty() {
                 let vals: Vec<&str> = own.answers.iter().map(|a| a.value.as_str()).collect();
-                self.log(at, &d.id, EventKind::Dns, format!("отвечаю из своей зоны: {}", vals.join(", ")));
+                self.log(at, &d.id, EventKind::Dns, i18n::trf!("answering from own zone: {0}", vals.join(", ")));
                 let mut msg = dns_msg(m.id, q);
                 msg.answers = Some(own.answers);
                 msg.ra = Some(true);
@@ -157,19 +157,19 @@ impl<'a> Sim<'a> {
                 hops: 0,
             };
             match cfg.roots.first() {
-                None => self.dns_finish(d, st, Rcode::ServFail, at, Some("корневые серверы не заданы")),
+                None => self.dns_finish(d, st, Rcode::ServFail, at, Some(i18n::tr("root servers are not configured"))),
                 Some(root) => self.dns_send(d, st, root, at),
             }
             return true;
         }
         let a = auth_answer(cfg, &q);
         let text = if let Some(r) = &a.referral {
-            format!("не знаю, но зона {} у {} — отправляю реферал", r.zone, r.ns)
+            i18n::trf!("I don't know, but zone {0} belongs to {1} — sending a referral", r.zone, r.ns)
         } else if !a.answers.is_empty() {
             let v: Vec<String> = a.answers.iter().map(|x| format!("{} {}", x.typ, x.value)).collect();
-            format!("отвечаю: {}", v.join(", "))
+            i18n::trf!("answering: {0}", v.join(", "))
         } else {
-            format!("ответ: {}", a.rcode.as_str())
+            i18n::trf!("response: {0}", a.rcode.as_str())
         };
         self.log(at, &d.id, EventKind::Dns, text);
         let mut msg = dns_msg(m.id, q);
@@ -183,13 +183,13 @@ impl<'a> Sim<'a> {
     fn dns_send(&mut self, d: &'a Device, mut st: DnsPending, server: &str, at: f64) {
         st.hops += 1;
         if st.hops > 12 {
-            return self.dns_finish(d, st, Rcode::ServFail, at, Some("слишком много шагов"));
+            return self.dns_finish(d, st, Rcode::ServFail, at, Some(i18n::tr("too many steps")));
         }
         self.dns_seq += 1;
         let id = self.dns_seq;
         let key = format!("{}:{}", d.id, id);
         let ip = parse_ip(server).unwrap_or(0);
-        self.log(at, &d.id, EventKind::Dns, format!("спрашиваю {server}: «{} {}»", st.cur.name, st.cur.typ));
+        self.log(at, &d.id, EventKind::Dns, i18n::trf!("asking {0}: “{1} {2}”", server, st.cur.name, st.cur.typ));
         let cur = st.cur.clone();
         self.dns_pend.insert(key.clone(), st);
         let mut p = Packet::new(Proto::Udp, ip);
@@ -199,7 +199,7 @@ impl<'a> Sim<'a> {
         self.ip_out(d, p, at + 5.0);
         if let Some(st) = self.dns_pend.remove(&key) {
             // ответа не будет: резолвер ждёт таймаут и отвечает SERVFAIL
-            self.log(at + 1_000_000.0, &d.id, EventKind::Dns, format!("{server} не отвечает — SERVFAIL клиенту"));
+            self.log(at + 1_000_000.0, &d.id, EventKind::Dns, i18n::trf!("{0} does not answer — SERVFAIL to the client", server));
             self.dns_finish(d, st, Rcode::ServFail, at + 1_000_000.0, None);
         }
     }
@@ -214,7 +214,7 @@ impl<'a> Sim<'a> {
                 return self.dns_finish(d, st, Rcode::NoError, at, None);
             }
             if let Some(cname) = answers.iter().find(|a| a.typ == "CNAME") {
-                self.log(at, &d.id, EventKind::Dns, format!("{} — псевдоним для {}, ищу дальше", cname.name, cname.value));
+                self.log(at, &d.id, EventKind::Dns, i18n::trf!("{0} is an alias for {1}, continuing the lookup", cname.name, cname.value));
                 st.cur = DnsQuestion { name: fqdn(&cname.value), typ: want };
                 let root = d.dns.as_ref().and_then(|x| x.roots.first().cloned()).unwrap_or_default();
                 return self.dns_send(d, st, &root, at);
@@ -222,7 +222,7 @@ impl<'a> Sim<'a> {
             return self.dns_finish(d, st, Rcode::NoError, at, None);
         }
         if let Some(r) = &m.referral {
-            self.log(at, &d.id, EventKind::Dns, format!("реферал: зона {} → {}", r.zone, r.ns));
+            self.log(at, &d.id, EventKind::Dns, i18n::trf!("referral: zone {0} → {1}", r.zone, r.ns));
             return self.dns_send(d, st, &r.ns, at);
         }
         self.dns_finish(d, st, m.rcode.unwrap_or(Rcode::ServFail), at, None);
@@ -277,7 +277,7 @@ pub fn local_lookup(d: &Device, name: &str) -> LocalLookup {
     }
     match d.resolver.as_deref() {
         Some(r) if !r.is_empty() => LocalLookup::Ask(parse_ip(r)),
-        _ => LocalLookup::Error("в /etc/resolv.conf нет DNS-сервера".into()),
+        _ => LocalLookup::Error(i18n::tr("no DNS server in /etc/resolv.conf").into()),
     }
 }
 

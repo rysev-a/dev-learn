@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 43,
+ "tasks": [
+  {
+   "id": "parallel-map-threads",
+   "title": "A parallel map on threads",
+   "statement": "Write a function parallel_map(func, items, workers): it applies func to each item in a pool of workers threads and returns the list of results in the ORIGINAL order. Use ThreadPoolExecutor.",
+   "hint": "with ThreadPoolExecutor(max_workers=workers) as pool: return list(pool.map(func, items))."
+  },
+  {
+   "id": "locked-counter",
+   "title": "A counter under a lock",
+   "statement": "Write a function count_in_threads(threads, per_thread): it starts threads threads, each of which increases a shared counter by 1 exactly per_thread times, and returns the final value. Protect the counter with a Lock.",
+   "hint": "Keep the shared counter in a list or use nonlocal; inside the loop: with lock: counter += 1; at the end, join all the threads."
+  },
+  {
+   "id": "queue-worker",
+   "title": "Producer and consumer",
+   "statement": "Write a function process_with_queue(items): the main thread puts the items into a queue.Queue, and one worker thread takes them and adds their squares to the result. Return the list of squares in the order of arrival. To stop the worker, use the sentinel value None.",
+   "hint": "while True: item = q.get(); if item is None: break; results.append(item * item) — after all the items, put None and join."
+  },
+  {
+   "id": "first-completed",
+   "title": "Who is faster",
+   "statement": "Write a function first_done(funcs): it runs all the functions (with no arguments) in a thread pool and returns the result of the one that finished FIRST. Use as_completed.",
+   "hint": "with ThreadPoolExecutor(len(funcs)) as pool: futures = [pool.submit(f) for f in funcs]; for fut in as_completed(futures): return fut.result()."
+  },
+  {
+   "id": "stoppable-ticker",
+   "title": "A stoppable background thread",
+   "statement": "Define a class Ticker: start() launches a background thread that increases the ticks attribute by 1 every 0.02 seconds; stop() stops it (via threading.Event) and waits for it to finish. After stop() the ticks no longer grow.",
+   "hint": "self._stop = threading.Event(); in the thread: while not self._stop.is_set(): self.ticks += 1; self._stop.wait(0.02)."
+  },
+  {
+   "id": "limited-parallel",
+   "title": "No more than N at a time",
+   "statement": "Write a function run_limited(tasks, limit): it runs all the functions from tasks in threads, but does not allow more than limit of them to work at the same time (Semaphore). Wait for all of them to finish.",
+   "hint": "sem = threading.Semaphore(limit); wrapper: with sem: task(); one thread per task, then join."
+  },
+  {
+   "id": "collect-with-errors",
+   "title": "Results and errors",
+   "statement": "Write a function run_all(funcs): it runs the functions in a thread pool and returns a list in the original order: for a successful one, ('ok', value); for one that failed, ('error', the exception text).",
+   "hint": "futures = [pool.submit(f) for f in funcs]; then try: ('ok', fut.result()) / except Exception as e: ('error', str(e))."
+  }
+ ]
+}

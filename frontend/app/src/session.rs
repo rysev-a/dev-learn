@@ -1,5 +1,5 @@
 //! Сессия: токен и личность вошедшего пользователя. Токен выдаёт `/api/auth/login`, хранится в `localStorage`
-//! (ключ `say-token`) и уходит в каждый запрос заголовком `Authorization: Bearer`.
+//! (ключ `cs-core-token`) и уходит в каждый запрос заголовком `Authorization: Bearer`.
 
 use api::{dto::Identity, ApiError, Client};
 use leptos::{prelude::*, task::spawn_local};

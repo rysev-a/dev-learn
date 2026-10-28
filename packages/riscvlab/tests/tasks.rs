@@ -15,6 +15,7 @@ fn chapters() -> [LabChapter; 2] {
 
 #[test]
 fn data_files_have_the_expected_shape() {
+    i18n::set_locale(i18n::Locale::Ru);
     let [c16, c17] = chapters();
     assert_eq!((c16.book, c16.chapter, c16.lab), (14, 16, Lab::Riscv));
     assert_eq!((c17.book, c17.chapter, c17.lab), (14, 17, Lab::Riscv));
@@ -49,6 +50,7 @@ fn data_files_have_the_expected_shape() {
 
 #[test]
 fn data_files_round_trip_through_serde() {
+    i18n::set_locale(i18n::Locale::Ru);
     for n in [16, 17] {
         let path = data_dir().join(format!("14-{n}.json"));
         let text = std::fs::read_to_string(&path).expect("файл");
@@ -65,6 +67,7 @@ fn data_files_round_trip_through_serde() {
 
 #[test]
 fn reference_solutions_pass_every_test() {
+    i18n::set_locale(i18n::Locale::Ru);
     // порт самопроверки лаборатории: эталоны доходят до верного итога
     let mut n = 0;
     for c in chapters() {
@@ -83,6 +86,7 @@ fn reference_solutions_pass_every_test() {
 
 #[test]
 fn starters_and_empty_programs_do_not_pass() {
+    i18n::set_locale(i18n::Locale::Ru);
     for c in chapters() {
         for t in &c.tasks {
             let s = verify(&t.spec, &t.spec.starter);
@@ -97,6 +101,7 @@ fn starters_and_empty_programs_do_not_pass() {
 
 #[test]
 fn reference_run_details_match_the_statements() {
+    i18n::set_locale(i18n::Locale::Ru);
     // отдельные факты из условий задач
     let [c16, c17] = chapters();
     let run = |t: &Task| {
@@ -124,6 +129,7 @@ fn reference_run_details_match_the_statements() {
 
 #[test]
 fn wrong_programs_get_readable_messages() {
+    i18n::set_locale(i18n::Locale::Ru);
     let [c16, c17] = chapters();
     let t = c16.task("leds").expect("задача");
     let v = verify(&t.spec, "  li t0, 0x10001000\n  li t1, 0x5A\n  sw t1, 0(t0)\n  ebreak\n");
@@ -145,6 +151,7 @@ fn wrong_programs_get_readable_messages() {
 
 #[test]
 fn assembler_errors_are_reported_with_all_lines() {
+    i18n::set_locale(i18n::Locale::Ru);
     let [c16, _] = chapters();
     let t = c16.task("sum-100").expect("задача");
     let v = verify(&t.spec, "  foo a0\n  addi a0, a0\n  ebreak\n");
@@ -157,6 +164,7 @@ fn assembler_errors_are_reported_with_all_lines() {
 
 #[test]
 fn faults_and_step_limit() {
+    i18n::set_locale(i18n::Locale::Ru);
     let [c16, _] = chapters();
     let t = c16.task("sum-100").expect("задача");
     let v = verify(&t.spec, "l:\n  j l\n");
@@ -169,6 +177,7 @@ fn faults_and_step_limit() {
 
 #[test]
 fn oversized_program_is_rejected_without_assembling() {
+    i18n::set_locale(i18n::Locale::Ru);
     let [c16, _] = chapters();
     let t = c16.task("sum-100").expect("задача");
     let v = verify(&t.spec, &"nop\n".repeat(MAX_PROGRAM_BYTES / 4 + 10));
@@ -178,6 +187,7 @@ fn oversized_program_is_rejected_without_assembling() {
 
 #[test]
 fn without_reference_hides_only_the_reference() {
+    i18n::set_locale(i18n::Locale::Ru);
     let [c16, _] = chapters();
     let open = c16.without_references();
     for (a, b) in c16.tasks.iter().zip(&open.tasks) {
@@ -203,6 +213,7 @@ fn spec_with(tests: Vec<Test>) -> TaskSpec {
 
 #[test]
 fn several_tests_and_initial_registers() {
+    i18n::set_locale(i18n::Locale::Ru);
     // два теста с разными переключателями: инверсия считается по входу
     let invert = |sw: u8, want: u8| Test {
         switches: sw,
@@ -239,6 +250,7 @@ fn several_tests_and_initial_registers() {
 
 #[test]
 fn check_json_shape_is_stable() {
+    i18n::set_locale(i18n::Locale::Ru);
     let c: Check =
         serde_json::from_str(r#"{"kind":"mem_words","symbol":"arr","expected":[1,-2],"ok":"ок"}"#).expect("разбор");
     assert_eq!(c, Check::MemWords { symbol: "arr".into(), expected: vec![1, -2], ok: "ок".into() });
@@ -265,6 +277,7 @@ fn export_task(id: &str, solution: &str, check: Check) -> ExportTask {
 
 #[test]
 fn export_conversion_validates_tasks() {
+    i18n::set_locale(i18n::Locale::Ru);
     let leds = |v: u8| Check::Leds { expected: v, ok: "ок".into(), bad_suffix: String::new() };
     let good = "  li t0, 0x10001000\n  li t1, 5\n  sw t1, 0(t0)\n  ebreak\n";
     let ch = |tasks| ExportChapter { book: 14, chapter: 16, profile: Profile::Board, tasks };

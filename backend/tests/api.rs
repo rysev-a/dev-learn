@@ -7,7 +7,7 @@ use axum::{
     Router,
 };
 use http_body_util::BodyExt;
-use say_backend::{build, config::Config, db};
+use cs_core_backend::{build, config::Config, db};
 use serde_json::{json, Value};
 use tower::ServiceExt;
 
@@ -16,7 +16,7 @@ async fn app(worker_token: &str) -> Router {
         bind: "127.0.0.1:0".into(),
         surreal_url: "memory".into(),
         data_dir: std::path::PathBuf::from("data"),
-        audio_dir: std::env::temp_dir().join("say-rs-test-audio"),
+        audio_dir: std::env::temp_dir().join("cs-core-rs-test-audio"),
         static_dir: None,
         worker_token: worker_token.into(),
         seed: "auto".into(),
@@ -393,4 +393,101 @@ async fn web_lab_accepts_references_and_rejects_starters() {
         }
     }
     assert!(checked >= 21, "проверено упражнений: {checked}");
+}
+
+async fn call_lang(app: &Router, lang: &str, method: Method, uri: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
+    let mut req = Request::builder().method(method).uri(uri).header(header::ACCEPT_LANGUAGE, lang);
+    if let Some(t) = token {
+        req = req.header(header::AUTHORIZATION, format!("Bearer {t}"));
+    }
+    let req = match body {
+        Some(b) => req.header(header::CONTENT_TYPE, "application/json").body(Body::from(b.to_string())).unwrap(),
+        None => req.body(Body::empty()).unwrap(),
+    };
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = res.into_body().collect().await.unwrap().to_bytes();
+    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+#[tokio::test]
+async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
+    let app = app("").await;
+
+    // список книг: у переведённой — английское название и оба языка, у остальных — русские название и только русский
+    let (_, books) = call_lang(&app, "en-US,en;q=0.9", Method::GET, "/api/books", None, None).await;
+    let books = books.as_array().unwrap();
+    let dm = books.iter().find(|b| b["id"] == 12).unwrap();
+    assert_eq!(dm["title"], "Discrete Mathematics");
+    assert_eq!(dm["langs"], json!(["ru", "en"]));
+    let py = books.iter().find(|b| b["id"] == 13).unwrap();
+    assert_eq!(py["langs"], json!(["ru", "en"]));
+    assert_eq!(py["title"], "Python as a First Language");
+    for (id, title) in [(14, "Computer Architecture"), (15, "Computer Networks"), (17, "Virtualization"), (11, "Modern Frontend"), (18, "System Design")] {
+        let book = books.iter().find(|b| b["id"] == id).unwrap();
+        assert_eq!(book["langs"], json!(["ru", "en"]), "книга {id}");
+        assert_eq!(book["title"], title);
+    }
+    let c = books.iter().find(|b| b["id"] == 16).unwrap();
+    assert_eq!(c["langs"], json!(["ru"]));
+    let (_, ru_books) = call_lang(&app, "ru", Method::GET, "/api/books", None, None).await;
+    assert_eq!(ru_books.as_array().unwrap().iter().find(|b| b["id"] == 12).unwrap()["title"], "Дискретная математика");
+
+    // оглавление и текст главы: те же id, английский текст, столько же абзацев
+    let (_, ru_course) = call_lang(&app, "ru", Method::GET, "/api/books/12/course", None, None).await;
+    let (_, en_course) = call_lang(&app, "en", Method::GET, "/api/books/12/course", None, None).await;
+    assert_eq!(en_course[0]["title"], "The language of mathematics");
+    assert_eq!(ru_course[0]["id"], en_course[0]["id"]);
+    let chapter_id = en_course[0]["chapters"][0]["id"].clone();
+    assert_eq!(ru_course[0]["chapters"][0]["id"], chapter_id, "адрес главы не зависит от языка");
+    let (_, en_chapter) = call_lang(&app, "en", Method::GET, &format!("/api/chapters/{chapter_id}"), None, None).await;
+    let (_, ru_chapter) = call_lang(&app, "ru", Method::GET, &format!("/api/chapters/{chapter_id}"), None, None).await;
+    assert!(en_chapter["lessons"][0]["text"].as_str().unwrap().starts_with("Discrete mathematics. Chapter 1."));
+    assert!(ru_chapter["lessons"][0]["text"].as_str().unwrap().starts_with("Дискретная математика. Глава 1."));
+    assert_eq!(en_chapter["lessons"].as_array().unwrap().len(), ru_chapter["lessons"].as_array().unwrap().len());
+    assert_ne!(en_chapter["lessons"][0]["id"], ru_chapter["lessons"][0]["id"], "у каждого языка свои части урока (и своё аудио)");
+
+    // слайды: переведённой книги — английские, остальных — русские
+    let (_, en_slides) = call_lang(&app, "en", Method::GET, "/api/slides/12/1", None, None).await;
+    assert!(en_slides["rubric"].as_str().unwrap().starts_with("DISCRETE MATHEMATICS"));
+    assert_eq!(en_slides["slides"].as_array().unwrap().len(), 13);
+    let (_, py_slides) = call_lang(&app, "en", Method::GET, "/api/slides/13/5", None, None).await;
+    assert_eq!(py_slides["rubric"], "PYTHON AS A FIRST LANGUAGE / DATA AND LOOPS / CHAPTER 5");
+    let (_, arch_slides) = call_lang(&app, "en", Method::GET, "/api/slides/14/1", None, None).await;
+    assert!(arch_slides["rubric"].as_str().unwrap().starts_with("THE COMPUTER AND THE TRANSISTOR"));
+    let (_, fallback) = call_lang(&app, "en", Method::GET, "/api/slides/16/1", None, None).await;
+    assert!(fallback["rubric"].as_str().unwrap().chars().any(|c| ('а'..='я').contains(&c.to_ascii_lowercase()) || c == 'А'), "книга без перевода отдаётся по-русски");
+
+    // квиз: тот же ответ и число вариантов, текст — на языке запроса
+    let token = sign_in(&app, "lang@example.com").await;
+    let (_, en_quiz) = call_lang(&app, "en", Method::GET, "/api/quizzes/12/1", Some(&token), None).await;
+    let (_, ru_quiz) = call_lang(&app, "ru", Method::GET, "/api/quizzes/12/1", Some(&token), None).await;
+    assert_eq!(en_quiz["title"], "Quiz: sets");
+    assert_eq!(en_quiz["questions"][0]["q"], "How does a set differ from a list?");
+    assert_eq!(en_quiz["questions"][0]["options"].as_array().unwrap().len(), ru_quiz["questions"][0]["options"].as_array().unwrap().len());
+    let (_, en_answer) = call_lang(&app, "en", Method::POST, "/api/quizzes/12/1/answer", Some(&token), Some(json!({ "question": 0, "pick": 1 }))).await;
+    assert_eq!(en_answer["answer"], 1);
+    assert!(en_answer["expl"].as_str().unwrap().starts_with("A list is a contract"));
+
+    // ответы с вводом: «да» — это yes/true, и наоборот
+    let (_, en_set) = call_lang(&app, "en", Method::GET, "/api/answers/12/1", Some(&token), None).await;
+    assert_eq!(en_set["tasks"][0]["q"], "How many subsets does the empty set have?");
+    let check = |lang: &'static str, value: &'static str| {
+        let app = app.clone();
+        let token = token.clone();
+        async move { call_lang(&app, lang, Method::POST, "/api/answers/12/1/check", Some(&token), Some(json!({ "task": 4, "value": value }))).await.1["ok"].clone() }
+    };
+    assert_eq!(check("en", "Yes").await, json!(true));
+    assert_eq!(check("en", "да").await, json!(false));
+    assert_eq!(check("ru", "да").await, json!(true));
+    assert_eq!(check("ru", "yes").await, json!(false));
+
+    // код-задачи: условия на языке запроса, тесты и драйвер общие
+    let (_, en_tasks) = call_lang(&app, "en", Method::GET, "/api/exercises/13/5", Some(&token), None).await;
+    let (_, ru_tasks) = call_lang(&app, "ru", Method::GET, "/api/exercises/13/5", Some(&token), None).await;
+    let (en_list, ru_list) = (en_tasks["tasks"].as_array().unwrap(), ru_tasks["tasks"].as_array().unwrap());
+    assert_eq!(en_list.len(), ru_list.len());
+    assert_eq!(en_list[0]["id"], ru_list[0]["id"]);
+    assert_ne!(en_list[0]["statement"], ru_list[0]["statement"]);
+    assert!(!en_list[0]["statement"].as_str().unwrap().is_empty());
 }

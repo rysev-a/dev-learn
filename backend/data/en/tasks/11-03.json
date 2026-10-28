@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "j3-arrow-to-function",
+   "title": "Mini-Babel: arrow → function",
+   "statement": "Write a function arrowToFunction(src) that turns a single line of the form «(a, b) => expression», «x => expression» or «() => expression» into «function (a, b) { return expression; }». Parentheses around a single parameter are optional; spaces around the arrow don't matter; the result must match the examples.",
+   "hint": "A regular expression with two parameter variants: in parentheses, or a single identifier."
+  },
+  {
+   "id": "j3-let-to-var",
+   "title": "Mini-Babel: let/const → var",
+   "statement": "Write a function letToVar(src) that replaces the keywords let and const with var throughout the source, but not inside strings in single or double quotes (and not in parts of words like «outlet» or «constant»).",
+   "hint": "Walk through the text: copy strings whole, and look for words with boundaries elsewhere."
+  },
+  {
+   "id": "j3-template-to-concat",
+   "title": "Mini-Babel: template → concatenation",
+   "statement": "Write a function templateToConcat(tpl) that takes the contents of a template string (without backticks) such as «Привет, ${name}! Тебе ${age + 1}.» and returns the concatenation code «\"Привет, \" + name + \"! Тебе \" + (age + 1) + \".\"». Expressions in ${…} are wrapped in parentheses if they contain a space; empty literal parts are skipped; for a string with no substitutions, a single literal. Escape quotes and backslashes in literals with JSON.stringify.",
+   "hint": "matchAll with /\\$\\{([^}]*)\\}/g; literals between substitutions via JSON.stringify."
+  },
+  {
+   "id": "j3-array-from",
+   "title": "Array.from polyfill",
+   "statement": "Write a function arrayFrom(src, mapFn) that accepts an iterable (array, string, Set, Map, generator) or an array-like object { length, 0:…, 1:… }; it returns an array, applying mapFn(value, index) if it is given. You must not use the Array.from method.",
+   "hint": "If the object has Symbol.iterator, iterate with for…of; otherwise go by length."
+  },
+  {
+   "id": "j3-object-assign",
+   "title": "Object.assign polyfill",
+   "statement": "Write a function assign(target, ...sources) that copies own enumerable properties (including symbol keys) from the sources into target, left to right, and returns target; null and undefined sources are skipped; if target is null or undefined, throw a TypeError. You must not use Object.assign.",
+   "hint": "Keys: Object.keys plus the enumerable symbols from Object.getOwnPropertySymbols."
+  },
+  {
+   "id": "j3-includes",
+   "title": "Array.prototype.includes polyfill",
+   "statement": "Write a function includesPoly(arr, x, from = 0) that returns true if x is in the array starting at index from (a negative from counts from the end); comparison is SameValueZero: NaN is found, +0 and -0 are equal. You must not use the includes and indexOf methods.",
+   "hint": "Comparison: v === x || (v !== v && x !== x)."
+  },
+  {
+   "id": "j3-pad-start",
+   "title": "padStart polyfill",
+   "statement": "Write a function padStartPoly(s, n, pad = \" \") that pads the string s at the start with repetitions of pad up to length n (the last repetition is cut off); if s is already at least n long or pad is empty, return s. You must not use the padStart and repeat methods.",
+   "hint": "Build up the filler in a loop and trim it to the required length."
+  },
+  {
+   "id": "j3-entries",
+   "title": "Object.entries and Object.fromEntries polyfills",
+   "statement": "Write the functions entriesPoly(obj) (an array of [key, value] pairs of own enumerable string keys, in iteration order) and fromEntriesPoly(iterable) (an object built from pairs; a later key overwrites an earlier one). You must not use Object.entries and Object.fromEntries.",
+   "hint": "for…in + hasOwn; for fromEntries, a loop over the pairs with destructuring."
+  },
+  {
+   "id": "j3-my-promise",
+   "title": "Promise polyfill",
+   "statement": "Write a class MyPromise: a constructor (executor(resolve, reject)); methods then(onFulfilled, onRejected) (returns a new MyPromise; handlers are called asynchronously, via queueMicrotask; a “thenable” value is unwrapped) and catch(onRejected). An exception inside the executor or a handler rejects the promise. Static methods resolve(v) and reject(e). You must not use the built-in Promise.",
+   "hint": "A state (pending/fulfilled/rejected), a queue of handlers and queueMicrotask to run them; then returns a new MyPromise."
+  },
+  {
+   "id": "j3-promise-all",
+   "title": "Promise.all by hand",
+   "statement": "Write a function all(list) that takes an array of values and promises; it returns a promise with an array of results in the original order; on the first rejection it rejects with the same reason; for an empty array it resolves immediately. You must not use Promise.all, Promise.allSettled or async/await (the Promise constructor and then are allowed).",
+   "hint": "A counter of what remains; put results by index, not in completion order."
+  },
+  {
+   "id": "j3-detect-features",
+   "title": "Which ES6+ features the code uses",
+   "statement": "Write a function detectFeatures(src) that returns a sorted array of the names of features found in the source (do not worry about skipping text inside quoted strings — for simplicity search the whole text): «arrow» (=>), «class» (the word class), «template» (a backtick), «letconst» (let or const as words), «spread» (...), «async» (the words async/await), «destructuring» (const/let/var followed by { or [ before =), «optional» (?.), «nullish» (??).",
+   "hint": "A table of regular expressions; the result is the sorted keys of those that matched."
+  },
+  {
+   "id": "j3-browserslist",
+   "title": "A browserslist query",
+   "statement": "Write a function matchBrowsers(query, data): query is a string like «chrome >= 80, firefox >= 78, not firefox 79, ie 11»; data is an array of { name, version } (version is a number). Comma-separated queries are combined; «name >= N», «name > N», «name <= N», «name < N», «name N» define a set, and «not …» subtracts from what has accumulated (applied in order, left to right). The result is a sorted array of strings «name version» (sorted by name, then by version).",
+   "hint": "Parse each query with a regular expression and accumulate the set in a Map keyed by the string «name version»."
+  },
+  {
+   "id": "j3-support-table",
+   "title": "Browser support for a feature",
+   "statement": "A table of minimum versions: { arrow: { chrome: 45, firefox: 22, ie: null }, … } (null means never supported). Write a function unsupported(table, features, browsers): browsers is an array of { name, version }; return a sorted array of strings «feature → name version» for every (feature, browser) pair where the browser does not support the feature. A browser missing from the feature's table is considered not supporting it.",
+   "hint": "The minimum for a pair is table[feature]?.[browser]; null/undefined means not supported."
+  },
+  {
+   "id": "j3-find-imports",
+   "title": "Finding dependencies in a file",
+   "statement": "Write a function findImports(src) that returns an array of the path strings imported in the source: require('x'), require(\"x\"), import x from 'y', import { a } from 'y', import 'y' and dynamic import('y'); without duplicates, in order of appearance. Ignore strings inside comments (// … and /* … */).",
+   "hint": "First remove the comments, then use one regex with three variants: require, dynamic import, static import."
+  },
+  {
+   "id": "j3-build-graph",
+   "title": "A module graph for a bundle",
+   "statement": "Write a function buildOrder(files, entry): files is an object “path → source”, where dependencies are included via require('./x') (a path relative to the root without extension: «./a» → key «a.js»); return an array of paths in the order for concatenation: dependencies before their dependents, each module once, traversing from entry. Cycles are allowed (then a module that is already being processed is skipped). For a missing module throw Error(\"нет модуля: <путь>\").",
+   "hint": "Depth-first search: first visit all the requires, then add the file itself; mark visited files in advance."
+  },
+  {
+   "id": "j3-tree-shake",
+   "title": "Tree shaking",
+   "statement": "Modules are described like this: { name: { exports: [names], uses: { otherModule: [used names] } } }. Write a function unusedExports(modules, entry): entry is assumed to use all of its exports; return an object “module → array of unused exports”, only for modules reachable from entry that have any (names in order of declaration, modules in name order). The exports of a module that is used as a whole (uses contains \"*\") are all used. Usage is transitive: a module takes part only if a reachable module refers to it.",
+   "hint": "Traverse from entry: accumulate a set of used names for each module; \"*\" means all exports."
+  },
+  {
+   "id": "j3-minify-js",
+   "title": "A comment minifier",
+   "statement": "Write a function stripComments(src) that removes «// …» comments to the end of the line and «/* … */» comments from the source, without touching the same sequences inside strings in single, double and backtick quotes; then it removes empty lines (consisting only of spaces) and trailing spaces at the ends of lines. Leave the rest of the text unchanged.",
+   "hint": "Go through the characters: copy strings whole, skip comments."
+  },
+  {
+   "id": "j3-concat-map",
+   "title": "Concatenating files with a line map",
+   "statement": "Write a function concatFiles(files): files is an array of { name, code }; return { code, map }: code is all the files one after another, with a separator line «// ----» between files (it belongs to no file); map is an array with an entry for each line of the resulting code: [file name, line number in the file starting from 1], or null for separator lines. This is a simplified source map.",
+   "hint": "Walk through the files and lines; insert a separator before every file except the first."
+  },
+  {
+   "id": "j3-hash-name",
+   "title": "A file name with a content hash",
+   "statement": "To bust caches, the file name is derived from a hash of the content. Write a function hashedName(name, content): compute the 32-bit FNV-1a hash over the characters of the string (UTF-16 code units: h = 2166136261; for each one: h ^= code; h = (h * 16777619) >>> 0 using Math.imul), take 8 lowercase hexadecimal digits and insert them before the last dot of the name: («app.js», …) → «app.1a2b3c4d.js»; if there is no dot, append them to the end after a dot.",
+   "hint": "h ^= code; h = Math.imul(h, 16777619) >>> 0; then toString(16) padded with zeros to 8 digits."
+  },
+  {
+   "id": "j3-gulp-stream",
+   "title": "Mini-Gulp: a pipeline of file transformations",
+   "statement": "Write a class Stream(files): files is an array of { name, content }. The pipe(transform) method transforms every file: transform(file) returns a new file (or null, in which case the file is dropped); it returns a new Stream, and the original does not change. The run() method returns an array of files. Computation is deferred until run().",
+   "hint": "Keep a list of steps; run applies them in turn to copies of the files and drops null."
+  },
+  {
+   "id": "j3-task-runner",
+   "title": "Mini-Grunt: running tasks with dependencies",
+   "statement": "Write a class Runner: task(name, deps, fn) registers a task (deps is an array of names, fn is a function without arguments); run(name) executes the task after its dependencies — each task at most once per run call, in the order the dependencies are listed; it returns an array of names in execution order. An unknown task throws Error(\"нет задачи: <имя>\"), a cycle throws Error(\"цикл: <a> → <b> …\") with the chain of names.",
+   "hint": "Depth-first traversal with a stack to detect a cycle and a set of tasks already done."
+  },
+  {
+   "id": "j3-scss-vars",
+   "title": "Sass: variables",
+   "statement": "Write a function compileVars(scss): lines of the form «$name: value;» declare variables (a value may contain other variables); elsewhere in the text, $name is replaced by its value; the declarations themselves are removed from the result (along with their line). Redefinition: the later value applies to the following lines. An undeclared variable stays as it is.",
+   "hint": "Parse line by line: a declaration stores its value (with substitution), other lines substitute."
+  },
+  {
+   "id": "j3-scss-nesting",
+   "title": "Mini-Sass: nested rules",
+   "statement": "Write a function flattenScss(scss): the input is simplified SCSS without variables, where rules are nested: «.nav { color: red; a { color: blue; &:hover { color: green; } } }»; the output is flat CSS in which nested selectors have their parents joined on: «.nav a», and «&» is replaced by the parent («.nav a:hover»). Output rules in order of appearance (the parent before its children, if it has declarations of its own), each in the format «selector { declaration; declaration; }» on one line, with rules separated by a newline. Do not use comma-separated selectors.",
+   "hint": "Recursive parsing: the text before «{» is the selector of the nested rule; replace «&» with the parent selector."
+  },
+  {
+   "id": "j3-autoprefix",
+   "title": "Autoprefixer",
+   "statement": "Write a function autoprefix(css, table): css is flat CSS of one or more lines «selector { property: value; … }» (each declaration on one line inside the braces), table is { property: [prefixes] } (for example, { \"user-select\": [\"-webkit-\", \"-moz-\"] }); for every declaration whose property is in the table, copies with the prefixes are added before it (in table order), then the original. Copy the value unchanged.",
+   "hint": "For each declaration inside { … }, insert the prefixed variants before the original."
+  },
+  {
+   "id": "j3-minify-css",
+   "title": "A CSS minifier",
+   "statement": "Write a function minifyCss(css): removes /* … */ comments, extra spaces and newlines; spaces around «{ } : ; ,» are removed (except spaces inside values between words: «margin: 0 auto» → «margin:0 auto»); the last «;» before «}» is removed. Do not touch quoted strings.",
+   "hint": "Remove the comments, then collapse whitespace outside strings and drop it around the characters { } : ; ,"
+  },
+  {
+   "id": "j3-left-pad",
+   "title": "left-pad: those very 11 lines",
+   "statement": "Write a function leftPad(str, len, ch = \" \") that adds ch on the left while the string's length is less than len (str is converted to a string; ch is one character or a string; an empty ch counts as a space; if len is not a number or is not greater than the string's length, return the string as it is). You must not use padStart.",
+   "hint": "An accumulating loop: pad += ch while pad.length + str.length < len."
+  },
+  {
+   "id": "j3-dependents",
+   "title": "Who breaks if a package is removed",
+   "statement": "Dependencies are given as a graph { package: [its dependencies] }. Write a function brokenBy(graph, removed): a sorted array of all packages that depend, directly or indirectly, on removed (removed itself is not included). Example: after left-pad is removed, everyone who included it breaks, and everyone who included them.",
+   "hint": "Build the reverse graph and traverse it from the removed package."
+  },
+  {
+   "id": "j3-module-format",
+   "title": "Module format from the source",
+   "statement": "Write a function moduleFormat(src): «esm» if there is an import … from or an export at the start of a line; «amd» if there is a call define([…], function…) or define(function…); «umd» if «module.exports» (or exports) and «define.amd» both occur; «cjs» if there is require( or module.exports/exports.; «iife» if the code starts with «(function» or «!function»; otherwise «script». Check in this order: umd, amd, esm, cjs, iife.",
+   "hint": "The order of checks matters: UMD contains both define and module.exports."
+  },
+  {
+   "id": "j3-coffee",
+   "title": "Mini-CoffeeScript",
+   "statement": "Write a function coffeeToJs(src): it turns lines of the form «name = (a, b) -> expression», «name = (a) -> expression» and «name = -> expression» into «var name = function (a, b) { return expression; };», and lines «name = value» (without an arrow) into «var name = value;». Empty lines are kept; leave other lines unchanged. The result is the lines joined by newlines.",
+   "hint": "Two regexes: first the one with an arrow, then plain assignment."
+  },
+  {
+   "id": "j3-vlq",
+   "title": "Source map: VLQ Base64",
+   "statement": "Source maps store numbers in the Base64 VLQ format. Write the functions vlqEncode(n) and vlqDecode(str): the number is converted to a sign-in-low-bit form (n < 0 → ((-n) << 1) | 1, otherwise n << 1), then emitted in groups of 5 bits from least to most significant; in each group bit 5 (value 32) means “continuation”; the groups are encoded with the Base64 alphabet «A–Za–z0–9+/». vlqDecode(str) returns the array of numbers from a string encoded back to back.",
+   "hint": "5 bits per digit: the low 5 bits of the value plus the continuation bit 32 if higher bits remain."
+  }
+ ]
+}

@@ -1,0 +1,54 @@
+{
+ "book": 14,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "rom4x2",
+   "title": "ROM: four words",
+   "statement": "A ROM (read-only memory) is memory whose contents are “hard-wired” into the circuit. Given address A1 A0 it outputs word D1 D0: address 0 gives 10, address 1 gives 01, address 2 gives 11, address 3 gives 00.",
+   "hint": "This is an ordinary truth table: the address is the inputs, the word is the outputs. Column D1 = [1, 0, 1, 0] is ¬A0. Column D0 = [0, 1, 1, 0] is the XOR of the address bits."
+  },
+  {
+   "id": "rom4x4",
+   "title": "ROM with a program",
+   "statement": "Store a program of four instructions (4 bits each, outputs W3…W0) in a ROM: address 0 holds 0010, address 1 holds 0101, address 2 holds 1001, address 3 holds 1100. Later the processor will read them in turn and execute them.",
+   "hint": "A 2→4 address decoder (Y0…Y3 mean “address k is selected”), and each bit of the word is the OR of the addresses where it equals 1. W3 = Y2 OR Y3, W2 = Y1 OR Y3, W0 = Y1 OR Y2, and W1 = Y0 (a one only in word 0)."
+  },
+  {
+   "id": "memory-map",
+   "title": "Memory map",
+   "statement": "In a computer several devices share one address space. Three address bits A2 A1 A0 (addresses 0…7) select one of them: ROM at addresses 0…3, RAM at 4…6, I/O ports at address 7. Produce select signals Rom, Ram and Io, with exactly one active.",
+   "hint": "The ROM is simply ¬A2 (the whole lower half of the addresses). The ports are address 111: A2·A1·A0. The RAM is the upper half except 111: A2 AND NOT(A1·A0)."
+  },
+  {
+   "id": "bus-control",
+   "title": "Memory bus control",
+   "statement": "Three signals arrive at the memory: CS (whether the chip is selected), Rd (read) and Wr (write). Produce We, the write enable (CS and Wr), and Oe, the permission to put data on the bus (CS and Rd). Reading and writing at the same time is not allowed: if both signals arrive, the write wins and Oe = 0.",
+   "hint": "We is a single AND gate: CS·Wr. Oe = CS·Rd·¬Wr: first CS AND Rd, then that result AND NOT Wr."
+  },
+  {
+   "id": "protected-cell",
+   "title": "Write-protected cell",
+   "statement": "A one-bit cell built from a latch with three control signals. W is write (with W = 1 the cell accepts D), WP is write protect: with WP = 1 writing is forbidden, whatever arrives on W. RD is read: with RD = 1 the cell's value goes out on bus Out, otherwise Out = 0. Q is the stored content itself.",
+   "hint": "The write enable for the latch: we = W·¬WP. Then an ordinary D latch with this enable (NOT on D, two ANDs, two NORs), and Out = Q·RD, a read gate, as in the cell from the section on latches."
+  },
+  {
+   "id": "cell-select",
+   "title": "Two-cell memory",
+   "statement": "Combine two cells made of D latches into a memory. Input A is the cell address (0 or 1), W is write, D is data. A write goes only to the addressed cell; output Q always shows the contents of the addressed cell. A fresh cell is empty, and its output is “?”.",
+   "hint": "The address enables a write to only one cell: w0 = W·¬A, w1 = W·A. Each cell is a D latch with enable w0 or w1 (NOT on D, two ANDs, two NORs). Reading is a multiplexer driven by A between the cells' Q outputs. About 16 gates in all."
+  },
+  {
+   "id": "ram2x2",
+   "title": "RAM: two two-bit words",
+   "statement": "Extend the memory to two-bit words. Data D1 D0, word address A (0 or 1), write W; output Q1 Q0 is the word at the address. A write updates both bits of the addressed word at once. An unwritten word reads “?”.",
+   "hint": "Four cells (two per word). The write enable for word 0 is W·¬A, for word 1 it is W·A, shared by both bits of the word. Data D1 and D0 each go to their own pair of cells (one NOT per bit, shared by both cells). Reading uses one multiplexer per bit. About 27 gates, so build it layer by layer."
+  },
+  {
+   "id": "sync-cell",
+   "title": "Synchronous memory",
+   "statement": "In real processors memory is written on the clock. Build a two-cell memory from DFF flip-flops: data D is written to the cell at address A only on the CLK edge and only when W = 1. Output Q is the contents of the addressed cell. The ready-made flip-flops start at zero on power-up.",
+   "hint": "Each cell is a DFF with a “hold” at its input: D' = w ? D : Q, where w = W·(A = k). This is the “self or new” multiplexer from the register-with-write exercise. A multiplexer driven by A reads the memory. About 16 gates."
+  }
+ ]
+}

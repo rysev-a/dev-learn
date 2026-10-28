@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 36,
+ "tasks": [
+  {
+   "id": "is-phone",
+   "title": "Phone number",
+   "statement": "Write a function is_phone(s): True if the whole string is a number like «+7-900-123-45-67» (after +7 come four groups separated by hyphens: 3, 3, 2 and 2 digits). Use re.fullmatch.",
+   "hint": "bool(re.fullmatch(r\"\\+7-\\d{3}-\\d{3}-\\d{2}-\\d{2}\", s))."
+  },
+  {
+   "id": "find-numbers",
+   "title": "Numbers from text",
+   "statement": "Write a function find_numbers(text): a list of all integers in the text, as int; a number may be preceded by a minus.",
+   "hint": "[int(x) for x in re.findall(r\"-?\\d+\", text)]."
+  },
+  {
+   "id": "extract-emails",
+   "title": "Email addresses",
+   "statement": "Write a function extract_emails(text): a list of addresses of the form name@domain.zone (Latin letters, digits, dots and underscores in the name and domain), in order of appearance.",
+   "hint": "re.findall(r\"[\\w.]+@[\\w.]+\\w\", text)."
+  },
+  {
+   "id": "collapse-spaces",
+   "title": "Extra spaces",
+   "statement": "Write a function collapse_spaces(text): replace each run of whitespace characters (spaces, tabs, newlines) with a single space and strip the spaces at the edges.",
+   "hint": "re.sub(r\"\\s+\", \" \", text).strip()."
+  },
+  {
+   "id": "parse-date-groups",
+   "title": "Parsing a date",
+   "statement": "Write a function parse_date(s): from a string «DD.MM.YYYY» return a tuple of numbers (year, month, day). If the whole string does not match the format, return None.",
+   "hint": "m = re.fullmatch(r\"(\\d\\d)\\.(\\d\\d)\\.(\\d{4})\", s); if m: int(m[3]), int(m[2]), int(m[1])."
+  },
+  {
+   "id": "hashtags",
+   "title": "Hashtags",
+   "statement": "Write a function hashtags(text): a list of hashtags (a word after #: letters, digits and underscores) without the # character, in lowercase.",
+   "hint": "[t.lower() for t in re.findall(r\"#(\\w+)\", text)]."
+  },
+  {
+   "id": "split-words-re",
+   "title": "Words without punctuation",
+   "statement": "Write a function split_words(text): a list of the words of the text (letters and digits), without punctuation and without empty items. Use re.findall.",
+   "hint": "re.findall(r\"\\w+\", text)."
+  },
+  {
+   "id": "censor-words",
+   "title": "Censorship",
+   "statement": "Write a function censor(text, bad): replace each word from the list bad (whole words only, case-insensitive) with «***». Do not touch parts of other words: «кот» must not spoil «котёл».",
+   "hint": "Build the pattern r\"\\b(?:\" + \"|\".join(map(re.escape, bad)) + r\")\\b\" and call re.sub with the re.I flag."
+  },
+  {
+   "id": "parse-log-dict",
+   "title": "Log line to a dictionary",
+   "statement": "Write a function parse_log(line): the string «2024-03-05 09:07:03 ERROR сбой диска» becomes a dictionary with the keys \"date\", \"time\", \"level\" and \"msg\". If the string does not fit, return None. Use named groups.",
+   "hint": "(?P<date>\\d{4}-\\d\\d-\\d\\d) (?P<time>[\\d:]{8}) (?P<level>[A-Z]+) (?P<msg>.*); m.groupdict()."
+  }
+ ]
+}

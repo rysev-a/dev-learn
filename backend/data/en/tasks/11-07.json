@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "j7-invert",
+   "title": "Invert an object",
+   "statement": "Write a function invert(obj) that returns an object in which keys and values are swapped (values are strings or numbers). If values repeat, the last key wins.",
+   "hint": "Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]))"
+  },
+  {
+   "id": "j7-pick",
+   "title": "pick: choose fields",
+   "statement": "Write a function pick(obj, keys) that returns a new object with only those fields from keys that exist in obj (in the order of keys); the original object does not change.",
+   "hint": "Check for a field with Object.hasOwn, because the value may be undefined."
+  },
+  {
+   "id": "j7-omit",
+   "title": "omit: remove fields",
+   "statement": "Write a function omit(obj, keys) that returns a copy of the object without the fields in keys; the original object does not change.",
+   "hint": "Copy the object with spread and remove the keys with the delete operator."
+  },
+  {
+   "id": "j7-map-values",
+   "title": "mapValues",
+   "statement": "Write a function mapValues(obj, fn) that returns a new object with the same keys whose values are the result of fn(value, key).",
+   "hint": "Object.entries → map → Object.fromEntries"
+  },
+  {
+   "id": "j7-defaults",
+   "title": "Merge with defaults",
+   "statement": "Write a function withDefaults(opts, defaults) that returns a new object: the fields of defaults with the fields of opts written over them, except those where opts has undefined (the default stays there). The original objects do not change.",
+   "hint": "The usual { ...defaults, ...opts } will overwrite defaults with undefined, so filter those out."
+  },
+  {
+   "id": "j7-deep-clone",
+   "title": "Deep copy by hand",
+   "statement": "Write a function deepClone(v) for JSON-like data (numbers, strings, booleans, null, arrays and plain objects of any nesting) that returns a fully independent copy. You may not use structuredClone or JSON.parse.",
+   "hint": "Array → map(deepClone); object → recursion over Object.entries; return anything else as is."
+  },
+  {
+   "id": "j7-deep-equal",
+   "title": "Deep comparison",
+   "statement": "Write a function deepEqual(a, b) for JSON-like data: primitives are compared with ===, arrays element by element, objects by their set of keys and values (key order does not matter).",
+   "hint": "First ===, then a type check, the number of keys, and recursion over the keys."
+  },
+  {
+   "id": "j7-get-path",
+   "title": "Value by path",
+   "statement": "Write a function getPath(obj, path, def), where path is a string like «a.b.0.c». It returns the value at that path, and if null/undefined is met on the way or the field is missing (the value is undefined), it returns def. A found value of null or 0 is returned as is.",
+   "hint": "Walk through the keys; when you meet null/undefined on the way, return def. The value 0 is not \"empty\"."
+  },
+  {
+   "id": "j7-set-in",
+   "title": "Immutable write by path",
+   "statement": "Write a function setIn(obj, path, value), where path is an array of keys. It returns a new object in which value lies at that path. The original object does not change, and the branches not touched by the change stay the same references (they are not copied). Create missing objects.",
+   "hint": "Recursion: { ...obj, [k]: setIn(obj?.[k] ?? {}, rest, value) }"
+  },
+  {
+   "id": "j7-swap-pairs",
+   "title": "Swap neighboring elements",
+   "statement": "Write a function swapPairs(arr) that returns a new array in which neighboring pairs (0th and 1st, 2nd and 3rd, ...) are swapped; a last unpaired element stays in place. Use destructuring for the swap.",
+   "hint": "[out[i], out[i + 1]] = [out[i + 1], out[i]];"
+  },
+  {
+   "id": "j7-describe-user",
+   "title": "Destructuring a nested object",
+   "statement": "Write a function describeUser(user): using destructuring in the parameter, take name, address.city (default «неизвестно») and tags (default []); return «<name> из <city>, тегов: <n>». The text of the result stays in Russian exactly as written.",
+   "hint": "function describeUser({ name, address: { city = \"неизвестно\" } = {}, tags = [] })"
+  },
+  {
+   "id": "j7-chunk",
+   "title": "Split into parts",
+   "statement": "Write a function chunk(arr, n) that splits an array into parts of n elements; the last part may be shorter; the original array does not change.",
+   "hint": "A loop with step n and arr.slice(i, i + n)."
+  },
+  {
+   "id": "j7-unique",
+   "title": "Unique elements in order",
+   "statement": "Write a function unique(arr) that returns an array without repeats in the order of first appearance; NaN is considered equal to NaN. Use Set.",
+   "hint": "[...new Set(arr)]"
+  },
+  {
+   "id": "j7-zip",
+   "title": "zip: combine two arrays",
+   "statement": "Write a function zip(a, b) that returns an array of pairs [a[i], b[i]] up to the length of the shorter array.",
+   "hint": "Array.from({ length: n }, (_, i) => [a[i], b[i]])"
+  },
+  {
+   "id": "j7-rotate",
+   "title": "Cyclic shift",
+   "statement": "Write a function rotate(arr, k) that returns a new array shifted left by k positions (k may be negative, meaning right, and may exceed the array length). The original does not change.",
+   "hint": "Normalize k: ((k % n) + n) % n; then slice(s) and slice(0, s)."
+  },
+  {
+   "id": "j7-set-ops",
+   "title": "Set operations",
+   "statement": "Write a function setOps(a, b), where a and b are arrays; return an object { both, onlyA, either } of arrays of unique elements: common ones, only those from a, and those from either (in the order of first appearance). Use Set.",
+   "hint": "Set + filter(has) for intersection and difference, new Set([...a, ...b]) for union."
+  },
+  {
+   "id": "j7-count-by",
+   "title": "Element frequency",
+   "statement": "Write a function countItems(arr) that returns an array of pairs [element, how many times it occurred], sorted by descending count; for ties, in the order of first appearance. Use Map.",
+   "hint": "A stable sort will keep the Map insertion order for equal counts."
+  },
+  {
+   "id": "j7-partition",
+   "title": "Split into two groups",
+   "statement": "Write a function partition(arr, pred) that returns [matching, the rest], two arrays in the original order; pred receives (element, index).",
+   "hint": "(pred(x, i) ? yes : no).push(x)"
+  },
+  {
+   "id": "j7-sort-by",
+   "title": "Sort objects by key",
+   "statement": "Write a function sortBy(arr, key) that returns a new array of objects sorted by the key field in ascending order (numbers as numbers, strings by Russian alphabet rules, localeCompare with the locale «ru»); the sort is stable, the original array does not change.",
+   "hint": "Compare strings with localeCompare and numbers by subtraction; sort a copy."
+  },
+  {
+   "id": "j7-sort-multi",
+   "title": "Sort by several fields",
+   "statement": "Write a function sortUsers(users) that returns a new array sorted by age in descending order, and for equal ages by name in ascending order (localeCompare with the locale «ru»).",
+   "hint": "b.age - a.age || a.name.localeCompare(b.name, \"ru\")"
+  },
+  {
+   "id": "j7-matrix",
+   "title": "A matrix with independent rows",
+   "statement": "Write a function createMatrix(rows, cols, value) that returns an array of rows arrays of cols elements equal to value; the rows must be independent arrays (changing one does not affect the others).",
+   "hint": "fill(array) hands out a reference to the same array. Create each row in the Array.from callback."
+  },
+  {
+   "id": "j7-flatten-keys",
+   "title": "Flat keys",
+   "statement": "Write a function flattenKeys(obj) that turns a nested object into a flat one with dot-separated keys: { a: { b: 1 }, c: 2 } → { \"a.b\": 1, c: 2 }. Arrays and primitives count as leaves.",
+   "hint": "Recursion with a prefix; for a nested object, Object.assign(out, flattenKeys(v, key))."
+  },
+  {
+   "id": "j7-lru",
+   "title": "An LRU cache on Map",
+   "statement": "Write a function createLru(capacity) that returns an object with methods get(k) (the value or undefined; access makes the key \"fresh\") and set(k, v) (on overflow removes the least recently used key). Hint: a Map remembers insertion order.",
+   "hint": "get: delete and set again; set: if size > capacity, remove the first key m.keys().next().value."
+  },
+  {
+   "id": "j7-stable-stringify",
+   "title": "Stable JSON",
+   "statement": "Write a function stableStringify(v) that works like JSON.stringify, but object keys at all levels go in alphabetical order (the default sort()). Supporting JSON-like data is enough.",
+   "hint": "Recursion: arrays element by element, objects by sorted keys, anything else with JSON.stringify."
+  },
+  {
+   "id": "j7-revive-dates",
+   "title": "JSON with dates",
+   "statement": "Write a function parseWithDates(text) that parses JSON and turns all string values of fields whose names end with «At» (createdAt) into numbers, the milliseconds from Date.parse. Use a reviver, the second argument of JSON.parse.",
+   "hint": "JSON.parse(text, (key, value) => …)"
+  },
+  {
+   "id": "j7-toggle-todo",
+   "title": "Immutable list update",
+   "statement": "Write a function toggleTodo(list, id) that returns a new array in which the done field of the task with the given id is inverted. The other tasks stay the same objects (they are not copied); the original array and the original task do not change.",
+   "hint": "list.map((t) => (t.id === id ? { ...t, done: !t.done } : t))"
+  },
+  {
+   "id": "j7-update-nested",
+   "title": "Nested immutable update",
+   "statement": "The state is { user: { name, address: { city, zip } }, items: [...] }. Write a function moveTo(state, city) that returns a new state with a changed user.address.city; user.address, user and state are new objects, while user.name, address.zip and items stay the same (the same references). The original state does not change.",
+   "hint": "Copy every level along the chain: state → user → address."
+  },
+  {
+   "id": "j7-fix-sort-mutation",
+   "title": "Fix: sorting damages the original array",
+   "statement": "The function topThree(scores) must return the three largest numbers in descending order without changing the array passed in. Right now it sorts the array in place and compares as strings. Fix it.",
+   "hint": "Sort a copy with the compare function (a, b) => b - a."
+  },
+  {
+   "id": "j7-fix-shallow",
+   "title": "Fix: the settings copy is not independent",
+   "statement": "The function withTheme(config, theme) must return a copy of config with a new config.ui.theme without touching the original. Right now it makes a shallow copy and changes the nested object of the original. Fix it (structuredClone will do).",
+   "hint": "structuredClone(config) creates an independent copy of nested objects."
+  },
+  {
+   "id": "j7-json-lines",
+   "title": "Parsing JSON Lines",
+   "statement": "Write a function parseLines(text): every non-empty line of the text is a separate JSON document. Return { values, errors }, where values is an array of the parsed values in order and errors is the number of lines that could not be parsed (skip empty lines and lines of spaces, without counting them as errors).",
+   "hint": "Split by newline; try { JSON.parse } catch { errors++ }."
+  }
+ ]
+}

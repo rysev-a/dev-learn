@@ -13,6 +13,7 @@ use serde_json::{json, Value};
 
 use crate::{
     error::{i, s, ApiError, ApiResult},
+    lang::{self, Lang},
     wav, AppState,
 };
 
@@ -32,33 +33,44 @@ async fn counts(state: &AppState, table: &str) -> ApiResult<HashMap<i64, i64>> {
     Ok(rows.iter().map(|r| (i(r, "bid"), i(r, "n"))).collect())
 }
 
-async fn books(State(state): State<AppState>) -> ApiResult<Json<Value>> {
+async fn books(State(state): State<AppState>, lang: Lang) -> ApiResult<Json<Value>> {
     let mut res = state.db.query("SELECT bid, title, slug, slides_dir, icon, ord FROM books ORDER BY ord").await?;
     let rows: Vec<Value> = res.take(0)?;
     let (sections, chapters, lessons) = (counts(&state, "sections").await?, counts(&state, "chapters").await?, counts(&state, "lessons").await?);
+    // языки, на которых книга есть целиком: русский всегда, остальные — по таблице переводов
+    let mut res = state.db.query("SELECT bid, lang, title FROM books_i18n").await?;
+    let translations: Vec<Value> = res.take(0)?;
     let out: Vec<Value> = rows
         .iter()
         .map(|b| {
             let id = i(b, "bid");
+            let mut langs = vec!["ru".to_string()];
+            langs.extend(translations.iter().filter(|t| i(t, "bid") == id).map(|t| s(t, "lang")));
+            let title = translations.iter().find(|t| i(t, "bid") == id && s(t, "lang") == lang.code()).map_or_else(|| s(b, "title"), |t| s(t, "title"));
             json!({
-                "id": id, "title": s(b, "title"), "slug": b.get("slug").cloned().unwrap_or(Value::Null),
+                "id": id, "title": title, "slug": b.get("slug").cloned().unwrap_or(Value::Null),
                 "slides_dir": b.get("slides_dir").cloned().unwrap_or(Value::Null), "icon": b.get("icon").cloned().unwrap_or(Value::Null),
                 "sections_count": sections.get(&id).copied().unwrap_or(0),
                 "lessons_count": chapters.get(&id).copied().unwrap_or(0),
                 "parts_count": lessons.get(&id).copied().unwrap_or(0),
+                "langs": langs,
             })
         })
         .collect();
     Ok(Json(Value::Array(out)))
 }
 
-async fn book_course(State(state): State<AppState>, Path(book_id): Path<i64>) -> ApiResult<Json<Value>> {
+async fn book_course(State(state): State<AppState>, lang: Lang, Path(book_id): Path<i64>) -> ApiResult<Json<Value>> {
+    let tr = lang::translated(&state.db, lang, book_id).await?;
+    let (sections_t, cond) = lang::source("sections", tr);
+    let (chapters_t, _) = lang::source("chapters", tr);
     let mut res = state
         .db
-        .query("SELECT sid, title, ord FROM sections WHERE bid = $b ORDER BY ord")
-        .query("SELECT cid, sid, num, title FROM chapters WHERE bid = $b ORDER BY cid")
+        .query(format!("SELECT sid, title, ord FROM {sections_t} WHERE bid = $b{cond} ORDER BY ord"))
+        .query(format!("SELECT cid, sid, num, title FROM {chapters_t} WHERE bid = $b{cond} ORDER BY cid"))
         .query("SELECT cid, count() AS n FROM lessons WHERE bid = $b GROUP BY cid")
         .bind(("b", book_id))
+        .bind(("l", lang.code()))
         .await?;
     let sections: Vec<Value> = res.take(0)?;
     let chapters: Vec<Value> = res.take(1)?;
@@ -86,17 +98,26 @@ fn audio_path(state: &AppState, id: &str) -> Option<std::path::PathBuf> {
     p.is_file().then_some(p)
 }
 
-async fn chapter(State(state): State<AppState>, Path(chapter_id): Path<i64>) -> ApiResult<Json<Value>> {
+async fn chapter(State(state): State<AppState>, lang: Lang, Path(chapter_id): Path<i64>) -> ApiResult<Json<Value>> {
+    // книгу главы знает русская строка (id глав общие для всех языков)
+    let mut res = state.db.query("SELECT VALUE bid FROM chapters WHERE cid = $c").bind(("c", chapter_id)).await?;
+    let book: Vec<i64> = res.take(0)?;
+    let book = book.first().copied().ok_or_else(|| ApiError::not_found("Chapter not found"))?;
+    let tr = lang::translated(&state.db, lang, book).await?;
+    let (chapters_t, cond) = lang::source("chapters", tr);
+    let (lessons_t, _) = lang::source("lessons", tr);
+    let (sections_t, _) = lang::source("sections", tr);
     let mut res = state
         .db
-        .query("SELECT cid, sid, num, title FROM chapters WHERE cid = $c")
-        .query("SELECT lid, ord, text FROM lessons WHERE cid = $c ORDER BY ord")
+        .query(format!("SELECT cid, sid, num, title FROM {chapters_t} WHERE cid = $c{cond}"))
+        .query(format!("SELECT lid, ord, text FROM {lessons_t} WHERE cid = $c{cond} ORDER BY ord"))
         .bind(("c", chapter_id))
+        .bind(("l", lang.code()))
         .await?;
     let ch: Vec<Value> = res.take(0)?;
     let ch = ch.into_iter().next().ok_or_else(|| ApiError::not_found("Chapter not found"))?;
     let lessons: Vec<Value> = res.take(1)?;
-    let mut sec = state.db.query("SELECT VALUE title FROM sections WHERE sid = $s").bind(("s", i(&ch, "sid"))).await?;
+    let mut sec = state.db.query(format!("SELECT VALUE title FROM {sections_t} WHERE sid = $s{cond}")).bind(("s", i(&ch, "sid"))).bind(("l", lang.code())).await?;
     let section: Vec<String> = sec.take(0)?;
     let lessons: Vec<Value> = lessons
         .iter()

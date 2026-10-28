@@ -293,13 +293,13 @@ pub fn default_goals() -> Vec<VirtqGoal> {
             suppress: Some(false),
             min_posted: Some(6),
             max_notifies: Some(2),
-            ..g("batch", "Отправьте 6 буферов и более не больше чем двумя оповещениями (без подавления)")
+            ..g("batch", i18n::tr("Send 6 or more buffers with at most two notifications (without suppression)"))
         },
         VirtqGoal {
             overflow: true,
             ..g(
                 "overflow",
-                "Доведите очередь до переполнения: попробуйте положить буфер, когда свободных дескрипторов нет",
+                i18n::tr("Drive the queue to overflow: try to add a buffer when there are no free descriptors"),
             )
         },
         VirtqGoal {
@@ -308,7 +308,7 @@ pub fn default_goals() -> Vec<VirtqGoal> {
             max_notifies: Some(2),
             ..g(
                 "suppress",
-                "Включите подавление оповещений и отправьте 10 буферов и более не больше чем двумя оповещениями",
+                i18n::tr("Enable notification suppression and send 10 or more buffers with at most two notifications"),
             )
         },
     ]

@@ -49,6 +49,7 @@ fn random_program(r: &mut Lcg, len: usize) -> Vec<u16> {
 
 #[test]
 fn gate_machine_equals_emulator_on_random_programs() {
+    i18n::set_locale(i18n::Locale::Ru);
     let mut r = Lcg(0x5eed_2026);
     let disk: Vec<u8> = (0..256).map(|i| (i * 37 + 11) as u8).collect();
     for n in 0..40 {
@@ -70,15 +71,16 @@ fn gate_machine_equals_emulator_on_random_programs() {
 
 #[test]
 fn assembler_and_disassembler_agree() {
+    i18n::set_locale(i18n::Locale::Ru);
     // каждая команда из таблицы ассемблируется и возвращается тем же текстом (кроме перехода: он показывает смещение)
     for op in OPS {
-        let asm = assemble(op.example.replace("конец", "+0").replace("цикл", "+0").replace("дальше", "+0").as_str());
+        let asm = assemble(op.example.replace("end", "+0").replace("loop", "+0").replace("next", "+0").as_str());
         assert!(asm.errors.is_empty(), "{}: {:?}", op.example, asm.errors);
         assert_eq!(asm.words.len(), 1);
         assert_eq!(decode(asm.words[0]).opcode, op.opcode, "{}", op.example);
     }
     for p in PSEUDO {
-        let asm = assemble(&format!("{}\nметка: hlt", p.example));
+        let asm = assemble(&format!("{}\nlabel: hlt", p.example));
         assert!(asm.errors.is_empty(), "{}: {:?}", p.example, asm.errors);
     }
     assert_eq!(disassemble(pack(7, 1, 2, -5)), "addi r1, r2, -5");
@@ -87,6 +89,7 @@ fn assembler_and_disassembler_agree() {
 
 #[test]
 fn combinational_loop_is_an_error() {
+    i18n::set_locale(i18n::Locale::Ru);
     let c = Circuit::new(
         vec![
             GateInstance { id: "a".into(), ty: GateType::Not, x: 0.0, y: 0.0 },
@@ -113,6 +116,7 @@ fn combinational_loop_is_an_error() {
 
 #[test]
 fn processor_has_the_documented_size() {
+    i18n::set_locale(i18n::Locale::Ru);
     let blocks = cpu8_blocks();
     assert_eq!(blocks.all().len(), 29);
     let cpu = archlab::cpu8::cpu_expansion().expect("процессор");
@@ -124,6 +128,7 @@ fn processor_has_the_documented_size() {
 
 #[test]
 fn memory_loading_is_checked() {
+    i18n::set_locale(i18n::Locale::Ru);
     let cpu = archlab::cpu8::cpu_expansion().expect("процессор");
     let mut sim = CompiledSim::new(&cpu.circuit).expect("компиляция");
     assert!(sim.load_rom("нет", &[1]).is_err());

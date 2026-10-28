@@ -66,6 +66,7 @@ mod tests {
 
     #[test]
     fn port_labels_sit_near_the_ends() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let g = link_geom(Point::new(0.0, 0.0), Point::new(200.0, 0.0));
         assert_eq!(g.label_a, Point::new(74.0, 0.0));
         assert_eq!(g.label_b, Point::new(126.0, 0.0));
@@ -81,6 +82,7 @@ mod tests {
 
     #[test]
     fn topmost_device_wins_under_the_cursor() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let devs = [("a", Point::new(100.0, 100.0)), ("b", Point::new(130.0, 110.0)), ("c", Point::new(400.0, 100.0))];
         assert_eq!(device_at(devs.iter().copied(), Point::new(120.0, 105.0)), Some("b"));
         assert_eq!(device_at(devs.iter().copied(), Point::new(60.0, 100.0)), Some("a"));
@@ -90,6 +92,7 @@ mod tests {
 
     #[test]
     fn the_home_window_shows_the_whole_field_with_room_for_labels() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         use crate::components::labs::board_view::view_box;
         assert_eq!(view_box(BOARD.home_view(), WORLD.0, WORLD.1), "-24 0 704 360");
     }

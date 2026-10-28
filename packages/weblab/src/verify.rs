@@ -25,7 +25,7 @@ pub fn verify(task: &Task, solution: &Solution) -> Report {
             // из условий для текста селектора имеют смысл только «без #id»
             for c in &task.checks {
                 if matches!(c, Check::NoIds) {
-                    items.push(Item { text: "Без селекторов по `#id`".into(), ok: !has_id(&solution.css), detail: "найден селектор по идентификатору".into() });
+                    items.push(Item { text: i18n::tr("No selectors by `#id`").into(), ok: !has_id(&solution.css), detail: i18n::tr("an id selector was found").into() });
                 }
             }
         }
@@ -36,25 +36,25 @@ pub fn verify(task: &Task, solution: &Solution) -> Report {
         Kind::Css | Kind::Selector => solution.css.trim().is_empty(),
     };
     if empty {
-        items.push(Item { text: "Решение написано".into(), ok: false, detail: "редактор пуст".into() });
+        items.push(Item { text: i18n::tr("Solution written").into(), ok: false, detail: i18n::tr("the editor is empty").into() });
     }
     Report { items }
 }
 
 /// Проверка данных задания (для тестов и сида): условия заданы корректно, эталон проходит, заготовка — нет.
 pub fn self_check(task: &Task) -> Result<(), String> {
-    let reference = task.reference.as_ref().ok_or("нет эталона")?;
+    let reference = task.reference.as_ref().ok_or(i18n::tr("no reference solution"))?;
     let good = Solution {
         html: if matches!(task.kind, Kind::Html) { reference.html.clone() } else { String::new() },
         css: if matches!(task.kind, Kind::Selector) { reference.selector.clone() } else { reference.css.clone() },
     };
     let rep = verify(task, &good);
     if !rep.ok() {
-        return Err(format!("эталон не проходит: {}", rep.reason().unwrap_or_default()));
+        return Err(i18n::trf!("the reference solution fails: {0}", rep.reason().unwrap_or_default()));
     }
     let start = Solution { html: task.starter_html.clone(), css: task.starter_css.clone() };
     if verify(task, &start).ok() {
-        return Err("заготовка уже решает задачу".into());
+        return Err(i18n::tr("the starter already solves the task").into());
     }
     Ok(())
 }

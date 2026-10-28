@@ -1,0 +1,61 @@
+{
+ "book": 13,
+ "chapter": 51,
+ "tasks": [
+  {
+   "id": "qa-doctest",
+   "title": "A function with checkable examples",
+   "statement": "Write fizzbuzz(n): for n divisible by 15 return \"FizzBuzz\"; divisible by 3, \"Fizz\"; divisible by 5, \"Buzz\"; otherwise the number as a string. In the docstring give at least four examples in doctest format (>>> ...), and all of them must pass.",
+   "hint": "In the docstring: >>> fizzbuzz(15), and on the next line 'FizzBuzz' (with quotes, as the repr of a string)."
+  },
+  {
+   "id": "qa-table-cases",
+   "title": "Table-driven tests",
+   "statement": "Write run_cases(func, cases): cases is a list of pairs (arguments, expected), where arguments is a tuple. Return a list of failure descriptions in the order of the cases: \"func(args): ожидали X, получили Y\" (literally \"expected X, got Y\", with the real argument tuple, expected and actual values); if the function raised an exception, \"func(args): исключение TypeName\". Skip the cases that pass.",
+   "hint": "for args, want in cases: try: got = func(*args) except Exception as e: ...; if got != want: ..."
+  },
+  {
+   "id": "qa-mock",
+   "title": "A test with Mock",
+   "statement": "The function greet(user_id, fetch) returns \"Привет, <name>\", where the name is obtained by calling fetch(user_id). Write check_greet(): create a Mock (unittest.mock) with return_value=\"Аня\", call greet(7, mock), check the result and that the mock was called exactly once with the argument 7; return True if everything is correct and False otherwise.",
+   "hint": "fetch = Mock(return_value=\"Аня\"); text = greet(7, fetch); fetch.assert_called_once_with(7) inside try/except AssertionError.",
+   "starter": "from unittest.mock import Mock\n\n\ndef greet(user_id, fetch):\n    return f\"Привет, {fetch(user_id)}\"\n\n\ndef check_greet():\n    pass\n"
+  },
+  {
+   "id": "qa-logging",
+   "title": "Setting up logging",
+   "statement": "Write setup_logger(stream): a logger named \"app\" with level INFO and a single handler writing to stream in the format \"LEVEL:message\" (%(levelname)s:%(message)s). Calling it again must not add a second handler. Turn off propagation of records to parent loggers.",
+   "hint": "logger = logging.getLogger(\"app\"); if there are no handlers, add a StreamHandler(stream) with a Formatter; level INFO; propagate = False."
+  },
+  {
+   "id": "qa-exceptions",
+   "title": "An application exception hierarchy",
+   "statement": "Create the exceptions AppError(Exception), NotFound(AppError) and ValidationError(AppError). NotFound takes an entity name and a key and builds the message \"<entity> не найден: <key>\"; ValidationError stores the field (attribute field) and a message. Write find_user(users, user_id): it returns the user from the dict or raises NotFound(\"user\", user_id).",
+   "hint": "NotFound.__init__(self, entity, key): super().__init__(f\"{entity} не найден: {key}\"); for ValidationError the message is f\"{field}: {message}\" and also store self.field."
+  },
+  {
+   "id": "qa-strategy",
+   "title": "Discounts as strategies",
+   "statement": "Write make_discount(spec): from a string, return a price function. \"none\" means no discount; \"percent:10\" is a 10% discount (round the result to two decimal places, round(..., 2)); \"fixed:5\" subtracts 5 but not below zero. An unknown scheme raises ValueError.",
+   "hint": "kind, _, arg = spec.partition(\":\"); for each kind return its own function (a closure over the number)."
+  },
+  {
+   "id": "qa-observer",
+   "title": "An event bus",
+   "statement": "Write EventBus: subscribe(event, handler), unsubscribe(event, handler) and emit(event, *args), which calls the event's handlers in the order they subscribed and returns their count. Unsubscribing a handler that is not subscribed must not fail. Subscribing the same function twice calls it twice.",
+   "hint": "A dict of event to list of handlers; in unsubscribe remove the first occurrence (list.remove) with try/except ValueError."
+  },
+  {
+   "id": "qa-idioms",
+   "title": "Rewrite it the Python way",
+   "statement": "The function pairs_report(names, scores) works correctly but is written with indexes (range(len(...)), building the list by hand). Rewrite it idiomatically, with zip and a comprehension, without range(len(...)) and without the append method. The result: strings \"<name>: <score>\" for scores of at least 50.",
+   "hint": "return [f\"{n}: {s}\" for n, s in zip(names, scores) if s >= 50]."
+  },
+  {
+   "id": "qa-property-check",
+   "title": "A mini property check",
+   "statement": "Write check_property(prop, gen, trials=200, seed=0): create random.Random(seed), and trials times call gen(rng) to get an input and prop(input); return the first input for which prop returned a false value (or raised an exception), or None if no counterexample was found.",
+   "hint": "rng = random.Random(seed); for _ in range(trials): case = gen(rng); try: ok = prop(case) except Exception: return case; if not ok: return case; at the end return None."
+  }
+ ]
+}

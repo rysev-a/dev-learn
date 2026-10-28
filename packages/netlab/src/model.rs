@@ -72,22 +72,22 @@ impl NetState {
     /// Проложить кабель между первыми свободными портами. Ошибка — текст для ученика.
     pub fn connect(&mut self, a: &str, b: &str, extra: Option<&LinkExtra>) -> Result<(), String> {
         if a == b {
-            return Err("Нельзя соединить устройство с самим собой".into());
+            return Err(i18n::tr("Cannot connect a device to itself").into());
         }
         let name_of = |s: &NetState, id: &str| s.devices.get(id).map(|d| d.name.clone()).unwrap_or_else(|| id.to_string());
         if self.devices.get(a).is_none() {
-            return Err(format!("нет устройства «{a}»"));
+            return Err(i18n::trf!("no device “{0}”", a));
         }
         if self.devices.get(b).is_none() {
-            return Err(format!("нет устройства «{b}»"));
+            return Err(i18n::trf!("no device “{0}”", b));
         }
         let pa = self.free_port(a).map(|i| i.name.clone());
         let pb = self.free_port(b).map(|i| i.name.clone());
         let Some(pa) = pa else {
-            return Err(format!("У «{}» нет свободных портов", name_of(self, a)));
+            return Err(i18n::trf!("“{0}” has no free ports", name_of(self, a)));
         };
         let Some(pb) = pb else {
-            return Err(format!("У «{}» нет свободных портов", name_of(self, b)));
+            return Err(i18n::trf!("“{0}” has no free ports", name_of(self, b)));
         };
         let mut l = Link::new(&port_ref(a, &pa), &port_ref(b, &pb));
         if let Some(e) = extra {
@@ -145,24 +145,24 @@ impl NetState {
     /// размеры списков в пределах.
     pub fn validate(&self) -> Result<(), String> {
         if self.devices.len() > MAX_DEVICES {
-            return Err(format!("слишком много устройств ({})", self.devices.len()));
+            return Err(i18n::trf!("too many devices ({0})", self.devices.len()));
         }
         if self.links.len() > MAX_LINKS {
-            return Err(format!("слишком много кабелей ({})", self.links.len()));
+            return Err(i18n::trf!("too many cables ({0})", self.links.len()));
         }
         for d in self.devices.iter() {
             let big = d.routes.len().max(d.nat.len()).max(d.fw.rules.len()).max(d.services.len()).max(d.ifaces.len());
             if big > MAX_ITEMS {
-                return Err(format!("«{}»: слишком длинные списки настроек", d.name));
+                return Err(i18n::trf!("“{0}”: configuration lists are too long", d.name));
             }
             if let Some(h) = &d.dns {
                 if h.records.len() > MAX_ITEMS || h.delegations.len() > MAX_ITEMS {
-                    return Err(format!("«{}»: слишком много записей DNS", d.name));
+                    return Err(i18n::trf!("“{0}”: too many DNS records", d.name));
                 }
             }
             if let Some(h) = &d.http {
                 if h.routes.len() > MAX_ITEMS {
-                    return Err(format!("«{}»: слишком много маршрутов веб-сервера", d.name));
+                    return Err(i18n::trf!("“{0}”: too many web server routes", d.name));
                 }
             }
         }
@@ -172,14 +172,14 @@ impl NetState {
                 let (d, p) = split_ref(end);
                 let ok = self.devices.get(d).map(|x| x.iface(p).is_some()).unwrap_or(false);
                 if !ok {
-                    return Err(format!("кабель ведёт к несуществующему порту «{end}»"));
+                    return Err(i18n::trf!("a cable leads to a nonexistent port “{0}”", end));
                 }
                 if !used.insert(end.clone()) {
-                    return Err(format!("к порту «{end}» подключено два кабеля"));
+                    return Err(i18n::trf!("two cables are connected to port “{0}”", end));
                 }
             }
             if !(l.km.is_finite() && l.mbps.is_finite()) {
-                return Err("у кабеля нечисловые параметры".into());
+                return Err(i18n::tr("the cable has non-numeric parameters").into());
             }
         }
         Ok(())
@@ -188,7 +188,7 @@ impl NetState {
 
 /// Разобрать состояние из JSON (каноническая запись или прежняя запись клиента) и проверить его.
 pub fn state_from_json(s: &str) -> Result<NetState, String> {
-    let st: NetState = serde_json::from_str(s).map_err(|e| format!("не удалось разобрать состояние сети: {e}"))?;
+    let st: NetState = serde_json::from_str(s).map_err(|e| i18n::trf!("failed to parse the network state: {0}", e))?;
     st.validate()?;
     Ok(st)
 }

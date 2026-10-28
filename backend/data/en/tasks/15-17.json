@@ -1,0 +1,36 @@
+{
+ "book": 15,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "n17-pool",
+   "title": "Add servers to the pool",
+   "statement": "The service has grown and two more servers were installed (10.0.1.12 and 10.0.1.13), but the load balancer still sends everything to the first one. Add both to the pool and make sure nine requests are spread across the three servers.",
+   "hint": "On the load balancer: `lb add 10.0.1.12:80` and `lb add 10.0.1.13:80`, or the “+ to pool” field in the card. Check with `lb show`."
+  },
+  {
+   "id": "n17-health",
+   "title": "Health check",
+   "statement": "The pool has three servers, but the second one does not listen on port 80 — every third request is refused. Enable the health check on the load balancer: it will stop sending requests to the dead server, and all connections will succeed.",
+   "hint": "`lb health on` or the “health check” checkbox in the load balancer card. Then press ▶ next to the goal and see which servers received the requests."
+  },
+  {
+   "id": "n17-sticky",
+   "title": "Sticking a client to a server",
+   "statement": "The application keeps the session in server memory: after login every following request must reach the same server, but right now the client's requests are spread round-robin. Switch the algorithm to stickiness by client address.",
+   "hint": "`lb algo hash` or choose “sticky by client address” in the card. Remember: this is a stopgap — it is better to move sessions to an external store."
+  },
+  {
+   "id": "n17-rproxy",
+   "title": "Reverse proxy: routing by path",
+   "statement": "The single entry point 10.0.0.80 must sort requests: everything except /api goes to the web server 10.0.2.20:80, and /api goes to the API server 10.0.2.10:8080. There are no rules yet, and the proxy answers “no route”. Add two rules; the longer path wins.",
+   "hint": "`rproxy add * / 10.0.2.20:80` and `rproxy add * /api 10.0.2.10:8080`. Check: `curl http://10.0.0.80/` and `curl http://10.0.0.80/api/items`."
+  },
+  {
+   "id": "n17-cdn",
+   "title": "Cache on a CDN node",
+   "statement": "The CDN node is next to the client (RTT under a millisecond), and the origin server is on another continent (about 120 ms). The node already forwards requests but caches nothing: every response comes from far away. Enable the cache for all paths and verify that the second request is served from the cache, with the header X-Cache: HIT, within 20 ms.",
+   "hint": "`rproxy cache / on` on the node or the “cache” checkbox on the rule. Run `curl -I http://cdn.example/logo.png` twice: the first response is MISS, the second is HIT."
+  }
+ ]
+}

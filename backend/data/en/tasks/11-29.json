@@ -1,0 +1,191 @@
+{
+ "book": 11,
+ "chapter": 29,
+ "tasks": [
+  {
+   "id": "j21-emitter",
+   "title": "Your own EventEmitter",
+   "statement": "Write a class Emitter with methods: on(name, fn) and once(name, fn) (both return this), off(name, fn) (removes the first match; for a once wrapper the original function is compared), prependListener(name, fn), emit(name, ...args) → true if there were handlers, otherwise false; listenerCount(name); listeners(name) — a copy of the array of original functions. emit works on a snapshot of the list taken at the time of the call (subscriptions and unsubscriptions inside handlers take effect from the next emit); a once handler is removed before it is called. The 'error' event with no handlers: if the argument is an Error, it is thrown; otherwise Error(`Unhandled error: ${arg}`) is thrown.",
+   "hint": "Keep a Map from name to an array of records { fn, once }; copy the array in emit."
+  },
+  {
+   "id": "j21-promisify",
+   "title": "promisify",
+   "statement": "Write promisify(fn): a function that takes the same arguments as fn without the last callback and returns a promise. fn is called with the caller's this and a callback (err, value) as the last argument: err (truthy) → reject(err), otherwise resolve(value) (other callback arguments are ignored). A synchronous exception from fn becomes a rejected promise. Repeated callback calls are ignored.",
+   "hint": "return function (...args) { return new Promise(...) } — a regular function, to keep this."
+  },
+  {
+   "id": "j21-callbackify",
+   "title": "callbackify",
+   "statement": "Write callbackify(fn) for an async function: it returns a function (...args, cb). It calls fn(...args) (this is preserved); on success it calls cb(null, value), on rejection cb(err). If the rejection reason is falsy (null, 0, '' and so on), cb receives Error('Promise was rejected with a falsy value') with the field reason = the original value. cb is called asynchronously — after the current synchronous code finishes (through process.nextTick). If the last argument is not a function — TypeError('The last argument must be of type function').",
+   "hint": "Promise.then(ok => nextTick(cb, null, ok), err => ...)."
+  },
+  {
+   "id": "j21-run-loop",
+   "title": "A model of the event loop",
+   "statement": "Write runLoop(main) → an array of log strings. The program is an array of operations: { log: 'A' } (write), { timeout: ms, cb: [operations] }, { immediate: [operations] }, { io: [operations] } (a callback of completed I/O: it runs in the poll phase), { tick: [operations] } (process.nextTick), { micro: [operations] } (a promise microtask). Rules. First main runs, then a \"drain\": while there are ticks or microtasks — first all ticks (including new ones), then all microtasks (including new ones), and again; this drain happens after every callback. Time now = 0; a delay less than 1 counts as 1; a timer's due time = now (at the moment of creation) + delay. A loop iteration: if there is neither an immediate nor an io, now jumps to the nearest due time (never backwards), otherwise now += 1. Phases: timers (all with due time ≤ now, in ascending order of due time, ties by creation order; those created during this phase do not take part), poll (io queued before the phase began), check (immediate queued before the phase began). The loop runs while there are timers, immediates or io.",
+   "hint": "Queues timers, ios, immediates, ticks, micros; exec(ops) interprets the operations; drain() after every callback."
+  },
+  {
+   "id": "j21-timer-list",
+   "title": "Timers and unref",
+   "statement": "Write createTimers() → { setTimeout(name, delay, opts?), clear(id), run() }. setTimeout returns a numeric id (starting from 1); opts.unref === true makes the timer \"non-holding\" for the loop. Time is virtual and starts at 0; delay < 1 counts as 1; due time = delay (all timers are created before run). run() executes the timers in the order (due time, creation order) and returns { order, now }: order is the names of the executed timers, now is the due time of the last executed one (0 if none were executed). The loop ends as soon as there is no non-cancelled timer without unref left (the remaining unref timers are not executed). clear(id) cancels a timer of any kind.",
+   "hint": "Sort by (due, seq); before each step check whether at least one ref timer remains."
+  },
+  {
+   "id": "j21-threadpool",
+   "title": "The libuv thread pool",
+   "statement": "Write simulatePool(size, jobs): jobs is [{ name, duration }], all queued at time 0 in the given order. Each job takes the thread that becomes free earliest (ties go to the lower number; threads are numbered from 0). Return { schedule, makespan }: schedule is, for each job in the original order, { name, worker, start, end }, and makespan is the moment the last one finishes (0 for an empty list). size less than 1 — Error('Pool size must be >= 1').",
+   "hint": "An array free[i] holds the time thread i becomes free; for each job find the minimum."
+  },
+  {
+   "id": "j21-cjs-resolve",
+   "title": "Resolving require()",
+   "statement": "The functions normalize(path) and dirname(path) are already provided. Write resolve(request, fromDir, files): files is an object { absolute path: contents }. CommonJS rules. 1) Built-ins: a name from ['fs','path','http','os','events','util'] or one starting with 'node:' → return 'node:' + name (without doubling the prefix). 2) Starts with './', '../' or '/' — path = normalize(fromDir + '/' + request) (for '/…' — normalize(request)); 3) otherwise (a bare name, possibly with a subpath 'pkg/sub') — go through the directories from fromDir up to the root: candidate = directory + '/node_modules/' + request. For a candidate: the exact file → otherwise candidate + '.js', '.json' → otherwise as a directory: if candidate/package.json exists (JSON with a main field) — try main as a file (exact, .js, .json), then main/index.js; otherwise (or if nothing was found) candidate/index.js, candidate/index.json. The first one found is returned. Not found — Error(`Cannot find module '${request}'`).",
+   "hint": "tryFile(p) and tryDir(p); for bare names, a loop over the chain of ancestors of fromDir.",
+   "starter": "// Provided: path normalization (do not change)\nfunction normalize(p) {\n  const out = [];\n  for (const s of p.split(\"/\")) {\n    if (s === \"\" || s === \".\") continue;\n    if (s === \"..\") out.pop(); else out.push(s);\n  }\n  return \"/\" + out.join(\"/\");\n}\nconst dirname = (p) => normalize(p.slice(0, p.lastIndexOf(\"/\")) || \"/\");\nfunction resolve(request, fromDir, files) {\n}\n"
+  },
+  {
+   "id": "j21-require-cache",
+   "title": "require with a cache and cycles",
+   "statement": "The functions normalize/dirname are already provided. Write createRequire(modules): modules is { absolute path: function(exports, require, module) }. Return a function require(path) that is called with an absolute path. Inside a module, require receives: './x' or '../x' → path = normalize(dirname(current) + '/' + x), and if there is no such key, '.js' is appended; anything else — Error(`Cannot find module '${spec}'`), also if there is no key. A module runs once: the module object = { exports: {}, loaded: false, id: path }; the result is cached at the moment execution starts (so a circular dependency gets a partially filled exports); after it finishes, loaded = true. module.exports is returned (including after reassignment). If the module threw an exception, the entry is removed from the cache (the next require runs it again) and the exception is rethrown. The returned require has require.cache (an object path → module).",
+   "hint": "A factory makeRequire(parentPath); the cache is a shared object cache.",
+   "starter": "// Provided: path normalization (do not change)\nfunction normalize(p) {\n  const out = [];\n  for (const s of p.split(\"/\")) {\n    if (s === \"\" || s === \".\") continue;\n    if (s === \"..\") out.pop(); else out.push(s);\n  }\n  return \"/\" + out.join(\"/\");\n}\nconst dirname = (p) => normalize(p.slice(0, p.lastIndexOf(\"/\")) || \"/\");\nfunction createRequire(modules) {\n}\n"
+  },
+  {
+   "id": "j21-exports-map",
+   "title": "The exports field of a package",
+   "statement": "Write resolveExports(exportsField, subpath, conditions). exportsField is a string (shorthand for { '.': string }), an object of \"subpaths\" (keys start with '.'), or an object of \"conditions\" (keys do not start with '.'; equivalent to { '.': object }). subpath is '.' or './something'. conditions is an array of active conditions (for example ['node','import']); the condition 'default' is always active. A target is a string, an object of conditions (the first condition in key order that is active is taken; the result is resolved recursively), an array (the first target that does not resolve to null) or null (closed). Patterns: a key with a single '*' ('./features/*') matches subpaths with that prefix and suffix, and '*' in the target is replaced with the matched fragment (everywhere); with several patterns the one with the longest prefix wins; an exact key takes priority over a pattern. Not found or a null target — Error(`Package subpath '${subpath}' is not defined by \"exports\"`).",
+   "hint": "A function target(t, star) returns a string or null; look up subpaths by exact key first, then by pattern."
+  },
+  {
+   "id": "j21-imports-map",
+   "title": "The imports field of a package",
+   "statement": "The function resolveTarget(target, conditions, star) → string | null is already provided (string / object of conditions / array / null, replacement of '*'). Write resolveImports(imports, specifier, conditions). The specifier must start with '#' and must not be '#' or '#/…' — otherwise Error(`Invalid package import specifier '${specifier}'`). First an exact key, then a pattern with a single '*' (the longest prefix wins; the prefix itself includes '#'). A target that resolved to null, or no match — Error(`Package import specifier '${specifier}' is not defined`). If the target is a bare package name (does not start with './', '../' or '/'), the result is { type: 'package', name: target }, otherwise { type: 'file', path: target }.",
+   "hint": "Use resolveTarget; look for a pattern by going through the keys that contain '*'.",
+   "starter": "// Provided: target resolution (do not change)\nfunction resolveTarget(t, conditions, star) {\n  if (t === null || t === undefined) return null;\n  if (typeof t === \"string\") return star === undefined ? t : t.split(\"*\").join(star);\n  if (Array.isArray(t)) { for (const x of t) { const r = resolveTarget(x, conditions, star); if (r !== null) return r; } return null; }\n  for (const [k, v] of Object.entries(t)) if (k === \"default\" || conditions.includes(k)) return resolveTarget(v, conditions, star);\n  return null;\n}\nfunction resolveImports(imports, specifier, conditions) {\n}\n"
+  },
+  {
+   "id": "j21-exit-code",
+   "title": "Process exit codes",
+   "statement": "The SIGNALS table (name → number) is already provided. Write exitCode(event) → a number and describeExit(code) → a string. The event: { type: 'normal' } → 0; { type: 'exit', code } → code & 255; { type: 'signal', name } → 128 + the number (an unknown name — Error(`Unknown signal: ${name}`)); { type: 'uncaught' } → 1; { type: 'rejection', mode } — mode 'warn' → 0, otherwise ('throw' by default and 'strict') → 1; { type: 'internal-handler-error' } → 7; { type: 'invalid-argument' } → 9; any other type — Error(`Unknown event: ${type}`). describeExit(code): 0 → 'success'; 1 → 'uncaught exception'; 7 → 'internal exception handler failure'; 9 → 'invalid argument'; a number in the range 129…159 that corresponds to 128 + a known signal → `terminated by ${signal name}`; anything else → `exit code ${code}`.",
+   "hint": "A reverse table number → name for describeExit.",
+   "starter": "// Provided: Linux signal numbers (do not change)\nconst SIGNALS = { SIGHUP: 1, SIGINT: 2, SIGQUIT: 3, SIGABRT: 6, SIGKILL: 9, SIGUSR1: 10, SIGSEGV: 11, SIGUSR2: 12, SIGPIPE: 13, SIGALRM: 14, SIGTERM: 15 };\nfunction exitCode(event) {\n}\nfunction describeExit(code) {\n}\n"
+  },
+  {
+   "id": "j21-parse-args",
+   "title": "Parsing command-line arguments",
+   "statement": "Write parseArgs(argv, options) → { values, positionals }. options is { name: { type: 'boolean' | 'string', short?: 'x', multiple?: bool, default? } }. Forms: '--name', '--name=value', '--name value' (for a string option the next element is the value; if the next element is missing it is an error; if it starts with '-' it is also an error), '-x', '-x value' (string), combined booleans '-abc' (each letter is an option with a short form; the last one may be a string and take the next argument), '--' ends the options (the rest are positional), anything without '-' is positional. An unknown option — Error(`Unknown option '${as written}'`) (for example '--zzz' or '-q'); a string without a value — Error(`Option '--${name} <value>' argument missing`); a boolean with '=value' — Error(`Option '--${name}' does not take an argument`). multiple: values accumulate in an array; without multiple a repeat overwrites. Only options that were given, and options with a default, appear in values (a boolean default means no entry).",
+   "hint": "A map short → name; a loop with an index; a separate function set(name, value)."
+  },
+  {
+   "id": "j21-graceful",
+   "title": "Graceful service shutdown",
+   "statement": "Write async gracefulShutdown({ stopAccepting, pending, closers, timeoutMs, pollMs = 5 }) → { code, forced, log }. Order: log.push('stop'); call stopAccepting() (may be async); then poll pending() (the number of requests being handled) every pollMs ms until it becomes 0 or timeoutMs ms pass (by Date.now) — on timeout forced = true and log.push('timeout'), otherwise log.push('drained'). Then await the closers in order: [{ name, close }]: log.push('close:' + name); if a closer throws — log.push('error:' + name) and work continues. Result: if forced or there were errors → code 1, otherwise 0. Polling must not wait once pending() is already 0.",
+   "hint": "A loop: while (pending() > 0) { if (elapsed ≥ timeout) {...; break;} await sleep(pollMs) }."
+  },
+  {
+   "id": "j21-backoff",
+   "title": "Restarting a process with a delay",
+   "statement": "Write createBackoff({ base = 100, factor = 2, max = 5000, resetAfter = 10000, maxAttempts = Infinity } = {}) → { onStart(now), onExit(now) }. onStart remembers the start time. onExit(now) is called when the process crashes: if the process ran for at least resetAfter ms (now − the time of the last start), the attempt counter is reset to 0. Then, if the number of attempts is already maxAttempts — return null (give up); otherwise return the delay min(max, base · factor^attempts) and increase the counter. If onStart was never called, the start time is taken as 0.",
+   "hint": "State: attempts, startedAt."
+  },
+  {
+   "id": "j21-als",
+   "title": "Request context through AsyncLocalStorage",
+   "statement": "Write createRequestContext() → { run(id, fn), log(message), current() } based on AsyncLocalStorage from node:async_hooks. run(id, fn) runs fn (may be async) in a context with the request id and returns its result. log(message) returns the string `[${id}] ${message}` inside the context and `[-] ${message}` outside it. current() is the id or undefined. The context must survive await, setTimeout and promises; a nested run overrides the id only inside itself.",
+   "hint": "const als = new AsyncLocalStorage(); run → als.run(id, fn); current → als.getStore()."
+  },
+  {
+   "id": "j21-parse-stack",
+   "title": "Parsing an error stack",
+   "statement": "Write parseStack(stack) → an array of frames { fn, file, line, col, async, isNew }. Frame lines start (after spaces) with 'at '; other lines (the message, empty ones) are skipped. Formats: 'at name (file:line:column)', 'at file:line:column' (fn = null), 'at async name (…)' (async = true), 'at new Class (…)' (isNew = true, fn = 'Class'; the prefixes 'async' and 'new' are not part of fn). For a name like 'Class.method [as alias]' fn is taken whole. The file is everything before the last two ':number' parts (it may contain 'file:///…', 'node:internal/x', a Windows drive 'C:\\…'); line and col are numbers. A frame that does not fit the format (for example 'at <anonymous>') is skipped.",
+   "hint": "The regular expression /^\\s*at (?:(async|new) )?(?:(.+?) \\()?(.+):(\\d+):(\\d+)\\)?$/."
+  },
+  {
+   "id": "j21-line-splitter",
+   "title": "A line-by-line Transform stream",
+   "statement": "Write createLineSplitter() → a Transform (from node:stream) that accepts strings/buffers (you do not need to disable decodeStrings: the input is strings) and emits individual lines without line-ending characters on the readable side (objectMode). The separators are '\\n' and '\\r\\n'. An incomplete last line accumulates until the next chunk; when the stream ends (flush) the remainder is emitted if it is not empty. Empty lines between separators are kept (as empty strings). A line split between chunks (including '\\r' and '\\n' in different chunks) is assembled correctly.",
+   "hint": "Transform({ readableObjectMode: true, transform(chunk, enc, cb) {...}, flush(cb) {...} }); keep the buffer as a string."
+  },
+  {
+   "id": "j21-writable",
+   "title": "Backpressure",
+   "statement": "Write createWritable({ highWaterMark, sink }) → { write(chunk), end(), on(event, fn) }. sink(chunk, cb) is an asynchronous write of one piece; when finished it calls cb(). A piece's size is chunk.length. State: length is the total size of pieces not yet written (including the one being written now). write(chunk): length += size; then, if no piece is being written, start sink for it right away, otherwise put it in the queue; the result of write is length < highWaterMark, determined immediately after adding, before sink is started; if it comes out false — remember needDrain (before starting sink). When sink called cb: length −= size; if the queue is not empty — start the next one; otherwise, if needDrain is set, reset it and call the 'drain' handlers. end(): after everything is written call 'finish' (if everything is already written — call it immediately, synchronously); write after end — Error('write after end'). on(event, fn) supports 'drain' and 'finish'.",
+   "hint": "A queue, a writing flag, needDrain, ended; a function next()."
+  },
+  {
+   "id": "j21-limit-pool",
+   "title": "A pool with limited concurrency",
+   "statement": "Write createPool(limit) → { run(task), idle() }. run(task) takes a function (sync or async), queues it and returns a promise with its result (or rejection). No more than limit tasks run at once; they start strictly in queue order (FIFO); the failure of one task does not affect the others. idle() returns a promise that resolves when there are neither running nor waiting tasks (if the pool is already idle — immediately). limit less than 1 — Error('limit must be >= 1').",
+   "hint": "An active counter and a queue; start the next task when one finishes; idle is a list of waiting resolve functions."
+  },
+  {
+   "id": "j21-cluster",
+   "title": "Cluster: round-robin dispatch",
+   "statement": "Write createCluster(n) → { dispatch(), kill(id), fork(), alive() }. Workers are numbered from 1; the traversal order is by ascending number (new ones created by fork get the next number and go to the end). dispatch() returns the id of the next live worker after the last one chosen (circularly; before the first call the \"last\" is the one preceding the first); if there are no live workers — Error('No workers'). kill(id) marks a worker as dead (an unknown or already dead id — Error(`No such worker: ${id}`)). fork() creates a new live worker and returns its id. alive() is an array of the ids of live workers in ascending order.",
+   "hint": "An array of workers {id, alive}, a pointer last (an id); a circular search for the next one."
+  },
+  {
+   "id": "j21-shapes",
+   "title": "V8 hidden classes",
+   "statement": "Write createShapes() → { shapeOf(obj), count(), sameShape(a, b) }. An object's shape (hidden class) is determined by the sequence of its own string keys in Object.keys order (values do not matter). Shapes form a transition tree: an empty object is shape 0 (the root); for each new (parent, key) a shape with the next sequence number is created on first access. shapeOf(obj) returns the shape number, walking the keys in order and creating transitions as needed; count() is the total number of shapes (including the root); sameShape(a, b) tells whether the shapes match (creating transitions if needed).",
+   "hint": "A tree: a Map from \"parent id + key\" to id; steps along the keys."
+  },
+  {
+   "id": "j21-inline-cache",
+   "title": "Inline cache",
+   "statement": "Write createCallSite() → { observe(shapeId) }. A property access site remembers the shapes of objects. States: 'uninitialized' (no shapes seen), 'monomorphic' (1 shape), 'polymorphic' (2–4 different shapes), 'megamorphic' (5 or more; the state is irreversible and the cache is no longer used). observe(shapeId) is called on every access and returns { state, hit }: state is the state after the access; hit is true if the shape was already in the cache at the time of the access and the state before the access was not megamorphic (megamorphic is always hit = false; the first access is hit = false).",
+   "hint": "A Set of shapes and a mega flag; compute hit before adding the shape."
+  },
+  {
+   "id": "j21-tiering",
+   "title": "Compilation tiers and deoptimization",
+   "statement": "Write createTiering({ baseline = 8, optimize = 40 } = {}) → { call(name, sig), stats(name) }. A function has a counter calls and a set feedback (the argument types seen in calls: a string sig, for example 'int,int'). call(name, sig) → { tier, deopt }. The tier for this call is determined by the number of calls BEFORE it: fewer than baseline — 'ignition'; fewer than optimize — 'baseline'; otherwise 'optimized'. Until it reaches optimized, every call adds sig to feedback. In optimized: if sig is already in feedback — the call runs on 'optimized'; otherwise deoptimization happens: this call returns { tier: 'ignition', deopt: true }, sig is added to feedback, calls is reset to 0 and then this call is counted (calls = 1), and the deopts counter grows. After deoptimization the function goes through the tiers again from the start. stats(name) → { calls, deopts, feedback: a sorted array }; for an unknown function — { calls: 0, deopts: 0, feedback: [] }.",
+   "hint": "An object per function: calls, deopts, feedback (a Set); first the tier by calls, then the update."
+  },
+  {
+   "id": "j21-loop-lag",
+   "title": "Event loop lag",
+   "statement": "Write loopLag(ticks, intervalMs, thresholdMs = 0): ticks are the moments (ms) when a timer fired that should fire every intervalMs ms starting from 0. The lag of the i-th firing = max(0, ticks[i] − ticks[i−1] − intervalMs), with the previous one equal to 0 for the first. Return { count, min, max, mean, p50, p99, blocked }: mean is the average rounded to 2 decimal places; p50 and p99 are percentiles by the nearest-rank method (sort ascending, index = ceil(p/100 · n) − 1); blocked is the number of firings with a lag strictly greater than thresholdMs. For an empty array all fields are 0.",
+   "hint": "First an array of lags, then the statistics."
+  },
+  {
+   "id": "j21-config",
+   "title": "Configuration from environment variables",
+   "statement": "Write loadConfig(env, schema) → { config, errors }. schema is { NAME: { type, required?, default?, enum?, min?, max? } }, type: 'string' | 'number' | 'boolean' | 'port'. An empty string and a missing variable both mean \"not set\". Not set: if there is a default — it is taken as is (no checks); required — the error `NAME: is required`; otherwise there is no key in config. Set: string — as is; number — Number(value), a non-number/NaN gives `NAME: must be a number`; boolean — case-insensitive true/1/yes/on → true, false/0/no/off → false, otherwise `NAME: must be a boolean`; port — an integer from 1 to 65535, otherwise `NAME: must be a port (1-65535)`. Then enum (the converted value must be in it): `NAME: must be one of a, b`; min/max for number: `NAME: must be >= N` / `NAME: must be <= N`. All errors are collected (in schema order); when there is an error the value does not go into config.",
+   "hint": "For each name: raw, parse → value|error, then enum and bounds."
+  },
+  {
+   "id": "j21-signals",
+   "title": "Handling signals",
+   "statement": "The SIGNALS table is already provided. Write createSignalHandler({ onGraceful, onReload }) → { handle(sig), finish() }. handle(sig) returns { action, exit? }. SIGINT and SIGTERM: the first one gives action 'graceful' (call onGraceful(sig) once; remember the first signal); while shutdown is not finished, any following SIGINT/SIGTERM gives { action: 'force', exit: 128 + the number of that signal }. SIGHUP gives { action: 'reload' } (calls onReload; if shutdown is in progress it is ignored: { action: 'ignore' }). SIGUSR2 and other known signals give { action: 'ignore' }; an unknown name — Error(`Unknown signal: ${sig}`). finish() is called when the graceful shutdown is complete: { action: 'exit', exit: 128 + the number of the first signal } (if graceful never started — Error('Not shutting down')); after finish or force, any handle — Error('Already exited').",
+   "hint": "State: first (the signal name), exited.",
+   "starter": "// Provided: Linux signal numbers (do not change)\nconst SIGNALS = { SIGHUP: 1, SIGINT: 2, SIGQUIT: 3, SIGABRT: 6, SIGKILL: 9, SIGUSR1: 10, SIGSEGV: 11, SIGUSR2: 12, SIGPIPE: 13, SIGALRM: 14, SIGTERM: 15 };\nfunction createSignalHandler({ onGraceful, onReload }) {\n}\n"
+  },
+  {
+   "id": "j21-cjs-exports",
+   "title": "CommonJS named exports",
+   "statement": "Write detectNamedExports(source) → an alphabetically sorted array of names without repeats — a simplified analogue of cjs-module-lexer, which Node uses when importing from CommonJS. First remove the comments (// and /* */). The following are detected: `exports.name =`, `module.exports.name =` (name is an identifier; '==' does not count as an assignment), `Object.defineProperty(exports, \"name\"` and `Object.defineProperty(module.exports, 'name'` (any quotes), and also the literal `module.exports = { a, b: 1, 'c': 2, d() {} }`: top-level keys are identifiers (including the shorthand 'a'), quoted strings and methods; nested objects and values are ignored (mind commas inside parentheses, braces, square brackets and strings). The name 'default' is not included. If what follows `module.exports =` is not '{', it is not a literal (nothing is added).",
+   "hint": "Regular expressions for the first forms; for the literal, manual parsing of the top level with a bracket depth."
+  },
+  {
+   "id": "j21-heap-diff",
+   "title": "Heap snapshots and leaks",
+   "statement": "A heap snapshot is { Constructor: { count, size } }. Write diffHeap(before, after, { top = 3 } = {}) and findLeaks(snapshots). diffHeap → an array of up to top items { name, dCount, dSize } — for constructors whose size grew (dSize > 0; one missing from before counts as { count: 0, size: 0 }), in descending order of dSize, ties by name. findLeaks(snapshots) (an array of ≥ 2 snapshots in time order) → an array of { name, growth } for constructors whose size strictly increased at every step between adjacent snapshots (the constructor must be present in all snapshots), growth = the size in the last − the size in the first; in descending order of growth, ties by name.",
+   "hint": "The union of names from before and after; for findLeaks, check every pair."
+  },
+  {
+   "id": "j21-error-chain",
+   "title": "Printing an error chain",
+   "statement": "Write formatError(err, depth = 0) → a string (lines joined with '\\n'). pad = 2·depth spaces. The first line: pad + name + (if err.code exists — ` [code]`) + ': ' + message. If the error has a cause (not undefined): a line `${pad}  [cause]:` and then formatError(cause, depth + 2), and if the cause is not an Error — pad + 4 spaces + String(cause). If err is an AggregateError (err.errors is an array): a line `${pad}  [errors]:` and then, for each element, formatError(e, depth + 2) (a non-Error — pad + 4 spaces + String(e)). Order: first cause, then errors. A reference to an error already encountered in the chain (a cycle through cause or errors) is printed as the line pad + '[Circular]'.",
+   "hint": "A recursive function with a Set of visited errors on the current branch."
+  },
+  {
+   "id": "j21-esm-order",
+   "title": "ES module execution order",
+   "statement": "Write esmOrder(graph, entry) → an array of module names in execution order. graph is { module: { imports: [names] } } (the imports key may be missing). Rules as for ES modules: a depth-first traversal from entry, imports in declaration order; a module runs after all its dependencies (post-order); each module runs once; with a circular import a module that is already being visited is skipped (no error; the cycle's dependency runs earlier, and the module that closed the cycle runs after it). A module that is not in graph — Error(`Cannot find module '${name}'`).",
+   "hint": "DFS with a set seen: add to seen on entry, to the result on exit."
+  }
+ ]
+}

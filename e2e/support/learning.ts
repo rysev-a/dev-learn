@@ -272,7 +272,7 @@ export interface RealWorker {
 export async function startRealWorker(request: APIRequestContext): Promise<RealWorker> {
   const child: ChildProcess = spawn("uv", ["run", "worker.py", "--server", `http://127.0.0.1:${PORT}`, "--name", "e2e", "--light", "2", "--heavy", "1"], {
     cwd: path.join(ROOT, "worker"),
-    env: { ...process.env, SAY_WORKER_TOKEN: WORKER_TOKEN },
+    env: { ...process.env, CS_CORE_WORKER_TOKEN: WORKER_TOKEN },
     stdio: "ignore",
     detached: true,
   });

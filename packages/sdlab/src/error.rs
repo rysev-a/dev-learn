@@ -22,6 +22,6 @@ impl std::error::Error for SdError {}
 
 impl From<serde_json::Error> for SdError {
     fn from(e: serde_json::Error) -> SdError {
-        SdError(format!("неверный JSON: {e}"))
+        SdError(i18n::trf!("invalid JSON: {0}", e))
     }
 }

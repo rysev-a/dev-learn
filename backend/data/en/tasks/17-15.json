@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "virt-l0-exits",
+   "title": "Exits into L0 under nesting",
+   "statement": "Write a function l0_exits(kinds, accesses, shadowing): kinds is a list of L2 machine exits, each either \"l0\" (handled entirely by the L0 hypervisor) or \"l1\" (addressed to the L1 hypervisor). accesses is how many fields of the control structure L1 reads and writes while handling one such exit, and shadowing says whether the shadow structure is on (L1 accesses fields without an exit). An \"l0\" exit costs one exit into L0. An \"l1\" exit costs 2 exits into L0 (the L2 exit itself and the resumption of L1), plus accesses if shadowing is off. Return the total number of exits into L0.",
+   "hint": "Add up the cost of each exit by its kind."
+  },
+  {
+   "id": "virt-merge-vmcs",
+   "title": "Merging VMCS",
+   "statement": "Write a function merge_vmcs(v12, v01): v12 is the description of the L2 machine prepared by the L1 hypervisor, and v01 is the structure of L1 itself held by the L0 hypervisor. Each is a dictionary {\"guest\": {field: value}, \"host\": {field: value}, \"controls\": [names of enabled intercepts]}. In the real structure VMCS 0-2, the guest state comes from v12, the host state comes from v01 (we must return into L0), and the intercepts are the union of the intercepts of both structures. Return a dictionary of the same shape; sort the list of intercepts.",
+   "hint": "Combine the intercepts using sets and sort them."
+  },
+  {
+   "id": "virt-build-ept02",
+   "title": "Merging nested tables",
+   "statement": "Write a function build_ept02(ept12, ept01): ept12 is the table of L1 for L2 (a dictionary \"L2 page (string) -> L1 page\"), ept01 is the table of L0 for L1 (a dictionary \"L1 page (string) -> host page\"). Build the table that L0 will give to the processor: \"L2 page (string) -> host page\". It includes only those L2 pages that have a mapping in both tables.",
+   "hint": "The table keys are strings: use str() for page numbers."
+  },
+  {
+   "id": "virt-route-nested",
+   "title": "Whose exit is it",
+   "statement": "Write a function route_nested_exits(reasons, l1_intercepts): reasons are the exit reasons of the L2 machine in order, and l1_intercepts are the reasons that the L1 hypervisor asked to intercept for its machine. The L0 hypervisor always handles EXTERNAL_INTERRUPT and EPT_VIOLATION_01 (faults of L0's own table) itself. For the remaining reasons, L0 passes the exit to L1 (\"l1\") if L1 intercepts it, and otherwise handles it itself (\"l0\"). Return a list of \"l0\"/\"l1\" for each exit.",
+   "hint": "Check first the reasons that always stay with L0."
+  },
+  {
+   "id": "virt-can-nest",
+   "title": "Can a hypervisor be launched",
+   "statement": "Write a function can_nest(flags_line, nested): flags_line is the flags line from the guest's /proc/cpuinfo (the field name, a colon, and a list of flags separated by spaces), and nested is the value of the nested parameter of the KVM module (\"Y\", \"1\", \"N\", \"0\", or something else). The flag vmx means Intel, svm means AMD. Return a tuple (vendor: \"intel\", \"amd\", or None; whether a nested hypervisor can be launched, which holds if the vendor is determined and nested is \"Y\", \"y\", or \"1\").",
+   "hint": "Parse the flags as separate words after the colon."
+  },
+  {
+   "id": "virt-nested-slowdown",
+   "title": "Slowdown from exits",
+   "statement": "Write a function nested_slowdown(exits_per_s, cost_cycles, hz, factor): what percentage of processor time is eaten by exits. For an ordinary machine it is exits_per_s * cost_cycles * 100 // hz (an integer, at most 100). For a nested one, the cost of an exit is multiplied by factor. Return a tuple (percent for an ordinary machine, percent for a nested one), each at most 100.",
+   "hint": "Use integers: multiply first, then divide; cap the result at one hundred."
+  },
+  {
+   "id": "virt-pick-nesting",
+   "title": "What to use instead of nesting",
+   "statement": "Write a function pick_nesting(env): env is a dictionary with boolean fields \"bare_metal\" (a machine without a hypervisor is available), \"cloud_allows\" (the cloud allows nested virtualization), and \"tcg_ok\" (software translation is acceptable, slow). The rules, in order: bare-metal is available - \"bare-metal\"; the cloud allows it - \"nested-kvm\"; translation is acceptable - \"tcg\"; otherwise - \"none\".",
+   "hint": "Check the conditions strictly in the given order."
+  },
+  {
+   "id": "virt-vmcs-shadow",
+   "title": "Which VMCS accesses cause an exit",
+   "statement": "Write a function vmcs_exits(accesses, shadowed): accesses are the fields of the control structure that the L1 hypervisor accesses one after another, and shadowed is a list of fields permitted without an exit (VMCS shadowing). An access to such a field goes directly; an access to any other causes an exit into L0. Return a tuple (number of exits, number of direct accesses).",
+   "hint": "Compare each field against the set of permitted ones."
+  }
+ ]
+}

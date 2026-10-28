@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 28,
+ "tasks": [
+  {
+   "id": "j20-percentile",
+   "title": "Percentiles and summary",
+   "statement": "Write the functions percentile(values, p), median(values) and summarize(values). percentile uses the nearest-rank method: sort the values in ascending order (do not modify the original array), rank = max(1, ceil(p / 100 × n)), and the result is the element with that rank (p = 0 gives the minimum, p = 100 the maximum); an empty array → null. median: for an even number of values, the average of the two middle ones; for an empty array, null. summarize → { n, min, max, mean (rounded to 2 decimals), p50, p75, p95 } (p* by nearest rank); for an empty array, { n: 0 }. Non-numeric values and NaN are ignored.",
+   "hint": "Sort a copy; rank = ceil(p/100·n), at least 1."
+  },
+  {
+   "id": "j20-cwv-rating",
+   "title": "Core Web Vitals rating",
+   "statement": "Write the functions rate(metric, value) and assess(samples). Thresholds (good ≤ the first, poor > the second, in between is \"needs-improvement\"): lcp [2500, 4000] ms, inp [200, 500] ms, cls [0.1, 0.25], fcp [1800, 3000] ms, ttfb [800, 1800] ms. rate → \"good\" | \"needs-improvement\" | \"poor\"; an unknown metric throws an Error. assess(samples) takes samples: { lcp: [values], inp: [...], cls: [...], … }: for each metric with a non-empty array it computes the 75th percentile (nearest rank) and the rating; the result is { metrics: { name: { p75, rating } }, overall }, where overall is based on the three core metrics (lcp, inp, cls) present in samples: \"poor\" if any of them is poor; \"good\" if all present ones are good; otherwise \"needs-improvement\"; if none of the three is present, overall: null. The fcp and ttfb metrics go into metrics but do not affect overall.",
+   "hint": "p75 by nearest rank; overall only from the three core metrics."
+  },
+  {
+   "id": "j20-cls",
+   "title": "CLS from session windows",
+   "statement": "Write the function calcCLS(entries): entries are layout-shift records { value, hadRecentInput, startTime (ms) } in time order. Records with hadRecentInput = true are ignored. The rest are grouped into session windows: a new window starts if more than 1000 ms have passed since the previous shift (strictly greater) or more than 5000 ms have passed since the start of the window (strictly greater; a shift under this condition opens a new window). A window's value is the sum of value. CLS is the largest window, rounded to 4 decimals; with no suitable records, 0.",
+   "hint": "A session window: the sum of shifts with gaps ≤ 1 s and total length ≤ 5 s; take the maximum."
+  },
+  {
+   "id": "j20-inp",
+   "title": "INP calculation",
+   "statement": "Write the function calcINP(events): events are event timing records { interactionId, duration }. Records whose interactionId is 0, undefined or missing are ignored. Records with the same interactionId are merged into one interaction with the maximum duration. Interactions are sorted by duration in descending order; INP is the element at index min(n − 1, floor(n / 50)) (that is, for every 50 interactions, the single longest one is dropped). No interactions → null.",
+   "hint": "Group by interactionId, take the maximum, sort in descending order and pick index floor(n/50)."
+  },
+  {
+   "id": "j20-lcp",
+   "title": "Picking the LCP element",
+   "statement": "Write the function pickLCP(entries, firstInputTime = Infinity). entries are largest-contentful-paint records in time order: { startTime, size (area in px²), id, url? }. Candidates are records with startTime < firstInputTime (after the user's first input the browser stops considering new ones) and size > 0. LCP is the last candidate whose size is strictly greater than that of all previous candidates (in time order); if records have equal size, the earlier one stays. The result is { id, startTime, size } of that candidate, or null if there are no candidates.",
+   "hint": "Walk through the records: consider only those before the input and update the best one on a strict size increase."
+  },
+  {
+   "id": "j20-tbt",
+   "title": "Total Blocking Time",
+   "statement": "Write the function totalBlockingTime(tasks, fcp, tti): tasks are main-thread tasks { start, duration } (ms). The measurement window is [fcp, tti]. For each task, take its intersection with the window (the task [start, start + duration] is clipped to the window's bounds); if the intersection is longer than 50 ms, the blocking part = length − 50, otherwise 0. TBT is the sum of the blocking parts. If tti ≤ fcp, the result is 0. Round the result to an integer. Also write the function longTasks(tasks) → the tasks with duration > 50 ms (the original objects, in order of start).",
+   "hint": "Clip the task to the window and subtract 50 ms if the remainder is greater than 50."
+  },
+  {
+   "id": "j20-chunks",
+   "title": "Chunked work with yielding",
+   "statement": "Write the async function runInChunks(items, worker, { budgetMs = 50, now, yieldFn, signal }): it processes the items in order by calling worker(item, index) (which may be async: await it). The chunk time is counted from the start of the chunk (the start is the beginning of the work or the end of the last yield): after processing each item, if now() − chunk start ≥ budgetMs and items remain, call await yieldFn() and start a new chunk (start time = now() after yieldFn). Before each item, check signal?.aborted: if it is aborted, stop. The result is { processed (how many items were processed), yields (how many times control was yielded), aborted (boolean) }. An error from worker is propagated.",
+   "hint": "Check the budget after processing an item, and only if items remain."
+  },
+  {
+   "id": "j20-scheduler",
+   "title": "Prioritized task scheduler",
+   "statement": "Write the function createScheduler() → { postTask(fn, options), advance(ms), runNext(), runAll(), now(), size() } (an analogue of scheduler.postTask with virtual time). postTask(fn, { priority = \"user-visible\", delay = 0, signal }) → a promise with the result of fn() (fn may be async; the result or error is passed to the promise). Priorities: \"user-blocking\" > \"user-visible\" > \"background\"; within a priority, in order of posting (FIFO). A task with delay > 0 is ready no earlier than now() + delay (virtual time, changed only by advance(ms), initially 0); readiness is determined at the moment runNext is called. runNext() → true if one ready task (the highest-priority one) was run, otherwise false; execution is synchronous (fn is called synchronously). runAll() runs ready tasks while there are any (including those posted along the way) and returns the number of tasks run. If signal.aborted, the promise is rejected with signal.reason immediately on posting; if the signal is aborted later, the task is removed from the queue (if not yet run) and the promise is rejected with the reason. size() is the number of tasks in the queue (including those waiting for their delay).",
+   "hint": "A queue with the fields rank, at and seq; runNext picks the best of the ready tasks by (rank, seq)."
+  },
+  {
+   "id": "j20-frame-scheduler",
+   "title": "Read, then write: a frame scheduler",
+   "statement": "Write the function createFrameScheduler(raf) → { measure(fn), mutate(fn) }. raf(cb) registers cb for the next frame (it is called by the driver). measure and mutate queue tasks; both return a promise with the result of fn() (an error in fn rejects the promise, and the other tasks of the frame keep running). In a frame, all measure tasks run first, in order of posting, then all mutate tasks. Tasks posted while a frame is running (from inside tasks) go to the next frame. Only one raf call is registered per frame (and only if there are tasks that are not yet in the registered frame).",
+   "hint": "Two task lists (reads and writes) and an \"a frame was already requested\" flag; in the frame, take the lists and reset them before running."
+  },
+  {
+   "id": "j20-layout-thrash",
+   "title": "Finding layout thrashing",
+   "statement": "Write the functions countReflows(ops) and batchOps(ops). ops is a list of DOM operations { type: \"read\" | \"write\" | \"frame\" }. The layout is \"dirty\" after a write; a read when the layout is dirty is a forced recalculation (reflow): it is counted and the layout becomes clean; frame is the end of a frame, where the browser recalculates the layout itself (it becomes clean, and the recalculation is not counted as forced). countReflows → the number of forced recalculations. batchOps → a new list of operations in which, within each frame (the stretch up to a \"frame\" or to the end of the list), all reads come first (in the original order), then all writes (in the original order), while the frame operations stay in place as separators. Do not modify the original array.",
+   "hint": "One \"layout is dirty\" flag; when batching, split the operations at the \"frame\" boundaries."
+  },
+  {
+   "id": "j20-virtual-window",
+   "title": "Virtual list window",
+   "statement": "Write the function virtualWindow({ scrollTop, viewportHeight, itemHeight, count, overscan = 3 }) → { start, end, offsetTop, totalHeight, visibleStart, visibleEnd }. totalHeight = count × itemHeight. Clamp scrollTop to the range [0, max(0, totalHeight − viewportHeight)]. visibleStart = floor(scrollTop / itemHeight), visibleEnd (exclusive) = min(count, ceil((scrollTop + viewportHeight) / itemHeight)). start = max(0, visibleStart − overscan), end = min(count, visibleEnd + overscan) (end is exclusive). offsetTop = start × itemHeight (the offset of the first rendered row). For count = 0, everything is zero. If viewportHeight ≤ 0, there are no visible rows: visibleEnd = visibleStart.",
+   "hint": "Clamp scrollTop first, then find the visible indexes and add the margin on both sides."
+  },
+  {
+   "id": "j20-height-index",
+   "title": "Height index for a variable-height list",
+   "statement": "Write the function createHeightIndex(heights) → { total(), offsetOf(i), indexAt(offset), setHeight(i, h), range(scrollTop, viewportHeight, overscan = 2) }. offsetOf(i) is the sum of the heights of the rows before i (offsetOf(0) = 0, offsetOf(n) = total). indexAt(offset) is the index of the row that occupies position offset (row i occupies [offsetOf(i), offsetOf(i+1))); offset < 0 → 0; offset ≥ total → the last index (n − 1; 0 for an empty list). Use binary search. setHeight changes a row's height (heights are ≥ 0). range → { start, end (exclusive), offsetTop }: the visible area is [scrollTop, scrollTop + viewportHeight): the first row is indexAt(scrollTop), the last is the row containing position scrollTop + viewportHeight − 1 (but not less than the first); start = max(0, first − overscan), end = min(n, last + 1 + overscan), offsetTop = offsetOf(start). Rows of zero height are allowed (indexAt returns the first row with positive height that covers offset).",
+   "hint": "Prefix sums and a binary search for the first index where prefix[i+1] > offset."
+  },
+  {
+   "id": "j20-intersection",
+   "title": "Intersection observer",
+   "statement": "Write the function intersectionRatio(target, root, rootMargin = 0) and the function createObserver({ thresholds }). Rectangles are { x, y, w, h }. intersectionRatio: the root is expanded by rootMargin on each side (a number, possibly negative), and the result is the intersection area / the target area (0 if the target area is 0 or there is no intersection; a value from 0 to 1). createObserver → { observe(id), update(id, ratio), unobserve(id), onChange(fn) }. thresholds is an array of thresholds from 0 to 1 (sort it; [] = [0]). For each observed id, a threshold index is stored: idx(ratio) = the number of thresholds that are ≤ ratio, provided ratio > 0 or the threshold 0 exists and the target intersects; to simplify: isIntersecting = ratio > 0, idx = isIntersecting ? (the number of thresholds ≤ ratio) : 0. update(id, ratio) calls the subscribers fn({ id, ratio, isIntersecting }) if idx has changed compared to the previous one (for the first update after observe, it is always called, even if idx = 0). Ids that are not observed are ignored; after unobserve the state is forgotten.",
+   "hint": "Store the last threshold index for each id; compute the intersection of two segments on each axis."
+  },
+  {
+   "id": "j20-srcset",
+   "title": "Picking an image from srcset",
+   "statement": "Write the functions parseSrcset(str) and pickImage(candidates, { slotWidth, dpr }). parseSrcset: candidates are separated by commas (there is no comma inside a URL, for example in \"data:\": assume URLs have no commas), each is \"url [descriptor]\", with a descriptor like \"480w\" or \"2x\"; with no descriptor it is \"1x\". The result is an array of { url, w } or { url, x }. If w and x are mixed in the list, or there is an invalid descriptor, throw an Error. Extra spaces are allowed. pickImage: the required width is need = slotWidth × dpr; for w candidates, the narrowest of those with w ≥ need; if there are none, the widest; for x candidates, the one with the smallest x ≥ dpr, otherwise the largest; on a tie, the first in the list. It returns the url. An empty list → null.",
+   "hint": "Choose the w or x key from the first candidate; filter the \"sufficient\" ones and take the smallest."
+  },
+  {
+   "id": "j20-sizes",
+   "title": "Parsing the sizes attribute",
+   "statement": "Write the function resolveSizes(sizes, viewportWidth) → the slot width in pixels (an integer, rounded with Math.round). sizes is as in HTML: a comma-separated list of \"condition length\" items; a condition is one or more media expressions in parentheses joined with \"and\": (min-width: 600px), (max-width: 800px); the last item without a condition is the default value. Take the first item whose condition holds (min-width: ≤ the window width, max-width: ≥ the window width, comparison is inclusive). A length is \"NNpx\", \"NNvw\" (a share of the window width) or calc(...) of the form \"calc(100vw - 32px)\" / \"calc(50vw + 10px)\" (a single addition or subtraction of two terms in vw/px). If no condition matches and there is no default value, use 100vw. An empty or missing string is also 100vw. An unrecognized length throws an Error.",
+   "hint": "Parse the list with parentheses in mind: a comma inside calc() is not a separator; for conditions, use a regular expression on (min|max)-width."
+  },
+  {
+   "id": "j20-font-display",
+   "title": "font-display: what the user sees",
+   "statement": "Write the function fontState(display, t, loadedAt) → \"invisible\" (the space for the text is empty) | \"fallback\" (the fallback font) | \"web\" (the loaded font). t is the time in ms since the moment the font was needed; loadedAt is how many ms later the font became available (null means never). The modes have a block period (the text is invisible) and a swap period (the fallback font is shown and is replaced by the loaded one as soon as it is ready): auto and block have a block period of 3000 ms and an infinite swap period; swap has block 0 and an infinite swap period; fallback has block 100 ms and a swap period up to t = 3100 inclusive; optional has block 100 ms and no swap period. The period boundaries are inclusive (t = 100 is still the block period). Rules: during the block period, \"web\" if the font is already available (loadedAt ≤ t), otherwise \"invisible\"; during the swap period, \"web\" if it is available, otherwise \"fallback\"; after the swap period, the font is accepted only if it became available no later than its end (loadedAt ≤ the end of the swap period), then \"web\", otherwise always \"fallback\". For optional, the \"end of the swap period\" is the end of the block period: a font that didn't make it within 100 ms is never applied. An unknown mode throws an Error with the message «Неизвестный режим: <имя>» (the text is in Russian, exactly as written, where the placeholder is the mode name).",
+   "hint": "A table of periods: block, then swap; a font loaded outside the allowed periods is not applied."
+  },
+  {
+   "id": "j20-hints",
+   "title": "Choosing resource hints",
+   "statement": "Write the function planHints(resources, pageOrigin) → { preconnect, preload, dnsPrefetch }. resources is an array of { url (absolute), type: \"script\"|\"style\"|\"font\"|\"image\"|\"fetch\", critical (boolean), discoveredBy: \"html\"|\"css\"|\"js\" }. preload: for critical resources discovered not in html (that is, the browser learns about them late) — { href: url, as: type }, and for fonts and fetch crossorigin: true is added; in order of appearance, at most 4 (extras are dropped), duplicates by url count once. preconnect: the unique origins of third-party (≠ pageOrigin) critical resources in order of first appearance, at most 3; for an origin, crossorigin: true if at least one of its critical resources is a font or fetch: the element is { origin, crossorigin }. dnsPrefetch: the origins of third-party non-critical resources (in order of appearance) that are not in preconnect, without repeats.",
+   "hint": "Three independent passes over the resources; a Map from origin to whether crossorigin is needed."
+  },
+  {
+   "id": "j20-critical-path",
+   "title": "Critical loading path",
+   "statement": "Write the function criticalPath(tasks): tasks is an array of { id, duration, deps: [id…] } (dependencies: a task does not start until all of its deps have finished; parallelism is unlimited). The result is { length, path, finish: { id: finish time } }: length is the finish time of the whole graph (the maximum of finish), path is the chain of ids of the critical path from start to end (the dependencies that set the latest readiness at each step; on a tie, the id that comes first alphabetically; among the final tasks with the maximum finish, also alphabetically). If a dependency refers to a nonexistent id, throw an Error «Неизвестная зависимость: <id>»; for a cycle, an Error «Цикл зависимостей» (both messages are in Russian, exactly as written, where <id> is the id). An empty list gives { length: 0, path: [], finish: {} }.",
+   "hint": "Memoize the finish time (depth-first traversal with colors to detect cycles) and remember which dependency you came through."
+  },
+  {
+   "id": "j20-simulate-load",
+   "title": "Load simulation with a connection limit",
+   "statement": "Write the function simulateLoad(resources, { maxPerOrigin = Infinity }): resources are { id, origin, duration, deps }. A resource starts when all its deps are finished and its origin has a free slot (at most maxPerOrigin resources run at the same time for one origin). Ready resources wait for a slot in the order (ready time, position in the original list). The start is at the moment when they are ready and a slot is free; a slot is released at the moment of finishing. When a finish and a readiness coincide, the slot counts as free (finishes are processed first). The result: { finish: { id: t }, total } (total is the maximum of finish, 0 for an empty list). A cycle or an unknown dependency throws an Error.",
+   "hint": "An event simulation: keep the time, the busy slots per origin and a queue of ready resources; jump to the nearest event."
+  },
+  {
+   "id": "j20-budgets",
+   "title": "Performance budgets",
+   "statement": "Write the function checkBudgets(stats, budgets) → { ok, violations }. stats = { files: [{ name, type (\"js\"|\"css\"|\"img\"|…), bytes }], metrics: { lcp: …, … } }. budgets = { total?, byType?: { js: 200000, … }, perFile?: [{ pattern: RegExp, max }], metrics?: { lcp: 2500, … } }. A violation is exceeding a limit (strictly greater). The list of violations is in this order: total; byType in the key order of budgets.byType; perFile, for each rule in order and for each matching file (pattern.test(name)) in file order; metrics in the key order of budgets.metrics (metrics missing from stats are skipped). An element is { kind: \"total\"|\"type\"|\"file\"|\"metric\", name (for total, \"total\"; otherwise the type; the file name; the metric name), actual, limit, over (the percentage over the limit, rounded to 1 decimal), severity: over ≤ 10 → \"warn\", otherwise \"error\" }. ok means there are no violations with severity error.",
+   "hint": "A helper add(kind, name, actual, limit) avoids duplication; the order of checks is as in the statement."
+  },
+  {
+   "id": "j20-snapshot-diff",
+   "title": "Comparing memory snapshots",
+   "statement": "Write the functions diffSnapshots(a, b) and findLeakSuspects(snapshots). A snapshot is an array of objects { type, size } (a number of bytes). diffSnapshots → an array of { type, countA, countB, countDelta, bytesDelta } for the types whose object count or total size grew (countDelta > 0 or bytesDelta > 0), sorted by bytesDelta in descending order, then by type name. findLeakSuspects(snapshots): for the snapshots (at least 3), return the types whose object count grows strictly at every transition between adjacent snapshots (the type is present in every snapshot; absence = 0, and 0 → positive also counts as growth), with the field counts — the series of counters; the result is [{ type, counts }] in ascending order of type name. If there are fewer than 3 snapshots, return [].",
+   "hint": "Group the objects by type into a Map {count, bytes}; compare two maps, and a series of maps."
+  },
+  {
+   "id": "j20-listener-tracker",
+   "title": "Listener leak tracker",
+   "statement": "Write the function trackListeners(target) → { leaks(), dispose() }. target is an object with the methods addEventListener(type, fn, options) and removeEventListener(type, fn, options). The tracker wraps these methods (replacing them on the target instance and calling the originals) and keeps a record of active listeners by the key (type, fn, capture), where capture = options === true or options?.capture === true. If the same key is added again, the DOM ignores it, so the tracker must not count it twice (but the original method is still called). removeEventListener removes the record by key (capture is taken into account). The once option: a listener is considered removed after its first firing, but the tracker doesn't see the firing, so for once listeners the tracker wraps fn itself and removes the record when the wrapper is called (calling the original fn); the wrapper is passed to the original addEventListener, and removeEventListener(type, fn) must find the wrapper. leaks() → [{ type, capture, name }] in order of addition (name is fn.name or \"anonymous\"). dispose() restores the original methods and returns the list of leaks (like leaks()) as of that moment.",
+   "hint": "Replace the methods on the instance; keep the records in an array of {type, fn, capture, wrapped}; for once, pass a wrapper."
+  },
+  {
+   "id": "j20-memoize-lru",
+   "title": "Memoization with LRU eviction",
+   "statement": "Write the function memoizeLRU(fn, { max = 100, keyFn = (...args) => JSON.stringify(args) } = {}) → memoized. memoized(...args): key = keyFn(...args); on a hit, the stored value is returned and the entry becomes the \"freshest\"; on a miss, fn(...args) is called, the result is stored (including undefined and null), and if there are more than max entries, the least recently used one is evicted. An error from fn is propagated and not cached (the next call will call fn again). Methods: memoized.stats() → { hits, misses, evictions, size }, memoized.clear() (clears the entries and the counters), memoized.has(...args) → boolean (does not change freshness or the counters). Promises are cached as values (but a rejected promise is removed from the cache so that the next call retries).",
+   "hint": "A Map keeps insertion order: to refresh a key, delete it and insert it again."
+  },
+  {
+   "id": "j20-user-timing",
+   "title": "User Timing model",
+   "statement": "Write the function createPerformance(nowFn) → an object with the methods mark(name, options), measure(name, startOrOptions, endMark), getEntries(), getEntriesByName(name, type), getEntriesByType(type), clearMarks(name), clearMeasures(name). mark(name, { startTime = now(), detail }) → a record { name, entryType: \"mark\", startTime, duration: 0, detail } (detail is null by default) and adds it to the list. measure(name, start, end): start and end are a mark name (the last mark with that name at the moment of the call is used), a number (a time), or not given (start → 0, end → now()); you can pass an object { start, end, duration, detail } as the second argument (start/end are a name or a number; if duration and one of the ends are given, the other is computed); the record is { name, entryType: \"measure\", startTime: start, duration: end − start, detail }. An unknown mark: throw an Error with name \"SyntaxError\" and message \"The mark 'name' does not exist\" (with the actual mark name in place of name). getEntries() returns all records sorted by startTime (stable; on a tie, by order of addition). getEntriesByName(name, type?) and getEntriesByType(type) are the same with a filter. clearMarks(name?) removes marks (all or those with the name), clearMeasures removes measures. The methods mark and measure return the record.",
+   "hint": "A list of records; resolve turns a mark name or a number into a time; the sort is stable by (startTime, order)."
+  },
+  {
+   "id": "j20-flame",
+   "title": "Profile sample summary",
+   "statement": "Write the functions summarizeSamples(samples) and collapse(samples). sample = { stack: [root … leaf], dt (ms) }. summarizeSamples → an array of { name, self, total, selfPct, totalPct } for each function: self is the sum of dt of the samples where the function is the leaf (the last element of the stack); total is the sum of dt of the samples where it appears in the stack (counted once per sample, even with recursion); percentages are the share of the sum of all dt, rounded to 1 decimal (0 if the sum is 0). Sort by self in descending order, then by total in descending order, then by name. An empty stack is ignored. collapse → an array of strings \"a;b;c N\" (the stack joined by \";\" and the total dt after a space) for the unique stacks, sorted alphabetically by the stack string; samples with equal stacks are summed.",
+   "hint": "A Map from name to {self, total}; count total via a Set of the stack's names so that recursion doesn't double the time."
+  },
+  {
+   "id": "j20-rum",
+   "title": "Collecting real-user metrics",
+   "statement": "Write the function createRum({ send, sampleRate = 1, rand = Math.random, now, maxBatch = 10 }) → { record(name, value), flush(final = false), pending(), sampled }. sampled = rand() < sampleRate (decided once, at creation); if not sampled, all calls to record do nothing. The metrics \"lcp\", \"inp\" and \"cls\" are \"updatable\": only the last value is kept (on repeated record calls the value is replaced, and the entry stays in its previous place in the order); they are sent only on flush(true) (leaving the page). The other metrics are events: they are added to the queue as { name, value, t: now() }; when the event queue reaches maxBatch, a batch is sent automatically (flush without final). flush(final): if there is anything to send, call send({ final, metrics: [...] }), where metrics are first the accumulated events (in the order recorded), then (only when final) the updatable metrics { name, value, t } (t is the time of the last record) in order of first recording; after sending, the queues are cleared. Do not send an empty batch. After flush(true), further record calls are ignored. pending() is the number of items waiting to be sent (events + updatable ones).",
+   "hint": "Updatable metrics go in a Map (set keeps the order of first insertion), events in an array."
+  },
+  {
+   "id": "j20-bfcache",
+   "title": "bfcache blockers",
+   "statement": "Write the function bfcacheBlockers(page) → { eligible, reasons }. page = { hasUnloadHandler, mainCacheControl (the Cache-Control header string of the main document, or null), openConnections: [strings of kinds], hasOpener, status (the HTTP status of the main document), isHttp (true if the page is on http/https; false for, say, chrome://), pendingFetches (the number of unfinished requests, keepalive or not) }. The reasons, in order of checking: \"unload-handler\" — there is an unload handler; \"cache-control-no-store\" — mainCacheControl contains the no-store directive (case-insensitive); \"open-connection:<kind>\" — one reason for each value in openConnections that blocks (websocket, webrtc, indexeddb-transaction, web-lock; other kinds, such as \"fetch-complete\", do not block), in the order listed; \"window-opener\" — hasOpener; \"http-status\" — status is not 200; \"not-http\" — isHttp is false; \"pending-fetch\" — pendingFetches > 0. eligible means there are no reasons.",
+   "hint": "Collect the list of reasons in order; look for no-store as a separate directive."
+  },
+  {
+   "id": "j20-prefetch",
+   "title": "Deciding whether to prefetch the next page",
+   "statement": "Write the functions prefetchDecision(ctx) and buildSpeculationRules(urls, options). ctx = { saveData, effectiveType (\"slow-2g\"|\"2g\"|\"3g\"|\"4g\"), trigger (\"visible\"|\"hover\"|\"pointerdown\"|\"none\"), hoverMs, eagerness (\"eager\"|\"moderate\"|\"conservative\"), alreadyPrefetched, budgetUsedKB, budgetKB }. It returns { action: \"none\"|\"prefetch\"|\"prerender\", reason }. The order of checks: saveData → \"none\", \"save-data\"; effectiveType slow-2g or 2g → \"none\", \"slow-network\"; alreadyPrefetched → \"none\", \"already\"; budgetUsedKB ≥ budgetKB → \"none\", \"budget\"; then by eagerness: \"eager\" — any trigger except \"none\" fits; \"moderate\" — hover with hoverMs ≥ 200 or pointerdown; \"conservative\" — only pointerdown; if nothing fits — \"none\", \"trigger\". If the trigger fits: action is \"prerender\" if effectiveType is \"4g\" and the trigger is \"pointerdown\", otherwise \"prefetch\"; reason is \"ok\". buildSpeculationRules(urls, { action, eagerness }) → an object { [action]: [{ source: \"list\", urls (without repeats, keeping order), eagerness }] }, or null if action is not prefetch/prerender or the list is empty.",
+   "hint": "First the prohibitions in order; then the trigger check by eagerness; prerender only for 4g and pointerdown."
+  },
+  {
+   "id": "j20-islands",
+   "title": "Island hydration",
+   "statement": "Write the function createHydrator(islands) → { dispatch(event), log() }. islands is an array of { id, strategy: \"load\"|\"idle\"|\"visible\"|\"interaction\"|\"never\", parent? (the id of another island) }. dispatch(event) accepts { type: \"load\" } — the islands with the load strategy are hydrated; { type: \"idle\" } — idle; { type: \"visible\", id } — the island id, if its strategy is visible; { type: \"interaction\", id } — the island id, if its strategy is not never (any interaction with a not-yet-hydrated island hydrates it, whatever its strategy, except never). Each island is hydrated once. If an island has a parent and the parent is not hydrated yet, the parent is hydrated first (recursively, along the chain), if the parent's strategy is not never; if the parent is never, the island cannot be hydrated (it stays unhydrated). Only islands from the list count (an unknown id is ignored). Order: islands in the order of declaration in islands; when hydrating a chain, parents come before the child. dispatch returns an array of the ids hydrated by this event, in the order of hydration; log() is an array of strings \"id:event type\" (for the same hydrations, in order) — for example \"hero:load\", \"cart:interaction\", and for hydrating a parent along the chain, \"parent:parent-of:child\".",
+   "hint": "A recursive function hydrate(id, reason): the parent first, then the island itself; a set of already hydrated ones."
+  },
+  {
+   "id": "j20-regression",
+   "title": "Detecting regressions by medians",
+   "statement": "Write the function detectRegression(baseline, current, { minAbs = 0, relative = 0.05, k = 3 } = {}) → { verdict, delta, threshold, medBase, medCur }. Both arguments are arrays of measurements (lower is better). medBase and medCur are the medians (for an even count, the average of the two middle values). madBase is the median of the absolute deviations of baseline from medBase, multiplied by 1.4826 (a robust estimate of noise). threshold = max(minAbs, medBase × relative, k × madBase). delta = medCur − medBase. verdict: \"regression\" if delta > threshold; \"improvement\" if delta < −threshold; otherwise \"same\". The numbers delta, threshold, medBase and medCur are rounded to 2 decimals (the unrounded values are used in the comparison). An empty baseline or current throws an Error with the message «Нет данных» (the text is in Russian, exactly as written).",
+   "hint": "The median, the MAD of baseline, and a threshold from three candidates; compare the unrounded values."
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "ops-vector-add",
+   "title": "Adding and subtracting vectors",
+   "statement": "Add the methods __add__ and __sub__ to Vector: both return a new vector and leave the originals unchanged.",
+   "hint": "return Vector(self.x + other.x, self.y + other.y), and the same for subtraction."
+  },
+  {
+   "id": "ops-vector-scalar",
+   "title": "Multiplying by a number from both sides",
+   "statement": "Teach Vector to be multiplied by a number on the left and on the right: v * 3 and 3 * v give the same result. If the other operand is not a number (int or float), the method must return NotImplemented so that Python raises TypeError.",
+   "hint": "__mul__: if not isinstance(k, (int, float)): return NotImplemented. And __rmul__ can simply return self * k."
+  },
+  {
+   "id": "ops-money-sum",
+   "title": "Money under sum()",
+   "statement": "Money stores an amount in cents. Write __add__ (adds only Money, otherwise NotImplemented) and __radd__ so that sum([Money(150), Money(250)]) works (sum starts from zero).",
+   "hint": "__radd__(self, other): if other == 0: return self; otherwise NotImplemented."
+  },
+  {
+   "id": "ops-bag-iadd",
+   "title": "The in-place += operator",
+   "statement": "Bag already has __add__ (it returns a new bag). Add __iadd__ so that a += other changes the object a itself (appends the elements of other) and returns it.",
+   "hint": "self.items.extend(other.items); return self."
+  },
+  {
+   "id": "ops-vector-unary",
+   "title": "Vector negation and length",
+   "statement": "Complete Vector: -v returns a vector with opposite coordinates, and abs(v) returns the length of the vector (math.hypot).",
+   "hint": "__neg__: Vector(-self.x, -self.y); __abs__: math.hypot(self.x, self.y)."
+  },
+  {
+   "id": "ops-index-step",
+   "title": "An object as an index",
+   "statement": "Make Step usable everywhere an integer by nature is needed: a list index, a slice, hex(), range(). One method is enough.",
+   "hint": "def __index__(self): return self.n."
+  },
+  {
+   "id": "ops-matmul",
+   "title": "Matrix multiplication with @",
+   "statement": "Complete __matmul__ for Matrix (it stores a list of rows in rows): element j of row i of the result is the sum of products of row i of the left matrix and column j of the right one. The result is a new Matrix.",
+   "hint": "For each row r and each index j: sum(r[k] * other.rows[k][j] for k in range(len(r)))."
+  },
+  {
+   "id": "ops-url-div",
+   "title": "An address with a slash",
+   "statement": "Teach Url to be built with the / operator: Url(\"example.com\") / \"api\" / \"v1/\" gives \"example.com/api/v1\" (extra slashes at the joints are removed). If the right operand is not a string, return NotImplemented.",
+   "hint": "Url(self.base.rstrip(\"/\") + \"/\" + part.strip(\"/\"))."
+  },
+  {
+   "id": "ops-perm-flags",
+   "title": "Permission flags",
+   "statement": "Perm stores a set of permissions in the three low bits (4 is read, 2 is write, 1 is execute). Write __or__ (union), __and__ (intersection), and __invert__ (complement to seven); each returns a new Perm.",
+   "hint": "Perm(self.bits | other.bits), Perm(self.bits & other.bits), Perm(7 ^ self.bits)."
+  }
+ ]
+}

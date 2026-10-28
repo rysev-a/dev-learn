@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "j4-greet",
+   "title": "Template string: a greeting",
+   "statement": "Write a function greet(name) that returns the string «Привет, <name>!» (for example, «Привет, мир!»). Use a template string in backticks.",
+   "hint": "return `Привет, ${name}!`;"
+  },
+  {
+   "id": "j4-run-log",
+   "title": "console.log: three lines",
+   "statement": "Write a function run() that prints three lines with console.log — «JavaScript», the number 42 and the value true — each in a separate call.",
+   "hint": "console.log(\"JavaScript\"); console.log(42); console.log(true);"
+  },
+  {
+   "id": "j4-type-of",
+   "title": "Type of a value: null and arrays",
+   "statement": "Write a function typeName(v) that returns a string with the name of the type, like typeof, but «null» for null and «array» for an array.",
+   "hint": "First check for null and Array.isArray, then return typeof v."
+  },
+  {
+   "id": "j4-count-falsy",
+   "title": "How many falsy values",
+   "statement": "Write a function countFalsy(arr) that returns how many elements of the array count as falsy when checked in a condition.",
+   "hint": "if (!x) n++ — this is also right for 0n: it is falsy too."
+  },
+  {
+   "id": "j4-default",
+   "title": "A default value: only for null and undefined",
+   "statement": "Write a function orDefault(x, d) that returns d only if x is null or undefined; for 0, the empty string and false it returns x itself. You must not use the || and && operators.",
+   "hint": "The ?? operator picks the right side only for null and undefined."
+  },
+  {
+   "id": "j4-safe-name",
+   "title": "A safe path: user?.profile?.name",
+   "statement": "Write a function userName(user) that returns user.profile.name, and if null or undefined is met along the way, the string «аноним». Do not use if statements or the ternary ? : — ?. and ?? are enough.",
+   "hint": "return user?.profile?.name ?? \"аноним\";"
+  },
+  {
+   "id": "j4-money",
+   "title": "Money without the 0.30000000000000004 tail",
+   "statement": "Write a function addMoney(a, b) that adds two amounts in rubles and kopecks and returns the result rounded to kopecks (two decimal places), so that 0.1 + 0.2 gives exactly 0.3.",
+   "hint": "Math.round((a + b) * 100) / 100"
+  },
+  {
+   "id": "j4-is-safe",
+   "title": "A safe integer",
+   "statement": "Write a function isSafe(n) that returns true if n is an integer whose absolute value does not exceed 2 to the power of 53 minus 1 (Number.MAX_SAFE_INTEGER). You must not use Number.isSafeInteger.",
+   "hint": "Number.isInteger(n) and Math.abs(n) <= 2 ** 53 - 1; don't forget to check the type."
+  },
+  {
+   "id": "j4-same-value",
+   "title": "Equality that accounts for NaN",
+   "statement": "Write a function sameValue(a, b) that returns true if a === b or if both values are NaN. You must not use Object.is.",
+   "hint": "NaN is the only value not equal to itself: x !== x."
+  },
+  {
+   "id": "j4-factorial",
+   "title": "Factorial with BigInt",
+   "statement": "Write a function factorial(n): n is an ordinary integer from 0 to 30; the function returns n! as a string that is exact for any n (use BigInt).",
+   "hint": "Start with 1n, multiply by BigInt(i); the result is String(r)."
+  },
+  {
+   "id": "j4-char-count",
+   "title": "How many characters in a string",
+   "statement": "Write a function charCount(s) that returns the number of real characters in the string (an emoji counts as one), not UTF-16 units. A for-of loop or the spread operator will help.",
+   "hint": "for (const ch of s) n++;"
+  },
+  {
+   "id": "j4-reverse",
+   "title": "Reversing a string by characters",
+   "statement": "Write a function reverse(s) that returns a string with the characters in reverse order; emoji must stay whole.",
+   "hint": "[...s].reverse().join(\"\")"
+  },
+  {
+   "id": "j4-palindrome",
+   "title": "A palindrome",
+   "statement": "Write a function isPalindrome(s) that returns true if the string reads the same in both directions, ignoring case, spaces and punctuation (for example, «А роза упала на лапу Азора»).",
+   "hint": "toLowerCase, then replace(/[^\\p{L}\\p{N}]/gu, \"\") and compare with the reversed string."
+  },
+  {
+   "id": "j4-title-case",
+   "title": "Each word capitalized",
+   "statement": "Write a function titleCase(s): words are separated by a single space; in each word the first letter becomes uppercase and the rest lowercase.",
+   "hint": "split(\" \"), for each word slice(0, 1).toUpperCase() + slice(1).toLowerCase(), then join."
+  },
+  {
+   "id": "j4-vowels",
+   "title": "Vowels in Russian text",
+   "statement": "Write a function countVowels(s) that counts the Russian vowel letters «а, е, ё, и, о, у, ы, э, ю, я» in any case.",
+   "hint": "\"аеёиоуыэюя\".includes(ch) for each character of the lowercased string."
+  },
+  {
+   "id": "j4-template-user",
+   "title": "Template: name and age",
+   "statement": "Write a function formatUser(name, age) that returns a string like «Ада (36)». You must not join with the + operator — use a template string.",
+   "hint": "return `${name} (${age})`;"
+  },
+  {
+   "id": "j4-truncate",
+   "title": "Truncating a string with an ellipsis",
+   "statement": "Write a function truncate(s, n): if the length of s is at most n, return s; otherwise return the first n - 1 characters and «…». The length of the result is always at most n.",
+   "hint": "s.length <= n ? s : s.slice(0, n - 1) + \"…\""
+  },
+  {
+   "id": "j4-fix-const",
+   "title": "Fix it: const and a sum",
+   "statement": "The function sumAll should return the sum of the numbers in an array, but it fails with TypeError: Assignment to constant variable. Fix the declaration.",
+   "hint": "The accumulated value changes, so declare it with let."
+  },
+  {
+   "id": "j4-fix-for-in",
+   "title": "Fix it: for…in instead of for…of",
+   "statement": "The function sumAll2 should sum the values of an array, but instead it joins its indexes into a string. Fix the loop.",
+   "hint": "for…in goes over property names (the strings «0», «1»…), but we need the values — for…of."
+  },
+  {
+   "id": "j4-fizzbuzz",
+   "title": "FizzBuzz",
+   "statement": "Write a function fizzBuzz(n) that returns an array of n strings for the numbers from 1 to n: «FizzBuzz» for multiples of 15, «Fizz» for multiples of 3, «Buzz» for multiples of 5, otherwise the number itself as a string.",
+   "hint": "First check for multiples of 15, then 3 and 5."
+  },
+  {
+   "id": "j4-range",
+   "title": "A range of numbers",
+   "statement": "Write a function range(a, b, step = 1) that returns an array of numbers from a (inclusive) to b (exclusive) with step step; for step > 0 it is an increasing sequence, for step < 0 a decreasing one. For step === 0 throw a RangeError.",
+   "hint": "Two loops: for step > 0 the condition is i < b, for step < 0 the condition is i > b."
+  },
+  {
+   "id": "j4-sum-digits",
+   "title": "Sum of digits",
+   "statement": "Write a function sumDigits(n): n is a non-negative integer; the function returns the sum of its decimal digits. You must not use strings or arrays — arithmetic only.",
+   "hint": "n % 10 is the last digit, Math.floor(n / 10) is the number without it."
+  },
+  {
+   "id": "j4-clone",
+   "title": "Copying an object",
+   "statement": "Write a function cloneUser(user) that returns a new object with the same fields, so that changing the copy does not affect the original.",
+   "hint": "The spread operator: { ...user }"
+  },
+  {
+   "id": "j4-push-in-place",
+   "title": "Change in place or return a new one",
+   "statement": "Write two functions. pushIn(list, x) appends x to the end of the array passed in (mutates it) and returns nothing. withItem(list, x) returns a new array with x added, without changing the original.",
+   "hint": "push mutates the array, [...list, x] creates a new one."
+  },
+  {
+   "id": "j4-safe-parse",
+   "title": "Safe JSON parsing",
+   "statement": "Write a function safeParse(text) that returns { ok: true, value } for valid JSON and { ok: false, error: e.name } if parsing threw an exception.",
+   "hint": "try { … JSON.parse … } catch (e) { … e.name … }"
+  },
+  {
+   "id": "j4-divide",
+   "title": "Your own exception: division by zero",
+   "statement": "Write a function divide(a, b) that returns a / b, and for b === 0 throws a RangeError with the message «Деление на ноль».",
+   "hint": "throw new RangeError(\"Деление на ноль\");"
+  },
+  {
+   "id": "j4-error-name",
+   "title": "The name of an error",
+   "statement": "Write a function errorName(fn) that calls fn with no arguments; if fn threw an exception, return its name (the name field), otherwise the string «ok».",
+   "hint": "try { fn(); return \"ok\"; } catch (e) { return e.name; }"
+  },
+  {
+   "id": "j4-type-counts",
+   "title": "Counting types",
+   "statement": "Write a function typeCounts(arr) that returns an object where each key is the result of typeof for an element and the value is how many such elements are in the array.",
+   "hint": "out[t] = (out[t] ?? 0) + 1"
+  },
+  {
+   "id": "j4-first-defined",
+   "title": "The first defined value",
+   "statement": "Write a function firstDefined(arr) that returns the first element of the array that is neither null nor undefined (0, the empty string and false qualify!), or undefined if there is none.",
+   "hint": "x != null is the only case where loose comparison is acceptable; or check both values explicitly."
+  },
+  {
+   "id": "j4-parse-num",
+   "title": "String → number or null",
+   "statement": "Write a function parseNum(s) that converts a string to a number with the Number function and returns it; for the empty string, a string of spaces, and anything that gives NaN, it returns null.",
+   "hint": "Number(\"\") is 0 — empty strings must be filtered out beforehand."
+  }
+ ]
+}

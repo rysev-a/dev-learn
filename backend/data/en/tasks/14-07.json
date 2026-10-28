@@ -1,0 +1,78 @@
+{
+ "book": 14,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "mux2-ns",
+   "title": "Multiplexer without an inverter",
+   "statement": "A multiplexer picks one of two channels: D0 when S = 0, D1 when S = 1. There is no inverter in the palette, but NOT-S comes in together with S (input nS).",
+   "hint": "Two branches and an OR: Y = D0·nS OR D1·S. The “D0 and nS” branch is open while channel 0 is selected; the “D1 and S” branch is open while channel 1 is selected."
+  },
+  {
+   "id": "mux2-inv",
+   "title": "Inverting multiplexer",
+   "statement": "Build a 2→1 multiplexer whose output is the INVERSION of the selected channel: when S = 0 the output is NOT-D0, when S = 1 it is NOT-D1.",
+   "hint": "An ordinary multiplexer (NOT-S·D0 OR S·D1) with an inverter on the output. Or shortcut it: the final OR together with the NOT is a single NOR gate."
+  },
+  {
+   "id": "mux2-enable",
+   "title": "Multiplexer with enable",
+   "statement": "Add an enable input E: when E = 1 the multiplexer works as usual (S = 0 → D0, S = 1 → D1), and when E = 0 the output is always 0.",
+   "hint": "Build an ordinary multiplexer and pass its output through an AND gate together with E. Remember “Enable: letting a signal through” from the first section."
+  },
+  {
+   "id": "mux-bnotb",
+   "title": "Controlled inverter",
+   "statement": "S = 0: B goes to the output as is; S = 1: NOT-B goes to the output. In other words, it is a multiplexer whose channels are B itself and its inversion.",
+   "hint": "Channel 0 is B, channel 1 is NOT-B. Multiplexer: NOT-S·B OR S·NOT-B. You need two inverters (one on S, one on B)."
+  },
+  {
+   "id": "demux2",
+   "title": "Demultiplexer 1→2",
+   "statement": "Data D must be “routed” to one of two outputs: when S = 0 the data goes to Y0, when S = 1 to Y1. The unused output must be 0.",
+   "hint": "Two AND gates: Y0 = D AND NOT-S, Y1 = D AND S. There is one inverter, on the S input."
+  },
+  {
+   "id": "decoder2",
+   "title": "Decoder 2→4",
+   "statement": "The two bits S1 S0 form a number from 0 to 3. Light exactly one output with that number: Y0 for 00, Y1 for 01, Y2 for 10, Y3 for 11. There is no data, just a “selection”.",
+   "hint": "Each output is an AND gate that “recognizes” its own code. For Y0 (code 00) a single NOR is enough: it is lit when both inputs are zero. The others need inverters on the right inputs."
+  },
+  {
+   "id": "demux4",
+   "title": "Demultiplexer 1→4",
+   "statement": "Now the two select bits S1 and S0 choose one of FOUR outputs: Y0…Y3. Data D goes only to the selected output.",
+   "hint": "A select decoder: Y0 = D·NOT-S1·NOT-S0, Y1 = D·NOT-S1·S0, Y2 = D·S1·NOT-S0, Y3 = D·S1·S0. Two inverters on S1 and S0, then eight AND gates (two per output)."
+  },
+  {
+   "id": "decoder3",
+   "title": "Decoder 3→8",
+   "statement": "The three bits S2 S1 S0 form a number from 0 to 7. Light exactly one of the eight outputs Y0…Y7 with that number.",
+   "hint": "Do not build eight three-input ANDs from scratch. First make a 2→4 decoder on S1 S0 (four ANDs), then combine each of its outputs with S2 or NOT-S2 to get eight."
+  },
+  {
+   "id": "encoder4",
+   "title": "Priority encoder 4→2",
+   "statement": "An encoder is the opposite of a decoder: from inputs I0…I3 it outputs the number of the active one. If several are lit, the HIGHEST wins. Y1 Y0 is the number; V = 1 when at least one input is lit (otherwise the number is meaningless).",
+   "hint": "High bit of the number: Y1 = I2 OR I3. Low bit: Y0 = I3 OR (I1 AND NOT-I2), since I1 counts only when I2 is silent. V is the OR of all four (you can reuse I2 OR I3 = Y1)."
+  },
+  {
+   "id": "mux2-bus",
+   "title": "Two-bus multiplexer",
+   "statement": "Now we select not a bit but a whole two-bit number: bus A (A1 A0) or bus B (B1 B0). When S = 0 the output Y1 Y0 carries A, when S = 1 it carries B. Each bit is selected separately, but with a shared S.",
+   "hint": "Two identical 2→1 multiplexers: one for the high bits (A1, B1), the other for the low bits (A0, B0). Only one inverter for S is needed; its output goes to both."
+  },
+  {
+   "id": "mux4",
+   "title": "Multiplexer 4→1",
+   "statement": "Four channels D0…D3 and two select bits S1 S0 (the channel number). The output carries the channel whose number is set on S1 S0.",
+   "hint": "Build a tree of three 2→1 multiplexers: the first two select by S0 from the pairs (D0, D1) and (D2, D3), and the third selects by S1 between their results. Inverters are needed only on S0 and S1."
+  },
+  {
+   "id": "mux2-nor",
+   "title": "Multiplexer from NOR gates only",
+   "statement": "The final puzzle: build a 2→1 multiplexer (S = 0 → D0, S = 1 → D1) from NOR gates ONLY. There is no AND, OR or NOT in the palette.",
+   "hint": "A NOR with tied inputs is a NOT. By De Morgan's law A·B = NOT(NOT-A OR NOT-B), i.e. AND is a NOR of inversions. You need NOT-S, NOT-D0, NOT-D1; then D0·NOT-S and D1·S; finally their OR = NOT of a NOR. Seven gates in total."
+  }
+ ]
+}

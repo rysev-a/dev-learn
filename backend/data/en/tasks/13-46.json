@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 46,
+ "tasks": [
+  {
+   "id": "aio-countdown",
+   "title": "Async iterator class",
+   "statement": "Write a class AsyncCountdown(n): an async iterator that yields n, n-1, …, 1 (doing await asyncio.sleep(0) before each value) and then raises StopAsyncIteration. Use __aiter__ and __anext__.",
+   "hint": "__aiter__ returns self; in async def __anext__: if n <= 0, raise StopAsyncIteration; otherwise await asyncio.sleep(0), decrease n, and return the value."
+  },
+  {
+   "id": "aio-agen-pages",
+   "title": "Paginated generator",
+   "statement": "Write an async generator items(fetch): fetch(page) is a coroutine returning the list of items on a page (pages are numbered from 1); an empty list means the end. The generator yields items one by one and does not request extra pages.",
+   "hint": "page = 1; while True: batch = await fetch(page); if not batch: return; for x in batch: yield x; page += 1."
+  },
+  {
+   "id": "aio-filter-comp",
+   "title": "Async comprehension",
+   "statement": "Write an async function evens_squared(source): return a list of squares of the even values of an async source, using an async list comprehension.",
+   "hint": "return [x * x async for x in source if x % 2 == 0]."
+  },
+  {
+   "id": "aio-async-with",
+   "title": "An async with manager class",
+   "statement": "Write a class Resource: __aenter__ prints «открыт» and returns self (after await asyncio.sleep(0)), __aexit__ prints «закрыт» and suppresses only KeyError (returns True), and lets other exceptions through.",
+   "hint": "async def __aexit__(self, et, ev, tb): print(\"закрыт\"); return et is not None and issubclass(et, KeyError)."
+  },
+  {
+   "id": "aio-asynccontextmanager",
+   "title": "@asynccontextmanager",
+   "statement": "Write a manager connection(name) using @asynccontextmanager: on entry it prints «открыто <name>» and yields the dict {\"name\": name}, on exit (including an error in the block) it prints «закрыто <name>».",
+   "hint": "print on entry; try: yield {...}; finally: print on exit."
+  },
+  {
+   "id": "aio-take-aclosing",
+   "title": "Take the first n and close the generator",
+   "statement": "Write an async function take(agen, n): return a list of the first n items of an async generator and guarantee that the generator is closed by the time you return (its finally block has already run). Use contextlib.aclosing.",
+   "hint": "async with aclosing(agen) as g: out = []; async for x in g: if len(out) == n: break; out.append(x). Check the length of out before appending an item."
+  },
+  {
+   "id": "aio-interleave",
+   "title": "Interleaving streams",
+   "statement": "Write an async generator interleave(*sources): round-robin, take one item from each non-empty async source (via anext) and yield them; sources that run out of items are skipped; it finishes when all are exhausted.",
+   "hint": "active = list(sources); while active: for each source try await anext(src); on StopAsyncIteration remove it from the list."
+  },
+  {
+   "id": "aio-batched",
+   "title": "Batches from an async stream",
+   "statement": "Write an async generator batched(source, n): collect the source's items into lists of n and yield them; the last batch may be shorter. n ≥ 1.",
+   "hint": "batch = []; async for x in source: batch.append(x); if len == n: yield batch; batch = []; at the end, if batch is not empty, yield batch."
+  },
+  {
+   "id": "aio-limiter",
+   "title": "Concurrency limiter",
+   "statement": "Write a class Limiter(n), an async context manager that lets no more than n coroutines into the block at once (based on asyncio.Semaphore). __aenter__ takes a slot, __aexit__ releases it.",
+   "hint": "self._sem = asyncio.Semaphore(n); async def __aenter__(self): await self._sem.acquire(); async def __aexit__(...): self._sem.release()."
+  }
+ ]
+}

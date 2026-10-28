@@ -1,0 +1,187 @@
+{
+ "book": 11,
+ "chapter": 38,
+ "tasks": [
+  {
+   "id": "j30-emit",
+   "title": "Component events",
+   "statement": "Write createComponent({ props, emits }): it returns { emit(name, ...args) }. The handler name is \"on\" + the event name, where words joined by \"-\" become camelCase with a capital first letter (save → onSave, item-select → onItemSelect, update:value → onUpdate:value — the colon is kept and the word after it stays as is). If emits is given (an array) and name is not in it, throw Error('Event \"name\" is not declared'). emit calls props[handler](...args) if it is a function and returns the number of handlers called (0 or 1). An exception thrown by the handler propagates.",
+   "hint": "Split the name on \"-\": the first word capitalized, the rest too; for \"update:value\", apply the same rules to the part before the colon."
+  },
+  {
+   "id": "j30-props",
+   "title": "Validation and default values",
+   "statement": "Write resolveProps(schema, given): schema is { name: { type, required, default, validator } }, type is 'string' | 'number' | 'boolean' | 'array' | 'object' | 'function'. The result is { props, errors }. For each name in the schema (in schema order): take given[name]; if it is undefined, use default (a default function is called for array/object, and returned as is for 'function'), otherwise if required, add the error \"Missing required prop: name\". A value that fails the type check (null is not an object; an array is only 'array'; NaN is not a number) gives \"Invalid prop: name expected TYPE got ACTUAL\" (ACTUAL: null/array/typeof), and props gets the default (if any) or undefined. If validator(value) returns false, the error is \"Invalid prop: name failed custom validator\". Properties outside the schema are copied into props as is, after the known ones.",
+   "hint": "A helper kindOf(v); order: undefined → default/required, then type, then validator."
+  },
+  {
+   "id": "j30-slots",
+   "title": "Slots",
+   "statement": "Write renderSlots(template, slots): template is a string with slot markers: \"<slot/>\" or \"<slot></slot>\" is the default slot; \"<slot name=\"title\"/>\" or \"<slot name=\"title\"></slot>\" is a named one; a slot may have fallback content between the tags: \"<slot name=\"a\">fallback</slot>\". slots is an object \"name → string\"; the default slot uses the key 'default'. A marker is replaced by the slot's content if it is given and non-empty (a string of length > 0); otherwise by the fallback content (an empty string for self-closing markers). All other text stays unchanged. The same slot may be used several times.",
+   "hint": "A single replace with the regular expression /<slot(?:\\s+name=\"([^\"]*)\")?\\s*(?:\\/>|>([\\s\\S]*?)<\\/slot>)/g."
+  },
+  {
+   "id": "j30-context",
+   "title": "Context: provide / inject",
+   "statement": "Write createNode(parent = null) → a component tree node with the methods provide(key, value) and inject(key, fallback). provide stores a value on the node. inject searches for a value starting at the node itself, then at its parents going up (the nearest wins, including a value of undefined if it was explicitly provided); if nothing is found, it returns fallback (if the argument was passed, even undefined), otherwise it throws Error(`No provider for \"key\"`). The method node.child() creates a child node. A node has a field parent.",
+   "hint": "A Map of values on the node; tell \"fallback not passed\" apart using arguments.length."
+  },
+  {
+   "id": "j30-lifecycle",
+   "title": "Lifecycle manager",
+   "statement": "Write createInstance(setup): setup(ctx) is called once on creation and receives ctx = { onMount(fn), onUpdate(fn), onUnmount(fn) } for registering callbacks. The instance is { mount(), update(), unmount() }. mount() calls all onMount callbacks in registration order; if a callback returns a function, it is saved as a cleanup. update() calls the onUpdate callbacks in order. unmount() calls, in reverse registration order (a stack), all onUnmount callbacks and the cleanups returned from onMount (a cleanup from onMount goes onto the stack at mount time, after the onUnmount callbacks registered in setup). Mounting twice before unmount, or unmounting without a mount, throws Error('Invalid state: ...'): a second mount gives 'already mounted', unmount without mount gives 'not mounted'. update without mount is also 'not mounted'. After unmount you can mount again.",
+   "hint": "A mounted flag, hook arrays and a cleanup stack; unmount walks the stack from the end."
+  },
+  {
+   "id": "j30-dispatch",
+   "title": "Event bubbling",
+   "statement": "Write dispatchEvent(tree, targetId, type, payload): tree is { id, handlers?: { type: [functions] }, children?: [...] }. Find the path from the root to the node targetId (if none, throw Error('Target not found: id')). The event bubbles from the target to the root (the target first). At each node the handlers of the given type are called in array order, and each gets an event object e = { type, target (the target's id), currentTarget (the node's id), payload, stopPropagation(), stopImmediatePropagation(), preventDefault(), defaultPrevented }. stopPropagation stops bubbling after the current node's handlers; stopImmediatePropagation stops at once (the remaining handlers of that node are not called either). Return { defaultPrevented, visited }, where visited lists the ids of nodes that had at least one handler called, in call order.",
+   "hint": "A recursive path search; a loop from the end of the path to the start with stop flags."
+  },
+  {
+   "id": "j30-delegate",
+   "title": "Event delegation",
+   "statement": "The node model is { tag, id?, classes?: [..], parent, children }. Write closest(node, selector, root): walk up from node through its ancestors (including node itself) up to and including root and return the first node that matches selector: \"tag\", \".class\", \"#id\", or a combination without spaces \"tag.class#id\". If there is none, return null. Then write createDelegate(root): { on(selector, handler), dispatch(target) }: for each registered selector (in registration order), dispatch(target) finds closest(target, selector, root) and, if found, calls handler(found node, target). It returns the number of handlers called.",
+   "hint": "Parse the selector with the regular expression ^([a-z0-9]*)((?:\\.[\\w-]+)*)(#[\\w-]+)?$."
+  },
+  {
+   "id": "j30-store",
+   "title": "A Redux-style store",
+   "statement": "Write createStore(reducer, preloaded): { getState, dispatch, subscribe }. On creation, the state is reducer(preloaded, { type: '@@init' }). dispatch(action): action is an object with a string type, otherwise throw Error('Actions must be plain objects with a string type'); it calls reducer(state, action); if the result !== the previous state, it saves it and calls the subscribers (in subscription order; the subscribers as of the start of the broadcast); it returns the action. Dispatching from inside a reducer is forbidden: Error('Reducers may not dispatch actions'). subscribe(fn) returns an unsubscribe function (calling it again is harmless); unsubscribing during a broadcast does not affect the current broadcast.",
+   "hint": "An isReducing flag; a snapshot of the subscribers before the broadcast."
+  },
+  {
+   "id": "j30-combine-reducers",
+   "title": "combineReducers",
+   "statement": "Write combineReducers(reducers): it returns a reducer (state = {}, action). For each key, reducers[key](state[key], action) is called; if the result is undefined, throw Error(`Reducer \"key\" returned undefined`). If all slices returned the same references and the set of state keys has not changed (state has no extra keys beyond reducers), the previous state is returned (the same reference); otherwise a new object with only the keys of reducers (in the order of reducers). Extra keys of the input state are dropped, and this counts as a change.",
+   "hint": "Build a next object and compare references; check the number of keys."
+  },
+  {
+   "id": "j30-middleware",
+   "title": "Middleware: logger and thunk",
+   "statement": "createStore(reducer, preloaded) (getState, dispatch, subscribe) already exists. Write applyMiddleware(...middlewares): it returns a function (createStore) => (reducer, preloaded) => store. A middleware looks like ({ getState, dispatch }) => next => action => ..., where dispatch inside a middleware is the full one (it goes through the whole chain again). The chain is called left to right: the first middleware wraps the following ones. The resulting store has getState, subscribe and dispatch (with the chain). Then write thunk, a middleware: if action is a function, call action(dispatch, getState) and return its result; otherwise pass it on. And logger(log), a middleware that calls log('→ ' + action.type) before passing the action on, and log('← ' + JSON.stringify(getState())) after.",
+   "hint": "Build chain = middlewares.map(m => m(api)); compose right to left over store.dispatch."
+  },
+  {
+   "id": "j30-nested-routes",
+   "title": "Nested routes",
+   "statement": "Write matchRoutes(routes, path): routes is [{ path, name?, children? }]. A route's path is relative to its parent: segments separated by \"/\", \":name\" is a parameter, a trailing \"*\" is the rest, and the empty string '' is an index route (it matches when the remaining path is empty). The request path has no query/hash, and leading/trailing \"/\" are ignored. The algorithm: for the routes in order, a route matches if its pattern is a prefix of the remaining path (for a route with children) or matches the remaining path completely; then recurse into the children; the first matching chain in which the remaining path is used up wins. The result is an array of { route, params } from the root to the leaf, where params at each step are the accumulated parameters (the parent's plus its own); if nothing matches, null. Parameters are decoded with decodeURIComponent.",
+   "hint": "A recursive function match(routes, segments, params): for each route, try to take a prefix of the segments."
+  },
+  {
+   "id": "j30-parse-url",
+   "title": "Parsing an address",
+   "statement": "Write parseUrl(url) → { path, query, hash }. url is a relative address like \"/path?a=1&b=2#anchor\" (no scheme or host). path is the part before \"?\" or \"#\" (as is; an empty path is \"/\"). hash is what follows \"#\", without the \"#\" itself (no decoding needed; if absent, an empty string). query is an object: pairs separated by \"&\"; \"+\" becomes a space; values and keys are decoded with decodeURIComponent; repeated keys are collected into an array in order of appearance; a key without \"=\" gets an empty string; empty parts are skipped; an invalid percent sequence is left as is.",
+   "hint": "Split off the hash first, then the query; wrap decodeURIComponent in try/catch."
+  },
+  {
+   "id": "j30-build-url",
+   "title": "Building an address from a pattern",
+   "statement": "Write buildUrl(pattern, params = {}, query = {}, hash = ''). In the pattern, \":name\" is replaced with encodeURIComponent(String(params[name])); if the parameter is missing (undefined/null), throw Error('Missing param: name'). Extra params are ignored. query: keys in alphabetical order; an array value gives a repeated key in the original order; null and undefined are skipped (including inside an array); pairs are encoded with encodeURIComponent, with a space as %20; booleans and numbers go through String. The query string is added after \"?\" only if there are pairs. hash (if non-empty) is added as \"#\" + hash. A trailing \"/\" in the pattern is kept.",
+   "hint": "replace(/:([A-Za-z_]\\w*)/g, ...); for the query, sort the keys and use flatMap."
+  },
+  {
+   "id": "j30-history",
+   "title": "Navigation history",
+   "statement": "Write createMemoryHistory(initial = ['/'], index = initial.length - 1): { location, push, replace, back, forward, go, listen, length }. location() is the current path. push(path): drops the entries after the current one, adds a new one, index++, event 'PUSH'. replace(path): replaces the current entry, event 'REPLACE'. go(n): moves index by n within [0, length - 1] (if the move is impossible, nothing happens and there are no events), event 'POP'; back() = go(-1), forward() = go(1). listen(fn) is called as fn(location, action) after every change and returns an unsubscribe function. length() is the number of entries.",
+   "hint": "entries and index; notify(action) after a change; go checks the bounds beforehand."
+  },
+  {
+   "id": "j30-link-intercept",
+   "title": "Intercepting link clicks",
+   "statement": "Write shouldIntercept(event, anchor, origin): event = { button, metaKey, ctrlKey, shiftKey, altKey, defaultPrevented }, anchor = { href, target?, download?, rel? }, origin is the site address (\"https://site.example\"). Return true if the click should be handled by the router: the left button (button === 0), no modifiers, not defaultPrevented; target is unset or '' or '_self'; no download attribute (undefined/false; an empty string '' also counts as download); rel does not contain the word external; href (relative or absolute, resolved with new URL(href, origin)) has the same origin and the protocol http: or https:. An invalid href gives false. An anchor-only link (\"#top\") is also intercepted (true).",
+   "hint": "Do the checks one by one; for rel, use split(/\\s+/)."
+  },
+  {
+   "id": "j30-guards",
+   "title": "Navigation guards",
+   "statement": "Write createRouter(): { beforeEach(guard), navigate(path), current() }. Guards are functions (to, from) → true/undefined (allow), false (cancel) or a string (redirect); they may be async. navigate(path) (async): the guards are called one by one in registration order. If all allow, current() = path and the result is { ok: true, path }. false gives { ok: false, reason: 'cancelled' }. A string means go there (recursively with the same rules), at most 10 redirects in a row, otherwise throw Error('Too many redirects'). If a new navigation started while waiting for the guards, the earlier one, after the guard finishes, returns { ok: false, reason: 'superseded' } and does not change current. The initial current() is '/'.",
+   "hint": "A navigation counter id; after every await, check that the id is still current."
+  },
+  {
+   "id": "j30-redirects",
+   "title": "Redirect rules",
+   "statement": "Write resolveRedirects(path, rules, maxDepth = 10). rules is { from: to }; \"from\" is an exact path or a pattern with parameters \"/old/:id\"; \"to\" may substitute the same parameters (\"/new/:id\"). Apply the rules again to the result until none matches; priority: an exact match before patterns, then rule order. It returns the final path. If a path repeats (a loop), throw Error('Redirect loop: a -> b -> a') (the chain from the start up to the repeat); if there are more steps than maxDepth, throw Error('Too many redirects'). Paths are compared without a trailing \"/\" (except the root).",
+   "hint": "A function apply(path) that returns a new path or null; a visited chain to detect a loop."
+  },
+  {
+   "id": "j30-active-link",
+   "title": "Active link",
+   "statement": "Write isActive(current, target, { exact = false } = {}) and activeClasses(current, items). Paths are normalized: query and hash are dropped, \"//\" is collapsed, and a trailing \"/\" is removed (the root stays \"/\"). exact: active only if the paths are equal. Not exact: the paths are equal, or current starts with target + \"/\" (target \"/\" is active only on an exact match, otherwise the root would always be active). activeClasses(current, items): items is [{ href, label, exact? }]; return an array of class names in items order: 'active' if isActive, otherwise ''; among the non-exact matches, only the longest matching link (by the length of the normalized target) gets 'active', and the other matching non-exact ones give '' (exact ones are counted independently).",
+   "hint": "A function norm(p); for activeClasses, first find the longest matching non-exact link."
+  },
+  {
+   "id": "j30-scroll",
+   "title": "Restoring scroll position",
+   "statement": "Write createScrollManager(): { save(key, pos), onNavigate(action, fromKey, toKey, hash, currentPos) }. save remembers the position { x, y } for a history entry key. onNavigate is called on navigation: first it remembers currentPos under fromKey (if fromKey is set), then it returns the position to show: for 'PUSH' and 'REPLACE', if hash is non-empty, { anchor: hash }, otherwise { x: 0, y: 0 }; for 'POP', the saved position of toKey, or { x: 0, y: 0 } if there is none (hash is ignored on POP). The returned objects are copies (changing the result must not affect what is saved).",
+   "hint": "A Map from key to position; return {...pos}."
+  },
+  {
+   "id": "j30-lazy",
+   "title": "Lazy route loading",
+   "statement": "Write createLazy(loader): loader is an async function with no arguments (a dynamic import). It returns { load, preload, state, value, error }. state() is 'idle' (not started), 'loading', 'ready' or 'error'. load() returns a promise of the result; concurrent calls share one request; after success the result is cached (loader is called once, and a repeated load() returns the value immediately through an already resolved promise). On failure state() = 'error', error() is the error, and load() rejects; the next load() call runs loader again (an error is not cached forever). preload() starts load() but swallows the error (does not throw), and returns the same promise with the error handled (the result is undefined). value() is the result or undefined.",
+   "hint": "Keep the in-flight promise and reset it on error."
+  },
+  {
+   "id": "j30-breadcrumbs",
+   "title": "Breadcrumbs",
+   "statement": "Write breadcrumbs(chain): chain is a chain of matched routes [{ route: { path, meta? }, params }] from the root to the leaf (path is relative to the parent, as in matchRoutes; '' is an index route). For each element, accumulate an absolute path: the route's path is appended to the parent's path, with \":name\" replaced by the value from that element's params (using encodeURIComponent). A breadcrumb is created for elements with meta.title: title is a string or a function (params) → string; the result is { title, path }. The root's path is \"/\". Empty paths ('') do not change the accumulated path; trailing \"/\" must not be duplicated.",
+   "hint": "Accumulate the segments in an array and build '/' + join('/')."
+  },
+  {
+   "id": "j30-title",
+   "title": "Page title",
+   "statement": "Write computeTitle(chain, { appName, separator = ' · ' }): chain is [{ route: { meta? }, params }] (as in breadcrumbs). Titles come from meta.title (a string or function(params)); empty ones, undefined and non-strings are skipped. The order is from the leaf to the root (the deepest first), then appName at the end. Identical consecutive titles collapse into one. If there are no titles, the result is just appName. appName may be empty, in which case it is not appended (and if there are no titles either, the result is an empty string).",
+   "hint": "Collect an array of titles, reverse it, collapse consecutive repeats, append appName."
+  },
+  {
+   "id": "j30-query-state",
+   "title": "State in the address (query)",
+   "statement": "Write parseQueryState(schema, search) and serializeQueryState(schema, state). schema is { name: { type, default, enum? } }, type is 'string' | 'number' | 'boolean' | 'array'. search is a query string with or without \"?\". parse: the value is taken from the query (repeated keys give an array); string is a string (if enum is given and the value is not in it, default); number is Number(...), and a non-number gives default; boolean: 'true' or '1' → true, 'false' or '0' → false, otherwise default; array: all values as an array (a single one gives an array of one; none gives default or []). A missing value gives default (undefined if not set; [] for array). serialize: only the fields that differ from default (arrays compared by content; an empty array and an undefined default are omitted); keys in alphabetical order; arrays as a repeated key; boolean as true/false; encoded with encodeURIComponent; the result starts with \"?\" or is empty.",
+   "hint": "URLSearchParams for parsing; compare with default using JSON.stringify."
+  },
+  {
+   "id": "j30-base-path",
+   "title": "Application base path",
+   "statement": "Write stripBase(base, path) and withBase(base, path). base is the application prefix (\"/app\", \"/app/\", '' or '/'): normalize it to have no trailing \"/\" (an empty string for the root). stripBase returns the path inside the application: if path equals base or starts with base + \"/\" (the query/hash are kept in the result after splitting them off), return the remainder, and \"/\" if the remainder is empty; otherwise null (for example, \"/application\" is not under \"/app\"). withBase adds base to an application path (the path must start with \"/\"; the query/hash are preserved); for the application root \"/\" the result is base + \"/\" (\"/\" for an empty base).",
+   "hint": "Split path into the path and the tail (query/hash); compare with base + '/'."
+  },
+  {
+   "id": "j30-normalize-path",
+   "title": "Path normalization",
+   "statement": "Write normalizePath(path, { caseSensitive = true, trailingSlash = 'remove' } = {}). Steps: drop the query and hash; collapse repeated \"/\"; resolve the \".\" and \"..\" segments (going above the root is ignored); lowercase everything when caseSensitive === false; an empty result is \"/\"; the trailing \"/\": 'remove' removes it (except for the root), 'add' adds it (if the path is not the root and has no trailing \"/\"), 'keep' leaves it as it was in the input (after segment normalization). A leading \"/\" is added if missing.",
+   "hint": "Split into segments, handle the dots with a stack, build it back; decide 'keep' from the original string."
+  },
+  {
+   "id": "j30-loaders",
+   "title": "Parallel data loaders",
+   "statement": "Write runLoaders(chain, ctx): chain is [{ route: { path, loader? }, params }] from the root to the leaf. For each element with a loader, call loader(params, ctx) (it may be sync or async), all in parallel (immediately, without waiting for the previous ones). The result (async) is { data, errors }, objects keyed by the indexes of chain elements (as strings): data[i] is the value, errors[i] is the error message (message; if a non-Error was thrown, String(value)). An exception in one loader does not affect the others. Elements without a loader do not appear in the result. Results and errors must be added to the objects in index order.",
+   "hint": "Promise.allSettled over an array of calls; wrap synchronous exceptions."
+  },
+  {
+   "id": "j30-error-boundary",
+   "title": "Error boundary",
+   "statement": "Write createBoundary(render, fallback, onError): render(props) is the function that renders the child subtree, fallback(error, reset) is the fallback view, onError(error) is an optional handler. It returns { render(props), reset(), error() }. While there is no error, render(props) calls render and returns the result; if render threw an exception, the error is remembered, onError(error) is called once, and fallback(error, reset) is returned. While the error is not reset, render(props) does not call the original render, and immediately returns fallback(error, reset) (onError is not called again). reset() clears the error (after it, render tries the original render again). error() returns the current error or null.",
+   "hint": "An error variable; in render, check it before calling the original function."
+  },
+  {
+   "id": "j30-ssr",
+   "title": "Server-rendering a route",
+   "statement": "The function matchPattern(pattern, path) → params | null already exists. Write renderApp(routes, url, notFound): routes is [{ path, render(params) → HTML string, status? }] (path is a pattern), url is an address with query/hash, notFound(path) → string. Return { status, html }. The path is taken without the query and hash. The first matching route: html = render(params), status = route.status or 200. No route gives status 404, html = notFound(path). If render threw an exception, status is 500 and html = '<h1>Error</h1><pre>' + the escaped message (& < > → entities) + '</pre>'. A trailing \"/\" of the path is ignored (matchPattern already does this).",
+   "hint": "Cut off the query/hash; loop over routes; try/catch around render.",
+   "starter": "// Done: matching a path against a pattern (do not change)\nfunction matchPattern(pattern, path) {\n  const ps = pattern.split(\"/\").filter(Boolean), xs = path.split(\"/\").filter(Boolean);\n  const params = {};\n  for (let i = 0; i < ps.length; i++) {\n    if (ps[i] === \"*\") { params[\"*\"] = xs.slice(i).join(\"/\"); return params; }\n    if (i >= xs.length) return null;\n    if (ps[i][0] === \":\") params[ps[i].slice(1)] = decodeURIComponent(xs[i]);\n    else if (ps[i] !== xs[i]) return null;\n  }\n  return xs.length === ps.length ? params : null;\n}\nfunction renderApp(routes, url, notFound) {\n}\n"
+  },
+  {
+   "id": "j30-access",
+   "title": "Route access rights",
+   "statement": "Write canAccess(meta, user, path): meta = { auth?, guestOnly?, roles?, permissions? }, user is null or { roles: [...], permissions: [...] }. Return { allowed: true } or { allowed: false, redirect }. Order of checks: guestOnly and a user exists: redirect '/'; auth and no user: redirect '/login?next=' + encodeURIComponent(path); roles (any of those listed, held by the user), otherwise '/403'; permissions (all of those listed, held by the user), otherwise '/403'. If auth is not set but roles/permissions are, a user is still required: with no user, redirect to login. Empty roles/permissions arrays create no checks.",
+   "hint": "Sequential ifs in the stated order; some/every for roles and permissions."
+  },
+  {
+   "id": "j30-optimistic",
+   "title": "Optimistic update",
+   "statement": "Write optimisticUpdate(store, apply, request, reconcile): store = { get(), set(v) }; apply(state) → the optimistic state; request() is async; reconcile(current, snapshot) → the state on rollback (optional). Algorithm: snapshot = store.get(); optimistic = apply(snapshot); store.set(optimistic); await request(). On success, return the request's result (the state stays optimistic). On failure, roll back: if store.get() === optimistic (nobody changed it), store.set(snapshot); otherwise, if reconcile is given, store.set(reconcile(store.get(), snapshot)), else leave the state alone. The exception is rethrown after the rollback.",
+   "hint": "try/catch around await request(); compare references to decide on the rollback."
+  }
+ ]
+}

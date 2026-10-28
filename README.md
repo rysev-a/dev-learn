@@ -70,10 +70,10 @@ cp deploy/.env.example deploy/.env
 Откройте `deploy/.env` и задайте (остальное можно не трогать):
 
 ```bash
-SAY_URL=http://localhost
-SAY_HTTP_PORT=8080                         # порт сайта на вашей машине
-SAY_HTTPS_PORT=8443
-SAY_WORKER_TOKEN=вставьте-вывод-openssl-rand-hex-32
+CS_CORE_URL=http://localhost
+CS_CORE_HTTP_PORT=8080                         # порт сайта на вашей машине
+CS_CORE_HTTPS_PORT=8443
+CS_CORE_WORKER_TOKEN=вставьте-вывод-openssl-rand-hex-32
 SURREAL_PASS=придумайте-пароль-базы
 ADMIN_EMAIL=you@example.com                # вход администратора
 ADMIN_PASSWORD=не-короче-8-символов
@@ -82,7 +82,7 @@ ADMIN_PASSWORD=не-короче-8-символов
 Запуск:
 
 ```bash
-export SAY_REGISTRY=alexeirysev/ SAY_TAG=latest        # или конкретная версия, например 0.1.0
+export CS_CORE_REGISTRY=alexeirysev/ CS_CORE_TAG=latest        # или конкретная версия, например 0.1.0
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --no-build
 ```
 
@@ -96,7 +96,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile che
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images   # один раз: образы песочниц, 15–40 минут
 ```
 
-Ресурсы песочниц ограничиваются переменными `SAY_SANDBOX_CPUS`, `SAY_SANDBOX_MEM`, `SAY_LIGHT_SLOTS`, `SAY_HEAVY_SLOTS`, потолок очереди — `SAY_QUEUE_LIMIT` (см. `deploy/.env.example`).
+Ресурсы песочниц ограничиваются переменными `CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`, `CS_CORE_LIGHT_SLOTS`, `CS_CORE_HEAVY_SLOTS`, потолок очереди — `CS_CORE_QUEUE_LIMIT` (см. `deploy/.env.example`).
 Проверено на Linux x86_64 и на macOS с Apple Silicon.
 
 ## Локальный запуск и разработка
@@ -110,10 +110,10 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile che
   ```
 - **Бэкенд** использует общие библиотеки автора из закрытого реестра (`auth`, `admin_api`, `mail` и другие), поэтому из чужого клона не собирается. У автора:
   ```bash
-  cd backend && SURREAL_USER=root SURREAL_PASS=devpass BIND=127.0.0.1:8001 SAY_WORKER_TOKEN=dev \
+  cd backend && SURREAL_USER=root SURREAL_PASS=devpass BIND=127.0.0.1:8001 CS_CORE_WORKER_TOKEN=dev \
     DEMO_USER_EMAIL=student@mail.com DEMO_USER_PASSWORD=student \
     DEMO_ADMIN_EMAIL=programmer@mail.com DEMO_ADMIN_PASSWORD=programmer cargo run     # без SurrealDB работает на базе в памяти
-  cd worker && SAY_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:8001 --name dev --light 2 --heavy 1   # проверка кода (нужен Docker)
+  cd worker && CS_CORE_WORKER_TOKEN=dev uv run worker.py --server http://127.0.0.1:8001 --name dev --light 2 --heavy 1   # проверка кода (нужен Docker)
   ```
 - **Весь стек в Docker:** `deploy/docker-compose.yml` (Traefik, frontend, backend, SurrealDB, копии базы; профиль `checks` — воркер и песочницы), см. [`docs/deploy.md`](docs/deploy.md).
 - **Тесты в браузере:** `cd e2e && npm ci && npm test` (нужны собранные фронтенд и бэкенд, см. `e2e/README.md`).

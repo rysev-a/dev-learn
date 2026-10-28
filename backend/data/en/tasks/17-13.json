@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "virt-snap-restore",
+   "title": "Restoring from a snapshot",
+   "statement": "Write a function snapshot_restore(touched, base_us, fault_us): a micro machine has been restored from a snapshot, with memory mapped lazily. touched is the pages the guest accessed, in order (with repeats), base_us is the fixed restore time, fault_us is the cost of loading one page on its first access. Return a tuple (number of loads, total time in microseconds).",
+   "hint": "A page is loaded once per distinct page."
+  },
+  {
+   "id": "virt-device-surface",
+   "title": "Attack surface by device",
+   "statement": "Write a function device_surface(devices): devices is a list of the machine's device names. A device's weight in abstract attack-surface units: serial is 1, balloon is 2, vsock is 3, virtio-block is 5, virtio-net is 6, usb is 25, vga is 20, pci-nic is 30; any other name is 10. Return the total weight.",
+   "hint": "Make a dictionary of weights and use get with a default of 10."
+  },
+  {
+   "id": "virt-jailer",
+   "title": "Monitor protection layers",
+   "statement": "Write a function jailer_steps(cfg): cfg is a dictionary with boolean fields \"cgroup\", \"namespaces\", \"chroot\", \"drop_privileges\", \"seccomp\". The jailer applies the enabled measures in a fixed order: cgroup, namespaces, chroot, drop-privileges, seccomp. Return a tuple (list of applied measures in order, reliability score: the number of measures, or one less if seccomp is off).",
+   "hint": "Go through the names in the required order and keep the enabled ones."
+  },
+  {
+   "id": "virt-cold-start",
+   "title": "Function cold starts",
+   "statement": "Write a function cold_starts(calls, ttl): calls is the function's calls in order [start time, duration] (in seconds), ttl is how many seconds the micro machine lives after a call finishes. There is a single machine. A call is \"warm\" if the machine already exists and no more than ttl seconds have passed since the end of the previous call (start time minus the previous end); otherwise it is \"cold\". Return a tuple (number of cold starts, list of \"cold\"/\"warm\" for each call).",
+   "hint": "Remember the end of the previous call; for the first call the machine does not exist yet."
+  },
+  {
+   "id": "virt-spread-pods",
+   "title": "Spreading pods across servers",
+   "statement": "Write a function spread_pods(pods, nodes): pods is a list of [name, cores, memory], nodes is a list of [name, free cores, free memory]. Each pod, in order, is placed on the suitable node (enough cores and memory) that currently has the most free cores; on a tie, on the node with the smaller name. The node's resources decrease. Return a dictionary \"pod to node, or None if it did not fit\".",
+   "hint": "Among the suitable nodes choose the maximum by (free cores, -name); sorting is convenient here."
+  },
+  {
+   "id": "virt-overlay-mtu",
+   "title": "MTU inside a tunnel",
+   "statement": "Write a function overlay_mtu(outer_mtu, kind, opts=0): outer_mtu is the MTU of the physical network, kind is the tunnel type. Overhead: \"vxlan\" is 50 bytes, \"geneve\" is 50 bytes plus opts bytes of options, \"gre\" is 24, \"ipip\" is 20. Return the MTU that can be given to the guest: outer_mtu minus the overhead.",
+   "hint": "Make an overhead table; for geneve add opts."
+  },
+  {
+   "id": "virt-pick-virt",
+   "title": "Choosing a virtualization platform",
+   "statement": "Write a function pick_virt(req): req is a dictionary with fields \"min_boot_ms\" (the acceptable startup time), \"open_source\" (open code is required) and \"live_migration\" (live migration is required). The rules, in order: if the acceptable startup time is at most 300 ms, \"microvm\"; otherwise if open code and live migration are required, \"kvm\"; otherwise if open code is required, \"xen\"; otherwise \"esxi\".",
+   "hint": "Check the rules in the stated order."
+  },
+  {
+   "id": "virt-microvm-density",
+   "title": "Micro machine density",
+   "statement": "Write a function microvm_density(host_mb, vm_mb, overhead_mb, reserve_mb): how many micro machines fit on a host if each takes vm_mb plus overhead_mb of monitor overhead, and the host needs reserve_mb for itself. Return an integer (not less than zero).",
+   "hint": "(host - reserve) // (vm + overhead), not less than zero."
+  }
+ ]
+}

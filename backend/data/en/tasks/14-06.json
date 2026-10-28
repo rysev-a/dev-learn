@@ -1,0 +1,90 @@
+{
+ "book": 14,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "wire",
+   "title": "First signal",
+   "statement": "Connect input A to output Y with a plain wire. No gates are needed here: a wire can carry a signal too.",
+   "hint": "Grab the round pin on the right of block A and drop it on the pin on the left of Y."
+  },
+  {
+   "id": "not",
+   "title": "Inverter (NOT)",
+   "statement": "Build a gate that flips the signal: output 1 when A = 0, and 0 when A = 1.",
+   "hint": "The NOT gate has a single input. There is also a trick: a NOR with both inputs tied together is an inverter too."
+  },
+  {
+   "id": "and",
+   "title": "AND gate",
+   "statement": "Lamp Y lights up (1) only when BOTH inputs are 1.",
+   "hint": "A single AND gate solves it: in “Goals” the only 1 is in the row 1 1."
+  },
+  {
+   "id": "or",
+   "title": "OR gate",
+   "statement": "Lamp Y lights up when AT LEAST ONE input is 1.",
+   "hint": "You can take a ready-made OR gate. Or build OR from AND and NOT: recall De Morgan's law, NOT(NOT-A AND NOT-B)."
+  },
+  {
+   "id": "nor",
+   "title": "NOR",
+   "statement": "Lamp Y lights up only when BOTH inputs are 0.",
+   "hint": "It is “NOT of OR”: first OR, then an inversion. Or use a single ready-made NOR gate."
+  },
+  {
+   "id": "nand",
+   "title": "NAND",
+   "statement": "Lamp Y is always lit EXCEPT when both inputs are 1.",
+   "hint": "“NOT of AND”: first an AND gate, then an inverter on its output."
+  },
+  {
+   "id": "enable",
+   "title": "Enable: letting a signal through",
+   "statement": "D is data, E is enable. Only permitted data should reach the output: Y follows D, but only when E = 1; when E = 0 the output is always 0.",
+   "hint": "It is still an AND gate: 1 only when both inputs are 1. Look closely: here E acts as a key and D as the data."
+  },
+  {
+   "id": "inhibit",
+   "title": "Inhibit: a signal with a blocker",
+   "statement": "Now the other way round: signal A passes only while B is SILENT. When B = 1 the output is always 0, whatever A does.",
+   "hint": "First invert B with a NOT gate, then combine it with A through AND: Y = A AND NOT-B."
+  },
+  {
+   "id": "dont-care",
+   "title": "Unused inputs",
+   "statement": "There are three inputs, but the circuit must react to A only: output 1 when A = 0, and 0 when A = 1. What to do with B and C is up to you.",
+   "hint": "B and C can simply be left unconnected. An inverter is a NOT gate, or a NOR with tied inputs."
+  },
+  {
+   "id": "xor",
+   "title": "Exclusive OR",
+   "statement": "Lamp Y lights up when the inputs DIFFER: exactly one of the two is 1.",
+   "hint": "Formula: (A OR B) AND NOT(A AND B). Build both parentheses as separate gates, then combine them with AND."
+  },
+  {
+   "id": "pair",
+   "title": "A pair: a signal and its shadow",
+   "statement": "Build a circuit with TWO outputs: Y equals A AND B, and nY is its exact opposite (NOT(A AND B)). Check both columns of the table at once.",
+   "hint": "One AND gate gives Y. Then pass Y through NOT to get nY. Attach the second wire directly to the output of the AND gate."
+  },
+  {
+   "id": "equals",
+   "title": "Equality: comparing bits",
+   "statement": "The lamp lights up when the inputs are the SAME: both 0 or both 1. This is the “A = B?” check, the basic comparison operation.",
+   "hint": "Two ways: either NOT of XOR ((A OR B) AND NOT(A AND B), then NOT), or the direct formula (A AND B) OR (NOT-A AND NOT-B). If XNOR is already unlocked, there is a third: a single ready-made gate."
+  },
+  {
+   "id": "majority",
+   "title": "At least two",
+   "statement": "The lamp lights up when AT LEAST TWO of the three inputs are 1. Such a circuit is called a majority circuit.",
+   "hint": "Go through the three possible pairs: A AND B, or A AND C, or B AND C. Three AND gates, then two OR gates."
+  },
+  {
+   "id": "mux",
+   "title": "Multiplexer: choosing a channel",
+   "statement": "A is the channel switch: when A = 0 the output carries signal B, when A = 1 it carries signal C.",
+   "hint": "Two branches: (NOT-A AND B) and (A AND C), then OR. Check against the table: in the top half Y repeats B, in the bottom half it repeats C."
+  }
+ ]
+}

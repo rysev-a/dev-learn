@@ -27,7 +27,7 @@ use crate::{
 };
 
 /// Ключ настройки: высота поля (px), выбранная «лапкой».
-const BOARD_H_KEY: &str = "say-sd-board-h";
+const BOARD_H_KEY: &str = "cs-core-sd-board-h";
 
 /// Высота поля из настроек; вне допустимых пределов — не задана.
 fn saved_height() -> Option<f64> {
@@ -385,7 +385,7 @@ pub fn Board(
                 <button
                     type="button"
                     class="sd-add"
-                    title=format!("{}. Перетащите на поле — связи подставятся сами.", spec.about)
+                    title=i18n::trf!("{0}. Drag it onto the board and the links are filled in automatically.", spec.about)
                     on:pointerdown=move |e| {
                         if e.button() != 0 {
                             return;
@@ -409,7 +409,7 @@ pub fn Board(
 
     view! {
         <div class="sd-boardwrap" class:fill=fullscreen>
-            <div class="sd-toolbar" role="toolbar" aria-label="Компоненты: перетащите на поле или кликните">{buttons}</div>
+            <div class="sd-toolbar" role="toolbar" aria-label=i18n::tr("Components: drag onto the board or click")>{buttons}</div>
             <div
                 class="sd-viewport"
                 class:sized=move || board_h.get().is_some() && !fullscreen
@@ -426,8 +426,8 @@ pub fn Board(
                         class="sd-resize"
                         role="separator"
                         aria-orientation="horizontal"
-                        aria-label="Высота схемы"
-                        title="Потяните, чтобы изменить высоту схемы (двойной клик — по умолчанию)"
+                        aria-label=i18n::tr("Diagram height")
+                        title=i18n::tr("Drag to change the diagram height (double-click to reset)")
                         on:pointerdown=start_resize
                         on:dblclick=move |_| {
                             board_h.set(None);
@@ -444,7 +444,7 @@ pub fn Board(
                     class:placing=move || ix.placing.get().is_some()
                     viewBox=move || view.view_box()
                     role="img"
-                    aria-label="Схема сервиса"
+                    aria-label=i18n::tr("Service diagram")
                     on:pointerdown=move |e| ix.board_down(&e)
                     on:wheel=move |e| view.on_wheel(&e, false)
                     on:mousedown=|e| {
@@ -484,7 +484,7 @@ pub fn Board(
                 </svg>
             </div>
             <p class="sd-tip">
-                "Порты: вход слева, выход справа. Тяните от выхода ко входу (или кликните по двум портам). Компонент, поставленный рядом с подходящими, подключится сам. Ctrl + колесо — масштаб, пустое место — сдвиг, ⌖ — вписать схему."
+                {i18n::tr("Ports: input on the left, output on the right. Drag from an output to an input (or click two ports). A component placed next to matching ones connects itself. Ctrl + wheel to zoom, empty space to pan, ⌖ to fit the diagram.")}
             </p>
         </div>
     }
@@ -626,17 +626,17 @@ fn NodeView(ix: Ix, node: Signal<Option<SdNode>>, ghost: bool) -> impl IntoView 
             }}
             <g class="sd-ico" transform=format!("translate({},5) scale(0.55)", -half_w + 9.0) inner_html=icons::markup(kind)></g>
             <text class="sd-sub" x={-half_w + 28.0} y="15">
-                {move || if status.get() == "down" { "отключён".to_owned() } else if ghost { String::new() } else { summary.get() }}
+                {move || if status.get() == "down" { i18n::tr("disconnected").to_owned() } else if ghost { String::new() } else { summary.get() }}
             </text>
             {bar}
             {(!ghost && has_in(kind)).then(|| view! {
                 <circle class=pin_class(Pin::In) cx={-half_w} cy="0" r="5.5" on:pointerdown=move |e| ix.pin_down(&e, &down_id, Pin::In)>
-                    <title>"Вход: сюда приходят запросы"</title>
+                    <title>{i18n::tr("Input: requests arrive here")}</title>
                 </circle>
             })}
             {(!ghost && has_out(kind)).then(|| view! {
                 <circle class=pin_class(Pin::Out) cx=half_w cy="0" r="5.5" on:pointerdown=move |e| ix.pin_down(&e, &out_id, Pin::Out)>
-                    <title>"Выход: потяните к входу другого компонента"</title>
+                    <title>{i18n::tr("Output: drag to another component's input")}</title>
                 </circle>
             })}
         </g>
@@ -650,6 +650,7 @@ mod tests {
 
     #[test]
     fn height_from_settings_must_be_within_limits() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(clamp_height(100.0), MIN_H);
         assert_eq!(clamp_height(5000.0), MAX_H);
         assert_eq!(clamp_height(400.4), 400.0);
@@ -657,6 +658,7 @@ mod tests {
 
     #[test]
     fn load_bar_is_never_thinner_than_two_and_never_overflows() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(bar_width(0.0), 2.0);
         assert_eq!(bar_width(0.5), (NODE_W - 16.0) / 2.0);
         assert_eq!(bar_width(3.0), NODE_W - 16.0);
@@ -664,6 +666,7 @@ mod tests {
 
     #[test]
     fn node_status_has_a_css_class_for_every_state() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for (s, c) in [(NodeStatus::Idle, "idle"), (NodeStatus::Ok, "ok"), (NodeStatus::Warm, "warm"), (NodeStatus::Hot, "hot"), (NodeStatus::Over, "over"), (NodeStatus::Down, "down")] {
             assert_eq!(status_class(s), c);
         }

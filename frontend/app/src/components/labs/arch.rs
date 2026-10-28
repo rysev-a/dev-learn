@@ -30,7 +30,7 @@ mod solution;
 
 /// Разбор сценария упражнения, который прислал сервер (без эталонного решения).
 fn parse_spec(value: &serde_json::Value) -> Result<Spec, String> {
-    serde_json::from_value(value.clone()).map_err(|e| format!("Сценарий упражнения не разобран: {e}"))
+    serde_json::from_value(value.clone()).map_err(|e| i18n::trf!("Exercise scenario could not be parsed: {0}", e))
 }
 
 /// Лаборатория выбранного упражнения.
@@ -44,7 +44,7 @@ pub fn ArchLab(props: LabProps) -> impl IntoView {
     let spec = StoredValue::new(Arc::new(spec));
     let props = StoredValue::new(props);
     (move || match data.get() {
-        Load::Loading => view! { <p class="empty">"Загрузка лаборатории…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading the lab…")}</p> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
         Load::Ready(d) => {
             let props = props.get_value();
@@ -64,6 +64,7 @@ mod tests {
 
     #[test]
     fn spec_without_the_reference_solution_is_readable() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // сервер убирает `solution` из сценария для клиента: движок обязан читать и такой
         let circuit = json!({
             "kind": "circuit", "section": "simple-circuits", "mode": "table", "build": "gates", "inputs": ["A"],

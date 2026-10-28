@@ -1,19 +1,41 @@
-//! Настройки интерфейса в `localStorage` (ключи с префиксом `say-`) и тема.
+//! Настройки интерфейса в `localStorage` (ключи с префиксом `cs-core-`) и тема.
 
 use leptos::prelude::{RwSignal, Set};
 use wasm_bindgen::JsCast;
 
-pub const THEME: &str = "say-theme";
+pub const THEME: &str = "cs-core-theme";
 /// Выбранная цветовая тема для тёмного и светлого режима (`default` — не хранится).
-pub const PALETTE_DARK: &str = "say-palette-dark";
-pub const PALETTE_LIGHT: &str = "say-palette-light";
-pub const ASIDE: &str = "say-aside-collapsed";
-pub const ANIM: &str = "say-anim-auto";
-pub const VOICE_H: &str = "say-voice-h";
-pub const TOKEN: &str = "say-token";
-pub const AUTO_NEXT: &str = "say-auto-next";
-pub const AUTOWIRE_LAB: &str = "say-autowire-lab";
-pub const AUTOWIRE_SD: &str = "say-autowire-sd";
+pub const PALETTE_DARK: &str = "cs-core-palette-dark";
+pub const PALETTE_LIGHT: &str = "cs-core-palette-light";
+pub const ASIDE: &str = "cs-core-aside-collapsed";
+pub const ANIM: &str = "cs-core-anim-auto";
+pub const VOICE_H: &str = "cs-core-voice-h";
+pub const TOKEN: &str = "cs-core-token";
+/// Язык интерфейса (`en` или `ru`); без значения — язык браузера.
+pub const LANG: &str = "cs-core-lang";
+pub const AUTO_NEXT: &str = "cs-core-auto-next";
+pub const AUTOWIRE_LAB: &str = "cs-core-autowire-lab";
+pub const AUTOWIRE_SD: &str = "cs-core-autowire-sd";
+
+/// Выбирает язык интерфейса при старте (сохранённый, иначе язык браузера, иначе английский) и ставит его в `<html lang>`.
+/// Вызывается до первого отображаемого текста: язык меняется только перезагрузкой страницы.
+pub fn init_locale() -> i18n::Locale {
+    let browser = web_sys::window().and_then(|w| w.navigator().language());
+    let locale = i18n::Locale::detect(read(LANG).as_deref(), browser.as_deref());
+    i18n::set_locale(locale);
+    if let Some(root) = web_sys::window().and_then(|w| w.document()).and_then(|d| d.document_element()) {
+        let _ = root.set_attribute("lang", locale.code());
+    }
+    locale
+}
+
+/// Запоминает язык и перезагружает страницу: тексты берутся один раз при построении интерфейса.
+pub fn switch_locale(locale: i18n::Locale) {
+    write(LANG, Some(locale.code()));
+    if let Some(w) = web_sys::window() {
+        let _ = w.location().reload();
+    }
+}
 
 fn storage() -> Option<web_sys::Storage> {
     web_sys::window()?.local_storage().ok()?
@@ -196,7 +218,7 @@ mod tests {
 
     #[test]
     fn autowire_flags_use_the_react_keys() {
-        assert_eq!((AUTOWIRE_LAB, AUTOWIRE_SD), ("say-autowire-lab", "say-autowire-sd"));
+        assert_eq!((AUTOWIRE_LAB, AUTOWIRE_SD), ("cs-core-autowire-lab", "cs-core-autowire-sd"));
         assert!(AUTOWIRE_LAB_FLAG.parse(None), "автосвязывание включено по умолчанию, выключенное хранится как «0»");
         assert!(!AUTOWIRE_SD_FLAG.parse(Some("0")));
     }

@@ -17,7 +17,7 @@ pub fn half_period_ms(hz: f64) -> u32 {
 
 /// Подпись частоты: `0.5 Гц`, `1 Гц`.
 pub fn rate_label(hz: f64) -> String {
-    format!("{hz} Гц")
+    i18n::trf!("{0} Hz", hz)
 }
 
 /// Состояние и управление тактом: сигналы для интерфейса и таймеры.
@@ -130,6 +130,7 @@ mod tests {
 
     #[test]
     fn auto_generator_toggles_twice_per_period() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(half_period_ms(1.0), 500);
         assert_eq!(half_period_ms(0.5), 1000);
         assert_eq!(half_period_ms(4.0), 125);
@@ -138,6 +139,7 @@ mod tests {
 
     #[test]
     fn rate_labels_are_short() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(rate_label(1.0), "1 Гц");
         assert_eq!(rate_label(0.5), "0.5 Гц");
     }

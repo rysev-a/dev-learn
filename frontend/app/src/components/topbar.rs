@@ -19,8 +19,8 @@ pub fn ThemeButton(theme: RwSignal<Theme>) -> impl IntoView {
         <button
             type="button"
             class="btn-icon"
-            title=move || if theme.get() == Theme::Dark { "Светлая тема" } else { "Тёмная тема" }
-            aria-label="Переключить тему"
+            title=move || if theme.get() == Theme::Dark { i18n::tr("Light theme") } else { i18n::tr("Dark theme") }
+            aria-label=i18n::tr("Toggle theme")
             on:click=move |_| settings::switch_theme(theme, theme.get_untracked().toggled())
         >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -36,6 +36,35 @@ pub fn ThemeButton(theme: RwSignal<Theme>) -> impl IntoView {
     }
 }
 
+/// Переключатель языка интерфейса: перезагружает страницу, потому что тексты строятся один раз.
+#[component]
+pub fn LangSwitch() -> impl IntoView {
+    let current = i18n::locale();
+    view! {
+        <div class="lang-switch" role="group" aria-label=i18n::tr("Language")>
+            {i18n::Locale::ALL
+                .map(|l| {
+                    view! {
+                        <button
+                            type="button"
+                            class="lang-btn"
+                            class:on=move || l == current
+                            title=l.native_name()
+                            aria-pressed=move || (l == current).to_string()
+                            on:click=move |_| {
+                                if l != current {
+                                    settings::switch_locale(l)
+                                }
+                            }
+                        >
+                            {l.code().to_uppercase()}
+                        </button>
+                    }
+                })}
+        </div>
+    }
+}
+
 #[component]
 pub fn Topbar(theme: RwSignal<Theme>) -> impl IntoView {
     let session = expect_context::<Session>();
@@ -48,14 +77,14 @@ pub fn Topbar(theme: RwSignal<Theme>) -> impl IntoView {
     let email = move || session.identity.get().map(|i| i.user.email).unwrap_or_default();
     view! {
         <header class="topbar">
-            <button class="logo" title="На главную" on:click=move |_| { player.stop(); navigate("/", Default::default()) }>"CS.Core"</button>
+            <button class="logo" title=i18n::tr("Home") on:click=move |_| { player.stop(); navigate("/", Default::default()) }>"CS.Core"</button>
             <div class="topbar-right">
                 <button
                     type="button"
                     class="btn-icon"
                     class:on=on_settings
-                    title="Настройки"
-                    aria-label="Настройки"
+                    title=i18n::tr("Settings")
+                    aria-label=i18n::tr("Settings")
                     on:click=move |_| {
                         player.stop();
                         go_settings(SETTINGS_PATH, Default::default())
@@ -66,12 +95,13 @@ pub fn Topbar(theme: RwSignal<Theme>) -> impl IntoView {
                         <circle cx="12" cy="12" r="3" />
                     </svg>
                 </button>
+                <LangSwitch />
                 <ThemeButton theme=theme />
                 <span class="user-chip" title=email>
                     <span class="user-ava">{move || login().chars().next().map(|c| c.to_uppercase().to_string()).unwrap_or_default()}</span>
                     {login}
                 </span>
-                <button type="button" class="btn-icon" title="Выйти" aria-label="Выйти из аккаунта" on:click=move |_| { player.stop(); session.logout(client()) }>
+                <button type="button" class="btn-icon" title=i18n::tr("Sign out") aria-label=i18n::tr("Sign out of your account") on:click=move |_| { player.stop(); session.logout(client()) }>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                     </svg>

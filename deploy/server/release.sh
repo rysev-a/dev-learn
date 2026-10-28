@@ -5,11 +5,11 @@
 #   deploy <тег>   — читает tar.gz исходников релиза из stdin, собирает образы cs-core-*:<тег> и запускает стек; при неудаче возвращает прежнюю версию
 #
 # Раскладка на сервере ($BASE, по умолчанию ~/cs-core): releases/<тег>/ — исходники, shared/.env — настройки (не в git), shared/current_tag — выложенный тег.
-# Каталог зависимостей бэкенда (закрытый реестр crates) — $VENDOR (по умолчанию ~/say-vendor).
+# Каталог зависимостей бэкенда (закрытый реестр crates) — $VENDOR (по умолчанию ~/cs-core-vendor).
 set -euo pipefail
 
 BASE="${BASE:-$HOME/cs-core}"
-VENDOR="${VENDOR:-$HOME/say-vendor}"
+VENDOR="${VENDOR:-$HOME/cs-core-vendor}"
 KEEP=3
 
 cmd="${SSH_ORIGINAL_COMMAND:-}"
@@ -25,12 +25,12 @@ compose() {
 }
 
 set_tag() {
-  sed -i '/^SAY_TAG=/d' "$BASE/shared/.env"
-  echo "SAY_TAG=$1" >> "$BASE/shared/.env"
+  sed -i '/^CS_CORE_TAG=/d' "$BASE/shared/.env"
+  echo "CS_CORE_TAG=$1" >> "$BASE/shared/.env"
 }
 
 smoke() {
-  domain="$(sed -n 's/^SAY_DOMAIN=//p' "$BASE/shared/.env" | head -1)"
+  domain="$(sed -n 's/^CS_CORE_DOMAIN=//p' "$BASE/shared/.env" | head -1)"
   i=0
   while [ "$i" -lt 40 ]; do
     if curl -fsS -o /dev/null --resolve "$domain:443:127.0.0.1" "https://$domain/api/books" 2>/dev/null \

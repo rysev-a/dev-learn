@@ -1,0 +1,196 @@
+{
+ "book": 11,
+ "chapter": 36,
+ "tasks": [
+  {
+   "id": "j28-store",
+   "title": "A store with subscriptions",
+   "statement": "Write createStore(initial): { get, set, subscribe }. get() returns the value; set(v) changes it and, only if !Object.is(old, new), synchronously calls the subscribers in subscription order with the arguments (new, old); subscribe(fn) adds a subscriber (no immediate call) and returns an unsubscribe function (calling it again is harmless). Unsubscribing during a broadcast must not change the set of an already started traversal: in the current broadcast, a subscriber that has unsubscribed but has not yet been called is still called; a subscription made during a broadcast starts receiving only the next changes.",
+   "hint": "Keep an array/Set; during a broadcast work with a snapshot [...subs]."
+  },
+  {
+   "id": "j28-signal-basic",
+   "title": "Signal: get, set, update, peek",
+   "statement": "Write signal(initial, opts = {}): the getter function s() returns the value. Methods: s.peek() — the same value; s.set(v) — write; s.update(fn) — write fn(old); s.subscribe(cb) — a manual subscription, returns an unsubscribe function. cb(new, old) is called synchronously on every change. A change is defined by the result: !equals(old, new), where equals is opts.equals or Object.is.",
+   "hint": "A read function with methods attached; an array of subscribers."
+  },
+  {
+   "id": "j28-effect",
+   "title": "An effect with automatic tracking",
+   "statement": "Write signal(value) and effect(fn) with automatic tracking. Signal: s() reads; if the read happened inside an effect, the effect becomes a subscriber; s.set(v) writes, and if !Object.is(old, new), it reruns the subscribed effects (in subscription order). effect(fn): runs fn at once; on a rerun fn is executed again. Returns a function stop(), after which the effect does not run. You may assume that dependencies do not change from run to run (dynamic ones are in the next task).",
+   "hint": "A global variable currentEffect; in the getter: if (currentEffect) subs.add(currentEffect)."
+  },
+  {
+   "id": "j28-dynamic-deps",
+   "title": "Dynamic dependencies",
+   "statement": "The core (signal, effect) is already in the starter, but it has a simplification bug: an effect does not unsubscribe from signals it stopped reading, and the effect is not reset. Finish the function trackedSubscribers(...signals) → an array of the subscriber counts of each signal. But the main thing is to fix the core: before every run an effect must unsubscribe from all its previous sources (the set e.deps holds the subscriber sets from which the effect must be removed) and collect the dependencies anew. Do this in e.run(). The result: the signals' subscribers must correspond only to the last run.",
+   "hint": "At the start of run(): for (const d of e.deps) d.delete(e); e.deps.clear();",
+   "starter": "let current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.subscriberCount = () => subs.size;\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    run() {\n      // TODO: unsubscribe from the previous sources before running\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n  };\n  e.run();\n}\n"
+  },
+  {
+   "id": "j28-computed",
+   "title": "A computed value",
+   "statement": "The core (signal, effect with dynamic dependencies) is already there. Write computed(fn): returns a getter function c(). The value is computed lazily on the first read and cached; while the sources have not changed, repeated reads do not call fn. When any signal or computed read inside fn has changed, the value is marked stale and recomputed on the next read. Reading c() inside an effect makes the effect depend on c: the effect must rerun when the sources' values change (it is acceptable to rerun on any change of a source, even if the result did not change).",
+   "hint": "Inside computed use an internal effect-like object: when a source changes, mark dirty and notify your own subscribers.",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction computed(fn) {\n}\n"
+  },
+  {
+   "id": "j28-cleanup",
+   "title": "Effect cleanup and dispose",
+   "statement": "Write signal(v) (with automatic tracking and resubscription on every run) and effect(fn). If fn returns a function, it is the cleanup: it is called right before the effect's next run and when it is stopped. effect returns a function stop(): it calls the last cleanup (if any) and unsubscribes the effect from all sources; after it the effect does not run; a repeated stop is harmless. An exception in the cleanup propagates out.",
+   "hint": "Keep cleanup in the effect's closure; call it at the start of run() and in stop()."
+  },
+  {
+   "id": "j28-batch",
+   "title": "batch: grouping writes",
+   "statement": "The core (signal, effect) is already there. Write batch(fn): runs fn, postponing the running of effects. Signal writes inside batch do not run effects immediately; after leaving the outermost batch each affected effect is run exactly once (in the order of first being affected). Nested batches work as one outer one. The result of batch is the result of fn; if fn throws, the pending effects still run, and the exception propagates. To do this, rewrite read.set in the core so that when batchDepth > 0 the effects are put into the pending queue (a Set).",
+   "hint": "In set: if (batchDepth) subs.forEach(e => pending.add(e)) else run. In batch: ++depth, try fn finally { --depth === 0 → flush pending }.",
+   "starter": "let current = null;\nlet batchDepth = 0;\nconst pending = new Set();\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run(); // TODO: when batchDepth > 0, defer\n  };\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    run() {\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n  };\n  e.run();\n}\nfunction batch(fn) {\n}\n"
+  },
+  {
+   "id": "j28-untracked",
+   "title": "peek and untracked",
+   "statement": "The core (signal, effect) is already there; the signal has peek() (a read without subscribing). Write untracked(fn): runs fn, and all signal reads inside do not create dependencies for the current effect; the result of fn is returned. Then write on(source, cb): returns a function for effect: on a run it reads source() (subscribes) and calls cb(value, previous) without subscribing to whatever cb reads (inside — untracked); on the first run the previous value is undefined.",
+   "hint": "untracked temporarily sets current = null and restores it in finally.",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction untracked(fn) {\n}\nfunction on(source, cb) {\n}\n"
+  },
+  {
+   "id": "j28-glitch-free",
+   "title": "A diamond without glitches",
+   "statement": "Implement signal, computed and effect so that in a diamond dependency an effect runs exactly once per source change and sees only consistent values. How it works: signal.set marks all dependents (recursively, through computed) as stale and collects the affected effects; after marking, the effects run once each; a computed is recomputed lazily on read, only if it is marked. The common API as usual: s(), s.set(v), computed(fn)(), effect(fn) (runs at once). Equality is Object.is: if after recomputation a computed's value did not change, the effects depending on it need not run (but the tests need not check this, they only consider changes).",
+   "hint": "Two passes: mark (dirty down the graph) and then run the collected effects; computed reads its sources when recomputing."
+  },
+  {
+   "id": "j28-watch",
+   "title": "watch: old and new value",
+   "statement": "The core (signal, effect) is already there. Write watch(source, cb, opts = {}): source is a getter function (for example () => a() + b()). It watches the value of source: cb(new, old) is called on every change of source's result (compared with Object.is); if the recomputation gave the same value, it is not called. By default the first run only remembers the value (cb is not called); with opts.immediate === true the first call cb(value, undefined) happens at once. Returns a function stop (in the starter effect returns stop). Reads inside cb do not create dependencies.",
+   "hint": "effect(() => { const v = source(); … compare with the previous and call cb inside untracked }).",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction watch(source, cb, opts = {}) {\n}\n"
+  },
+  {
+   "id": "j28-reactive",
+   "title": "A reactive object on Proxy",
+   "statement": "Write reactive(obj) and effect(fn). reactive returns a Proxy: reading a field inside effect subscribes the effect to the pair (object, key); a field write (set) that changed the value (Object.is) reruns the effects subscribed to that key; nested objects and arrays are wrapped lazily on read (the same nested object — the same proxy). For arrays, writing a new index or length wakes the effects that read length/indexes (subscription by keys: 'length' and indexes as strings). Adding a new key wakes the effects that read it earlier (even if it was undefined then). effect runs fn at once and on notifications; dependencies are rebuilt on every run.",
+   "hint": "A WeakMap object → Map key → Set of effects; in get track + wrap nested ones; in set — trigger."
+  },
+  {
+   "id": "j28-scope",
+   "title": "An effect scope",
+   "statement": "The core (signal, effect returning stop) is already there. Write createScope(): { run(fn), dispose() }. All effects created inside run(fn) (including in nested calls) are registered in the scope. dispose() stops them all (in the reverse order of creation) and makes the scope inactive: after dispose, run(fn) throws Error('Scope is disposed'). For effects to land in the scope, rewrite effect in the starter: it must call the currently registered \"collector\" (the global variable currentScope).",
+   "hint": "Wrap effect: after creating it, if currentScope is set, add stop to its list; run sets currentScope and restores it.",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nlet currentScope = null;\nfunction createScope() {\n}\n"
+  },
+  {
+   "id": "j28-scheduler",
+   "title": "An asynchronous effect scheduler",
+   "statement": "Write signal(v), effect(fn) and nextTick(). An effect runs once immediately on creation; when its sources change it does not run synchronously but is queued and executed in a microtask (queueMicrotask) — once, however many writes happened before that. nextTick() returns a promise that completes after the queue has run (if the queue is empty — on the next microtask). The run order is the order of first being queued. Dependencies are rebuilt on every run.",
+   "hint": "A Set for the queue + a scheduled flag; in the microtask clear the queue and run the effects."
+  },
+  {
+   "id": "j28-resource",
+   "title": "A resource with race protection",
+   "statement": "The core (signal, effect) is already there. Write createResource(source, fetcher): source is a parameter getter (reads signals), fetcher(param) is async. It returns an object r: r.state() — a getter signal of the state 'loading' | 'ready' | 'error' (initially 'loading'); r.value() — the last successful value (undefined before it); r.error() — the last error or undefined. On every change of the parameter (an effect over source) a new request starts and the state becomes 'loading'. A response is taken into account only from the last request: stale ones (by run number) are ignored completely, including their errors. After success error() = undefined; after an error value() stays as it was.",
+   "hint": "A request counter id; after await compare id with the latest; signals state, value, error.",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction createResource(source, fetcher) {\n}\n"
+  },
+  {
+   "id": "j28-effect-errors",
+   "title": "Errors in effects",
+   "statement": "The core (signal) is already there in the simplest version (without effect). Write effect(fn, { onError }): runs fn at once and when the sources change. If fn throws an exception, it must not interrupt the signal write or the other effects: the exception is passed to onError(error) (if onError is not set — console.log('effect error: ' + message)), and the effect stays subscribed to whatever it managed to read before the error. A signal write (set) must run all subscribed effects even if one of them throws.",
+   "hint": "In run(): try { fn() } catch (e) { report(e) } finally { current = prev }."
+  },
+  {
+   "id": "j28-loop-guard",
+   "title": "A fuse against infinite loops",
+   "statement": "The simplest signal/effect are already in the starter (an effect reruns on a write; a write during an effect's run triggers the rerun immediately). Improve them so that an effect that, while running, writes to a signal it reads itself does not go on forever: repeated synchronous reruns of the same effect within one chain are counted, and when the count exceeds 100, Error('Infinite effect loop detected') is thrown. The counter is reset when the outermost run of the effect is finished. Ordinary runs, once each with no loop, work as before.",
+   "hint": "In e.run(): e.depth++ with a check > 100; in finally depth--."
+  },
+  {
+   "id": "j28-digest",
+   "title": "Dirty checking (the AngularJS digest cycle)",
+   "statement": "Write createScope(): { watch(getter, listener), digest() }. watch registers a pair: getter() is evaluated during the digest, and if the value has changed compared with the previous one (Object.is; the first time it always counts as changed, the previous being an undefined-marker), listener(new, old) is called. digest() repeats a full pass over all watchers until nothing changes during a pass (dirty checking), but at most 10 passes: if on the 10th pass there are still changes — throw Error('10 digest iterations reached'). Returns the number of passes performed (the last, \"clean\" one counts too).",
+   "hint": "A loop do { dirty = false; for each watcher … } while (dirty) with an iteration counter."
+  },
+  {
+   "id": "j28-selector",
+   "title": "A memoized selector",
+   "statement": "Write createSelector(inputSelectors, combiner): returns a function (state) → result. The input selectors are called on every call (with state); if all their results are equal (===) to the results of the previous call, the previous result is returned without calling combiner; otherwise combiner(...results) is called and its result is remembered. The returned function has a property recomputations — the number of combiner calls — and a method resetRecomputations(). The first call always runs combiner.",
+   "hint": "Keep lastArgs and lastResult; compare element by element."
+  },
+  {
+   "id": "j28-observable",
+   "title": "Observable and operators",
+   "statement": "Write Observable (a class): the constructor takes a function subscribeFn(observer), observer = { next, error, complete }; it may return an unsubscribe function. The method subscribe(observerOrNext) accepts an object or a next function and returns { unsubscribe() } (after it next/complete/error are not called, and the unsubscribe function from subscribeFn is called once). After complete or error further messages are ignored and unsubscribing happens automatically. Operator methods return new Observables: map(fn), filter(pred), take(n) (after n values — complete and unsubscribe from the source). The static of(...values) emits the values synchronously and completes.",
+   "hint": "An internal Subscriber with a closed flag; operators wrap the source, passing values on."
+  },
+  {
+   "id": "j28-emitter",
+   "title": "An event emitter",
+   "statement": "Write createEmitter(): { on, off, once, emit }. on(event, fn) subscribes (returns an unsubscribe function), off(event, fn) unsubscribes (if fn is subscribed several times — only the first), once(event, fn) — a subscription for a single trigger. emit(event, ...args) calls the subscribers in subscription order with the arguments and returns true if there was at least one subscriber. The event '*' receives all events: fn(eventName, ...args), after the ordinary subscribers. A subscriber's exception propagates, and the others are not called in this emit. Subscriptions and unsubscriptions during emit take effect from the next emit.",
+   "hint": "A Map event → array of handlers; in emit work with a copy of the array."
+  },
+  {
+   "id": "j28-history",
+   "title": "Undo/redo for a signal",
+   "statement": "Write createHistory(initial, limit = 100): { value, set, undo, redo, canUndo, canRedo }. value() — the current value; set(v) — writes if !Object.is(current, v): the previous value goes onto the undo stack, the redo stack is cleared; the undo length is limited by limit (the oldest are dropped). undo() returns the previous value (or undefined if there is nothing to undo), moving the current one to redo; redo() — the opposite. canUndo()/canRedo() — booleans.",
+   "hint": "Three variables: past[], present, future[]."
+  },
+  {
+   "id": "j28-debounce",
+   "title": "debounce with an injected scheduler",
+   "statement": "Write debounce(fn, ms, timers): timers = { setTimeout, clearTimeout } (injected for tests). Returns a function d(...args): every call resets the wait; fn is called with the latest arguments ms after the last call. d has cancel() (cancel the wait) and flush() (if there is a pending call — run it immediately and return fn's result, otherwise undefined). Then throttle(fn, ms, now): the first call runs at once; later calls within ms after the last execution are ignored (now() is the current time).",
+   "hint": "Keep the timer id and the latest arguments; for throttle — the time of the last run."
+  },
+  {
+   "id": "j28-combine",
+   "title": "Combining signals",
+   "statement": "The core (signal, computed, effect) is already there. Write combine(signals): signals is an object \"name → signal or computed\"; returns a computed getter whose value is an object { name: value } with the same keys (in the same order). The result is recreated (a new object) when any source changes, and the same object is returned on a repeated read without changes. Then write mapSignal(source, fn) — a computed returning fn(source()), and pluck(source, key) — a computed of the value source()[key].",
+   "hint": "combine: computed(() => Object.fromEntries(Object.entries(signals).map(([k, s]) => [k, s()])))",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction computed(fn) {\n  let value, dirty = true;\n  const subs = new Set();\n  const inner = {\n    deps: new Set(),\n    run() {\n      if (!dirty) { dirty = true; for (const e of [...subs]) e.run(); }\n    },\n  };\n  return () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    if (dirty) {\n      for (const d of inner.deps) d.delete(inner);\n      inner.deps.clear();\n      const prev = current;\n      current = inner;\n      try { value = fn(); } finally { current = prev; }\n      dirty = false;\n    }\n    return value;\n  };\n}\n// Done: computed above. Finish:\nfunction combine(signals) {\n}\nfunction mapSignal(source, fn) {\n}\nfunction pluck(source, key) {\n}\n"
+  },
+  {
+   "id": "j28-reactive-map",
+   "title": "A reactive Map",
+   "statement": "An effect with automatic tracking is already there: track(target, key) subscribes the current effect to a key, trigger(target, key) wakes it (the ready functions are in the starter). Write class ReactiveMap: get(key) subscribes the effect to that key; has(key) — to the key (presence); set(key, value) — a write: wakes the effects that read this key if the value changed by Object.is or the key is new; delete(key) — wakes the readers of the key if the key existed; size and keys() subscribe to the special key 'iterate', which is woken by adding a new key and by deletion; clear() wakes all keys that existed, and 'iterate'. A write to another key must not wake the readers of get('x').",
+   "hint": "Inside — an ordinary Map; in the read methods call track(this, key); in writes — trigger."
+  },
+  {
+   "id": "j28-form",
+   "title": "Form state",
+   "statement": "The core (signal, computed, effect) is already there. Write createField(initial, validators): validators is an array of functions v(value) → an error string or null. Returns an object { value (a signal), touched (a signal, false), error (a computed: the first error in validator order or null), valid (a computed: error() === null) }. Write createForm(fields): fields is an object \"name → field\"; returns { values (a computed object {name: value}), valid (a computed: all fields are valid), errors (a computed object with only the invalid fields {name: error}), submitDisabled (a computed: !valid), touchAll() (sets touched = true for all) }.",
+   "hint": "createField assembles signal/computed; createForm is a computed over all the fields.",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction computed(fn) {\n  let value, dirty = true;\n  const subs = new Set();\n  const inner = {\n    deps: new Set(),\n    run() {\n      if (!dirty) { dirty = true; for (const e of [...subs]) e.run(); }\n    },\n  };\n  return () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    if (dirty) {\n      for (const d of inner.deps) d.delete(inner);\n      inner.deps.clear();\n      const prev = current;\n      current = inner;\n      try { value = fn(); } finally { current = prev; }\n      dirty = false;\n    }\n    return value;\n  };\n}\n// Done: computed above. Finish:\nfunction createField(initial, validators = []) {\n}\nfunction createForm(fields) {\n}\n"
+  },
+  {
+   "id": "j28-map-array",
+   "title": "mapArray: a cache by keys",
+   "statement": "Write mapArray(getList, mapFn): getList is an array getter, mapFn(item, index) → a value. Returns a getter function m() that computes the array of results. The results for each element-reference (by ===) are cached between recomputations: if an element remained in the array (anywhere), mapFn is not called for it again (the index is not updated), and it is called for new elements; for removed ones the cache is cleared (if the element comes back later, mapFn is called again). Duplicates of the same element — one mapFn call per unique reference (all positions get the same value). The recomputation is lazy: m() itself calls getList() and compares with the previous list; if the array is the same by reference and length — it returns the previous result.",
+   "hint": "A Map element → result; on each call build a new Map from the current elements only."
+  },
+  {
+   "id": "j28-persisted",
+   "title": "A signal with persistence",
+   "statement": "Write persisted(key, initial, storage): storage is an object with getItem(key) and setItem(key, value) (like localStorage). Returns a signal-like object s: s() — the value; s.set(v) — write (if !Object.is) and save JSON.stringify(v) into storage; s.subscribe(cb) — a manual subscription (cb(new, old), an unsubscribe function is returned). On creation the value is read from storage: if it exists and the JSON parses — that; otherwise initial (corrupted JSON — initial, with no exception, and nothing is written to storage until the first write). Writing undefined removes the value: setItem(key, 'null') and the signal's value is undefined… no: undefined is saved as the string 'null', while the signal itself holds undefined.",
+   "hint": "try { JSON.parse(raw) } catch { initial }; call the subscribers after saving."
+  },
+  {
+   "id": "j28-set-in",
+   "title": "An immutable update by path",
+   "statement": "Write setIn(obj, path, value) and updateIn(obj, path, fn). path is an array of keys (strings and numbers). setIn returns a new object/array with the value at the path replaced, while all nodes off the path keep their previous references (structural sharing); the source object does not change. If the value at the path is already equal (Object.is) to the new one — return the original obj without copying. Missing intermediate nodes are created: an array if the next key is a number, otherwise an object. An empty path — return value. updateIn(obj, path, fn) — setIn(obj, path, fn(the current value at the path)).",
+   "hint": "Recursion over path: copy only the node on the path (Array.isArray? [...] : {...})."
+  },
+  {
+   "id": "j28-shallow-equal",
+   "title": "Shallow equality for a signal",
+   "statement": "Write shallowEqual(a, b): true if a and b are equal by Object.is, or both are non-empty… more precisely: both are objects (not null) with the same set of own keys and values equal by Object.is (key order does not matter); arrays are compared element by element (same length); an object and an array are not equal to each other; nested values are compared by reference only. Then write signal(initial, { equals }) with automatic tracking: a write for which equals(old, new) is true does not wake subscribers and does not change the stored value (the previous reference stays). The effect core is in the starter.",
+   "hint": "signal: read adds current to subs; set checks equals ?? Object.is."
+  },
+  {
+   "id": "j28-reactive-array-fn",
+   "title": "Derived collections: filter and sum",
+   "statement": "The core (signal, computed, effect) is already there. Write createTodos(): { items (a signal of an array of { id, title, done }), add(title) (adds a task with an id — a sequence number from 1, done: false, writing a new array), toggle(id) (toggles done, creating a new array and a new task object only for the one being changed), remove(id), filter (a signal 'all' | 'active' | 'done'), visible (a computed filtered array), remaining (a computed count of the unfinished), allDone (a computed: the list is non-empty and all are done) }. Untouched tasks keep their previous object references.",
+   "hint": "All changes go through items.set(new array); the computeds read items() and filter().",
+   "starter": "// Ready core (do not change): signal, effect and computed value with automatic tracking\nlet current = null;\nfunction signal(value) {\n  const subs = new Set();\n  const read = () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    return value;\n  };\n  read.peek = () => value;\n  read.set = (v) => {\n    if (Object.is(v, value)) return;\n    value = v;\n    for (const e of [...subs]) e.run();\n  };\n  read.update = (fn) => read.set(fn(value));\n  return read;\n}\nfunction effect(fn) {\n  const e = {\n    deps: new Set(),\n    cleanup: undefined,\n    active: true,\n    run() {\n      if (!e.active) return;\n      for (const d of e.deps) d.delete(e);\n      e.deps.clear();\n      const prev = current;\n      current = e;\n      try { fn(); } finally { current = prev; }\n    },\n    stop() { e.active = false; for (const d of e.deps) d.delete(e); e.deps.clear(); },\n  };\n  e.run();\n  return e.stop;\n}\nfunction computed(fn) {\n  let value, dirty = true;\n  const subs = new Set();\n  const inner = {\n    deps: new Set(),\n    run() {\n      if (!dirty) { dirty = true; for (const e of [...subs]) e.run(); }\n    },\n  };\n  return () => {\n    if (current) { subs.add(current); current.deps.add(subs); }\n    if (dirty) {\n      for (const d of inner.deps) d.delete(inner);\n      inner.deps.clear();\n      const prev = current;\n      current = inner;\n      try { value = fn(); } finally { current = prev; }\n      dirty = false;\n    }\n    return value;\n  };\n}\n// Done: computed above. Finish:\nfunction createTodos() {\n}\n"
+  }
+ ]
+}

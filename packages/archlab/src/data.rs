@@ -25,16 +25,16 @@ impl ArchLab {
         let mut chapters = BTreeMap::new();
         for c in list {
             if c.book != ARCH_BOOK || c.lab != "arch" {
-                return Err(format!("глава {}: ожидалась книга {ARCH_BOOK} и lab = arch", c.chapter));
+                return Err(i18n::trf!("chapter {0}: expected book {1} and lab = arch", c.chapter, ARCH_BOOK));
             }
             let mut seen = std::collections::HashSet::new();
             for t in &c.tasks {
                 if !seen.insert(t.id.as_str()) {
-                    return Err(format!("глава {}: повтор задачи «{}»", c.chapter, t.id));
+                    return Err(i18n::trf!("chapter {0}: duplicate task “{1}”", c.chapter, t.id));
                 }
             }
             if chapters.insert(c.chapter, c).is_some() {
-                return Err("повтор главы".into());
+                return Err(i18n::tr("duplicate chapter").into());
             }
         }
         Ok(ArchLab { chapters })
@@ -44,7 +44,7 @@ impl ArchLab {
     pub fn from_json<'a>(texts: impl IntoIterator<Item = &'a str>) -> Result<ArchLab, String> {
         let list = texts
             .into_iter()
-            .map(|t| serde_json::from_str::<LabChapter>(t).map_err(|e| format!("файл главы: {e}")))
+            .map(|t| serde_json::from_str::<LabChapter>(t).map_err(|e| i18n::trf!("chapter file: {0}", e)))
             .collect::<Result<Vec<_>, _>>()?;
         Self::from_chapters(list)
     }
@@ -105,7 +105,7 @@ impl ArchLab {
                     iface: c.interface(),
                     source: Some(BlockSource { section_slug: info.slug.to_string(), exercise_id: t.id.clone() }),
                 };
-                let hint = format!("Решите «{}» (практика «{}»)", t.title, info.title);
+                let hint = i18n::trf!("Solve “{0}” (practice “{1}”)", t.title, i18n::tr(info.title));
                 lib.insert(def, store.load(info.slug, &t.id), hint);
             }
         }
@@ -122,9 +122,9 @@ impl ArchLab {
         let Some((slug, id)) = registry::composite_requirement(ty) else {
             return String::new();
         };
-        let section = registry::section_by_slug(slug).map_or(slug, |s| s.title);
+        let section = registry::section_by_slug(slug).map_or(slug, |s| i18n::tr(s.title));
         let title = self.circuit_task(slug, id).map_or(id, |(t, _)| t.title.as_str());
-        format!("Соберите «{title}» (практика «{section}»)")
+        i18n::trf!("Build “{0}” (practice “{1}”)", title, section)
     }
 }
 

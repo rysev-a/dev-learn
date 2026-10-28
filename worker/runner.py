@@ -23,7 +23,7 @@ RUST_IMAGE = "rust:1.97-slim"
 # Образ с заранее собранными крейтами (tokio, axum, sqlx/SQLite, serde, tower, tungstenite…; docker/rust-crates/Dockerfile);
 # используется задачами с полем `crates` — сети во время проверки нет, rustc получает --extern на готовые rlib
 # из /opt/ext/externs (строка `--extern имя=путь` на каждый прямой крейт).
-RUST_CRATES_IMAGE = "say-rust-crates:1"
+RUST_CRATES_IMAGE = "cs-core-rust-crates:1"
 # Задачи с полем `postgres: True` получают запущенный PostgreSQL: готовый кластер из образа копируется в tmpfs
 # (корневая ФС только для чтения) и стартует от пользователя postgres на 127.0.0.1:5432 (trust, база chat);
 # строка подключения — postgres://postgres@127.0.0.1/chat. Без fsync: данные одноразовые.
@@ -52,7 +52,7 @@ MARK = "RESULT_JSON:"
 # Сколько байт stdout/stderr мы готовы принять от программы ученика: остальное отбрасывается,
 # а контейнер, который «заливает» вывод, останавливается (иначе он забьёт память процесса проверки).
 OUTPUT_LIMIT = 1_000_000
-CONTAINER_PREFIX = "say-run-"
+CONTAINER_PREFIX = "cs-core-run-"
 # Минимум прав: всё, что нужно компилятору и программе, у процесса есть и без привилегий.
 HARDENING = [
     "--cap-drop", "ALL",
@@ -393,12 +393,12 @@ def wrap_rust_driver(driver: str) -> str:
     else:
         body = driver.strip("\n").replace("fn main(", "pub fn main(", 1)
     return (
-        "mod __say_driver {\n"
+        "mod __cs_core_driver {\n"
         "    #[allow(unused_imports)]\n"
         "    use super::*;\n\n"
         f"{body}\n"
         "}\n\n"
-        "fn main() {\n    __say_driver::main();\n}\n"
+        "fn main() {\n    __cs_core_driver::main();\n}\n"
     )
 
 
@@ -485,14 +485,14 @@ def run_rust(task: dict, code: str) -> dict:
     ) + _EXIT_TAIL.format(run="/tmp/prog")
     return _run_program(
         task,
-        prefix="say-rs-",
+        prefix="cs-core-rs-",
         filename="main.rs",
         source=source,
         image=RUST_CRATES_IMAGE if crates else RUST_IMAGE,
         script=script,
         image_missing_hint=(
-            "say-rust-crates:1 не собран. Один раз выполните: "
-            "docker build -t say-rust-crates:1 backend/docker/rust-crates"
+            "cs-core-rust-crates:1 не собран. Один раз выполните: "
+            "docker build -t cs-core-rust-crates:1 backend/docker/rust-crates"
             if crates
             else None
         ),
@@ -507,7 +507,7 @@ def run_c(task: dict, code: str) -> dict:
         compile=f"gcc {flags} -o /tmp/prog /sandbox/main.c -lm -lpthread"
     ) + _EXIT_TAIL.format(run="/tmp/prog")
     return _run_program(
-        task, prefix="say-c-", filename="main.c", source=source, image=C_IMAGE, script=script
+        task, prefix="cs-core-c-", filename="main.c", source=source, image=C_IMAGE, script=script
     )
 
 
@@ -516,7 +516,7 @@ def run_js(task: dict, code: str) -> dict:
     source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
     script = _EXIT_TAIL.format(run="node --max-old-space-size=256 /sandbox/main.mjs")
     return _run_program(
-        task, prefix="say-js-", filename="main.mjs", source=source, image=JS_IMAGE, script=script
+        task, prefix="cs-core-js-", filename="main.mjs", source=source, image=JS_IMAGE, script=script
     )
 
 
@@ -528,7 +528,7 @@ def run_task(task: dict, code: str) -> dict:
         return run_c(task, code)
     if task["mode"] == "js":
         return run_js(task, code)
-    with tempfile.TemporaryDirectory(prefix="say-ex-") as td:
+    with tempfile.TemporaryDirectory(prefix="cs-core-ex-") as td:
         sandbox = Path(td)
         _open_dir(sandbox, {"solution.py": code, "harness.py": _harness(task)})
         cmd = [

@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "j13-call-depth",
+   "title": "Call stack depth",
+   "statement": "A program is described by a call tree: { name, calls: [...] } — the function name calls the nested ones in turn. Write a function maxDepth(tree) (the greatest stack depth; the root is 1) and trace(tree) that returns an array of strings «вход name»/«выход name» (the Russian words «вход» = enter, «выход» = exit are printed literally, followed by the function name) in execution order.",
+   "hint": "Depth = 1 + the maximum depth of the nested calls."
+  },
+  {
+   "id": "j13-event-loop",
+   "title": "Event loop model",
+   "statement": "A program is an array of top-level operations; an operation is: { do: \"log\", text } | { do: \"micro\", ops: [...] } | { do: \"task\", ops: [...], delay?: ms } (a timer; delay defaults to 0). Run it like a browser: first synchronously all the script's operations in order (log prints; micro queues a microtask with nested operations; task sets a timer), then the microtask queue is drained completely (in the order queued, including newly added ones), then the next task is taken — the timer with the earliest deadline (deadline = the moment it was set + delay; on a tie, the one set earlier). Its operations run the same way, and after it the microtasks are drained again. Return the array of printed strings.",
+   "hint": "Three structures: microtasks (a queue), timers (with virtual time), and the output; after each task call drain()."
+  },
+  {
+   "id": "j13-frame-budget",
+   "title": "Dropped frames",
+   "statement": "The main thread runs tasks back to back; their durations (ms) are given by the array durations. Write a function droppedFrames(durations, fps = 60): time flows continuously; a frame must come out every 1000/fps ms (at moments that are multiples of the period: 0 does not count, the first is at 16.67 and so on), but it cannot come out while a task is running (a frame comes out right after the task ends, if its deadline has passed). Return the number of frame deadlines that fell during the execution of tasks and were therefore dropped (the deadline lies strictly inside the interval (start, end) of a task). Compute periods exactly: period = 1000 / fps.",
+   "hint": "Count the frame deadlines k * period that fall inside the open interval of each task."
+  },
+  {
+   "id": "j13-long-tasks",
+   "title": "Long tasks and TBT",
+   "statement": "Main thread tasks are given as an array of { start, duration } (ms). Write a function analyze(tasks): longTasks — the tasks longer than 50 ms (in the original order); totalBlockingTime — the sum of excesses over 50 ms across all long tasks; worst — the longest one (the first among equals) or null; and a function splitTask(duration, chunk = 50) → an array of the durations of the parts (the last may be shorter; the sum equals duration).",
+   "hint": "TBT is the sum of (duration − 50) over the tasks longer than 50 ms."
+  },
+  {
+   "id": "j13-hidden-classes",
+   "title": "Hidden shapes of objects",
+   "statement": "The V8 shape model: a shape is determined by the sequence of field names in the order they were added. Write a function countShapes(objects): objects is an array of objects created by the code \"as is\" (take the key order from Object.keys; treat numeric keys as ordinary ones); return the number of distinct shapes and { shape: «names joined by commas», count } sorted by descending count (on a tie, by the shape string). The empty object has the shape «» (an empty string). For classify(count) return «monomorphic» for 1 shape, «polymorphic» for 2–4, «megamorphic» for 5 or more (this is how V8 rates an inline cache).",
+   "hint": "The shape key is Object.keys(o).join(','); count with a Map."
+  },
+  {
+   "id": "j13-gc-mark-sweep",
+   "title": "Garbage collection: mark and sweep",
+   "statement": "The heap is given as an object { id: [ids of the objects it references] }, the roots are an array of ids. Write a function sweep(heap, roots): { alive: a sorted array of reachable ids, freed: a sorted array of the ids to free }, and leaks(heap, roots, expectedFreed) → the ids that were expected to be freed but are reachable (leaks), with the path from a root: [{ id, path: [root, …, id] }] (the shortest path found by breadth-first search; paths ordered by id).",
+   "hint": "Breadth-first search from the roots; to build paths, remember each vertex's parent."
+  },
+  {
+   "id": "j13-generational-gc",
+   "title": "Generations and object promotion",
+   "statement": "A model of the young generation: each \"minor collection\" (scavenge) looks only at young objects. Write a class Heap: alloc(id, refs = []) creates a young object; setRoots(ids); scavenge() — young objects reachable from the roots and from old objects survive (mind the references from old ones!); survivors get age +1, and at age 2 they move to the old generation; the other young objects are freed; it returns a sorted array of the freed ids; ages() → { id: age } for young objects; old() → a sorted array of old ids. Scavenge does not free old objects.",
+   "hint": "Reachability starts from the roots and from all old objects (they can reference young ones)."
+  },
+  {
+   "id": "j13-parser-timeline",
+   "title": "Parsing blocked by scripts",
+   "statement": "The page resources are given in HTML order: { type: \"script\"|\"defer\"|\"async\"|\"module\", download, exec } (ms). Parsing HTML takes 10 ms per resource (parsing after resource i starts when the previous parsing has finished and, for regular scripts, after the script has been downloaded and executed). All downloads start at the same moment 0 (the preload scanner) and run in parallel. A regular script blocks parsing until it runs (not before its download ends). An async script runs as soon as it has downloaded and the thread is free (here we count it as: it runs at the moment max(download, the moment the thread frees up is not taken into account) — right when the download finishes, if the parser is not inside a script; for simplicity, execution is not serialized). defer and module scripts run after parsing ends, in order (each not before its download ends). Return { domParsed (the end of parsing), contentLoaded (the end of the last defer/module), order (execution order labels: resource indexes) }.",
+   "hint": "Regular scripts shift the parsing time; defer ones go after parsing in order, async ones as soon as they are ready."
+  },
+  {
+   "id": "j13-render-tree",
+   "title": "The render tree",
+   "statement": "The DOM is given as { tag, style?: { display?: string }, children?: [...], text? }. Write a function buildRenderTree(node): it returns a tree of only the nodes that will take part in rendering: elements with display: none are excluded together with their descendants; elements with display: contents are replaced by their children; the tags head, script, style, title, meta, link are not drawn; text nodes { text } are kept if they are non-empty after trim. The result is a nested structure { tag, children } for elements and { text } for text.",
+   "hint": "A recursion that returns an array of nodes: empty for hidden ones, the children for contents, one element for the rest."
+  },
+  {
+   "id": "j13-critical-path",
+   "title": "The critical rendering path",
+   "statement": "Resources are given as { name, type: \"html\"|\"css\"|\"js\"|\"img\", size (KB), blocking?: true }, the channel is 1 KB per 1 ms, all resources download in parallel, splitting the channel equally (for simplicity, assume only the resources downloaded at the same time share the channel: download time = size * the number of resources downloaded in the same set). Simplified: firstPaint(resources) = the time when html and all css and js with blocking: true are downloaded, computed as (the sum of the sizes of these resources) ms (the channel is sequential, the order does not matter) + 10 ms to build the tree, plus 5 ms for each blocking resource (execution). Images (img) do not block. Return { firstPaint, blockedBy: the names of the blocking resources in input order } and a function optimize(resources): it sets blocking: false on js resources marked defer: true (returning a new array), and reports the gain: compare firstPaint before and after.",
+   "hint": "Blocking resources: html, css and js with blocking; time = the sum of sizes plus 5 ms for each css/js plus 10."
+  },
+  {
+   "id": "j13-layout-thrash",
+   "title": "Forced layout (layout thrashing)",
+   "statement": "A sequence of DOM operations: \"read\" (reading geometry: offsetHeight, getBoundingClientRect) and \"write\" (writing a style). Layout is recalculated on a read if there was a write after the last layout. Write a function countLayouts(ops) → the number of forced layouts; and a function batch(ops) → an array of operations where all reads come first, then all writes (keeping the order inside each group) — such a batch gives at most one layout; check both.",
+   "hint": "A \"dirty\" flag after a write; a read while dirty means a layout and the flag is reset."
+  },
+  {
+   "id": "j13-raf-scheduler",
+   "title": "A requestAnimationFrame scheduler",
+   "statement": "Write a class FrameLoop: requestAnimationFrame(cb) → id; cancelAnimationFrame(id); tick(time) — a \"frame\": it calls all callbacks accumulated by the start of the frame, in registration order, with the argument time; callbacks registered during the frame run in the next frame; cancelled ones are not called; it returns the number of calls made. The method pending() is the number of waiting callbacks.",
+   "hint": "In tick, take a snapshot of the queue and clear it before calling the callbacks."
+  },
+  {
+   "id": "j13-mutation-observer",
+   "title": "MutationObserver: batched delivery",
+   "statement": "Write a function createObserver(callback): it returns an object { record(mutation), disconnect(), takeRecords() }; records accumulate and are delivered as callback(records) in a single call as a microtask (queueMicrotask) after the current code; if several changes are recorded in the meantime, callback is called once with all of them; after disconnect new records are ignored and the scheduled delivery is cancelled; takeRecords() returns the accumulated records and clears them.",
+   "hint": "One \"delivery scheduled\" flag; deliver through queueMicrotask."
+  },
+  {
+   "id": "j13-timer-clamp",
+   "title": "Clamping nested timers",
+   "statement": "The browser rule: if the setTimeout nesting is deeper than 5, the minimum delay is 4 ms. Write a function nestedDelays(requested, depth): requested is the delay the code asked for (ms); depth is the nesting level (1 for a call from the script); it returns the real delay. Then a function chainTimes(requested, n): it runs a chain of n nested setTimeout(f, requested) calls (the depth grows) and returns an array of the moments of execution (cumulative, from 0). Separately: backgroundDelay(requested, hidden) — in a hidden tab, at least 1000 ms.",
+   "hint": "The condition: depth > 5 → max(requested, 4)."
+  },
+  {
+   "id": "j13-interval-drift",
+   "title": "setInterval versus recursive setTimeout",
+   "statement": "The work takes work ms, the interval is period ms (work may be larger than period). Write a function intervalStarts(period, work, n): the start moments of n runs with setInterval (the callback is queued strictly every period ms, but does not start until the previous one has finished; missed \"ticks\" do not accumulate: if the queue already contains a callback, a new one is not queued); and a function timeoutStarts(period, work, n): the start moments with a recursive setTimeout (the next one comes period after the work ends).",
+   "hint": "Track when the thread frees up; while the thread is busy, the queue holds at most one callback."
+  },
+  {
+   "id": "j13-time-slicing",
+   "title": "Slicing work by budget",
+   "statement": "Write a function processInChunks(items, work, { budget, now, yieldFn }): it processes the items in order by calling work(item); after each item it checks now(): if at least budget ms have passed since the start of the current chunk, it calls await yieldFn() (hands control back) and starts a new chunk. It returns { processed, yields }. now() is a virtual clock that work advances.",
+   "hint": "chunkStart is updated after each handing back of control."
+  },
+  {
+   "id": "j13-structured-clone",
+   "title": "Structured cloning",
+   "statement": "Write a function cloneForMessage(value): it copies values the same way as postMessage: primitives, Date, RegExp, Map, Set, arrays, plain objects (with circular references — the cycle is preserved in the copy); undefined and NaN are preserved. Functions and symbols are not copied: throw an error with the name «DataCloneError». Classes with prototypes are copied as plain objects (the prototype is lost). You must not use structuredClone.",
+   "hint": "You need a map \"source object → copy\" for cycles and repeated references."
+  },
+  {
+   "id": "j13-message-channel",
+   "title": "Handing back control: queue order",
+   "statement": "Write a function order(): it returns a promise of an array of strings, in the order they would come out when run in Node.js: «sync», «микрозадача» (queueMicrotask; the Russian word «микрозадача» = microtask is printed literally), «nextTick» (process.nextTick — in ESM it goes after the microtasks), «MessageChannel» (a message through new MessageChannel(): port1.onmessage), «setTimeout» (0 ms). Your job is to assemble the code so that the order is: «sync», «микрозадача», «nextTick», «MessageChannel», «setTimeout».",
+   "hint": "The queue itself decides the order: sync → microtasks → nextTick (in ESM) → messages → timer; give the timer some margin (for example, 20 ms)."
+  },
+  {
+   "id": "j13-perf-marks",
+   "title": "performance.mark and measure",
+   "statement": "Write a function createPerf(now): now() is a clock; it returns an object with mark(name) → an entry { name, startTime, entryType: \"mark\" }, measure(name, startMark, endMark?) → an entry { name, startTime, duration, entryType: \"measure\" } (if endMark is not given — up to the current moment; for an unknown mark — Error(\"Метка не найдена: \" followed by the mark's name; the Russian text «Метка не найдена» = \"Mark not found\" is kept literally), getEntries() (by start time), getEntriesByName(name), clear().",
+   "hint": "The last mark with the given name is the one to count from."
+  },
+  {
+   "id": "j13-long-task-observer",
+   "title": "A long task observer",
+   "statement": "Write a function createLongTaskObserver(threshold, onLongTask): it returns an object { run(name, duration, startTime) } — it registers the execution of a task; if duration > threshold, it calls onLongTask({ name, duration, startTime, blockingTime: duration - threshold }); and summary() → { count, total, worst: { name, duration } | null } — a summary of long tasks only.",
+   "hint": "Store only the long entries; blockingTime = duration − threshold."
+  },
+  {
+   "id": "j13-web-vitals",
+   "title": "Web Vitals: ratings and p75",
+   "statement": "Write a function percentile(values, p) (by the \"nearest rank\" method: index ceil(p/100 * n) - 1 in a sorted copy; null for an empty array), a function rate(metric, value) → \"good\"/\"needs-improvement\"/\"poor\" by thresholds: LCP — up to 2500 good, up to 4000 acceptable; INP — 200/500; CLS — 0.1/0.25 (boundaries are inclusive in the better category), and reportVitals(samples) — for an array of measurements { LCP, INP, CLS } it returns for each metric { p75, rating } (metrics with no measurements are skipped).",
+   "hint": "p75 by nearest rank; the thresholds come from the table."
+  },
+  {
+   "id": "j13-cls",
+   "title": "Cumulative Layout Shift (CLS)",
+   "statement": "Layout shifts are given as an array of { time, value } (ms, in ascending time order). Session windows: shifts are grouped into a window while the gap between neighbors is at most 1000 ms and the window is not longer than 5000 ms from the first shift; otherwise a new window starts. The page's CLS is the largest sum of value across the windows. Write a function cls(shifts) → { value, windows: [{ start, end, sum }] } (round value and sum to 3 decimal places).",
+   "hint": "A window continues while the gap ≤ 1000 ms and the length ≤ 5000 ms."
+  },
+  {
+   "id": "j13-site-isolation",
+   "title": "Processes by site",
+   "statement": "Site isolation: pages of the same site (scheme + registrable domain) share a process. Write a function siteOf(url): \"scheme://registrable-domain\" — take the last two parts of the host name (for hosts like a.b.co.uk take a suffix from the set [\"co.uk\", \"com.au\"] — then three parts); IP addresses and localhost are taken as is. And a function assignProcesses(frames): frames is an array of { id, url, parent? }; it returns { processes: [[id…], …] } — processes in the order the site first appears, with frame ids in input order.",
+   "hint": "new URL(url).hostname; different schemes mean different sites."
+  },
+  {
+   "id": "j13-fetch-priority",
+   "title": "Resource loading priorities",
+   "statement": "The browser assigns priorities: html — \"highest\"; css in head — \"highest\"; a sync script in head — \"high\"; font — \"high\"; images: in the viewport — \"high\", outside it — \"low\"; async/defer script — \"low\"; prefetch — \"lowest\"; preload changes the priority to \"high\" (except for prefetch). Write a function priority(r): r = { type, inHead?, async?, defer?, visible?, preload?, prefetch? } → a string; and a function schedule(resources, maxParallel): the order in which downloads start — first by priority (highest > high > low > lowest), on a tie by input order; it returns an array of names.",
+   "hint": "Special cases first (prefetch, preload), then the table by resource type."
+  },
+  {
+   "id": "j13-microtask-limit",
+   "title": "Microtask queue starvation",
+   "statement": "The model: the microtask queue is an array of functions; each may return an array of new microtasks (they are added to the end of the queue). Write a function drain(queue, limit): it runs the queue until empty; but if limit microtasks have been run and the queue is not empty, it stops and reports starvation: { done, left, starved }. And a function fixStarvation(queue, limit): it runs at most limit microtasks, the rest are returned as \"the next task\" (as if control had been yielded): { runNow, deferred } — the number run now and the rest of the queue (an array of functions).",
+   "hint": "A queue with a limit on the number of microtasks run; what is left is the sign of starvation or the deferred tasks."
+  },
+  {
+   "id": "j13-leak-listeners",
+   "title": "Finding listener leaks",
+   "statement": "The event log is an array of { op: \"add\"|\"remove\", target, type, id }, where id is the listener identifier. Write a function findLeaks(log): the listeners that were added and never removed (adding the same id again to the same target/type pair counts as a new listener if the previous one has already been removed; a repeated add without remove is a duplicate, it does not create a second one, but is counted in duplicates). Return { leaked: [{ target, type, id }] (in the order added), duplicates: the number of extra adds, unmatchedRemoves: the number of removes without an add }.",
+   "hint": "A dictionary of active listeners by the key target|type|id."
+  },
+  {
+   "id": "j13-fix-blocking",
+   "title": "Fix it: blocking the main thread",
+   "statement": "The function sumBigAsync(n) computes the sum of the numbers from 1 to n. Right now it blocks the main thread for the whole calculation: a timer with a 10 ms interval never gets to fire. Rewrite it so that the calculation goes in chunks of 100000 iterations with control handed back between them (await new Promise(r => setTimeout(r)) or setImmediate) and the result is the same; the sum is a number (n up to 5 000 000).",
+   "hint": "Every 100000 iterations, hand control back to the event loop."
+  },
+  {
+   "id": "j13-fix-layout",
+   "title": "Fix it: batched work with the \"DOM\"",
+   "statement": "A DOM model: objects { height, style } with the methods read() (returns height and triggers a layout recalculation if there were writes) and write(v) (changes height). The function grow(elements) must increase the height of each element by the height of the first one; right now it alternates reads and writes and triggers a layout on every iteration. Fix it: first read all the heights, then write them (no more than one layout). Return the array of new heights.",
+   "hint": "All the read() calls first, then all the write() calls — then layout is not recalculated between them."
+  },
+  {
+   "id": "j13-css-triggers",
+   "title": "What the browser will recalculate",
+   "statement": "For each CSS property we know which stages it triggers: layout (layout → paint → compositing), paint (paint → compositing) or composite (compositing only). Write a function stageOf(prop): width, height, margin*, padding*, top/left/right/bottom, display, position, font-size, border-width, flex*, grid* → \"layout\"; color, background*, box-shadow, border-color, border-radius, outline*, visibility → \"paint\"; transform, opacity, filter, will-change → \"composite\"; anything unknown → \"layout\" (just in case). And cost(props) → the most expensive stage among the properties (layout > paint > composite), \"none\" for an empty list.",
+   "hint": "Tables of regular expressions by stage type; check composite first."
+  },
+  {
+   "id": "j13-idle-callback",
+   "title": "requestIdleCallback on virtual time",
+   "statement": "Write a class IdleScheduler(now): the method requestIdleCallback(cb, { timeout } = {}) → id; cancelIdleCallback(id); runIdle(frameEnd) — \"idle time\" until the moment frameEnd: it calls the callbacks in registration order, passing deadline = { timeRemaining() → max(0, frameEnd - now()), didTimeout: false }; a callback is called only if timeRemaining() > 0 at the moment of the call; the others wait for the next idle time; callbacks with a timeout whose deadline (registration moment + timeout) has already come, while there is no idle time, are called by the method runTimeouts() with didTimeout: true and timeRemaining() = 0. It returns the number of calls made.",
+   "hint": "Idle time ends when timeRemaining() becomes 0; tasks with a timeout run separately when they are overdue."
+  }
+ ]
+}

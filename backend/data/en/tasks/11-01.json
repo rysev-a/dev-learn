@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "j1-iife-counter",
+   "title": "A closure module (IIFE)",
+   "statement": "Create a variable counter that holds the result of an immediately invoked function: an object with the methods inc() (increments the counter and returns it), reset() and value(). The counter itself must not be reachable from outside. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "var counter = (function () { var n = 0; return { … }; })();"
+  },
+  {
+   "id": "j1-bind",
+   "title": "Polyfill for Function.prototype.bind",
+   "statement": "Write a function bindFn(fn, ctx) (extra arguments are remembered): it returns a function that calls fn with this = ctx, first with the remembered arguments and then with the ones passed later. You must not use the bind method. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Array.prototype.slice.call(arguments, 2) and fn.apply(ctx, …)"
+  },
+  {
+   "id": "j1-object-create",
+   "title": "Polyfill for Object.create (Crockford's way)",
+   "statement": "Write a function objectFrom(proto): it returns a new empty object whose prototype is proto. You must not use Object.create: use a temporary constructor. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "function F() {} F.prototype = proto; return new F();"
+  },
+  {
+   "id": "j1-map-es3",
+   "title": "map, ES3 style",
+   "statement": "Write a function mapES3(arr, fn, thisArg): it returns a new array of the results of fn.call(thisArg, element, index, array) for each element; holes in a sparse array are skipped (and stay holes in the result). You must not use the map method. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Check i in arr — that is how holes are skipped."
+  },
+  {
+   "id": "j1-filter-es3",
+   "title": "filter, ES3 style",
+   "statement": "Write a function filterES3(arr, pred, thisArg): it returns a new array of the elements for which pred.call(thisArg, element, index, array) is truthy; holes are skipped. You must not use the filter method. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "i in arr && pred.call(thisArg, arr[i], i, arr)"
+  },
+  {
+   "id": "j1-reduce-es3",
+   "title": "reduce, ES3 style",
+   "statement": "Write a function reduceES3(arr, fn, init): it folds the array from left to right; if init is not passed (arguments.length < 3), the first element serves as the initial value; for an empty array without init, throw a TypeError. You must not use the reduce method. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "arguments.length tells “init not passed” apart from “init is undefined”."
+  },
+  {
+   "id": "j1-indexof",
+   "title": "Polyfill for indexOf",
+   "statement": "Write a function indexOfES3(arr, x, from): the index of the first element strictly equal to x, starting at position from (0 by default); a negative from counts from the end; if nothing is found, -1. You must not use the indexOf method. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Normalize from: if it is negative, use max(0, n + from)."
+  },
+  {
+   "id": "j1-trim",
+   "title": "Polyfill for trim",
+   "statement": "Write a function trimES3(s): it removes whitespace characters (spaces, tabs, newlines) at the start and end of the string using a regular expression. You must not use the trim method. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "s.replace(/^\\s+|\\s+$/g, \"\")"
+  },
+  {
+   "id": "j1-keys",
+   "title": "Polyfill for Object.keys",
+   "statement": "Write a function keysES3(obj): an array of the object's own enumerable keys in for…in order; skip inherited keys (hasOwnProperty). You must not use Object.keys. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Check Object.prototype.hasOwnProperty.call(obj, k) inside for (var k in obj)."
+  },
+  {
+   "id": "j1-call",
+   "title": "Your own call via a temporary property",
+   "statement": "Write a function callFn(fn, ctx) (the remaining arguments are passed to fn): it calls fn so that this inside is ctx, without call, apply or bind. Tip: put fn into a temporary property of ctx and call it as a method, then delete it. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "ctx[key] = fn; ctx[key](…); delete ctx[key]. Passing an arbitrary number of arguments was solved in ES3 with eval — or handle the needed number of cases by hand."
+  },
+  {
+   "id": "j1-query-string",
+   "title": "Query string: parsing and building",
+   "statement": "Write the functions parseQuery(s) (“a=1&b=%D0%B0&c”, a leading “?” is allowed) → an object with string values (a missing “=” gives an empty string; a repeated key keeps the last value) and buildQuery(obj) → a string “k=v&k2=v2” encoded with encodeURIComponent. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "split(\"&\"), then split(\"=\"); do not forget decodeURIComponent and encodeURIComponent."
+  },
+  {
+   "id": "j1-cookies",
+   "title": "Parsing document.cookie",
+   "statement": "Write a function parseCookies(str): a string like “a=1; b=hello%20world; c=” → an object; spaces around pairs are dropped, values are decoded with decodeURIComponent, pairs without “=” are skipped. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "split(\";\"), then indexOf(\"=\") — the value may contain “=”."
+  },
+  {
+   "id": "j1-mini-jquery",
+   "title": "Mini-jQuery over a node list",
+   "statement": "Page nodes are modeled as objects { tag, classes: [...], text }. Write a function $(nodes, selector): it returns a wrapper object with the members length (a number — no getter needed, just a field), each(fn(node, i)), addClass(c), removeClass(c), text() (the texts of the found nodes joined with a space) and text(value) (write). All mutating methods return the wrapper (chaining). Selectors: “tag”, “.class”, “tag.class”, “*”. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Split the selector on “.”, filter the nodes and return an object whose methods return itself."
+  },
+  {
+   "id": "j1-fake-xhr",
+   "title": "A model of XMLHttpRequest",
+   "statement": "Write a constructor FakeXHR(server): server is an object “address → {status, body}”. Methods: open(method, url) (readyState = 1), send() (synchronously goes through states 2, 3, 4; after each it changes readyState and calls onreadystatechange if it is set; at 4 it fills in status and responseText; an unknown address gives status 404 and an empty responseText). The initial readyState = 0. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "A single method _set(state) describes “change the state + callback”."
+  },
+  {
+   "id": "j1-error-first",
+   "title": "Error-first callbacks",
+   "statement": "Write a function getJson(http, url, cb): http.get(url, function (err, text)) is a request (asynchronous); getJson calls cb(err) if the request fails, cb(null, object) if the JSON parses successfully, and cb(err) with a SyntaxError for invalid JSON. cb must be called exactly once, even if cb itself throws an exception. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Catch the exception from JSON.parse separately so that cb is not called twice (a try around cb itself is a mistake)."
+  },
+  {
+   "id": "j1-series",
+   "title": "series: tasks one by one",
+   "statement": "Write a function series(tasks, done): tasks are functions of the form function (cb) { … cb(err, result) }; run them strictly one after another (the next one after the previous one calls its cb); done(err, results) is called once: after the last task with an array of results, or right at the first error with that error. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "A recursive function next() that takes the next task and passes it a callback that calls next()."
+  },
+  {
+   "id": "j1-parallel",
+   "title": "parallel: tasks at the same time",
+   "statement": "Write a function parallel(tasks, done): it starts all the tasks (function (cb) { … cb(err, result) }) at once; done(err, results) is called once: when all have finished — with results in task order (not completion order), or at the first error. An empty array calls done(null, []) immediately. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "A counter of remaining tasks and a closure with the index; a finished flag protects against a second done."
+  },
+  {
+   "id": "j1-detect-browser",
+   "title": "Detecting the browser by User-Agent",
+   "statement": "Write a function detectBrowser(ua): it returns “ie” (contains “MSIE” or “Trident/”), “edge” (“Edg/” or “Edge/”), “opera” (“OPR/” or “Opera”), “chrome” (“Chrome/” — a Chrome string also contains “Safari/”), “firefox” (“Firefox/”), “safari” (“Safari/” without “Chrome/”) or “unknown”. The order of checks matters. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Chrome, Edge and Opera contain both “Chrome/” and “Safari/” — check them before the plain ones."
+  },
+  {
+   "id": "j1-script-order",
+   "title": "Script inclusion order",
+   "statement": "Scripts depend on each other: [{ name: \"app.js\", needs: [\"plugin.js\", \"jquery.js\"] }, …]. Write a function scriptOrder(scripts): it returns an array of names in an order where every script comes after its dependencies (when choosing among ready ones, keep the original list order); on a dependency cycle it throws Error(\"цикл\"), and on a dependency on an unknown script, Error(\"нет скрипта: <имя>\"). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Depth-first traversal with three node states: not visited, in progress, done."
+  },
+  {
+   "id": "j1-namespace",
+   "title": "Namespaces (YUI style)",
+   "statement": "Write a function namespace(root, path): path is a string like “app.ui.menu”; it creates nested empty objects in root along the parts of the path (existing ones are not overwritten) and returns the deepest one. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Walk the path parts, creating an object wherever the field does not exist yet."
+  },
+  {
+   "id": "j1-inherit",
+   "title": "Inheritance via a prototype (ES3)",
+   "statement": "Write a function inherit(Child, Parent): it sets up the prototype chain so that instances of Child inherit the methods of Parent.prototype, without calling Parent and keeping Child.prototype.constructor === Child. If Child.prototype already has methods, they need not be preserved — it is called before the methods are declared. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "A temporary constructor F with F.prototype = Parent.prototype; Child.prototype = new F()."
+  },
+  {
+   "id": "j1-extend",
+   "title": "extend, jQuery style",
+   "statement": "Write a function extend(target, …sources) and a deep-merge variant: if the first argument is true — extend(true, target, a, b) — it recursively merges nested plain objects (arrays and everything else are replaced whole). It returns target. undefined values are skipped. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "arguments[0] may be a boolean flag; in deep mode call extend recursively for nested objects."
+  },
+  {
+   "id": "j1-pubsub",
+   "title": "PubSub, jQuery-plugin style",
+   "statement": "Write a function createPubSub(): it returns an object with the methods subscribe(topic, fn) → token (a number, growing from 1), publish(topic, data) → the number of subscribers called (subscribers are called in subscription order, fn(data, topic)) and unsubscribe(token) → true/false (whether such a token existed). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "The token is a unique id; unsubscribe looks it up across all topics."
+  },
+  {
+   "id": "j1-ecma-info",
+   "title": "ECMAScript editions",
+   "statement": "Write a function ecmaInfo(name): it accepts “ES3”, “ES5”, “ES6”, “ES2015”, “ES2020”, … and returns an object { edition, year }. Rules: ES1 — 1997, ES2 — 1998, ES3 — 1999, ES5 — 2009 (ES4 was cancelled — for it throw Error(\"ES4 не вышел\")); starting with ES6, edition n came out in 2009 + n (ES6 = ES2015, ES7 = ES2016, …); “ES<year>” (year ≥ 2015) gives edition = year - 2009. Invalid names — Error(\"неизвестная редакция\"). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "The regular expression /^ES(\\d+)$/ and a table of early editions {1: 1997, 2: 1998, 3: 1999, 5: 2009}."
+  },
+  {
+   "id": "j1-xml-json",
+   "title": "XML versus JSON",
+   "statement": "Write a function toXml(name, obj): a flat object turns into XML: toXml(\"user\", {id: 1, name: \"Ада\"}) → «<user><id>1</id><name>Ада</name></user>». Escape the characters &, <, > in values as &amp; &lt; &gt;. And a function compareSize(obj) → { json, xml } — the lengths of the two representations (JSON.stringify and toXml(\"o\", obj)). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Order of replacements: & first (otherwise you will escape your own ampersands), then < and >."
+  },
+  {
+   "id": "j1-debounce",
+   "title": "debounce for the resize event",
+   "statement": "Write a function debounce(fn, ms): it returns a function that postpones the call of fn by ms milliseconds after the last invocation (each new invocation resets the timer); fn is called with the arguments and this of the last invocation. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "clearTimeout(timer) before a new setTimeout; save this and arguments into local variables."
+  },
+  {
+   "id": "j1-type-of",
+   "title": "typeOf, Crockford style",
+   "statement": "Write a function typeOf(v): it returns “null”, “array”, “date”, “regexp”, “function”, “error”, “object” (for other objects) or the result of typeof for primitives; use Object.prototype.toString. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Object.prototype.toString.call(v).slice(8, -1)"
+  },
+  {
+   "id": "j1-memoize-es3",
+   "title": "Memoization, ES3 style",
+   "statement": "Write a function memoizeES3(fn): it returns a function that caches the result by a key — the arguments joined with JSON.stringify(Array.prototype.slice.call(arguments)). A repeated call with the same arguments does not call fn. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "hasOwnProperty is more reliable than checking the value: the result may be 0 or undefined."
+  },
+  {
+   "id": "j1-compose-es3",
+   "title": "compose and pipe, ES3 style",
+   "statement": "Write a function composeES3(f, g, h, …): it returns a function that applies the given functions from right to left (like mathematical composition); with no arguments it is the identity function. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Loop over the saved array of functions from the end."
+  },
+  {
+   "id": "j1-curry-es3",
+   "title": "Currying, ES3 style",
+   "statement": "Write a function curryN(fn, n): it returns a function that can be called in parts (curryN(f, 3)(1)(2)(3), curryN(f, 3)(1, 2)(3), and so on); once n arguments have been collected, it calls fn with them and returns the result. Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "hint": "Accumulate arguments in an array until there are n of them."
+  }
+ ]
+}

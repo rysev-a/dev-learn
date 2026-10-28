@@ -49,17 +49,17 @@ pub fn OverloadNotice(state: OverloadState) -> impl IntoView {
     move || {
         state.kind.get().map(|kind| {
             let (title, text) = match kind {
-                Overload::Unavailable => ("Проверка кода сейчас недоступна", "Сервис в стадии развития и пока не выдерживает большую нагрузку: сервер проверки перегружен или не отвечает."),
-                Overload::Busy => ("Много желающих проверить код", "Сервис в стадии развития и пока не выдерживает большую нагрузку: очередь проверок длинная, решение будет проверено, но придётся подождать."),
+                Overload::Unavailable => (i18n::tr("Code checking is unavailable right now"), i18n::tr("The service is still under development and cannot handle heavy load yet: the checking server is overloaded or not responding.")),
+                Overload::Busy => (i18n::tr("Many people are checking code right now"), i18n::tr("The service is still under development and cannot handle heavy load yet: the queue is long, your solution will be checked, but you will have to wait.")),
             };
             view! {
                 <aside class="overload" role="alertdialog" aria-labelledby="overload-title">
-                    <button type="button" class="overload-x" aria-label="Закрыть" on:click=move |_| state.close()>"×"</button>
+                    <button type="button" class="overload-x" aria-label=i18n::tr("Close") on:click=move |_| state.close()>"×"</button>
                     <h3 id="overload-title">{title}</h3>
                     <p>{text}</p>
-                    <p>"Попробуйте чуть позже: мы расширяем мощности. Теория, вопросы и лаборатории в браузере работают как обычно."</p>
+                    <p>{i18n::tr("Please try again a little later: we are adding capacity. Theory, quizzes and in-browser labs work as usual.")}</p>
                     <div class="overload-actions">
-                        <button type="button" class="quiz-btn" on:click=move |_| state.close()>"Понятно"</button>
+                        <button type="button" class="quiz-btn" on:click=move |_| state.close()>{i18n::tr("Got it")}</button>
                     </div>
                 </aside>
             }

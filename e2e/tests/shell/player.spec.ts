@@ -215,20 +215,20 @@ test("окно «За кадром» закреплено у нижнего кр
 
 test("высота окна «За кадром»: двойной клик по «лапке» возвращает по умолчанию, перетаскивание запоминает", async ({ page, request }) => {
   const { ch } = await setup(page, request);
-  await page.addInitScript(() => window.localStorage.setItem("say-voice-h", "100"));
+  await page.addInitScript(() => window.localStorage.setItem("cs-core-voice-h", "100"));
   await open(page, ch);
   await expect(voice(page)).toHaveAttribute("style", /max-height: min\(100px, 70vh\)/);
   const grip = page.locator(".voice-pop-grip");
   await grip.dblclick();
   await expect(voice(page)).not.toHaveAttribute("style", /max-height/);
-  expect(await stored(page, "say-voice-h")).toBeNull();
+  expect(await stored(page, "cs-core-voice-h")).toBeNull();
 
   const g = (await grip.boundingBox())!;
   await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
   await page.mouse.down();
   await page.mouse.move(g.x + g.width / 2, g.y - 60, { steps: 4 });
   await page.mouse.up();
-  const saved = await stored(page, "say-voice-h");
+  const saved = await stored(page, "cs-core-voice-h");
   expect(saved).not.toBeNull();
   expect(Number(saved)).toBeGreaterThan(0);
 });

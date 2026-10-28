@@ -362,7 +362,7 @@ test.describe("проверка без воркера", () => {
     await open(page, request);
     await editor(page).fill("   \n");
     await editor(page).press("Control+Enter");
-    await expect(result(page).locator(".cx-error")).toContainText("Пустой код");
+    await expect(result(page).locator(".cx-error")).toContainText("Empty code");
     await expect(page.locator(".pr-hist")).toHaveCount(0);
     guard.assertClean();
   });

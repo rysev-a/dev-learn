@@ -1,35 +1,35 @@
-# Маршруты Traefik для рабочего сервера: домен из SAY_DOMAIN, HTTPS с сертификатом Let's Encrypt (резолвер `le` задан флагами traefik в compose),
-# HTTP только перенаправляет на HTTPS. Подключается переменной SAY_TRAEFIK_CONFIG=./traefik/tls.yml. По адресу машины без домена сайт не открывается.
+# Маршруты Traefik для рабочего сервера: домен из CS_CORE_DOMAIN, HTTPS с сертификатом Let's Encrypt (резолвер `le` задан флагами traefik в compose),
+# HTTP только перенаправляет на HTTPS. Подключается переменной CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml. По адресу машины без домена сайт не открывается.
 # /api → бэкенд; всё остальное → frontend (Caddy со статикой Leptos; /internal он отдаёт как 404).
 http:
   routers:
     http-to-https:
       entryPoints: [web]
-      rule: "Host(`{{ env "SAY_DOMAIN" }}`)"
+      rule: "Host(`{{ env "CS_CORE_DOMAIN" }}`)"
       middlewares: [to-https]
       service: noop@internal
     www-http:
       entryPoints: [web]
-      rule: "Host(`www.{{ env "SAY_DOMAIN" }}`)"
+      rule: "Host(`www.{{ env "CS_CORE_DOMAIN" }}`)"
       middlewares: [to-apex]
       service: noop@internal
     www-https:
       entryPoints: [websecure]
-      rule: "Host(`www.{{ env "SAY_DOMAIN" }}`)"
+      rule: "Host(`www.{{ env "CS_CORE_DOMAIN" }}`)"
       middlewares: [to-apex]
       service: noop@internal
       tls:
         certResolver: le
     api:
       entryPoints: [websecure]
-      rule: "Host(`{{ env "SAY_DOMAIN" }}`) && PathPrefix(`/api`)"
+      rule: "Host(`{{ env "CS_CORE_DOMAIN" }}`) && PathPrefix(`/api`)"
       service: api
       middlewares: [secure]
       tls:
         certResolver: le
     frontend:
       entryPoints: [websecure]
-      rule: "Host(`{{ env "SAY_DOMAIN" }}`)"
+      rule: "Host(`{{ env "CS_CORE_DOMAIN" }}`)"
       service: frontend
       middlewares: [secure]
       tls:

@@ -134,7 +134,7 @@ pub fn DataSlide(rubric: String, n: usize, total: usize, slide: Slide) -> impl I
             <div class="s-divider"></div>
             <div class="s-body">{body}</div>
             <div class="s-main">
-                <span class="s-main-label">"ГЛАВНОЕ"</span>
+                <span class="s-main-label">{i18n::tr("KEY POINT")}</span>
                 <span class="s-main-text">{slide.main}</span>
             </div>
         </div>

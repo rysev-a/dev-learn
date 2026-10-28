@@ -6,9 +6,14 @@ version = 4
 name = "archlab"
 version = "0.1.0"
 dependencies = [
+ "i18n",
  "serde",
  "serde_json",
 ]
+
+[[package]]
+name = "i18n"
+version = "0.1.0"
 
 [[package]]
 name = "itoa"

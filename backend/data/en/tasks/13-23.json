@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "countdown-gen",
+   "title": "Countdown generator",
+   "statement": "Write a generator function countdown(n): it yields the numbers from n down to 1 (nothing for n = 0). Use yield.",
+   "hint": "while n > 0: yield n; n -= 1."
+  },
+  {
+   "id": "fib-gen",
+   "title": "Fibonacci generator",
+   "statement": "Write an infinite generator fib_gen(): the Fibonacci numbers 0, 1, 1, 2, 3, 5, …",
+   "hint": "a, b = 0, 1; while True: yield a; a, b = b, a + b."
+  },
+  {
+   "id": "evens-gen",
+   "title": "Evens up to a limit",
+   "statement": "Write a generator evens(limit): the even non-negative numbers strictly less than limit.",
+   "hint": "for x in range(0, limit, 2): yield x."
+  },
+  {
+   "id": "chunks-gen",
+   "title": "Batches",
+   "statement": "Write a generator chunks(items, n): it yields the list in parts of n elements each (the last one may be shorter).",
+   "hint": "for i in range(0, len(items), n): yield items[i:i + n]."
+  },
+  {
+   "id": "flatten-gen",
+   "title": "Flatten nested lists",
+   "statement": "Write a generator flatten(items): it yields, in order, all the non-list elements of arbitrarily nested lists. Use yield from and recursion.",
+   "hint": "if isinstance(x, list): yield from flatten(x); else: yield x."
+  },
+  {
+   "id": "read-numbers",
+   "title": "Numbers from lines",
+   "statement": "Write a generator read_numbers(lines): from a sequence of strings it yields the integers. Empty strings and strings that are not a number (after strip they contain more than digits) are skipped.",
+   "hint": "s = line.strip(); if s.isdigit(): yield int(s)."
+  },
+  {
+   "id": "running-sum",
+   "title": "Running sums",
+   "statement": "Write a generator running_sum(nums): after each element it yields the sum of all elements up to and including it: for 1, 2, 3, 4 it gives 1, 3, 6, 10.",
+   "hint": "total = 0; for x in nums: total += x; yield total."
+  },
+  {
+   "id": "tag-manager",
+   "title": "Your own context manager",
+   "statement": "Using the contextmanager decorator from contextlib, define a manager tag(name): on entry it prints «<name>», on exit (even on an error) it prints «</name>».",
+   "hint": "@contextmanager; print on entry; try: yield; finally: print on exit."
+  }
+ ]
+}

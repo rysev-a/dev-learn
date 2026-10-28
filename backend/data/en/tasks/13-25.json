@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 25,
+ "tasks": [
+  {
+   "id": "apply-all",
+   "title": "Apply all the functions",
+   "statement": "Write a function apply_all(funcs, x): a list of the results of calling each function from funcs on x, in the same order.",
+   "hint": "Functions are ordinary values: [f(x) for f in funcs]."
+  },
+  {
+   "id": "sort-length-desc",
+   "title": "Longest first",
+   "statement": "Write a function by_length_desc(words): the words from the longest to the shortest; words of the same length keep their original order. Use sorted and lambda.",
+   "hint": "sorted(words, key=lambda w: len(w), reverse=True): the sort is stable even with reverse."
+  },
+  {
+   "id": "oldest-user",
+   "title": "The oldest",
+   "statement": "Write a function oldest(users): users is a list of dictionaries {'name': ..., 'age': ...}. Return the name of the oldest. The list is not empty. Use max with the key parameter.",
+   "hint": "max(users, key=lambda u: u['age'])['name']."
+  },
+  {
+   "id": "even-squares-map",
+   "title": "map and filter",
+   "statement": "Write a function even_squares(nums): a LIST of the squares of the even numbers, in the original order. Solve it with filter and map (with lambda), and then wrap the result in list.",
+   "hint": "list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums)))."
+  },
+  {
+   "id": "compose-fn",
+   "title": "Function composition",
+   "statement": "Write a function compose(f, g): it returns a new function that first applies g, and then f to the result: compose(f, g)(x) == f(g(x)).",
+   "hint": "return lambda x: f(g(x))."
+  },
+  {
+   "id": "count-args",
+   "title": "How many arguments",
+   "statement": "Write a function describe(*args, **kwargs): it returns a string like «2 позиционных, 1 именованных» (2 positional, 1 keyword): how many positional and how many keyword arguments were received. Return exactly the Russian words, in this format.",
+   "hint": "return f\"{len(args)} позиционных, {len(kwargs)} именованных\"."
+  },
+  {
+   "id": "pure-append",
+   "title": "Pure append",
+   "statement": "Write a pure function pure_append(items, x): it returns a NEW list with x added, without changing the original.",
+   "hint": "return items + [x]: the plus operator creates a new list."
+  },
+  {
+   "id": "product-reduce",
+   "title": "Product with reduce",
+   "statement": "Write a function product(nums): the product of all the numbers in the list, and 1 for an empty list. Use reduce from functools with an initial value.",
+   "hint": "reduce(lambda acc, x: acc * x, nums, 1): one as the initial value gives 1 for an empty list."
+  }
+ ]
+}

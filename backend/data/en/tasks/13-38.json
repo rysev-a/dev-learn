@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 38,
+ "tasks": [
+  {
+   "id": "point-dataclass",
+   "title": "Point dataclass",
+   "statement": "Define a dataclass Point with fields x and y (numbers, default 0) and a method distance_to(other) that returns the distance to another point (math.hypot).",
+   "hint": "@dataclass over class Point; x: float = 0; y: float = 0."
+  },
+  {
+   "id": "playlist-default-factory",
+   "title": "A playlist without a shared list",
+   "statement": "Define a dataclass Playlist with fields name (a string) and songs (a list, empty by default, but separate for each instance) and a method add(song) that adds a song.",
+   "hint": "songs: list = field(default_factory=list)."
+  },
+  {
+   "id": "money-frozen",
+   "title": "Immutable money",
+   "statement": "Define an immutable (frozen) dataclass Money with fields amount (a number) and currency (a string), compared by the order of its fields (order=True).",
+   "hint": "@dataclass(frozen=True, order=True) gives you freezing, sorting, and a hash at once."
+  },
+  {
+   "id": "status-enum",
+   "title": "Order status",
+   "statement": "Define an enumeration Status with members NEW = 'new', PAID = 'paid', SHIPPED = 'shipped' and a method is_active() that returns True for NEW and PAID and False for SHIPPED.",
+   "hint": "NEW = 'new' and so on; is_active: return self in (Status.NEW, Status.PAID)."
+  },
+  {
+   "id": "perm-flag",
+   "title": "Access permissions",
+   "statement": "Define a Flag enumeration Perm with members R, W, X (using auto) and a function describe(p) that returns a three-character string, for example «rw-» for R|W and «r-x» for R|X.",
+   "hint": "('r' if Perm.R in p else '-') + ... for W and X."
+  },
+  {
+   "id": "annotated-average",
+   "title": "A function with type hints",
+   "statement": "Write a function average(nums, default) with type hints: nums is list[float], default is float (0.0 by default), and the result is float. It returns the mean, and for an empty list it returns default.",
+   "hint": "def average(nums: list[float], default: float = 0.0) -> float:"
+  },
+  {
+   "id": "match-shape",
+   "title": "Area with match",
+   "statement": "Write a function area(shape), where shape is a list ['circle', r], ['rect', w, h], or ['square', a]. Return the area (for a circle use 3 * r * r, so as not to depend on pi). For any other shape, return None. Use match/case.",
+   "hint": "case [\"circle\", r]: return 3 * r * r; case [\"rect\", w, h]: ...; case _: return None."
+  },
+  {
+   "id": "deepcopy-matrix",
+   "title": "An independent copy",
+   "statement": "Write a function clone_and_fill(matrix, value) that returns a copy of a list of lists in which ALL the numbers are replaced with value. The original table must not change. Use copy.deepcopy and a nested loop.",
+   "hint": "result = copy.deepcopy(matrix); for row in result: for j in range(len(row)): row[j] = value."
+  }
+ ]
+}

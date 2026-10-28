@@ -236,19 +236,14 @@ impl Check {
                 if &v.uart == expected {
                     ok(okm)
                 } else {
-                    bad(format!("В консоли {}, а ожидалось {}", json_quote(&v.uart), json_quote(expected)))
+                    bad(i18n::trf!("The console shows {0}, but {1} was expected", json_quote(&v.uart), json_quote(expected)))
                 }
             }
             Check::Leds { expected, ok: okm, bad_suffix } => {
                 if v.leds == *expected {
                     ok(okm)
                 } else {
-                    bad(format!(
-                        "Светодиоды {}, а ожидалось {}{}",
-                        bin8(u32::from(v.leds)),
-                        bin8(u32::from(*expected)),
-                        bad_suffix
-                    ))
+                    bad(i18n::trf!("The LEDs show {0}, but {1} was expected{2}", bin8(u32::from(v.leds)), bin8(u32::from(*expected)), bad_suffix))
                 }
             }
             Check::Reg { reg, expected, ok: okm } => {
@@ -256,7 +251,7 @@ impl Check {
                 if got == *expected as u32 {
                     ok(okm)
                 } else {
-                    bad(format!("В {} лежит {}, а ожидалось {}", reg_name(*reg), got as i32, expected))
+                    bad(i18n::trf!("{0} holds {1}, but {2} was expected", reg_name(*reg), got as i32, expected))
                 }
             }
             Check::MemCstr { symbol, expected, ok: okm } => {
@@ -264,7 +259,7 @@ impl Check {
                 if &got == expected {
                     ok(okm)
                 } else {
-                    bad(format!("В памяти «{got}», а ожидалось «{expected}»"))
+                    bad(i18n::trf!("Memory holds “{0}”, but “{1}” was expected", got, expected))
                 }
             }
             Check::MemWords { symbol, expected, ok: okm } => {
@@ -274,7 +269,7 @@ impl Check {
                     ok(okm)
                 } else {
                     let join = |w: &[i32]| w.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(", ");
-                    bad(format!("В памяти {}, а ожидалось {}", join(&got), join(expected)))
+                    bad(i18n::trf!("Memory holds {0}, but {1} was expected", join(&got), join(expected)))
                 }
             }
             Check::StackReturned => {
@@ -282,7 +277,7 @@ impl Check {
                 if sp == RAM_SIZE as u32 {
                     ok("")
                 } else {
-                    bad(format!("Стек не вернулся на место: sp = 0x{sp:x}, а должен быть 0x{RAM_SIZE:x}"))
+                    bad(i18n::trf!("The stack did not return to its place: sp = 0x{0}, but it must be 0x{1}", format!("{:x}", sp), format!("{:x}", RAM_SIZE)))
                 }
             }
             Check::All { checks, ok: okm } => {
@@ -305,27 +300,17 @@ impl Check {
                     prev = e.value;
                 }
                 if (changes.len() as u64) < u64::from(*toggles) {
-                    return bad(format!("LED переключился {} раз(а), а нужно {}", changes.len(), toggles));
+                    return bad(i18n::trf!("The LED toggled {0} time(s), but {1} are needed", changes.len(), toggles));
                 }
                 for (i, (cycle, value)) in changes.iter().enumerate() {
                     let want = u8::from(i % 2 == 0);
                     if *value != want {
-                        return bad(format!(
-                            "Переключение {}: LED = {}, а должно чередоваться 1, 0, 1, 0…",
-                            i + 1,
-                            value
-                        ));
+                        return bad(i18n::trf!("Toggle {0}: LED = {1}, but it must alternate 1, 0, 1, 0…", i + 1, value));
                     }
                     if i > 0 {
                         let gap = cycle - changes[i - 1].0;
                         if gap < *min_gap {
-                            return bad(format!(
-                                "Между переключениями {} и {} прошло {} тактов, а нужно хотя бы {}",
-                                i,
-                                i + 1,
-                                gap,
-                                min_gap
-                            ));
+                            return bad(i18n::trf!("Between toggles {0} and {1} only {2} cycles passed, but at least {3} are needed", i, i + 1, gap, min_gap));
                         }
                     }
                 }
@@ -334,15 +319,15 @@ impl Check {
             Check::Run { stdout, code, ok: okm } => {
                 let Some(exit) = v.exit_code else {
                     return bad(
-                        "Программа не завершилась вызовом exit: нужно li a7, 93 и ecall (код возврата — в a0)."
+                        i18n::tr("The program did not finish with an exit call: you need li a7, 93 and ecall (the exit code goes in a0).")
                             .to_string(),
                     );
                 };
                 if &v.uart != stdout {
-                    return bad(format!("Вывод {}, а ожидалось {}", json_quote(&v.uart), json_quote(stdout)));
+                    return bad(i18n::trf!("The output is {0}, but {1} was expected", json_quote(&v.uart), json_quote(stdout)));
                 }
                 if exit != *code {
-                    return bad(format!("Код возврата {exit}, а ожидался {code}"));
+                    return bad(i18n::trf!("Exit code {0}, but {1} was expected", exit, code));
                 }
                 ok(okm)
             }
@@ -431,16 +416,16 @@ pub fn run_test(spec: &TaskSpec, asm: &AsmResult, test: &Test) -> (CheckResult, 
 pub fn verify(spec: &TaskSpec, program: &str) -> Verdict {
     if program.len() > MAX_PROGRAM_BYTES {
         let msg =
-            format!("Программа слишком длинная: {} байт, а проверяется не больше {}", program.len(), MAX_PROGRAM_BYTES);
+            i18n::trf!("The program is too long: {0} bytes, but at most {1} are checked", program.len(), MAX_PROGRAM_BYTES);
         return failed(Outcome::AsmErrors, msg.clone(), vec![AsmError { line: 1, message: msg }]);
     }
     let asm = assemble(&spec.full_source(program));
     if let Some(first) = asm.errors.first() {
-        let msg = format!("Строка {}: {}", first.line, first.message);
+        let msg = i18n::trf!("Line {0}: {1}", first.line, first.message);
         return failed(Outcome::AsmErrors, msg, asm.errors.clone());
     }
     if spec.tests.is_empty() {
-        return failed(Outcome::Wrong, "У задачи нет тестов".to_string(), Vec::new());
+        return failed(Outcome::Wrong, i18n::tr("The task has no tests").to_string(), Vec::new());
     }
     let mut tests = Vec::new();
     // итог — по первому неудавшемуся тесту, а если все прошли — по последнему

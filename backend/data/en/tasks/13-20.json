@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 20,
+ "tasks": [
+  {
+   "id": "ct-playlist",
+   "title": "A playlist as a sequence",
+   "statement": "Playlist keeps tracks in an internal list _tracks. Add __len__ and __getitem__ so that len, indexes (negative ones too), the for loop, the in check and reversed all work, without your own __iter__ and __contains__.",
+   "hint": "__len__ returns len(self._tracks); __getitem__ returns self._tracks[index]."
+  },
+  {
+   "id": "ct-slice-type",
+   "title": "A slice returns a Deck",
+   "statement": "Deck already has __len__. Write __getitem__: for an integer index it returns a card, and for a slice it returns a new Deck (not a list).",
+   "hint": "if isinstance(key, slice): return Deck(self._cards[key]); otherwise return self._cards[key]."
+  },
+  {
+   "id": "ct-registry",
+   "title": "A registry with strict keys",
+   "statement": "Complete Registry: keys must be strings only (otherwise TypeError on assignment), reading a missing key gives KeyError, and deletion with del and the in check must work too.",
+   "hint": "__setitem__ checks isinstance(key, str); __getitem__, __delitem__ and __contains__ work with self._d."
+  },
+  {
+   "id": "ct-grid",
+   "title": "A board with coordinates",
+   "statement": "Grid(w, h) keeps cells in self._cells (a list of rows, initially «.»). Write __getitem__ and __setitem__ by a tuple (x, y), and __contains__ to check coordinates. Going off the board raises IndexError.",
+   "hint": "x, y = pos; if not (0 <= x < self.w and 0 <= y < self.h): raise IndexError(pos)."
+  },
+  {
+   "id": "ct-missing",
+   "title": "A dict with __missing__",
+   "statement": "Complete the dict subclass Squares: if the key n is absent, __missing__ computes n * n, stores it in the dictionary and returns it.",
+   "hint": "def __missing__(self, key): self[key] = key * key; return self[key]."
+  },
+  {
+   "id": "ct-mapping-abc",
+   "title": "A case-insensitive mapping",
+   "statement": "The class CaseInsensitive inherits Mapping and keeps its data in self._d with lowercase keys. Implement __getitem__, __iter__ and __len__: m[\"A\"] and m[\"a\"] give the same result, and keys, items, get, in and == work for free.",
+   "hint": "__getitem__: self._d[key.lower()]; __iter__: iter(self._d); __len__: len(self._d). Then get and in work through __getitem__."
+  },
+  {
+   "id": "ct-call-counter",
+   "title": "A counter function",
+   "statement": "Complete Counter(start=0, step=1): each call counter() increases the value by step and returns the new one. The counter must be callable and remember its state between calls.",
+   "hint": "def __call__(self): self.value += self.step; return self.value."
+  },
+  {
+   "id": "ct-suppress",
+   "title": "Your own suppress",
+   "statement": "Write the context manager Suppress(*types): inside with it suppresses exceptions of the listed types (and their subclasses) and lets the others through.",
+   "hint": "__enter__ returns self; __exit__(self, exc_type, exc, tb): return exc_type is not None and issubclass(exc_type, self.types)."
+  },
+  {
+   "id": "ct-tag-manager",
+   "title": "Paired tags via contextmanager",
+   "statement": "Write the manager tag(name) with @contextmanager: on entry it prints <name>, on exit </name>, including when an error happens inside the block.",
+   "hint": "print on entry; try: yield; finally: print on exit."
+  }
+ ]
+}

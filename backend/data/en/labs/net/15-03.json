@@ -1,0 +1,70 @@
+{
+ "book": 15,
+ "chapter": 3,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n3-hub",
+   "title": "A hub eavesdrops, a switch does not",
+   "statement": "Three computers are connected to a hub. PC 1 and PC 2 talk to each other, while PC 3 sees every one of their frames: the hub repeats everything to all ports. Replace the hub with a switch: delete the three cables (select a cable on the diagram and click “Delete cable”) and connect the computers to the switch. Then click ▶ on the eavesdropping goal and make sure the frame does not reach PC 3.",
+   "hint": "Select the cable line with a click, then “Delete cable”. For a new connection use the “Cable” mode: click a PC and then the switch. After the first exchange the switch knows which port PC 1 and PC 2 are behind.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings PC 2",
+    "/goals/1/text": "PC 3 is on the network too: it pings PC 1",
+    "/goals/2/text": "Frames between PC 1 and PC 2 do not reach PC 3",
+    "/start/devices/0/name": "PC 1",
+    "/start/devices/1/name": "PC 2",
+    "/start/devices/2/name": "PC 3",
+    "/start/devices/3/name": "Hub",
+    "/start/devices/4/name": "Switch"
+   }
+  },
+  {
+   "id": "n3-loop",
+   "title": "Remove the loop",
+   "statement": "Three switches are connected in a ring. A broadcast frame (and an ARP request is exactly that) will circle the ring forever: a storm. Click ▶ on the goal and look at the log: a switch notes that the frame has already passed through it. Break the ring so that a tree remains but the network stays connected. This is what the STP protocol does automatically by blocking an extra port.",
+   "hint": "Select any cable between switches and delete it. The three switches will remain connected in a chain, and that is enough.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings PC 2",
+    "/goals/1/text": "The network has no loop (frames do not go in circles)",
+    "/start/devices/0/name": "PC 1",
+    "/start/devices/1/name": "PC 2"
+   }
+  },
+  {
+   "id": "n3-vlan",
+   "title": "Two virtual networks on one switch",
+   "statement": "Accounting (PC 1, PC 2) and development (PC 3, PC 4) are plugged into the same switch and can currently see each other. Split them into two VLANs: accounting is VLAN 10, development is VLAN 20. Communication within a department must remain, and between departments it must be cut. The VLAN number is set per port in the switch card.",
+   "hint": "On the switch: PC 1 is port p1, PC 2 is p2, PC 3 is p3, PC 4 is p4. Set VLAN 10 on p1 and p2, VLAN 20 on p3 and p4. Or in the terminal: `port p1 vlan 10`.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings PC 2 (accounting)",
+    "/goals/1/text": "PC 3 pings PC 4 (development)",
+    "/goals/2/text": "PC 1 does not reach PC 3",
+    "/goals/3/text": "PC 2 does not reach PC 4",
+    "/start/devices/0/name": "PC 1 (accounting)",
+    "/start/devices/1/name": "PC 2 (accounting)",
+    "/start/devices/2/name": "PC 3 (dev)",
+    "/start/devices/3/name": "PC 4 (dev)",
+    "/start/devices/4/name": "Switch"
+   }
+  },
+  {
+   "id": "n3-trunk",
+   "title": "A trunk between switches",
+   "statement": "The departments sit on two floors, and each floor has its own switch. Accounting: PC 1 (first floor) and PC 3 (second floor), development: PC 2 and PC 4. Configure VLAN 10 and 20 on the access ports and turn port p8 on each switch into a trunk, so that both VLANs travel over one cable with tags. PCs of the same department must see each other across floors, and other departments must not.",
+   "hint": "Access ports: p1 is VLAN 10, p2 is VLAN 20 on both switches. Port p8 of each switch is “trunk”. Without a trunk the tags will not pass and PC 1 will not reach PC 3.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings PC 3 (accounting across floors)",
+    "/goals/1/text": "PC 2 pings PC 4 (development across floors)",
+    "/goals/2/text": "PC 1 does not reach PC 2",
+    "/goals/3/text": "PC 1 does not reach PC 4",
+    "/start/devices/0/name": "PC 1 (accounting)",
+    "/start/devices/1/name": "PC 2 (dev)",
+    "/start/devices/2/name": "PC 3 (accounting)",
+    "/start/devices/3/name": "PC 4 (dev)",
+    "/start/devices/4/name": "Switch, floor 1",
+    "/start/devices/5/name": "Switch, floor 2"
+   }
+  }
+ ]
+}

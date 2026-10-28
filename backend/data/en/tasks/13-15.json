@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "safe-int",
+   "title": "A number or a fallback",
+   "statement": "Write a function safe_int(text, default=0): it converts a string to an integer, and if that fails, returns default. Use try/except ValueError.",
+   "hint": "try: return int(text) / except ValueError: return default."
+  },
+  {
+   "id": "safe-divide",
+   "title": "Safe division",
+   "statement": "Write a function safe_divide(a, b): a / b, and None on division by zero.",
+   "hint": "Catch exactly ZeroDivisionError and let everything else crash."
+  },
+  {
+   "id": "parse-age",
+   "title": "An age with validation",
+   "statement": "Write a function parse_age(text): it returns an integer age from a string. If the number is negative, raise ValueError with any message. A non-numeric string will be rejected by int() itself.",
+   "hint": "age = int(text); if age < 0: raise ValueError(...); return age."
+  },
+  {
+   "id": "custom-error",
+   "title": "A custom exception",
+   "statement": "Define an exception NotEnoughMoney (a subclass of Exception) and a function withdraw(balance, amount): if amount is greater than balance, raise NotEnoughMoney with the message «не хватает <how much>», otherwise return the remainder.",
+   "hint": "raise NotEnoughMoney(f\"не хватает {amount - balance}\")."
+  },
+  {
+   "id": "first-int",
+   "title": "The first number in a list",
+   "statement": "Write a function first_int(items): items is a list of strings. Return the first value that can be converted to an integer (already as an int), or None if there is none.",
+   "hint": "In a loop: try: return int(x) / except ValueError: continue; after the loop return None."
+  },
+  {
+   "id": "finally-log",
+   "title": "A log and finally",
+   "statement": "Write a function process(items, log): append the string «start» to the list log; compute and return the list of 100 / x for each x in items; but if a zero is encountered, return None. In any case, even on error, append the string «end» to log at the very end (a finally block).",
+   "hint": "try: return [100 / x for x in items] / except ZeroDivisionError: return None / finally: log.append('end')."
+  },
+  {
+   "id": "raise-from",
+   "title": "A clear error",
+   "statement": "Write a function get_port(config): it returns config[\"port\"], and if the key is missing, raises RuntimeError(\"нет порта\") FROM the original error (raise ... from e).",
+   "hint": "try: return config[\"port\"] / except KeyError as e: raise RuntimeError(\"нет порта\") from e."
+  },
+  {
+   "id": "eafp-get",
+   "title": "EAFP instead of get",
+   "statement": "Write a function get_or_default(d, key, default): the value for the key, or default. You may not use the get method or the word in, only try/except KeyError.",
+   "hint": "try: return d[key] / except KeyError: return default."
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+{
+ "book": 18,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "sd22-s1-graph",
+   "title": "Stage 1. Profiles, friends and hot keys",
+   "statement": "The network is growing: 3,000 reads and 2,000 writes per second (posts, likes, friend requests), and 12% of requests hit the most popular profiles and communities. A single database cannot handle the writes. Add a cache (≥75%: there are many writes, so the cache serves less than usual; 10 GB working set) and shard the database by hash so that load does not exceed 80% and the busiest shard gets at most 45% of requests. The budget is $3,500 per month.",
+   "hint": "An L database with three hash shards: the hot shard will get 12% + 88%/3 ≈ 41% of requests. Nine M servers, a 10 GB cache."
+  },
+  {
+   "id": "sd22-s2-feed",
+   "title": "Stage 2. News feed",
+   "statement": "The feed is built from friends and communities: 6,000 opens and 600 posts per second, 120 followers per author on average. Choose hybrid and add a queue with idempotent workers on spot instances (fan-out to the feeds goes through it, and after a 10-second peak there is no lag): everything at most 80%, budget $4,100 per month.",
+   "hint": "Hybrid multiplies writes by 2.2. Workers: 5 M (1,320 writes per second), an L database with three shards, 12 M servers."
+  },
+  {
+   "id": "sd22-s3-messages",
+   "title": "Stage 3. Direct messages",
+   "statement": "Messages: 200,000 connections receive 0.02 events per second each (4,000 per second); identifiers grow over time, and the database is sharded by range, so all new messages land in the last shard. Change the sharding method and add WebSocket gateways, an event stream and notifications: the busiest shard gets at most 45%, the gateways and notifications at most 80%, and the budget is $7,300 per month.",
+   "hint": "The database’s “Shard key” parameter — hash. WebSocket gateways — 17 (200,000 / 15,000 = 13.3 at 78%). 20 M servers (they receive the messages too), notifications — 5 instances."
+  },
+  {
+   "id": "sd22-s4-media",
+   "title": "Stage 4. Photos, music and video",
+   "statement": "Media: 30,000 file requests per second, 1,500 TB in storage. Put a CDN in front of storage (≥95%) and move the files to a cheap storage class: hot costs $23 per TB, which is 34,500 per month. Load at most 80%, budget $23,000 per month.",
+   "hint": "CDN → storage, TTL 3600. The “Storage class” “hot + cold” costs $10 per TB (15,000), “cold” — $4. The parameter is shown in the exercise."
+  },
+  {
+   "id": "sd22-s5-search",
+   "title": "Stage 5. Search, permissions and recommendations",
+   "statement": "Search for people and communities (10% of reads, a 200 GB index), a permission check on every request and recommendations (20% of requests call the ranking service) have been added. Connect search, the auth service and ranking: load at most 80%, the design survives a failure of each of them, and the budget is $26,500 per month.",
+   "hint": "Search: 5 shards × 2 replicas. Auth: 3 instances (a load of 6,600 requests). Ranking: 6 instances (1,320 requests; after one fails — 1,500)."
+  },
+  {
+   "id": "sd22-s6-reliability",
+   "title": "Stage 6. Reliability and protection",
+   "statement": "The network must never go down. Spread the servers, cache, workers and database across zones, enable a rolling deployment, a database replica with automatic failover, a second load balancer, a rate limiter at the entry (limit at least the load of 10,600) and monitoring. The design survives a zone, deployment, server, database and cache failure, load is at most 80%, and the budget is $31,000 per month.",
+   "hint": "24 M servers across three zones (after losing a zone, 16 remain — 11,200 at a load of 10,600). An L database with three shards and a replica; the rate limiter’s limit is about 20,000."
+  },
+  {
+   "id": "sd22-exam",
+   "title": "Exam. The whole social network",
+   "statement": "Final assignment. The network at peak: 9,000 reads and 1,500 writes per second (12% on the most popular profiles and communities), 40,000 media requests, 300,000 connections for messages (4,500 events per second), 1,500 TB of files, search (a 400 GB index), recommendations on 20% of requests, permissions on every request. Build the design from scratch: a CDN and storage with a cheap class, a cache, a hybrid feed through a queue and workers on spot instances, a hash-sharded database with a replica, WebSocket gateways, a stream with notifications and analytics, search, auth, ranking, a rate limiter, monitoring, two load balancers. It survives a zone, deployment, server, database, cache, search, auth and ranking failure; load at most 80%; budget $36,000 per month.",
+   "hint": "33 M servers across three zones, 11 M workers, an L database with 4 hash shards and a replica, ws gateways — 26, notifications — 6, ranking — 9, auth — 4, search — 10 shards × 2, a 16 GB cache."
+  }
+ ]
+}

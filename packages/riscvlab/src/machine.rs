@@ -38,18 +38,18 @@ pub struct MmioRegion {
 /// Устройства, видные программе как обычные адреса.
 pub const MMIO_MAP: &[MmioRegion] = &[
     MmioRegion {
-        name: "UART — вывод", addr: UART_TX, note: "sb: записанный байт появляется в консоли"
+        name: i18n::t!("UART — output"), addr: UART_TX, note: i18n::t!("sb: the written byte appears in the console")
     },
     MmioRegion {
-        name: "UART — состояние", addr: UART_STATUS, note: "lw: 1, когда можно слать следующий байт"
+        name: i18n::t!("UART — status"), addr: UART_STATUS, note: i18n::t!("lw: 1 when the next byte can be sent")
     },
     MmioRegion {
-        name: "Светодиоды", addr: LEDS, note: "sw: младшие 8 бит зажигают LED0…LED7"
+        name: i18n::t!("LEDs"), addr: LEDS, note: i18n::t!("sw: the low 8 bits light LED0…LED7")
     },
     MmioRegion {
-        name: "Переключатели", addr: SWITCHES, note: "lw: 8 переключателей SW0…SW7"
+        name: i18n::t!("Switches"), addr: SWITCHES, note: i18n::t!("lw: the 8 switches SW0…SW7")
     },
-    MmioRegion { name: "Таймер", addr: TIMER, note: "lw: сколько команд уже выполнено" },
+    MmioRegion { name: i18n::t!("Timer"), addr: TIMER, note: i18n::t!("lw: how many instructions have been executed so far") },
 ];
 
 /// Лимит шагов по умолчанию для `run` (как в интерфейсе).
@@ -216,26 +216,17 @@ impl Machine {
                 TIMER => Some(self.steps as u32),
                 UART_TX => Some(0),
                 _ => {
-                    self.fault(format!("Чтение по адресу {}: там нет устройства", hex32(a)));
+                    self.fault(i18n::trf!("Read from address {0}: there is no device there", hex32(a)));
                     None
                 }
             };
         }
         if a as usize + size as usize > RAM_SIZE {
-            self.fault(format!(
-                "Чтение по адресу {} за пределами памяти (0x0 … {})",
-                hex32(a),
-                hex32(RAM_SIZE as u32 - 1)
-            ));
+            self.fault(i18n::trf!("Read from address {0} is outside memory (0x0 … {1})", hex32(a), hex32(RAM_SIZE as u32 - 1)));
             return None;
         }
         if !a.is_multiple_of(size) {
-            self.fault(format!(
-                "Невыровненное чтение по адресу {}: {} должно лежать по адресу, кратному {}",
-                hex32(a),
-                if size == 4 { "слово" } else { "полуслово" },
-                size
-            ));
+            self.fault(i18n::trf!("Misaligned read at address {0}: a {1} must be at an address that is a multiple of {2}", hex32(a), if size == 4 { i18n::tr("word") } else { i18n::tr("halfword") }, size));
             return None;
         }
         let mut v: u32 = 0;
@@ -260,26 +251,17 @@ impl Machine {
                     true
                 }
                 _ => {
-                    self.fault(format!("Запись по адресу {}: это устройство нельзя записывать", hex32(a)));
+                    self.fault(i18n::trf!("Write to address {0}: this device cannot be written", hex32(a)));
                     false
                 }
             };
         }
         if a as usize + size as usize > RAM_SIZE {
-            self.fault(format!(
-                "Запись по адресу {} за пределами памяти (0x0 … {})",
-                hex32(a),
-                hex32(RAM_SIZE as u32 - 1)
-            ));
+            self.fault(i18n::trf!("Write to address {0} is outside memory (0x0 … {1})", hex32(a), hex32(RAM_SIZE as u32 - 1)));
             return false;
         }
         if !a.is_multiple_of(size) {
-            self.fault(format!(
-                "Невыровненная запись по адресу {}: {} должно лежать по адресу, кратному {}",
-                hex32(a),
-                if size == 4 { "слово" } else { "полуслово" },
-                size
-            ));
+            self.fault(i18n::trf!("Misaligned write at address {0}: a {1} must be at an address that is a multiple of {2}", hex32(a), if size == 4 { i18n::tr("word") } else { i18n::tr("halfword") }, size));
             return false;
         }
         for k in 0..size {
@@ -300,10 +282,7 @@ impl Machine {
         self.last_write = None;
         self.last_reg = None;
         if pc % 4 != 0 || pc < 0 || pc + 4 > RAM_SIZE as i64 {
-            self.fault(format!(
-                "Счётчик команд вышел из памяти (адрес {}). Не забыли ebreak в конце?",
-                hex32(pc as u32)
-            ));
+            self.fault(i18n::trf!("The program counter left memory (address {0}). Did you forget ebreak at the end?", hex32(pc as u32)));
             return;
         }
         let p = pc as usize;
@@ -311,11 +290,7 @@ impl Machine {
         let d = decode(word);
         self.last_insn = disassemble(word);
         let Some(op) = d.op else {
-            self.fault(format!(
-                "Непонятная команда {} по адресу {}. Возможно, программа дошла до конца без ebreak или «убежала» в данные",
-                hex32(word),
-                hex32(pc as u32)
-            ));
+            self.fault(i18n::trf!("Unrecognized instruction {0} at address {1}. The program may have reached the end without ebreak, or “run away” into the data", hex32(word), hex32(pc as u32)));
             return;
         };
 
@@ -450,10 +425,7 @@ impl Machine {
         }
         self.regs[0] = 0;
         if !self.halted && next % 4 != 0 {
-            self.fault(format!(
-                "Переход на адрес {}, не кратный 4 — здесь команды только по четыре байта",
-                hex32(next as u32)
-            ));
+            self.fault(i18n::trf!("Jump to address {0}, which is not a multiple of 4 — instructions here are only four bytes long", hex32(next as u32)));
             return;
         }
         self.steps += 1;
@@ -473,15 +445,12 @@ impl Machine {
             64 => {
                 // write(fd, буфер, длина): только fd = 1 (консоль)
                 if self.regs[10] != 1 {
-                    self.fault(format!(
-                        "write: поддерживается только fd = 1 (консоль), а в a0 лежит {}",
-                        self.regs[10]
-                    ));
+                    self.fault(i18n::trf!("write: only fd = 1 (console) is supported, but a0 holds {0}", self.regs[10]));
                     return false;
                 }
                 let (buf, len) = (self.regs[11] as u32 as usize, self.regs[12] as u32 as usize);
                 if buf + len > RAM_SIZE {
-                    self.fault(format!("write: буфер {} + {} выходит за пределы памяти", hex32(buf as u32), len));
+                    self.fault(i18n::trf!("write: buffer {0} + {1} goes beyond memory", hex32(buf as u32), len));
                     return false;
                 }
                 let chunk = self.mem[buf..buf + len].to_vec();
@@ -491,7 +460,7 @@ impl Machine {
                 true
             }
             _ => {
-                self.fault(format!("ecall: система не умеет вызов номер {n} (a7). Доступны 93 — exit и 64 — write."));
+                self.fault(i18n::trf!("ecall: the system does not support call number {0} (a7). Available: 93 — exit and 64 — write.", n));
                 false
             }
         }
@@ -506,7 +475,7 @@ impl Machine {
             self.step();
         }
         if self.running() {
-            self.fault(format!("Превышен лимит в {max_steps} шагов — похоже, цикл не заканчивается."));
+            self.fault(i18n::trf!("Limit of {0} steps exceeded — the loop probably never ends.", max_steps));
         }
     }
 
@@ -531,7 +500,7 @@ impl Machine {
             }
         }
         if self.running() {
-            self.fault(format!("Превышен лимит в {max_steps} шагов — похоже, цикл не заканчивается."));
+            self.fault(i18n::trf!("Limit of {0} steps exceeded — the loop probably never ends.", max_steps));
         }
         trace
     }

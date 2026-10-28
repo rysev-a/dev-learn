@@ -1,0 +1,160 @@
+{
+ "book": 11,
+ "chapter": 18,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w18-card-box",
+   "title": "Card with spacing",
+   "statement": "Style the .card card: inner padding of at least 16px on all sides, a solid border at least 1px thick, a width of at most 480px, and the card itself centered on the page (automatic outer margins on the left and right).",
+   "hint": "padding sets the space inside the border; border sets the border (a style is required, for example solid); max-width limits the width; margin: 0 auto centers a block with a limited width.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-border-box",
+   "title": "Width including padding",
+   "statement": "The .col columns have a width of 300px, padding of 20px and a 2px border (the rule is already in the task styles), so in practice they are wider than 300px. Switch the calculation so that the width includes the padding and the border, and do it for all elements on the page and their pseudo-elements, as is done at the start of real projects.",
+   "hint": "The value border-box of the box-sizing property. To cover everything at once, the rule is written for a selector made of an asterisk and its two pseudo-elements: *, *::before, *::after.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-sizes",
+   "title": "Sizes and aspect ratio",
+   "statement": "The .video player must take all the available width but no more than 640px, keep a 16 to 9 aspect ratio and be at least 120px tall. The .thumb preview (width 120px is already set) must be square without specifying a height.",
+   "hint": "max-width limits growth, min-height limits from below; aspect-ratio is written as 16 / 9, and for a square 1 is enough.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-overflow",
+   "title": "Scrollable block",
+   "statement": "The .log shows many lines. Limit its height (from 50px to 200px) and add vertical scrolling when the lines do not fit; horizontally, anything extra must be clipped.",
+   "hint": "max-height sets the height ceiling, overflow-y: auto shows the scrollbar only when needed, overflow-x: hidden clips the extra part horizontally.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-radius-shadow",
+   "title": "Rounding and shadow",
+   "statement": "The .card card needs rounded corners (radius from 8px to 24px) and a shadow. The .avatar (size 64 by 64 is already set) must become a circle without specifying a radius in pixels.",
+   "hint": "border-radius also accepts percentages: 50% on a square gives a circle. The shadow is set by box-shadow: x and y offset, blur, color.",
+   "spec_text": {
+    "/checks/4/msg": "The card has a box-shadow"
+   }
+  },
+  {
+   "id": "w18-outline-focus",
+   "title": "Visible focus",
+   "statement": "Someone has disabled the focus outline on the .btn button: from the keyboard you cannot see where you are. Bring back a noticeable outline for the focus-visible state: solid, at least 2px thick, with an offset from the button's edge of at least 2px.",
+   "hint": "You do not need to bring outline back always: a .btn:focus-visible rule with outline (width, solid style, color) and outline-offset is enough.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-bg-gradient",
+   "title": "Background with a gradient",
+   "statement": "Style the .hero header with separate background properties: the background-image is a linear-gradient between two colors, the background size is cover, positioned in the center, with no repeat. The text color is white.",
+   "hint": "A gradient is a background image, so it goes in background-image. Then background-size, background-position (center), background-repeat (no-repeat) and color.",
+   "spec_text": {
+    "/checks/0/msg": "The background image is set with background-image"
+   }
+  },
+  {
+   "id": "w18-typography",
+   "title": "Readable text",
+   "statement": "Set up the .post article: fonts Verdana, then Arial, then the generic family sans-serif (exactly in this order), paragraph line spacing as a number of at least 1.4, and the h1 heading centered with letter spacing of at least 1px.",
+   "hint": "font-family is listed separated by commas, ending with a generic family; line-height is conveniently set as a unitless number; letter-spacing is in px or em.",
+   "spec_text": {
+    "/checks/0/msg": "Paragraph font stack: Verdana, Arial, sans-serif",
+    "/checks/1/msg": "Paragraph line height is a number of at least 1.4"
+   }
+  },
+  {
+   "id": "w18-links-case",
+   "title": "Links and labels",
+   "statement": "The .link menu links must have no underline, and an underline on hover. The .tag label must be displayed in UPPERCASE letters even though it is written in lowercase in the markup.",
+   "hint": "text-decoration: none removes the underline; for hover you need a rule with :hover. The case is changed by text-transform.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-ellipsis",
+   "title": "Long name on one line",
+   "statement": "The product name .title sits in a narrow column (width 200px is already set). Do not let it wrap: it should stay on one line, the excess should be hidden, and an ellipsis should be shown at the end.",
+   "hint": "You need a combination of three properties: white-space: nowrap, overflow: hidden and text-overflow: ellipsis. Without any one of them there will be no ellipsis.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-list-menu",
+   "title": "List as a menu",
+   "statement": "Turn the bulleted .menu list into a menu: remove the bullets from the items and the zero left padding that the browser adds by default.",
+   "hint": "list-style: none (or list-style-type: none) removes the bullets; padding-left: 0 handles the list's padding. The list-style-type property is inherited, so a rule for .menu is enough.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-marker",
+   "title": "Custom marker",
+   "statement": "In the .todo to-do list make the markers square, and color the marker itself on the items #c0392b; the text of the items must stay as it was.",
+   "hint": "list-style-type chooses the marker type. The marker color is changed by the ::marker pseudo-element on li.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-badge",
+   "title": "Badges in the card corners",
+   "statement": "The .badge must stick to the top right corner of the .card card with an 8px offset from the edges, and the .sale badge to the bottom left corner, also with an 8px offset. The card serves as the positioning reference.",
+   "hint": "The parent gets position: relative — it becomes the containing block. The badges get position: absolute and offsets via top, right, bottom, left.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-sticky",
+   "title": "Sticky header",
+   "statement": "The .top header must stick to the top edge of the window when scrolling (top offset 0), lie above the rest of the content, and have an opaque white background (#ffffff) so the text beneath does not show through.",
+   "hint": "position: sticky works together with top: 0; to put the header above the content you need z-index; the background is set by background-color.",
+   "spec_text": {
+    "/checks/2/msg": "The .top has z-index greater than zero"
+   }
+  },
+  {
+   "id": "w18-z-index",
+   "title": "Dropdown menu on top",
+   "statement": "The .dropdown list hides under the page content. Make it absolutely positioned inside .menu-wrap (the reference point) and raise it above the .content, which already has z-index 2.",
+   "hint": "You need position: relative on .menu-wrap, position: absolute on .dropdown and a z-index greater than two. z-index works only on positioned elements.",
+   "spec_text": {
+    "/checks/2/msg": "The .dropdown has z-index greater than two"
+   }
+  },
+  {
+   "id": "w18-before",
+   "title": "Marker before a heading",
+   "statement": "Before each .news heading output a star “★” via the ::before pseudo-element (without changing the markup) and move it away from the text: a right outer margin of at least 6px.",
+   "hint": "The ::before pseudo-element appears only when content is set. The text in content is written in quotes: content: \"★\".",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-display-none",
+   "title": "Remove or hide",
+   "statement": "The .promo ad block must disappear from the layout completely and take up no space. The .ghost block, on the contrary, must stay in place and take up space, but become invisible.",
+   "hint": "display: none removes the element from the flow entirely, visibility: hidden hides it but keeps the space.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-margin-collapse",
+   "title": "Margin escaped outside",
+   "statement": "The .title heading inside the .wrap section has a top margin of 40px (already set), but that margin “escapes” from the section and shifts the section itself instead of pushing the heading down. Make the section a container that does not let its children's margin out, without adding a border or padding to it.",
+   "hint": "A new formatting context on the parent prevents collapsing: display: flow-root. A flex or grid container will also work.",
+   "spec_text": {}
+  },
+  {
+   "id": "w18-fixed-button",
+   "title": "“Back to top” button",
+   "statement": "The .to-top button must always stay in the bottom right corner of the window, even when scrolling: offsets from the right and bottom edges from 8px to 32px, above the rest of the content.",
+   "hint": "position: fixed anchors the element to the window; the coordinates are set by right and bottom; the layer needs a z-index.",
+   "spec_text": {
+    "/checks/3/msg": "The .to-top has z-index greater than zero"
+   }
+  },
+  {
+   "id": "w18-clearfix",
+   "title": "Clearfix for float",
+   "statement": "The .pic image floats left (float: left is already set), so the .clearfix container has collapsed and does not enclose it. Write the classic clearfix technique: an ::after pseudo-element with empty content, block display and clearing of floats on both sides.",
+   "hint": "The rule .clearfix::after { content: \"\"; display: block; clear: both } — an empty block at the end that must sit below all the floated elements. Today display: flow-root does the same job.",
+   "spec_text": {}
+  }
+ ]
+}

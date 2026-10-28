@@ -1,0 +1,36 @@
+{
+ "book": 15,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "n1-cable",
+   "title": "Connect two computers",
+   "statement": "Two computers are already configured: addresses 192.168.0.1 and 192.168.0.2 on the same subnet. But there is no link between them. Click “Cable”, pick the first node, then the second, and test the connection with ping.",
+   "hint": "A link is an edge of the graph. Without a cable the nodes cannot exchange even a single packet."
+  },
+  {
+   "id": "n1-switch",
+   "title": "A switch in the middle",
+   "statement": "Four computers, all on the same subnet 192.168.0.0/24, and one switch. Run a cable from each computer to the switch. A computer has just one port, while a switch connects many at once. Check that every computer can reach every other.",
+   "hint": "The switch has eight ports. Each computer plugs into its own port with its own cable."
+  },
+  {
+   "id": "n1-fast-path",
+   "title": "Short path versus long path",
+   "statement": "There are two paths to the server: through the “Fast” router (20 km cables) and through the “Slow” one (1500 km each). The PC currently uses the long path, hence the high propagation delay (about 5 µs per kilometer). Open the PC terminal, look at ping and traceroute, then switch the default gateway to the fast router.",
+   "hint": "Start with `ip route`: it has a default line. Delete it with `ip route del default`, then run `ip route add default via 10.0.1.1`. The address 10.0.1.1 is “Fast” on the PC side."
+  },
+  {
+   "id": "n1-diagnose",
+   "title": "Why doesn't it ping?",
+   "statement": "PC 1 can reach neither PC 2 nor the server. The addresses are configured correctly, there are no address errors. Find and fix two faults at the lower layers, physical and data link. Hint: look at what `ip link` shows in the terminal and check that all cables are in place.",
+   "hint": "One port is disabled in software (`ip link set eth0 up` on the right computer), and the server has no cable: add one with “Cable”."
+  },
+  {
+   "id": "n1-two-nets",
+   "title": "Two networks and a router",
+   "statement": "PC A lives in the network 192.168.1.0/24, PC B in 192.168.2.0/24. A router connects them, and it is already configured. But the computers do not know where to send packets for the other network. This is how the internet works: a network of networks. Give each computer a default gateway: the router's address in its own network.",
+   "hint": "The command is `ip route add default via <router address>`. The gateway for PC A is 192.168.1.1, for PC B 192.168.2.1."
+  }
+ ]
+}

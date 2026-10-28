@@ -177,7 +177,7 @@ pub fn Interfaces(ctx: Ctx, queue: bool) -> impl IntoView {
     let keys = Memo::new(move |_| ctx.read(|d| d.ifaces.iter().map(|i| (i.name.clone(), i.ip.clone(), i.prefix)).collect::<Vec<_>>()).unwrap_or_default());
     view! {
         <div class="nl-sec">
-            <h4>"Интерфейсы"</h4>
+            <h4>{i18n::tr("Interfaces")}</h4>
             <For
                 each=move || keys.get()
                 key=|k| k.0.clone()
@@ -263,19 +263,19 @@ fn IfaceRow(ctx: Ctx, name: String, ip: Option<String>, prefix: u8, queue: bool)
                         commit.run(());
                     }
                 }
-                placeholder="IP-адрес"
+                placeholder=i18n::tr("IP address")
                 disabled=ctx.ro
                 aria-label=aria_ip
                 spellcheck="false"
             />
             <span class="nl-slash">"/"</span>
-            <TextIn value=pre class="nl-prefix" digits=2 disabled=ctx.ro label="Маска" on_commit=commit />
-            <Check checked=Signal::derive(up) on_change=toggle label="вкл" disabled=ctx.ro />
+            <TextIn value=pre class="nl-prefix" digits=2 disabled=ctx.ro label=i18n::tr("Mask") on_commit=commit />
+            <Check checked=Signal::derive(up) on_change=toggle label=i18n::tr("On") disabled=ctx.ro />
             {queue.then(|| view! {
                 <label class="nl-up">
-                    "очередь"
-                    <TextIn value=queue_len class="nl-prefix wide" digits=5 disabled=ctx.ro label="Очередь" on_commit=set_queue />
-                    "пакетов"
+                    {i18n::tr("queue")}
+                    <TextIn value=queue_len class="nl-prefix wide" digits=5 disabled=ctx.ro label=i18n::tr("Queue") on_commit=set_queue />
+                    {i18n::tr("packets")}
                 </label>
             })}
             {move || {
@@ -303,8 +303,8 @@ pub fn Gateway(ctx: Ctx) -> impl IntoView {
     view! {
         <div class="nl-sec">
             <label class="nl-field">
-                <span>"Шлюз по умолчанию"</span>
-                <TextIn value=gw placeholder="например 192.168.0.1 (пусто — шлюза нет)" disabled=ctx.ro on_commit=commit />
+                <span>{i18n::tr("Default gateway")}</span>
+                <TextIn value=gw placeholder=i18n::tr("for example 192.168.0.1 (empty — no gateway)") disabled=ctx.ro on_commit=commit />
                 <Msg msg=err />
             </label>
         </div>
@@ -321,7 +321,7 @@ pub fn Forwarding(ctx: Ctx) -> impl IntoView {
                 on_change=Callback::new(move |on| {
                     ctx.edit(|d| d.forward = on);
                 })
-                label="пересылать пакеты между интерфейсами (ip_forward)"
+                label=i18n::tr("forward packets between interfaces (ip_forward)")
                 disabled=ctx.ro
             />
         </div>
@@ -350,7 +350,7 @@ pub fn Routes(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>"Таблица маршрутов"</h4>
+            <h4>{i18n::tr("Routing table")}</h4>
             <table class="nl-table">
                 <tbody>
                     {move || rows.get().into_iter().map(|r| {
@@ -362,7 +362,7 @@ pub fn Routes(ctx: Ctx) -> impl IntoView {
                                 <td>{r.dev}</td>
                                 <td>
                                     {(!r.connected && !ctx.ro).then(|| view! {
-                                        <Cross label="Удалить маршрут" on_click=Callback::new(move |()| {
+                                        <Cross label=i18n::tr("Delete route") on_click=Callback::new(move |()| {
                                             ctx.edit(|d| del_route(d, Some(&key)));
                                         }) />
                                     })}
@@ -374,9 +374,9 @@ pub fn Routes(ctx: Ctx) -> impl IntoView {
             </table>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=dst placeholder="сеть 10.0.0.0/24 или default" />
-                    <TextIn value=via placeholder="через шлюз 10.0.1.1" />
-                    <Btn label="+ маршрут" on_click=add />
+                    <TextIn value=dst placeholder=i18n::tr("network 10.0.0.0/24 or default") />
+                    <TextIn value=via placeholder=i18n::tr("via gateway 10.0.1.1") />
+                    <Btn label=i18n::tr("+ route") on_click=add />
                 </div>
             })}
             <Msg msg=err />
@@ -415,7 +415,7 @@ pub fn Nat(ctx: Ctx) -> impl IntoView {
                         p.push(format!("-i {i}"));
                     }
                     if let Some(dp) = n.dport {
-                        p.push(format!("порт {dp}"));
+                        p.push(i18n::trf!("port {0}", dp));
                     }
                     if let Some(t) = &n.to {
                         p.push(format!("→ {t}"));
@@ -447,31 +447,31 @@ pub fn Nat(ctx: Ctx) -> impl IntoView {
         <div class="nl-sec">
             <h4>"NAT"</h4>
             <div class="nl-add">
-                <span class="nl-lbl">"MASQUERADE на интерфейсе"</span>
+                <span class="nl-lbl">{i18n::tr("MASQUERADE on interface")}</span>
                 <Pick options=opts() value=out on_pick=Callback::new(move |v| out.set(v)) disabled=ctx.ro />
                 <Btn
                     label=Signal::derive(move || match masq.get() {
-                        Some(o) => format!("выключить (сейчас {o})"),
-                        None => "включить".to_string(),
+                        Some(o) => i18n::trf!("turn off (currently {0})", o),
+                        None => i18n::tr("turn on").to_string(),
                     })
                     on_click=toggle
                     disabled=ctx.ro
                 />
             </div>
             <div class="nl-add">
-                <span class="nl-lbl">"Проброс порта: вход"</span>
+                <span class="nl-lbl">{i18n::tr("Port forwarding: inbound")}</span>
                 <Pick options=opts() value=inn on_pick=Callback::new(move |v| inn.set(v)) disabled=ctx.ro />
                 <Pick options=same(&["tcp"]) value=proto on_pick=Callback::new(move |v| proto.set(v)) disabled=ctx.ro />
-                <TextIn value=port class="nl-prefix wide" digits=5 placeholder="порт" disabled=ctx.ro />
-                <TextIn value=to placeholder="на 192.168.0.10:8080" disabled=ctx.ro />
-                <Btn label="+ проброс" on_click=forward disabled=ctx.ro />
+                <TextIn value=port class="nl-prefix wide" digits=5 placeholder=i18n::tr("port") disabled=ctx.ro />
+                <TextIn value=to placeholder=i18n::tr("to 192.168.0.10:8080") disabled=ctx.ro />
+                <Btn label=i18n::tr("+ forward") on_click=forward disabled=ctx.ro />
             </div>
             <ul class="nl-rules">
                 {move || rules.get().into_iter().enumerate().map(|(k, text)| view! {
                     <li>
                         <code>{text}</code>
                         {(!ctx.ro).then(|| view! {
-                            <Cross label="Удалить правило" on_click=Callback::new(move |()| {
+                            <Cross label=i18n::tr("Delete rule") on_click=Callback::new(move |()| {
                                 ctx.edit(|d| {
                                     if k < d.nat.len() {
                                         d.nat.remove(k);
@@ -481,7 +481,7 @@ pub fn Nat(ctx: Ctx) -> impl IntoView {
                         })}
                     </li>
                 }).collect_view()}
-                {move || rules.with(Vec::is_empty).then(|| view! { <li class="nl-none">"правил NAT нет"</li> })}
+                {move || rules.with(Vec::is_empty).then(|| view! { <li class="nl-none">{i18n::tr("no NAT rules")}</li> })}
             </ul>
             <Msg msg=msg />
         </div>
@@ -512,16 +512,16 @@ pub fn Firewall(ctx: Ctx) -> impl IntoView {
                         p.push(x.clone());
                     }
                     if let Some(x) = &r.src {
-                        p.push(format!("от {x}"));
+                        p.push(i18n::trf!("from {0}", x));
                     }
                     if let Some(x) = &r.dst {
-                        p.push(format!("к {x}"));
+                        p.push(i18n::trf!("to {0}", x));
                     }
                     if let Some(x) = r.dport {
-                        p.push(format!("порт {x}"));
+                        p.push(i18n::trf!("port {0}", x));
                     }
                     if let Some(s) = r.state {
-                        p.push(if s == netlab::types::ConnState::Established { "(установленные)".into() } else { "(новые)".into() });
+                        p.push(if s == netlab::types::ConnState::Established { i18n::tr("(established)").into() } else { i18n::tr("(new)").into() });
                     }
                     p.join(" ")
                 })
@@ -541,9 +541,9 @@ pub fn Firewall(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>"Файрвол (цепочка FORWARD)"</h4>
+            <h4>{i18n::tr("Firewall (FORWARD chain)")}</h4>
             <div class="nl-add">
-                <span class="nl-lbl">"Политика по умолчанию"</span>
+                <span class="nl-lbl">{i18n::tr("Default policy")}</span>
                 <Pick
                     options=same(&["ACCEPT", "DROP"])
                     value=policy
@@ -558,32 +558,32 @@ pub fn Firewall(ctx: Ctx) -> impl IntoView {
             <div class="nl-add wrap">
                 <Pick options=same(&["ACCEPT", "DROP", "REJECT"]) value=action on_pick=Callback::new(move |v| action.set(v)) disabled=ctx.ro />
                 <Pick
-                    options=vec![("".into(), "любой протокол".into()), ("tcp".into(), "tcp".into()), ("icmp".into(), "icmp".into())]
+                    options=vec![("".into(), i18n::tr("any protocol").into()), ("tcp".into(), "tcp".into()), ("icmp".into(), "icmp".into())]
                     value=proto
                     on_pick=Callback::new(move |v| proto.set(v))
                     disabled=ctx.ro
                 />
-                <TextIn value=src placeholder="откуда 192.168.0.0/24" disabled=ctx.ro />
-                <TextIn value=dst placeholder="куда" disabled=ctx.ro />
-                <TextIn value=port class="nl-prefix wide" digits=5 placeholder="порт" disabled=ctx.ro />
+                <TextIn value=src placeholder=i18n::tr("from 192.168.0.0/24") disabled=ctx.ro />
+                <TextIn value=dst placeholder=i18n::tr("destination") disabled=ctx.ro />
+                <TextIn value=port class="nl-prefix wide" digits=5 placeholder=i18n::tr("port") disabled=ctx.ro />
                 <Pick
                     options=vec![
-                        ("".into(), "любое состояние".into()),
-                        ("NEW".into(), "новое соединение".into()),
-                        ("ESTABLISHED,RELATED".into(), "уже установлено".into()),
+                        ("".into(), i18n::tr("any state").into()),
+                        ("NEW".into(), i18n::tr("new connection").into()),
+                        ("ESTABLISHED,RELATED".into(), i18n::tr("already established").into()),
                     ]
                     value=state
                     on_pick=Callback::new(move |v| state.set(v))
                     disabled=ctx.ro
                 />
-                <Btn label="+ правило" on_click=add disabled=ctx.ro />
+                <Btn label=i18n::tr("+ rule") on_click=add disabled=ctx.ro />
             </div>
             <ol class="nl-rules">
                 {move || rules.get().into_iter().enumerate().map(|(k, text)| view! {
                     <li>
                         <code>{text}</code>
                         {(!ctx.ro).then(|| view! {
-                            <Cross label="Удалить правило" on_click=Callback::new(move |()| {
+                            <Cross label=i18n::tr("Delete rule") on_click=Callback::new(move |()| {
                                 ctx.edit(|d| {
                                     if k < d.fw.rules.len() {
                                         d.fw.rules.remove(k);
@@ -593,7 +593,7 @@ pub fn Firewall(ctx: Ctx) -> impl IntoView {
                         })}
                     </li>
                 }).collect_view()}
-                {move || rules.with(Vec::is_empty).then(|| view! { <li class="nl-none">{format!("правил нет — работает политика «{}»", policy.get())}</li> })}
+                {move || rules.with(Vec::is_empty).then(|| view! { <li class="nl-none">{i18n::trf!("no rules — policy “{0}” applies", policy.get())}</li> })}
             </ol>
             <Msg msg=msg />
         </div>
@@ -614,7 +614,7 @@ pub fn Services(ctx: Ctx) -> impl IntoView {
                 .iter()
                 .map(|s| {
                     let local = s.bind.as_deref().is_some_and(|b| !b.is_empty() && b != "0.0.0.0");
-                    let bind = if local { format!(" (только {})", s.bind.clone().unwrap_or_default()) } else { String::new() };
+                    let bind = if local { i18n::trf!(" (only {0})", s.bind.clone().unwrap_or_default()) } else { String::new() };
                     (format!("{}/{}{bind}", s.proto.as_str(), s.port), local)
                 })
                 .collect::<Vec<_>>()
@@ -629,13 +629,13 @@ pub fn Services(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>"Слушающие порты"</h4>
+            <h4>{i18n::tr("Listening ports")}</h4>
             <ul class="nl-rules">
                 {move || rows.get().into_iter().enumerate().map(|(k, (text, local))| view! {
                     <li>
                         <code>{text}</code>
                         {(!ctx.ro && local).then(|| view! {
-                            <Btn label="слушать везде" on_click=Callback::new(move |()| {
+                            <Btn label=i18n::tr("listen on all") on_click=Callback::new(move |()| {
                                 ctx.edit(|d| {
                                     if let Some(s) = d.services.get_mut(k) {
                                         s.bind = Some("0.0.0.0".into());
@@ -644,7 +644,7 @@ pub fn Services(ctx: Ctx) -> impl IntoView {
                             }) />
                         })}
                         {(!ctx.ro).then(|| view! {
-                            <Cross label="Закрыть порт" on_click=Callback::new(move |()| {
+                            <Cross label=i18n::tr("Close port") on_click=Callback::new(move |()| {
                                 ctx.edit(|d| {
                                     if k < d.services.len() {
                                         d.services.remove(k);
@@ -654,13 +654,13 @@ pub fn Services(ctx: Ctx) -> impl IntoView {
                         })}
                     </li>
                 }).collect_view()}
-                {move || rows.with(Vec::is_empty).then(|| view! { <li class="nl-none">"ни один порт не слушает"</li> })}
+                {move || rows.with(Vec::is_empty).then(|| view! { <li class="nl-none">{i18n::tr("no ports listening")}</li> })}
             </ul>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <Pick options=same(&["tcp", "udp"]) value=proto on_pick=Callback::new(move |v| proto.set(v)) label="Протокол" />
-                    <TextIn value=port class="nl-prefix wide" digits=5 placeholder="порт" />
-                    <Btn label="+ слушать порт" on_click=add />
+                    <Pick options=same(&["tcp", "udp"]) value=proto on_pick=Callback::new(move |v| proto.set(v)) label=i18n::tr("Protocol") />
+                    <TextIn value=port class="nl-prefix wide" digits=5 placeholder=i18n::tr("port") />
+                    <Btn label=i18n::tr("+ listen on port") on_click=add />
                 </div>
             })}
         </div>
@@ -673,7 +673,7 @@ pub fn SwitchPorts(ctx: Ctx) -> impl IntoView {
     let names = Memo::new(move |_| iface_names(ctx));
     view! {
         <div class="nl-sec">
-            <h4>"Порты"</h4>
+            <h4>{i18n::tr("Ports")}</h4>
             <table class="nl-table">
                 <tbody>
                     <For each=move || names.get() key=|n| n.clone() children=move |name| view! { <SwitchPort ctx=ctx name=name /> } />
@@ -709,7 +709,7 @@ fn SwitchPort(ctx: Ctx, name: String) -> impl IntoView {
                     on_change=Callback::new(move |on| {
                         ctx.edit(|d| set_up(d, &n_up, on));
                     })
-                    label="вкл"
+                    label=i18n::tr("On")
                     disabled=ctx.ro
                 />
             </td>
@@ -765,14 +765,14 @@ pub fn MacTable(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>"Таблица MAC-адресов"</h4>
+            <h4>{i18n::tr("MAC address table")}</h4>
             <table class="nl-table">
                 <tbody>
                     {move || rows.get().into_iter().map(|(mac, port)| view! { <tr><td>{mac}</td><td>{port}</td></tr> }).collect_view()}
                 </tbody>
             </table>
             {move || rows.with(Vec::is_empty).then(|| view! {
-                <p class="nl-none">"Пока пусто: коммутатор учится на проходящих кадрах. Запустите ping между компьютерами."</p>
+                <p class="nl-none">{i18n::tr("Empty for now: the switch learns from passing frames. Run ping between computers.")}</p>
             })}
         </div>
     }

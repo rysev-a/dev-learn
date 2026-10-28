@@ -362,6 +362,7 @@ mod tests {
     /// и серверная проверка.
     #[test]
     fn every_exercise_goes_from_unsolved_to_solved_and_the_server_accepts_it() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let all = specs();
         assert!(all.is_empty() || all.len() >= 70, "ожидалось ≈79 упражнений, найдено {}", all.len());
         for (id, spec) in all {
@@ -384,6 +385,7 @@ mod tests {
 
     #[test]
     fn cable_and_terminal_commands_change_the_network_and_goals() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let Some((id, spec)) = specs().into_iter().find(|(_, s)| s.tools.cable) else { return };
         let (_owner, lab, drafts) = lab_of(&spec);
         let before = lab.net.with_untracked(|n| n.links.len());
@@ -411,6 +413,7 @@ mod tests {
 
     #[test]
     fn ping_goal_plays_a_run_and_keeps_caches() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let Some((_, spec)) = specs().into_iter().find(|(_, s)| s.goals.iter().any(|g| matches!(g.kind, netlab::GoalKind::Ping(_)))) else { return };
         let (_owner, lab, _) = lab_of(&spec);
         let idx = spec.goals.iter().position(|g| matches!(g.kind, netlab::GoalKind::Ping(_))).expect("цель ping");

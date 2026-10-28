@@ -103,7 +103,7 @@ test.describe("«Дальше →» и автопереход", () => {
 
   test("автопереход включён: через секунду открывается следующее упражнение", async ({ page, request, guard }) => {
     await loginFresh(page, request);
-    await presetSetting(page, "say-auto-next", "1");
+    await presetSetting(page, "cs-core-auto-next", "1");
     const worker = new FakeWorker(request);
     await worker.ping();
     await open(page, request);
@@ -120,7 +120,7 @@ test.describe("«Дальше →» и автопереход", () => {
 
   test("автопереход не уводит, если ученик уже выбрал другое упражнение", async ({ page, request }) => {
     await loginFresh(page, request);
-    await presetSetting(page, "say-auto-next", "1");
+    await presetSetting(page, "cs-core-auto-next", "1");
     const worker = new FakeWorker(request);
     await worker.ping();
     await open(page, request);
@@ -140,7 +140,7 @@ test.describe("«Дальше →» и автопереход", () => {
     await page.goto("/settings");
     const toggle = page.getByRole("switch", { name: "Автопереход к следующему упражнению" });
     await expect(toggle).toHaveAttribute("aria-checked", "false");
-    const stored = () => page.evaluate(() => window.localStorage.getItem("say-auto-next"));
+    const stored = () => page.evaluate(() => window.localStorage.getItem("cs-core-auto-next"));
     expect(await stored()).toBeNull();
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-checked", "true");

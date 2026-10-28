@@ -38,21 +38,21 @@ const FLASH_MS: u32 = 2800;
 
 /// Подсказка над доской.
 pub fn board_hint(blocks_mode: bool, steps_mode: bool) -> String {
-    let what = if blocks_mode { "Соедините блоки шинами" } else { "Соберите схему" };
+    let what = if blocks_mode { i18n::tr("Connect the blocks with buses") } else { i18n::tr("Build the circuit") };
     if steps_mode {
-        let how = if blocks_mode { "на вход подаётся такт" } else { "сигналы меняются тумблерами" };
-        format!("{what} и выполняйте шаги сценария — {how}")
+        let how = if blocks_mode { i18n::tr("the clock is applied to the input") } else { i18n::tr("toggle the signals with switches") };
+        i18n::trf!("{0} and follow the scenario steps — {1}", what, how)
     } else {
-        format!("{what} так, чтобы столбцы «Схема» совпали со столбцами «Цель»")
+        i18n::trf!("{0} so that the “Circuit” columns match the “Target” columns", what)
     }
 }
 
 /// Заголовок плашки об успехе (без формулы).
 pub fn solved_title(steps_mode: bool, matched: usize, total: usize) -> String {
     if steps_mode {
-        "Схема работает как надо!".to_string()
+        i18n::tr("The circuit works as it should!").to_string()
     } else {
-        format!("Схема работает — {matched} из {total}!")
+        i18n::trf!("The circuit works — {0} of {1}!", matched, total)
     }
 }
 
@@ -234,15 +234,15 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
                     let title = if locked {
                         data.lab().gate_lock_hint(*ty)
                     } else {
-                        format!("{} — {}{}", ty.name(), ty.ru_name(), if is_composite(*ty) { " (составной)" } else { "" })
+                        format!("{} — {}{}", ty.name(), ty.ru_name(), if is_composite(*ty) { i18n::tr(" (composite)") } else { "" })
                     };
-                    PaletteItem { ty: *ty, locked, title, label: format!("Добавить элемент {}, {}", ty.name(), ty.ru_name()) }
+                    PaletteItem { ty: *ty, locked, title, label: i18n::trf!("Add gate {0}, {1}", ty.name(), ty.ru_name()) }
                 })
                 .collect::<Vec<_>>()
         })
     };
     let on_locked_pick = Callback::new(move |ty: GateType| {
-        notify.run(format!("{} — и элемент откроется", data.lab().gate_lock_hint(ty)));
+        notify.run(i18n::trf!("{0} — and the gate will unlock", data.lab().gate_lock_hint(ty)));
         hint_open.set(true);
     });
     let block_palette = {
@@ -261,7 +261,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
     };
     let add_block = move |item: BlockItem| {
         if !item.available {
-            notify.run(format!("{} — и блок откроется", item.hint));
+            notify.run(i18n::trf!("{0} — and the block will unlock", item.hint));
             return;
         }
         instances.update(|list| {
@@ -337,15 +337,15 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
             })
             .collect_view();
         view! {
-            <div class="lab-clock" role="group" aria-label="Тактовый генератор">
+            <div class="lab-clock" role="group" aria-label=i18n::tr("Clock generator")>
                 <button
                     type="button"
                     class="quiz-btn"
                     on:click=move |_| clock.tick()
                     disabled=move || clock.ticking.get() || clock.auto.get() || level() == 1
-                    title=move || if level() == 1 && !clock.ticking.get() && !clock.auto.get() { "Сначала опустите CLK в 0" } else { "Один такт: CLK поднимается в 1 и опускается в 0" }
+                    title=move || if level() == 1 && !clock.ticking.get() && !clock.auto.get() { i18n::tr("First set CLK to 0") } else { i18n::tr("One cycle: CLK rises to 1 and falls to 0") }
                 >
-                    "Такт ▸"
+                    {i18n::tr("Tick ▸")}
                 </button>
                 <button
                     type="button"
@@ -353,13 +353,13 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
                     class:running=move || clock.auto.get()
                     on:click=move |_| clock.toggle_auto()
                     disabled=move || clock.ticking.get()
-                    title="Автоматический генератор тактов"
+                    title=i18n::tr("Automatic clock generator")
                 >
-                    {move || if clock.auto.get() { "⏸ Пауза" } else { "▶ Авто" }}
+                    {move || if clock.auto.get() { i18n::tr("⏸ Pause") } else { i18n::tr("▶ Auto") }}
                 </button>
                 <select
-                    aria-label="Частота генератора"
-                    title="Частота генератора"
+                    aria-label=i18n::tr("Generator frequency")
+                    title=i18n::tr("Generator frequency")
                     on:change=move |e| {
                         if let Ok(hz) = event_target_value(&e).parse::<f64>() {
                             clock.set_rate(hz);
@@ -368,7 +368,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
                 >
                     {rates}
                 </select>
-                <span class="lab-edges" title="Сколько фронтов (0 → 1) подано с начала упражнения">{move || format!("тактов: {}", clock.edges.get())}</span>
+                <span class="lab-edges" title=i18n::tr("How many edges (0 → 1) have been applied since the start of the exercise")>{move || i18n::trf!("ticks: {0}", clock.edges.get())}</span>
             </div>
         }
     });
@@ -379,7 +379,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
     let total_rows = spec.target.len();
     let blocks_bar = blocks_mode.then(|| {
         view! {
-            <div class="lab-blocks" role="toolbar" aria-label="Блоки: кликните, чтобы добавить на доску">
+            <div class="lab-blocks" role="toolbar" aria-label=i18n::tr("Blocks: click to add to the board")>
                 <For
                     each=move || block_palette.get()
                     key=|b| (b.id.clone(), b.available)
@@ -403,15 +403,15 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
                 <div class="lab-card lab-board-card">
                     <div class="lab-card-head">
                         <div>
-                            <h3>"Доска"</h3>
+                            <h3>{i18n::tr("Board")}</h3>
                             <p>{board_hint(blocks_mode, steps_mode)}</p>
                         </div>
                         <div class="lab-actions">
                             {clock_panel}
                             <button type="button" class="quiz-btn ghost" on:click=move |_| hint_open.update(|v| *v = !*v)>
-                                {move || if hint_open.get() { "Скрыть подсказку" } else { "Подсказка" }}
+                                {move || if hint_open.get() { i18n::tr("Hide hint") } else { i18n::tr("Hint") }}
                             </button>
-                            <button type="button" class="quiz-btn ghost" on:click=reset title="Очистить доску">"Очистить"</button>
+                            <button type="button" class="quiz-btn ghost" on:click=reset title=i18n::tr("Clear the board")>{i18n::tr("Clear")}</button>
                         </div>
                     </div>
                     {move || hint_open.get().then(|| {
@@ -437,7 +437,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
                 let formula = formula.clone();
                 view! {
                     <ResultAlert
-                        title=move || view! { {title.clone()} " Формула: " <strong>{formula.clone()}</strong> }
+                        title=move || view! { {title.clone()} {i18n::tr(" Formula: ")} <strong>{formula.clone()}</strong> }
                         text=success.clone()
                         on_next=has_next.get().then_some(on_next)
                     />
@@ -477,6 +477,7 @@ mod tests {
 
     #[test]
     fn hints_follow_the_kind_of_exercise() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(board_hint(false, false), "Соберите схему так, чтобы столбцы «Схема» совпали со столбцами «Цель»");
         assert_eq!(board_hint(false, true), "Соберите схему и выполняйте шаги сценария — сигналы меняются тумблерами");
         assert_eq!(board_hint(true, true), "Соедините блоки шинами и выполняйте шаги сценария — на вход подаётся такт");
@@ -485,12 +486,14 @@ mod tests {
 
     #[test]
     fn success_title_counts_rows_only_for_tables() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(solved_title(false, 4, 4), "Схема работает — 4 из 4!");
         assert_eq!(solved_title(true, 0, 0), "Схема работает как надо!");
     }
 
     #[test]
     fn sample_holds_active_inputs_and_outputs() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut inputs = InputState::zero();
         inputs.set(InputId::B, 1);
         let values = Values::from([("Q".to_string(), Some(1))]);
@@ -504,6 +507,7 @@ mod tests {
 
     #[test]
     fn history_adds_a_column_per_input_change_and_keeps_the_latest_ones() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut h = Vec::new();
         let s = |q: u8| Sample { inputs: BTreeMap::new(), outputs: BTreeMap::from([("Q".to_string(), Some(q))]) };
         record_sample(&mut h, s(0), true);

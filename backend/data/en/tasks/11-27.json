@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 27,
+ "tasks": [
+  {
+   "id": "j19-deep-clone",
+   "title": "Structured cloning",
+   "statement": "Write a function deepClone(value), a simplified structuredClone (you may not use structuredClone itself). Supported: primitives (including undefined, NaN, BigInt, null), Date (a new object with the same time), RegExp (source and flags, lastIndex = 0), Map, Set, arrays, plain objects (own enumerable string keys only; the prototype is lost, so class instances become plain objects), ArrayBuffer and typed arrays (a copy of the data). Shared references are preserved: if one object appears twice, the copy also contains a single object; circular references are supported. Functions and symbols (anywhere, including inside structures) throw an Error with name «DataCloneError» and message «Невозможно клонировать: function» or «Невозможно клонировать: symbol» respectively.",
+   "hint": "A table \"source object → copy\" solves both shared references and cycles: put the copy into it before walking the children."
+  },
+  {
+   "id": "j19-message-channel",
+   "title": "Your own MessageChannel",
+   "statement": "Write a class MyMessageChannel with ports port1 and port2. A port has postMessage(data, transfer = []): the data is copied with structuredClone(data, { transfer }) (you may use it) and delivered to the paired port asynchronously (after the current code, in sending order) as an event { data, target: the receiving port }; an onmessage property is the handler (assigning it immediately \"starts\" the port); addEventListener(\"message\", fn) and removeEventListener; and a start() method that starts the port. Until the port is started, messages accumulate and are delivered on start() (in sending order, before any new ones). close() closes both ports: messages waiting for delivery are not delivered, and postMessage after closing silently does nothing. Cloning errors (DataCloneError) are thrown synchronously from postMessage.",
+   "hint": "Each port has an incoming queue and a \"started\" flag; deliver through a microtask."
+  },
+  {
+   "id": "j19-rpc",
+   "title": "RPC over postMessage",
+   "statement": "Write the functions expose(api, port) and wrap(port). port is an object { postMessage(msg), onmessage }: an incoming event arrives as onmessage({ data }). wrap returns a proxy: rpc.method(...args) → a promise. Protocol: the client sends { id, method, args }; the server calls api[method](...args) and replies { id, result }, or { id, error: { name, message } } if the method threw or rejected (for an unknown method: { name: \"NoSuchMethod\", message: \"Нет метода: <method>\" }). The client matches replies by id (replies may arrive out of order); success → result, error → rejection with an Error with the same name and message. ids are increasing numbers starting from 1. Accessing \"then\" on the proxy must return undefined (so that await rpc doesn't hang). An api method may be synchronous or return a promise.",
+   "hint": "A table of pending calls by id; the Proxy returns a function that sends the message."
+  },
+  {
+   "id": "j19-worker-pool",
+   "title": "A worker pool",
+   "statement": "Write a function createPool(size, spawn): spawn() creates a worker { run(task) → promise, terminate() }. It returns { exec(task) → promise, stats(), terminate() }. Workers are created lazily: a new one is created only if there is no free one and fewer than size exist; a free worker is taken before creating a new one (the first in creation order). Tasks with no worker available wait in a FIFO queue. exec returns the result of task from a worker; if run rejects, exec rejects with the same error and the worker stays in the pool. stats() → { workers (created), busy, queued }. terminate(): queued tasks are rejected with Error(\"Pool terminated\"), terminate() is called on all workers, and later exec calls are rejected at once with the same Error. Running tasks finish as usual.",
+   "hint": "A list of workers with a busy flag and a queue; when a task finishes, start the next one from the queue."
+  },
+  {
+   "id": "j19-ranges",
+   "title": "Splitting work between workers",
+   "statement": "Write the functions splitRanges(n, parts) and parallelMap(items, parts, run). splitRanges returns an array of ranges [start, end) for indices 0..n−1, as equal as possible: the first n % parts ranges are one element longer; empty ranges are not returned (if parts > n, one element each); n = 0 → []. parts < 1 throws RangeError. parallelMap splits items with this partition, starts run(chunk, index) for all chunks at once (in parallel) and returns a promise of a flat array of results in the order of the original data (run returns a promise of an array of results for its chunk); if any chunk rejects, reject with its error.",
+   "hint": "The first n % parts chunks get one extra element; Promise.all preserves order."
+  },
+  {
+   "id": "j19-sw-lifecycle",
+   "title": "Service worker lifecycle",
+   "statement": "Write a function createSwModel() → { register(version, opts), openPage(id), closePage(id), skipWaiting(), state(), log }. This is a model of a single registration. register(v, { skipWaiting = false, claim = false }): if v is already active or waiting, do nothing; otherwise log \"install:v\"; if there is no active version, activate(v) immediately; if there is one and skipWaiting is set, activate(v) immediately; otherwise v becomes waiting (a previous waiting version becomes redundant). activate(v): log \"activate:v\"; the previous active version (if any) → redundant; waiting = null (if v was waiting); active = v; if the version has claim, all open pages come under v. openPage(id): the page is controlled by the current active version (or null if there is none). closePage(id): the page is closed; if there is a waiting version and no page is controlled by the current active version any more, the waiting version is activated. skipWaiting(): if there is a waiting version, activate it now. state() → { active, waiting, redundant: [versions in the order they became redundant], pages: { id: version|null } }. log is an array of strings.",
+   "hint": "Two transition functions: register decides whether to wait or activate; activate moves active and redundant."
+  },
+  {
+   "id": "j19-update-check",
+   "title": "Checking for a worker script update",
+   "statement": "Write the functions compareWorkerScripts(oldScript, newScript) and needsCheck(lastCheck, now, trigger). A script is { main: string, imports: { url: string } } (scripts imported via importScripts are checked too). compareWorkerScripts → { changed, reason }: if main differs, { true, \"main\" }; otherwise the first import (in ascending url order over the union of both scripts' addresses) that differs, was added or was removed gives { true, \"import:<url>\" }; otherwise { false, \"none\" }. needsCheck: an update check happens on every navigation within the worker's scope, but for functional events (push, sync) no more than once per 24 hours; trigger is \"navigation\" | \"push\" | \"sync\" | \"register\". For \"navigation\" and \"register\" it is always true; for \"push\" and \"sync\" it is true if lastCheck = null or now − lastCheck ≥ 24 hours (86 400 000 ms).",
+   "hint": "Merge the import addresses of both scripts, sort them and find the first difference."
+  },
+  {
+   "id": "j19-scope",
+   "title": "Service worker scope",
+   "statement": "Write the functions defaultScope(scriptUrl), isScopeAllowed(scriptUrl, scope, allowedHeader) and findRegistration(pageUrl, registrations). defaultScope returns the address of the script's folder (\"https://x.ru/app/sw.js\" → \"https://x.ru/app/\"). isScopeAllowed: the scope must have the same origin as the script and its path must start with the path of the script's folder; if the server sent a Service-Worker-Allowed header (allowedHeader is a path or an absolute address, or null), any scope whose path starts with it is also allowed (the header's path is relative to the script's origin). findRegistration: registrations is an array of { scope: absolute address of the scope }; choose the registration with the longest matching scope by string prefix of the address (same origin); a match means pageUrl (without fragment and query parameters) starts with scope; no match → null.",
+   "hint": "Work with the URL class: compare origin and pathname; the longest match wins."
+  },
+  {
+   "id": "j19-sw-router",
+   "title": "A service worker request router",
+   "statement": "Write a function createRouter() → { register(matcher, handler, method = \"GET\"), setDefaultHandler(h), setCatchHandler(h), handle(request) }. request is { url (absolute), method, headers, destination }; the page is https://app.ru. matcher: a string that starts with \"/\" is compared with the request's pathname (same origin only, https://app.ru); any other string is compared with the full address (without query parameters and fragment); a RegExp is tested against the full address; a function is called as matcher({ url (a URL object), request }) → true/false or an object (parameters), which becomes params. handle(request) → promise: goes through the routes in registration order; the request method must match (case-insensitive); the first matching route has handler({ request, url, params }) called and its result returned; if the handler threw or rejected and a catch handler exists, return its result (catch({ request, url, error })), otherwise rethrow; if no route matches, return the result of the default handler (called with { request, url }) if there is one, otherwise undefined.",
+   "hint": "Go through the routes in order; handle the different matcher kinds by type."
+  },
+  {
+   "id": "j19-cache-api",
+   "title": "Your own Cache and CacheStorage",
+   "statement": "Write the classes MyCache and MyCacheStorage (a simplified Cache API). A request is { url, method, headers }, a response is { status, headers (lowercase), body, clone() }. MyCacheStorage(fetchFn) — fetchFn(request) → a promise of a response; methods: open(name) → MyCache (creates one if missing; the same object on repeated open), has(name), delete(name) → boolean, keys() → names in creation order, match(request, options) → the first response found across all caches in creation order. MyCache: put(request, response) accepts GET only (otherwise TypeError), rejects status 206 (TypeError), rejects a vary header with the value \"*\" (TypeError); it stores a copy (clone) of the response and the request; a repeated put with the same key replaces the entry (its position in keys() is preserved); the key is the url (method GET). match(request, { ignoreSearch = false, ignoreVary = false }) → a copy of the response or undefined: compared by url (with ignoreSearch, without query parameters and fragment); unless ignoreVary, if the stored response has vary, the values of the listed headers must be equal in the stored and the requested request (header name case does not matter, a missing header counts as an empty string). add(request) = fetch + put; addAll(requests) is atomic: the requests are executed, and if any response is not ok (status outside 200–299) or a fetch rejected, nothing is added (reject with TypeError or the original error); delete(request) → boolean; keys() → the list of stored requests.",
+   "hint": "An array of {request, response} entries; match with ignoreSearch and vary; addAll first fetches everything, then stores."
+  },
+  {
+   "id": "j19-cache-first",
+   "title": "The Cache First strategy",
+   "statement": "Write a function cacheFirst({ caches, cacheName, fetchFn, waitUntil }) → handler(request) → a promise of a response. caches.open(name) → a promise of a cache with match(request) → response|undefined and put(request, response). Algorithm: open the cache cacheName; if a response is found, return it (don't go to the network); otherwise call fetchFn(request); if the response is successful (status 200) and the request method is GET, put a copy (response.clone()) into the cache via waitUntil(promise) (stored without waiting for it) and return the original response; unsuccessful responses (404, 500, ...) are returned as they are and not cached; a network error is rethrown.",
+   "hint": "Cache first; the network only on a miss; hand the cache write to waitUntil without waiting for it."
+  },
+  {
+   "id": "j19-network-first",
+   "title": "Network First with a timeout",
+   "statement": "Write a function networkFirst({ caches, cacheName, fetchFn, timers, timeoutMs, waitUntil }) → handler(request) → a promise of a response. It starts fetchFn(request) and a timer of timeoutMs. If the network answers before the timer: a successful (status 200) response is put into the cache (a copy, via waitUntil) and returned; an unsuccessful one (not 200) is returned as it is, without a cache write. If the network fails before the timer, return the response from the cache, and if there is none, rethrow the error. If the timer fires before the network, return the response from the cache (if there is one; the network keeps working meanwhile and updates the cache when it finishes, if the response is successful); if the cache is empty, keep waiting for the network (the timeout then no longer applies; a network error is rethrown). The timer must be cleared when it is no longer needed.",
+   "hint": "Promise.race between the network and the timer; on a timeout the network stays in play and updates the cache later."
+  },
+  {
+   "id": "j19-swr-strategy",
+   "title": "The Stale-While-Revalidate strategy",
+   "statement": "Write a function staleWhileRevalidate({ caches, cacheName, fetchFn, waitUntil, onUpdate }) → handler(request). If there is a response in the cache, return it at once and request the network in the background (waitUntil(promise of the background update)); a successful (status 200) network response is put into the cache and onUpdate({ url, response }) (a copy) is called, while an error or an unsuccessful response is silently ignored (the cache does not change). If the cache is empty, wait for the network, put a successful response into the cache (a copy) and return the response; return an unsuccessful response as it is without storing it; a network error is rethrown. If an update of this address is already in progress, a repeated request does not start another one (but still returns the cache).",
+   "hint": "Remember the addresses whose background update is already running; wrap the background update in a catch."
+  },
+  {
+   "id": "j19-cacheable",
+   "title": "What can be put into the cache",
+   "statement": "Write a function isCacheable(request, response, options = {}) → { ok, reason }. options: { maxBytes = Infinity, allowOpaque = false }. The checks run in order, and the first one that fires gives ok: false and its reason: method is not GET → \"method\"; response.type \"opaque\" (or status 0): allowOpaque ? ok : \"opaque\"; status 206 → \"partial\"; status not 200 (after opaque) → \"status\"; a cache-control header (keys in lowercase) containing the no-store directive → \"no-store\"; vary equal to \"*\" (ignoring spaces) → \"vary\"; content-length greater than maxBytes → \"too-large\"; a request with an authorization header (lowercase) and a response cache-control without the public directive → \"private\". Otherwise { ok: true, reason: \"ok\" }.",
+   "hint": "Do the checks in order, as in the statement; headers are lowercase."
+  },
+  {
+   "id": "j19-precache-plan",
+   "title": "A precache plan",
+   "statement": "Write a function planPrecache(oldManifest, newManifest) → { toFetch, toDelete, unchanged }. A manifest is an array of entries { url, revision } (revision is a string, or null if the version is baked into the file name). An entry's identity is its normalized url (without the #… fragment, without parameters that start with \"__WB_REVISION__\"; relative addresses are resolved against https://app.ru/). An entry is the same if its normalized url matches and its revision is equal; if the revision changed, the file must be downloaded again (it goes to toFetch). toFetch lists normalized addresses of new and changed entries, toDelete the addresses missing from the new manifest, unchanged the matching ones; all three are sorted by address. If the new manifest contains the same url with different revisions, throw an Error with message «Конфликт ревизий: <url>» (url normalized); exact duplicates collapse into one. Addresses in the result have no origin, only the path with query parameters (for example \"/app.js?v=2\").",
+   "hint": "Normalize the address through URL; compare two maps \"address → revision\"."
+  },
+  {
+   "id": "j19-cache-names",
+   "title": "Versioned cache names",
+   "statement": "Write the functions cacheName(prefix, version), parseCacheName(name) and cachesToDelete(names, prefix, currentVersion). cacheName → \"prefix-v<version>\". parseCacheName → { prefix, version (a number) } or null if the name is not of the form \"something-v<digits>\" (the prefix may contain hyphens; the version is the last group after \"-v\"; names like \"app-v1.2\", \"app-v\", \"v3\", \"app-vx\" give null). cachesToDelete: from names choose those to delete on activation: caches with the same prefix and a version not equal to currentVersion (older ones and also newer ones, since it is a foreign version), as well as caches with this prefix whose name does not parse as versioned (for example \"app-tmp\"); caches with a different prefix (including \"app-extra-v1\" for the prefix \"app\") are left alone. The result keeps the order of names.",
+   "hint": "A regular expression for the name; then a filter: the same prefix and a different version, or an unparsed name with the prefix."
+  },
+  {
+   "id": "j19-offline-fallback",
+   "title": "An offline fallback response",
+   "statement": "Write a function withFallback(handler, options): options = { cache (with a method match(url) → response|undefined), pages: { document: \"/offline.html\", image: \"/placeholder.svg\" } }. It returns handler2(request) → a promise. Call handler(request); if it returned a response, return it; if it rejected or returned a response with status ≥ 500, choose a fallback by request.destination: the key from pages → cache.match(address); if the fallback is not found in the cache (or there is no entry for the destination), return { status: 503, body: \"Offline\", headers: {}, fallback: false }. Return a found fallback response marked fallback: true (a copy with that field). 4xx responses are returned as they are (they are real server answers). If handler rejected and pages has no entry for the destination, return that same 503.",
+   "hint": "try/catch around handler; fallback by destination; take the fallback from the cache by address."
+  },
+  {
+   "id": "j19-navigation",
+   "title": "Navigation and the app shell",
+   "statement": "Write a function createNavigationHandler({ allowlist = [], denylist = [] }) → decide(request) → { serve, reason }. request = { url, method, mode, headers: { accept } }. A request counts as navigation if the method is GET and (mode is \"navigate\" or accept contains \"text/html\"); otherwise { serve: \"network\", reason: \"not-navigation\" }. For navigation the path (pathname) is checked: a match with any of denylist (RegExp) → { \"network\", \"denylist\" }; if allowlist is not empty and the path matches none of allowlist → { \"network\", \"not-allowed\" }; a path ending in a file name with an extension (the last segment contains \".\", for example /file.pdf) → { \"network\", \"file-extension\" } (this check comes after denylist but before allowlist); otherwise { serve: \"shell\", reason: \"navigation\" }. Query parameters are ignored when checking the path.",
+   "hint": "First \"is this navigation\", then denylist, the file extension and allowlist, in the stated order."
+  },
+  {
+   "id": "j19-update-manager",
+   "title": "The \"new version available\" flow",
+   "statement": "Write a function createUpdateManager({ postMessage, reload, hasController }) → manager. hasController is a function: whether the page is controlled by a service worker at the moment of the call. State manager.state: \"idle\" → \"available\" → \"applying\" → \"reloading\". Methods: onWaiting() — a waiting worker appeared: if the state is \"idle\" and hasController(), the state becomes \"available\" (and is kept for the UI: manager.available = true); if the page is not controlled (first install), ignore it; accept() — only from \"available\": state \"applying\", postMessage({ type: \"SKIP_WAITING\" }) once (repeated accept calls do nothing); dismiss() — only from \"available\": state \"idle\" (available = false) and no new offers until the next onWaiting; onControllerChange(): if the state is \"applying\", the state becomes \"reloading\" and reload() is called exactly once; in all other cases (first install, someone else's update from another tab while the state is not \"applying\", repeated events) reload is not called. Also, if onControllerChange arrives during \"idle\"/\"available\", nothing happens.",
+   "hint": "A small state machine: each method checks the current state and changes it only from a permitted one."
+  },
+  {
+   "id": "j19-broadcast",
+   "title": "Your own BroadcastChannel",
+   "statement": "Write a class MyBroadcastChannel(name). All channels with the same name (within the program) communicate: postMessage(data) sends a copy (structuredClone is allowed) to all other open channels with the same name, but not to the sender; delivery is asynchronous (after the current code), in sending order, as an event { data, target } to onmessage and to listeners added with addEventListener(\"message\"). removeEventListener removes a listener. close(): the channel no longer receives messages (including ones already sent but not yet delivered) and does not send; postMessage on a closed channel throws an Error with name «InvalidStateError». name is a property. Cloning errors are thrown synchronously.",
+   "hint": "A shared registry \"name → set of channels\"; deliver through a microtask, checking that the receiver is still open."
+  },
+  {
+   "id": "j19-push",
+   "title": "A notification from a push message",
+   "statement": "Write the functions buildNotification(raw, defaults) and clickTarget(action, data, clients). buildNotification: raw is the body of the push message (a string or null). defaults = { title, icon, url }. If raw is a JSON object (a string that starts with \"{\" and parses), take the fields title, body, icon, tag, url, actions, requireInteraction, silent; if the JSON does not parse or raw is plain text, then title = defaults.title and body = raw; null/empty gives just the default title. The result is { title, options }: options = { body (if present), icon (from the message or defaults.icon; if neither has one, don't add it), tag (if present), actions (at most the first 2, each { action, title }; if none, don't add), requireInteraction (true only if it was true), silent (true only if it was true), data: { url } } where url comes from the message, otherwise defaults.url, otherwise \"/\". clickTarget(action, data, clients): clients is [{ url, focused }]; action \"dismiss\" → { type: \"none\" }; otherwise look for a client whose pathname equals the pathname of data.url (query and fragment don't matter): if found, { type: \"focus\", index } (preferring a focused one, otherwise the first); otherwise { type: \"open\", url: data.url }.",
+   "hint": "Parse the JSON safely first; then build options by the table of rules; find the client by pathname."
+  },
+  {
+   "id": "j19-vapid-helpers",
+   "title": "Base64url and a VAPID starter",
+   "statement": "Write the functions base64urlEncode(bytes) → string (Uint8Array → base64 with \"+\"→\"-\", \"/\"→\"_\" and no \"=\"), base64urlDecode(str) → Uint8Array (accepts both \"-_\" and \"+/\", with and without \"=\"), urlBase64ToUint8Array (an alias of decode), vapidClaims({ endpoint, subject, nowMs, ttlSec = 43200 }) → { aud (the origin of the endpoint address), exp (whole seconds: floor(nowMs/1000) + ttl, but no more than 24 hours from now: ttl is capped at 86400), sub (subject) } and signingInput(header, claims) → base64url(JSON.stringify(header)) + \".\" + base64url(JSON.stringify(claims)) (JSON is encoded as UTF-8). Invalid characters in base64urlDecode throw an Error with message «Некорректный base64url». You may use btoa/atob/Buffer.",
+   "hint": "btoa/atob work with \"binary\" strings; convert the alphabet to the standard one and add the \"=\" padding."
+  },
+  {
+   "id": "j19-sync-queue",
+   "title": "A background sync queue",
+   "statement": "Write a function createSyncQueue({ storage, key = \"sync-queue\", send, now, maxRetentionMs = 86400000, maxAttempts = 3 }): storage is { getItem, setItem } (strings). It returns { add(request), process(), size(), items() }. The queue is stored in storage as a JSON array of { request, addedAt, attempts } and must be restored on creation (a new instance with the same storage sees the earlier entries). add appends to the end (addedAt = now(), attempts = 0) and saves. process() → a promise of { sent, dropped, remaining }: it walks the queue in order: an entry older than maxRetentionMs (now − addedAt > maxRetentionMs) is removed and counted as dropped; otherwise send(request) is called: on success the entry is removed, sent++; on failure (an exception or a rejected promise) attempts++ and save; if attempts reached maxAttempts, the entry is removed (dropped++) and the walk continues, otherwise the walk stops (the remaining entries stay untouched so the order is not broken). At the end, save the queue. remaining is the length of the queue. size() is the length, items() returns copies of the entries.",
+   "hint": "The queue is an array; in process, work from the head: on success or expiry, shift; on failure, attempts++ and break (or drop)."
+  },
+  {
+   "id": "j19-manifest-validate",
+   "title": "Validating the app manifest",
+   "statement": "Write the functions validateManifest(m) → an array of problem codes (in the order of the checks) and isInstallable(m) → boolean. Checks in order: \"name-missing\" — neither name nor short_name; \"short-name-long\" — short_name longer than 12 characters; \"start-url-missing\" — no start_url; \"start-url-out-of-scope\" — both start_url and scope are set, and start_url (relative to https://app.ru/) is not inside scope (the scope path is a prefix of the start_url path; if scope is not set, it is taken to be the folder of start_url, so the check passes); \"display-invalid\" — display is set but is not one of fullscreen, standalone, minimal-ui, browser; \"icon-192-missing\" and \"icon-512-missing\" — no icon of the right size (sizes is a string of space-separated sizes like \"192x192\"; exactly 192x192 / 512x512 or \"any\" fits; for 512 a size larger than 512 fits too); \"icon-maskable-missing\" — no icon whose purpose contains \"maskable\"; \"theme-color-invalid\" — theme_color is set and is not of the form #rgb/#rrggbb. isInstallable: there are no problems with the codes name-missing, start-url-missing, display-invalid, icon-192-missing, icon-512-missing, and display (if set) is not \"browser\" (display defaults to \"browser\", which is not an installable mode, so standalone, fullscreen or minimal-ui must be set explicitly).",
+   "hint": "A list of checks in order; collect all icon sizes into one array."
+  },
+  {
+   "id": "j19-manifest-resolve",
+   "title": "Resolving manifest addresses",
+   "statement": "Write the functions resolveManifest(manifest, manifestUrl) and inScope(resolved, url). resolveManifest → { startUrl, scope, id, icons } with all addresses absolute relative to manifestUrl: startUrl is the absolute start_url (if missing, the document's own address... for simplicity, manifestUrl without the file name, i.e. the manifest's folder); scope is the absolute scope, and if not set, the folder of startUrl (the path up to the last \"/\"); id is the absolute id (if id is set, origin + the id path, without the fragment), otherwise startUrl without the # fragment; icons — for each icon { src (absolute), sizes (an array of numbers, the width from \"NxN\"; \"any\" → the string \"any\"), purpose (an array of words, \"any\" by default) }; icons with an empty src are skipped. If startUrl is not inside scope (by address prefix) or has a different origin, scope is replaced with the folder of startUrl. inScope(resolved, url) → true if the address url starts with resolved.scope (a prefix comparison of the full address without the fragment).",
+   "hint": "A URL with a base makes absolute addresses; the \"folder\" is the path up to the last slash."
+  },
+  {
+   "id": "j19-install-prompt",
+   "title": "A custom install button",
+   "statement": "Write a function createInstallPrompt({ storage, now, snoozeDays = 7, key = \"install-snooze\" }) → controller. Methods: onBeforeInstallPrompt(event) remembers the event (event.prompt() → a promise of { outcome: \"accepted\" | \"dismissed\" }); canShow() → true if there is a saved event, the app is not installed and no \"snooze\" is in effect (the snooze is stored in storage under key as a string with the end time in ms and survives the creation of a new controller); show() → a promise of the outcome, or null if showing is not allowed: it calls event.prompt() once (the event is cleared after showing, so it can be shown again only after a new onBeforeInstallPrompt); \"accepted\" → installed (installed = true); \"dismissed\" → snooze until now() + snoozeDays days (written to storage); onAppInstalled() sets installed = true and clears the event; the installed property. If show() is called while the previous call is still in progress, return null (only one prompt at a time).",
+   "hint": "The event is remembered and \"used up\" on showing; store the snooze as an end time in storage."
+  },
+  {
+   "id": "j19-eviction",
+   "title": "Evicting origins when the quota is short",
+   "statement": "Write a function planEviction(origins, quota) → { evicted, remaining, overQuota }. origins is an array of { name, usage, lastUsed, persisted }; quota is the overall limit. If the total usage ≤ quota, nothing is evicted. Otherwise whole origins are evicted: first non-persistent ones (persisted false) in order of the oldest lastUsed (ties broken by name ascending), until the total usage is ≤ quota; persistent ones (persisted true) are never evicted. evicted lists names in eviction order, remaining lists the names of the remaining origins (in the original order), overQuota is true if the sum is still above quota even after evicting all non-persistent ones. Eviction stops exactly when the quota is met (don't evict more than needed). Do not modify the original array.",
+   "hint": "Sort the non-persistent ones by age and remove them one by one until the sum fits the quota."
+  },
+  {
+   "id": "j19-leader-election",
+   "title": "Choosing the main tab",
+   "statement": "Write a function createElection({ id, channel, timers, heartbeat = 1000, timeout = 3000, now }): channel = { postMessage(msg), onmessage }: an incoming event arrives as onmessage({ data }); timers = { setTimeout, clearTimeout }, now() is the time in ms. It returns { start(), stop(), isLeader(), onChange(fn) }. Protocol: messages { type: \"hello\"|\"alive\"|\"bye\", id }. start(): send hello at once, then send alive every heartbeat ms (a chain of setTimeout calls). On receiving hello/alive from another id, remember lastSeen[id] = now(); on hello additionally reply alive at once (so the newcomer learns about us); on bye forget the id at once. The leader is the tab with the smallest id (string comparison) among itself and the \"live\" ones (lastSeen not older than timeout; stale ones are struck off at every check). Leadership is recomputed after start, on every incoming message and on every heartbeat tick; when it changes, the onChange(isLeader) subscribers are called (only on change, including the first determination: after start a tab with no neighbors becomes the leader). stop(): send bye, stop the timers, no longer react to messages; isLeader() after stop is false.",
+   "hint": "lastSeen for the neighbors; the leader is the minimum id among the live ones; recompute on messages and on every tick."
+  },
+  {
+   "id": "j19-cache-expiration",
+   "title": "Cache entry expiration",
+   "statement": "Write a function createExpiration({ maxEntries, maxAgeMs, now }) → { add(url), has(url), remove(url), entries() }. add(url) remembers (or refreshes) the time url was added = now() and treats it as the freshest; then it computes the eviction and returns an array of addresses that must be deleted from the cache: first all expired entries (now() − addedAt > maxAgeMs; the url of the freshly added entry itself is not expired), in order of addition; then, if there are more than maxEntries entries, the least recently used ones (that is, added or refreshed earliest), until maxEntries remain. These addresses are removed from the internal bookkeeping. has(url) tells whether the entry exists and has not expired (an expired one gives false, but is not removed on its own until the next add). remove(url) removes it from the bookkeeping. entries() → addresses from the oldest to the freshest (including expired ones not yet evicted).",
+   "hint": "A Map keeps insertion order: to \"refresh\" an entry, delete it and insert it again."
+  },
+  {
+   "id": "j19-range-request",
+   "title": "Range requests (partial responses)",
+   "statement": "Write the functions parseRange(header, size) and rangeResponse(body, rangeHeader, contentType). parseRange → { start, end } (inclusive) for a single range of the form \"bytes=0-99\", \"bytes=500-\" (to the end), \"bytes=-100\" (the last 100 bytes); end is capped at size − 1; if start ≥ size (or the suffix is 0), return \"unsatisfiable\"; for invalid headers, multiple ranges (\"bytes=0-1,5-6\"), another unit or start > end, return null (ignore Range). rangeResponse(body, rangeHeader, contentType): body is a Uint8Array. Without Range (null/undefined), or when parseRange gives null → { status: 200, headers: { \"content-type\", \"content-length\": the size, \"accept-ranges\": \"bytes\" }, body }. For a valid range → { status: 206, headers: { content-type, content-length: the length of the part, accept-ranges, \"content-range\": \"bytes start-end/size\" }, body: the slice }. For \"unsatisfiable\" → { status: 416, headers: { \"content-range\": \"bytes */size\" }, body: an empty Uint8Array }. Header values are strings.",
+   "hint": "A regular expression with two optional numbers; three forms: \"a-b\", \"a-\", \"-n\"."
+  }
+ ]
+}

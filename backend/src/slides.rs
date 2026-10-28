@@ -9,6 +9,7 @@ use serde_json::{json, Value};
 
 use crate::{
     error::{i, s, ApiError, ApiResult},
+    lang::{self, Lang},
     AppState,
 };
 
@@ -24,16 +25,20 @@ async fn list(State(state): State<AppState>) -> ApiResult<Json<Value>> {
 }
 
 /// Слайды главы: рубрика и слайды по порядку (`title`, `sub`, `short`, `main`, `body` — блоки).
-async fn chapter(State(state): State<AppState>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
+async fn chapter(State(state): State<AppState>, lang: Lang, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
+    let tr = lang::translated(&state.db, lang, book).await?;
+    let (chapters_t, cond) = lang::source("slide_chapters", tr);
+    let (slides_t, _) = lang::source("slides", tr);
     let mut res = state
         .db
-        .query("SELECT rubric FROM slide_chapters WHERE book = $b AND chapter = $c; SELECT title, sub, short, main, body, idx FROM slides WHERE book = $b AND chapter = $c ORDER BY idx")
+        .query(format!("SELECT rubric FROM {chapters_t} WHERE book = $b AND chapter = $c{cond}; SELECT title, sub, short, main, body, idx FROM {slides_t} WHERE book = $b AND chapter = $c{cond} ORDER BY idx"))
         .bind(("b", book))
         .bind(("c", chapter))
+        .bind(("l", lang.code()))
         .await?;
     let head: Vec<Value> = res.take(0)?;
     let rows: Vec<Value> = res.take(1)?;
-    let Some(head) = head.first() else { return Err(ApiError::not_found("У этой главы нет слайдов")) };
+    let Some(head) = head.first() else { return Err(ApiError::not_found("This chapter has no slides")) };
     let slides: Vec<Value> = rows
         .iter()
         .map(|r| {

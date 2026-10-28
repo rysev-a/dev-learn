@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "virt-recover-key",
+   "title": "Key from cache traces",
+   "statement": "A victim raises a number to a power using the square-and-multiply method: in every round it touches the cache line \"sqr\", and it performs the multiplication (line \"mul\") only if the next key bit is 1. Through Flush+Reload the attacker learned which cache lines were touched in each round. Write a function recover_key(rounds): rounds is a list of rounds, each a list of touched lines. Return a string of zeros and ones: the recovered key.",
+   "hint": "A round's bit is 1 if \"mul\" appears in it."
+  },
+  {
+   "id": "virt-prime-probe",
+   "title": "Prime+Probe",
+   "statement": "Write a function prime_probe(num_sets, ways, victim_addrs, line_size): the attacker has filled every cache set (num_sets sets of ways lines). The victim accesses the addresses victim_addrs. An address belongs to line address // line_size, and a line belongs to set line % num_sets. Each distinct victim line evicts one attacker line in its set, but no more than ways per set. Return a list of length num_sets: how many attacker lines were evicted in each set (this is how the attacker learns which sets the victim used).",
+   "hint": "Count the victim's distinct lines per set and cap the values at ways."
+  },
+  {
+   "id": "virt-ksm-timing",
+   "title": "Write timing on merged pages",
+   "statement": "The attacker measures the time of writes to their own pages with guessed contents. A write to a merged page takes longer than usual: copy-on-write is needed. Write a function merged_pages(times, threshold): times is the write time to each page (in microseconds), threshold is the threshold. Return the list of indexes of pages whose write time is strictly greater than the threshold (they are probably merged, that is, a neighbor has the same contents).",
+   "hint": "Go through the indexes and keep those where the time exceeds the threshold."
+  },
+  {
+   "id": "virt-harden",
+   "title": "Host hardening recommendations",
+   "statement": "Write a function harden_report(cfg): cfg is a dictionary with boolean fields \"smt\", \"l1d_flush\", \"ksm\", \"multi_tenant\", \"qemu_root\", \"passthrough\", \"iommu\". Return a sorted list of recommendations: \"disable-smt\" if SMT is on and the server has foreign tenants; \"enable-l1d-flush\" if the L1D flush is off; \"disable-ksm\" if KSM is on and the tenants are foreign; \"drop-root\" if QEMU runs as root; \"enable-iommu\" if there is device passthrough and the IOMMU is off.",
+   "hint": "Check the conditions one by one and sort the result."
+  },
+  {
+   "id": "virt-rmp",
+   "title": "Reverse map table (RMP)",
+   "statement": "Write a function rmp_check(owners, accesses): owners is a dictionary \"page (string) to owner\", where the owner is a machine name, \"hv\" (the hypervisor) or \"shared\" (a shared page). accesses are accesses [who, page, kind], where kind is \"r\", \"w\" or \"remap\" (remapping). For each access return \"ok\" if the page is shared or the accessor is its owner, otherwise \"blocked\". Pages missing from owners are considered owned by \"hv\". Return the list of results.",
+   "hint": "Find the page's owner (hv by default) and compare it with the accessor."
+  },
+  {
+   "id": "virt-attest",
+   "title": "Checking an attestation report",
+   "statement": "Write a function verify_report(report, expected, nonce): report is a report {\"measurement\": image hash, \"nonce\": a freshness number, \"signature_ok\": whether the processor's signature is valid}, expected is the hash the client expects, nonce is the value the client sent. The reasons for distrust: \"bad-signature\" (the signature is invalid), \"wrong-measurement\" (the hash does not match), \"stale-nonce\" (the nonce does not match). Return the tuple (\"trusted\", []) if there are no reasons, otherwise (\"untrusted\", sorted list of reasons).",
+   "hint": "Collect the reasons in a list and sort it."
+  },
+  {
+   "id": "virt-measure",
+   "title": "Boot measurement chain",
+   "statement": "Write a function measure_chain(components): components is a list of strings (firmware, bootloader, kernel, ...). The measurement starts with a value of 32 zero bytes. For each string in order, the new value is the SHA-256 of the concatenation (the previous value, the SHA-256 of the string encoded as UTF-8), like extending a PCR register. Return the final value as a string of hexadecimal digits.",
+   "hint": "Use hashlib.sha256(...).digest() for the intermediate values and hexdigest() for the result."
+  },
+  {
+   "id": "virt-triage",
+   "title": "Triage of security findings",
+   "statement": "Write a function triage(findings): findings is a list of text descriptions of findings. The category is chosen by the first matching rule (letter case does not matter): contains \"qemu\" or \"device\" is \"escape\"; contains \"cache\" or \"timing\" is \"side-channel\"; contains \"dma\" is \"dma\"; contains \"storm\" or \"hog\" is \"dos\"; otherwise \"other\". Return a dictionary \"category to number of findings\", only for categories where there are more than zero.",
+   "hint": "For each finding check the rules in order and increment the counter."
+  }
+ ]
+}

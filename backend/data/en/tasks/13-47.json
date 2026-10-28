@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 47,
+ "tasks": [
+  {
+   "id": "mem-weak-cache",
+   "title": "Leak-free cache",
+   "statement": "Write ObjectCache on top of WeakValueDictionary: the method get(key, factory) returns the cached object, and if there is none (or it has already died), creates one via factory() and remembers it; __len__ is the number of live entries. The cache must not extend the life of objects.",
+   "hint": "self._data = weakref.WeakValueDictionary(); get: obj = self._data.get(key); if None, create it and store it."
+  },
+  {
+   "id": "mem-weak-callback",
+   "title": "Weak reference with a callback",
+   "statement": "Write watch(obj, callback): it returns a weak reference to obj which, when the object dies, calls callback(type_name), where type_name is type(obj).__name__, remembered in advance.",
+   "hint": "name = type(obj).__name__; return weakref.ref(obj, lambda _ref: callback(name))."
+  },
+  {
+   "id": "mem-finalize",
+   "title": "finalize instead of __del__",
+   "statement": "Write track(name, log): it creates and returns a Handle object, and via weakref.finalize registers the record «закрыт <name>» to be appended to the list log when the object dies. The Handle class has no __del__.",
+   "hint": "h = Handle(); weakref.finalize(h, log.append, f\"закрыт {name}\"); return h."
+  },
+  {
+   "id": "mem-cycle-gc",
+   "title": "A cycle and the garbage collector",
+   "statement": "Write cycle_demo(): disable the collector (gc.disable()), create two Node objects that refer to each other, take a weak reference to the first one and delete both names; return the tuple (alive_before_collection, alive_after_collection), where \"after\" means after gc.collect(). At the end, turn the collector back on.",
+   "hint": "a.other = b; b.other = a; ref = weakref.ref(a); del a, b; before = ref() is not None; gc.collect(); after = ref() is not None; in finally: gc.enable()."
+  },
+  {
+   "id": "mem-deepcopy-protocol",
+   "title": "Your own __deepcopy__",
+   "statement": "A Document has a text, a cache (dict), and a list of child documents. Write __deepcopy__(self, memo): the text and the child documents are copied deeply (pass memo), and the cache in the copy must be a new empty dict.",
+   "hint": "new = type(self)(self.text, copy.deepcopy(self.children, memo)); return new (the cache is created empty in __init__). Don't forget import copy."
+  },
+  {
+   "id": "mem-peak-bytes",
+   "title": "Peak memory via tracemalloc",
+   "statement": "Write peak_bytes(func): start tracemalloc, call func(), return the peak number of allocated bytes (get_traced_memory()[1]), and stop tracemalloc.",
+   "hint": "tracemalloc.start(); func(); peak = tracemalloc.get_traced_memory()[1]; tracemalloc.stop(); return peak."
+  },
+  {
+   "id": "mem-lazy-sum",
+   "title": "Sum of squares without a list",
+   "statement": "The function sum_squares(n) computes the sum of squares of 0..n-1, but builds a whole list for it. Rewrite it so that no extra data piles up in memory (a generator expression); the result must not change.",
+   "hint": "return sum(i * i for i in range(n))."
+  },
+  {
+   "id": "mem-lru-bound",
+   "title": "Bound the cache",
+   "statement": "slow_square caches results without a limit (maxsize=None), so memory grows forever. Limit the cache to 128 entries so that the most recent calls still hit the cache.",
+   "hint": "@lru_cache(maxsize=128)."
+  },
+  {
+   "id": "mem-memoryview",
+   "title": "A slice without copying",
+   "statement": "Write middle(data, start, stop): return the buffer slice data[start:stop] as a memoryview (without copying), so that changes to the original bytearray are visible through the slice, and writing through the slice changes the original buffer.",
+   "hint": "return memoryview(data)[start:stop]."
+  }
+ ]
+}

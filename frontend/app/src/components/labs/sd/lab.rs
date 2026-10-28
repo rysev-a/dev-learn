@@ -125,7 +125,7 @@ impl Lab {
     pub fn add(&self, kind: Kind, at: Option<Point>, edges: &[SdEdge]) -> bool {
         let max = self.scenario().max_nodes();
         if self.state.with_untracked(|s| s.nodes.len()) >= max {
-            self.notice.set(format!("На схеме не больше {max} компонентов."));
+            self.notice.set(i18n::trf!("The diagram holds at most {0} components.", max));
             return false;
         }
         self.notice.set(String::new());
@@ -151,7 +151,7 @@ impl Lab {
     pub fn connect(&self, from: &str, to: &str) {
         let error = self.state.with_untracked(|s| match (s.node(from), s.node(to)) {
             (Some(a), Some(b)) => sdlab::ports::connect_error(s, a, b),
-            _ => Some("Компонент не найден.".to_owned()),
+            _ => Some(i18n::tr("Component not found.").to_owned()),
         });
         match error {
             Some(e) => self.notice.set(e),

@@ -84,7 +84,7 @@ pub fn line_of(frame: &Frame) -> String {
                 Proto::Udp => {
                     if let Some(dns) = &p.dns {
                         let what = if dns.response {
-                            format!("ответ {}", dns.rcode.map(|r| r.as_str()).unwrap_or("undefined"))
+                            i18n::trf!("response {0}", dns.rcode.map(|r| r.as_str()).unwrap_or("undefined"))
                         } else {
                             format!("{} {}?", dns.q.name, dns.q.typ)
                         };

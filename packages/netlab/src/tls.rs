@@ -122,18 +122,14 @@ pub fn validate(state: &NetState, client: &Device, host: &str, tls: &TlsConfig) 
             ok: false,
             version: None,
             curl_code: 35,
-            error: Some(format!(
-                "alert protocol version — сервер поддерживает только TLS {}, клиент требует не ниже {}",
-                tls.versions.join(", "),
-                min_v
-            )),
+            error: Some(i18n::trf!("alert protocol version — the server supports only TLS {0}, the client requires at least {1}", tls.versions.join(", "), min_v)),
             lines,
         };
     }
     let version = if usable.iter().any(|v| v.as_str() == "1.3") { "1.3".to_string() } else { usable[usable.len() - 1].clone() };
-    lines.push(format!("версия протокола: TLS {version}"));
+    lines.push(i18n::trf!("protocol version: TLS {0}", version));
     let c = &tls.cert;
-    lines.push(format!("сертификат: CN={}, SAN={}, издатель {}, действует до {}", c.cn, c.san.join(", "), c.issuer, c.not_after));
+    lines.push(i18n::trf!("certificate: CN={0}, SAN={1}, issuer {2}, valid until {3}", c.cn, c.san.join(", "), c.issuer, c.not_after));
     let fail = |code: i32, e: String, lines: Vec<String>| TlsVerdict {
         ok: false,
         version: Some(version.clone()),
@@ -143,13 +139,13 @@ pub fn validate(state: &NetState, client: &Device, host: &str, tls: &TlsConfig) 
     };
     if let (Some(na), Some(now)) = (parse_date(&c.not_after), parse_date(NOW)) {
         if na < now {
-            return fail(60, format!("SSL certificate problem: certificate has expired (до {}, сегодня {NOW})", c.not_after), lines);
+            return fail(60, i18n::trf!("SSL certificate problem: certificate has expired (until {0}, today {1})", c.not_after, NOW), lines);
         }
     }
     if !c.san.iter().chain(std::iter::once(&c.cn)).any(|n| name_matches(n, host)) {
         return fail(
             60,
-            format!("SSL: no alternative certificate subject name matches target host name '{host}' (в сертификате: {})", c.san.join(", ")),
+            i18n::trf!("SSL: no alternative certificate subject name matches target host name '{0}' (certificate has: {1})", host, c.san.join(", ")),
             lines,
         );
     }
@@ -158,36 +154,34 @@ pub fn validate(state: &NetState, client: &Device, host: &str, tls: &TlsConfig) 
     let mut path = vec![c.cn.clone(), cur.clone()];
     for _ in 0..6 {
         if trust.contains(&cur) {
-            lines.push(format!("цепочка: {}  — корень {cur} в хранилище доверия клиента", path.join(" ← ")));
+            lines.push(i18n::trf!("chain: {0}  — root {1} is in the client's trust store", path.join(" ← "), cur));
             return TlsVerdict { ok: true, version: Some(version), curl_code: 0, error: None, lines };
         }
         let Some(ca) = cas.get(&cur) else {
             return fail(
                 60,
-                format!("SSL certificate problem: unable to get local issuer certificate (неизвестный издатель {cur})"),
+                i18n::trf!("SSL certificate problem: unable to get local issuer certificate (unknown issuer {0})", cur),
                 lines,
             );
         };
         let Some(issuer) = ca.issuer.clone() else {
             return fail(
                 60,
-                format!("SSL certificate problem: self-signed certificate in certificate chain (корень {cur} клиенту не доверен)"),
+                i18n::trf!("SSL certificate problem: self-signed certificate in certificate chain (the client does not trust root {0})", cur),
                 lines,
             );
         };
         if !sent.iter().any(|s| **s == cur) {
             return fail(
                 60,
-                format!(
-                    "SSL certificate problem: unable to get local issuer certificate (сервер не прислал промежуточный сертификат {cur})"
-                ),
+                i18n::trf!("SSL certificate problem: unable to get local issuer certificate (the server did not send intermediate certificate {0})", cur),
                 lines,
             );
         }
         cur = issuer;
         path.push(cur.clone());
     }
-    fail(60, "слишком длинная цепочка".into(), lines)
+    fail(60, i18n::tr("chain too long").into(), lines)
 }
 
 /// Итог HTTPS-запроса.
@@ -211,7 +205,7 @@ pub fn tls_fetch(state: &mut NetState, dev_id: &str, u: &ParsedUrl, ip: u32, met
     }
     if run.status != ProbeStatus::Connected {
         return TlsFetchResult {
-            error: Some(format!("curl: (28) Connection timed out — {}:{} не отвечает", u.host, u.port)),
+            error: Some(i18n::trf!("curl: (28) Connection timed out — {0}:{1} does not answer", u.host, u.port)),
             run: Some(run),
             ..Default::default()
         };
@@ -219,7 +213,7 @@ pub fn tls_fetch(state: &mut NetState, dev_id: &str, u: &ParsedUrl, ip: u32, met
     let dev = delivered_to(state, &run, Some(ip));
     let Some(dev) = dev.filter(|d| d.tls.is_some()) else {
         return TlsFetchResult {
-            error: Some("curl: (35) SSL connect error — на порту нет TLS-сервера".into()),
+            error: Some(i18n::tr("curl: (35) SSL connect error — no TLS server on the port").into()),
             run: Some(run),
             ..Default::default()
         };
@@ -230,9 +224,9 @@ pub fn tls_fetch(state: &mut NetState, dev_id: &str, u: &ParsedUrl, ip: u32, met
     let rtts: f64 = if v.version.as_deref() == Some("1.2") { 2.0 } else { 1.0 };
     let rtt = run.rtt_us.unwrap_or(0.0);
     let text = if v.ok {
-        format!("TLS {}: рукопожатие за {} кр., сертификат принят", v.version.clone().unwrap_or_default(), rtts)
+        i18n::trf!("TLS {0}: handshake in {1} RTT, certificate accepted", v.version.clone().unwrap_or_default(), rtts)
     } else {
-        format!("TLS: отказ — {}", v.error.clone().unwrap_or_default())
+        i18n::trf!("TLS: refused — {0}", v.error.clone().unwrap_or_default())
     };
     run.events.push(NetEvent { t: rtt + 30.0, dev: dev.id.clone(), kind: EventKind::Tls, text });
     if !v.ok {
@@ -255,7 +249,7 @@ pub fn tls_fetch(state: &mut NetState, dev_id: &str, u: &ParsedUrl, ip: u32, met
         },
     );
     resp.rtt_us = Some(rtt * (2.0 + rtts));
-    let via = format!("TLS {}, рукопожатие {} кр. = {}", v.version.unwrap_or_default(), rtts, fmt_ms(Some(rtt * rtts)));
+    let via = i18n::trf!("TLS {0}, handshake {1} RTT = {2}", v.version.unwrap_or_default(), rtts, fmt_ms(Some(rtt * rtts)));
     TlsFetchResult { response: Some(resp), run: Some(run), via: Some(via), error: None }
 }
 
@@ -267,7 +261,7 @@ pub fn s_client(state: &mut NetState, dev_id: &str, host: &str, ip: u32, port: i
         return (format!("connect: {msg}"), run);
     }
     let dev = delivered_to(state, &run, Some(ip));
-    let Some(dev) = dev.filter(|d| d.tls.is_some()) else { return ("openssl: на порту нет TLS".into(), run) };
+    let Some(dev) = dev.filter(|d| d.tls.is_some()) else { return (i18n::tr("openssl: no TLS on the port").into(), run) };
     let Some(client) = state.devices.get(dev_id).cloned() else { return (String::new(), run) };
     let Some(tls) = dev.tls.as_ref() else { return (String::new(), run) };
     let v = validate(state, &client, host, tls);
@@ -275,7 +269,7 @@ pub fn s_client(state: &mut NetState, dev_id: &str, host: &str, ip: u32, port: i
     out.extend(v.lines.iter().map(|l| format!("  {l}")));
     out.push(if v.ok { "Verification: OK".to_string() } else { format!("Verification error: {}", v.error.clone().unwrap_or_default()) });
     if let Some(ver) = &v.version {
-        out.push(format!("Protocol: TLS {ver} (рукопожатие {} кр.)", if ver == "1.2" { 2 } else { 1 }));
+        out.push(i18n::trf!("Protocol: TLS {0} (handshake {1} RTT)", ver, if ver == "1.2" { 2 } else { 1 }));
     }
     (out.join("\n"), run)
 }

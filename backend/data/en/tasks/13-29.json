@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 29,
+ "tasks": [
+  {
+   "id": "dc-tag-stack",
+   "title": "Tags and decorator order",
+   "statement": "Write a decorator tag(name): it wraps the string returned by the function in <name>…</name>. Two tags in a row must nest so that the upper one ends up outside.",
+   "hint": "tag returns decorator(func), which returns wrapper(*args, **kwargs): return f\"<{name}>{func(*args, **kwargs)}</{name}>\"."
+  },
+  {
+   "id": "dc-repeat-optional",
+   "title": "repeat: with and without parentheses",
+   "statement": "Write a decorator repeat that works in two forms: @repeat (calls the function twice) and @repeat(times=3) (the given number of calls). It returns the result of the last call. The times parameter is keyword-only.",
+   "hint": "If func is not None, return decorate(func); otherwise return decorate."
+  },
+  {
+   "id": "dc-counted-wraps",
+   "title": "Call counter and metadata",
+   "statement": "Write a decorator counted: it counts calls in the attribute wrapper.calls (starting at zero), and keeps the original's name and docstring and the __wrapped__ link to it.",
+   "hint": "@functools.wraps(func) gives the name, docstring, and __wrapped__; the counter is wrapper.calls = 0 after defining wrapper."
+  },
+  {
+   "id": "dc-class-plugin",
+   "title": "Plugin registry (class decorator)",
+   "statement": "Write a class decorator plugin: it adds the class to the dictionary PLUGINS under its lowercase name and returns the class unchanged.",
+   "hint": "PLUGINS[cls.__name__.lower()] = cls; return cls."
+  },
+  {
+   "id": "dc-auto-repr",
+   "title": "The auto_repr class decorator",
+   "statement": "Write a class decorator auto_repr: it adds to the class a __repr__ method that prints the class name and the instance's attributes in creation order: Point(x=1, y=2).",
+   "hint": "def __repr__(self): fields = \", \".join(f\"{k}={v!r}\" for k, v in vars(self).items()); cls.__repr__ = __repr__; return cls."
+  },
+  {
+   "id": "dc-retry",
+   "title": "Retry on error",
+   "statement": "Write a decorator retry(times, exceptions=(Exception,)): it calls the function up to times times; if a call raises one of exceptions, it tries again; after the last failure it re-raises the error. A successful result is returned immediately.",
+   "hint": "for attempt in range(times): try: return func(...) except exceptions: if attempt == times - 1: raise."
+  },
+  {
+   "id": "dc-async-aware",
+   "title": "A decorator for sync and async",
+   "statement": "Write a decorator traced: it prints «вызов <имя>» before running and «готово <имя>» after (with the function's name in place of the placeholder), for both ordinary functions and async def (for those, the wrapper must be asynchronous and await the result). Print the Russian words exactly as written.",
+   "hint": "if inspect.iscoroutinefunction(func): async def wrapper(...): ... result = await func(...); otherwise an ordinary wrapper."
+  },
+  {
+   "id": "dc-callcounter-class",
+   "title": "A class decorator for functions and methods",
+   "statement": "Finish the class decorator CallCounter: it counts calls in the attribute calls, keeps the original's metadata (functools.update_wrapper), and works not only on functions but also on methods; for that, add __get__ (when accessed through the class, return the counter itself).",
+   "hint": "__call__ increments calls; __get__(self, obj, objtype=None): if obj is None: return self; return types.MethodType(self, obj)."
+  },
+  {
+   "id": "dc-checked-annotations",
+   "title": "Checking arguments against annotations",
+   "statement": "Write a decorator checked: before the call it binds the arguments to the function's signature (inspect.signature(...).bind) and, for each parameter annotated with a type, checks isinstance; on a mismatch it raises TypeError. Parameters without annotations are not checked.",
+   "hint": "bound = sig.bind(*args, **kwargs); for name, value in bound.arguments.items(): ann = sig.parameters[name].annotation; if ann is not inspect.Parameter.empty and not isinstance(value, ann): raise TypeError."
+  }
+ ]
+}

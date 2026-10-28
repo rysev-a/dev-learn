@@ -82,7 +82,7 @@ pub fn FsTree(chapter: i64, items: NodeRef<html::Div>, on_open: Callback<i64>) -
     let ctx = expect_context::<BookCtx>();
     let fs = expect_context::<Fullscreen>();
     view! {
-        <aside class="slide-fs-toc" aria-label="Содержание">
+        <aside class="slide-fs-toc" aria-label=i18n::tr("Contents")>
             {move || match ctx.course.get() {
                 Load::Ready(sections) if !sections.is_empty() => {
                     // раздел с текущей главой раскрыт, пока не свернут вручную

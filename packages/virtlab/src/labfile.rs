@@ -45,13 +45,13 @@ pub struct LabChapter {
 impl LabChapter {
     /// Разобрать файл главы.
     pub fn from_json(text: &str) -> Result<LabChapter, SpecError> {
-        serde_json::from_str(text).map_err(|e| SpecError::new(format!("разбор файла главы: {e}")))
+        serde_json::from_str(text).map_err(|e| SpecError::new(i18n::trf!("parsing the chapter file: {0}", e)))
     }
 
     /// Канонический JSON файла: отступ 2 пробела, порядок полей как в структурах, перевод строки в конце.
     pub fn to_canonical_json(&self) -> Result<String, SpecError> {
         let mut s =
-            serde_json::to_string_pretty(self).map_err(|e| SpecError::new(format!("запись файла главы: {e}")))?;
+            serde_json::to_string_pretty(self).map_err(|e| SpecError::new(i18n::trf!("writing the chapter file: {0}", e)))?;
         s.push('\n');
         Ok(s)
     }
@@ -64,15 +64,15 @@ impl LabChapter {
     /// Проверка: книга и вид лаборатории верны, упражнения уникальны, описания целы.
     pub fn validate(&self) -> Result<(), SpecError> {
         if self.lab != "virt" {
-            return Err(SpecError::new(format!("вид лаборатории «{}», ожидается «virt»", self.lab)));
+            return Err(SpecError::new(i18n::trf!("lab kind “{0}”, expected “virt”", self.lab)));
         }
         if self.tasks.is_empty() {
-            return Err(SpecError::new("в главе нет упражнений"));
+            return Err(SpecError::new(i18n::tr("the chapter has no exercises")));
         }
         let mut seen = std::collections::BTreeSet::new();
         for t in &self.tasks {
             if !seen.insert(t.id.clone()) {
-                return Err(SpecError::new(format!("повтор упражнения «{}»", t.id)));
+                return Err(SpecError::new(i18n::trf!("duplicate exercise “{0}”", t.id)));
             }
             t.spec.validate().map_err(|e| SpecError::new(format!("{}: {e}", t.id)))?;
         }
@@ -97,11 +97,11 @@ pub const BOOK: u32 = 17;
 /// симулятора по умолчанию ([`crate::builtin`]). Главы по возрастанию номера.
 pub fn build_chapters(definitions_json: &str) -> Result<Vec<LabChapter>, SpecError> {
     let defs: Vec<Definition> =
-        serde_json::from_str(definitions_json).map_err(|e| SpecError::new(format!("разбор определений: {e}")))?;
+        serde_json::from_str(definitions_json).map_err(|e| SpecError::new(i18n::trf!("parsing definitions: {0}", e)))?;
     let mut by_chapter: std::collections::BTreeMap<u32, Vec<Task>> = Default::default();
     for d in defs {
         let spec =
-            crate::builtin(&d.id).ok_or_else(|| SpecError::new(format!("нет описания симулятора «{}»", d.id)))?;
+            crate::builtin(&d.id).ok_or_else(|| SpecError::new(i18n::trf!("no description for simulator “{0}”", d.id)))?;
         by_chapter.entry(d.chapter).or_default().push(Task {
             id: d.id,
             title: d.title,

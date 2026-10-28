@@ -225,7 +225,7 @@ pub fn simulate(workloads: &[Workload], input: &SimInput) -> Result<SimRun, Spec
     let w = workloads
         .iter()
         .find(|w| w.id == input.workload)
-        .ok_or_else(|| SpecError::new(format!("нет нагрузки «{}»", input.workload)))?;
+        .ok_or_else(|| SpecError::new(i18n::trf!("no workload “{0}”", input.workload)))?;
     Ok(simulate_workload(w, input.mode, input.guest, input.host))
 }
 
@@ -287,25 +287,25 @@ pub fn default_workloads() -> Vec<Workload> {
         maps,
     };
     vec![
-        w("one", "Один промах TLB", "один доступ к памяти: смотрим цену обхода", Access::Single { addr: 0 }, 0),
+        w("one", i18n::tr("A single TLB miss"), i18n::tr("one memory access: look at the cost of the walk"), Access::Single { addr: 0 }, 0),
         w(
             "scan",
-            "Сканирование 8 МиБ",
-            "2048 обращений подряд с шагом 4 КиБ",
+            i18n::tr("Scanning 8 MiB"),
+            i18n::tr("2048 consecutive accesses with a 4 KiB stride"),
             Access::Stride { count: 2048, step: 4096 },
             0,
         ),
         w(
             "random",
-            "Случайные доступы по 64 МиБ",
-            "4000 случайных обращений; TLB на 64 записи",
+            i18n::tr("Random accesses over 64 MiB"),
+            i18n::tr("4000 random accesses; TLB of 64 entries"),
             Access::Random { count: 4000, span_mib: 64, seed: 7 },
             0,
         ),
         w(
             "fork",
-            "Частые изменения таблиц",
-            "500 изменений отображения гостем и 2000 случайных обращений по 1 ГиБ",
+            i18n::tr("Frequent page table changes"),
+            i18n::tr("500 mapping changes by the guest and 2000 random accesses over 1 GiB"),
             Access::Random { count: 2000, span_mib: 1024, seed: 11 },
             500,
         ),
@@ -328,21 +328,21 @@ pub fn default_goals() -> Vec<EptGoal> {
         EptGoal {
             mode: Some(Mode::Ept),
             max_walk: Some(15),
-            ..g("walk", "Один промах стоит не больше 15 обращений (вложенные таблицы)", "one")
+            ..g("walk", i18n::tr("A single miss costs at most 15 accesses (nested tables)"), "one")
         },
         EptGoal {
             mode: Some(Mode::Shadow),
             guest: Some(PageSize::K4),
             host: Some(PageSize::K4),
             max_cost: Some(15000),
-            ..g("scan", "Сканирование 8 МиБ в 4 КиБ-страницах дешевле, чем в EPT: не больше 15 000", "scan")
+            ..g("scan", i18n::tr("Scanning 8 MiB with 4 KiB pages is cheaper than with EPT: at most 15,000"), "scan")
         },
         EptGoal {
             max_cost: Some(10000),
-            ..g("random", "Случайные доступы по 64 МиБ укладываются в 10 000 обращений", "random")
+            ..g("random", i18n::tr("Random accesses over 64 MiB fit within 10,000 accesses"), "random")
         },
         EptGoal {
-            max_cost: Some(35000), ..g("fork", "Частые изменения таблиц: не больше 35 000 обращений", "fork")
+            max_cost: Some(35000), ..g("fork", i18n::tr("Frequent page table changes: at most 35,000 accesses"), "fork")
         },
     ]
 }

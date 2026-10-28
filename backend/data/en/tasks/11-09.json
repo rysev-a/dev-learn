@@ -1,0 +1,188 @@
+{
+ "book": 11,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "j9-resolve-relative",
+   "title": "Resolving relative module paths",
+   "statement": "Write a function resolveRelative(from, spec): from is the importer's file path («src/app/main.js»), spec is a relative path («./util.js», «../lib/x.js», «./a/./b/../c.js»); return the normalized path without «.» and «..» (for example, «src/app/util.js»). If spec does not start with «./» or «../», throw TypeError(\"голое имя\"). If the path climbs above the root («../../../x.js» from «a/b.js»), throw Error(\"выше корня\").",
+   "hint": "Split the importer's path into folders and walk through the segments of spec: «..» removes a folder, «.» is skipped."
+  },
+  {
+   "id": "j9-resolve-bare",
+   "title": "Finding a package in node_modules",
+   "statement": "The file system is given as a set of paths (an array of file strings). Write a function resolveBare(name, fromDir, files): it looks for the file «<folder>/node_modules/<name>/index.js» (or «<name>.js» directly in node_modules), starting at fromDir and climbing to the root (the empty string is the root), and returns the first path found; if nothing is found, throw Error(\"Cannot find package '<name>'\").",
+   "hint": "Loop: check <dir>/node_modules, then go up one level; the root is the empty string."
+  },
+  {
+   "id": "j9-exports-field",
+   "title": "The exports field in package.json",
+   "statement": "Write a function resolveExports(pkg, subpath, conditions): pkg is a package.json object, subpath is «.» or «./utils» and so on, conditions is an array of active conditions, for example [\"import\", \"default\"]. Support: a string; a conditions object (the first matching condition in key order; «default» always matches); a subpath map («.»: …, «./x»: …); patterns «./features/*»: «./src/f/*.js» (the star is substituted). If the subpath is not in exports, throw Error(\"Package subpath '<subpath>' is not defined by \\\"exports\\\"\"). If there is no exports, subpath «.» gives pkg.main ?? «./index.js».",
+   "hint": "Convert exports to a subpath map; for conditions go through the keys in order; for patterns replace * with the matched middle part."
+  },
+  {
+   "id": "j9-import-map",
+   "title": "The browser import map",
+   "statement": "Write a function resolveImport(map, spec, referrer): map = { imports: {…}, scopes: { \"/admin/\": {…} } }. Rules: if the referrer path starts with a key from scopes (the longest match is chosen), that scope is checked first, then imports. An exact name match wins; a key ending with «/» is a prefix: «vue/» + «dist/x.js» → the value + «dist/x.js». If nothing is found, return spec unchanged, but a bare name (one that does not start with «/», «./», «../», «https://») throws TypeError.",
+   "hint": "First the longest matching scope, then imports; for prefixes ending with «/» take the longest key."
+  },
+  {
+   "id": "j9-live-binding",
+   "title": "Live bindings: a module namespace",
+   "statement": "Write a function createNamespace(getters): getters is an object of «name → function with no arguments»; it returns a namespace object: reading ns.name calls the function (the value is always fresh), keys are enumerated in alphabetical order, and writing, deleting and adding new properties throw TypeError. Use Proxy or defineProperty.",
+   "hint": "Object.defineProperty(ns, k, { get, enumerable: true }) + Object.freeze."
+  },
+  {
+   "id": "j9-esm-order",
+   "title": "ES module execution order",
+   "statement": "Modules are given as { name: { imports: [names] } }. Write a function executionOrder(modules, entry): the execution order as in ES modules is a depth-first traversal: first the imports in order, then the module itself (post-order); each module once; on cycles do not enter again. For an unknown module throw Error(\"нет модуля: <name>\").",
+   "hint": "Mark a module as visited before recursing; add it to the result after traversing its imports."
+  },
+  {
+   "id": "j9-dynamic-import",
+   "title": "Dynamic import cache",
+   "statement": "Write a function createImporter(loaders): loaders is an object of «name → function returning a module promise». It returns a function load(name): for one name, both concurrent and repeated calls return the same promise (loading happens once); if loading fails, the entry is removed from the cache and the next call tries again; an unknown name gives a rejected promise with Error(\"нет модуля\").",
+   "hint": "A Map from name to promise; on rejection remove the entry in p.catch."
+  },
+  {
+   "id": "j9-barrel-cost",
+   "title": "The price of a barrel",
+   "statement": "Files are given as { path: source }, where the source may contain lines like «import … from './x.js'» and «export * from './x.js'». Write a function pulledIn(files, entry): an array of all files that get loaded when entry is imported (including itself), sorted; import paths are relative to the root, with no folders (simply «./x.js» → «x.js»). Skip files that do not exist.",
+   "hint": "Find all from './…' in the text and traverse the graph; mark visited files."
+  },
+  {
+   "id": "j9-find-cycles",
+   "title": "Finding dependency cycles",
+   "statement": "A dependency graph is given as { module: [dependencies] }. Write a function findCycles(graph): an array of the cycles found, each cycle written as an array of names starting from the lexicographically smallest, without repeating the first one at the end (for example, [\"a\",\"b\",\"c\"]); the same cycle must not repeat; the array of cycles is sorted. Ignore edges to unknown nodes.",
+   "hint": "Depth-first traversal with a stack of the current path; when you meet a node from the stack, cut out the cycle and normalize it by rotation."
+  },
+  {
+   "id": "j9-eval-cjs",
+   "title": "A CommonJS loader from source",
+   "statement": "Write a function runCommonJs(source, requireFn): runs the module's source text inside a function with parameters (exports, require, module) and returns the final module.exports (so both writes to exports and assignment module.exports=… must work). Do not catch runtime errors.",
+   "hint": "new Function('exports', 'require', 'module', source).call(…)"
+  },
+  {
+   "id": "j9-app-error",
+   "title": "The AppError hierarchy",
+   "statement": "Write a class AppError extends Error: constructor (message, { code = \"E_APP\", status = 500, details } = {}); fields name (from the class name, this.constructor.name), code, status, details; a method toJSON() → { name, code, message, status, details } (details only if given). And subclasses NotFoundError (code E_NOT_FOUND, status 404, default message «Не найдено») and ValidationError (E_VALIDATION, 422, details is an array of field errors).",
+   "hint": "The class name is this.constructor.name; toJSON defines how the error ends up in JSON.stringify."
+  },
+  {
+   "id": "j9-cause-chain",
+   "title": "A chain of causes",
+   "statement": "Write functions wrap(message, cause) → new Error(message, { cause }), causeChain(err) → an array of messages from the topmost error down to the root cause (cause may not be an error; then String(cause) becomes the last element of the chain) and rootCause(err) → the root cause (the last object in the chain that has no cause; for a non-error, the value itself).",
+   "hint": "Follow err.cause while the value is still an Error with a cause field."
+  },
+  {
+   "id": "j9-aggregate",
+   "title": "Collect all the errors",
+   "statement": "Write a function runAll(tasks): tasks is an array of synchronous functions. It runs all of them (not stopping at the first error); if all succeed, it returns an array of results; otherwise it throws an AggregateError with an errors array (in task order) and the message «упало N из M».",
+   "hint": "Collect errors in an array and throw new AggregateError(errors, message) at the end."
+  },
+  {
+   "id": "j9-with-cleanup",
+   "title": "Guaranteed cleanup",
+   "statement": "Write a function withResource(open, use, close): open() returns a resource; use(res) is the working function; close(res) releases it. The result of use is returned, and close is called exactly once, both on success and on an exception in use. If both use and close fail, throw the error from use (lose the close error). If only close fails, throw it. If open fails, close is not called.",
+   "hint": "try/catch around use with a rethrow, and a separate try around close inside the catch."
+  },
+  {
+   "id": "j9-result",
+   "title": "The Result type",
+   "statement": "Write ok(value), err(error) and functions over results: map(r, f) (applies f to the success value), mapErr(r, f), andThen(r, f) (f returns a new result), unwrapOr(r, default), tryCatch(fn) (calls fn: success gives ok(result), an exception gives err(exception)). A result is an object { ok: true, value } or { ok: false, error }.",
+   "hint": "Each function checks r.ok and either works with the value or returns the error unchanged."
+  },
+  {
+   "id": "j9-parse-config",
+   "title": "Parsing settings while accumulating errors",
+   "statement": "Write a function parseConfig(text): text is a JSON string. It returns { ok: true, value: { port, host, debug } } or { ok: false, errors: [...] } (all errors found, in order). Rules: invalid JSON gives a single error «Неверный JSON»; port is an integer 1–65535 («port: нужно целое 1–65535»); host is a non-empty string, «localhost» by default; debug is a boolean, false by default («debug: нужно true или false»). Unknown fields are an error «Неизвестное поле: <name>».",
+   "hint": "First parse the JSON, then run independent field checks; all messages accumulate in an array."
+  },
+  {
+   "id": "j9-backoff",
+   "title": "An exponential pause schedule",
+   "statement": "Write a function backoffDelays(attempts, base, cap, random): returns an array of pauses between attempts (attempts - 1 of them, before the 2nd, 3rd … attempts): for the i-th pause (i from 0) the upper bound is ceil = min(cap, base * 2 ** i); the pause itself is \"full jitter\": Math.floor(random() * (ceil + 1)); random is a function returning a number in [0, 1).",
+   "hint": "ceil = min(cap, base * 2 ** i); pause = floor(random() * (ceil + 1))."
+  },
+  {
+   "id": "j9-retry",
+   "title": "Retry with a pause",
+   "statement": "Write a function retry(fn, { attempts = 3, delays = [], sleep, shouldRetry = () => true }): calls fn(attempt number from 1); on an exception, if attempts remain and shouldRetry(error) is true, waits with await sleep(delays[attempt - 1] ?? 0) and tries again; after the last attempt (or when shouldRetry is false) it throws the last error. It returns the result of fn. fn and sleep may be asynchronous.",
+   "hint": "A loop over attempt numbers: try/catch around await fn(n); after the last attempt, throw."
+  },
+  {
+   "id": "j9-timeout",
+   "title": "A timeout for a promise",
+   "statement": "Write a class TimeoutError extends Error (name «TimeoutError») and a function withTimeout(promise, ms): returns a promise that resolves with the value of promise if it finishes within ms milliseconds, and otherwise rejects with TimeoutError(\"Превышено время ожидания: <ms> мс\"). The timer must be cleared after completion (otherwise the process will not exit in time).",
+   "hint": "Promise.race between the original promise and a timer promise; clearTimeout in finally."
+  },
+  {
+   "id": "j9-assert",
+   "title": "Custom assertions",
+   "statement": "Write a class AssertionError extends Error (name «AssertionError», fields actual, expected) and functions assert(cond, message), assertEqual(actual, expected, message) (strict equality; the default message is «Ожидалось <expected>, получено <actual>» with the values passed through JSON.stringify), assertThrows(fn, ErrorClass?) (throws AssertionError «Ожидалось исключение» if fn did not throw; if a class is given and the error is not its instance, «Ожидалось исключение <ClassName>, получено <name>»; returns the caught error).",
+   "hint": "Build the default message with a template and JSON.stringify; catch the error from fn in try/catch."
+  },
+  {
+   "id": "j9-serialize-error",
+   "title": "Passing an error between processes",
+   "statement": "Write functions serializeError(err) and deserializeError(obj). serializeError returns a plain object { name, message, stack, cause? (recursively), extra? } where extra holds the error's own enumerable fields (for example code, status), if there are any; for non-errors it returns { name: \"NonError\", message: String(value) }. deserializeError restores an Error: the class by name from a set (Error, TypeError, RangeError, SyntaxError), otherwise an Error with that name; message, stack, cause and extra are restored.",
+   "hint": "Own fields: Object.keys(err); the class by name comes from a dictionary of built-in constructors."
+  },
+  {
+   "id": "j9-parse-stack",
+   "title": "Parsing a call stack",
+   "statement": "Write a function parseStack(stack): a string in V8 format: the first line is the message, then lines like «    at name (file:line:column)» or «    at file:line:column» (an anonymous function). Return an array of { fn, file, line, col } (fn is null for anonymous ones; line and col are numbers); skip lines in any other format. Nested parentheses in a name like «async Object.run»: fn is taken as is.",
+   "hint": "A regular expression with an optional group «name (» and parsing of file:line:column."
+  },
+  {
+   "id": "j9-reporter",
+   "title": "An error collector for monitoring",
+   "statement": "Write a function createReporter(now, limit): now() is the current time (ms), limit is the maximum number of reports sent per 1000 ms. It returns an object: report(err) → true if the error was accepted for sending, and false if it was dropped (a duplicate by the name+message pair within the last 1000 ms, or the limit for the sliding 1000 ms was exceeded); sent() → an array of accepted «name: message» strings in the order of acceptance.",
+   "hint": "A 1000 ms window: keep the time of the last report per key and a list of the times of accepted reports."
+  },
+  {
+   "id": "j9-circuit-breaker",
+   "title": "A circuit breaker",
+   "statement": "Write a function createBreaker(fn, { threshold, cooldown, now }): after threshold consecutive errors fn \"opens\" the circuit: the following calls immediately throw Error(\"circuit open\") without calling fn; after cooldown ms the circuit is \"half-open\": one trial call, where success closes the circuit (the error counter resets) and an error opens it again for cooldown. A successful call in normal mode also resets the counter. It returns a wrapper function call(...args). Synchronous functions.",
+   "hint": "States: closed, open (until openedAt + cooldown), half-open (after it, a trial call)."
+  },
+  {
+   "id": "j9-validate-all",
+   "title": "Validation with all errors",
+   "statement": "A schema: { field: { type: \"string\"|\"number\"|\"boolean\", required?: true, min?, max? } } (min/max apply to the value for a number and to the length for a string). Write a function validate(schema, obj): returns an array of error strings «field: reason» in schema field order, all at once: «обязательное поле», «ожидался тип <type>», «меньше минимума <min>», «больше максимума <max>». An optional missing field is skipped. An empty array means everything is valid.",
+   "hint": "For each schema field run several independent checks; errors accumulate in an array."
+  },
+  {
+   "id": "j9-fix-swallow",
+   "title": "Fix: a swallowed error",
+   "statement": "The function readJson(text, fallback) must return fallback only for invalid JSON (SyntaxError), and rethrow any other errors. Right now an empty catch hides everything, even the error from text.trim when text is not a string. Fix it.",
+   "hint": "In catch check e instanceof SyntaxError; throw e for everything else."
+  },
+  {
+   "id": "j9-ensure-error",
+   "title": "Turning a thrown value into an Error",
+   "statement": "In JavaScript you can throw anything. Write a function ensureError(x): if x is an Error, return it; if it is a string, new Error(x); if it is an object with a message field (a string), an Error with that message and cause = x; otherwise an Error(«Брошено не-значение ошибки: <JSON or String(x)>») with cause = x. For null and undefined the message is «Брошено не-значение ошибки: null/undefined».",
+   "hint": "Check the types in order; JSON.stringify may throw on a circular reference, so wrap it in a try."
+  },
+  {
+   "id": "j9-with-resources",
+   "title": "Several resources: closing in reverse order",
+   "statement": "Write a function withResources(openers, use): openers is an array of functions, each returning a resource { name, close() }; they are opened in order; use(resources) is called with the array of resources; then all opened resources are closed in reverse order, even if use or opening a later resource failed. If one or more errors occur during closing together with a use error, throw AggregateError([use error, closing errors…]); if only closing errors, an AggregateError of them (with a single one, that error itself); if only use failed, its error. On success, the result of use.",
+   "hint": "Collect errors in an array and close the resources in a loop over the reversed list of opened ones."
+  },
+  {
+   "id": "j9-fix-throw-string",
+   "title": "Fix: strings are being thrown",
+   "statement": "The function divideStrict(a, b) throws a string on division by zero, so the \"error\" has no stack and cannot be told apart by class. Fix it so that a RangeError with the message «Деление на ноль» is thrown; for non-numeric arguments, a TypeError «Нужны числа».",
+   "hint": "throw new RangeError(...) and throw new TypeError(...)",
+   "starter": "function divideStrict(a, b) {\n  if (typeof a !== \"number\" || typeof b !== \"number\") throw \"Нужны числа\";\n  if (b === 0) throw \"Деление на ноль\";\n  return a / b;\n}\n"
+  },
+  {
+   "id": "j9-fix-finally-return",
+   "title": "Fix: return in finally swallows the exception",
+   "statement": "The function loadAll(loaders) must call all the loaders in turn, count how many were completed (the done field), and must write the total to the log with log.push(\"итог: N\") — but the exception of the first failed loader must bubble out. Right now the return inside finally swallows the exception. Fix it without removing the log entry.",
+   "hint": "Remove the return from the finally block: then the exception keeps bubbling up.",
+   "starter": "function loadAll(loaders, log) {\n  let done = 0;\n  try {\n    for (const l of loaders) {\n      l();\n      done++;\n    }\n    return done;\n  } finally {\n    log.push(\"итог: \" + done);\n    return done;\n  }\n}\n"
+  }
+ ]
+}

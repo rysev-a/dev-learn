@@ -1,0 +1,114 @@
+{
+ "book": 11,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "w14-img-alt",
+   "title": "An image with alt",
+   "statement": "There is no photo under the paragraph. Add a picture of the office: the file `office.jpg`, with a text alternative that conveys the meaning of the photo (for example, “Office building on the main street”).",
+   "hint": "The `img` tag is empty and has no closing tag. You need two attributes: `src` with the address and `alt` describing what is in the photo."
+  },
+  {
+   "id": "w14-img-decor",
+   "title": "A decorative image",
+   "statement": "The wavy line `wave.svg` only decorates the heading and conveys nothing. Make a screen reader skip it, but keep the text-alternative attribute in the markup.",
+   "hint": "An empty string is a value: `alt=\"\"`. If you remove the attribute entirely, the screen reader will read out the file name."
+  },
+  {
+   "id": "w14-img-link",
+   "title": "An image link",
+   "statement": "The bag icon leads to the cart. Right now the image has no alternative, so a screen reader cannot tell where the link goes. Write an `alt` that describes the action, in Russian and containing the word “корзина” (cart).",
+   "hint": "For a link, `alt` says not “bag” but what happens on click: “Открыть корзину” (Open the cart)."
+  },
+  {
+   "id": "w14-img-size",
+   "title": "Dimensions against layout jumps",
+   "statement": "The hero image `hero.jpg` is 800 by 450 pixels. Tell the browser the dimensions in the markup so that it reserves space before the file loads.",
+   "hint": "The attributes are `width` and `height`; the values are plain numbers without units."
+  },
+  {
+   "id": "w14-figure",
+   "title": "An illustration with a caption",
+   "statement": "Wrap the picture `chart.png` in a self-contained block and add the caption “Рис. 1. Выручка по кварталам” (Fig. 1. Revenue by quarter). The caption must come after the picture.",
+   "hint": "You need the pair `figure` and `figcaption`; `img` goes inside `figure`, and so does `figcaption`, after the picture."
+  },
+  {
+   "id": "w14-picture",
+   "title": "picture with formats",
+   "statement": "Attach three files of the same image: `cat.avif`, `cat.webp` and the fallback `cat.jpg`. The modern formats come first and differ by the `type` attribute; the fallback is a regular `img` with `alt`.",
+   "hint": "Inside `picture`, first two `source` elements (`type=\"image/avif\"`, `type=\"image/webp\"`, addresses in `srcset`), and the `img` last."
+  },
+  {
+   "id": "w14-srcset",
+   "title": "srcset and sizes",
+   "statement": "The hero image has three files: `hero-400.jpg` (400 px), `hero-800.jpg` (800 px), `hero-1600.jpg` (1600 px). List them in `srcset` with widths in `w` descriptors, and in `sizes` say: on windows wider than 900px the image takes a third of the width, on narrow ones the full width.",
+   "hint": "`srcset=\"a.jpg 400w, b.jpg 800w\"`; `sizes=\"(min-width: 900px) 33vw, 100vw\"`. Keep `src` and `alt`: old browsers and the screen reader need them."
+  },
+  {
+   "id": "w14-lazy",
+   "title": "Lazy and eager",
+   "statement": "On the page the main image `#hero` is visible immediately, while `#g1` and `#g2` sit in a gallery below the first screen. Turn on lazy loading for the gallery, and give the main image a high priority without making it lazy.",
+   "hint": "For the gallery: `loading=\"lazy\"`. For the main image: `fetchpriority=\"high\"`, and it must not have a `loading` attribute."
+  },
+  {
+   "id": "w14-video",
+   "title": "Video with subtitles",
+   "statement": "Build a player: controls, the poster `poster.jpg`, two files (`intro.webm` with type `video/webm` and `intro.mp4` with type `video/mp4`), Russian subtitles `ru.vtt`, and fallback text for browsers that do not support video, placed inside the tag. Write the fallback text in Russian, with the word “браузер” (browser) in it.",
+   "hint": "Inside `video`: two `source` elements, one `track` with `kind=\"subtitles\"` and `srclang=\"ru\"`, and then plain text. `controls` is written without a value."
+  },
+  {
+   "id": "w14-audio",
+   "title": "A podcast on the page",
+   "statement": "Under the heading, add a podcast player: controls and two formats, `episode.mp3` (`audio/mpeg`) and `episode.ogg` (`audio/ogg`). For old browsers, put a download link inside the tag.",
+   "hint": "`audio` with the `controls` attribute; inside, two `source` elements and an `a` link with `href`."
+  },
+  {
+   "id": "w14-iframe",
+   "title": "A safe map",
+   "statement": "The map is embedded in a frame with no preparation. Give the frame a name for screen readers (“Карта офиса”, Office map), forbid it everything unnecessary through `sandbox` (the map's scripts may run, but top-window navigation must not be allowed), and defer loading until the frame is near the screen.",
+   "hint": "The attributes are `title`, `sandbox=\"allow-scripts\"`, `loading=\"lazy\"`. Values like `allow-top-navigation…` are not needed."
+  },
+  {
+   "id": "w14-table-basic",
+   "title": "A table with a header",
+   "statement": "The price list is written as bare rows. Give the table the caption “Прайс” (Price list) (`caption`), move the first row into the header (`thead`) and make its cells headings (`th`); the data rows go in `tbody`.",
+   "hint": "Order inside `table`: `caption`, `thead`, `tbody`. In the header the cells are `th`, in the data they are `td`."
+  },
+  {
+   "id": "w14-table-scope",
+   "title": "Headings with scope",
+   "statement": "In the weather table the headings are not tied to the data. Declare the column headings (`scope=\"col\"`), and turn the city names in the rows into `th` heading cells with `scope=\"row\"`. Leave the empty corner cell alone.",
+   "hint": "In `thead`, give every `th` `scope=\"col\"`. In `tbody`, the first cell of each row is not a `td` but a `th scope=\"row\"`."
+  },
+  {
+   "id": "w14-colspan",
+   "title": "A two-level header",
+   "statement": "Make the header out of two rows: the cell “Город” (City) spans both rows (`rowspan`), and above “Январь” (January) and “Июль” (July) there is a shared cell “Температура” (Temperature) (`colspan`). The second header row keeps only “Январь” and “Июль”.",
+   "hint": "First row: `th rowspan=\"2\"` with “Город” and `th colspan=\"2\"` with “Температура”. Second row: two `th`. `scope=\"colgroup\"` suits the cell merged across columns."
+  },
+  {
+   "id": "w14-details",
+   "title": "A collapsible answer",
+   "statement": "The question and the answer sit in ordinary blocks. Collapse the answer into the ready-made widget: the question is a heading that is always visible, and the answer is shown on click.",
+   "hint": "`details` contains a `summary` (as the first child) with the question text, and then a paragraph with the answer."
+  },
+  {
+   "id": "w14-gallery",
+   "title": "A gallery with captions",
+   "statement": "Three photos sit in one block with no captions. Build a gallery: a bulleted list of three items, each holding a `figure` with a picture and a caption (`figcaption`: “Озеро” (Lake), “Лес” (Forest), “Горы” (Mountains)).",
+   "hint": "`ul` > `li` > `figure` > `img` and `figcaption`. Do not forget to keep the `alt` on every picture."
+  },
+  {
+   "id": "w14-no-layout-table",
+   "title": "No table for layout",
+   "statement": "A page with a menu on the left and text on the right is laid out with a table: that was common long ago, but a table is for data. Rewrite the markup semantically: the menu is a `nav` with two links, the main text is `main`. There must be no tables.",
+   "hint": "Remove `table`, `tr` and `td`. Columns are arranged later by CSS (flex or grid); for the markup, `nav` and `main` in the right order are enough."
+  },
+  {
+   "id": "w14-svg-inline",
+   "title": "An icon in the markup",
+   "statement": "A round icon is inserted straight into the page, but a screen reader does not know what it is. Make it a picture named “Information”: the `img` role and a nested `title`.",
+   "hint": "On `svg`, write `role=\"img\"`, and put `<title>Information</title>` as the first child."
+  }
+ ]
+}

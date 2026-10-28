@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 24,
+ "tasks": [
+  {
+   "id": "gx-averager",
+   "title": "Running average",
+   "statement": "Write a coroutine averager(): it receives numbers through send and, after each one, yields the current average of all the numbers sent so far. The first next returns None (there are no numbers yet).",
+   "hint": "Set up total, count, average = None; in a loop: x = yield average; then update total, count and average."
+  },
+  {
+   "id": "gx-primed",
+   "title": "The primed decorator",
+   "statement": "Write a decorator primed: it wraps a generator function so that calling it returns an already primed generator (the first next has been done), and you can send to it right away.",
+   "hint": "Inside the wrapper: gen = func(*args, **kwargs); next(gen); return gen."
+  },
+  {
+   "id": "gx-throw-reset",
+   "title": "A counter reset through throw",
+   "statement": "Write a generator counter(): it yields 0, 1, 2, ... If a ValueError is thrown in from outside (gen.throw(ValueError)), the counter resets to 0 and continues from zero. Do not catch other exceptions.",
+   "hint": "while True: try: yield n; n += 1; except ValueError: n = 0."
+  },
+  {
+   "id": "gx-close-cleanup",
+   "title": "Cleanup on close",
+   "statement": "Write a generator lines(items): on the first request it prints «открыто» (\"opened\"), then yields the items one by one, and on any ending, including an early one through close(), it prints «закрыто» (\"closed\"). Print exactly the Russian words in quotes.",
+   "hint": "print(\"открыто\"); try: for item in items: yield item; finally: print(\"закрыто\")."
+  },
+  {
+   "id": "gx-return-value",
+   "title": "A generator with a result",
+   "statement": "Write a generator summing(items): it yields each item as is, and at the end returns (return) the sum of all the items, which will end up in StopIteration.value.",
+   "hint": "total = 0; for x in items: total += x; yield x; at the end return total."
+  },
+  {
+   "id": "gx-chain-sum",
+   "title": "Delegating with yield from",
+   "statement": "The generator summing is already written (it yields the items and returns the sum). Write chain_sum(a, b): using yield from, it yields the items of a and then of b, and returns the total sum of both lists.",
+   "hint": "first = yield from summing(a); second = yield from summing(b); return first + second."
+  },
+  {
+   "id": "gx-flatten",
+   "title": "Flattening nested lists",
+   "statement": "Write a generator flatten(items): it recursively yields all the items of nested lists and tuples, in order. Treat strings as leaves (do not split them into characters). Use yield from.",
+   "hint": "for x in items: if isinstance(x, (list, tuple)): yield from flatten(x); else: yield x."
+  },
+  {
+   "id": "gx-filter-stage",
+   "title": "A pipeline stage",
+   "statement": "Write a coroutine keep(pred, target): it receives values through send and passes on to target.send(...) only those for which pred(value) is true. The check will do the first next (priming the coroutine) itself.",
+   "hint": "while True: item = yield; if pred(item): target.send(item)."
+  },
+  {
+   "id": "gx-round-robin",
+   "title": "A round-robin scheduler",
+   "statement": "Write run(tasks): a list of generator tasks is executed round robin. At each step the first task is taken, one value is requested from it (next), the value is added to the result, and an unfinished task goes to the back of the queue. A finished task (StopIteration) is removed. Return the list of values received.",
+   "hint": "queue = deque(tasks); while queue: task = queue.popleft(); try: out.append(next(task)); queue.append(task); except StopIteration: pass."
+  }
+ ]
+}

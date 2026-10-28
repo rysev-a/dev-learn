@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "virt-pid-ns",
+   "title": "Numbering in the process namespace",
+   "statement": "Write a function pid_namespaces(procs): procs is a list of processes [number on the host, namespace]. The namespace \"host\" is the ordinary one: the number inside equals the number on the host. In the other namespaces, processes are numbered anew from 1 in ascending order of their host numbers. Return a dictionary \"number on the host (as a string) -> number inside the namespace\".",
+   "hint": "Sort the processes and keep a counter for each namespace."
+  },
+  {
+   "id": "virt-cgroup-limit",
+   "title": "A limit with hierarchy",
+   "statement": "In cgroups version two, a parent's limit restricts its descendants. Write a function effective_limit(parents, limits, node): parents is a dictionary \"group -> parent\" (the root has no entry), limits is a dictionary \"group -> limit\" (not every group has one), node is a group. Return the smallest limit among the group itself and all of its ancestors, or None if there are no limits anywhere.",
+   "hint": "Walk up through parents to the root and collect the limits you find."
+  },
+  {
+   "id": "virt-overlay-run",
+   "title": "The overlayfs file system",
+   "statement": "Write a function overlay_run(lowers, ops): lowers are the lower layers of the image from top to bottom (dictionaries \"path -> contents\"). On top lies an empty container layer. The operations are: [\"write\", path, data] (a write to the top layer), [\"delete\", path] (if the path exists in the lower layers, a whiteout marker is placed in the top layer, otherwise the path is simply removed from the top layer), and [\"read\", path] (first the top layer; a whiteout marker hides the file; then the lower layers from top to bottom; if it is nowhere, None). Do not modify the input data. Return the list of results of all the reads.",
+   "hint": "Store a special marker value for the whiteout in the top layer."
+  },
+  {
+   "id": "virt-seccomp",
+   "title": "System call filter",
+   "statement": "Write a function seccomp_run(allowed, trace, action): allowed is a list of permitted system calls, trace is the process's calls in order, action is what to do for forbidden ones: \"errno\" (the call returns an error and the process continues) or \"kill\" (the process is killed at the first forbidden call). Return a tuple (how many calls were executed, the list of forbidden calls in order; with kill it holds at most one).",
+   "hint": "Walk through trace; with kill, stop at the first forbidden call."
+  },
+  {
+   "id": "virt-fit-instances",
+   "title": "Packing density",
+   "statement": "Write a function fit_instances(host_mb, reserve_mb, workload_mb, overhead_mb): how many identical instances fit on a host. Each takes workload_mb for the workload and overhead_mb of overhead (small for a container, and for a virtual machine it includes the guest kernel), and reserve_mb is left for the host. Return the integer number of instances (not less than zero).",
+   "hint": "(host - reserve) // (workload + overhead), but not less than 0."
+  },
+  {
+   "id": "virt-choose-runtime",
+   "title": "Choosing a runtime",
+   "statement": "Write a function choose_runtime(req): req is a dictionary with the boolean fields \"trusted\" (your own trusted code), \"needs_other_os\" (a non-Linux system is needed), \"kernel_modules\" (your own kernel modules are needed), and \"multi_tenant\" (there are other people's tenants on the server). The rules, in order: another OS or kernel modules are needed - \"vm\"; the code is trusted - \"container\"; other people's tenants - \"kata\"; otherwise - \"gvisor\".",
+   "hint": "Check the conditions strictly in the order given."
+  },
+  {
+   "id": "virt-userns",
+   "title": "User mapping",
+   "statement": "Write a function map_uid(uid_map, inner): uid_map is the user namespace table, a list of rows [start_inside, start_outside, count], and inner is a user ID inside the container. Return the corresponding ID on the host: if inner falls in the range [start_inside, start_inside + count), the result is start_outside + inner - start_inside. If the ID is not mapped by any row, return None.",
+   "hint": "Go through the table rows and find the one whose range contains inner."
+  },
+  {
+   "id": "virt-sentry",
+   "title": "gVisor attack surface",
+   "statement": "Write a function sentry_split(calls, host_set): calls are the application's system calls, host_set is a list of calls that the Sentry has to pass on to the real host kernel; it handles the rest itself. Return a tuple (how many calls the Sentry handled, how many went to the host, the share handled by the Sentry in whole percent, rounded down; for an empty list, 100).",
+   "hint": "Count the calls in host_set and subtract them from the total."
+  }
+ ]
+}

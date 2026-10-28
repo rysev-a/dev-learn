@@ -1,0 +1,188 @@
+{
+ "book": 11,
+ "chapter": 39,
+ "tasks": [
+  {
+   "id": "j31-parse-env",
+   "title": "Parsing .env",
+   "statement": "Write parseEnv(text) → an object. Lines look like KEY=VALUE; empty lines and lines starting with \"#\" are skipped; the prefix \"export \" before a key is allowed; the key must match /^[A-Za-z_][A-Za-z0-9_]*$/ after trimming spaces (otherwise the line is skipped); spaces around \"=\" are allowed. The value: if it starts with \" or ', it runs to the matching quote on the same line (for double quotes, \"\\n\" becomes a newline; whatever follows the closing quote is ignored); if there is no closing quote, the value is taken as is without the first quote (trimmed on the right). Without quotes, the value is cut at the first \" #\" (a space and a hash start a comment) and trimmed of spaces. A repeated key overwrites the earlier one.",
+   "hint": "Split into lines; check the first character of the value; a regular expression for the key."
+  },
+  {
+   "id": "j31-replace-env",
+   "title": "Substituting import.meta.env",
+   "statement": "Write replaceEnv(source, env, { prefix = 'VITE_', mode = 'development' } = {}): it replaces in the text all expressions \"import.meta.env.NAME\" (NAME is [A-Za-z_]\\w*). Built-ins: MODE → the JSON string of the mode, DEV → true if mode !== 'production', PROD → the opposite. A name with the prefix and a value in env → JSON.stringify(value). Everything else (no prefix, not in env, unknown) → undefined (the word undefined). Secrets must not leak: a name without the prefix always gives undefined, even if it is in env.",
+   "hint": "A single replace with a function; built-in names first, then the prefix."
+  },
+  {
+   "id": "j31-alias",
+   "title": "Path aliases",
+   "statement": "Write resolveAlias(aliases, spec): aliases is { alias: target }. An alias matches if spec equals it or starts with alias + \"/\". The longest matching alias wins (a tie is impossible because keys are unique). The result is the target + the rest of spec after the alias (the target without a trailing \"/\" is joined to the rest, which starts with \"/\"). If nothing matches, spec is returned unchanged. Aliases ending in \"$\" require an exact match (the \"$\" itself does not take part in the comparison: \"react$\" matches only \"react\").",
+   "hint": "Go through the keys, pick the matching ones, take the longest."
+  },
+  {
+   "id": "j31-proxy",
+   "title": "Dev server proxy",
+   "statement": "Write matchProxy(rules, path): rules is an array of [key, { target, rewrite? }]. The key is a path prefix (\"/api\" matches \"/api\" and \"/api/...\"; \"/api/\" only paths starting with \"/api/\") or a regular expression if it starts with \"^\" (new RegExp(key).test(path)). The path is matched without the query and hash, but it goes into the result in full (with the query). The first matching rule wins. The result is target without a trailing \"/\" + (rewrite ? rewrite(path) : path); rewrite receives the full path with the query. If there is no rule, null.",
+   "hint": "Separate path from query/hash for comparison; trim the slash of target."
+  },
+  {
+   "id": "j31-semver-range",
+   "title": "Version ranges",
+   "statement": "Write satisfies(version, range). Versions are \"M.m.p\" without prereleases. A range is a union through \"||\" (one matching part is enough); within each part there are conditions separated by spaces (all must hold). Conditions: \"*\" or empty means any version; \"=X.Y.Z\" or \"X.Y.Z\" means equal; \">\", \">=\", \"<\", \"<=\" with a version; \"^X.Y.Z\" means from X.Y.Z up to the next \"incompatible\" one: for X>0, <(X+1).0.0; for X=0, Y>0, <0.(Y+1).0; for X=0, Y=0, <0.0.(Z+1); \"~X.Y.Z\" means from X.Y.Z up to <X.(Y+1).0. Missing parts (\"1.2\", \"1\") count as zeros.",
+   "hint": "A function cmp(a, b) on numbers; turn each condition into a pair of checks."
+  },
+  {
+   "id": "j31-build-order",
+   "title": "Module order in a bundle",
+   "statement": "Write buildOrder(graph): graph is { module: [dependencies] }. Return an array of all modules in an order where dependencies come before their dependents. The order is deterministic: a depth-first walk over the graph's keys in declaration order, with dependencies in list order. Modules that appear only as dependencies (not among the keys) are leaves and also go into the result. A cycle gives Error('Cycle: a -> b -> a') (the path from the first module of the cycle to its repeat).",
+   "hint": "DFS with visiting/done states and a path stack."
+  },
+  {
+   "id": "j31-tree-shake",
+   "title": "Tree shaking",
+   "statement": "Write shakeExports(modules, roots): modules is { file: { export: [references] } }, where a reference \"file#export\" is another export that this one uses. roots is an array of references needed by the entry point. Return { kept, dropped }: kept is the alphabetically sorted references of all reachable exports (including roots), dropped is the sorted references of all the other exports of all modules. An unknown reference (no such file or export) gives Error('Unknown export: reference'). Self-references and cycles are allowed.",
+   "hint": "A depth-first walk along references; build the set of all references from modules."
+  },
+  {
+   "id": "j31-content-hash",
+   "title": "Hashes in file names",
+   "statement": "The function fnv1a(str) → 8 hex characters already exists. Write hashedName(name, content, len = 8): it inserts the first len characters of fnv1a(content) before the last extension: \"app.js\" → \"app.<hash>.js\", \"a.min.js\" → \"a.min.<hash>.js\"; with no extension (no dot after the last \"/\", or the file starts with a dot and has no other dot) → \"name.<hash>\". Directories are kept (\"assets/app.css\" → \"assets/app.<hash>.css\"). And write buildManifest(files): files is { name: content } → { name: hashedName(...) } for all except index.html (it stays without a hash).",
+   "hint": "lastIndexOf('.') after the last '/'; a dot at position 0 of the name is not an extension.",
+   "starter": "// Done: the FNV-1a hash (do not change)\nfunction fnv1a(str) {\n  let h = 0x811c9dc5;\n  for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; }\n  return h.toString(16).padStart(8, \"0\");\n}\nfunction hashedName(name, content, len = 8) {\n}\nfunction buildManifest(files) {\n}\n"
+  },
+  {
+   "id": "j31-chunks",
+   "title": "Splitting into chunks",
+   "statement": "Write splitChunks(graph, entry): graph is { module: { static: [...], dynamic: [...] } } (fields may be missing). The chunk roots are entry and every target of a dynamic import reachable from entry by any edges (order of discovery: breadth-first, static edges before dynamic ones). For each module, find the set of roots from which it is reachable by static edges. If the set contains entry, the module goes into the chunk \"entry\"; otherwise, if there is one root, into the chunk named after that root; otherwise into a shared chunk \"shared:\" + the roots joined with \"+\" (in root order). The result is an array of { name, modules } (modules alphabetical), \"entry\" first, the rest alphabetical by name. Modules unreachable from entry are ignored.",
+   "hint": "First find all reachable modules and the roots, then for each root walk along static."
+  },
+  {
+   "id": "j31-minify-css",
+   "title": "CSS minification",
+   "statement": "Write minifyCss(css): remove comments /* ... */ (including multi-line ones); collapse any whitespace sequences into one space; remove spaces around \"{\", \"}\", \":\", \";\", \",\", \">\"; remove a \";\" immediately before \"}\"; trim the ends. The contents of quoted strings are not changed (single or double quotes, no escaping inside). The space after \":\" inside a value string is also removed (\"margin: 0 auto\" → \"margin:0 auto\").",
+   "hint": "Split the text into quoted strings and everything else; minify only the rest."
+  },
+  {
+   "id": "j31-vlq",
+   "title": "VLQ for source maps",
+   "statement": "Source maps store numbers in Base64 VLQ. Write vlqEncode(n) → a string and vlqDecode(str) → an array of numbers. Encoding: the sign goes into the lowest bit (v = n < 0 ? ((-n) << 1) | 1 : n << 1); then 5 bits at a time, starting from the low ones; if more bits remain, the continuation bit (32) is set; each 6-bit group is encoded with the alphabet \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\". vlqDecode parses a string containing several encoded numbers in a row.",
+   "hint": "A do/while loop: digit = v & 31; v >>>= 5; if v > 0, digit |= 32."
+  },
+  {
+   "id": "j31-test-runner",
+   "title": "A mini test runner",
+   "statement": "Write createRunner(): { describe, it, beforeEach, run }. describe(name, fn) calls fn immediately, creating a suite; suites nest. it(name, fn) registers a test (fn may be async); it.skip(name, fn) is a skipped one. beforeEach(fn) applies to the tests of its suite and the nested ones (parents' hooks run before the children's, in declaration order). run() (async) runs the tests in declaration order: first the beforeEach hooks, then the test; an exception/rejection in a hook or a test gives status 'failed' (a test after a failed hook is not run). The result is { passed, failed, skipped, results }, where results is [{ name: 'suite > nested > test', status: 'passed'|'failed'|'skipped', error?: message }]. A test outside any describe has a name without a prefix.",
+   "hint": "Keep a stack of suites during registration and collect the list of hooks for a test right away (a snapshot at registration time will not do, since hooks may be declared after it)."
+  },
+  {
+   "id": "j31-expect",
+   "title": "expect and assertions",
+   "statement": "Write expect(actual) → an object of assertions: toBe (Object.is), toEqual (deep equality: primitives, arrays, plain objects by keys; key order does not matter), toContain (an array element by Object.is, or a substring of a string), toBeTruthy, toBeNull, toThrow(substring?) (actual is a function; passes if it throws, and the message contains the substring if given). The .not property inverts the check (expect(x).not.toBe(y)). On failure, an Error with the message `expect(ACTUAL)[.not].method(ARGUMENTS)`, where ACTUAL and ARGUMENTS are JSON.stringify (undefined and functions give the word undefined/[Function]), with the arguments joined by \", \". For toThrow, ACTUAL is printed as [Function]. Success returns undefined.",
+   "hint": "One function check(name, pass, args), where not inverts pass; deepEqual is recursive."
+  },
+  {
+   "id": "j31-mock-fn",
+   "title": "A stub function",
+   "statement": "Write mockFn(impl?): it returns a function f with fields: f.calls is an array of argument arrays; f.results is an array of { type: 'return'|'throw', value } for each call; methods (all return f): mockReturnValue(v) is a permanent return value, mockImplementation(fn) is a permanent implementation, mockImplementationOnce(fn) is an implementation for the one next call (a queue), mockClear() clears calls and results, mockReset() clears calls, results, the permanent settings and the queue. Order of choice: the Once queue → mockImplementation/mockReturnValue (the last one set) → impl from the constructor → undefined. A call that threw is recorded as throw and the exception is rethrown.",
+   "hint": "Keep current (permanent) and a once queue; the wrapper records the result in finally/catch."
+  },
+  {
+   "id": "j31-fake-timers",
+   "title": "Controlled clock",
+   "statement": "Write createClock(): { setTimeout, setInterval, clearTimeout, clearInterval, advance(ms), now(), pending() }. Time starts at 0. setTimeout(fn, ms) and setInterval(fn, ms) return a numeric id starting at 1; ms < 1 counts as 1. advance(ms) moves time forward, firing timers in order of their firing time (ties in creation order); inside a callback, now() equals the firing time; timers created in a callback are counted if they fire within the window. An interval is rescheduled for +ms after firing. clear* cancels a timer of either type (including from inside a callback). pending() is the number of active timers. After advance, now() = the previous value + ms.",
+   "hint": "A loop: find the nearest timer with time <= target, set now, run it; at the end now = target."
+  },
+  {
+   "id": "j31-spy-on",
+   "title": "spyOn",
+   "statement": "Write spyOn(obj, method): it replaces obj[method] with a wrapper that records calls and by default calls the original with the same this and returns its result. It returns a spy object: calls (an array of argument arrays), mockReturnValue(v) (after this the wrapper returns v without calling the original; the method returns the spy), mockRestore() (puts the original method back; calling it again is harmless; calls are kept). If obj[method] is not a function, Error(`Cannot spy on \"method\": not a function`). A repeated spyOn on an already replaced method gives Error(`\"method\" is already spied on`) until it is restored.",
+   "hint": "Save the original and mark the wrapper with a symbol/property."
+  },
+  {
+   "id": "j31-by-role",
+   "title": "Search by role",
+   "statement": "DOM model: { tag, text?, attrs?, children? }. Write queryAllByRole(root, role, { name } = {}) and getByRole(root, role, opts). An element's role is attrs.role if set; otherwise the implicit one: button → button, a with attrs.href → link, h1–h6 → heading, input with attrs.type === 'checkbox' → checkbox, other input → textbox, nav → navigation, ul/ol → list, li → listitem. The accessible name is attrs['aria-label'], otherwise the element's own text together with the text of its descendants (pieces joined with a space, whitespace collapsed and trimmed). name is a string (exact match of the name) or a RegExp (test). queryAllByRole returns all matches in depth-first order (the root first). getByRole: exactly one, return it; none, Error('Unable to find role \"role\"'); more than one, Error('Found multiple elements with role \"role\"'). If name is given, append ` and name \"name\"` to the messages (for a RegExp, it is not quoted, just String(regexp): `and name /re/`).",
+   "hint": "First the functions roleOf(node) and nameOf(node), then a recursive walk."
+  },
+  {
+   "id": "j31-by-text",
+   "title": "Search by text",
+   "statement": "Model: { tag, text?, children? }. Write getByText(root, text, { exact = true } = {}). The node's own text (not its descendants') is compared, normalized: whitespace collapsed, ends trimmed. exact: equality with the string; exact: false, a substring match ignoring case. Nodes with the tags script and style (and their descendants) are skipped. If text is a RegExp, regexp.test(normalized text) is checked. Exactly one match returns the node; none gives Error('Unable to find text \"text\"'); several give Error('Found multiple elements with text \"text\"') (for a RegExp, String(regexp) without quotes).",
+   "hint": "Collect matches recursively, then handle the three outcomes."
+  },
+  {
+   "id": "j31-wait-for",
+   "title": "waitFor",
+   "statement": "Write async waitFor(fn, { timeout = 1000, interval = 10 } = {}): it calls fn (which may be async) and returns its result as soon as it does not throw. If it throws, wait interval ms and try again. When at least timeout ms (by Date.now()) have passed since the start, throw the last caught exception. The first call is immediate. If fn has not finished (async), the wait still waits for the result of the call in progress; a new call is not started until the previous one has finished.",
+   "hint": "A loop with try/await; check the time after a failed attempt."
+  },
+  {
+   "id": "j31-snapshot",
+   "title": "Snapshots",
+   "statement": "Write createSnapshots(): { check(name, value) }. The value is serialized to a string: JSON with a 2-space indent, object keys sorted alphabetically at all levels (undefined in objects is omitted as in JSON). The first check for a name saves a snapshot and returns { status: 'created' }. Later ones: a match gives { status: 'match' }; a mismatch gives { status: 'mismatch', diff }, where diff is a line-by-line difference (an array of lines): common lines with the prefix \"  \" (two spaces), lines removed from the snapshot with \"- \", new ones with \"+ \". Use the longest common subsequence of lines; on an equal choice, a removal goes before an addition. On mismatch the snapshot is NOT overwritten.",
+   "hint": "A serializer that sorts keys; an LCS table and a walk that reconstructs the diff."
+  },
+  {
+   "id": "j31-coverage",
+   "title": "Line coverage",
+   "statement": "Write lineCoverage(source, hits, ignore = []): source is the source text; hits is an array of executed line numbers (starting at 1; repeats and numbers of non-code lines are possible); ignore holds line numbers excluded from the count. A code line is one that is non-empty after trim and does not start with \"//\". Return { total, covered, percent, missing }: total is the code lines without ignore; covered is those of them that were executed; percent is covered / total * 100, rounded to one decimal place (if total = 0, 100); missing is the unexecuted code lines as one string: consecutive numbers (by code lines; gaps of empty lines between them do NOT need to break a range; a range is by line numbers) are collapsed into \"a-b\", with the parts joined by \", \" (an empty string if everything is covered). A range is consecutive line numbers with no gap.",
+   "hint": "Collect an array of uncovered numbers and collapse consecutive ones."
+  },
+  {
+   "id": "j31-flaky",
+   "title": "Retrying flaky tests",
+   "statement": "Write async runWithRetries(test, retries): test(attempt) is an async function (attempt starts at 0) that throws on failure. The total number of attempts is 1 + retries. The result: passed on the first try gives { status: 'passed', attempts: 1 }; passed after failures gives { status: 'flaky', attempts: k, errors: [messages of the earlier failures] }; all failed gives { status: 'failed', attempts: 1 + retries, errors: [messages of all attempts] }. Success stops further attempts. Then write summarize(results): results is { name: result } → { passed, flaky, failed, ok } (counters; ok means no failed, flaky is acceptable), and also flakyNames, the names of the flaky ones in alphabetical order.",
+   "hint": "A loop over attempts with try/catch; accumulate errors as an array of messages."
+  },
+  {
+   "id": "j31-unused-imports",
+   "title": "Unused imports",
+   "statement": "Write findUnusedImports(source) → an array of local names from the import lines that do not occur anywhere else, in declaration order. Single-line forms are supported: `import X from \"m\";`, `import { a, b as c } from \"m\";`, `import X, { a } from \"m\";`, `import * as ns from \"m\";`; `import \"m\";` (no bindings) is ignored. For `b as c` the local name is c. Before searching, remove the comments `//...` and `/* ... */`; then, in the text without the import lines, look for the whole word (boundaries by identifier characters, including \"$\"). Occurrences inside strings count as use.",
+   "hint": "Parse the imports line by line with a regular expression; join the rest of the text into one string for searching."
+  },
+  {
+   "id": "j31-conventional",
+   "title": "Conventional Commits: version and changelog",
+   "statement": "A commit message looks like \"type(scope)!: description\"; the scope and \"!\" are optional; the body starts on the second line. Write nextVersion(current, commits): commits is an array of strings. The bump: major if any commit has \"!\" after the type/scope or a body line starting with \"BREAKING CHANGE:\"; otherwise minor if there is a feat; otherwise patch if there is a fix or perf; otherwise bump = null and the version stays the same. The result is { version, bump }: for major, (M+1).0.0; for minor, M.(m+1).0; for patch, M.m.(p+1). Messages that do not fit the format are ignored. Also write changelog(commits) → a Markdown string: sections in the order \"### Breaking Changes\" (commits with \"!\"/BREAKING, the text is the description), \"### Features\" (feat), \"### Fixes\" (fix, perf); empty sections are omitted; the items are \"- description\" in commit order, and with a scope \"- **scope:** description\"; sections are separated by an empty line; with no items, an empty string. A breaking commit goes only into \"Breaking Changes\".",
+   "hint": "A function parseCommit returns { type, scope, desc, breaking } or null."
+  },
+  {
+   "id": "j31-pipeline",
+   "title": "A CI pipeline",
+   "statement": "Write async runPipeline(steps, run): steps is [{ name, needs?: [names], if?: 'success' | 'always' | 'failure', run }] (if is 'success' by default). Execute sequentially. Order: repeat, taking the first step in the list that has not yet run and all of whose needs have already been processed. An unknown name in needs gives Error('Unknown step: name') (before anything runs); being unable to continue (a cycle) gives Error('Cannot resolve needs'). The decision to run: 'success' means all needs finished successfully (status 'passed'); 'always' means always; 'failure' means at least one of the needs failed (with no needs, never). Otherwise the step is 'skipped'. A step that runs: await step.run(); an exception gives 'failed' with error = message. The result is { ok, results }, with results in execution order: [{ name, status: 'passed'|'failed'|'skipped', error? }]; ok means no failed. The run parameter is not used (kept for compatibility); call step.run.",
+   "hint": "A Map of statuses; a while loop that looks for a ready step."
+  },
+  {
+   "id": "j31-matrix",
+   "title": "A build matrix",
+   "statement": "Write expandMatrix(matrix, { include = [], exclude = [] } = {}) → an array of combinations (objects). The base combinations are the Cartesian product of the values: the first key changes slowest, and the key order is as in matrix. Then exclude: combinations in which all keys of an exclude entry match are removed (an entry may be partial). Then include: for an entry, take its \"original\" keys (those that are in matrix); if there are none, the entry is added to all combinations; otherwise find the combinations in which these keys match; to each one found, add the entry's remaining keys (without overwriting existing keys); if none match, the entry is added as a separate new combination as is. An empty matrix gives [{}] plus include by the same rules.",
+   "hint": "reduce over the keys for the product; matches(combo, entry, keys)."
+  },
+  {
+   "id": "j31-cache",
+   "title": "A dependency cache in CI",
+   "statement": "The function fnv1a(str) → 8 hex characters already exists. Write makeCacheKey(os, lockfileContent, prefix = 'npm') → `${os}-${prefix}-${fnv1a(lockfileContent)}`. And restoreCache(caches, key, restoreKeys = []): caches is an array of { key } in saved order (the last is the freshest). An exact match of key gives { hit: 'exact', key }. Otherwise, for each prefix in restoreKeys in order: the freshest cache whose key starts with the prefix gives { hit: 'partial', key: the key found }. Otherwise { hit: null, key: null }.",
+   "hint": "For the exact match, some is enough; for the partial one, search from the end.",
+   "starter": "// Done: the FNV-1a hash (do not change)\nfunction fnv1a(str) {\n  let h = 0x811c9dc5;\n  for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; }\n  return h.toString(16).padStart(8, \"0\");\n}\nfunction makeCacheKey(os, lockfileContent, prefix = \"npm\") {\n}\nfunction restoreCache(caches, key, restoreKeys = []) {\n}\n"
+  },
+  {
+   "id": "j31-cache-control",
+   "title": "Cache-Control for static files",
+   "statement": "Write cacheControl(path) → a header string. The path has no query/hash. Rules in order: a path starting with \"/api/\" gives \"no-store\"; the path \"/\", one ending in \".html\", or one whose last segment has no extension (no dot), or \"/sw.js\" or \"/service-worker.js\" gives \"no-cache\"; a file name that contains a hash, a segment of the form \".<8 or more hex characters>.\" before the extension (for example app.3f9a1c2d.js), gives \"public, max-age=31536000, immutable\"; any other static file gives \"public, max-age=3600\". The case of letters in the hex does not matter.",
+   "hint": "The last path segment, and the regular expression /\\.[0-9a-f]{8,}\\./i."
+  },
+  {
+   "id": "j31-spa-fallback",
+   "title": "A static server with an SPA fallback",
+   "statement": "Write resolveRequest(files, url): files is an array of paths of existing files (\"/index.html\", \"/assets/app.js\", \"/docs/index.html\", ...). url may contain a query/hash (dropped) and percent-encoding (decodeURIComponent; an invalid one gives status 400). A path with a \"..\" segment (after decoding) gives { status: 400 }. Then: an existing file gives { status: 200, file }. A path ending in \"/\" means the directory index (path + \"index.html\"); if it exists, 200, otherwise the general fallback rule. No such file: a path starting with \"/api/\" gives { status: 404 }; if the last segment has an extension (a dot), { status: 404 }; otherwise (a client application route), { status: 200, file: '/index.html', fallback: true } if \"/index.html\" exists, else 404.",
+   "hint": "A Set of paths; the sequence of checks as in the statement."
+  },
+  {
+   "id": "j31-releases",
+   "title": "Releases and rollback",
+   "statement": "Write createReleases({ keep = 3 } = {}): { deploy(id), activate(id), rollback(), active(), list() }. deploy(id) adds a release and makes it active; a repeated id gives Error('Release already exists: id'). After adding, while there are more than keep releases, the oldest inactive one is deleted. activate(id) makes an existing release active (otherwise Error('Unknown release: id')); activating the current one changes nothing. rollback() returns to the previous activation: a history of activations is kept (a stack); the current one is removed, and the nearest earlier one whose release still exists is taken; if there is none, Error('No previous release'); it returns the id of the new active release. active() is an id or null; list() is the ids in deployment order (oldest first).",
+   "hint": "An array of releases and a history stack; on rollback, drop deleted ids from the stack."
+  }
+ ]
+}

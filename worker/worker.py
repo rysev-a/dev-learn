@@ -2,11 +2,11 @@
 
 Работает на отдельной машине (например, в VM на домашнем сервере). Ему нужен только исходящий HTTPS до основного
 сервера: ни открытых портов, ни доступа к базе. Только стандартная библиотека Python и Docker с образами
-(python:3.13-slim, rust:1.97-slim, node:22-alpine, say-rust-crates:1).
+(python:3.13-slim, rust:1.97-slim, node:22-alpine, cs-core-rust-crates:1).
 
-    SAY_WORKER_TOKEN=… uv run worker.py --server https://say.example.com --name home-1 --light 4 --heavy 2
+    CS_CORE_WORKER_TOKEN=… uv run worker.py --server https://cs-core.example.com --name home-1 --light 4 --heavy 2
 
-На основном сервере: SAY_RUNNER=remote и тот же SAY_WORKER_TOKEN. Сигнал остановки (Ctrl+C, SIGTERM) дожидается
+На основном сервере: CS_CORE_RUNNER=remote и тот же CS_CORE_WORKER_TOKEN. Сигнал остановки (Ctrl+C, SIGTERM) дожидается
 выполняющихся проверок."""
 
 import argparse
@@ -96,7 +96,7 @@ class Worker:
                 backoff = min(backoff * 2, 30)
                 continue
             if code in (401, 404):
-                self.log("сервер отклонил токен воркера (проверьте SAY_WORKER_TOKEN и SAY_RUNNER=remote на сервере)")
+                self.log("сервер отклонил токен воркера (проверьте CS_CORE_WORKER_TOKEN и CS_CORE_RUNNER=remote на сервере)")
                 self.stop.wait(30)
                 continue
             if code != 200 or not job:
@@ -150,14 +150,14 @@ class Worker:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--server", default=os.environ.get("SAY_SERVER", "http://127.0.0.1:8000"))
-    ap.add_argument("--token", default=os.environ.get("SAY_WORKER_TOKEN", ""))
-    ap.add_argument("--name", default=os.environ.get("SAY_WORKER_NAME", os.uname().nodename))
+    ap.add_argument("--server", default=os.environ.get("CS_CORE_SERVER", "http://127.0.0.1:8000"))
+    ap.add_argument("--token", default=os.environ.get("CS_CORE_WORKER_TOKEN", ""))
+    ap.add_argument("--name", default=os.environ.get("CS_CORE_WORKER_NAME", os.uname().nodename))
     ap.add_argument("--light", type=int, default=3, help="одновременных проверок python/js")
     ap.add_argument("--heavy", type=int, default=1, help="одновременных проверок rust/c")
     a = ap.parse_args()
     if not a.token:
-        sys.exit("Нужен токен: --token или SAY_WORKER_TOKEN")
+        sys.exit("Нужен токен: --token или CS_CORE_WORKER_TOKEN")
     w = Worker(Server(a.server, a.token), a.name, {"light": a.light, "heavy": a.heavy})
     signal.signal(signal.SIGTERM, lambda *_: w.stop.set())
     w.run()

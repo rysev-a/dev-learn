@@ -25,6 +25,7 @@ fn point(p: &Point) -> Value {
 
 #[test]
 fn board_geometry_matches_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let geo = &g["geometry"];
     for e in geo["input_ys"].as_array().expect("input_ys") {
@@ -82,6 +83,7 @@ fn side_name(s: PinSide) -> &'static str {
 
 #[test]
 fn block_layout_matches_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let geo = &g["geometry"];
     let defs = defs_by_id();
@@ -136,6 +138,7 @@ fn auto_from_json(v: &Value) -> Vec<AutoWire> {
 
 #[test]
 fn auto_wire_matches_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let list = g["geometry"]["auto_wire"].as_array().expect("auto_wire");
     assert!(list.len() > 100);
@@ -160,6 +163,7 @@ fn auto_wire_matches_typescript() {
 
 #[test]
 fn wave_matches_typescript() {
+    i18n::set_locale(i18n::Locale::Ru);
     let g = golden();
     let lab = lab();
     let list = g["geometry"]["wave"].as_array().expect("wave");
@@ -195,6 +199,7 @@ fn wave_matches_typescript() {
 
 #[test]
 fn small_pieces() {
+    i18n::set_locale(i18n::Locale::Ru);
     use archlab::interfaces::*;
     // типы совместимы только по имени
     assert!(!can_connect(Iface::Word2, Iface::Addr2));

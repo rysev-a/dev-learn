@@ -194,7 +194,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
                 class="nl-board"
                 viewBox=move || view.view_box()
                 role="img"
-                aria-label="Схема сети"
+                aria-label=i18n::tr("Network diagram")
                 style=move || if view.panning.get() { "touch-action: none; cursor: grabbing" } else { "touch-action: none" }
                 on:pointerdown=move |e| {
                     view.on_pointer_down(&e, true);
@@ -290,7 +290,7 @@ fn LinkView(lab: Lab, idx: usize, cable_tool: bool) -> impl IntoView {
                 {move || info().map(|i| i.port_b).unwrap_or_default()}
             </text>
             {move || info().filter(|i| i.km >= 1.0).map(|i| view! {
-                <text class="nl-km" x=i.geom.mid.x.to_string() y=(i.geom.mid.y + 12.0).to_string()>{format!("{} км", netlab::util::num_str(i.km))}</text>
+                <text class="nl-km" x=i.geom.mid.x.to_string() y=(i.geom.mid.y + 12.0).to_string()>{i18n::trf!("{0} km", netlab::util::num_str(i.km))}</text>
             })}
         </g>
     }
@@ -354,6 +354,7 @@ mod tests {
 
     #[test]
     fn link_info_has_geometry_ports_and_length() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = state();
         let i = link_info(&s, 0).expect("кабель");
         assert_eq!((i.port_a.as_str(), i.port_b.as_str()), ("eth0", "eth0"));
@@ -366,6 +367,7 @@ mod tests {
 
     #[test]
     fn a_disabled_port_marks_the_cable_down() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut s = state();
         s.devices.get_mut("b").and_then(|d| d.iface_mut("eth0")).expect("порт").up = false;
         assert!(link_info(&s, 0).expect("кабель").down);
@@ -373,6 +375,7 @@ mod tests {
 
     #[test]
     fn cable_to_a_missing_device_is_skipped() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut s = state();
         s.links.push(Link::new("a:eth0", "ghost:eth0"));
         assert!(link_info(&s, 1).is_none());
@@ -380,6 +383,7 @@ mod tests {
 
     #[test]
     fn centers_follow_the_order_of_devices() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let c = centers(&state());
         assert_eq!(c.iter().map(|(id, _)| id.as_str()).collect::<Vec<_>>(), vec!["a", "b"]);
         assert_eq!(c[1].1, Point::new(200.0, 0.0));

@@ -139,9 +139,9 @@ pub(crate) fn describe(f: &Frame) -> String {
     match &f.body {
         Payload::Arp(a) => {
             if a.op == ArpOp::Req {
-                format!("ARP: у кого {}?", ip_str(a.tip))
+                i18n::trf!("ARP: who has {0}?", ip_str(a.tip))
             } else {
-                format!("ARP: {} — это {}", ip_str(a.sip), a.smac)
+                i18n::trf!("ARP: {0} is at {1}", ip_str(a.sip), a.smac)
             }
         }
         Payload::Ip(p) => {
@@ -149,28 +149,21 @@ pub(crate) fn describe(f: &Frame) -> String {
             if p.proto == Proto::Icmp {
                 let nm = match p.icmp.as_ref().map(|i| i.typ) {
                     Some(IcmpType::EchoReq) => "ICMP echo",
-                    Some(IcmpType::EchoRep) => "ICMP ответ",
-                    Some(IcmpType::Ttl) => "ICMP TTL истёк",
-                    _ => "ICMP недоступно",
+                    Some(IcmpType::EchoRep) => i18n::tr("ICMP reply"),
+                    Some(IcmpType::Ttl) => i18n::tr("ICMP TTL exceeded"),
+                    _ => i18n::tr("ICMP unreachable"),
                 };
                 return format!("{nm} {addr}");
             }
             if let Some(t) = &p.tunnel {
-                return format!(
-                    "VPN-туннель {}→{} (внутри: {}→{} {})",
-                    ip_str_opt(p.src),
-                    ip_str(p.dst),
-                    ip_str_opt(t.inner.src),
-                    ip_str(t.inner.dst),
-                    t.inner.proto.as_str()
-                );
+                return i18n::trf!("VPN tunnel {0}→{1} (inside: {2}→{3} {4})", ip_str_opt(p.src), ip_str(p.dst), ip_str_opt(t.inner.src), ip_str(t.inner.dst), t.inner.proto.as_str());
             }
             if p.proto == Proto::Udp {
                 if let Some(dns) = &p.dns {
                     return if dns.response {
                         let rc = dns.rcode.map(|r| r.as_str()).unwrap_or("undefined");
-                        let rf = dns.referral.as_ref().map(|r| format!(" (реферал {})", r.zone)).unwrap_or_default();
-                        format!("DNS ответ {rc}{rf} {}→{}", ip_str_opt(p.src), ip_str(p.dst))
+                        let rf = dns.referral.as_ref().map(|r| i18n::trf!(" (referral {0})", r.zone)).unwrap_or_default();
+                        i18n::trf!("DNS reply {0}{1} {2}→{3}", rc, rf, ip_str_opt(p.src), ip_str(p.dst))
                     } else {
                         format!("DNS {} {}? {}→{}", dns.q.name, dns.q.typ, ip_str_opt(p.src), ip_str(p.dst))
                     };
@@ -305,11 +298,11 @@ impl<'a> Sim<'a> {
         let Some(d) = self.dev(dev_id) else { return };
         let Some(ifc) = d.iface(port) else { return };
         let Some((peer_dev, peer_port, link)) = self.peer(dev_id, port) else {
-            self.log(at, dev_id, EventKind::Drop, format!("порт {port}: кабель не подключён"));
+            self.log(at, dev_id, EventKind::Drop, i18n::trf!("port {0}: no cable connected", port));
             return;
         };
         if !ifc.up {
-            self.log(at, dev_id, EventKind::Drop, format!("порт {port} выключен"));
+            self.log(at, dev_id, EventKind::Drop, i18n::trf!("port {0} is down", port));
             return;
         }
         if let Payload::Ip(p) = &frame.body {
@@ -322,7 +315,7 @@ impl<'a> Sim<'a> {
                             at,
                             dev_id,
                             EventKind::Drop,
-                            format!("пакет {size} Б больше MTU {mtu} интерфейса {port}: message too long"),
+                            i18n::trf!("packet of {0} B exceeds MTU {1} of interface {2}: message too long", size, mtu, port),
                         );
                         if let Some(pr) = self.probe.as_mut() {
                             if pr.result.is_none() {
@@ -335,22 +328,22 @@ impl<'a> Sim<'a> {
                     }
                     if p.df {
                         let tail = if d.icmp_block {
-                            " — ICMP «frag needed» тоже заблокирован: отправитель ничего не узнает"
+                            i18n::tr(" — ICMP “frag needed” is blocked too: the sender will learn nothing")
                         } else {
-                            " — шлю ICMP «frag needed»"
+                            i18n::tr(" — sending ICMP “frag needed”")
                         };
                         self.log(
                             at,
                             dev_id,
                             EventKind::Drop,
-                            format!("пакет {size} Б не лезет в MTU {mtu}, а запрещена фрагментация (DF){tail}"),
+                            i18n::trf!("packet of {0} B does not fit MTU {1} and fragmentation is forbidden (DF){2}", size, mtu, tail),
                         );
                         if !d.icmp_block {
                             self.icmp_error(d, ifc.ip.as_deref(), p, IcmpType::Unreach, at, Some(IcmpCode::Frag), Some(mtu as u32));
                         }
                         return;
                     }
-                    self.log(at, dev_id, EventKind::Info, format!("пакет {size} Б больше MTU {mtu}: фрагментирую"));
+                    self.log(at, dev_id, EventKind::Info, i18n::trf!("packet of {0} B exceeds MTU {1}: fragmenting", size, mtu));
                 }
             }
         }
@@ -381,7 +374,7 @@ impl<'a> Sim<'a> {
         }
         let Some(ifc) = d.iface(port) else { return };
         if !ifc.up {
-            return self.log(at, dev_id, EventKind::Drop, format!("порт {port} выключен"));
+            return self.log(at, dev_id, EventKind::Drop, i18n::trf!("port {0} is down", port));
         }
         if frame.dst != ifc.mac && frame.dst != BCAST_MAC {
             return; // чужой кадр
@@ -401,7 +394,7 @@ impl<'a> Sim<'a> {
         }
         let key = format!("{}|{}", d.id, frame.uid.unwrap_or(0));
         if self.seen.contains(&key) {
-            self.log(at, &d.id, EventKind::Loop, "этот кадр уже проходил здесь — в сети петля, кадры будут ходить по кругу");
+            self.log(at, &d.id, EventKind::Loop, i18n::tr("this frame has already passed here — there is a loop, frames will circle forever"));
             return true;
         }
         self.seen.insert(key);
@@ -413,7 +406,7 @@ impl<'a> Sim<'a> {
             return;
         }
         let t = at + proc_us(DeviceKind::Hub);
-        self.log(t, &d.id, EventKind::Learn, "хаб повторяет кадр на все остальные порты");
+        self.log(t, &d.id, EventKind::Learn, i18n::tr("the hub repeats the frame to all other ports"));
         for i in &d.ifaces {
             if i.name != port {
                 self.xmit(&d.id, &i.name, frame.clone(), t);
@@ -427,7 +420,7 @@ impl<'a> Sim<'a> {
         }
         let Some(pin) = d.iface(port) else { return };
         if !pin.up {
-            return self.log(at, &d.id, EventKind::Drop, format!("порт {port} выключен"));
+            return self.log(at, &d.id, EventKind::Drop, i18n::trf!("port {0} is down", port));
         }
         let vlan = if pin.trunk { frame.vlan.unwrap_or(1) } else { pin.vlan.unwrap_or(1) };
         let key = |m: &str| if vlan == 1 { m.to_string() } else { format!("{m}@vlan{vlan}") };
@@ -442,7 +435,7 @@ impl<'a> Sim<'a> {
         };
         if learned {
             let tail = if vlan == 1 { String::new() } else { format!(" (VLAN {vlan})") };
-            self.log(at, &d.id, EventKind::Learn, format!("запомнил: {} за портом {port}{tail}", frame.src));
+            self.log(at, &d.id, EventKind::Learn, i18n::trf!("learned: {0} is behind port {1}{2}", frame.src, port, tail));
         }
         let t = at + proc_us(DeviceKind::Switch);
         let known: Option<String> =
@@ -454,9 +447,9 @@ impl<'a> Sim<'a> {
             return self.switch_out(d, &known, &frame, vlan, t);
         }
         let text = if frame.dst == BCAST_MAC {
-            "широковещательный кадр — рассылаю во все порты этого VLAN".to_string()
+            i18n::tr("broadcast frame — flooding all ports of this VLAN").to_string()
         } else {
-            format!("адрес {} неизвестен — рассылаю во все порты этого VLAN", frame.dst)
+            i18n::trf!("address {0} is unknown — flooding all ports of this VLAN", frame.dst)
         };
         self.log(t, &d.id, EventKind::Learn, text);
         for i in &d.ifaces {
@@ -496,13 +489,13 @@ impl<'a> Sim<'a> {
                     at,
                     &d.id,
                     EventKind::Conflict,
-                    format!("конфликт адресов: {} отвечают сразу два устройства ({} и {})", ip_str(a.sip), p.mac, a.smac),
+                    i18n::trf!("address conflict: two devices answer for {0} ({1} and {2})", ip_str(a.sip), p.mac, a.smac),
                 );
             }
         }
         self.rt.arp.entry(d.id.clone()).or_default().insert(a.sip, ArpEntry { mac: a.smac.clone(), at, sim: sim_id });
         if a.op == ArpOp::Req {
-            self.log(at, &d.id, EventKind::Arp, format!("{} — это я, отвечаю {}", ip, ifc.mac));
+            self.log(at, &d.id, EventKind::Arp, i18n::trf!("{0} is me, replying with {1}", ip, ifc.mac));
             let rep = Frame {
                 size: ARP_SIZE,
                 src: ifc.mac.clone(),
@@ -531,7 +524,7 @@ impl<'a> Sim<'a> {
             return None;
         }
         self.resolving.insert(key.clone());
-        self.log(at, &d.id, EventKind::Arp, format!("нужен MAC для {} — спрашиваю ARP-запросом", ip_str(next_hop)));
+        self.log(at, &d.id, EventKind::Arp, i18n::trf!("need a MAC for {0} — asking with an ARP request", ip_str(next_hop)));
         let req = Frame {
             size: ARP_SIZE,
             src: ifc.mac.clone(),
@@ -561,7 +554,7 @@ impl<'a> Sim<'a> {
             return self.ip_in(d, None, pkt, at); // сам себе
         }
         let Some(r) = lookup(d, Some(pkt.dst), pkt.no_tun) else {
-            return self.log(at, &d.id, EventKind::Drop, format!("нет маршрута до {} (Network is unreachable)", ip_str(pkt.dst)));
+            return self.log(at, &d.id, EventKind::Drop, i18n::trf!("no route to {0} (Network is unreachable)", ip_str(pkt.dst)));
         };
         let Some(ifc) = d.iface(&r.dev) else { return };
         if pkt.src.is_none() {
@@ -572,7 +565,7 @@ impl<'a> Sim<'a> {
         }
         let hop = r.via.unwrap_or(pkt.dst);
         let Some((mac, at2)) = self.resolve(d, ifc, hop, at) else {
-            return self.log(at + 1000.0, &d.id, EventKind::Drop, format!("{} не ответил на ARP (Host unreachable)", ip_str(hop)));
+            return self.log(at + 1000.0, &d.id, EventKind::Drop, i18n::trf!("{0} did not answer ARP (Host unreachable)", ip_str(hop)));
         };
         let size = ip_frame_size(pkt.proto);
         self.xmit(&d.id, &ifc.name, Frame { size, src: ifc.mac.clone(), dst: mac, vlan: None, uid: None, body: Payload::Ip(pkt) }, at2);
@@ -585,7 +578,7 @@ impl<'a> Sim<'a> {
             at,
             &d.id,
             EventKind::Tun,
-            format!("туннель {}: {}→{} упакован в UDP до {}", ifc.name, ip_str_opt(pkt.src), ip_str(pkt.dst), tun.peer),
+            i18n::trf!("tunnel {0}: {1}→{2} wrapped in UDP to {3}", ifc.name, ip_str_opt(pkt.src), ip_str(pkt.dst), tun.peer),
         );
         let dport = self.rt.tun_peer.get(&format!("{}:{}", d.id, ifc.name)).and_then(|e| e.port).unwrap_or(tun.port);
         let mut outer = Packet::new(Proto::Udp, peer);
@@ -606,7 +599,7 @@ impl<'a> Sim<'a> {
                 at,
                 &d.id,
                 EventKind::Drop,
-                format!("UDP/{} от {}: туннеля с таким пиром нет — пакет отброшен", on(pkt.dport), ip_str_opt(pkt.src)),
+                i18n::trf!("UDP/{0} from {1}: no tunnel with such a peer — packet dropped", on(pkt.dport), ip_str_opt(pkt.src)),
             );
             return true;
         };
@@ -616,13 +609,13 @@ impl<'a> Sim<'a> {
                 at,
                 &d.id,
                 EventKind::Drop,
-                format!("туннель {}: ключ не совпал — пакет от {} отброшен (тишина, как у WireGuard)", tif.name, ip_str_opt(pkt.src)),
+                i18n::trf!("tunnel {0}: key mismatch — packet from {1} dropped (silently, like WireGuard)", tif.name, ip_str_opt(pkt.src)),
             );
             return true;
         }
         self.rt.tun_peer.insert(format!("{}:{}", d.id, tif.name), TunPeer { ip: pkt.src, port: pkt.sport });
         let inner = wrapped.inner.clone();
-        self.log(at, &d.id, EventKind::Tun, format!("туннель {}: распаковал {}→{}", tif.name, ip_str_opt(inner.src), ip_str(inner.dst)));
+        self.log(at, &d.id, EventKind::Tun, i18n::trf!("tunnel {0}: unwrapped {1}→{2}", tif.name, ip_str_opt(inner.src), ip_str(inner.dst)));
         self.ip_in(d, Some(tif), inner, at + 15.0);
         true
     }
@@ -682,7 +675,7 @@ impl<'a> Sim<'a> {
                     at,
                     &d.id,
                     EventKind::Nat,
-                    format!("NAT: ответ {}→{} возвращаю клиенту {}", ip_str_opt(pkt.src), ip_str(pkt.dst), ip_str_opt(orig.src)),
+                    i18n::trf!("NAT: reply {0}→{1} returned to client {2}", ip_str_opt(pkt.src), ip_str(pkt.dst), ip_str_opt(orig.src)),
                 );
             }
             apply_tuple(&mut pkt, &reverse(&orig));
@@ -749,7 +742,7 @@ impl<'a> Sim<'a> {
                 at,
                 &d.id,
                 EventKind::Drop,
-                format!("пакет для {} — не мне, а пересылка выключена (ip_forward=0)", ip_str(pkt.dst)),
+                i18n::trf!("packet for {0} is not for me, and forwarding is off (ip_forward=0)", ip_str(pkt.dst)),
             );
         }
         self.forward(d, ifc, pkt, at, est, tup);
@@ -775,7 +768,7 @@ impl<'a> Sim<'a> {
         let live: Vec<&LbBackend> =
             if lb.health { lb.backends.iter().filter(|b| self.backend_up(b)).collect() } else { lb.backends.iter().collect() };
         if live.is_empty() {
-            return self.log(at, &d.id, EventKind::Drop, "балансировщик: нет живых серверов в пуле — 503");
+            return self.log(at, &d.id, EventKind::Drop, i18n::tr("load balancer: no live servers in the pool — 503"));
         }
         let hash = lb.algo == Some(LbAlgo::Hash);
         let b = if hash {
@@ -787,11 +780,11 @@ impl<'a> Sim<'a> {
             live[i]
         };
         let Some(r) = lookup(d, parse_ip(&b.ip), false) else {
-            return self.log(at, &d.id, EventKind::Drop, format!("балансировщик: нет маршрута до {}", b.ip));
+            return self.log(at, &d.id, EventKind::Drop, i18n::trf!("load balancer: no route to {0}", b.ip));
         };
         let Some(out) = d.iface(&r.dev) else { return };
-        let how = if hash { "хеш по адресу клиента" } else { "по кругу" };
-        self.log(at, &d.id, EventKind::Nat, format!("балансировщик ({how}): {} → сервер {}:{}", ip_str_opt(pkt.src), b.ip, b.port));
+        let how = if hash { i18n::tr("hash of client address") } else { i18n::tr("round robin") };
+        self.log(at, &d.id, EventKind::Nat, i18n::trf!("load balancer ({0}): {1} → server {2}:{3}", how, ip_str_opt(pkt.src), b.ip, b.port));
         pkt.dst = parse_ip(&b.ip).unwrap_or(0);
         pkt.dport = Some(b.port);
         pkt.src = parse_ip_opt(out.ip.as_deref());
@@ -810,23 +803,23 @@ impl<'a> Sim<'a> {
     fn forward(&mut self, d: &'a Device, ifc: Option<&'a Iface>, mut pkt: Packet, at: f64, est: bool, orig_tuple: Tuple) {
         if d.drop_private && (is_private(pkt.src) || is_private(Some(pkt.dst))) {
             let shown = if is_private(pkt.src) { pkt.src } else { Some(pkt.dst) };
-            return self.log(at, &d.id, EventKind::Drop, format!("интернет не маршрутизирует частные адреса: {}", ip_str_opt(shown)));
+            return self.log(at, &d.id, EventKind::Drop, i18n::trf!("the internet does not route private addresses: {0}", ip_str_opt(shown)));
         }
         let ifc_ip = ifc.and_then(|i| i.ip.as_deref());
         if pkt.ttl <= 1 {
-            self.log(at, &d.id, EventKind::Drop, "TTL истёк — отправителю уходит ICMP «time exceeded»");
+            self.log(at, &d.id, EventKind::Drop, i18n::tr("TTL expired — sending ICMP “time exceeded” to the sender"));
             return self.icmp_error(d, ifc_ip, &pkt, IcmpType::Ttl, at, None, None);
         }
         pkt.ttl -= 1;
         let Some(r) = lookup(d, Some(pkt.dst), false) else {
-            self.log(at, &d.id, EventKind::Drop, format!("нет маршрута до {} — шлю ICMP «unreachable»", ip_str(pkt.dst)));
+            self.log(at, &d.id, EventKind::Drop, i18n::trf!("no route to {0} — sending ICMP “unreachable”", ip_str(pkt.dst)));
             return self.icmp_error(d, ifc_ip, &pkt, IcmpType::Unreach, at, None, None);
         };
         let Some(out) = d.iface(&r.dev) else { return };
         let verdict =
             self.filter(d, &pkt, ifc.map(|i| i.name.as_str()), &out.name, if est { ConnState::Established } else { ConnState::New });
         if verdict != FwAction::Accept {
-            self.log(at, &d.id, EventKind::Fw, format!("файрвол: {} {}→{}", verdict.as_str(), ip_str_opt(pkt.src), ip_str(pkt.dst)));
+            self.log(at, &d.id, EventKind::Fw, i18n::trf!("firewall: {0} {1}→{2}", verdict.as_str(), ip_str_opt(pkt.src), ip_str(pkt.dst)));
             if verdict == FwAction::Reject {
                 self.icmp_error(d, ifc_ip, &pkt, IcmpType::Unreach, at, None, None);
             }
@@ -938,7 +931,7 @@ impl<'a> Sim<'a> {
             Proto::Icmp => {
                 let t = pkt.icmp.as_ref().map(|i| i.typ);
                 if t == Some(IcmpType::EchoReq) {
-                    self.log(at, &d.id, EventKind::Icmp, format!("echo-запрос от {}, отвечаю", ip_str_opt(pkt.src)));
+                    self.log(at, &d.id, EventKind::Icmp, i18n::trf!("echo request from {0}, replying", ip_str_opt(pkt.src)));
                     let mut r = Packet::new(Proto::Icmp, 0);
                     r.icmp = Some(IcmpInfo {
                         typ: IcmpType::EchoRep,
@@ -960,7 +953,7 @@ impl<'a> Sim<'a> {
                 }
                 let svc = d.services.iter().any(|x| x.proto == Proto::Udp && Some(x.port) == pkt.dport && bind_ok(x, Some(pkt.dst)));
                 if svc {
-                    self.log(at, &d.id, EventKind::Udp, format!("порт {}/udp слушает — отвечаю датаграммой", on(pkt.dport)));
+                    self.log(at, &d.id, EventKind::Udp, i18n::trf!("port {0}/udp is listening — replying with a datagram", on(pkt.dport)));
                     let mut r = Packet::new(Proto::Udp, 0);
                     r.sport = pkt.dport;
                     r.dport = pkt.sport;
@@ -969,7 +962,7 @@ impl<'a> Sim<'a> {
                 if self.probe.as_ref().map(|p| p.origin == d.id).unwrap_or(false) {
                     return self.probe_reply(d, &pkt, at);
                 }
-                self.log(at, &d.id, EventKind::Udp, format!("порт {}/udp никто не слушает — шлю ICMP «порт недоступен»", on(pkt.dport)));
+                self.log(at, &d.id, EventKind::Udp, i18n::trf!("nobody listens on port {0}/udp — sending ICMP “port unreachable”", on(pkt.dport)));
                 self.icmp_error(d, None, &pkt, IcmpType::Unreach, at, Some(IcmpCode::Port), None);
             }
             Proto::Tcp => self.tcp_local(d, pkt, at),
@@ -992,15 +985,15 @@ impl<'a> Sim<'a> {
             r
         };
         if pkt.flags == Some(TcpFlags::Syn) && self.rt.synflood.contains(&format!("{}:{}", d.id, on(pkt.dport))) && !d.syncookies {
-            return self.log(at, &d.id, EventKind::Drop, "очередь полуоткрытых соединений переполнена (SYN-флуд) — новый SYN отброшен");
+            return self.log(at, &d.id, EventKind::Drop, i18n::tr("half-open connection queue is full (SYN flood) — new SYN dropped"));
         }
         if pkt.flags == Some(TcpFlags::Syn) {
             let svc = d.services.iter().any(|s| s.proto == Proto::Tcp && Some(s.port) == pkt.dport && bind_ok(s, Some(pkt.dst)));
             if svc {
-                self.log(at, &d.id, EventKind::Tcp, format!("порт {} слушает — отвечаю SYN-ACK", on(pkt.dport)));
+                self.log(at, &d.id, EventKind::Tcp, i18n::trf!("port {0} is listening — replying with SYN-ACK", on(pkt.dport)));
                 return self.reply(d, &pkt, at, mk(TcpFlags::SynAck, 5000, seq0 + 1, 0));
             }
-            self.log(at, &d.id, EventKind::Tcp, format!("порт {} никто не слушает — отвечаю RST", on(pkt.dport)));
+            self.log(at, &d.id, EventKind::Tcp, i18n::trf!("nobody listens on port {0} — replying with RST", on(pkt.dport)));
             return self.reply(d, &pkt, at, mk(TcpFlags::Rst, 0, seq0 + 1, 0));
         }
         let is_server = self.probe.as_ref().map(|p| d.id != p.origin).unwrap_or(false);
@@ -1011,14 +1004,14 @@ impl<'a> Sim<'a> {
                     at,
                     &d.id,
                     EventKind::Tcp,
-                    format!("получен запрос ({} Б) — отправляю ответ 1000 Б и закрываю соединение", on(pkt.len)),
+                    i18n::trf!("request received ({0} B) — sending a 1000 B response and closing the connection", on(pkt.len)),
                 );
                 let ack = seq0 + len0;
                 self.reply(d, &pkt, at, mk(TcpFlags::PshAck, ack0, ack, 1000));
                 return self.reply(d, &pkt, at, mk(TcpFlags::FinAck, ack0 + 1000, ack, 0));
             }
             if pkt.flags == Some(TcpFlags::FinAck) {
-                self.log(at, &d.id, EventKind::Tcp, "клиент тоже закрыл — подтверждаю последним ACK, соединение закрыто");
+                self.log(at, &d.id, EventKind::Tcp, i18n::tr("the client closed too — confirming with the last ACK, connection closed"));
                 return self.reply(d, &pkt, at, mk(TcpFlags::Ack, ack0, seq0 + 1, 0));
             }
             return;
@@ -1041,7 +1034,7 @@ impl<'a> Sim<'a> {
         if is_reply {
             if let Some(pd) = p.dst {
                 if pkt.src != Some(pd) {
-                    return self.log(at, &d.id, EventKind::Drop, format!("ответ пришёл с адреса {who}, а запрос уходил на {} — отбрасываю (так делает любой узел без NAT-обратного преобразования)", ip_str(pd)));
+                    return self.log(at, &d.id, EventKind::Drop, i18n::trf!("reply came from address {0}, but the request went to {1} — dropping it (any host without reverse NAT does this)", who, ip_str(pd)));
                 }
             }
         }
@@ -1052,7 +1045,7 @@ impl<'a> Sim<'a> {
                 let mut r = ProbeResult::new(ProbeStatus::Reply, pkt.src, at);
                 r.ttl = Some(pkt.ttl);
                 self.set_result(r);
-                self.log(at, &d.id, EventKind::Icmp, format!("получен ответ от {who}"));
+                self.log(at, &d.id, EventKind::Icmp, i18n::trf!("reply received from {0}", who));
             } else if t == IcmpType::Ttl || t == IcmpType::Unreach {
                 if let Some(o) = &ic.orig {
                     if o.sport == Some(p.sport.unwrap_or(p.id)) {
@@ -1061,16 +1054,13 @@ impl<'a> Sim<'a> {
                         r.mtu = ic.mtu;
                         self.set_result(r);
                         let text = if t == IcmpType::Ttl {
-                            format!("{who}: TTL истёк по дороге")
+                            i18n::trf!("{0}: TTL expired along the way", who)
                         } else if ic.code == Some(IcmpCode::Frag) {
-                            format!(
-                                "{who}: нужна фрагментация, а DF запрещает (MTU {})",
-                                ic.mtu.map(|m| m.to_string()).unwrap_or_else(|| "undefined".into())
-                            )
+                            i18n::trf!("{0}: fragmentation needed but DF forbids it (MTU {1})", who, ic.mtu.map(|m| m.to_string()).unwrap_or_else(|| "undefined".into()))
                         } else if ic.code == Some(IcmpCode::Port) {
-                            format!("{who}: порт недоступен (ICMP port unreachable)")
+                            i18n::trf!("{0}: port unreachable (ICMP port unreachable)", who)
                         } else {
-                            format!("{who}: сеть или узел недоступны")
+                            i18n::trf!("{0}: network or host unreachable", who)
                         };
                         self.log(at, &d.id, EventKind::Icmp, text);
                     }
@@ -1080,7 +1070,7 @@ impl<'a> Sim<'a> {
             let mut r = ProbeResult::new(ProbeStatus::Reply, pkt.src, at);
             r.dns = pkt.dns.clone();
             self.set_result(r);
-            self.log(at, &d.id, EventKind::Udp, format!("получена датаграмма-ответ от {who}"));
+            self.log(at, &d.id, EventKind::Udp, i18n::trf!("datagram reply received from {0}", who));
         } else if pkt.proto == Proto::Tcp && pkt.dport == p.sport {
             let rst = pkt.flags == Some(TcpFlags::Rst);
             let seq0 = pkt.seq.unwrap_or(0);
@@ -1103,9 +1093,9 @@ impl<'a> Sim<'a> {
                     &d.id,
                     EventKind::Tcp,
                     if rst {
-                        "получен RST — порт закрыт"
+                        i18n::tr("RST received — port closed")
                     } else {
-                        "получен SYN-ACK — соединение установлено"
+                        i18n::tr("SYN-ACK received — connection established")
                     },
                 );
                 if p.session && !rst {
@@ -1115,14 +1105,14 @@ impl<'a> Sim<'a> {
             } else if p.session {
                 match pkt.flags {
                     Some(TcpFlags::PshAck) => {
-                        self.log(at, &d.id, EventKind::Tcp, format!("получен ответ ({} Б), подтверждаю", on(pkt.len)));
+                        self.log(at, &d.id, EventKind::Tcp, i18n::trf!("response received ({0} B), acknowledging", on(pkt.len)));
                         self.send_from(d, pkt, mk(TcpFlags::Ack, ack0, seq0 + len0, 0), at + 5.0);
                     }
                     Some(TcpFlags::FinAck) => {
-                        self.log(at, &d.id, EventKind::Tcp, "сервер закрыл соединение (FIN) — закрываю свою сторону");
+                        self.log(at, &d.id, EventKind::Tcp, i18n::tr("the server closed the connection (FIN) — closing my side"));
                         self.send_from(d, pkt, mk(TcpFlags::FinAck, ack0, seq0 + 1, 0), at + 5.0);
                     }
-                    Some(TcpFlags::Ack) => self.log(at, &d.id, EventKind::Tcp, "последний ACK получен — соединение закрыто"),
+                    Some(TcpFlags::Ack) => self.log(at, &d.id, EventKind::Tcp, i18n::tr("last ACK received — connection closed")),
                     _ => {}
                 }
             }
@@ -1222,7 +1212,7 @@ pub fn tcp1(state: &mut NetState, dev_id: &str, dst: u32, port: i64, sport: i64,
     pkt.ack = Some(0);
     pkt.len = Some(0);
     let probe = Probe { origin: dev_id.to_string(), id: 0, sport: Some(sport), result: None, dst: Some(dst), session };
-    run_probe(state, dev_id, probe, EventKind::Tcp, format!("подключаюсь к {}:{}", ip_str(dst), port), pkt)
+    run_probe(state, dev_id, probe, EventKind::Tcp, i18n::trf!("connecting to {0}:{1}", ip_str(dst), port), pkt)
 }
 
 /// Одна UDP-датаграмма на порт: ответ, ICMP «порт недоступен» или тишина.
@@ -1231,7 +1221,7 @@ pub fn udp1(state: &mut NetState, dev_id: &str, dst: u32, port: i64, sport: i64)
     pkt.sport = Some(sport);
     pkt.dport = Some(port);
     let probe = Probe { origin: dev_id.to_string(), id: 0, sport: Some(sport), result: None, dst: Some(dst), session: false };
-    run_probe(state, dev_id, probe, EventKind::Udp, format!("отправляю датаграмму на {}:{}/udp", ip_str(dst), port), pkt)
+    run_probe(state, dev_id, probe, EventKind::Udp, i18n::trf!("sending a datagram to {0}:{1}/udp", ip_str(dst), port), pkt)
 }
 
 /// DNS-запрос с устройства: вопрос `q` к серверу `server`.
@@ -1240,7 +1230,7 @@ pub fn dns1(state: &mut NetState, dev_id: &str, server: u32, q: DnsQuestion, rd:
     let mut pkt = Packet::new(Proto::Udp, server);
     pkt.sport = Some(sport);
     pkt.dport = Some(53);
-    let text = format!("спрашиваю {}: «{} {}»", ip_str(server), q.name, q.typ);
+    let text = i18n::trf!("asking {0}: “{1} {2}”", ip_str(server), q.name, q.typ);
     pkt.dns = Some(DnsMessage { id: 1, q, response: false, rd: Some(rd), ra: None, rcode: None, answers: None, referral: None });
     let probe = Probe { origin: dev_id.to_string(), id: 0, sport: Some(sport), result: None, dst: Some(server), session: false };
     run_probe(state, dev_id, probe, EventKind::Dns, text, pkt)
@@ -1271,6 +1261,6 @@ pub fn traceroute(state: &mut NetState, dev_id: &str, dst: u32, max_hops: i64) -
 pub fn fmt_ms(us: Option<f64>) -> String {
     match us {
         None => "—".into(),
-        Some(us) => format!("{} мс", to_fixed(us / 1000.0, if us < 10000.0 { 3 } else { 1 })),
+        Some(us) => i18n::trf!("{0} ms", to_fixed(us / 1000.0, if us < 10000.0 { 3 } else { 1 })),
     }
 }

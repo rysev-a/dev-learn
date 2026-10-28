@@ -1,0 +1,129 @@
+{
+ "book": 18,
+ "chapter": 20,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd20-s1-mvp",
+   "title": "Stage 1. First version",
+   "statement": "The photo network launches with 400 reads and 60 metadata writes per second, 300 photo requests per second and 5 TB of photos. Keep the photos in object storage and the metadata in the database. Load at most 80%, cost at most $450 per month.",
+   "hint": "Server → database (metadata) and server → storage (photos). Storage costs $25 plus $23 per TB — 140.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  },
+  {
+   "id": "sd20-s2-processing",
+   "title": "Stage 2. Photo processing",
+   "statement": "Posts have reached 300 per second, and each one must be processed: resized and given a thumbnail. Add a queue and idempotent workers on spot instances (at least two) that read the queue and write the result to the database and storage. After a 10-second peak the queue drains with no lag (5 s is acceptable), the database stays at or below 80%, and the budget is $1,300 per month.",
+   "hint": "Server → queue → workers → database and storage. Two M workers handle 800 per second at a load of 300. The “Pricing” and “Idempotent processing” parameters are shown in the exercise.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database",
+    "/start/nodes/4/name": "Object storage"
+   }
+  },
+  {
+   "id": "sd20-s3-cdn",
+   "title": "Stage 3. Serving through a CDN",
+   "statement": "Photo views have reached 25,000 per second. Put a CDN in front of storage with a high hit ratio (≥95%; immutable addresses allow a long TTL) so that the average latency is 40 ms or less, the servers and everything else stay at or below 80%, and the budget is $2,000 per month.",
+   "hint": "CDN → storage, TTL 3600 gives 98%. The CDN passes dynamic requests to the load balancer. You will need seven M servers and an L database.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database",
+    "/start/nodes/4/name": "Object storage",
+    "/start/nodes/5/name": "Queue",
+    "/start/nodes/6/name": "Worker"
+   }
+  },
+  {
+   "id": "sd20-s4-feed",
+   "title": "Stage 4. Subscription feed",
+   "statement": "A subscription feed has appeared: 5,000 opens per second, 150 followers per author on average, 30 TB of photos. Choose the hybrid feed, add a cache for feeds and metadata (≥90%, 8 GB working set), strengthen the database with a replica and automatic failover (writes are heavier: you need an L database) and add workers for the doubled write load. Everything at most 80%, the design survives a database and cache failure, and the budget is $3,900 per month.",
+   "hint": "Hybrid multiplies writes by 2.5 (750 per second). Three M workers, an L database with a replica, an 8 GB cache with a replica, ten M servers.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/2/name": "Load balancer",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Object storage",
+    "/start/nodes/6/name": "Queue",
+    "/start/nodes/7/name": "Worker"
+   }
+  },
+  {
+   "id": "sd20-s5-events",
+   "title": "Stage 5. Events and notifications",
+   "statement": "Every action is an event. Connect an event stream (three partitions) to the server, and notifications and analytics to the stream: the consumers must be loaded at most 80%. There must be enough notifications capacity for pushes even when one instance fails, and the budget is $4,300 per month.",
+   "hint": "Server → stream → notifications and analytics. There are about 300 events per second; two instances of notifications (1,500 each) and one of analytics.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/2/name": "Load balancer",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Cache",
+    "/start/nodes/5/name": "Database",
+    "/start/nodes/6/name": "Object storage",
+    "/start/nodes/7/name": "Queue",
+    "/start/nodes/8/name": "Worker"
+   }
+  },
+  {
+   "id": "sd20-s6-explore",
+   "title": "Stage 6. Recommendations and search",
+   "statement": "The recommendations section calls the ranking service on 20% of requests (about 1,060 per second; one instance handles 300), every request checks the auth service, and 8% of reads are searches (a 200 GB index). Connect the ranking service, the auth service and search: load at most 80%, the design survives a ranking, auth and search failure, and the budget is $7,200 per month.",
+   "hint": "Ranking: five instances (1,500; if one fails, 1,200 remain at a load of 1,060). Auth: three instances (if one fails, 8,000 remain at a load of 5,300). Search: 5 shards × 2 replicas (200 / 40).",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/2/name": "Load balancer",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Cache",
+    "/start/nodes/5/name": "Database",
+    "/start/nodes/6/name": "Object storage",
+    "/start/nodes/7/name": "Queue",
+    "/start/nodes/8/name": "Worker",
+    "/start/nodes/9/name": "Event stream",
+    "/start/nodes/10/name": "Notifications",
+    "/start/nodes/11/name": "Analytics"
+   }
+  },
+  {
+   "id": "sd20-s7-reliability",
+   "title": "Stage 7. Reliability, protection and money",
+   "statement": "The photo network must always be available. Spread the servers, cache, workers and database across three zones, enable a rolling deployment, add a second load balancer, a rate limiter at the entry (limit at least the normal load of 5,300) and monitoring, and move storage to the mixed class (30 TB). The design survives a zone, deployment, server, database and cache failure, load is at most 80%, and the budget is $8,000 per month.",
+   "hint": "Twelve M servers across three zones (after losing a zone, 8 remain — 5,600). The rate limiter goes between the load balancer and the servers, with a limit of about 12,000. The storage’s “Storage class” — mixed.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/2/name": "Load balancer",
+    "/start/nodes/3/name": "App server",
+    "/start/nodes/4/name": "Cache",
+    "/start/nodes/5/name": "Database",
+    "/start/nodes/6/name": "Object storage",
+    "/start/nodes/7/name": "Queue",
+    "/start/nodes/8/name": "Worker",
+    "/start/nodes/9/name": "Event stream",
+    "/start/nodes/10/name": "Notifications",
+    "/start/nodes/11/name": "Analytics",
+    "/start/nodes/12/name": "Ranking service",
+    "/start/nodes/13/name": "Auth service",
+    "/start/nodes/14/name": "Search"
+   }
+  },
+  {
+   "id": "sd20-exam",
+   "title": "Exam. The whole photo network",
+   "statement": "Final assignment. The photo network at full strength: 40,000 photo requests per second, 7,000 feed opens and 400 posts per second, 600 TB of photos, 150 followers per author on average, 250 GB of metadata (10 GB working set). Build the design from scratch: storage (mixed class) and a CDN (≥95%), a cache (≥90%), a hybrid feed, a queue with idempotent workers on spot instances, an event stream with notifications and analytics, a ranking service (20% of requests), an auth service, search, a rate limiter, monitoring, two load balancers. It survives a zone, deployment, server, database, cache, ranking, auth and search failure; load at most 80%; average latency ≤ 40 ms; budget $18,000 per month.",
+   "hint": "Seventeen M servers across three zones; an L database with 2 shards and a replica (the feed doubles writes); ranking — 7 instances, auth — 3, search 6×2 (250 GB), M workers — 4, a 10 GB cache with a replica.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  }
+ ]
+}

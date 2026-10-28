@@ -1,0 +1,87 @@
+{
+ "book": 15,
+ "chapter": 4,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n4-plan",
+   "title": "Assign addresses by plan",
+   "statement": "The router is configured, but the four computers have no addresses. The network 192.168.10.0/24 is split into two. Department A: 192.168.10.0/26 (gateway .1, PC A1 has .2, PC A2 has .3). Department B: 192.168.10.64/27 (gateway .65, PC B1 is .66, PC B2 is .67). Give each PC an address, mask and gateway in its card and test connectivity between the departments.",
+   "hint": "The mask /26 is 255.255.255.192, /27 is 255.255.255.224. In the PC card: the IP goes in the first field, the mask length after “/”, and the default gateway is at the bottom. Or in the terminal: `ip addr add 192.168.10.2/26 dev eth0`, `ip route add default via 192.168.10.1`.",
+   "spec_text": {
+    "/goals/0/text": "PC A1 pings PC A2 (within the department)",
+    "/goals/1/text": "PC A1 pings PC B1 (through the router)",
+    "/goals/2/text": "PC B2 pings PC A2",
+    "/goals/3/text": "PC B1 pings PC B2",
+    "/start/devices/0/name": "PC A1",
+    "/start/devices/1/name": "PC A2",
+    "/start/devices/2/name": "Router",
+    "/start/devices/3/name": "PC B1",
+    "/start/devices/4/name": "PC B2",
+    "/start/devices/5/name": "SW A",
+    "/start/devices/6/name": "SW B"
+   }
+  },
+  {
+   "id": "n4-conflict",
+   "title": "Address conflict",
+   "statement": "PC 2 and PC 3 got the same address 192.168.0.20. While PC 1 pings the “twin”, replies come now from one, now from the other. Run ping and look at the log: ARP replies came from two devices. Change the address of one of the computers to a free one (for example .30) so that each has its own.",
+   "hint": "The address is changed in the PC card (the IP field) or with the commands `ip addr flush dev eth0` and `ip addr add 192.168.0.30/24 dev eth0`.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings 192.168.0.20 without a conflict",
+    "/goals/1/text": "PC 1 pings 192.168.0.30",
+    "/start/devices/0/name": "PC 1",
+    "/start/devices/1/name": "PC 2",
+    "/start/devices/2/name": "PC 3",
+    "/start/devices/3/name": "Switch"
+   }
+  },
+  {
+   "id": "n4-three-errors",
+   "title": "Three configuration errors",
+   "statement": "Three computers are connected to one network through a switch, and none of them can reach the server behind the router. Each has its own mistake: one has a typo in the gateway, one has a wrong mask, one has an address from another subnet. The router's address on this network is 192.168.1.1, the network mask is /24. Fix the settings so that all three ping the server.",
+   "hint": "PC A: the gateway must be the router's address. PC B: the mask /26 does not include the gateway .1, so it needs /24. PC C: the address 192.168.2.x is not from this network, change it to 192.168.1.x.",
+   "spec_text": {
+    "/goals/0/text": "PC A pings the server",
+    "/goals/1/text": "PC B pings the server",
+    "/goals/2/text": "PC C pings the server",
+    "/start/devices/0/name": "PC A",
+    "/start/devices/1/name": "PC B",
+    "/start/devices/2/name": "PC C",
+    "/start/devices/3/name": "Switch",
+    "/start/devices/4/name": "Router",
+    "/start/devices/5/name": "Server"
+   }
+  },
+  {
+   "id": "n4-nat",
+   "title": "Internet access through NAT",
+   "statement": "A home network 192.168.0.0/24 with private addresses and a gateway that has the public address 203.0.113.2 on the ISP side. The ISP (it cannot be configured) does not pass private addresses, so the PCs' requests to the website 198.51.100.10 vanish. Enable address masquerading on the gateway (MASQUERADE on the interface facing the internet) and make sure the website sees the gateway's address.",
+   "hint": "Select the gateway, in the “NAT” section specify the interface eth1 and click “turn on”. Or in the terminal: `iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE`. Then click ▶ on the goal and watch how the source address changes in the log.",
+   "spec_text": {
+    "/goals/0/text": "The PC pings the website",
+    "/goals/1/text": "The website sees the gateway address 203.0.113.2, not a private one",
+    "/goals/2/text": "The PC opens port 80 on the website",
+    "/start/devices/0/name": "PC",
+    "/start/devices/1/name": "Home gateway",
+    "/start/devices/2/name": "ISP",
+    "/start/devices/3/name": "Website"
+   }
+  },
+  {
+   "id": "n4-dnat",
+   "title": "Forwarding a port into the network",
+   "statement": "An internal network runs a web server at 192.168.0.10, port 80. MASQUERADE is already enabled, so everything works from the inside. But a guest from the internet (198.51.100.50) cannot open the site: from outside only the gateway's public address 203.0.113.2 is visible. Forward port 8080 of the gateway to 192.168.0.10:80 so that the guest can open http://203.0.113.2:8080.",
+   "hint": "On the gateway, in the “NAT” section, fill in “Port forwarding”: inbound eth1, port 8080, to 192.168.0.10:80. Or in the terminal: `iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 8080 -j DNAT --to-destination 192.168.0.10:80`.",
+   "spec_text": {
+    "/goals/0/text": "The web server reaches the internet (ping the guest)",
+    "/goals/1/text": "The guest opens 203.0.113.2:8080",
+    "/goals/2/text": "Port 80 of the gateway stays closed",
+    "/start/devices/0/name": "Web server",
+    "/start/devices/1/name": "Gateway",
+    "/start/devices/2/name": "ISP",
+    "/start/devices/3/name": "Guest"
+   }
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "book": 13,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "dm-repr-point",
+   "title": "A point with a clear repr",
+   "statement": "Add a __repr__ method to the Point class that returns a string like Point(1, 2), the way the point would be written in code. The check prints the repr of a point and of a list containing the point.",
+   "hint": "return f\"Point({self.x}, {self.y})\". A list shows its elements via repr."
+  },
+  {
+   "id": "dm-str-money",
+   "title": "Money: str and repr",
+   "statement": "The Money class stores an amount. For the user, __str__ must give «5.00 ₽» (two digits after the point), and __repr__ must give Money(5). Write both methods.",
+   "hint": "__str__: f\"{self.amount:.2f} ₽\"; __repr__: f\"Money({self.amount})\"."
+  },
+  {
+   "id": "dm-bool-account",
+   "title": "An empty account is false",
+   "statement": "Complete Account so that an account with a positive balance is truthy and one with a zero or negative balance is falsy (the condition if account: must work).",
+   "hint": "def __bool__(self): return self.balance > 0."
+  },
+  {
+   "id": "dm-len-basket",
+   "title": "Basket length",
+   "statement": "Basket already has an add method. Add __len__ so that len(basket) returns the number of items and an empty basket is falsy (without a separate __bool__).",
+   "hint": "def __len__(self): return len(self.items). Python takes truthiness from the length."
+  },
+  {
+   "id": "dm-eq-hash-version",
+   "title": "Version equality and hash",
+   "statement": "Write __eq__ and __hash__ for Version(major, minor): versions with the same numbers are equal, and can be put into a set and used as keys. Comparing with an object of another type (for example, a string) must simply give False, not an error.",
+   "hint": "In __eq__: if not isinstance(other, Version): return NotImplemented. __hash__: hash((self.major, self.minor))."
+  },
+  {
+   "id": "dm-order-version",
+   "title": "Version ordering",
+   "statement": "The Version class can already check equality and uses @total_ordering. Complete __lt__ so that versions are compared by (major, minor), and comparison with a foreign type returns NotImplemented (then Python itself raises TypeError).",
+   "hint": "if not isinstance(other, Version): return NotImplemented; then compare the tuples (major, minor).",
+   "starter": "from functools import total_ordering\n\n\n@total_ordering\nclass Version:\n    def __init__(self, major, minor):\n        self.major = major\n        self.minor = minor\n\n    def __eq__(self, other):\n        if not isinstance(other, Version):\n            return NotImplemented\n        return (self.major, self.minor) == (other.major, other.minor)\n\n    # add __lt__\n"
+  },
+  {
+   "id": "dm-format-temp",
+   "title": "A custom temperature format",
+   "statement": "Write Temperature.__format__(spec): the spec «c» (and the empty one) gives «21.0 °C», the spec «f» gives degrees Fahrenheit with one decimal place («69.8 °F»). Reject any other spec with ValueError.",
+   "hint": "F = C * 9 / 5 + 32. Format numbers as f\"{value:.1f}\"."
+  },
+  {
+   "id": "dm-getattr-config",
+   "title": "Settings as attributes",
+   "statement": "Config keeps a dictionary in self._data. Complete __getattr__ so that config.host returns the value of the key \"host\". If the key is missing, raise AttributeError (then hasattr and getattr with a default work correctly).",
+   "hint": "try: return self._data[name]; except KeyError: raise AttributeError(name)."
+  },
+  {
+   "id": "dm-readonly-id",
+   "title": "An immutable order number",
+   "statement": "In Order the id field must not change after creation, while total may. Write __setattr__: allow the first write of id, reject a repeated one with AttributeError. Other attributes are written as usual (via super().__setattr__, to avoid recursion).",
+   "hint": "if name == \"id\" and \"id\" in self.__dict__: raise AttributeError(...); then super().__setattr__(name, value)."
+  }
+ ]
+}

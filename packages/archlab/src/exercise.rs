@@ -205,7 +205,7 @@ impl<'de> Deserialize<'de> for HexBytes {
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         let text = String::deserialize(d)?;
         if text.len() % 2 != 0 || !text.is_ascii() {
-            return Err(serde::de::Error::custom("нужна строка шестнадцатеричных пар"));
+            return Err(serde::de::Error::custom(i18n::tr("expected a string of hexadecimal pairs")));
         }
         let bytes = (0..text.len() / 2)
             .map(|i| u8::from_str_radix(&text[2 * i..2 * i + 2], 16).map_err(serde::de::Error::custom))

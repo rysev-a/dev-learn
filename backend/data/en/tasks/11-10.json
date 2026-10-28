@@ -1,0 +1,187 @@
+{
+ "book": 11,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "j10-promisify",
+   "title": "promisify: from callbacks to promises",
+   "statement": "Write a function promisify(fn): fn takes arguments and, as the last one, a callback (err, result); promisify returns a function that takes the same arguments without the callback and returns a promise (rejected with err or fulfilled with result). this is preserved.",
+   "hint": "new Promise((resolve, reject) => fn(...args, (err, r) => …))"
+  },
+  {
+   "id": "j10-sequence",
+   "title": "Sequential execution",
+   "statement": "Write a function series(tasks): tasks is an array of functions returning a promise (or a value); it runs them strictly one after another (the next one after the previous completes) and returns a promise with an array of results; on the first error the rest are not started and the promise is rejected with that error.",
+   "hint": "for (const t of tasks) out.push(await t());"
+  },
+  {
+   "id": "j10-parallel-limit",
+   "title": "Limited concurrency",
+   "statement": "Write a function mapLimit(items, limit, fn): applies the async fn(item, index) to all items, with no more than limit calls running at once; returns a promise with the results in the original order; on an error it is rejected with the first error (no new calls start after it).",
+   "hint": "Several workers in a loop take the next index from a shared counter; the result is written to results[i]."
+  },
+  {
+   "id": "j10-all-settled",
+   "title": "Your own allSettled",
+   "statement": "Write a function settleAll(list): takes an array of values and promises; returns a promise with an array of { status: \"fulfilled\", value } or { status: \"rejected\", reason } in the original order; it never rejects itself. You may not use Promise.allSettled.",
+   "hint": "Turn each promise into an \"always successful\" one with then(onOk, onFail), then Promise.all."
+  },
+  {
+   "id": "j10-any",
+   "title": "Your own Promise.any",
+   "statement": "Write a function firstFulfilled(list): returns a promise fulfilled with the value of the first successful item of list (values and promises); if all are rejected (or the array is empty), it rejects with an AggregateError with the array of reasons in the original order and the message «Все отклонены». You may not use Promise.any.",
+   "hint": "A wrapper promise: resolve for the first success, while failures accumulate by index."
+  },
+  {
+   "id": "j10-race",
+   "title": "Your own Promise.race",
+   "statement": "Write a function firstSettled(list): a promise that settles the same way as the first settled promise from list (with a value or an error); non-promise values settle immediately. For an empty array the promise stays pending. You may not use Promise.race.",
+   "hint": "Subscribe resolve and reject to every promise: whichever comes first wins."
+  },
+  {
+   "id": "j10-poll",
+   "title": "Polling until ready",
+   "statement": "Write a function pollUntil(check, { interval, maxAttempts }): check() is an async function returning a value; repeat the call every interval ms until the result becomes truthy, then return it; after maxAttempts failed checks, reject with Error(\"не дождались после N попыток\"). Wait interval ms between checks (no pause after the last one).",
+   "hint": "A loop over attempts: await check(), on failure pause, except after the last attempt."
+  },
+  {
+   "id": "j10-latest",
+   "title": "Only the latest request wins",
+   "statement": "Write a function latestOnly(fn): fn is async; returns a wrapper function. If the wrapper is called several times in a row, only the very last call should deliver a result: for older calls the promise is rejected with an error whose name is «Superseded» (if they have not finished by the time of the new call, at the moment they finish; if they already finished, they stay as they are).",
+   "hint": "A call counter: after await compare your number with the latest."
+  },
+  {
+   "id": "j10-memo-async",
+   "title": "Memoizing an async function",
+   "statement": "Write a function memoizeAsync(fn): the key is JSON.stringify(arguments). Concurrent calls with the same key share the same running promise; the result of a successful call is cached; on an error the entry is removed from the cache (the next call tries again). The returned function has a clear() method.",
+   "hint": "A Map from key to promise; on rejection delete the key in p.catch."
+  },
+  {
+   "id": "j10-abortable-sleep",
+   "title": "An abortable wait",
+   "statement": "Write a function sleepAbortable(ms, signal): returns a promise that resolves after ms milliseconds; if signal is already aborted or gets aborted earlier, it rejects with an error whose name is «AbortError» (the timer is cleared and the listener removed). Without signal it works like an ordinary sleep.",
+   "hint": "An abort listener with { once: true }; in the handler clear the timer and reject the promise."
+  },
+  {
+   "id": "j10-any-signal",
+   "title": "Combining abort signals",
+   "statement": "Write a function anySignal(signals): returns an AbortSignal that aborts as soon as any of the given signals aborts (with the same reason); if one is already aborted, the result is aborted immediately. You may not use AbortSignal.any.",
+   "hint": "A new AbortController: subscribe to abort on each signal and abort your own with the same reason."
+  },
+  {
+   "id": "j10-queue",
+   "title": "A limited task queue",
+   "statement": "Write a class TaskQueue(concurrency): the add(fn) method puts an async function into the queue and returns a promise with its result (or error); no more than concurrency tasks run at once, and tasks start in the order they were added; the onIdle() method returns a promise that resolves when the queue is empty and nothing is running (immediately if that is already so).",
+   "hint": "A counter of active tasks and an array of waiting ones; when a task finishes start the next one and check for \"empty\"."
+  },
+  {
+   "id": "j10-semaphore",
+   "title": "Semaphore",
+   "statement": "Write a class Semaphore(n): the acquire() method → a promise that resolves when a permit is obtained (immediately if one is free; otherwise in FIFO queue order); release() returns a permit (handing it to the first waiter); the run(fn) method takes a permit, runs fn and is guaranteed to release it (even on an error); the available property is the number of free permits.",
+   "hint": "A queue of waiting resolve functions; release hands the permit to the first one in the queue."
+  },
+  {
+   "id": "j10-once-promise",
+   "title": "An event as a promise",
+   "statement": "Write a function once(emitter, event, { signal }): returns a promise that resolves with the array of arguments of the first event event on emitter (an object with on/off in the addEventListener style: emitter.on(event, fn), emitter.off(event, fn)); if an «error» event fires on emitter in the meantime, it rejects with its argument; when signal is aborted, it rejects with an AbortError; listeners are removed in every case.",
+   "hint": "Three listeners (the event, error, abort) and a shared cleanup function that removes them all."
+  },
+  {
+   "id": "j10-async-iter-basic",
+   "title": "Async iterators: from, take, map",
+   "statement": "Write async generators and a helper: fromArray(arr, ms) (yields the elements with a pause of ms before each), mapAsync(iter, fn) (applies fn, possibly async), take(iter, n) (the first n, then stops the source iterator) and collect(iter) → an array of all values.",
+   "hint": "A return inside an async generator stops the for await loop of the source, and closes it."
+  },
+  {
+   "id": "j10-paginate",
+   "title": "Paginated loading",
+   "statement": "Write an async generator paginate(getPage): getPage(token) returns a promise { items: [...], next: token | null }; the initial token is undefined. paginate yields items one at a time, requesting the next page only when the consumer reaches the end of the current one; it stops when next = null. Also write fetchAll(getPage, limit) → an array of the first limit items, without requesting extra pages.",
+   "hint": "yield* page.items yields the page's items; the next getPage is called only after the current page is exhausted."
+  },
+  {
+   "id": "j10-batch-iter",
+   "title": "Batches from a stream",
+   "statement": "Write an async generator batchAsync(iter, size): collects the values of an async (or ordinary) iterable iter into arrays of size elements; the last batch may be shorter; an empty stream gives zero batches.",
+   "hint": "Accumulate a batch and yield it when full; the tail goes after the loop."
+  },
+  {
+   "id": "j10-order",
+   "title": "Predict the order: microtasks and timers",
+   "statement": "Write a function run(log): using log(string), print the sequence «1 синхронно», «2 промис», «3 вложенный промис», «4 таймер», using setTimeout(…, 0), Promise.resolve().then (including a nested then inside a handler) and a synchronous call. The required output order comes out only with the right arrangement.",
+   "hint": "Microtasks added inside a microtask run before the next timer."
+  },
+  {
+   "id": "j10-waterfall",
+   "title": "Waterfall: passing the result on",
+   "statement": "Write a function waterfall(fns, initial): fns are functions (synchronous or async), each takes the result of the previous one (the first takes initial); returns a promise with the result of the last. On an error the rest are not called. For an empty array, initial.",
+   "hint": "acc = await f(acc) in a loop."
+  },
+  {
+   "id": "j10-lazy-promise",
+   "title": "A lazy promise",
+   "statement": "Write a class Lazy(executor): like Promise, but the executor starts only on the first call of then (or catch/finally) and only once; until someone subscribes, the executor is not called. The object must work with await. The instance is a \"thenable\": it needs a then(onFulfilled, onRejected) method; implement catch(onRejected) through then.",
+   "hint": "Create the inner Promise in then on first access."
+  },
+  {
+   "id": "j10-deferred",
+   "title": "Deferred: a promise with external control",
+   "statement": "Write a function deferred(): returns an object { promise, resolve, reject, settled }, like Promise.withResolvers but with a settled field (a boolean, changed after completion: after resolve or reject, including if they are called again). Repeated calls of resolve/reject change nothing. You may not use Promise.withResolvers.",
+   "hint": "Save resolve and reject from the executor into the object and update settled."
+  },
+  {
+   "id": "j10-pipe-async",
+   "title": "pipeAsync: sync and async steps",
+   "statement": "Write a function pipeAsync(...fns): returns a function that applies the steps to a value in sequence; steps may be synchronous or async; the result is always a promise. If an exception (synchronous or a rejection) occurs at some step, the result is a rejected promise and the remaining steps are not called.",
+   "hint": "An async function itself turns exceptions into a rejected promise."
+  },
+  {
+   "id": "j10-summary",
+   "title": "A summary of results",
+   "statement": "Write an async function runBatch(tasks): tasks is an array of functions returning a promise; it runs all of them in parallel; returns { ok: [values of the successful ones in the original order], failed: [{ index, message }] (in index order), total, durationMs (a number: how many ms the whole batch took, no less than the longest task) }.",
+   "hint": "Promise.allSettled plus handling of the statuses; time with Date.now() before and after."
+  },
+  {
+   "id": "j10-finally-poly",
+   "title": "A polyfill for Promise.prototype.finally",
+   "statement": "Write a function finallyPoly(promise, onFinally): subscribes to the promise settling in any way; calls onFinally() with no arguments (if it returns a promise, waits for it) and then preserves the original outcome: the value or the reason. If onFinally throws or returns a rejected promise, the outcome is replaced by that error. You may not use the finally method.",
+   "hint": "then(onOk, onFail): in both cases call onFinally and return/rethrow the original."
+  },
+  {
+   "id": "j10-cached-ttl",
+   "title": "A cache with a lifetime",
+   "statement": "Write a function cachedAsync(fn, ttl, now): the result of a successful call fn(key) is cached by key for ttl milliseconds (time comes from the function now()); while the entry is fresh it is returned; when it is stale, fn is called again; concurrent requests for the same key are not duplicated; an error is not cached.",
+   "hint": "An entry: a promise plus the completion time; freshness is now() - at < ttl; an error removes the entry."
+  },
+  {
+   "id": "j10-rate-limit",
+   "title": "Rate limiting",
+   "statement": "Write a function rateLimited(fn, max, windowMs): returns a wrapper function; no more than max calls of fn start in any interval of windowMs ms; extra calls are postponed (queued and started in arrival order as soon as there is room in the window). The result is a promise of the result of fn. The time is real (setTimeout, Date.now).",
+   "hint": "Keep the times of the latest starts; when the slots are full wait until the oldest leaves the window."
+  },
+  {
+   "id": "j10-fix-foreach",
+   "title": "Fix: forEach with await",
+   "statement": "The function saveAll(items, save) must call save for each item strictly one after another and return the number of saved items. Right now it uses forEach with await, so it finishes before anything is saved and returns 0. Fix it.",
+   "hint": "Use a for…of loop: await in it really does wait."
+  },
+  {
+   "id": "j10-fix-parallel",
+   "title": "Fix: independent requests run one by one",
+   "statement": "The function loadDashboard(api) loads three independent resources (user, orders, stats) and returns an object { user, orders, stats }. Right now the requests run sequentially and take the total time. Fix it so they run in parallel (the total time is that of the slowest one).",
+   "hint": "Start all three calls at once and wait with Promise.all."
+  },
+  {
+   "id": "j10-fix-try-return",
+   "title": "Fix: the error slips past catch",
+   "statement": "The function safeLoad(load) must return the fallback value «нет данных» if load() rejects. Right now it returns a promise without await inside try, so the rejection passes by the catch. Fix it, keeping the try/catch.",
+   "hint": "return await load() inside try.",
+   "starter": "async function safeLoad(load) {\n  try {\n    return load();\n  } catch (e) {\n    return \"нет данных\";\n  }\n}\n"
+  },
+  {
+   "id": "j10-unhandled",
+   "title": "Unhandled rejections",
+   "statement": "Write a function trackRejections(): returns an object { stop(), list() }; while the tracker is running it collects the reasons of unhandled promise rejections (the process event \"unhandledRejection\") into an array (list() returns a copy of the reason messages: reason.message or String(reason)); stop() removes the listener. For unhandled rejections the process must not terminate while the listener is installed.",
+   "hint": "process.on('unhandledRejection', handler) and process.off to stop."
+  }
+ ]
+}

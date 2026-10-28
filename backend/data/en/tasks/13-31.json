@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 31,
+ "tasks": [
+  {
+   "id": "mc-make-class",
+   "title": "Class from a field description",
+   "statement": "Write make_class(name, fields): using type(...), create a class with the given name, an __init__(self, *values) (the number of values must match the number of fields, otherwise TypeError), and a __repr__ of the form P(x=1, y=2).",
+   "hint": "Define init and repr as nested functions and return type(name, (), {\"__init__\": init, \"__repr__\": repr_})."
+  },
+  {
+   "id": "mc-registry",
+   "title": "Registry of descendants (__init_subclass__)",
+   "statement": "Complete the base class Plugin: every descendant automatically ends up in the dictionary Plugin.registry. The key is the name argument from the class statement (class Json(Plugin, name=\"json\")) or the class name in lowercase.",
+   "hint": "def __init_subclass__(cls, name=None, **kwargs): super().__init_subclass__(**kwargs); Plugin.registry[name or cls.__name__.lower()] = cls."
+  },
+  {
+   "id": "mc-required-attrs",
+   "title": "Required attribute of a descendant",
+   "statement": "Complete Shape: every descendant must have an integer attribute sides when the class is created; if it is missing or is not an int, raise TypeError right at the moment the class is defined.",
+   "hint": "__init_subclass__: if not isinstance(getattr(cls, \"sides\", None), int): raise TypeError(...)."
+  },
+  {
+   "id": "mc-singleton",
+   "title": "Singleton via a metaclass",
+   "statement": "Write a metaclass Singleton: each class with this metaclass has at most one instance — a repeated call of the class returns the already created one, and __init__ runs only once. Different classes get different instances.",
+   "hint": "Keep a dictionary of instances in the metaclass; __call__(cls, *args, **kwargs): if cls is not in the dictionary, create it via super().__call__."
+  },
+  {
+   "id": "mc-commands",
+   "title": "A metaclass collects commands",
+   "statement": "Write a metaclass CommandMeta: when a class is created, it collects the functions with the cmd_ prefix into a dictionary commands (the key is the name without the prefix) and puts it into the class. Other attributes stay as they are.",
+   "hint": "In __new__: ns[\"commands\"] = {k[4:]: v for k, v in ns.items() if k.startswith(\"cmd_\") and callable(v)}; return super().__new__(mcs, name, bases, ns)."
+  },
+  {
+   "id": "mc-final",
+   "title": "Forbidding inheritance",
+   "statement": "Write a metaclass FinalMeta: if any parent of the new class has an attribute __final__ equal to True, creating the class must end with TypeError (such a class cannot be inherited from).",
+   "hint": "In __new__: if any(getattr(base, \"__final__\", False) for base in bases): raise TypeError(...)."
+  },
+  {
+   "id": "mc-class-getitem",
+   "title": "Box[int] as a generic type",
+   "statement": "Teach the class Box to support the notation Box[int] (and Box[str, int]): the __class_getitem__ method returns a types.GenericAlias with the original class and the arguments.",
+   "hint": "def __class_getitem__(cls, item): return types.GenericAlias(cls, item)."
+  },
+  {
+   "id": "mc-prepare-nodup",
+   "title": "Forbidding repeated names in a class body",
+   "statement": "Write a metaclass NoDupMeta: using __prepare__, it supplies its own namespace (a dict subclass) that raises TypeError if a name (other than special ones starting with two underscores) is defined twice in the class body. The class must otherwise be created in the usual way.",
+   "hint": "__prepare__ is a class method of the metaclass: return an instance of a dict subclass with __setitem__; in __new__ pass dict(ns) to super().__new__."
+  },
+  {
+   "id": "mc-counted",
+   "title": "Counting instances per class",
+   "statement": "Write a metaclass Counted: every class with this metaclass (and each descendant separately) has an attribute instances — how many instances were created by exactly this class.",
+   "hint": "In the metaclass __init__: cls.instances = 0; in __call__: cls.instances += 1; return super().__call__(*args, **kwargs)."
+  }
+ ]
+}

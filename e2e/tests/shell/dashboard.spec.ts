@@ -11,6 +11,14 @@ const barOf = (c: import("@playwright/test").Locator, label: string) => c.locato
 
 const card = (page: import("@playwright/test").Page, title: string) => page.locator(".dash-card").filter({ has: page.locator(".dash-title", { hasText: title }) });
 
+/** «1 урок», «2 урока», «5 уроков», «21 урок» (русские формы числа). */
+function lessonWord(n: number): string {
+  const [n10, n100] = [n % 10, n % 100];
+  if (n10 === 1 && n100 !== 11) return "урок";
+  if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return "урока";
+  return "уроков";
+}
+
 test("карточки разделов: по одной на книгу, с названием, числом уроков и слайдов", async ({ page, request, guard }) => {
   await loginFresh(page, request);
   const books = await bookList(request);
@@ -19,7 +27,7 @@ test("карточки разделов: по одной на книгу, с н�
   await expect(page.locator(".dash-title")).toHaveText(books.map((b) => b.title));
   for (const [i, b] of books.entries()) {
     const c = page.locator(".dash-card").nth(i);
-    await expect(c.locator(".dash-meta")).toHaveText(`${b.lessons_count} уроков`);
+    await expect(c.locator(".dash-meta")).toHaveText(`${b.lessons_count} ${lessonWord(b.lessons_count)}`);
     await expect(c.locator(".dash-bar-label")).toHaveText(["Слайды", "Вопросы", "Упражнения"]);
     await expect(barOf(c, "Слайды").locator(".dash-bar-num")).toHaveText(`0/${b.parts_count}`);
   }

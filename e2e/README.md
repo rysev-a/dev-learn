@@ -35,5 +35,5 @@ E2E_PORT=8102 npx playwright test tests/labs                # свой порт:
 
 ## Сборка бэкенда без доступа к закрытому реестру
 
-Бэкенд зависит от закрытых библиотек реестра lab. Если реестр недоступен, соберите на готовом каталоге `cargo vendor` (на сервере — `~/say-vendor`, копия у автора — `~/.cache/cs-core/vendor-backend`):
+Бэкенд зависит от закрытых библиотек реестра lab. Если реестр недоступен, соберите на готовом каталоге `cargo vendor` (на сервере — `~/cs-core-vendor`, копия у автора — `~/.cache/cs-core/vendor-backend`):
 в копии `.cargo-config.toml` из этого каталога замените `directory = "/vendor"` на путь к каталогу и передайте файл: `CARGO_FLAGS="--config /путь/vendor-local.toml" npm run build`.

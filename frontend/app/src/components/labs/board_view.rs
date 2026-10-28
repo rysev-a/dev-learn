@@ -484,11 +484,11 @@ pub fn ZoomControls(
         None => view.set_zoom(1.0),
     };
     view! {
-        <div class="lab-zoom" role="group" aria-label="Масштаб доски">
-            <button type="button" title="Уменьшить (Ctrl + колесо)" on:click=move |_| view.zoom_by(1.0 / ZOOM_STEP)>"−"</button>
-            <button type="button" class="pct" title="Масштаб 100 %" on:click=actual>{move || format!("{}%", js_round(view.zoom.get() * 100.0))}</button>
-            <button type="button" title="Увеличить (Ctrl + колесо)" on:click=move |_| view.zoom_by(ZOOM_STEP)>"+"</button>
-            {move || shown().then(|| view! { <button type="button" title="Вернуть доску на место и масштаб 100 %" on:click=reset>"⌖"</button> })}
+        <div class="lab-zoom" role="group" aria-label=i18n::tr("Board zoom")>
+            <button type="button" title=i18n::tr("Zoom out (Ctrl + wheel)") on:click=move |_| view.zoom_by(1.0 / ZOOM_STEP)>"−"</button>
+            <button type="button" class="pct" title=i18n::tr("Zoom 100%") on:click=actual>{move || format!("{}%", js_round(view.zoom.get() * 100.0))}</button>
+            <button type="button" title=i18n::tr("Zoom in (Ctrl + wheel)") on:click=move |_| view.zoom_by(ZOOM_STEP)>"+"</button>
+            {move || shown().then(|| view! { <button type="button" title=i18n::tr("Reset board position and zoom to 100%") on:click=reset>"⌖"</button> })}
         </div>
     }
 }
@@ -514,6 +514,7 @@ mod tests {
 
     #[test]
     fn zoom_stays_within_bounds_and_keeps_the_anchor_point_still() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let v = View { pan: Point::new(100.0, 50.0), zoom: 1.0 };
         // под якорем — точка доски (300, 150); после масштаба она на том же месте окна
         let at = Point::new(300.0, 150.0);
@@ -535,6 +536,7 @@ mod tests {
 
     #[test]
     fn zoom_around_a_pixel_anchor_matches_the_board_point_formula() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // якорь в 200×100 px от угла доски при 1 px на единицу: под ним точка (300, 150)
         let v = View { pan: Point::new(100.0, 50.0), zoom: 1.0 };
         let m = metrics(0.0, 0.0, 780.0, 560.0, 780.0, 560.0);
@@ -547,6 +549,7 @@ mod tests {
 
     #[test]
     fn net_zoom_keeps_the_anchor_point_still_and_stays_in_bounds() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let home = NET.home_view();
         let anchor = Point::new(300.0, 100.0);
         let z = NET.zoom_at(home, 2.0, anchor, NET_WORLD);
@@ -569,6 +572,7 @@ mod tests {
 
     #[test]
     fn zoom_to_keeps_the_center() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let home = NET.home_view();
         let z = NET.zoom_to(home, 2.0, NET_WORLD);
         assert_eq!(z.zoom, 2.0);
@@ -579,12 +583,14 @@ mod tests {
 
     #[test]
     fn window_center_is_the_middle_of_the_visible_board() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(NET.home_view().center(NET_WORLD), Point::new(328.0, 180.0));
         assert_eq!(View { pan: Point::new(10.0, 20.0), zoom: 2.0 }.center(SD_WORLD), Point::new(205.0, 160.0));
     }
 
     #[test]
     fn view_box_shrinks_with_zoom() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let home = SD.home_view();
         assert_eq!(view_box(home, 780.0, 560.0), "0 0 780 560");
         assert_eq!(view_box(View { pan: Point::new(-10.0, 20.0), zoom: 2.0 }, 780.0, 560.0), "-10 20 390 280");
@@ -599,12 +605,14 @@ mod tests {
 
     #[test]
     fn home_view_starts_at_the_configured_pan() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(SD.home_view(), View { pan: Point::new(0.0, 0.0), zoom: 1.0 });
         assert_eq!(NET.home_view(), View { pan: Point::new(-24.0, 0.0), zoom: 1.0 });
     }
 
     #[test]
     fn wheel_zooms_symmetrically() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert!((wheel_factor(0.0) - 1.0).abs() < 1e-12);
         assert!((wheel_factor(100.0) * wheel_factor(-100.0) - 1.0).abs() < 1e-12);
         assert!(wheel_factor(-100.0) > 1.0, "колесо от себя приближает");
@@ -612,6 +620,7 @@ mod tests {
 
     #[test]
     fn panning_follows_the_hand() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let d = PanDrag { from: Point::new(100.0, 100.0), offset: Point::new(10.0, 10.0), scale: 2.0 };
         // потянули вправо на 40 px: содержимое уехало вправо — окно на доске сдвинулось влево на 20 единиц
         assert_eq!(d.pan_at(Point::new(140.0, 100.0)), Point::new(-10.0, 10.0));
@@ -627,6 +636,7 @@ mod tests {
 
     #[test]
     fn panning_cannot_carry_the_board_away() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let d = PanDrag { from: Point::new(0.0, 0.0), offset: NET.home, scale: 1.0 };
         // потянули влево и вверх на сто тысяч px: центр окна упёрся в предел
         let (pan, rebased) = NET.pan_drag(d, Point::new(-100_000.0, 100_000.0), 1.0, NET_WORLD);
@@ -642,6 +652,7 @@ mod tests {
 
     #[test]
     fn constrain_keeps_the_window_inside_and_leaves_free_boards_alone() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let far = View { pan: Point::new(100_000.0, -100_000.0), zoom: 1.0 };
         let c = NET.constrain(far, NET_WORLD).center(NET_WORLD);
         assert_eq!((c.x, c.y), (980.0, -300.0));
@@ -651,6 +662,7 @@ mod tests {
 
     #[test]
     fn click_is_a_small_move() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert!(SD.is_click(Point::new(10.0, 10.0), Point::new(12.0, 13.0)));
         assert!(!SD.is_click(Point::new(10.0, 10.0), Point::new(10.0, 16.0)));
         // у сетей порог меньше
@@ -660,6 +672,7 @@ mod tests {
 
     #[test]
     fn dragged_item_keeps_its_grip_and_stays_in_the_world() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let d = ItemDrag::start(Point::new(105.0, 52.0), Point::new(100.0, 50.0));
         // указатель сместился на (20, 10) — элемент на столько же
         let to = SD.items.snap(d.at(Point::new(125.0, 62.0)));
@@ -673,6 +686,7 @@ mod tests {
 
     #[test]
     fn metrics_fit_the_board_into_the_svg_and_map_points_back() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // доска 780×560 в svg 1560×1120: масштаб 2, полей нет
         let m = metrics(100.0, 50.0, 1560.0, 1120.0, 780.0, 560.0);
         assert_eq!((m.base, m.off_x, m.off_y), (2.0, 0.0, 0.0));
@@ -693,6 +707,7 @@ mod tests {
 
     #[test]
     fn net_mouse_maps_into_the_board_with_letterboxing() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // svg вдвое крупнее окна сетей: масштаб 2, полей нет
         let home = NET.home_view();
         let m = metrics(100.0, 50.0, 1408.0, 720.0, NET_WORLD.0, NET_WORLD.1);
@@ -710,6 +725,7 @@ mod tests {
 
     #[test]
     fn js_round_rounds_halves_up() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(js_round(2.5), 3.0);
         assert_eq!(js_round(-2.5), -2.0);
         assert_eq!(js_round(-2.6), -3.0);
@@ -717,6 +733,7 @@ mod tests {
 
     #[test]
     fn items_are_held_inside_the_world() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // симметричная область: координаты не дальше предела
         assert_eq!(SD.items.clamp(Point::new(5000.0, -5000.0), (0.0, 0.0)), Point::new(2600.0, -2600.0));
         assert_eq!(SD.items.clamp(Point::new(10.0, 10.0), (0.0, 0.0)), Point::new(10.0, 10.0));
@@ -732,6 +749,7 @@ mod tests {
 
     #[test]
     fn manual_height_keeps_the_aspect_of_the_window() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         // svg 880×330 px: окно на доску 880×330 единиц
         assert_eq!(world_height_for(330.0, 880.0, 880.0), Some(330.0));
         assert_eq!(world_height_for(660.0, 440.0, 880.0), Some(1320.0));
@@ -740,6 +758,7 @@ mod tests {
 
     #[test]
     fn size_change_below_half_a_pixel_is_ignored() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert!(!size_differs((100.0, 50.0), (100.3, 50.0)));
         assert!(size_differs((100.0, 50.0), (101.0, 50.0)));
     }

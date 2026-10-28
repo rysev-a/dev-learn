@@ -3,7 +3,7 @@
 use leptos::{prelude::*, task::spawn_local};
 
 use crate::{
-    components::topbar::ThemeButton,
+    components::topbar::{LangSwitch, ThemeButton},
     hooks::client,
     session::Session,
     settings::Theme,
@@ -63,10 +63,13 @@ pub fn AuthPage(theme: RwSignal<Theme>) -> impl IntoView {
         <div class="auth-page">
             <header class="auth-top">
                 <span class="auth-logo">"CS.Core"</span>
-                <ThemeButton theme=theme />
+                <div class="auth-top-right">
+                    <LangSwitch />
+                    <ThemeButton theme=theme />
+                </div>
             </header>
             <main class="auth-card">
-                <div class="auth-tabs" role="tablist">{tab(Mode::Login, "Вход")}{tab(Mode::Register, "Регистрация")}</div>
+                <div class="auth-tabs" role="tablist">{tab(Mode::Login, i18n::tr("Log in"))}{tab(Mode::Register, i18n::tr("Sign up"))}</div>
                 <form class="auth-form" on:submit=on_submit>
                     <label class="auth-field">
                         <span>"Email"</span>
@@ -74,27 +77,27 @@ pub fn AuthPage(theme: RwSignal<Theme>) -> impl IntoView {
                     </label>
                     {move || (mode.get() == Mode::Register).then(|| view! {
                         <label class="auth-field">
-                            <span>"Имя"</span>
+                            <span>{i18n::tr("Name")}</span>
                             <input autocomplete="nickname" prop:value=move || name.get() on:input=move |ev| name.set(event_target_value(&ev)) />
                         </label>
                     })}
                     <label class="auth-field">
-                        <span>"Пароль (не короче 8 символов)"</span>
+                        <span>{i18n::tr("Password (at least 8 characters)")}</span>
                         <input type="password" autocomplete="current-password" required prop:value=move || password.get() on:input=move |ev| password.set(event_target_value(&ev)) />
                     </label>
                     {move || { let e = error.get(); (!e.is_empty()).then(|| view! { <p class="auth-error">{e}</p> }) }}
                     <button class="quiz-btn auth-submit" disabled=move || busy.get()>
                         {move || match (busy.get(), mode.get()) {
-                            (true, Mode::Login) => "Входим…",
-                            (true, Mode::Register) => "Регистрируем…",
-                            (false, Mode::Login) => "Войти",
-                            (false, Mode::Register) => "Зарегистрироваться",
+                            (true, Mode::Login) => i18n::tr("Signing in…"),
+                            (true, Mode::Register) => i18n::tr("Creating account…"),
+                            (false, Mode::Login) => i18n::tr("Sign in"),
+                            (false, Mode::Register) => i18n::tr("Create account"),
                         }}
                     </button>
                     {DEV.then(|| view! {
                         <div class="auth-quick">
-                            <span class="auth-quick-label">"Временно, для разработки"</span>
-                            {QUICK.map(|who| view! { <button type="button" class="quiz-btn ghost" disabled=move || busy.get() on:click=move |_| quick(who)>{format!("войти как {who}")}</button> })}
+                            <span class="auth-quick-label">{i18n::tr("Temporary, for development")}</span>
+                            {QUICK.map(|who| view! { <button type="button" class="quiz-btn ghost" disabled=move || busy.get() on:click=move |_| quick(who)>{i18n::trf!("sign in as {}", who)}</button> })}
                         </div>
                     })}
                 </form>

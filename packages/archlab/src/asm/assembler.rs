@@ -163,9 +163,9 @@ fn show_num(v: f64) -> String {
 
 fn plural(n: usize) -> &'static str {
     if n == 1 {
-        "операнд"
+        i18n::tr("operand")
     } else {
-        "операнда"
+        i18n::tr("operands")
     }
 }
 
@@ -192,9 +192,9 @@ pub fn assemble(source: &str) -> AsmResult {
             let name = text[..run_end].to_string();
             let rest = text[run_end + 1..].trim_start().to_string();
             if !is_ident(&name) {
-                fail(&mut errors, line, format!("Недопустимое имя метки «{name}»"));
+                fail(&mut errors, line, i18n::trf!("Invalid label name “{0}”", name));
             } else if labels.contains_key(&name) {
-                fail(&mut errors, line, format!("Метка «{name}» уже объявлена"));
+                fail(&mut errors, line, i18n::trf!("Label “{0}” is already defined", name));
             } else {
                 labels.insert(name, parsed.len());
             }
@@ -212,11 +212,11 @@ pub fn assemble(source: &str) -> AsmResult {
             let name = operands.first().cloned().unwrap_or_default();
             let value = if operands.len() == 2 { parse_number(&operands[1], &equ) } else { None };
             if operands.len() != 2 || !is_ident(&name) {
-                fail(&mut errors, line, "Нужно так: .equ ИМЯ, число".into());
+                fail(&mut errors, line, i18n::tr("Usage: .equ NAME, number").into());
             } else if let Some(v) = value {
                 equ.insert(name, v);
             } else {
-                fail(&mut errors, line, format!("Не понимаю число «{}»", operands[1]));
+                fail(&mut errors, line, i18n::trf!("Not a valid number: “{0}”", operands[1]));
             }
             continue;
         }
@@ -226,7 +226,7 @@ pub fn assemble(source: &str) -> AsmResult {
 
     if parsed.len() > PROGRAM_MAX {
         let line = parsed[PROGRAM_MAX].line;
-        fail(&mut errors, line, format!("Слишком длинная программа: не больше {PROGRAM_MAX} команд"));
+        fail(&mut errors, line, i18n::trf!("Program too long: at most {0} instructions", PROGRAM_MAX));
     }
 
     /* ---------- проход 2: кодирование ---------- */
@@ -241,7 +241,7 @@ pub fn assemble(source: &str) -> AsmResult {
         // псевдокоманды
         let need = |errors: &mut Vec<AsmError>, mnemonic: &str, ops: &[String], n: usize, usage: &str| -> bool {
             if ops.len() != n {
-                errors.push(AsmError { line, message: format!("«{mnemonic}» принимает {n} {}: {usage}", plural(n)) });
+                errors.push(AsmError { line, message: i18n::trf!("“{0}” takes {1} {2}: {3}", mnemonic, n, plural(n), usage) });
                 return false;
             }
             true
@@ -276,7 +276,7 @@ pub fn assemble(source: &str) -> AsmResult {
                 mnemonic = "addi".into();
             }
             "beqz" | "bnez" => {
-                let usage = format!("{mnemonic} r, метка");
+                let usage = i18n::trf!("{0} r, label", mnemonic);
                 if !need(&mut errors, &mnemonic, &ops, 2, &usage) {
                     continue;
                 }
@@ -284,7 +284,7 @@ pub fn assemble(source: &str) -> AsmResult {
                 mnemonic = if mnemonic == "beqz" { "beq" } else { "bne" }.into();
             }
             "bgtu" | "bleu" => {
-                let usage = format!("{mnemonic} ra, rb, метка");
+                let usage = i18n::trf!("{0} ra, rb, label", mnemonic);
                 if !need(&mut errors, &mnemonic, &ops, 3, &usage) {
                     continue;
                 }
@@ -292,7 +292,7 @@ pub fn assemble(source: &str) -> AsmResult {
                 mnemonic = if mnemonic == "bgtu" { "bltu" } else { "bgeu" }.into();
             }
             "j" => {
-                if !need(&mut errors, &mnemonic, &ops, 1, "j метка") {
+                if !need(&mut errors, &mnemonic, &ops, 1, i18n::tr("j label")) {
                     continue;
                 }
                 mnemonic = "jmp".into();
@@ -301,7 +301,7 @@ pub fn assemble(source: &str) -> AsmResult {
         }
 
         let Some(def) = op_by_mnemonic(&mnemonic) else {
-            fail(&mut errors, line, format!("Неизвестная команда «{}»", p.mnemonic));
+            fail(&mut errors, line, i18n::trf!("Unknown instruction “{0}”", p.mnemonic));
             continue;
         };
 
@@ -332,18 +332,18 @@ impl Enc<'_> {
     fn reg(&self, errors: &mut Vec<AsmError>, token: Option<&str>) -> Option<u16> {
         let r = token.and_then(parse_reg);
         if r.is_none() {
-            self.err(errors, format!("Ожидался регистр r0…r7, а здесь «{}»", token.unwrap_or("")));
+            self.err(errors, i18n::trf!("Expected a register r0…r7, found “{0}”", token.unwrap_or("")));
         }
         r
     }
 
     fn num(&self, errors: &mut Vec<AsmError>, token: Option<&str>, min: i32, max: i32, what: &str) -> Option<i32> {
         let Some(v) = token.and_then(|t| parse_number(t, self.equ)) else {
-            self.err(errors, format!("Ожидалось число, а здесь «{}»", token.unwrap_or("")));
+            self.err(errors, i18n::trf!("Expected a number, found “{0}”", token.unwrap_or("")));
             return None;
         };
         if v < min as f64 || v > max as f64 {
-            self.err(errors, format!("{what}: {} не помещается — допустимо от {min} до {max}", show_num(v)));
+            self.err(errors, i18n::trf!("{0}: {1} does not fit — allowed range is {2} to {3}", what, show_num(v), min, max));
             return None;
         }
         Some(v as i32)
@@ -353,7 +353,7 @@ impl Enc<'_> {
         if self.ops.len() == n {
             return true;
         }
-        self.err(errors, format!("«{}» принимает {n} {}: {usage}", self.def.mnemonic, plural(n)));
+        self.err(errors, i18n::trf!("“{0}” takes {1} {2}: {3}", self.def.mnemonic, n, plural(n), usage));
         false
     }
 
@@ -365,7 +365,7 @@ impl Enc<'_> {
             match parse_number(token, self.equ) {
                 Some(n) => n,
                 None => {
-                    let msg = if is_ident(token) { format!("Нет метки «{token}»") } else { format!("Ожидалась метка, а здесь «{token}»") };
+                    let msg = if is_ident(token) { i18n::trf!("No such label “{0}”", token) } else { i18n::trf!("Expected a label, found “{0}”", token) };
                     self.err(errors, msg);
                     return None;
                 }
@@ -373,7 +373,7 @@ impl Enc<'_> {
         };
         let lim = 1i32 << (bits - 1);
         if off < -(lim as f64) || off >= lim as f64 {
-            self.err(errors, format!("Метка «{token}» слишком далеко ({} команд); можно от {} до {}", show_num(off), -lim, lim - 1));
+            self.err(errors, i18n::trf!("Label “{0}” is too far away ({1} instructions); allowed range is {2} to {3}", token, show_num(off), -lim, lim - 1));
             return None;
         }
         Some(off as i32)
@@ -414,11 +414,11 @@ fn encode(
     match def.format {
         Format::None => e.count(errors, 0, def.mnemonic).then(|| pack(def.opcode, 0, 0, 0)),
         Format::Li => {
-            if !e.count(errors, 2, "li rd, число") {
+            if !e.count(errors, 2, i18n::tr("li rd, number")) {
                 return None;
             }
             let rd = e.reg(errors, op(0));
-            let v = e.num(errors, op(1), -128, 255, "Число");
+            let v = e.num(errors, op(1), -128, 255, i18n::tr("Number"));
             Some((def.opcode << 12) | (rd? << 9) | (v? & 0xff) as u16)
         }
         Format::R => {
@@ -429,28 +429,28 @@ fn encode(
             Some(pack(def.opcode, rd?, rs?, rt? as i32))
         }
         Format::I => {
-            if !e.count(errors, 3, &format!("{} rd, rs, число", def.mnemonic)) {
+            if !e.count(errors, 3, &i18n::trf!("{0} rd, rs, number", def.mnemonic)) {
                 return None;
             }
             let (rd, rs) = (e.reg(errors, op(0)), e.reg(errors, op(1)));
-            let v = e.num(errors, op(2), -32, 31, "Число");
+            let v = e.num(errors, op(2), -32, 31, i18n::tr("Number"));
             Some(pack(def.opcode, rd?, rs?, v?))
         }
         Format::Mem => {
-            if !e.count(errors, 2, &format!("{} rd, смещение(rs)", def.mnemonic)) {
+            if !e.count(errors, 2, &i18n::trf!("{0} rd, offset(rs)", def.mnemonic)) {
                 return None;
             }
             let rd = e.reg(errors, op(0));
             let Some((off_text, reg_text)) = split_mem(&ops[1]) else {
-                e.err(errors, format!("Адрес пишется как смещение(регистр), например 0(r2), а здесь «{}»", ops[1]));
+                e.err(errors, i18n::trf!("An address is written as offset(register), for example 0(r2), but found “{0}”", ops[1]));
                 return None;
             };
             let rs = e.reg(errors, Some(&reg_text));
-            let off = if off_text.trim().is_empty() { Some(0) } else { e.num(errors, Some(&off_text), -32, 31, "Смещение") };
+            let off = if off_text.trim().is_empty() { Some(0) } else { e.num(errors, Some(&off_text), -32, 31, i18n::tr("Offset")) };
             Some(pack(def.opcode, rd?, rs?, off?))
         }
         Format::Branch => {
-            if !e.count(errors, 3, &format!("{} ra, rb, метка", def.mnemonic)) {
+            if !e.count(errors, 3, &i18n::trf!("{0} ra, rb, label", def.mnemonic)) {
                 return None;
             }
             let (ra, rb) = (e.reg(errors, op(0)), e.reg(errors, op(1)));
@@ -458,7 +458,7 @@ fn encode(
             Some(pack(def.opcode, ra?, rb?, off?))
         }
         Format::Jump => {
-            if !e.count(errors, 1, "jmp метка") {
+            if !e.count(errors, 1, i18n::tr("jmp label")) {
                 return None;
             }
             let off = e.target(errors, &ops[0], 12)?;

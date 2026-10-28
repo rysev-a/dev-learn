@@ -1,0 +1,78 @@
+{
+ "book": 15,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "net9-fetch",
+   "title": "Client: send a request and read the whole reply",
+   "statement": "Write a function fetch(host, port, request): connect over TCP, send all the bytes of request (sendall), then read the reply until recv returns empty bytes (the other side closed the connection), and return the whole reply as a single bytes object.",
+   "hint": "A while True loop: data = s.recv(4096); if data is empty, break; otherwise collect it in a list and at the end join with b''.join(...)."
+  },
+  {
+   "id": "net9-recv-exact",
+   "title": "Read exactly n bytes",
+   "statement": "recv can return less than you asked for. Write a function recv_exact(sock, n): it reads exactly n bytes from the socket (in a loop) and returns them. If the connection closes before n bytes have arrived, raise ConnectionError.",
+   "hint": "buf = b''; while len(buf) < n: chunk = sock.recv(n - len(buf)); an empty chunk means ConnectionError; otherwise buf += chunk."
+  },
+  {
+   "id": "net9-framing",
+   "title": "Messages with a length prefix",
+   "statement": "TCP is a stream of bytes with no message boundaries. Implement a simple protocol: each message is preceded by its length in 4 bytes (big-endian). Write send_msg(sock, data: bytes) and recv_msg(sock) -> bytes. An empty message is allowed; if the connection is closed where the length should be, recv_msg returns None.",
+   "hint": "Sending: sock.sendall(struct.pack('>I', len(data)) + data). Receiving: read exactly 4 bytes (in a loop), unpack the length, then read exactly that many bytes."
+  },
+  {
+   "id": "net9-linereader",
+   "title": "A line reader over a stream",
+   "statement": "Data arrives in chunks of arbitrary size. Write a class LineReader(sock) with a method readline(): it returns the next line (bytes) without the trailing b'\\n'; whatever was read beyond the line is kept for the next call. When the connection is closed and there is no data left, return None.",
+   "hint": "Keep a buffer self.buf; while it has no b'\\n', keep reading with recv; then cut off the line with split(b'\\n', 1)."
+  },
+  {
+   "id": "net9-echo-once",
+   "title": "An echo server for one client",
+   "statement": "Write a function echo_once(listener): the listening socket is already created. Accept one connection (accept) and send back to the client everything it sends until it closes the connection; close the client's socket. Return the number of bytes you relayed.",
+   "hint": "conn, addr = listener.accept(); in a loop, recv and then sendall back; an empty recv means the client is done."
+  },
+  {
+   "id": "net9-udp-server",
+   "title": "A UDP server: reply in uppercase",
+   "statement": "Write a function udp_upper_server(sock, count): the socket is already bound to a port. Receive count datagrams (recvfrom) and reply to each sender (sendto) with the same text in uppercase (bytes.upper()).",
+   "hint": "data, addr = sock.recvfrom(2048); sock.sendto(data.upper(), addr), exactly count times."
+  },
+  {
+   "id": "net9-udp-retry",
+   "title": "A UDP client with retries",
+   "statement": "UDP does not retransmit lost datagrams, so the application has to. Write a function udp_ask(addr, data, timeout=0.2, retries=5): send data to addr and wait for a reply for no longer than timeout seconds (settimeout). If no reply arrives, send again, making no more than retries attempts in total. Return a tuple (reply, attempt_number). If no attempt succeeded, raise TimeoutError.",
+   "hint": "s.settimeout(timeout); a loop over the attempts: sendto, then recvfrom inside try/except socket.timeout. After the loop, raise TimeoutError."
+  },
+  {
+   "id": "net9-scan",
+   "title": "An open port scanner",
+   "statement": "Write a function open_ports(host, ports): for each port try to connect over TCP (create_connection with a 0.5 s timeout) and return a sorted list of the ports where the connection succeeded. Connection errors (refused, timeout) mean \"closed\".",
+   "hint": "try: with socket.create_connection((host, p), timeout=0.5): found.append(p), and except OSError: skip it."
+  },
+  {
+   "id": "net9-threaded",
+   "title": "A server with a thread per client",
+   "statement": "Write a function threaded_echo(listener, clients): accept clients connections (accept), and for each one start a separate thread that sends back to the client whatever it receives until the client closes the connection. Wait for all the threads to finish and return the total number of bytes relayed. The clients connect at the same time and wait for each other, so serving them one after another will not work.",
+   "hint": "In a loop: accept, then threading.Thread(target=work, args=(conn,)). Protect the shared counter with a lock, and join all the threads at the end."
+  },
+  {
+   "id": "net9-selectors",
+   "title": "A select-based server: one thread, many clients",
+   "statement": "Implement the same thing, but in a single thread: select_echo(listener, clients) accepts clients connections and serves them with the selectors module (DefaultSelector): for a new connection, register it; when data arrives, send it back to the client; on an empty recv, close the socket and unregister it. When all the clients have been served and closed, return the number of bytes relayed. You may not create threads inside the function.",
+   "hint": "sel.register(listener, EVENT_READ, 'accept'); in a loop over sel.select(): for the listening socket, accept and register the new socket; for clients, recv/sendall, and on an empty recv close and unregister."
+  },
+  {
+   "id": "net9-asyncio",
+   "title": "An asynchronous echo handler",
+   "statement": "Write a coroutine handle(reader, writer) for asyncio.start_server: read lines (reader.readline()) and send each one back with the prefix b'echo: ' (writer.write + await writer.drain()) until the client closes the connection (an empty line). At the end, close the writer (close and await wait_closed()).",
+   "hint": "while True: line = await reader.readline(); if it is empty, break; writer.write(b'echo: ' + line); await writer.drain()."
+  },
+  {
+   "id": "net9-http-get",
+   "title": "Your own mini HTTP client",
+   "statement": "Write a function http_get(host, port, path): over a raw socket send the request 'GET <path> HTTP/1.1' with the Host and Connection: close headers, read the reply until the connection closes, and parse it. Return a tuple (status_code: int, headers: dict with lowercase names, body: bytes). The headers are separated from the body by an empty line, \\r\\n\\r\\n.",
+   "hint": "Read the reply until an empty recv; split on b'\\r\\n\\r\\n' (partition); the first line is \"HTTP/1.1 200 OK\"; the rest are \"Name: value\"."
+  }
+ ]
+}

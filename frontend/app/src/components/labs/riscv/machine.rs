@@ -13,7 +13,7 @@ use super::{
 pub fn CpuCard(session: Session) -> impl IntoView {
     let can_step = Memo::new(move |_| session.status.with(|s| s.as_ref().is_some_and(Status::can_step)));
     let body = move || match session.status.get() {
-        None => view! { <p class="lab-muted">"Исправьте ошибки в программе — тогда её можно запустить."</p> }.into_any(),
+        None => view! { <p class="lab-muted">{i18n::tr("Fix the errors in the program — then you can run it.")}</p> }.into_any(),
         Some(st) => {
             let regs = reg_rows(&st.regs, st.last_reg)
                 .into_iter()
@@ -32,9 +32,9 @@ pub fn CpuCard(session: Session) -> impl IntoView {
                 <div class="lab-regs rv32">{regs}</div>
                 <div class="lab-status">
                     <span class="lab-badge">{format!("pc = 0x{}", hex_addr(st.pc))}</span>
-                    <span class="lab-badge">{format!("выполнено команд: {}", st.steps)}</span>
+                    <span class="lab-badge">{i18n::trf!("instructions executed: {0}", st.steps)}</span>
                     {(!st.last_insn.is_empty()).then(|| view! { <span class="lab-badge mono">{st.last_insn.clone()}</span> })}
-                    {st.halted.then(|| view! { <span class="lab-badge ok">"остановлен"</span> })}
+                    {st.halted.then(|| view! { <span class="lab-badge ok">{i18n::tr("halted")}</span> })}
                 </div>
             }
             .into_any()
@@ -43,11 +43,11 @@ pub fn CpuCard(session: Session) -> impl IntoView {
     view! {
         <div class="lab-card">
             <div class="lab-card-head">
-                <h3>"Процессор RV32IM"</h3>
+                <h3>{i18n::tr("RV32IM processor")}</h3>
                 <div class="lab-actions">
-                    <button type="button" class="quiz-btn" prop:disabled=move || !can_step.get() on:click=move |_| session.step()>"Шаг ▸"</button>
-                    <button type="button" class="quiz-btn ghost" prop:disabled=move || !can_step.get() on:click=move |_| session.run()>"Выполнить"</button>
-                    <button type="button" class="quiz-btn ghost" on:click=move |_| session.reset()>"Сбросить"</button>
+                    <button type="button" class="quiz-btn" prop:disabled=move || !can_step.get() on:click=move |_| session.step()>{i18n::tr("Step ▸")}</button>
+                    <button type="button" class="quiz-btn ghost" prop:disabled=move || !can_step.get() on:click=move |_| session.run()>{i18n::tr("Run")}</button>
+                    <button type="button" class="quiz-btn ghost" on:click=move |_| session.reset()>{i18n::tr("Reset")}</button>
                 </div>
             </div>
             {body}
@@ -66,12 +66,12 @@ pub fn ResultAlert(#[prop(into)] result: Signal<Option<RunResult>>, on_next: Cal
             <div class="lab-alert" class:ok=ok class:bad=!ok role="status">
                 <span class="lab-alert-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d=icon /></svg></span>
                 <div class="lab-alert-body">
-                    <p class="lab-alert-title">{if ok { "Задание выполнено!" } else { "Пока не то" }}</p>
+                    <p class="lab-alert-title">{if ok { i18n::tr("Exercise complete!") } else { i18n::tr("Not there yet") }}</p>
                     {(!r.message.is_empty()).then(|| view! { <p class="lab-alert-text">{r.message.clone()}</p> })}
                 </div>
                 {(ok && has_next.get()).then(|| view! {
                     <button type="button" class="lab-alert-next" on:click=move |_| on_next.run(())>
-                        "Дальше"
+                        {i18n::tr("Next")}
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                     </button>
                 })}
@@ -118,7 +118,7 @@ pub fn PeripheralsCard(session: Session) -> impl IntoView {
             view! {
                 <tr>
                     <td class="left mono">{format!("0x{:x}", m.addr)}</td>
-                    <td class="left"><strong>{m.name}</strong>{format!(" — {}", m.note)}</td>
+                    <td class="left"><strong>{i18n::tr(m.name)}</strong>{format!(" — {}", i18n::tr(m.note))}</td>
                 </tr>
             }
         })
@@ -127,26 +127,25 @@ pub fn PeripheralsCard(session: Session) -> impl IntoView {
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Периферия"</h3>
+                    <h3>{i18n::tr("Peripherals")}</h3>
                     <p>
-                        "Устройства подключены к тем же шинам, что и память, и видны программе как обычные адреса. \
-                         Запись или чтение по такому адресу — это общение с устройством."
+                        {i18n::tr("Devices are connected to the same buses as memory and appear to the program as ordinary addresses. Writing or reading such an address is a conversation with the device.")}
                     </p>
                 </div>
             </div>
             <div class="lab-dev">
-                <span class="lab-dev-name">"Светодиоды"</span>
-                <Lamps label="Светодиоды" prefix="LED" bits=leds switch=false />
+                <span class="lab-dev-name">{i18n::tr("LEDs")}</span>
+                <Lamps label=i18n::tr("LEDs") prefix="LED" bits=leds switch=false />
             </div>
             <div class="lab-dev">
-                <span class="lab-dev-name">"Переключатели"</span>
-                <Lamps label="Переключатели" prefix="SW" bits=Signal::stored(switches) switch=true />
+                <span class="lab-dev-name">{i18n::tr("Switches")}</span>
+                <Lamps label=i18n::tr("Switches") prefix="SW" bits=Signal::stored(switches) switch=true />
             </div>
             <div class="lab-dev">
-                <span class="lab-dev-name">"Таймер"</span>
+                <span class="lab-dev-name">{i18n::tr("Timer")}</span>
                 <span class="mono">{steps}</span>
             </div>
-            <p class="lab-data-title">"Консоль (UART):"</p>
+            <p class="lab-data-title">{i18n::tr("Console (UART):")}</p>
             <Console session=session />
             <table class="lab-table ref"><tbody>{map}</tbody></table>
         </div>
@@ -161,10 +160,9 @@ pub fn OutputCard(session: Session) -> impl IntoView {
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Вывод программы"</h3>
+                    <h3>{i18n::tr("Program output")}</h3>
                     <p>
-                        "Всё, что программа отправила в стандартный вывод системным вызовом write. Когда она вызывает exit, \
-                         здесь же видно код возврата."
+                        {i18n::tr("Everything the program sent to standard output with the write system call. When it calls exit, the exit code is shown here too.")}
                     </p>
                 </div>
             </div>
@@ -184,17 +182,16 @@ pub fn MemoryCard(session: Session) -> impl IntoView {
     let tabs = WINDOWS
         .iter()
         .enumerate()
-        .map(|(i, w)| view! { <button type="button" class:on=move || session.window.get() == i on:click=move |_| session.window.set(i)>{w.title}</button> })
+        .map(|(i, w)| view! { <button type="button" class:on=move || session.window.get() == i on:click=move |_| session.window.set(i)>{i18n::tr(w.title)}</button> })
         .collect_view();
     view! {
         <div class="lab-card">
             <div class="lab-card-head">
-                <h3>"Память"</h3>
-                <div class="lab-seg" role="group" aria-label="Окно памяти">{tabs}</div>
+                <h3>{i18n::tr("Memory")}</h3>
+                <div class="lab-seg" role="group" aria-label=i18n::tr("Memory window")>{tabs}</div>
             </div>
             <p class="lab-muted">
-                "Окно в 256 байт. Зелёным — записанный последним байт, синим — прочитанный. \
-                 Слова лежат «младшим байтом вперёд» (little-endian)."
+                {i18n::tr("A 256-byte window. Green is the last byte written, blue is the byte read. Words are stored “low byte first” (little-endian).")}
             </p>
             <MemoryGrid rows=rows />
         </div>
@@ -212,7 +209,7 @@ fn MemoryGrid(rows: Memo<Vec<MemRow>>) -> impl IntoView {
                 let cells = row
                     .cells
                     .iter()
-                    .map(|c| view! { <span class=c.class() title=format!("адрес 0x{}", hex_addr(c.addr))>{c.hex.clone()}</span> })
+                    .map(|c| view! { <span class=c.class() title=i18n::trf!("address 0x{0}", hex_addr(c.addr))>{c.hex.clone()}</span> })
                     .collect_view();
                 let ascii = row
                     .cells
@@ -231,7 +228,7 @@ fn MemoryGrid(rows: Memo<Vec<MemRow>>) -> impl IntoView {
     };
     view! {
         <div class="lab-disk lab-mem mono">
-            <div class="lab-disk-head"><span></span>{heads}<span class="lab-ascii-head">"текст"</span></div>
+            <div class="lab-disk-head"><span></span>{heads}<span class="lab-ascii-head">{i18n::tr("text")}</span></div>
             {body}
         </div>
     }

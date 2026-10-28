@@ -38,24 +38,24 @@ pub fn Chart(chart: TransferChart) -> impl IntoView {
     let rwnd = lay.rwnd_y.map(|ry| {
         view! {
             <line x1=L.to_string() x2=(W - 8.0).to_string() y1=ry.to_string() y2=ry.to_string() class="rw"></line>
-            <text x=(W - 10.0).to_string() y=(ry + 11.0).to_string() class="lbl rw" text-anchor="end">{format!("окно приёма {} КБ", kb(chart.rwnd_kb))}</text>
+            <text x=(W - 10.0).to_string() y=(ry + 11.0).to_string() class="lbl rw" text-anchor="end">{i18n::trf!("receive window {0} KB", kb(chart.rwnd_kb))}</text>
         }
     });
     view! {
         <figure class="nl-chart">
-            <svg viewBox=format!("0 0 {W} {H}") role="img" aria-label="График окна перегрузки">
+            <svg viewBox=format!("0 0 {W} {H}") role="img" aria-label=i18n::tr("Congestion window chart")>
                 <line x1=L.to_string() y1=T.to_string() x2=L.to_string() y2=(H - B).to_string() class="ax"></line>
                 <line x1=L.to_string() y1=(H - B).to_string() x2=(W - 8.0).to_string() y2=(H - B).to_string() class="ax"></line>
                 <line x1=L.to_string() x2=(W - 8.0).to_string() y1=lay.bdp_y.to_string() y2=lay.bdp_y.to_string() class="bdp"></line>
-                <text x=(W - 10.0).to_string() y=(lay.bdp_y - 3.0).to_string() class="lbl" text-anchor="end">{format!("ёмкость канала (BDP) {} КБ", kb(chart.bdp_kb))}</text>
+                <text x=(W - 10.0).to_string() y=(lay.bdp_y - 3.0).to_string() class="lbl" text-anchor="end">{i18n::trf!("link capacity (BDP) {0} KB", kb(chart.bdp_kb))}</text>
                 {rwnd}
                 <polyline points=lay.points.clone() class="cw"></polyline>
-                <text x=(L - 4.0).to_string() y=(T + 8.0).to_string() class="lbl" text-anchor="end">{format!("{} КБ", kb(lay.max_y))}</text>
+                <text x=(L - 4.0).to_string() y=(T + 8.0).to_string() class="lbl" text-anchor="end">{i18n::trf!("{0} KB", kb(lay.max_y))}</text>
                 <text x=(L - 4.0).to_string() y=(H - B).to_string() class="lbl" text-anchor="end">"0"</text>
-                <text x=(W - 8.0).to_string() y=(H - 6.0).to_string() class="lbl" text-anchor="end">{format!("{} мс", kb(lay.max_t))}</text>
-                <text x=(L + 4.0).to_string() y=(H - 6.0).to_string() class="lbl">{format!("cwnd, алгоритм {}", chart.cc.as_str())}</text>
+                <text x=(W - 8.0).to_string() y=(H - 6.0).to_string() class="lbl" text-anchor="end">{i18n::trf!("{0} ms", kb(lay.max_t))}</text>
+                <text x=(L + 4.0).to_string() y=(H - 6.0).to_string() class="lbl">{i18n::trf!("cwnd, algorithm {0}", chart.cc.as_str())}</text>
             </svg>
-            {(chart.qcap_kb > 0.0).then(|| view! { <figcaption>{format!("очередь на узком месте до {} КБ", kb(chart.qcap_kb))}</figcaption> })}
+            {(chart.qcap_kb > 0.0).then(|| view! { <figcaption>{i18n::trf!("bottleneck queue up to {0} KB", kb(chart.qcap_kb))}</figcaption> })}
         </figure>
     }
 }
@@ -80,6 +80,7 @@ mod tests {
 
     #[test]
     fn layout_scales_to_the_largest_value() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let l = ChartLayout::new(&chart(1000.0));
         assert_eq!(l.max_t, 100.0);
         assert_eq!(l.max_y, 150.0, "окно приёма урезано до тройного BDP");
@@ -90,6 +91,7 @@ mod tests {
 
     #[test]
     fn small_receive_window_gets_its_own_line() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let l = ChartLayout::new(&chart(32.0));
         assert!(l.rwnd_y.is_some());
         assert!(l.rwnd_y.unwrap_or(0.0) > l.bdp_y, "окно приёма ниже уровня BDP");
@@ -97,6 +99,7 @@ mod tests {
 
     #[test]
     fn empty_trace_does_not_divide_by_zero() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut c = chart(32.0);
         c.trace.clear();
         let l = ChartLayout::new(&c);

@@ -1,0 +1,18 @@
+{
+ "book": 17,
+ "chapter": 6,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-virtqueue",
+   "title": "Virtio queue simulator",
+   "statement": "Work with a virtual queue of 8 descriptors: the guest posts buffers one at a time or in a batch, the device processes them, and the guest reaps the finished ones. Count the notifications, which are exits to the hypervisor: batches and notification suppression reduce their number. The exercise is solved when all three goals are met.",
+   "hint": "A batch of several buffers needs a single notification; with suppression, the bell is rung only when the device is asleep.",
+   "spec_text": {
+    "/goals/0/text": "Send 6 or more buffers with no more than two notifications (without suppression)",
+    "/goals/1/text": "Fill the queue until it overflows: try to post a buffer when there are no free descriptors",
+    "/goals/2/text": "Enable notification suppression and send 10 or more buffers with no more than two notifications"
+   }
+  }
+ ]
+}

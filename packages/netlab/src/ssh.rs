@@ -66,7 +66,7 @@ pub fn ssh_hop(state: &mut NetState, client_id: &str, user: &str, ip: u32, pass:
     }
     let srv = delivered_to(state, &run, Some(ip));
     let Some(srv) = srv.filter(|s| s.ssh.is_some()) else {
-        return fail("ssh_exchange_identification: на порту нет SSH-сервера".into(), Some(run), None);
+        return fail(i18n::tr("ssh_exchange_identification: no SSH server on the port").into(), Some(run), None);
     };
     let Some(sshd) = srv.ssh.clone() else { return SshResult::default() };
     let mut lines = Vec::new();
@@ -76,18 +76,15 @@ pub fn ssh_hop(state: &mut NetState, client_id: &str, user: &str, ip: u32, pass:
     match known {
         None => {
             client.known_hosts.insert(k.clone(), sshd.host_key.clone());
-            lines.push(format!("Warning: Permanently added '{k}' (ключ хоста {}) to known_hosts.", sshd.host_key));
+            lines.push(i18n::trf!("Warning: Permanently added '{0}' (host key {1}) to known_hosts.", k, sshd.host_key));
         }
         Some(old) if old != sshd.host_key => {
             let msg = [
                 "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@".to_string(),
                 "@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @".to_string(),
                 "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@".to_string(),
-                format!(
-                    "Ключ хоста {k} изменился: был {old}, сейчас {}. Это либо плановая смена ключа, либо подмена сервера (MITM).",
-                    sshd.host_key
-                ),
-                format!("Если смена законная: ssh-keygen -R {k}"),
+                i18n::trf!("Host key of {0} changed: was {1}, now {2}. Either a planned key rotation or a server impersonation (MITM).", k, old, sshd.host_key),
+                i18n::trf!("If the change is legitimate: ssh-keygen -R {0}", k),
             ]
             .join("\n");
             return fail(msg, Some(run), None);
@@ -96,25 +93,25 @@ pub fn ssh_hop(state: &mut NetState, client_id: &str, user: &str, ip: u32, pass:
     }
     let client_key = client.ssh_key.clone();
     let Some(u) = sshd.users.get(user) else {
-        return fail(format!("{user}@{k}: Permission denied ({}) — пользователя нет", perm(sshd.password_auth)), Some(run), Some(srv));
+        return fail(i18n::trf!("{0}@{1}: Permission denied ({2}) — no such user", user, k, perm(sshd.password_auth)), Some(run), Some(srv));
     };
     let key = if no_key { None } else { client_key };
     if let Some(key) = key {
         if u.keys.contains(&key) {
-            lines.push(format!("Вход по ключу {key} выполнен{label}"));
+            lines.push(i18n::trf!("Key login {0} succeeded{1}", key, label));
             return SshResult { ok: true, error: None, run: Some(run), srv: Some(srv), auth: Some(Auth::Key), lines };
         }
     }
     if sshd.password_auth && pass.is_some() && pass == u.password.as_deref() {
-        lines.push(format!("Вход по паролю выполнен{label}"));
+        lines.push(i18n::trf!("Password login succeeded{0}", label));
         return SshResult { ok: true, error: None, run: Some(run), srv: Some(srv), auth: Some(Auth::Password), lines };
     }
     let why = if !sshd.password_auth {
-        "парольный вход выключен, а ваш ключ на сервере не разрешён"
+        i18n::tr("password login is disabled, and your key is not authorized on the server")
     } else if pass.is_none() {
-        "нужен ключ или пароль"
+        i18n::tr("a key or a password is required")
     } else {
-        "неверный пароль"
+        i18n::tr("wrong password")
     };
     fail(format!("{user}@{k}: Permission denied ({}) — {why}", perm(sshd.password_auth)), Some(run), Some(srv))
 }
@@ -132,20 +129,20 @@ pub fn ssh_connect(
     let Some(jump_ip) = jump else {
         return ssh_hop(state, client_id, user, ip, pass, no_key, "");
     };
-    let a = ssh_hop(state, client_id, user, jump_ip, pass, no_key, " (бастион)");
+    let a = ssh_hop(state, client_id, user, jump_ip, pass, no_key, i18n::tr(" (bastion)"));
     let Some(jd) = a.srv.clone().filter(|_| a.ok) else {
         let e = a.error.clone().unwrap_or_else(|| "undefined".into());
-        return SshResult { ok: false, error: Some(format!("бастион: {e}")), ..a };
+        return SshResult { ok: false, error: Some(i18n::trf!("bastion: {0}", e)), ..a };
     };
     // дальше TCP идёт с бастиона: клиент проходит аутентификацию на цели своим ключом
     let probe = tcp1(state, &jd.id, ip, 22, 50000, false);
     if probe.status != ProbeStatus::Connected {
-        let why = if probe.status == ProbeStatus::Refused { "порт закрыт" } else { "нет ответа" };
-        return fail(format!("ssh: бастион не достаёт до {}:22 ({why})", ip_str(ip)), a.run, None);
+        let why = if probe.status == ProbeStatus::Refused { i18n::tr("port closed") } else { i18n::tr("no reply") };
+        return fail(i18n::trf!("ssh: the bastion cannot reach {0}:22 ({1})", ip_str(ip), why), a.run, None);
     }
     let srv = delivered_to(state, &probe, Some(ip));
     let Some(srv) = srv.filter(|s| s.ssh.is_some()) else {
-        return fail("на цели нет SSH-сервера".into(), a.run, None);
+        return fail(i18n::tr("the target has no SSH server").into(), a.run, None);
     };
     let Some(sshd) = srv.ssh.clone() else { return SshResult::default() };
     let k = ip_str(ip);
@@ -162,16 +159,16 @@ pub fn ssh_connect(
     let u = sshd.users.get(user);
     let key = if no_key { None } else { client.ssh_key.clone() };
     let mut lines = a.lines.clone();
-    lines.push(format!("прыжок {} → {}: {}", jd.name, srv.name, fmt_ms(probe.rtt_us)));
+    lines.push(i18n::trf!("hop {0} → {1}: {2}", jd.name, srv.name, fmt_ms(probe.rtt_us)));
     if let (Some(u), Some(key)) = (u, key.as_ref()) {
         if u.keys.contains(key) {
-            lines.push(format!("Вход по ключу {key} выполнен на {}", srv.name));
+            lines.push(i18n::trf!("Key login {0} succeeded on {1}", key, srv.name));
             return SshResult { ok: true, error: None, run: a.run, srv: Some(srv), auth: Some(Auth::Key), lines };
         }
     }
     if let Some(u) = u {
         if sshd.password_auth && pass.is_some() && pass == u.password.as_deref() {
-            lines.push("Вход по паролю выполнен".into());
+            lines.push(i18n::tr("Password login succeeded").into());
             return SshResult { ok: true, error: None, run: a.run, srv: Some(srv), auth: Some(Auth::Password), lines };
         }
     }

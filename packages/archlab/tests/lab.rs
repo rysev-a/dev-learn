@@ -17,6 +17,7 @@ fn solution_json(c: &CircuitSpec) -> String {
 
 #[test]
 fn reference_solutions_pass_and_empty_fail() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let (mut circuits, mut asm) = (0, 0);
@@ -48,6 +49,7 @@ fn reference_solutions_pass_and_empty_fail() {
 
 #[test]
 fn chapters_follow_registry() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     for n in registry::chapters() {
         let ch = lab.chapter(n).unwrap_or_else(|| panic!("нет главы {n}"));
@@ -67,6 +69,7 @@ fn chapters_follow_registry() {
 
 #[test]
 fn legacy_camel_case_solutions_are_accepted() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let (t, c) = lab.circuit_task("cpu", "fetch").expect("fetch");
@@ -77,6 +80,7 @@ fn legacy_camel_case_solutions_are_accepted() {
 
 #[test]
 fn verify_rejects_bad_submissions() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let (xor, xor_spec) = lab.circuit_task("simple-circuits", "xor").expect("xor");
@@ -118,6 +122,7 @@ fn verify_rejects_bad_submissions() {
 
 #[test]
 fn blocks_exercise_checks_palette_and_locks() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let (fetch, spec) = lab.circuit_task("cpu", "fetch").expect("fetch");
     let json = solution_json(spec);
@@ -133,6 +138,7 @@ fn blocks_exercise_checks_palette_and_locks() {
 
 #[test]
 fn library_is_built_from_students_solutions() {
+    i18n::set_locale(i18n::Locale::Ru);
     // как `hydrateLab`: решённое переносится между главами, из него собираются блоки
     let lab = lab();
     let mut drafts: Vec<(u32, String, String)> = Vec::new();
@@ -167,6 +173,7 @@ fn library_is_built_from_students_solutions() {
 
 #[test]
 fn composite_gates_lock_hints() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     assert_eq!(lab.gate_lock_hint(GateType::Xor), "Соберите «Исключающее ИЛИ» (практика «Простые схемы»)");
     assert_eq!(lab.gate_lock_hint(GateType::And), "");
@@ -180,6 +187,7 @@ fn composite_gates_lock_hints() {
 
 #[test]
 fn asm_verdicts() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let Spec::Asm(a) = &lab.task(15, "patch-byte").expect("задача").spec else { panic!() };
     assert!(verify_asm(a, &a.solution).ok);
@@ -199,6 +207,7 @@ fn asm_verdicts() {
 
 #[test]
 fn for_client_hides_references() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     for ch in lab.chapters() {
         for t in lab.tasks_for_client(ch.chapter) {
@@ -214,6 +223,7 @@ fn for_client_hides_references() {
 
 #[test]
 fn chapter_files_round_trip() {
+    i18n::set_locale(i18n::Locale::Ru);
     for n in registry::chapters() {
         let path = data_dir().join(format!("14-{n:02}.json"));
         let text = std::fs::read_to_string(&path).expect("файл");
@@ -227,6 +237,7 @@ fn chapter_files_round_trip() {
 
 #[test]
 fn solutions_round_trip() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     for ch in lab.chapters() {
         for t in &ch.tasks {
@@ -245,6 +256,7 @@ fn solutions_round_trip() {
 
 #[test]
 fn duplicate_or_foreign_files_are_rejected() {
+    i18n::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let ch = lab.chapter(6).expect("глава").clone();
     let mut foreign = ch.clone();
@@ -258,6 +270,7 @@ fn duplicate_or_foreign_files_are_rejected() {
 
 #[test]
 fn deserialized_types_are_typed() {
+    i18n::set_locale(i18n::Locale::Ru);
     // набор значений конечен — это типы, а не строки
     let lab = lab();
     let (_, c) = lab.circuit_task("registers", "dff").expect("dff");

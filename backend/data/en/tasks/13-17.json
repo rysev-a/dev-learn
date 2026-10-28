@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "file-info",
+   "title": "Parts of a path",
+   "statement": "Write a function file_info(path) that returns a tuple (file name, name without extension, extension) for a path given as a string. Use pathlib. No disk is needed.",
+   "hint": "p = Path(path); return p.name, p.stem, p.suffix."
+  },
+  {
+   "id": "join-path",
+   "title": "Joining a path",
+   "statement": "Write a function join_path(parts) that joins the list of parts into a path using pathlib and returns it as a STRING.",
+   "hint": "str(Path(*parts)): the star unpacks the list into arguments."
+  },
+  {
+   "id": "json-roundtrip",
+   "title": "Save and load JSON",
+   "statement": "Write functions save_json(path, data) and load_json(path): save a dictionary to a file (utf-8, Russian letters without escape codes) and read it back.",
+   "hint": "json.dump(data, f, ensure_ascii=False) and json.load(f) inside with open(..., encoding='utf-8')."
+  },
+  {
+   "id": "csv-column-sum",
+   "title": "Sum of a CSV column",
+   "statement": "Write a function column_sum(path, column) that returns the sum of the numbers in the column column of a CSV file with a header (the values are integers).",
+   "hint": "csv.DictReader; on each row, int(row[column])."
+  },
+  {
+   "id": "csv-group-sum",
+   "title": "Totals by department",
+   "statement": "Write a function sum_by(path, key_col, value_col) that returns a dictionary of the value from key_col to the sum of value_col values, for a CSV with a header (value_col holds integers).",
+   "hint": "totals[k] = totals.get(k, 0) + int(row[value_col])."
+  },
+  {
+   "id": "csv-write-table",
+   "title": "Writing a table",
+   "statement": "Write a function write_table(path, header, rows) that writes the header row and then the table rows to a CSV (utf-8, newline=''). The checker then reads and parses the file.",
+   "hint": "w = csv.writer(f); w.writerow(header); w.writerows(rows)."
+  },
+  {
+   "id": "atomic-write",
+   "title": "Atomic writing",
+   "statement": "Write a function atomic_write(path, text): first write the text to a temporary file next to it (path + '.tmp'), then replace the target file with it via os.replace. No temporary file may remain afterwards.",
+   "hint": "tmp = path + '.tmp'; write to tmp; os.replace(tmp, path)."
+  },
+  {
+   "id": "list-txt",
+   "title": "Txt files in a folder",
+   "statement": "Write a function list_txt(folder) that returns a sorted list of the NAMES of files with the .txt extension in the folder (no nested folders). Use pathlib.",
+   "hint": "sorted(p.name for p in Path(folder).glob('*.txt')): glob without rglob doesn't enter nested folders."
+  }
+ ]
+}

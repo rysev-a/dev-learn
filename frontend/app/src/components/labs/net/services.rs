@@ -60,10 +60,10 @@ pub fn WebServer(ctx: Ctx) -> impl IntoView {
     let protocols = vec![("h1".to_string(), "HTTP/1.1".to_string()), ("h2".to_string(), "HTTP/2".to_string()), ("h3".to_string(), "HTTP/3".to_string())];
     view! {
         <div class="nl-sec">
-            <h4>"Веб-сервер (HTTP, порт 80)"</h4>
+            <h4>{i18n::tr("Web server (HTTP, port 80)")}</h4>
             {move || page.get().map(|(count, kb)| view! {
                 <div class="nl-add">
-                    <span class="nl-lbl">"протокол"</span>
+                    <span class="nl-lbl">{i18n::tr("protocol")}</span>
                     <Pick
                         options=protocols.clone()
                         value=proto
@@ -81,7 +81,7 @@ pub fn WebServer(ctx: Ctx) -> impl IntoView {
                             });
                         })
                     />
-                    <span class="nl-lbl">{format!("страница: {} ресурсов по ~{} КБ", num_str(count + 1.0), num_str(kb))}</span>
+                    <span class="nl-lbl">{i18n::trf!("page: {0} resources of ~{1} KB", num_str(count + 1.0), num_str(kb))}</span>
                 </div>
             })}
             <table class="nl-table">
@@ -93,7 +93,7 @@ pub fn WebServer(ctx: Ctx) -> impl IntoView {
                             <td>{info}</td>
                             <td>
                                 {(!ctx.ro).then(|| view! {
-                                    <Cross label="Удалить маршрут" on_click=Callback::new(move |()| {
+                                    <Cross label=i18n::tr("Delete route") on_click=Callback::new(move |()| {
                                         ctx.edit(|d| {
                                             if let Some(h) = d.http.as_mut() {
                                                 if k < h.routes.len() {
@@ -110,16 +110,16 @@ pub fn WebServer(ctx: Ctx) -> impl IntoView {
             </table>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=path placeholder="/путь" />
-                    <TextIn value=status class="nl-prefix wide" digits=3 label="Код ответа" />
-                    <TextIn value=extra placeholder="текст или /куда (для 30x)" />
-                    <Btn label="+ маршрут" on_click=add_route />
+                    <TextIn value=path placeholder=i18n::tr("/path") />
+                    <TextIn value=status class="nl-prefix wide" digits=3 label=i18n::tr("Status code") />
+                    <TextIn value=extra placeholder=i18n::tr("text or /target (for 30x)") />
+                    <Btn label=i18n::tr("+ route") on_click=add_route />
                 </div>
                 <div class="nl-add">
-                    <TextIn value=hp placeholder="для пути /logo.png" />
-                    <TextIn value=hn placeholder="заголовок Cache-Control" />
-                    <TextIn value=hv placeholder="значение max-age=3600" />
-                    <Btn label="+ заголовок" on_click=add_header />
+                    <TextIn value=hp placeholder=i18n::tr("for path /logo.png") />
+                    <TextIn value=hn placeholder=i18n::tr("Cache-Control header name") />
+                    <TextIn value=hv placeholder=i18n::tr("value max-age=3600") />
+                    <Btn label=i18n::tr("+ header") on_click=add_header />
                 </div>
             })}
             <Msg msg=msg />
@@ -141,12 +141,8 @@ pub fn TlsServer(ctx: Ctx) -> impl IntoView {
             d.tls.as_ref().map(|t| {
                 (
                     format!("CN={} · SAN: {}", t.cert.cn, t.cert.san.join(", ")),
-                    format!("издатель {} · до {}", t.cert.issuer, t.cert.not_after),
-                    format!(
-                        "цепочка: {} · версии TLS {}",
-                        if t.chain.is_empty() { "(только свой сертификат)".to_string() } else { t.chain.join(" → ") },
-                        t.versions.join(", ")
-                    ),
+                    i18n::trf!("issuer {0} · until {1}", t.cert.issuer, t.cert.not_after),
+                    i18n::trf!("chain: {0} · TLS versions {1}", if t.chain.is_empty() { i18n::tr("(own certificate only)").to_string() } else { t.chain.join(" → ") }, t.versions.join(", ")),
                 )
             })
         })
@@ -178,23 +174,23 @@ pub fn TlsServer(ctx: Ctx) -> impl IntoView {
         .collect_view();
     view! {
         <div class="nl-sec">
-            <h4>"TLS-сертификат"</h4>
+            <h4>{i18n::tr("TLS certificate")}</h4>
             {move || about.get().map(|(a, b, c)| view! { <p class="nl-none">{a}<br />{b}<br />{c}</p> })}
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=cn placeholder="имена через пробел: example.org www.example.org" />
+                    <TextIn value=cn placeholder=i18n::tr("names separated by spaces: example.org www.example.org") />
                     <Pick options=options(&cas) value=issuer on_pick=Callback::new(move |v| issuer.set(v)) />
-                    <TextIn value=days class="nl-prefix wide" digits=5 label="Дней" />
-                    <Btn label="выпустить" on_click=issue />
+                    <TextIn value=days class="nl-prefix wide" digits=5 label=i18n::tr("Days") />
+                    <Btn label=i18n::tr("issue") on_click=issue />
                 </div>
                 <div class="nl-add">
-                    <span class="nl-lbl">"в цепочку:"</span>
+                    <span class="nl-lbl">{i18n::tr("to chain:")}</span>
                     <Pick options=options(&cas) value=chain on_pick=Callback::new(move |v| chain.set(v)) />
-                    <Btn label="+ добавить" on_click=chain_add />
-                    <Btn label="очистить" on_click=chain_clear />
+                    <Btn label=i18n::tr("+ add") on_click=chain_add />
+                    <Btn label=i18n::tr("clear") on_click=chain_clear />
                 </div>
                 <div class="nl-add">
-                    <span class="nl-lbl">"версии:"</span>
+                    <span class="nl-lbl">{i18n::tr("versions:")}</span>
                     {version_boxes}
                 </div>
             })}
@@ -212,7 +208,7 @@ pub fn TrustStore(ctx: Ctx) -> impl IntoView {
     let pick = RwSignal::new(first_free);
     view! {
         <div class="nl-sec">
-            <h4>"Хранилище доверия (корневые CA)"</h4>
+            <h4>{i18n::tr("Trust store (root CAs)")}</h4>
             <ul class="nl-rules">
                 {move || trust.get().into_iter().map(|c| {
                     let name = c.clone();
@@ -220,7 +216,7 @@ pub fn TrustStore(ctx: Ctx) -> impl IntoView {
                         <li>
                             <code>{c}</code>
                             {(!ctx.ro).then(|| view! {
-                                <Cross label="Убрать" on_click=Callback::new(move |()| {
+                                <Cross label=i18n::tr("Remove") on_click=Callback::new(move |()| {
                                     let name = name.clone();
                                     ctx.edit(|d| {
                                         let cur = d.trust.clone().unwrap_or_else(|| vec!["PublicRootCA".to_string()]);
@@ -235,7 +231,7 @@ pub fn TrustStore(ctx: Ctx) -> impl IntoView {
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
                     <Pick options=options(&cas) value=pick on_pick=Callback::new(move |v| pick.set(v)) />
-                    <Btn label="+ доверять" on_click=Callback::new(move |()| {
+                    <Btn label=i18n::tr("+ trust") on_click=Callback::new(move |()| {
                         let add = pick.get_untracked();
                         ctx.edit(|d| {
                             let mut cur = d.trust.clone().unwrap_or_else(|| vec!["PublicRootCA".to_string()]);
@@ -260,13 +256,13 @@ pub fn ProxyBox(ctx: Ctx) -> impl IntoView {
     let deny = Memo::new(move |_| ctx.read(|d| d.proxy.as_ref().map(|p| p.deny.clone()).unwrap_or_default()).unwrap_or_default());
     view! {
         <div class="nl-sec">
-            <h4>{move || format!("HTTP-прокси (tcp/{})", port.get())}</h4>
+            <h4>{move || i18n::trf!("HTTP proxy (tcp/{0})", port.get())}</h4>
             <ul class="nl-rules">
                 {move || deny.get().into_iter().enumerate().map(|(k, h)| view! {
                     <li>
-                        <code>{format!("запрещён: {h}")}</code>
+                        <code>{i18n::trf!("blocked: {0}", h)}</code>
                         {(!ctx.ro).then(|| view! {
-                            <Cross label="Разрешить" on_click=Callback::new(move |()| {
+                            <Cross label=i18n::tr("Allow") on_click=Callback::new(move |()| {
                                 ctx.edit(|d| {
                                     if let Some(p) = d.proxy.as_mut() {
                                         if k < p.deny.len() {
@@ -278,12 +274,12 @@ pub fn ProxyBox(ctx: Ctx) -> impl IntoView {
                         })}
                     </li>
                 }).collect_view()}
-                {move || deny.with(Vec::is_empty).then(|| view! { <li class="nl-none">"запретов нет"</li> })}
+                {move || deny.with(Vec::is_empty).then(|| view! { <li class="nl-none">{i18n::tr("nothing blocked")}</li> })}
             </ul>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=host placeholder="хост для запрета: social.example" />
-                    <Btn label="+ запретить" on_click=Callback::new(move |()| {
+                    <TextIn value=host placeholder=i18n::tr("host to block: social.example") />
+                    <Btn label=i18n::tr("+ block") on_click=Callback::new(move |()| {
                         msg.set(ctx.exec(&format!("proxy deny {}", host.get_untracked())));
                         host.set(String::new());
                     }) />
@@ -299,7 +295,7 @@ pub fn ProxyBox(ctx: Ctx) -> impl IntoView {
 pub fn LbBox(ctx: Ctx) -> impl IntoView {
     let addr = RwSignal::new(String::new());
     let msg = RwSignal::new(String::new());
-    let title = Memo::new(move |_| ctx.read(|d| d.lb.as_ref().map(|l| format!("Балансировщик {}:{}", l.vip, l.port))).flatten().unwrap_or_default());
+    let title = Memo::new(move |_| ctx.read(|d| d.lb.as_ref().map(|l| i18n::trf!("Load balancer {0}:{1}", l.vip, l.port))).flatten().unwrap_or_default());
     let algo = Signal::derive(move || {
         ctx.read(|d| match d.lb.as_ref().and_then(|l| l.algo) {
             Some(LbAlgo::Hash) => "hash",
@@ -314,9 +310,9 @@ pub fn LbBox(ctx: Ctx) -> impl IntoView {
         <div class="nl-sec">
             <h4>{move || title.get()}</h4>
             <div class="nl-add">
-                <span class="nl-lbl">"алгоритм"</span>
+                <span class="nl-lbl">{i18n::tr("algorithm")}</span>
                 <Pick
-                    options=vec![("rr".to_string(), "по кругу".to_string()), ("hash".to_string(), "привязка по адресу клиента".to_string())]
+                    options=vec![("rr".to_string(), i18n::tr("round robin").to_string()), ("hash".to_string(), i18n::tr("sticky by client address").to_string())]
                     value=algo
                     disabled=ctx.ro
                     on_pick=Callback::new(move |v: String| {
@@ -337,7 +333,7 @@ pub fn LbBox(ctx: Ctx) -> impl IntoView {
                             }
                         });
                     })
-                    label="проверка здоровья"
+                    label=i18n::tr("health check")
                     disabled=ctx.ro
                 />
             </div>
@@ -346,7 +342,7 @@ pub fn LbBox(ctx: Ctx) -> impl IntoView {
                     <li>
                         <code>{b}</code>
                         {(!ctx.ro).then(|| view! {
-                            <Cross label="Убрать из пула" on_click=Callback::new(move |()| {
+                            <Cross label=i18n::tr("Remove from pool") on_click=Callback::new(move |()| {
                                 ctx.edit(|d| {
                                     if let Some(l) = d.lb.as_mut() {
                                         if k < l.backends.len() {
@@ -361,8 +357,8 @@ pub fn LbBox(ctx: Ctx) -> impl IntoView {
             </ul>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=addr placeholder="сервер для пула 10.0.1.12:80" />
-                    <Btn label="+ в пул" on_click=Callback::new(move |()| {
+                    <TextIn value=addr placeholder=i18n::tr("server for the pool 10.0.1.12:80") />
+                    <Btn label=i18n::tr("+ to pool") on_click=Callback::new(move |()| {
                         msg.set(ctx.exec(&format!("lb add {}", addr.get_untracked())));
                         addr.set(String::new());
                     }) />
@@ -397,7 +393,7 @@ pub fn RproxyBox(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>"Обратный прокси / кэш"</h4>
+            <h4>{i18n::tr("Reverse proxy / cache")}</h4>
             <table class="nl-table">
                 <tbody>
                     {move || rules.get().into_iter().enumerate().map(|(k, (what, to, cache))| view! {
@@ -414,13 +410,13 @@ pub fn RproxyBox(ctx: Ctx) -> impl IntoView {
                                             }
                                         });
                                     })
-                                    label="кэш"
+                                    label=i18n::tr("cache")
                                     disabled=ctx.ro
                                 />
                             </td>
                             <td>
                                 {(!ctx.ro).then(|| view! {
-                                    <Cross label="Удалить правило" on_click=Callback::new(move |()| {
+                                    <Cross label=i18n::tr("Delete rule") on_click=Callback::new(move |()| {
                                         ctx.edit(|d| {
                                             if let Some(p) = d.rproxy.as_mut() {
                                                 if k < p.rules.len() {
@@ -437,10 +433,10 @@ pub fn RproxyBox(ctx: Ctx) -> impl IntoView {
             </table>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=host class="nl-prefix wide" label="Хост" />
-                    <TextIn value=path placeholder="/путь" />
-                    <TextIn value=backend placeholder="сервер 10.0.2.10:8080" />
-                    <Btn label="+ правило" on_click=Callback::new(move |()| {
+                    <TextIn value=host class="nl-prefix wide" label=i18n::tr("Host") />
+                    <TextIn value=path placeholder=i18n::tr("/path") />
+                    <TextIn value=backend placeholder=i18n::tr("server 10.0.2.10:8080") />
+                    <Btn label=i18n::tr("+ rule") on_click=Callback::new(move |()| {
                         let h = host.get_untracked();
                         msg.set(ctx.exec(&format!("rproxy add {} {} {}", if h.is_empty() { "*" } else { &h }, path.get_untracked(), backend.get_untracked())));
                         path.set(String::new());
@@ -464,17 +460,17 @@ pub fn SshBox(ctx: Ctx) -> impl IntoView {
         ctx.read(|d| {
             d.ssh
                 .as_ref()
-                .map(|s| s.users.iter().map(|(u, v)| format!("{u}: {}", if v.keys.is_empty() { "ключей нет".to_string() } else { v.keys.join(", ") })).collect::<Vec<_>>())
+                .map(|s| s.users.iter().map(|(u, v)| format!("{u}: {}", if v.keys.is_empty() { i18n::tr("no keys").to_string() } else { v.keys.join(", ") })).collect::<Vec<_>>())
                 .unwrap_or_default()
         })
         .unwrap_or_default()
     });
-    let key = Memo::new(move |_| ctx.read(|d| d.ssh_key.clone()).flatten().unwrap_or_else(|| "ключа нет".to_string()));
+    let key = Memo::new(move |_| ctx.read(|d| d.ssh_key.clone()).flatten().unwrap_or_else(|| i18n::tr("no key").to_string()));
     view! {
         <div class="nl-sec">
-            <h4>{move || format!("SSH {}", if is_server.get() { "сервер" } else { "клиент" })}</h4>
+            <h4>{move || format!("SSH {}", if is_server.get() { i18n::tr("server") } else { i18n::tr("client") })}</h4>
             {move || is_server.get().then(|| view! {
-                <p class="nl-none">{format!("ключ хоста: {}", host_key.get())}</p>
+                <p class="nl-none">{i18n::trf!("host key: {0}", host_key.get())}</p>
                 <Check
                     checked=password
                     on_change=Callback::new(move |on| {
@@ -484,7 +480,7 @@ pub fn SshBox(ctx: Ctx) -> impl IntoView {
                             }
                         });
                     })
-                    label="разрешить вход по паролю"
+                    label=i18n::tr("allow password login")
                     disabled=ctx.ro
                 />
                 <ul class="nl-rules">
@@ -492,9 +488,9 @@ pub fn SshBox(ctx: Ctx) -> impl IntoView {
                 </ul>
             })}
             <div class="nl-add">
-                <span class="nl-lbl">{move || format!("отпечаток вашего ключа: {}", key.get())}</span>
+                <span class="nl-lbl">{move || i18n::trf!("your key fingerprint: {0}", key.get())}</span>
                 {move || (!is_server.get() && !ctx.ro).then(|| view! {
-                    <Btn label="создать ключ" on_click=Callback::new(move |()| msg.set(ctx.exec("ssh-keygen"))) />
+                    <Btn label=i18n::tr("generate key") on_click=Callback::new(move |()| msg.set(ctx.exec("ssh-keygen"))) />
                 })}
             </div>
             <Msg msg=msg />
@@ -525,25 +521,25 @@ pub fn VpnBox(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>"VPN-туннели"</h4>
+            <h4>{i18n::tr("VPN tunnels")}</h4>
             <ul class="nl-rules">
                 {move || tunnels.get().into_iter().map(|(n, text)| view! {
                     <li>
                         <code>{text}</code>
                         {(!ctx.ro).then(|| view! {
-                            <Cross label="Удалить туннель" on_click=Callback::new(move |()| msg.set(ctx.exec(&format!("vpn del {n}")))) />
+                            <Cross label=i18n::tr("Delete tunnel") on_click=Callback::new(move |()| msg.set(ctx.exec(&format!("vpn del {n}")))) />
                         })}
                     </li>
                 }).collect_view()}
-                {move || tunnels.with(Vec::is_empty).then(|| view! { <li class="nl-none">"туннелей нет"</li> })}
+                {move || tunnels.with(Vec::is_empty).then(|| view! { <li class="nl-none">{i18n::tr("no tunnels")}</li> })}
             </ul>
             {(!ctx.ro).then(|| view! {
                 <div class="nl-add wrap">
-                    <TextIn value=name class="nl-prefix wide" label="Имя" />
-                    <TextIn value=peer placeholder="внешний IP пира" />
-                    <TextIn value=addr placeholder="адрес 10.9.0.1/30" />
-                    <TextIn value=key placeholder="общий секрет" />
-                    <Btn label="+ туннель" on_click=Callback::new(move |()| {
+                    <TextIn value=name class="nl-prefix wide" label=i18n::tr("Name") />
+                    <TextIn value=peer placeholder=i18n::tr("peer public IP") />
+                    <TextIn value=addr placeholder=i18n::tr("address 10.9.0.1/30") />
+                    <TextIn value=key placeholder=i18n::tr("shared secret") />
+                    <Btn label=i18n::tr("+ tunnel") on_click=Callback::new(move |()| {
                         msg.set(ctx.exec(&format!(
                             "vpn add {} --peer {} --address {} --key {}",
                             name.get_untracked(),
@@ -576,8 +572,8 @@ pub fn Resolver(ctx: Ctx) -> impl IntoView {
     view! {
         <div class="nl-sec">
             <label class="nl-field">
-                <span>"DNS-сервер (/etc/resolv.conf: nameserver)"</span>
-                <TextIn value=value placeholder="например 192.168.0.53" disabled=ctx.ro on_commit=commit />
+                <span>{i18n::tr("DNS server (/etc/resolv.conf: nameserver)")}</span>
+                <TextIn value=value placeholder=i18n::tr("for example 192.168.0.53") disabled=ctx.ro on_commit=commit />
                 <Msg msg=err />
             </label>
         </div>
@@ -595,7 +591,7 @@ pub fn DnsServer(ctx: Ctx) -> impl IntoView {
     let msg = RwSignal::new(String::new());
     let recursive = Memo::new(move |_| ctx.read(|d| d.dns.as_ref().is_some_and(|x| x.recursive)).unwrap_or(false));
     let zones = Memo::new(move |_| {
-        ctx.read(|d| d.dns.as_ref().map(|x| x.zones.iter().map(|z| if z.is_empty() { "корень".to_string() } else { z.clone() }).collect::<Vec<_>>().join(", ")).unwrap_or_default())
+        ctx.read(|d| d.dns.as_ref().map(|x| x.zones.iter().map(|z| if z.is_empty() { i18n::tr("root").to_string() } else { z.clone() }).collect::<Vec<_>>().join(", ")).unwrap_or_default())
             .unwrap_or_default()
     });
     let root = ctx.read(|d| d.dns.as_ref().and_then(|x| x.roots.first().cloned())).flatten().unwrap_or_default();
@@ -608,14 +604,14 @@ pub fn DnsServer(ctx: Ctx) -> impl IntoView {
     });
     view! {
         <div class="nl-sec">
-            <h4>{move || format!("DNS-сервер {}", if recursive.get() { "(рекурсивный резолвер)" } else { "(авторитативный)" })}</h4>
+            <h4>{move || i18n::trf!("DNS server {0}", if recursive.get() { i18n::tr("(recursive resolver)") } else { i18n::tr("(authoritative)") })}</h4>
             {move || {
                 let z = zones.get();
-                (!z.is_empty()).then(|| view! { <p class="nl-none">{format!("зоны: {z}")}</p> })
+                (!z.is_empty()).then(|| view! { <p class="nl-none">{i18n::trf!("zones: {0}", z)}</p> })
             }}
             {move || recursive.get().then(|| view! {
                 <div class="nl-add">
-                    <span class="nl-lbl">"корневой сервер"</span>
+                    <span class="nl-lbl">{i18n::tr("root server")}</span>
                     <TextIn
                         value=root
                         placeholder="198.41.0.4"
@@ -638,7 +634,7 @@ pub fn DnsServer(ctx: Ctx) -> impl IntoView {
                             <td>{v}</td>
                             <td>
                                 {(!ctx.ro).then(|| view! {
-                                    <Cross label="Удалить запись" on_click=Callback::new(move |()| {
+                                    <Cross label=i18n::tr("Delete record") on_click=Callback::new(move |()| {
                                         ctx.edit(|d| {
                                             if let Some(x) = d.dns.as_mut() {
                                                 if k < x.records.len() {
@@ -658,7 +654,7 @@ pub fn DnsServer(ctx: Ctx) -> impl IntoView {
                             <td>{n}</td>
                             <td>
                                 {(!ctx.ro).then(|| view! {
-                                    <Cross label="Убрать делегирование" on_click=Callback::new(move |()| {
+                                    <Cross label=i18n::tr("Remove delegation") on_click=Callback::new(move |()| {
                                         ctx.edit(|d| {
                                             if let Some(x) = d.dns.as_mut() {
                                                 if k < x.delegations.len() {
@@ -675,19 +671,19 @@ pub fn DnsServer(ctx: Ctx) -> impl IntoView {
             </table>
             {move || (!ctx.ro && !recursive.get()).then(|| view! {
                 <div class="nl-add">
-                    <TextIn value=name placeholder="имя shop.example.org" />
+                    <TextIn value=name placeholder=i18n::tr("name shop.example.org") />
                     <Pick options=same(&["A", "CNAME", "MX", "TXT"]) value=typ on_pick=Callback::new(move |v| typ.set(v)) />
-                    <TextIn value=val placeholder="значение" />
-                    <Btn label="+ запись" on_click=Callback::new(move |()| {
+                    <TextIn value=val placeholder=i18n::tr("value") />
+                    <Btn label=i18n::tr("+ record") on_click=Callback::new(move |()| {
                         msg.set(ctx.exec(&format!("dns add {} {} {}", name.get_untracked(), typ.get_untracked(), val.get_untracked())));
                         name.set(String::new());
                         val.set(String::new());
                     }) />
                 </div>
                 <div class="nl-add">
-                    <TextIn value=zone placeholder="делегировать зону example.org" />
-                    <TextIn value=ns placeholder="на сервер 198.51.100.30" />
-                    <Btn label="+ делегирование" on_click=Callback::new(move |()| {
+                    <TextIn value=zone placeholder=i18n::tr("delegate zone example.org") />
+                    <TextIn value=ns placeholder=i18n::tr("to server 198.51.100.30") />
+                    <Btn label=i18n::tr("+ delegation") on_click=Callback::new(move |()| {
                         msg.set(ctx.exec(&format!("dns delegate {} {}", zone.get_untracked(), ns.get_untracked())));
                         zone.set(String::new());
                         ns.set(String::new());
@@ -711,11 +707,11 @@ pub fn TcpTune(ctx: Ctx) -> impl IntoView {
         }
     });
     view! {
-        <Section title="Настройки TCP">
+        <Section title=i18n::tr("TCP settings")>
             <div class="nl-add">
-                <span class="nl-lbl">"Окно приёма, КБ"</span>
-                <TextIn value=window class="nl-prefix wide" digits=6 disabled=ctx.ro label="Окно приёма" on_commit=commit />
-                <span class="nl-lbl">"алгоритм"</span>
+                <span class="nl-lbl">{i18n::tr("Receive window, KB")}</span>
+                <TextIn value=window class="nl-prefix wide" digits=6 disabled=ctx.ro label=i18n::tr("Receive window") on_commit=commit />
+                <span class="nl-lbl">{i18n::tr("algorithm")}</span>
                 <Pick
                     options=same(&["reno", "cubic", "bbr"])
                     value=cc

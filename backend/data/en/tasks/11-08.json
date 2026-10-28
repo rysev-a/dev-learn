@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "j8-point",
+   "title": "The Point class",
+   "statement": "Write a class Point with a constructor (x, y), a method distanceTo(other) (the Euclidean distance to another point) and a method toString() that returns «(x, y)».",
+   "hint": "Math.hypot(dx, dy); toString returns a template string."
+  },
+  {
+   "id": "j8-counter-static",
+   "title": "An instance counter (static)",
+   "statement": "Write a class Widget: each new instance gets a field id (1, 2, 3, ...); a static field count holds the total number of created instances, and a static method reset() zeroes the count (the next id is 1 again).",
+   "hint": "static count = 0; this.id = ++Widget.count;"
+  },
+  {
+   "id": "j8-account",
+   "title": "An account with a private field",
+   "statement": "Write a class Account with a private field #balance (the initial value is a constructor parameter, 0 by default), methods deposit(x) and withdraw(x) (a RangeError if funds are insufficient) and a getter balance.",
+   "hint": "A private field #balance; get balance() without a setter — a write is silently ignored."
+  },
+  {
+   "id": "j8-temperature",
+   "title": "Temperature getters and setters",
+   "statement": "Write a class Temperature: it stores degrees Celsius; a getter/setter celsius (the setter throws a RangeError if the value is below -273.15), a getter fahrenheit (c * 9 / 5 + 32) and a static method fromFahrenheit(f) that returns an instance.",
+   "hint": "The constructor can assign this.celsius = c, so the setter check also works on creation."
+  },
+  {
+   "id": "j8-stack-class",
+   "title": "The Stack class",
+   "statement": "Write a class Stack: a private array of elements, methods push(x), pop() (undefined for an empty stack), peek() and a getter size. The push method returns this so that calls can be chained.",
+   "hint": "Every method that \"changes and returns itself\" ends with return this."
+  },
+  {
+   "id": "j8-queue-class",
+   "title": "A queue on a ring buffer",
+   "statement": "Write a class Queue(capacity): a fixed-capacity queue on an array; methods enqueue(x) (false if the queue is full, otherwise true), dequeue() (undefined for an empty one), getters size and isFull. Elements are not shifted: keep the head and tail indexes.",
+   "hint": "The write index is (head + size) % capacity; reading moves head modulo capacity."
+  },
+  {
+   "id": "j8-dog",
+   "title": "Inheritance and super",
+   "statement": "Write a class Animal(name) with a method speak() → «<name> издаёт звук» and a class Dog extends Animal that overrides speak(): «<parent string>: гав!» (call the parent version through super). The output text stays in Russian exactly as written.",
+   "hint": "Dog does not need a constructor: it is inherited. The parent call: super.speak()."
+  },
+  {
+   "id": "j8-shapes",
+   "title": "Shapes: polymorphism",
+   "statement": "Write a base class Shape with a method area() that throws Error(\"не реализовано\"), and classes Rect(w, h) and Circle(r) that override area(). Then a function totalArea(shapes), the sum of the areas (for Circle, Math.PI * r ** 2). The error message stays in Russian exactly as written.",
+   "hint": "Each subclass calls super() in its constructor before using this."
+  },
+  {
+   "id": "j8-validation-error",
+   "title": "A custom ValidationError",
+   "statement": "Write a class ValidationError extends Error: the constructor (field, message) sets this.name = \"ValidationError\", this.field and the message. And a function validateUser(u): it throws a ValidationError for an empty name (field \"name\") and for an age outside the range 0–150 (field \"age\"); otherwise it returns true.",
+   "hint": "super(message); then name and field. Write the age condition so that NaN and undefined do not pass."
+  },
+  {
+   "id": "j8-http-error",
+   "title": "An HTTP error hierarchy",
+   "statement": "Write a class HttpError extends Error (status, message; name = «HttpError») and its subclass NotFoundError (message defaults to «Не найдено», status = 404, name = «NotFoundError»). The function describe(err) returns «<name> <status>: <message>» for an HttpError and «Ошибка: <message>» for everything else. The texts in « » stay in Russian exactly as written.",
+   "hint": "The subclass calls super(404, message) and then changes this.name."
+  },
+  {
+   "id": "j8-fix-this-class",
+   "title": "Fix: the method loses this",
+   "statement": "The class Clicker counts clicks: the method click() increases this.count. But when it is passed as a callback (handler = obj.click; handler()), it crashes. Fix the class so that click works apart from the object too (bind in the constructor or an arrow field will do).",
+   "hint": "click = () => { … } — an arrow remembers the this of the instance."
+  },
+  {
+   "id": "j8-fix-super",
+   "title": "Fix: the forgotten super()",
+   "statement": "The class Admin extends User, but its constructor crashes with ReferenceError: Must call super constructor. Fix the constructor so that Admin gets name from the parent and adds its own field level.",
+   "hint": "super(name) before the first use of this."
+  },
+  {
+   "id": "j8-proto-depth",
+   "title": "Prototype chain depth",
+   "statement": "Write a function protoDepth(obj) that returns the number of prototypes in the object's chain up to null. For example, for {} it is 1 (Object.prototype), and for [] it is 2.",
+   "hint": "Object.getPrototypeOf(p) in a loop until you get null."
+  },
+  {
+   "id": "j8-create-child",
+   "title": "Object.create: inheriting objects",
+   "statement": "Write a function extend(parent, props) that creates a new object with the prototype parent and copies the own fields of props into it. The original objects do not change.",
+   "hint": "Object.assign(Object.create(parent), props)"
+  },
+  {
+   "id": "j8-my-new",
+   "title": "Implement new by hand",
+   "statement": "Write a function myNew(Ctor, ...args) that repeats the work of the new operator for a constructor function: it creates an object with the prototype Ctor.prototype, calls Ctor with that object as this and the arguments; if the constructor returned an object, return it, otherwise return the created one. You may not use the new operator.",
+   "hint": "Object.create(Ctor.prototype), then Ctor.apply(obj, args) and a type check of the result."
+  },
+  {
+   "id": "j8-emitter",
+   "title": "An event emitter",
+   "statement": "Write a class Emitter with methods on(name, fn) (subscribe), off(name, fn) (unsubscribe) and emit(name, ...args) (calls the subscribers in subscription order and returns the number of calls). on returns an unsubscribe function.",
+   "hint": "A Map: name → array of functions. Copy the array before iterating, since a subscriber may unsubscribe during emit."
+  },
+  {
+   "id": "j8-compose-robot",
+   "title": "Composition instead of inheritance",
+   "statement": "Write ability functions walker(state) and talker(state), each returning an object with one method: walker → walk() gives «<name> идёт», talker → talk() gives «<name>: привет». And a function makeRobot(name, ...abilities) that assembles an object: { name } plus the methods of the passed abilities (an ability receives state = { name }). The output text stays in Russian exactly as written.",
+   "hint": "Object.assign({ name }, ...abilities.map((a) => a(state)))"
+  },
+  {
+   "id": "j8-readonly",
+   "title": "An immutable field via defineProperty",
+   "statement": "Write a function defineConst(obj, key, value) that defines a property key with the value value in the object so that it can be neither overwritten nor deleted, and it does not show up in Object.keys. It returns obj. The driver works in strict mode: an attempt to write must throw a TypeError.",
+   "hint": "Object.defineProperty(obj, key, { value, writable: false, enumerable: false, configurable: false })"
+  },
+  {
+   "id": "j8-deep-freeze",
+   "title": "Deep freeze",
+   "statement": "Write a function deepFreeze(obj) that freezes the object and all nested objects and arrays (recursively) and returns it. After that, writes to any level must be impossible (in strict mode, a TypeError).",
+   "hint": "Freeze the nested parts first, then the object itself; do nothing for primitives."
+  },
+  {
+   "id": "j8-money-toprimitive",
+   "title": "Money with Symbol.toPrimitive",
+   "statement": "Write a class Money(cents) with a method [Symbol.toPrimitive](hint): for the hint \"number\" it returns the cents, for \"string\" a string like «12.34 ₽», for \"default\" the cents. This way Money works in arithmetic and in templates.",
+   "hint": "In a template string and in String(), the hint is \"string\"; in addition and comparison, it is \"default\"/\"number\"."
+  },
+  {
+   "id": "j8-range-iterable",
+   "title": "An iterable range",
+   "statement": "Write a class Range(from, to, step = 1): an iterable object that yields numbers from from to to inclusive with step step (step > 0), using the protocol [Symbol.iterator]() and an iterator with next(), without generators (function*).",
+   "hint": "Keep the state (the current number) inside the iterator, not inside Range, so that the traversal can be repeated."
+  },
+  {
+   "id": "j8-gen-range",
+   "title": "A range generator",
+   "statement": "Write a generator range(start, end, step = 1) that lazily yields numbers from start to end (not including it) with step step; with a negative step it goes down; with step 0 it throws a RangeError.",
+   "hint": "Two for loops with yield; infinite/huge ranges are safe as long as they are not unrolled entirely."
+  },
+  {
+   "id": "j8-gen-fib",
+   "title": "An infinite Fibonacci generator",
+   "statement": "Write a generator fibs() that yields Fibonacci numbers endlessly: 0, 1, 1, 2, 3, ... And a function take(iter, n) that returns an array of the first n values of any iterable object (lazy: stop after n values, no infinite loop).",
+   "hint": "In take, walk through iter with a for…of loop and leave with break when you reach n."
+  },
+  {
+   "id": "j8-lazy-pipeline",
+   "title": "A lazy pipeline",
+   "statement": "Write generators lazyMap(iter, fn) and lazyFilter(iter, pred), which compute nothing until they are iterated, and a function firstN(iter, n) → an array of the first n values. Test it on an infinite sequence of numbers.",
+   "hint": "Each step is a generator on top of for…of; the computation happens only when the next value is requested."
+  },
+  {
+   "id": "j8-tree-inorder",
+   "title": "Tree traversal with a generator",
+   "statement": "A search tree is given by objects { value, left, right } (left/right may be null). Write a generator inorder(node) that yields values in the order \"left subtree — node — right subtree\", using yield*.",
+   "hint": "yield* inorder(node.left); yield node.value; yield* inorder(node.right);"
+  },
+  {
+   "id": "j8-chunks-gen",
+   "title": "A chunk generator",
+   "statement": "Write a generator chunked(iter, n) that accepts any iterable object and lazily yields arrays of n elements (the last one shorter).",
+   "hint": "Accumulate a buffer; hand it out when it is full and at the end if the remainder is not empty."
+  },
+  {
+   "id": "j8-linked-list",
+   "title": "A linked list with an iterator",
+   "statement": "Write a class LinkedList: methods add(x) (to the end, returns this) and a getter size, as well as an iterator [Symbol.iterator]() (a generator or an object), so that the list works in for…of, spread and Array.from. The nodes are objects { value, next }.",
+   "hint": "A generator method: *[Symbol.iterator]() { … yield … }"
+  },
+  {
+   "id": "j8-zip-iter",
+   "title": "Zipping iterators by hand",
+   "statement": "Write a generator zipIter(a, b) that accepts two iterable objects and yields pairs [x, y] while both have values; work with the iterators directly through a[Symbol.iterator]() and next(), and do not use a for…of loop over a and b.",
+   "hint": "const ia = a[Symbol.iterator](); const x = ia.next(); check x.done."
+  },
+  {
+   "id": "j8-static-factory",
+   "title": "A static factory and toJSON",
+   "statement": "Write a class User(name, email) with a static method fromJSON(text) (creates a User from a JSON string like {\"name\":…,\"email\":…}) and a method toJSON() that excludes the email field, leaving only name and a field type: \"user\". This way JSON.stringify(user) does not reveal the email.",
+   "hint": "toJSON() returns the object that will end up in the result of JSON.stringify."
+  },
+  {
+   "id": "j8-to-string-tag",
+   "title": "An object label: Symbol.toStringTag",
+   "statement": "Write a class Token(kind, text) with a getter [Symbol.toStringTag] that returns «Token:<kind>». Then Object.prototype.toString.call(token) gives «[object Token:<kind>]». Add a method toString() that returns text.",
+   "hint": "get [Symbol.toStringTag]() { return … }"
+  }
+ ]
+}

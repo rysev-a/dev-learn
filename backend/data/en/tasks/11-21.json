@@ -1,0 +1,114 @@
+{
+ "book": 11,
+ "chapter": 21,
+ "tasks": [
+  {
+   "id": "w21-mobile-first",
+   "title": "Mobile first",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .cards items sit in a flex container. By default (narrow screen) they go in a column, and from a window width of 600px and up, in a row. Write “from small to large”: ordinary rules for the phone, and the widening in @media (min-width: …).",
+   "hint": "First .cards { display: flex; flex-direction: column; gap: 12px; }, then @media (min-width: 600px) { .cards { flex-direction: row; } }."
+  },
+  {
+   "id": "w21-breakpoints-grid",
+   "title": "A grid with two breakpoints",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .gallery block is a grid. On a phone (under 600px) it has one column, from 600px two equal columns, from 960px three. Use grid-template-columns with repeat(…, 1fr) and two @media (min-width: …). The styles are checked at widths of 360, 700 and 1100px.",
+   "hint": "Base rule: grid-template-columns: 1fr. Then @media (min-width: 600px) with repeat(2, 1fr) and @media (min-width: 960px) with repeat(3, 1fr), in that order."
+  },
+  {
+   "id": "w21-nav-switch",
+   "title": "Menu and “burger”",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. On a narrow screen only the .burger button is visible and the .menu list is hidden. From a width of 768px the opposite holds: the menu is shown as a flex row and the button disappears. The styles are checked at 360 and 1000px; write them mobile-first.",
+   "hint": "Base: .menu { display: none; } and .burger { display: block; }. In @media (min-width: 768px): .menu { display: flex; } and .burger { display: none; }."
+  },
+  {
+   "id": "w21-fluid-image",
+   "title": "An image that fits the column width",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The photo .photo inside the .col column must never overflow its edge and must not be distorted. Set max-width: 100% and height: auto. For the cover image .cover (as wide as the column) set object-fit: cover and the aspect ratio aspect-ratio: 16 / 9.",
+   "hint": "img { max-width: 100%; height: auto; } for the cover: width: 100%; aspect-ratio: 16 / 9; object-fit: cover."
+  },
+  {
+   "id": "w21-dark-scheme",
+   "title": "Dark theme following the system setting",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The page colors are moved into the variables --bg and --fg. By default (light theme): background #ffffff, text #1a1a1a. If the user has chosen the dark theme in the system, override them in @media (prefers-color-scheme: dark): background #121212, text #eeeeee. The body element takes its colors from the variables.",
+   "hint": "On :root set both variables for the light theme, then @media (prefers-color-scheme: dark) { :root { --bg: …; --fg: …; } }, and body { background: var(--bg); color: var(--fg); }."
+  },
+  {
+   "id": "w21-hover-media",
+   "title": "Hover for mouse only",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .link link must turn #e11d48 on hover and be #2563eb normally. Touch screens have no “hover”, so wrap the :hover rule in @media (hover: hover).",
+   "hint": ".link { color: #2563eb; } @media (hover: hover) { .link:hover { color: #e11d48; } }"
+  },
+  {
+   "id": "w21-container-query",
+   "title": "A container query",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .card lives in the .box container and must adapt to the width of the box, not the window. Make .box a container (container-type: inline-size). While the box is narrower than 480px, the card is a block (display: block). From 480px, the card is a flex row. Use @container.",
+   "hint": ".box { container-type: inline-size; } .card { display: block; } @container (min-width: 480px) { .card { display: flex; } }"
+  },
+  {
+   "id": "w21-container-named",
+   "title": "A named container",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Give the .sidebar container the name widgets (container-name: widgets) and the type inline-size. When it is wider than 300px, the .tags list becomes a wrapping flex container (flex-wrap: wrap); when narrower, it stays an ordinary block. Write the condition with the name: @container widgets (min-width: 300px).",
+   "hint": "container-name: widgets; container-type: inline-size; on .sidebar. Then @container widgets (min-width: 300px) { .tags { display: flex; flex-wrap: wrap; } }."
+  },
+  {
+   "id": "w21-clamp-title",
+   "title": "A heading with clamp()",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The h1 size must grow smoothly with the window width: at least 24px (1.5rem), at most 48px (3rem), and 5vw in between. Write it as a single value using clamp(). It is checked at widths of 320, 800 and 1400px.",
+   "hint": "h1 { font-size: clamp(1.5rem, 5vw, 3rem); }"
+  },
+  {
+   "id": "w21-clamp-space",
+   "title": "Fluid padding",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The inner padding of the .hero block must be “fluid”: at least 16px, at most 48px, and 4vw in the middle. Set the side padding (padding-left and padding-right) with clamp(…). At 320px it equals 16px, at 800px 32px, at 1400px 48px.",
+   "hint": ".hero { padding-left: clamp(16px, 4vw, 48px); padding-right: clamp(16px, 4vw, 48px); }"
+  },
+  {
+   "id": "w21-hover-lift",
+   "title": "A card that lifts",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. On hover the .card must move up by 4px (transform: translateY(-4px)). To make the motion smooth, in the normal state set a transition on transform only: transition-property transform, duration 0.2s, timing function ease-out.",
+   "hint": ".card { transition: transform 0.2s ease-out; } .card:hover { transform: translateY(-4px); }"
+  },
+  {
+   "id": "w21-button-states",
+   "title": "Button states",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .btn button: on hover the background is #1d4ed8, when pressed (:active) it shrinks slightly with transform: scale(0.97), and on keyboard focus (:focus-visible) it gets the outline 3px solid #f59e0b. The normal background is #2563eb.",
+   "hint": ".btn { background: #2563eb; } .btn:hover { background: #1d4ed8; } .btn:active { transform: scale(0.97); } .btn:focus-visible { outline: 3px solid #f59e0b; }"
+  },
+  {
+   "id": "w21-tooltip-fade",
+   "title": "A tooltip with a smooth fade-in",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .tip tooltip is hidden (opacity: 0). When the user hovers over the .has-tip wrapper, the tooltip becomes fully visible (opacity: 1). Animate only the opacity: transition-property opacity, duration 0.25s.",
+   "hint": ".tip { opacity: 0; transition: opacity 0.25s; } .has-tip:hover .tip { opacity: 1; }"
+  },
+  {
+   "id": "w21-transform-values",
+   "title": "Three transforms",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Apply transforms to the elements: shift .a right by 40px (translateX), rotate .b by 45 degrees (rotate), scale .c up by 1.5 times (scale), and put the point it grows from at the top-left corner (transform-origin: left top).",
+   "hint": ".a { transform: translateX(40px); } .b { transform: rotate(45deg); } .c { transform: scale(1.5); transform-origin: left top; }"
+  },
+  {
+   "id": "w21-drawer",
+   "title": "A slide-out panel without repainting",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The sidebar .drawer is hidden beyond the left edge: transform: translateX(-100%). For the open panel .drawer.open the transform is reset (translateX(0)). Animate only transform, not left or width: transition-property transform, 0.3s, ease-out.",
+   "hint": ".drawer { transform: translateX(-100%); transition: transform 0.3s ease-out; } .drawer.open { transform: translateX(0); }"
+  },
+  {
+   "id": "w21-keyframes-pulse",
+   "title": "A pulse with @keyframes",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. Define an animation pulse: in the middle (50%) the icon grows with transform: scale(1.2). Attach it to .dot in one line: name pulse, duration 1.5s, ease-in-out, infinite.",
+   "hint": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } } .dot { animation: pulse 1.5s ease-in-out infinite; }"
+  },
+  {
+   "id": "w21-fade-in",
+   "title": "A fade-in that keeps the final frame",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .toast window must appear smoothly: @keyframes fade-in changes opacity from 0 to 1. The animation runs for 0.4s and once; afterwards the window stays visible, and before it starts (during a delay) it is already hidden. Set animation-fill-mode: both for this.",
+   "hint": "@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } } .toast { animation: fade-in 0.4s ease-out both; }"
+  },
+  {
+   "id": "w21-reduced-motion",
+   "title": "Respecting “reduce motion”",
+   "statement": "Write CSS so that all the conditions are met. The markup is given and cannot be changed. The .spinner indicator rotates endlessly (the animation is already defined in the task's styles). The rotation bothers users who have “reduce motion” turned on. Add @media (prefers-reduced-motion: reduce) and inside it turn off the animation for .spinner: animation: none.",
+   "hint": "@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }"
+  }
+ ]
+}

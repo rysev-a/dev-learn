@@ -11,7 +11,7 @@ use api::dto::RowsView;
 use leptos::prelude::*;
 use serde_json::Value;
 
-use super::sql_schema::{cell_text, plural};
+use super::sql_schema::cell_text;
 
 type Row = Vec<Value>;
 
@@ -223,8 +223,8 @@ fn table_model(width: usize, input: SideInput) -> TableModel {
                 name: cols.get(j).cloned().unwrap_or_else(|| format!("col{}", j + 1)),
                 mark: if lacking { side.mark() } else { Mark::None },
                 title: lacking.then_some(match side {
-                    Side::Got => "лишний столбец",
-                    Side::Exp => "этого столбца нет в вашем результате",
+                    Side::Got => i18n::tr("extra column"),
+                    Side::Exp => i18n::tr("this column is missing from your result"),
                 }),
             }
         })
@@ -240,8 +240,8 @@ fn table_model(width: usize, input: SideInput) -> TableModel {
     TableModel {
         side,
         title: match side {
-            Side::Got => "ваш результат",
-            Side::Exp => "верный результат",
+            Side::Got => i18n::tr("your result"),
+            Side::Exp => i18n::tr("expected result"),
         },
         total,
         shown: rows.len(),
@@ -269,18 +269,18 @@ fn compare(r: &RowsView) -> Comparison {
 
     let mut summary = Vec::new();
     if got_width != exp_width {
-        summary.push(if got_width > exp_width { format!("столбцов у вас больше: {got_width} вместо {exp_width}") } else { format!("не хватает столбцов: {got_width} вместо {exp_width}") });
+        summary.push(if got_width > exp_width { i18n::trf!("you have more columns: {} instead of {}", got_width, exp_width) } else { i18n::trf!("missing columns: {} instead of {}", got_width, exp_width) });
     }
     if got_total != exp_total {
-        summary.push(format!("строк у вас {got_total}, ожидается {exp_total}"));
+        summary.push(i18n::trf!("you have {} rows, expected {}", got_total, exp_total));
     }
-    for (n, text) in [(diff, "отличается строк"), (extra, "лишних строк"), (missing, "не хватает строк")] {
+    for (n, text) in [(diff, i18n::tr("rows differ")), (extra, i18n::tr("extra rows")), (missing, i18n::tr("missing rows"))] {
         if n > 0 {
             summary.push(format!("{text}: {n}"));
         }
     }
     if r.ordered {
-        summary.push("порядок строк важен".to_string());
+        summary.push(i18n::tr("row order matters").to_string());
     }
 
     // проверка имён столбцов не делает, но ученику полезно увидеть расхождение
@@ -307,16 +307,16 @@ fn SideTable(model: TableModel) -> impl IntoView {
     let width = model.headers.len();
     let head = model.headers.into_iter().map(|h| view! { <th class=h.mark.class() title=h.title>{h.name}</th> }).collect_view();
     let body = if model.rows.is_empty() {
-        view! { <tr><td class="sd-empty" colspan={width + 1}>"пусто"</td></tr> }.into_any()
+        view! { <tr><td class="sd-empty" colspan={width + 1}>{i18n::tr("empty")}</td></tr> }.into_any()
     } else {
         model.rows.into_iter().enumerate().map(|(i, r)| row_view(r, i + 1)).collect_view().into_any()
     };
-    let more = (model.total > model.shown).then(|| view! { <p class="sd-more">{format!("Показаны первые {} из {} строк.", model.shown, model.total)}</p> });
+    let more = (model.total > model.shown).then(|| view! { <p class="sd-more">{i18n::trf!("Showing the first {} of {} rows.", model.shown, model.total)}</p> });
     view! {
         <div class=format!("sd-side {}", model.side.class())>
             <div class="sd-title">
                 <span class="s-label">{model.title}</span>
-                <span class="sd-count">{format!("{} {}", model.total, plural(model.total, "строка", "строки", "строк"))}</span>
+                <span class="sd-count">{format!("{} {}", model.total, i18n::plural(model.total as u64, "row", "rows"))}</span>
             </div>
             <div class="sd-scroll">
                 <table class="sd-t">
@@ -341,9 +341,9 @@ pub fn SqlDiff(rows: RowsView) -> impl IntoView {
                 <SideTable model=exp />
             </div>
             <p class="sd-legend">
-                <span class="sd-key extra"></span>" лишнее или неверное значение у вас"
-                <span class="sd-key missing"></span>" чего не хватает или что должно быть"
-                {renamed.then(|| view! { <span class="sd-note">"Имена столбцов отличаются от эталона — проверка их не учитывает."</span> })}
+                <span class="sd-key extra"></span>{i18n::tr(" an extra or wrong value in your result")}
+                <span class="sd-key missing"></span>{i18n::tr(" what is missing or what it should be")}
+                {renamed.then(|| view! { <span class="sd-note">{i18n::tr("Column names differ from the reference — the check ignores them.")}</span> })}
             </p>
         </div>
     }
@@ -451,21 +451,21 @@ mod tests {
         assert_eq!(c.got.headers.len(), 2);
         assert_eq!(c.got.headers[1].name, "col2");
         assert_eq!(c.exp.headers[1].mark, Mark::Missing);
-        assert_eq!(c.exp.headers[1].title, Some("этого столбца нет в вашем результате"));
+        assert_eq!(c.exp.headers[1].title, Some("this column is missing from your result"));
         assert_eq!(c.got.headers[0].mark, Mark::None);
         assert_eq!(c.got.rows[0].cells[1].text, "");
-        assert!(c.summary.contains(&"не хватает столбцов: 1 вместо 2".to_string()));
+        assert!(c.summary.contains(&"missing columns: 1 instead of 2".to_string()));
         // столбец, лишний у ученика
         let c = compare(&view(json!([[1, 2]]), json!([[1]]), false));
         assert_eq!(c.got.headers[1].mark, Mark::Extra);
-        assert_eq!(c.got.headers[1].title, Some("лишний столбец"));
-        assert!(c.summary.contains(&"столбцов у вас больше: 2 вместо 1".to_string()));
+        assert_eq!(c.got.headers[1].title, Some("extra column"));
+        assert!(c.summary.contains(&"you have more columns: 2 instead of 1".to_string()));
     }
 
     #[test]
     fn summary_lists_counts_and_ordering() {
         let c = compare(&view(json!([[1], [2], [9]]), json!([[1], [3]]), true));
-        assert_eq!(c.summary, ["строк у вас 3, ожидается 2", "отличается строк: 1", "лишних строк: 1", "порядок строк важен"]);
+        assert_eq!(c.summary, ["you have 3 rows, expected 2", "rows differ: 1", "extra rows: 1", "row order matters"]);
         let c = compare(&view(json!([[1]]), json!([[1]]), false));
         assert!(c.summary.is_empty());
     }
@@ -476,7 +476,7 @@ mod tests {
         v.got_total = Some(250);
         let c = compare(&v);
         assert_eq!((c.got.total, c.got.shown), (250, 1));
-        assert!(c.summary.iter().any(|s| s == "строк у вас 250, ожидается 1"));
+        assert!(c.summary.iter().any(|s| s == "you have 250 rows, expected 1"));
     }
 
     #[test]

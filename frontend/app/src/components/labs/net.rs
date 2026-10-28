@@ -98,15 +98,15 @@ fn Toolbar(lab: Lab) -> impl IntoView {
         <div class="nl-toolbar">
             {cable_tool.then(|| view! {
                 <button type="button" class=move || if lab.cable.get() { "quiz-btn ghost running" } else { "quiz-btn ghost" } on:click=move |_| lab.toggle_cable()>
-                    {move || if lab.cable.get() { "Кабель: выберите два устройства" } else { "Кабель" }}
+                    {move || if lab.cable.get() { i18n::tr("Cable: pick two devices") } else { i18n::tr("Cable") }}
                 </button>
                 {move || lab.sel_link.get().is_some().then(|| view! {
-                    <button type="button" class="quiz-btn ghost" on:click=move |_| lab.remove_link()>"Удалить кабель"</button>
+                    <button type="button" class="quiz-btn ghost" on:click=move |_| lab.remove_link()>{i18n::tr("Delete cable")}</button>
                 })}
             })}
             <span class="nl-spacer"></span>
-            <button type="button" class="quiz-btn ghost" on:click=move |_| lab.hint_open.update(|v| *v = !*v)>"Подсказка"</button>
-            <button type="button" class="quiz-btn ghost" on:click=move |_| lab.reset()>"Сбросить"</button>
+            <button type="button" class="quiz-btn ghost" on:click=move |_| lab.hint_open.update(|v| *v = !*v)>{i18n::tr("Hint")}</button>
+            <button type="button" class="quiz-btn ghost" on:click=move |_| lab.reset()>{i18n::tr("Reset")}</button>
         </div>
     }
 }

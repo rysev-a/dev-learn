@@ -1,0 +1,78 @@
+{
+ "book": 14,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "sr-nor",
+   "title": "SR latch: the first memory",
+   "statement": "Build a latch from two NOR gates cross-coupled: the output of each feeds the input of the other. R is reset, S is set. Wires may go “backwards”: loops are allowed here!",
+   "hint": "Two NORs: Q = NOT(R OR nQ), nQ = NOT(S OR Q). Feed S to the gate whose output goes to nQ. Check each step against the list below."
+  },
+  {
+   "id": "sr-nand",
+   "title": "SR latch from NAND",
+   "statement": "The same memory, but built from NAND gates and with “inverted” logic: signals are active LOW. nS = 0 sets Q = 1, nR = 0 resets Q = 0, and idle is nS = nR = 1. Cross-coupled: Q = NAND(nS, nQ), nQ = NAND(nR, Q).",
+   "hint": "Two NANDs cross-coupled: feed nS to the gate whose output goes to Q; feed nR to the gate whose output goes to nQ. If NAND is still locked, build it from AND and NOT."
+  },
+  {
+   "id": "sr-set-first",
+   "title": "Latch with set priority",
+   "statement": "In an ordinary SR latch S = R = 1 is forbidden. Make a latch where SET wins when S = R = 1: Q = 1. One output, Q. Build around a single loop: “Q holds itself while there is no reset”.",
+   "hint": "Q = S OR (NOT-R AND Q). Output Q returns to the input of the AND gate; that is the feedback. Three gates: NOT, AND, OR."
+  },
+  {
+   "id": "sr-reset-first",
+   "title": "Latch with reset priority",
+   "statement": "The mirror task: when S = R = 1, RESET wins: Q = 0. Everything else is as in the ordinary latch. Think about where in the chain R must now be “inserted”.",
+   "hint": "Now AND comes AFTER OR: Q = NOT-R AND (S OR Q). First “set or hold”, then reset overrides everything."
+  },
+  {
+   "id": "sr-gated",
+   "title": "SR latch with enable",
+   "statement": "Add an enable input E: commands S and R take effect only while E = 1. When E = 0 the latch is locked and keeps its value, whatever happens on S and R.",
+   "hint": "Put two AND gates in front of the ordinary NOR-based SR: S' = S·E and R' = R·E. Then cross-couple as in the first exercise of the section. Do not open E while S = R = 1."
+  },
+  {
+   "id": "alarm",
+   "title": "Alarm",
+   "statement": "A security system: “Sen” is the sensor, “Arm” is the armed mode, “Rst” is reset. Alarm Q turns on only if the sensor fires WHILE ARMED, and stays on even after the sensor goes quiet, until it is reset.",
+   "hint": "This is a NOR-based SR latch: S' = Sen·Arm (sensor AND armed), R = Rst. Take Q from the gate that outputs one when set."
+  },
+  {
+   "id": "d-latch",
+   "title": "D latch: memory with enable",
+   "statement": "Add an enable input E to the latch: while E = 1, output Q follows data D (the latch is “transparent”); when E = 0 the latch “locks” and keeps the stored value.",
+   "hint": "Take a NOR-based SR latch and drive it like this: S = D AND E, R = NOT-D AND E. You need two AND gates (or NAND with an inverter), one NOT and two cross-coupled NORs."
+  },
+  {
+   "id": "d-latch-nand",
+   "title": "D latch from NAND",
+   "statement": "The classic D latch circuit: four NANDs (and one inverter on D). Same behavior: E = 1: Q follows D, E = 0: Q holds. But now the “keys” are NANDs and directly act as active low for the latch.",
+   "hint": "Two “keys”: s = NAND(D, E) and r = NAND(NOT-D, E). They give active zeros. Then a NAND latch: Q = NAND(s, nQ), nQ = NAND(r, Q)."
+  },
+  {
+   "id": "d-clear",
+   "title": "D latch with clear",
+   "statement": "The D latch gets one more input, CLR (clear). When CLR = 1 the latch is immediately reset to Q = 0 and IGNORES data and enable. When CLR = 0 it is an ordinary D latch (E = 1: follows D, E = 0: holds).",
+   "hint": "Strengthen the reset and weaken the set: R' = NOT-D·E OR CLR, S' = D·E·NOT-CLR. Then a NOR-based SR latch. The key “NOT-CLR” turns the set off while the clear is active."
+  },
+  {
+   "id": "d-latch-2bit",
+   "title": "Two-bit register",
+   "statement": "One D latch is not enough: numbers consist of several bits. Build a two-bit register: two D latches with a SHARED enable input E. Data is D1 D0, outputs are Q1 Q0.",
+   "hint": "Each bit gets its own D latch from the previous exercises (NOT, two ANDs, two NORs), but both share one enable E: the wire from E goes to the AND gates of both latches."
+  },
+  {
+   "id": "d-latch-src",
+   "title": "Latch with source selection",
+   "statement": "A register often needs to store data from one of two sources. S chooses D0 or D1 (0 → D0, 1 → D1); E = 1 writes the chosen value into the latch. The output is Q.",
+   "hint": "Glue two ready-made blocks together: a multiplexer (D0·NOT-S OR D1·S) produces a single value D, followed by a D latch with inputs D and E (two ANDs, NOT, two NORs)."
+  },
+  {
+   "id": "mem-cell",
+   "title": "Memory cell: write and read",
+   "statement": "The finale of the section is a one-bit memory cell. D is data, W is write, R is read. Q is the cell's contents. Out is what the bus sees: Out = Q when R = 1, otherwise 0. Reading must not change the contents.",
+   "hint": "The storage is a D latch with enable W (NOT, two ANDs, two NORs). Pass its output Q through an AND gate together with R: this is the “read gate”. Take Q directly from the latch and Out from the gate."
+  }
+ ]
+}

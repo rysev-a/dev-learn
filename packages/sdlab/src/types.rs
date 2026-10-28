@@ -115,7 +115,7 @@ impl fmt::Display for Kind {
 impl FromStr for Kind {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Kind::ALL.iter().copied().find(|k| k.as_str() == s).ok_or_else(|| format!("неизвестный вид компонента «{s}»"))
+        Kind::ALL.iter().copied().find(|k| k.as_str() == s).ok_or_else(|| i18n::trf!("unknown component kind “{0}”", s))
     }
 }
 
@@ -175,7 +175,7 @@ impl FromStr for FailKind {
             "zone" => Ok(FailKind::Zone),
             "region" => Ok(FailKind::Region),
             "deploy" => Ok(FailKind::Deploy),
-            other => Kind::from_str(other).map(FailKind::Component).map_err(|_| format!("неизвестный отказ «{other}»")),
+            other => Kind::from_str(other).map(FailKind::Component).map_err(|_| i18n::trf!("unknown failure “{0}”", other)),
         }
     }
 }
@@ -570,7 +570,7 @@ impl<'de> Deserialize<'de> for Loads {
         impl<'de> Visitor<'de> for V {
             type Value = Loads;
             fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                f.write_str("объект «id узла → нагрузка»")
+                f.write_str(i18n::tr("an object “node id → workload”"))
             }
             fn visit_map<A: MapAccess<'de>>(self, mut m: A) -> Result<Loads, A::Error> {
                 let mut out = Vec::new();

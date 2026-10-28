@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 49,
+ "tasks": [
+  {
+   "id": "pf-dedupe",
+   "title": "Duplicates in linear time",
+   "statement": "The function dedupe(items) removes repeats while keeping the order of first occurrences. Right now it is quadratic and does not finish in time on large data. Speed it up (use a set of the items already seen).",
+   "hint": "seen = set(); for each x: if x is not in seen, add it to seen and to the result."
+  },
+  {
+   "id": "pf-top-words",
+   "title": "The most frequent words",
+   "statement": "top_words(words, k) returns the k most frequent words as (word, count) pairs, in descending order of count, ties broken alphabetically. The current version calls words.count for every word and does not finish in time on a large input. Speed it up (collections.Counter).",
+   "hint": "Counter(words).items(), then sorted with the key (-count, word) and the slice [:k]."
+  },
+  {
+   "id": "pf-fib-cache",
+   "title": "Fibonacci with a cache",
+   "statement": "The recursive fib(n) recomputes the same things and does not finish in time even for n = 90. Add caching (functools.cache) without changing the logic.",
+   "hint": "from functools import cache and @cache above def fib."
+  },
+  {
+   "id": "pf-bisect-count",
+   "title": "How many numbers in the ranges",
+   "statement": "count_in_ranges(nums, queries): nums is a sorted list, queries are (lo, hi) pairs; for each one return how many numbers of nums lie in [lo, hi]. The current version scans the list for every query and is too slow. Use the bisect module.",
+   "hint": "bisect_right(nums, hi) - bisect_left(nums, lo)."
+  },
+  {
+   "id": "pf-window-max",
+   "title": "Maximum in a sliding window",
+   "statement": "window_max(nums, k) returns the maximums of all windows of length k. The current version takes max of a slice for every window and is too slow for a large k. Speed it up (a monotonic queue, collections.deque with indexes).",
+   "hint": "The deque keeps indexes in decreasing order of values: pop from the end the ones smaller than the new one, from the front the ones that left the window."
+  },
+  {
+   "id": "pf-range-sum",
+   "title": "Sums on ranges",
+   "statement": "The class RangeSum(data) answers queries query(l, r), the sum of data[l:r]. Right now every query recomputes the sum and is too slow with many queries. Prepare prefix sums in __init__ so that a query takes constant time.",
+   "hint": "prefix[i] = the sum of the first i elements; the answer is prefix[r] - prefix[l]; itertools.accumulate with an initial 0."
+  },
+  {
+   "id": "pf-call-counts",
+   "title": "Call counts through cProfile",
+   "statement": "Write call_counts(func): run func() under cProfile and return a dict mapping function name to number of calls, only for the functions defined in the same file as func (compare func.__code__.co_filename with the file name in the statistics).",
+   "hint": "pr = cProfile.Profile(); pr.runcall(func); stats = pstats.Stats(pr).stats; the keys are (file, line, name), the values are (cc, nc, tt, ct, callers)."
+  },
+  {
+   "id": "pf-bench",
+   "title": "Your own timing",
+   "statement": "Write bench(func, repeat=5, number=20): using timeit.repeat, run func number times in each of repeat series and return the minimum time of a single call (in seconds, a floating-point number).",
+   "hint": "min(timeit.repeat(func, repeat=repeat, number=number)) / number."
+  },
+  {
+   "id": "pf-two-sum",
+   "title": "Two numbers with a given sum",
+   "statement": "two_sum(nums, target): the indexes (i, j), i < j, of two numbers whose sum is target, or None if there is no such pair. The double loop does not finish in time on large data: use a dict mapping value to index and a single pass.",
+   "hint": "seen = {}; for each i: need = target - nums[i]; if need is in seen, return (seen[need], i); otherwise seen[nums[i]] = i."
+  }
+ ]
+}

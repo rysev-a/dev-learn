@@ -1,0 +1,48 @@
+{
+ "book": 18,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "sd03-cdn",
+   "title": "Static content through a CDN",
+   "statement": "The site serves 20,000 requests per second of static content (images, scripts) and 400 dynamic reads with 50 writes. Right now the app servers serve the static content and are overloaded. Put a CDN in front of the design so that most of the static content never reaches the servers: load at most 80%, and the CDN serves at least 90% of the static content.",
+   "hint": "The CDN connects to the users and passes requests on to the load balancer. The CDN's TTL parameter is the lifetime of cached copies: 300 seconds gives a 90% hit ratio."
+  },
+  {
+   "id": "sd03-cdn-ttl",
+   "title": "Time to live in the CDN",
+   "statement": "A CDN is already in place, but with a TTL of 30 seconds: copies expire quickly, the hit ratio is low, and the app servers are overloaded by misses. Choose a TTL so that the CDN serves at least 90% of the static content. While you are at it, think about what you do about staleness. (In real life: a version in the file name.)",
+   "hint": "Allowed TTL values: 30, 300 and 3600 seconds. The larger the value, the higher the hit ratio."
+  },
+  {
+   "id": "sd03-cache",
+   "title": "A cache for reads",
+   "statement": "Reads have grown to 1800 per second with 60 writes, while an S database handles only 1000 reads. The working set is 10 GB (out of 100 GB of data). Add a cache (cache-aside) between the app and the database: hit ratio at least 85%, load at most 80%, and cost at most $740 per month, cheaper than simply taking an M database.",
+   "hint": "The hit ratio depends on the cache size relative to the working set (10 GB) and on the TTL. A 9 GB cache with a TTL of 3600 gives about 88%."
+  },
+  {
+   "id": "sd03-size",
+   "title": "Cache size",
+   "statement": "The cache works, but its hit ratio is only about 55% and the database is at its limit. The working set is 8 GB. Choose the cache size and time to live so that the cache serves at least 85% of reads, but don't overspend: the total budget for the design is $700.",
+   "hint": "Right now the cache is 2 GB with a TTL of 30. Increase the memory to the size of the working set and set a longer TTL."
+  },
+  {
+   "id": "sd03-writeback",
+   "title": "Many writes: write-back",
+   "statement": "A counter service receives 800 reads and 700 writes per second. An M database handles only 600 writes, so it is overloaded. Losing a few seconds of counters is acceptable. Change the cache's write policy so that the database can handle the load without increasing its size.",
+   "hint": "The write-back policy accumulates writes in the cache and flushes them to the database in batches, so only a fraction of the writes reach the database. The policy parameter is shown in the cache settings."
+  },
+  {
+   "id": "sd03-cache-ha",
+   "title": "What if the cache goes down",
+   "statement": "The design relies on the cache: it takes 90% of reads, and the database is sized only for the remaining 10%. When the cache fails, the database goes down. Make the design resilient: it must survive a cache failure (the “Failure” → “cache” check) with no single points of failure among the cache and the app servers.",
+   "hint": "The cache has a “Replicas” parameter. With a replica, the cache keeps working after the primary node fails."
+  },
+  {
+   "id": "sd03-final",
+   "title": "A site with static content and a cache",
+   "statement": "The final exercise of the chapter. A shop: 10,000 static requests, 2500 reads and 100 writes per second, 200 GB of data, working set of 10 GB. Build the design: a CDN (≥90% of static content), a cache (≥85% of reads), load at most 80%, survival of a cache failure and a server failure, budget of $1100 per month.",
+   "hint": "A CDN with a TTL of 300, a cache of about 10 GB with a TTL of 3600 and a replica, five M servers (after one fails, 2800 remains), an S database is enough (the cache takes the reads off it), and a load balancer."
+  }
+ ]
+}

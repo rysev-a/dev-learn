@@ -1,0 +1,55 @@
+{
+ "book": 13,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "hello-twice",
+   "title": "Your own function",
+   "statement": "Define a function hello(name) that prints «Привет, <name>!» (the Russian greeting, with the name in place of <name>), and call it twice: for «Аня» and for «Борис».",
+   "hint": "def hello(name): print(f\"Привет, {name}!\") — and below it hello(\"Аня\") and hello(\"Борис\").",
+   "starter": "# def hello(name): ...\n# two calls\n"
+  },
+  {
+   "id": "average3",
+   "title": "Average of three",
+   "statement": "Write a function average3(a, b, c): the arithmetic mean of three numbers. The function must return the result, not print it.",
+   "hint": "return (a + b + c) / 3 — it has to be return, not print."
+  },
+  {
+   "id": "clamp",
+   "title": "Limit a number",
+   "statement": "Write a function clamp(x, low, high): if x is less than low, return low; if it is greater than high, return high; otherwise return x itself.",
+   "hint": "Two early exits: if x < low: return low; if x > high: return high; then return x."
+  },
+  {
+   "id": "power-default",
+   "title": "Power with a default",
+   "statement": "Write a function power(x, n=2): x to the power n. If n is not passed, square the number.",
+   "hint": "return x ** n — the default value is already in the header."
+  },
+  {
+   "id": "is-leap",
+   "title": "Leap year",
+   "statement": "Write a function is_leap(year): True for a leap year. A year is a leap year if it is divisible by 4, except for years that are divisible by 100 but not by 400.",
+   "hint": "return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)."
+  },
+  {
+   "id": "fizzbuzz",
+   "title": "FizzBuzz",
+   "statement": "Write a function fizzbuzz(n): «FizzBuzz» if n is divisible by both 3 and 5; «Fizz» if only by 3; «Buzz» if only by 5; otherwise the number itself as a string.",
+   "hint": "The strictest case first (both), then one at a time; at the end return str(n)."
+  },
+  {
+   "id": "triangle-kind",
+   "title": "Kind of triangle",
+   "statement": "Write a function triangle_kind(a, b, c): return «равносторонний» (equilateral) if all three sides are equal, «равнобедренный» (isosceles) if exactly two are equal, otherwise «разносторонний» (scalene).",
+   "hint": "First check a == b == c, then “at least one pair is equal”: a == b or b == c or a == c."
+  },
+  {
+   "id": "factorial-rec",
+   "title": "Factorial with recursion",
+   "statement": "Write a function fact(n): the factorial of n, but through recursion — the function must call itself. Base case: fact(0) = 1.",
+   "hint": "if n == 0: return 1; otherwise return n * fact(n - 1)."
+  }
+ ]
+}

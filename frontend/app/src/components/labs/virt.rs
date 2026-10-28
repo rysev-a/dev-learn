@@ -25,10 +25,10 @@ use common::Goals;
 fn parse_spec(id: &str, raw: &Value) -> Result<Spec, String> {
     let empty = raw.is_null() || raw.as_object().is_some_and(|o| o.is_empty());
     if empty {
-        return virtlab::builtin(id).ok_or_else(|| format!("Неизвестное упражнение «{id}»"));
+        return virtlab::builtin(id).ok_or_else(|| i18n::trf!("Unknown exercise “{0}”", id));
     }
-    let spec: Spec = serde_json::from_value(raw.clone()).map_err(|e| format!("Неверное описание упражнения: {e}"))?;
-    spec.validate().map_err(|e| format!("Неверное описание упражнения: {e}"))?;
+    let spec: Spec = serde_json::from_value(raw.clone()).map_err(|e| i18n::trf!("Invalid exercise description: {0}", e))?;
+    spec.validate().map_err(|e| i18n::trf!("Invalid exercise description: {0}", e))?;
     Ok(spec)
 }
 
@@ -67,6 +67,7 @@ mod tests {
 
     #[test]
     fn empty_spec_falls_back_to_builtin() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for id in virtlab::LAB_IDS {
             assert!(parse_spec(id, &Value::Null).is_ok(), "{id}");
             assert!(parse_spec(id, &json!({})).is_ok(), "{id}");
@@ -76,6 +77,7 @@ mod tests {
 
     #[test]
     fn spec_from_json_roundtrip() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for id in virtlab::LAB_IDS {
             let Some(spec) = virtlab::builtin(id) else { panic!("{id}") };
             let raw = serde_json::to_value(&spec).expect("сериализация");
@@ -85,6 +87,7 @@ mod tests {
 
     #[test]
     fn broken_spec_is_reported() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let err = parse_spec("virt-sim-hv", &json!({"sim": "hv", "programs": 5})).expect_err("ошибка");
         assert!(err.starts_with("Неверное описание"), "{err}");
     }

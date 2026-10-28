@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "j11-is-pure",
+   "title": "Purity check",
+   "statement": "Write a function checkPurity(fn, args): args is an array of arguments (JSON-like data). Call fn twice on deep copies of the arguments (structured clones) and return { deterministic, mutatesArgs }: deterministic means the results of the two calls are deeply equal (compare with JSON.stringify), mutatesArgs means that after the call the arguments differ from the originals (by JSON.stringify).",
+   "hint": "Copy the arguments with structuredClone; compare with JSON.stringify before and after."
+  },
+  {
+   "id": "j11-immutable-arrays",
+   "title": "Immutable array operations",
+   "statement": "Write the functions (none of them may change the original array): insertAt(arr, i, x), removeAt(arr, i), replaceAt(arr, i, x), move(arr, from, to) (move the element from position from to position to), swap(arr, i, j). Indices are valid (0 ≤ i ≤ length for insertAt, otherwise inside the array).",
+   "hint": "Slices and spread: [...arr.slice(0, i), x, ...arr.slice(i)]."
+  },
+  {
+   "id": "j11-update-in",
+   "title": "updateIn, removeKey, mergeDeep",
+   "statement": "Write immutable functions for objects: updateIn(obj, path, fn) applies fn to the value at the path (an array of keys; the path may contain array indices; missing objects are created as {}); removeKey(obj, key) returns a copy without the key; mergeDeep(a, b) is a deep merge of plain objects (values from b win; arrays are replaced as a whole). Branches not affected by the change must remain the same references.",
+   "hint": "Recurse along the path: copy only the nodes along it (object with spread, array as a copy)."
+  },
+  {
+   "id": "j11-curry",
+   "title": "Auto-currying",
+   "statement": "Write a function curry(fn) that returns a curried version: it can be called with any number of arguments at a time until fn.length arguments have accumulated, and then fn is called. The curried function must also accept all arguments at once. For functions with no required parameters (length 0), call fn on the first call.",
+   "hint": "Accumulate arguments; once there are at least fn.length of them, call fn."
+  },
+  {
+   "id": "j11-partial-flip",
+   "title": "partial, partialRight, flip",
+   "statement": "Write the functions partial(fn, ...left) (fixes the first arguments), partialRight(fn, ...right) (fixes the last ones: the call is fn(...new, ...right)) and flip(fn) (swaps the first two arguments: flip(f)(a, b, ...rest) = f(b, a, ...rest)).",
+   "hint": "Each one is an arrow function returning an arrow function that joins the arguments with spread."
+  },
+  {
+   "id": "j11-compose-pipe",
+   "title": "compose, pipe and tap",
+   "statement": "Write the functions compose(...fns) (right to left) and pipe(...fns) (left to right); the first function to be applied may take several arguments, the rest take one; with no functions, return the identity (it returns its first argument). Also write tap(fn), which returns a function that calls fn(x) for its side effect and returns x.",
+   "hint": "pipe via reduce; compose is pipe over the reversed list."
+  },
+  {
+   "id": "j11-data-last",
+   "title": "Curried map, filter, reduce, prop",
+   "statement": "Write a set of curried «data last» functions: map(f)(xs), filter(p)(xs), reduce(f, init)(xs), prop(key)(obj), sortBy(f)(xs) (ascending by the value of f, the sort is stable, the original array is not changed), uniq(xs), sum(xs), take(n)(xs). Then, using composition, define topPrices: «take the prices, keep those above 10, sort them, take 3».",
+   "hint": "Each function takes its settings first, then the data."
+  },
+  {
+   "id": "j11-memoize-key",
+   "title": "Memoization with a key function",
+   "statement": "Write a function memoize(fn, keyFn = (...args) => JSON.stringify(args)): it caches results by key; a repeated call with the same key does not call fn; the result has the methods stats() → { hits, misses } and clear(). Exceptions are not cached.",
+   "hint": "A Map from key to result; the exception escapes before anything is written to the cache."
+  },
+  {
+   "id": "j11-before-after",
+   "title": "before, after, once, unary",
+   "statement": "Write wrapper functions: once(fn) (calls fn only the first time and returns the same result afterwards), before(n, fn) (calls fn the first n - 1 times, then returns the result of the last call), after(n, fn) (fn starts being called on the n-th call), unary(fn) (passes only the first argument to fn, useful for map(parseInt)).",
+   "hint": "A call counter in a closure; before remembers the last result."
+  },
+  {
+   "id": "j11-trampoline",
+   "title": "Trampoline",
+   "statement": "Write a function trampoline(fn): it returns a function that calls fn and, while the result is a function, calls that result, returning the final value; the stack does not grow. Apply it: sumTo(n) (the sum 1..n) and isEven(n)/isOdd(n) via mutual recursion on the trampoline must work for n = 1 000 000. Define sumTo, isEven and isOdd yourself (isEven and isOdd call each other through returned steps).",
+   "hint": "A step returns either a value or an arrow function with no arguments, the next step."
+  },
+  {
+   "id": "j11-recursion",
+   "title": "Recursion: permutations and subsets",
+   "statement": "Write pure recursive functions: permutations(arr) (all permutations in lexicographic order of indices: first those with the first element in place, and so on), subsets(arr) (all subsets: first without the first element, then with it: for [1,2] — [], [2], [1], [1,2]… the order is set by the example in the driver) and flattenDeep(arr).",
+   "hint": "permutations: for each element, the permutations of the rest; subsets: subsets of the tail without the head and with the head."
+  },
+  {
+   "id": "j11-reduce-all",
+   "title": "Everything via reduce",
+   "statement": "Write functions implemented only with reduce (no map/filter/for/while/loops/Set/flatMap): mapR(xs, f), filterR(xs, p), groupByR(xs, f) (an object key → array), countByR(xs, f), uniqR(xs) (in order of first appearance), maxByR(xs, f) (the element with the largest f(x); on a tie, the first one; for an empty array, undefined).",
+   "hint": "The accumulator is an array or an object; return a new value at every step."
+  },
+  {
+   "id": "j11-zip-transpose",
+   "title": "zipWith, unzip, transpose",
+   "statement": "Write pure functions: zipWith(f, a, b) (up to the length of the shorter one), unzip(pairs) → [firsts, seconds] (from an array of pairs), transpose(matrix) (a matrix as an array of rows; rows of different lengths are transposed up to the longest one, and missing cells are skipped), and pairwise(xs) → adjacent pairs [x0,x1],[x1,x2]….",
+   "hint": "Array.from({ length }, (_, i) => …) builds the result by index."
+  },
+  {
+   "id": "j11-scan-unfold",
+   "title": "scan and unfold",
+   "statement": "Write the functions scan(f, init, xs) → an array of intermediate accumulations (without the initial value: for [1,2,3] and addition it is [1,3,6]), unfold(f, seed) → an array: f(seed) returns [value, nextSeed] or null to stop (for example, unfold(n => n > 5 ? null : [n * n, n + 1], 1)), and windowed(xs, size) for sliding windows.",
+   "hint": "scan is like reduce but keeps every step; unfold is «reduce in reverse»."
+  },
+  {
+   "id": "j11-maybe",
+   "title": "Maybe",
+   "statement": "Write the factories Just(value) and Nothing() and the object methods: map(f) (for Nothing it gives Nothing), chain(f) (f returns a Maybe), getOrElse(d), isNothing(), toString() («Just(5)» / «Nothing»). The function fromNullable(x) gives Nothing for null/undefined, otherwise Just(x). The values 0, the empty string and false are Just.",
+   "hint": "Nothing is a shared object whose methods return itself."
+  },
+  {
+   "id": "j11-either",
+   "title": "Either",
+   "statement": "Write Right(value) and Left(error) with the methods map(f) (unchanged for Left), mapLeft(f), chain(f), fold(onLeft, onRight), toString() («Right(1)» / «Left(\"e\")»). Also write the functions tryCatch(fn) → Right(result) or Left(exception), and sequence(eithers) → Right(array of values) if all are Right, otherwise the first Left.",
+   "hint": "Left and Right are objects with the same set of methods but different behavior."
+  },
+  {
+   "id": "j11-safe-path",
+   "title": "Safe access, the Maybe way",
+   "statement": "Write the functions get(path, obj) → the value at the path (an array of keys) or undefined if null/undefined is met on the way (no exceptions); getOr(def, path, obj); and pluckAll(path, list) → an array of values at the path, taken only from the elements where the value exists (not null/undefined), in list order. The functions are curried: get(path)(obj), getOr(def, path)(obj), pluckAll(path)(list).",
+   "hint": "reduce over the keys, checking for null/undefined at every step."
+  },
+  {
+   "id": "j11-functor-laws",
+   "title": "Checking the functor laws",
+   "statement": "Write a function checkFunctorLaws(make, value, f, g): make(v) creates a container with a map method and an unwrap() method (to get the value out for comparison); return { identity, composition } — whether the laws hold: container.map(x => x) equals container (compared via JSON.stringify(unwrap())) and container.map(x => f(g(x))) equals container.map(g).map(f).",
+   "hint": "Create a container, apply both variants and compare the unwrapped values."
+  },
+  {
+   "id": "j11-reducer",
+   "title": "A to-do list reducer",
+   "statement": "Write a pure reducer todos(state = [], action): the actions are { type: \"add\", id, text }, { type: \"toggle\", id }, { type: \"remove\", id }, { type: \"clearDone\" }, { type: \"rename\", id, text }. A task is { id, text, done: false }. For an unknown action or a missing id, return the same state (the same reference). Do not mutate the state; untouched tasks keep their references.",
+   "hint": "Every branch returns a new array; for «nothing changed» return the same state."
+  },
+  {
+   "id": "j11-history",
+   "title": "State history: undo and redo",
+   "statement": "Write a function createHistory(initial): it returns an object with the methods push(state) (the new present; the whole «future» is discarded), undo(), redo(), and the getters present, canUndo, canRedo. undo/redo at a boundary do nothing. All states are immutable values; pushing the same value again (===) does not create a new entry.",
+   "hint": "Three lists: past, present, future."
+  },
+  {
+   "id": "j11-selector",
+   "title": "A memoized selector",
+   "statement": "Write a function createSelector(inputSelectors, combiner) as in reselect: it returns a selector (state) → result; combiner is called only if at least one of the values of inputSelectors(state) has changed (by ===) since the previous call; otherwise the previous result is returned. The selector has a field recomputations(): how many times combiner has been called.",
+   "hint": "Remember the input values and the result of the previous call; compare them one by one with ===."
+  },
+  {
+   "id": "j11-lazy-seq",
+   "title": "A lazy sequence",
+   "statement": "Write a class Seq: static Seq.from(iterable), Seq.range(start, end?) (without end it is infinite), and the methods map(f), filter(p), take(n), takeWhile(p), drop(n), toArray(), first(), reduce(f, init). All transformations are lazy: nothing is computed until toArray/first/reduce; each element goes through the whole chain in full (no intermediate arrays). Seq is iterable (Symbol.iterator).",
+   "hint": "Each method returns a new Seq with a generator on top of the previous one."
+  },
+  {
+   "id": "j11-iter-tools",
+   "title": "Iterator tools",
+   "statement": "Write generators: takeWhile(it, p), dropWhile(it, p), enumerate(it, start = 0) → pairs [index, value], cycle(it) (round and round forever; an empty one gives nothing), range(start, end, step = 1) (the step may be negative), zip(...its) (up to the shortest).",
+   "hint": "Generators with yield and yield*; zip takes the iterators by hand through next()."
+  },
+  {
+   "id": "j11-evolve",
+   "title": "evolve: transforming object fields",
+   "statement": "Write a function evolve(spec, obj): spec is an object «field → function» (or a nested spec for nested objects); it returns a new object: for fields present in spec the value is replaced by the result of the function; the other fields are copied as they are; fields of spec that are missing in obj are ignored. The original object is not changed.",
+   "hint": "For a function, apply it; for a spec object, call evolve recursively."
+  },
+  {
+   "id": "j11-report",
+   "title": "An order report through a pipeline",
+   "statement": "Orders: { id, customer, items: [{ sku, price, qty }], status }. Write a function report(orders) → an array of { customer, total, orders } per customer, counting only orders with the status «paid»; total is the sum of price*qty over all items; sort by descending total, and by customer name on a tie; round total to cents (two decimals, Math.round(x * 100) / 100). Use a map/filter/reduce chain without changing the source data.",
+   "hint": "Group into a Map by customer, then transform the values and sort."
+  },
+  {
+   "id": "j11-match",
+   "title": "Pattern matching",
+   "statement": "Write a function match(value, cases): cases is an array of pairs [pattern, function]; a pattern is a predicate function, a primitive value (compared with ===), a template object (the value fits if it has all the fields of the template and they match the nested patterns) or match.any (always fits). It returns the result of the function of the first matching pair, called with value; if nothing matches, it throws Error(\"нет подходящего образца\") — this message text must be exactly as shown, in Russian.",
+   "hint": "A recursive function matches(pattern, value): predicate, template object, primitive."
+  },
+  {
+   "id": "j11-fix-mutation",
+   "title": "Fix it: the function damages its argument",
+   "statement": "The function addItem(cart, item) must return a new cart { items: [...], total } with the item added and the total recalculated, without changing the cart passed in. Right now it changes cart in place. Fix it so that cart (even a frozen one) is not changed and the untouched items remain the same objects.",
+   "hint": "Create a new object: spread for the fields, [...items, item] for the array."
+  },
+  {
+   "id": "j11-fix-impure",
+   "title": "Fix it: an impure function",
+   "statement": "The function makeTicket(user) uses Date.now() and Math.random() and is therefore unpredictable; and sortByAge(users) sorts the array in place. Rewrite them: makeTicket(user, now, random) → { id: `${user}-${now}-${Math.floor(random() * 1000)}`, user }, and sortByAge(users) → a new array sorted by age, without changing the original.",
+   "hint": "Pass time and randomness as parameters; apply sort to a copy."
+  },
+  {
+   "id": "j11-pipeline-text",
+   "title": "A text processing pipeline",
+   "statement": "Write a function wordFrequency(text, n) as a pure pipeline: lowercase the text, split it into words (runs of Unicode letters and digits — /[\\p{L}\\p{N}]+/gu), remove the stop words from the set STOP = [\"и\", \"в\", \"на\", \"не\"], count the frequencies, sort by descending frequency (on a tie, alphabetically by word) and return the first n pairs [word, count]. The test texts are in Russian.",
+   "hint": "match → filter → reduce into a Map → sort → slice."
+  },
+  {
+   "id": "j11-stats",
+   "title": "Statistics without mutation",
+   "statement": "Write a pure function stats(xs) for a non-empty array of numbers: { min, max, mean (the average rounded to 2 decimals), median (for an even count, the average of the two middle values), mode (the smallest of the most frequent values) }. For an empty array return null. The original array must not be changed (including by sorting in place).",
+   "hint": "Work with a copy: [...xs].sort((a, b) => a - b); keep the frequencies in a Map."
+  }
+ ]
+}

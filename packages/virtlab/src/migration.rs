@@ -231,30 +231,30 @@ pub fn default_scenarios() -> Vec<Scenario> {
     vec![
         Scenario {
             id: "calm".into(),
-            title: "Спокойный гость".into(),
+            title: i18n::tr("A calm guest").into(),
             dirty: 300.0,
             bw: 1250.0,
-            goal: "Pre-copy сошёлся, простой не больше 100 мс".into(),
-            hint: "Допустимый простой — это порог остановки: чем он меньше, тем больше кругов, но тем короче пауза."
+            goal: i18n::tr("Pre-copy converged, downtime at most 100 ms").into(),
+            hint: i18n::tr("The allowed downtime is the stop threshold: the smaller it is, the more rounds, but the shorter the pause.")
                 .into(),
             check: MigrationGoal { outcome: Outcome::Precopy, max_downtime: Some(100), max_total: None },
         },
         Scenario {
             id: "busy".into(),
-            title: "Активный гость".into(),
+            title: i18n::tr("An active guest").into(),
             dirty: 2000.0,
             bw: 1250.0,
-            goal: "Без post-copy: миграция сошлась, простой не больше 600 мс".into(),
-            hint: "Гость пишет быстрее, чем уходит по сети, — остаток не уменьшается. Нужно притормозить vCPU.".into(),
+            goal: i18n::tr("No post-copy: migration converged, downtime at most 600 ms").into(),
+            hint: i18n::tr("The guest writes faster than the network can carry — the remainder does not shrink. You need to throttle the vCPU.").into(),
             check: MigrationGoal { outcome: Outcome::Precopy, max_downtime: Some(600), max_total: None },
         },
         Scenario {
             id: "wild".into(),
-            title: "Очень активный гость".into(),
+            title: i18n::tr("A very active guest").into(),
             dirty: 6000.0,
             bw: 1250.0,
-            goal: "Гибрид: простой не больше 100 мс, общее время не больше 60 с".into(),
-            hint: "Переключайтесь на post-copy раньше: каждый круг pre-copy здесь стоит около 13 секунд.".into(),
+            goal: i18n::tr("Hybrid: downtime at most 100 ms, total time at most 60 s").into(),
+            hint: i18n::tr("Switch to post-copy earlier: each pre-copy round here costs about 13 seconds.").into(),
             check: MigrationGoal { outcome: Outcome::Postcopy, max_downtime: Some(100), max_total: Some(60.0) },
         },
     ]

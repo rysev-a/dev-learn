@@ -1,0 +1,110 @@
+{
+ "book": 18,
+ "chapter": 21,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd21-s1-mvp",
+   "title": "Stage 1. First version and the geo service",
+   "statement": "The taxi service launches with 300 reads and 60 orders per second, and 800 drivers send their position every few seconds. Half of the requests are searches for the nearest drivers. Keep orders in the database and hand positions and search over to the geo service: connect the server to the geo service. Load at most 80%, budget $350 per month.",
+   "hint": "Positions are written not to the database but to the in-memory geo service (6,000 updates per second per instance). Server → geo service.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  },
+  {
+   "id": "sd21-s2-geo",
+   "title": "Stage 2. Position stream",
+   "statement": "The city has grown: 3,000 reads and 500 orders per second, 20,000 position updates per second, and every request checks the auth service. Scale the geo service and add the auth service: load at most 80%, the design survives a geo service and auth service failure, an L database (trip writes), and the budget is $2,400 per month.",
+   "hint": "Geo service: 5 instances (30,000; if one fails, 24,000 remain at a load of 21,750). Auth: 2 instances. Seven M servers, an L database.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Geo service",
+    "/start/nodes/4/name": "Database"
+   }
+  },
+  {
+   "id": "sd21-s3-eta",
+   "title": "Stage 3. Arrival time",
+   "statement": "Driver matching estimates the arrival time with a model: it is called on 25% of requests (about 875 per second), and one instance handles 300. Connect the ranking service: load at most 80%, the design survives a ranking failure, and the budget is $3,200 per month.",
+   "hint": "Four ranking instances: 1,200 requests per second, and 900 remain after one fails.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Geo service",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Auth service"
+   }
+  },
+  {
+   "id": "sd21-s4-tracking",
+   "title": "Stage 4. Tracking and events",
+   "statement": "Passengers see the car on the map: 150,000 connections receive 0.02 updates per second each (3,000 per second). Add WebSocket gateways, route the events through a stream and connect notifications and analytics (demand for pricing): gateways, servers and consumers at most 80%, and the budget is $5,600 per month.",
+   "hint": "WebSocket gateways — 13 (150,000 / 15,000 = 10 at 77%). There are now 12 M servers (they receive the updates too). Notifications — 4 instances (3,500 events), analytics — 1.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Geo service",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Auth service",
+    "/start/nodes/6/name": "Ranking service"
+   }
+  },
+  {
+   "id": "sd21-s5-pay",
+   "title": "Stage 5. Payments",
+   "statement": "Payments have been added: 4% of requests go to an external payment gateway (180 ms, one channel handles 400). Connect a gateway with two channels (the failure of one must not stop payment) and protect payments: idempotency keys, retries and a circuit breaker in the app. The design survives a payment channel failure, and the budget is $5,700 per month.",
+   "hint": "Server → payment gateway, with 2 channels. In the app, enable “Idempotency keys”, set “DB retries” to at least 1, and enable “Circuit breaker”.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Geo service",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Auth service",
+    "/start/nodes/6/name": "Ranking service",
+    "/start/nodes/7/name": "WebSocket gateway",
+    "/start/nodes/8/name": "Event stream",
+    "/start/nodes/9/name": "Notifications",
+    "/start/nodes/10/name": "Analytics"
+   }
+  },
+  {
+   "id": "sd21-s6-reliability",
+   "title": "Stage 6. Reliability and peaks",
+   "statement": "The service is critical: a passenger standing in the rain will not wait. Spread the servers and database across zones, enable a rolling deployment, add a database replica with automatic failover, a second load balancer, a rate limiter at the entry (limit at least the load of 6,500) and monitoring. The design survives a zone, deployment, server, database, geo service, ranking, auth service and payment channel failure; load at most 80%; budget $7,000 per month.",
+   "hint": "Sixteen M servers across three zones (after losing a zone, 10 remain — 7,000 at a load of 6,500). The rate limiter’s limit is about 20,000. An L database with a replica and automatic failover.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Geo service",
+    "/start/nodes/4/name": "Database",
+    "/start/nodes/5/name": "Auth service",
+    "/start/nodes/6/name": "Ranking service",
+    "/start/nodes/7/name": "Payment gateway",
+    "/start/nodes/8/name": "WebSocket gateway",
+    "/start/nodes/9/name": "Event stream",
+    "/start/nodes/10/name": "Notifications",
+    "/start/nodes/11/name": "Analytics"
+   }
+  },
+  {
+   "id": "sd21-exam",
+   "title": "Exam. The whole taxi service",
+   "statement": "Final assignment. A large city at peak: 6,000 reads and 1,000 orders per second, 60,000 position updates, 300,000 tracking connections (3,000 signals per second); half of the requests go to the geo service, 25% to ranking, 4% to the payment gateway, and each one checks auth. Build the design from scratch: a geo service, ranking, an auth service, a payment gateway (2 channels), an event stream with notifications and analytics, WebSocket gateways, an L database with shards and a replica, a rate limiter, monitoring, two load balancers, payment protection. It survives a zone, deployment, server, database, geo service, ranking, auth and payment channel failure; load at most 80%; budget $13,000 per month.",
+   "hint": "23 M servers across three zones, geo service 14, ranking 8, auth 3, ws gateways 26, notifications 4; an L database with two shards and a replica.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "App server",
+    "/start/nodes/2/name": "Database"
+   }
+  }
+ ]
+}

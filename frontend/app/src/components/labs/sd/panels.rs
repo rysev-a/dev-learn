@@ -43,7 +43,7 @@ pub fn ParamsCard(lab: Lab, id: String) -> impl IntoView {
 
     view! {
         <div class="sd-float">
-            <button type="button" class="sd-float-x" title="Закрыть" aria-label="Закрыть" on:click=move |_| lab.select_node(None)>
+            <button type="button" class="sd-float-x" title=i18n::tr("Close") aria-label=i18n::tr("Close") on:click=move |_| lab.select_node(None)>
                 "×"
             </button>
             <h4>{move || node.get().map(|n| n.name).unwrap_or_default()}</h4>
@@ -51,7 +51,7 @@ pub fn ParamsCard(lab: Lab, id: String) -> impl IntoView {
             {fields}
             {can_fail.then(|| view! {
                 <label class="sd-field row">
-                    <span>"Отключить (проверить отказ)"</span>
+                    <span>{i18n::tr("Disable (test a failure)")}</span>
                     <input type="checkbox" prop:checked=move || is_down.get() on:change=move |e| lab.set_down(&down_id, event_target_checked(&e)) />
                 </label>
                 {move || load.get().map(|l| view! { <p class=format!("sd-load {}", load_status(&l))>{load_text(&l)}</p> })}
@@ -78,7 +78,7 @@ fn load_status(l: &NodeLoad) -> &'static str {
 fn load_text(l: &NodeLoad) -> String {
     let n = |x: f64| jsfmt::num(js_round(x));
     let note = l.note.as_deref().filter(|s| !s.is_empty()).map(|s| format!(" · {s}")).unwrap_or_default();
-    format!("Нагрузка: {} · ёмкость: {} · загрузка {}%{note}", n(l.load), n(l.cap), n(l.util * 100.0))
+    i18n::trf!("Load: {0} · capacity: {1} · utilization {2}%{3}", n(l.load), n(l.cap), n(l.util * 100.0), note)
 }
 
 /// Поле одного параметра: число, список или флаг.
@@ -162,11 +162,11 @@ fn Field(lab: Lab, id: String, spec: &'static ParamSpec) -> impl IntoView {
 #[component]
 pub fn HelpPopup() -> impl IntoView {
     view! {
-        <div class="sd-help" role="dialog" aria-label="Справка по схеме">
+        <div class="sd-help" role="dialog" aria-label=i18n::tr("Diagram help")>
             <p class="sd-about">
-                "Выберите компонент на схеме, чтобы изменить его параметры. Новые компоненты перетащите на поле из палитры над ним (или кликните по кнопке), связи тяните от выходного порта к входному — подходящие соседи подключаются сами."
+                {i18n::tr("Select a component on the diagram to change its parameters. Drag new components onto the board from the palette above it (or click a button), and drag links from an output port to an input port; matching neighbors connect themselves.")}
             </p>
-            <h5>"Справочник чисел"</h5>
+            <h5>{i18n::tr("Reference numbers")}</h5>
             <ul>{logic::reference_lines().into_iter().map(|l| view! { <li>{l}</li> }).collect_view()}</ul>
         </div>
     }
@@ -179,14 +179,14 @@ pub fn Corner(lab: Lab) -> impl IntoView {
     view! {
         <div class="sd-corner">
             <div class="sd-corner-btns">
-                <button type="button" class="sd-iconbtn" class:on=move || help.get() title="Справка" aria-label="Справка" aria-pressed=move || help.get().to_string() on:click=move |_| help.update(|v| *v = !*v)>
+                <button type="button" class="sd-iconbtn" class:on=move || help.get() title=i18n::tr("Help") aria-label=i18n::tr("Help") aria-pressed=move || help.get().to_string() on:click=move |_| help.update(|v| *v = !*v)>
                     "?"
                 </button>
                 <button
                     type="button"
                     class="sd-iconbtn"
-                    title=move || if fs.get() { "Свернуть (Esc)" } else { "Схема на весь экран" }
-                    aria-label=move || if fs.get() { "Свернуть" } else { "На весь экран" }
+                    title=move || if fs.get() { i18n::tr("Collapse (Esc)") } else { i18n::tr("Diagram full screen") }
+                    aria-label=move || if fs.get() { i18n::tr("Collapse") } else { i18n::tr("Enter full screen") }
                     on:click=move |_| fs.update(|v| *v = !*v)
                 >
                     {move || {
@@ -223,13 +223,13 @@ pub fn Toolbar(lab: Lab) -> impl IntoView {
     view! {
         <div class="sd-toolbar">
             <button type="button" class="quiz-btn ghost" on:click=move |_| lab.remove_selected() disabled=move || !lab.can_delete()>
-                "Удалить"
+                {i18n::tr("Delete")}
             </button>
             <span class="sd-spacer"></span>
             <label class="sd-fail">
-                <span>"Отказ:"</span>
+                <span>{i18n::tr("Failure:")}</span>
                 <select on:change=move |e| lab.fail.set(event_target_value(&e).parse::<FailKind>().ok())>
-                    <option value="" prop:selected=move || current().is_empty()>"нет"</option>
+                    <option value="" prop:selected=move || current().is_empty()>{i18n::tr("none")}</option>
                     {option(FailKind::Zone)}
                     {option(FailKind::Region)}
                     {option(FailKind::Deploy)}
@@ -237,10 +237,10 @@ pub fn Toolbar(lab: Lab) -> impl IntoView {
                 </select>
             </label>
             <button type="button" class="quiz-btn ghost" on:click=move |_| lab.hint_open.update(|v| *v = !*v)>
-                "Подсказка"
+                {i18n::tr("Hint")}
             </button>
             <button type="button" class="quiz-btn ghost" on:click=move |_| lab.reset()>
-                "Сбросить"
+                {i18n::tr("Reset")}
             </button>
         </div>
     }
@@ -271,7 +271,7 @@ fn ResultAlert(#[prop(into)] title: String, #[prop(into)] text: Signal<String>, 
             </div>
             {move || has_next.get().then(|| view! {
                 <button type="button" class="lab-alert-next" on:click=move |_| on_next.run(())>
-                    "Дальше"
+                    {i18n::tr("Next")}
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M5 12h14M12 5l7 7-7 7"></path>
                     </svg>
@@ -295,7 +295,7 @@ pub fn Goals(
 ) -> impl IntoView {
     view! {
         <div class="sd-goals">
-            <h4>"Цели"</h4>
+            <h4>{i18n::tr("Goals")}</h4>
             <ul>
                 {move || {
                     lab.goals
@@ -312,7 +312,7 @@ pub fn Goals(
                         .collect_view()
                 }}
             </ul>
-            {move || lab.solved_now.get().then(|| view! { <ResultAlert title="Все цели выполнены" text=verdict has_next=has_next on_next=on_next /> })}
+            {move || lab.solved_now.get().then(|| view! { <ResultAlert title=i18n::tr("All goals met") text=verdict has_next=has_next on_next=on_next /> })}
         </div>
     }
 }
@@ -335,22 +335,22 @@ pub fn Metrics(lab: Lab) -> impl IntoView {
     view! {
         <div class="sd-metrics">
             <h4>
-                "Метрики "
+                {i18n::tr("Metrics ")}
                 {move || lab.fail.get().and_then(logic::fail_text).map(|t| view! { <small>{format!("· {t}")}</small> })}
             </h4>
             {move || {
                 let r = lab.result.get();
-                let latency = if r.entry { format!("{} / {} мс", num(r.p50), num(r.p99)) } else { "—".to_owned() };
+                let latency = if r.entry { i18n::trf!("{0} / {1} ms", num(r.p50), num(r.p99)) } else { "—".to_owned() };
                 view! {
                     <dl>
                         {metric("p50 / p99", latency, false)}
-                        {metric("Успешных ответов", logic::fmt_pct(r.success), r.success < 0.99)}
-                        {metric("Доступность", logic::fmt_pct(r.availability), false)}
-                        {metric("Стоимость", format!("${} в мес.", num(r.cost)), false)}
-                        {r.hit.map(|h| metric("Попаданий в кэш", pct0(h), false))}
-                        {r.cdn_hit.map(|h| metric("Попаданий в CDN", pct0(h), false))}
-                        {r.lag_sec.map(|l| metric("Отставание очереди", if l >= 999.0 { "не разбирается".to_owned() } else { format!("{} с", num(l)) }, l >= 999.0))}
-                        {r.replica_lag_ms.map(|l| metric("Отставание реплик", format!("{} мс", num(l)), false))}
+                        {metric(i18n::tr("Successful responses"), logic::fmt_pct(r.success), r.success < 0.99)}
+                        {metric(i18n::tr("Availability"), logic::fmt_pct(r.availability), false)}
+                        {metric(i18n::tr("Cost"), i18n::trf!("${0}/mo", num(r.cost)), false)}
+                        {r.hit.map(|h| metric(i18n::tr("Cache hits"), pct0(h), false))}
+                        {r.cdn_hit.map(|h| metric(i18n::tr("CDN hits"), pct0(h), false))}
+                        {r.lag_sec.map(|l| metric(i18n::tr("Queue lag"), if l >= 999.0 { i18n::tr("not draining").to_owned() } else { i18n::trf!("{0} s", num(l)) }, l >= 999.0))}
+                        {r.replica_lag_ms.map(|l| metric(i18n::tr("Replica lag"), i18n::trf!("{0} ms", num(l)), false))}
                     </dl>
                     {r.warnings.iter().map(|w| view! { <p class="sd-warn">{w.clone()}</p> }).collect_view()}
                 }
@@ -370,6 +370,7 @@ mod tests {
 
     #[test]
     fn load_line_rounds_numbers_and_appends_the_note() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(load_text(&load(NodeStatus::Ok, None)), "Нагрузка: 40 · ёмкость: 300 · загрузка 13%");
         assert_eq!(load_text(&load(NodeStatus::Hot, Some("упор в базу"))), "Нагрузка: 40 · ёмкость: 300 · загрузка 13% · упор в базу");
         assert_eq!(load_text(&load(NodeStatus::Hot, Some(""))), "Нагрузка: 40 · ёмкость: 300 · загрузка 13%");
@@ -377,6 +378,7 @@ mod tests {
 
     #[test]
     fn load_status_matches_css_classes() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(load_status(&load(NodeStatus::Over, None)), "over");
         assert_eq!(load_status(&load(NodeStatus::Down, None)), "down");
         assert_eq!(load_status(&load(NodeStatus::Idle, None)), "idle");

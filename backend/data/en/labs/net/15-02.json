@@ -1,0 +1,72 @@
+{
+ "book": 15,
+ "chapter": 2,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n2-l1",
+   "title": "Layers 1–2: a switch port is off",
+   "statement": "PC 1 and PC 2 are connected to the switch, and the addresses are configured correctly. But PC 2 is unreachable. Run ping and look at the log: the frame reaches the switch and has nowhere to go from there. Select the switch and look at its ports.",
+   "hint": "The switch card has a list of ports with checkboxes. The port that PC 2 is plugged into is off. In the switch terminal the commands are `show ports` and `port p2 up`.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings PC 2",
+    "/start/devices/0/name": "PC 1",
+    "/start/devices/1/name": "PC 2",
+    "/start/devices/2/name": "Switch"
+   }
+  },
+  {
+   "id": "n2-l3",
+   "title": "Layer 3: wrong mask",
+   "statement": "Two computers on the same network 192.168.0.0/24 are connected through a switch. PC 1 sends a request and gets no reply. Check the log: PC 2 receives the packet but cannot reply, because by its settings the address of PC 1 is “not on its network”, and it has no gateway. Find the mistake in the PC 2 settings.",
+   "hint": "The PC 2 mask is /25, which covers only the addresses .0–.127, while PC 2 itself has the address .200. Set /24. Edit the mask field in the card and press Enter.",
+   "spec_text": {
+    "/goals/0/text": "PC 1 pings PC 2",
+    "/goals/1/text": "PC 2 pings PC 1",
+    "/start/devices/0/name": "PC 1",
+    "/start/devices/1/name": "PC 2",
+    "/start/devices/2/name": "Switch"
+   }
+  },
+  {
+   "id": "n2-l4",
+   "title": "Layer 4: nobody listens on the port",
+   "statement": "The PC pings the server without problems, but cannot connect to port 80: an RST comes back. The network is fine, the problem is at the transport layer. Start listening on port 80 on the server: open the server card and add the port, or type `nc -l 80` in the terminal.",
+   "hint": "The server itself replies with RST when the port is closed. As soon as the port is listening, a SYN-ACK will arrive.",
+   "spec_text": {
+    "/goals/0/text": "The PC pings the server",
+    "/goals/1/text": "The PC connects to port 80 on the server",
+    "/start/devices/0/name": "PC",
+    "/start/devices/1/name": "Server",
+    "/start/devices/2/name": "Switch"
+   }
+  },
+  {
+   "id": "n2-fw",
+   "title": "Layer 4: a firewall blocks the port",
+   "statement": "The server is listening on port 80, ping works, but the connection to port 80 “stays silent”: neither SYN-ACK nor RST, the packet just vanishes. There is a firewall rule on the router. Find it in the log (the line “firewall: DROP”) and delete it.",
+   "hint": "Select the router: at the bottom of its card there is a “Firewall” section. The DROP rule for tcp port 80 is deleted with the cross. Ping keeps working because the rule does not affect ICMP.",
+   "spec_text": {
+    "/goals/0/text": "The PC pings the server",
+    "/goals/1/text": "The PC connects to port 80",
+    "/start/devices/0/name": "PC",
+    "/start/devices/1/name": "Router",
+    "/start/devices/2/name": "Server"
+   }
+  },
+  {
+   "id": "n2-stack",
+   "title": "Three faults on one path",
+   "statement": "The PC has to open a page on the server through a switch and a router. There are three faults on the path, one each at the physical, network and transport layers. Work from the bottom up: ping, log, terminal. When both ping and the connection to port 80 work, the exercise is complete.",
+   "hint": "Physical: the switch port for the PC is off. Network: the PC has no default gateway (192.168.1.1). Transport: the server is not listening on port 80.",
+   "spec_text": {
+    "/goals/0/text": "The PC pings the server",
+    "/goals/1/text": "The PC connects to port 80",
+    "/start/devices/0/name": "PC",
+    "/start/devices/1/name": "Switch",
+    "/start/devices/2/name": "Router",
+    "/start/devices/3/name": "Server"
+   }
+  }
+ ]
+}

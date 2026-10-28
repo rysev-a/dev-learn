@@ -1,0 +1,191 @@
+{
+ "book": 11,
+ "chapter": 33,
+ "tasks": [
+  {
+   "id": "j25-packument",
+   "title": "Package document summary",
+   "statement": "Write summarize(doc): doc is a registry document { name, 'dist-tags', versions: { version: { deprecated? } }, time: { version: ISO date } }. The result is { name, latest, versions, deprecated, tags, latestPublishedAt }: latest is doc['dist-tags'].latest (or null); versions are all keys of versions, sorted by semver in ascending order; deprecated are the versions with a non-empty deprecated (in the same order); tags is a copy of dist-tags with keys in alphabetical order; latestPublishedAt is time[latest] or null. The helpers parseV and cmpV are provided.",
+   "hint": "Object.keys(doc.versions).sort(cmpV); filter by deprecated.",
+   "starter": "// Provided: version parsing and comparison (do not change)\nfunction parseV(s) {\n  const m = /^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(s).trim());\n  if (!m) return null;\n  return { major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ? m[4].split(\".\") : [] };\n}\nfunction cmpV(a, b) {\n  const x = parseV(a), y = parseV(b);\n  for (const k of [\"major\", \"minor\", \"patch\"]) if (x[k] !== y[k]) return x[k] < y[k] ? -1 : 1;\n  if (!x.pre.length && !y.pre.length) return 0;\n  if (!x.pre.length) return 1;\n  if (!y.pre.length) return -1;\n  const n = Math.max(x.pre.length, y.pre.length);\n  for (let i = 0; i < n; i++) {\n    if (i >= x.pre.length) return -1;\n    if (i >= y.pre.length) return 1;\n    const p = x.pre[i], q = y.pre[i];\n    if (p === q) continue;\n    const pn = /^\\d+$/.test(p), qn = /^\\d+$/.test(q);\n    if (pn && qn) return +p < +q ? -1 : 1;\n    if (pn) return -1;\n    if (qn) return 1;\n    return p < q ? -1 : 1;\n  }\n  return 0;\n}\n// Provided: supports an exact version, ^, ~, >=, >, <=, <, * and AND via a space (no prereleases)\nfunction satisfies(version, range) {\n  const v = parseV(version);\n  if (!v || v.pre.length) return false;\n  return range.trim().split(/\\s+/).every((c) => {\n    if (c === \"*\" || c === \"\") return true;\n    const m = /^(\\^|~|>=|<=|>|<|=)?(\\d+\\.\\d+\\.\\d+)$/.exec(c);\n    const op = m[1] || \"=\", t = parseV(m[2]);\n    const r = cmpV(version, m[2]);\n    if (op === \"^\") {\n      const up = t.major > 0 ? `${t.major + 1}.0.0` : t.minor > 0 ? `0.${t.minor + 1}.0` : `0.0.${t.patch + 1}`;\n      return r >= 0 && cmpV(version, up) < 0;\n    }\n    if (op === \"~\") return r >= 0 && cmpV(version, `${t.major}.${t.minor + 1}.0`) < 0;\n    return op === \">=\" ? r >= 0 : op === \"<=\" ? r <= 0 : op === \">\" ? r > 0 : op === \"<\" ? r < 0 : r === 0;\n  });\n}\nfunction summarize(doc) {\n}\n"
+  },
+  {
+   "id": "j25-resolve-tag",
+   "title": "Resolving a tag or a range",
+   "statement": "Write resolveSpec(doc, spec): it determines which version to install. If spec is empty or missing, treat it as 'latest'. The order: 1) spec is a tag name in doc['dist-tags'] -> its version; 2) spec is an exact version that exists in doc.versions -> that version; 3) spec is a range: the highest matching version not marked deprecated (if there are none, the highest of the deprecated ones); 4) otherwise Error('No matching version found for NAME@SPEC'). The helpers parseV, cmpV, satisfies (for ^, ~, >=, >, <=, <, exact versions and '*') are provided.",
+   "hint": "First tags and exact versions, then the satisfies filter and the maximum by cmpV.",
+   "starter": "// Provided: version parsing and comparison (do not change)\nfunction parseV(s) {\n  const m = /^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(s).trim());\n  if (!m) return null;\n  return { major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ? m[4].split(\".\") : [] };\n}\nfunction cmpV(a, b) {\n  const x = parseV(a), y = parseV(b);\n  for (const k of [\"major\", \"minor\", \"patch\"]) if (x[k] !== y[k]) return x[k] < y[k] ? -1 : 1;\n  if (!x.pre.length && !y.pre.length) return 0;\n  if (!x.pre.length) return 1;\n  if (!y.pre.length) return -1;\n  const n = Math.max(x.pre.length, y.pre.length);\n  for (let i = 0; i < n; i++) {\n    if (i >= x.pre.length) return -1;\n    if (i >= y.pre.length) return 1;\n    const p = x.pre[i], q = y.pre[i];\n    if (p === q) continue;\n    const pn = /^\\d+$/.test(p), qn = /^\\d+$/.test(q);\n    if (pn && qn) return +p < +q ? -1 : 1;\n    if (pn) return -1;\n    if (qn) return 1;\n    return p < q ? -1 : 1;\n  }\n  return 0;\n}\n// Provided: supports an exact version, ^, ~, >=, >, <=, <, * and AND via a space (no prereleases)\nfunction satisfies(version, range) {\n  const v = parseV(version);\n  if (!v || v.pre.length) return false;\n  return range.trim().split(/\\s+/).every((c) => {\n    if (c === \"*\" || c === \"\") return true;\n    const m = /^(\\^|~|>=|<=|>|<|=)?(\\d+\\.\\d+\\.\\d+)$/.exec(c);\n    const op = m[1] || \"=\", t = parseV(m[2]);\n    const r = cmpV(version, m[2]);\n    if (op === \"^\") {\n      const up = t.major > 0 ? `${t.major + 1}.0.0` : t.minor > 0 ? `0.${t.minor + 1}.0` : `0.0.${t.patch + 1}`;\n      return r >= 0 && cmpV(version, up) < 0;\n    }\n    if (op === \"~\") return r >= 0 && cmpV(version, `${t.major}.${t.minor + 1}.0`) < 0;\n    return op === \">=\" ? r >= 0 : op === \"<=\" ? r <= 0 : op === \">\" ? r > 0 : op === \"<\" ? r < 0 : r === 0;\n  });\n}\nfunction resolveSpec(doc, spec) {\n}\n"
+  },
+  {
+   "id": "j25-urls",
+   "title": "Registry URLs",
+   "statement": "Write packumentUrl(registry, name) and tarballUrl(registry, name, version). registry may have trailing '/' characters: strip them. packumentUrl: 'registry/name'; in scoped names '/' is replaced with '%2F' (for example '@scope%2Fpkg'). tarballUrl: 'registry/name/-/basename-version.tgz', where the base name is the part after the last '/' (for '@scope/pkg' it is 'pkg'), while in the path the name keeps its real '/'.",
+   "hint": "registry.replace(/\\/+$/, ''); name.split('/').pop() is the base name."
+  },
+  {
+   "id": "j25-registry-for",
+   "title": "Which registry a package uses",
+   "statement": "Write registryFor(name, npmrc): npmrc = { registry, scopes: { '@scope': url } }. For '@scope/name' return scopes['@scope'] if it is set, otherwise npmrc.registry; for packages without a scope, npmrc.registry. If npmrc.registry is not set, use 'https://registry.npmjs.org/'. The result has exactly one trailing '/'.",
+   "hint": "The scope is the part up to the first '/' in a name that starts with '@'."
+  },
+  {
+   "id": "j25-auth-header",
+   "title": "Registry access token",
+   "statement": "Write authHeader(url, auth): auth is { '//host/path/': token } (as in .npmrc). Remove the protocol ('https:') from url to get '//host/path...'. Find the auth key that is a prefix of this string, the longest of the matching ones. Return 'Bearer ' + token or null. Keys are compared as is (case matters).",
+   "hint": "url.replace(/^[a-z]+:/i, ''); of the matching prefixes take the one with the maximum length."
+  },
+  {
+   "id": "j25-parse-integrity",
+   "title": "Parsing integrity (SRI)",
+   "statement": "Write parseIntegrity(str) and strongest(str). parseIntegrity: entries are separated by spaces; an entry is 'algorithm-value[?options]'; the algorithms sha256, sha384, sha512 are valid, the rest (md5, sha1, garbage) are discarded. The result is an array of { algorithm, digest, options } (options is the string after '?' or null), sorted from the strongest algorithm to the weakest (sha512, sha384, sha256), and within one algorithm in the original order. strongest returns the first element or null.",
+   "hint": "The regex /^(sha256|sha384|sha512)-([A-Za-z0-9+/=_-]+)(?:\\?(.*))?$/ and sorting by rank."
+  },
+  {
+   "id": "j25-latest-stable",
+   "title": "Stable and prerelease versions",
+   "statement": "Write latestStable(versions) and nextPrerelease(versions). latestStable is the highest version without a prerelease part (invalid strings are skipped) or null. nextPrerelease is the highest prerelease version that is newer than latestStable (if there is no stable one, newer than 0.0.0), or null. The helpers parseV and cmpV are provided.",
+   "hint": "Filter by parseV and the pre.length flag; take the maximum via reduce and cmpV.",
+   "starter": "// Provided: version parsing and comparison (do not change)\nfunction parseV(s) {\n  const m = /^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(s).trim());\n  if (!m) return null;\n  return { major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ? m[4].split(\".\") : [] };\n}\nfunction cmpV(a, b) {\n  const x = parseV(a), y = parseV(b);\n  for (const k of [\"major\", \"minor\", \"patch\"]) if (x[k] !== y[k]) return x[k] < y[k] ? -1 : 1;\n  if (!x.pre.length && !y.pre.length) return 0;\n  if (!x.pre.length) return 1;\n  if (!y.pre.length) return -1;\n  const n = Math.max(x.pre.length, y.pre.length);\n  for (let i = 0; i < n; i++) {\n    if (i >= x.pre.length) return -1;\n    if (i >= y.pre.length) return 1;\n    const p = x.pre[i], q = y.pre[i];\n    if (p === q) continue;\n    const pn = /^\\d+$/.test(p), qn = /^\\d+$/.test(q);\n    if (pn && qn) return +p < +q ? -1 : 1;\n    if (pn) return -1;\n    if (qn) return 1;\n    return p < q ? -1 : 1;\n  }\n  return 0;\n}\n// Provided: supports an exact version, ^, ~, >=, >, <=, <, * and AND via a space (no prereleases)\nfunction satisfies(version, range) {\n  const v = parseV(version);\n  if (!v || v.pre.length) return false;\n  return range.trim().split(/\\s+/).every((c) => {\n    if (c === \"*\" || c === \"\") return true;\n    const m = /^(\\^|~|>=|<=|>|<|=)?(\\d+\\.\\d+\\.\\d+)$/.exec(c);\n    const op = m[1] || \"=\", t = parseV(m[2]);\n    const r = cmpV(version, m[2]);\n    if (op === \"^\") {\n      const up = t.major > 0 ? `${t.major + 1}.0.0` : t.minor > 0 ? `0.${t.minor + 1}.0` : `0.0.${t.patch + 1}`;\n      return r >= 0 && cmpV(version, up) < 0;\n    }\n    if (op === \"~\") return r >= 0 && cmpV(version, `${t.major}.${t.minor + 1}.0`) < 0;\n    return op === \">=\" ? r >= 0 : op === \"<=\" ? r <= 0 : op === \">\" ? r > 0 : op === \"<\" ? r < 0 : r === 0;\n  });\n}\nfunction latestStable(versions) {\n}\nfunction nextPrerelease(versions) {\n}\n"
+  },
+  {
+   "id": "j25-typosquat",
+   "title": "Finding typos in names",
+   "statement": "Write findTyposquats(name, popular, maxDistance = 2): it returns the names from popular (other than one equal to name) whose distance from name is at most maxDistance, sorted by distance, then by name. The distance is Damerau–Levenshtein (insertion, deletion, substitution of a character and transposition of two adjacent characters each cost 1; the OSA variant). The comparison is case-insensitive: lowercase both names before computing. If name matches (ignoring case) one of popular, return [].",
+   "hint": "Dynamic programming over a table d[i][j]; for transposition look at d[i-2][j-2]."
+  },
+  {
+   "id": "j25-confusion",
+   "title": "Internal name confusion risk",
+   "statement": "Write confusionRisk(internal, publicIndex): internal is { name: version } of internal packages, publicIndex is { name: [versions] } of what exists in the public registry. Return an array of { name, internal, publicMax } for the names that exist in the public registry and whose highest public version is strictly newer than the internal one (such a version would \"win\" when installing from the public registry). Sort by name. Invalid versions are ignored. The helpers parseV, cmpV are provided.",
+   "hint": "For each internal name find the maximum of the public versions via cmpV.",
+   "starter": "// Provided: version parsing and comparison (do not change)\nfunction parseV(s) {\n  const m = /^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(s).trim());\n  if (!m) return null;\n  return { major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ? m[4].split(\".\") : [] };\n}\nfunction cmpV(a, b) {\n  const x = parseV(a), y = parseV(b);\n  for (const k of [\"major\", \"minor\", \"patch\"]) if (x[k] !== y[k]) return x[k] < y[k] ? -1 : 1;\n  if (!x.pre.length && !y.pre.length) return 0;\n  if (!x.pre.length) return 1;\n  if (!y.pre.length) return -1;\n  const n = Math.max(x.pre.length, y.pre.length);\n  for (let i = 0; i < n; i++) {\n    if (i >= x.pre.length) return -1;\n    if (i >= y.pre.length) return 1;\n    const p = x.pre[i], q = y.pre[i];\n    if (p === q) continue;\n    const pn = /^\\d+$/.test(p), qn = /^\\d+$/.test(q);\n    if (pn && qn) return +p < +q ? -1 : 1;\n    if (pn) return -1;\n    if (qn) return 1;\n    return p < q ? -1 : 1;\n  }\n  return 0;\n}\n// Provided: supports an exact version, ^, ~, >=, >, <=, <, * and AND via a space (no prereleases)\nfunction satisfies(version, range) {\n  const v = parseV(version);\n  if (!v || v.pre.length) return false;\n  return range.trim().split(/\\s+/).every((c) => {\n    if (c === \"*\" || c === \"\") return true;\n    const m = /^(\\^|~|>=|<=|>|<|=)?(\\d+\\.\\d+\\.\\d+)$/.exec(c);\n    const op = m[1] || \"=\", t = parseV(m[2]);\n    const r = cmpV(version, m[2]);\n    if (op === \"^\") {\n      const up = t.major > 0 ? `${t.major + 1}.0.0` : t.minor > 0 ? `0.${t.minor + 1}.0` : `0.0.${t.patch + 1}`;\n      return r >= 0 && cmpV(version, up) < 0;\n    }\n    if (op === \"~\") return r >= 0 && cmpV(version, `${t.major}.${t.minor + 1}.0`) < 0;\n    return op === \">=\" ? r >= 0 : op === \"<=\" ? r <= 0 : op === \">\" ? r > 0 : op === \"<\" ? r < 0 : r === 0;\n  });\n}\nfunction confusionRisk(internal, publicIndex) {\n}\n"
+  },
+  {
+   "id": "j25-scripts-audit",
+   "title": "Install script audit",
+   "statement": "Write scriptsAudit(packages): packages is { name: { scripts } }. For each package take the install hooks in the order preinstall, install, postinstall (only those that exist). Packages without hooks are skipped. The result is an array of { name, hooks, risky } sorted by name: hooks are the names of the hooks present; risky is true if the text of at least one of these scripts matches /(curl|wget|powershell|base64|eval|\\bnc\\b|\\|\\s*(ba)?sh\\b)/i.",
+   "hint": "Use the ready regular expression from the statement; iterate over a fixed list of hooks."
+  },
+  {
+   "id": "j25-license-expr",
+   "title": "SPDX expressions",
+   "statement": "Write licenseAllowed(expr, allowed, denied): expr is an SPDX expression made of licenses, the operators AND, OR (uppercase) and parentheses; AND binds tighter than OR. The construct 'X WITH exception' counts as license X. A license is acceptable if it is in allowed and not in denied. The result is true/false for the whole expression (A OR B: at least one is acceptable, A AND B: both). An empty expression or a syntax error gives false.",
+   "hint": "Tokenize by spaces and parentheses; recursive parsing: orExpr -> andExpr -> atom."
+  },
+  {
+   "id": "j25-unpublish",
+   "title": "Can a version be deleted",
+   "statement": "Write canUnpublish({ publishedAt, now, dependents, weeklyDownloads, owners }) -> { allowed, reason }. Times are in milliseconds. If less than 72 hours have passed since publishing, return { allowed: true, reason: 'within 72 hours' }. Otherwise deletion is allowed only when there are no dependents (dependents === 0), weekly downloads are below 300, and there is a single owner (owners.length === 1): then { allowed: true, reason: 'no dependents' }. The first violated condition in order gives { allowed: false, reason }: 'has dependents', 'too many downloads', 'multiple owners'.",
+   "hint": "72 * 3600 * 1000 ms; checks in the order dependents -> downloads -> owners."
+  },
+  {
+   "id": "j25-can-publish",
+   "title": "Pre-publish check",
+   "statement": "Write checkPublish(manifest, published, opts = {}): published is an array of already published versions, opts.tag is the publishing tag. Return an array of errors in the order of the checks: \"package is private\" (manifest.private === true); \"name is required\" (no non-empty name); \"invalid version\" (version is not x.y.z[-pre][+build]; if the version is invalid, the remaining version checks are skipped); \"version already published\" (the version is in published); \"prerelease requires a tag other than latest\" (the version has a prerelease part and opts.tag is unset or equals 'latest').",
+   "hint": "Sequential ifs with push; a prerelease means a '-' in the part of the version before '+'."
+  },
+  {
+   "id": "j25-token-allows",
+   "title": "Access token permissions",
+   "statement": "Write tokenAllows(token, action, pkg, now): token = { actions: ['read', 'publish'], packages: ['@my/*', 'lodash', '*'], expiresAt? }. The token is valid while now < expiresAt (no expiresAt means it never expires). Access is allowed if action is in actions and the package name matches one of the patterns: an exact name; '@scope/*' for any package of that scope; '*' for any package. An expired token or a violation of any condition gives false.",
+   "hint": "A function matchPattern(pattern, name) with three cases."
+  },
+  {
+   "id": "j25-provenance",
+   "title": "Provenance check",
+   "statement": "Write verifyProvenance(att, expected): att = { builder: { id }, source: { repo, commit, ref }, workflow: { path } }, expected = { builders: [allowed ids], repo, workflowPrefix }. Return an array of problems in this order: \"untrusted builder\" (att.builder.id is not in expected.builders); \"repo mismatch\" (att.source.repo !== expected.repo); \"invalid commit\" (commit is not 40 lowercase hex digits); \"ref is not a tag\" (ref does not start with 'refs/tags/'); \"unexpected workflow\" (workflow.path does not start with expected.workflowPrefix). Missing fields count as a violation of the corresponding check.",
+   "hint": "Optional chaining ?. and sequential checks."
+  },
+  {
+   "id": "j25-sbom",
+   "title": "Bill of materials (SBOM)",
+   "statement": "Write buildSbom(tree): tree is { install path: version } (the name is the part after the last 'node_modules/'). Return { bomFormat: 'CycloneDX', specVersion: '1.5', components } where components are the unique name@version pairs, each { type: 'library', name, version, purl }, sorted by name, then by version (string comparison). purl: 'pkg:npm/name@version'; for a scoped name '@scope/pkg' the '@' character is encoded as '%40': 'pkg:npm/%40scope/pkg@version'.",
+   "hint": "A Map keyed by name@version, then sort."
+  },
+  {
+   "id": "j25-purl",
+   "title": "Package URL",
+   "statement": "Write formatPurl({ name, version }) and parsePurl(str). formatPurl gives 'pkg:npm/name@version'; in a scoped name '@' is encoded as '%40' (the version is optional: without it there is no '@version'). parsePurl is the reverse: it returns { name, version } (version is null if not given) or null if the string does not start with 'pkg:npm/' or the name is empty.",
+   "hint": "When parsing, first replace '%40' with '@', then split off the version at the last '@' after the name."
+  },
+  {
+   "id": "j25-osv-range",
+   "title": "Vulnerable version ranges (OSV)",
+   "statement": "Write isVulnerable(version, events): events is an OSV-style array, for example [{introduced:'0'},{fixed:'1.2.3'},{introduced:'2.0.0'},{fixed:'2.0.5'}]. Events come in pairs: introduced opens a range, the next fixed (the version is not included) or last_affected (included) closes it. A version is vulnerable if it falls into any range [introduced, fixed) / [introduced, last_affected]. introduced '0' means \"from the very beginning\". If there is no closing event after introduced, the range is open to infinity. Versions are compared by semver; prereleases count like ordinary ones. The helpers parseV, cmpV are provided.",
+   "hint": "Walk the events in order: remember introduced, and on fixed/last_affected check for a hit.",
+   "starter": "// Provided: version parsing and comparison (do not change)\nfunction parseV(s) {\n  const m = /^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(s).trim());\n  if (!m) return null;\n  return { major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ? m[4].split(\".\") : [] };\n}\nfunction cmpV(a, b) {\n  const x = parseV(a), y = parseV(b);\n  for (const k of [\"major\", \"minor\", \"patch\"]) if (x[k] !== y[k]) return x[k] < y[k] ? -1 : 1;\n  if (!x.pre.length && !y.pre.length) return 0;\n  if (!x.pre.length) return 1;\n  if (!y.pre.length) return -1;\n  const n = Math.max(x.pre.length, y.pre.length);\n  for (let i = 0; i < n; i++) {\n    if (i >= x.pre.length) return -1;\n    if (i >= y.pre.length) return 1;\n    const p = x.pre[i], q = y.pre[i];\n    if (p === q) continue;\n    const pn = /^\\d+$/.test(p), qn = /^\\d+$/.test(q);\n    if (pn && qn) return +p < +q ? -1 : 1;\n    if (pn) return -1;\n    if (qn) return 1;\n    return p < q ? -1 : 1;\n  }\n  return 0;\n}\n// Provided: supports an exact version, ^, ~, >=, >, <=, <, * and AND via a space (no prereleases)\nfunction satisfies(version, range) {\n  const v = parseV(version);\n  if (!v || v.pre.length) return false;\n  return range.trim().split(/\\s+/).every((c) => {\n    if (c === \"*\" || c === \"\") return true;\n    const m = /^(\\^|~|>=|<=|>|<|=)?(\\d+\\.\\d+\\.\\d+)$/.exec(c);\n    const op = m[1] || \"=\", t = parseV(m[2]);\n    const r = cmpV(version, m[2]);\n    if (op === \"^\") {\n      const up = t.major > 0 ? `${t.major + 1}.0.0` : t.minor > 0 ? `0.${t.minor + 1}.0` : `0.0.${t.patch + 1}`;\n      return r >= 0 && cmpV(version, up) < 0;\n    }\n    if (op === \"~\") return r >= 0 && cmpV(version, `${t.major}.${t.minor + 1}.0`) < 0;\n    return op === \">=\" ? r >= 0 : op === \"<=\" ? r <= 0 : op === \">\" ? r > 0 : op === \"<\" ? r < 0 : r === 0;\n  });\n}\nfunction isVulnerable(version, events) {\n}\n"
+  },
+  {
+   "id": "j25-reverse-deps",
+   "title": "Who depends on a package",
+   "statement": "Write transitiveDependents(graph, target): graph is { package: [its dependencies] }. Return a sorted array of all packages that depend on target directly or indirectly (target itself is not included, even with a cycle). If there are none, return an empty array. target may be absent from graph.",
+   "hint": "Build the reverse graph and traverse it from target (breadth-first search with a visited set)."
+  },
+  {
+   "id": "j25-dep-stats",
+   "title": "Dependency depth and breadth",
+   "statement": "Write depStats(graph, root): graph is { package: [dependencies] }. Return { direct, transitive, maxDepth }: direct is the number of unique direct dependencies of root; transitive is the number of unique packages reachable from root (not counting root itself); maxDepth is the length of the longest path from root (in edges) without repeating nodes on the path (cycles do not lengthen the path). If root is not in graph, all numbers are 0.",
+   "hint": "Depth-first traversal; a set of \"nodes on the current path\" protects against cycles."
+  },
+  {
+   "id": "j25-bus-factor",
+   "title": "Bus factor",
+   "statement": "Write busFactor(maintainers): maintainers is { package: [maintainers] }. Return { risky, ratio }: risky is the sorted names of packages that have exactly one unique maintainer (or none); ratio is the share of risky among all packages, rounded to 2 decimal places (0 for empty input).",
+   "hint": "A Set of maintainers; Math.round(x * 100) / 100."
+  },
+  {
+   "id": "j25-ttl-cache",
+   "title": "Metadata cache with TTL",
+   "statement": "Write createCache(ttlMs, now): now is a function returning the current time (ms). It returns { get, set, getOrFetch }. set(key, value) stores the value with the time now(); get(key) returns the value if now() − time < ttlMs, otherwise undefined (an expired entry is removed). getOrFetch(key, fetchFn) is async: return a fresh value from the cache, otherwise call fetchFn() and store the result; concurrent calls with the same key must call fetchFn only once; if fetchFn fails, nothing is cached and the error is propagated (the next call tries again).",
+   "hint": "A Map of values and a Map of \"in-flight promises\"; remove the promise from \"in flight\" in finally."
+  },
+  {
+   "id": "j25-retry-after",
+   "title": "The Retry-After header",
+   "statement": "Write parseRetryAfter(header, nowMs): the header value is either an integer number of seconds ('120') or an HTTP date ('Wed, 21 Oct 2015 07:28:00 GMT'). Return the delay in milliseconds: for seconds, the number × 1000; for a date, max(0, Date.parse(header) − nowMs). An empty value, a negative or fractional number, and an unrecognized date give null. Surrounding whitespace is ignored.",
+   "hint": "First /^\\d+$/ for seconds, then Date.parse."
+  },
+  {
+   "id": "j25-mirrors",
+   "title": "Fallback registry mirrors",
+   "statement": "Write async fetchFromMirrors(urls, fetchFn): it calls fetchFn(url) sequentially for each address in urls. The first successful result is returned as { url, value }. If all attempts failed (or urls is empty), throw AggregateError(errors, 'All mirrors failed'), where errors is the array of errors in order.",
+   "hint": "A loop with try/catch collecting errors; after the loop, throw new AggregateError(errors, '...')."
+  },
+  {
+   "id": "j25-tar-entries",
+   "title": "Safe paths in an archive",
+   "statement": "Write checkTarEntries(entries): entries are records { path, type: 'file'|'dir'|'symlink', linkname? } (POSIX paths). For each record, in order, add problems: \"PATH: absolute path\" (the path starts with '/'); \"PATH: path traversal\" (after normalization the path starts with '../' or equals '..', i.e. escapes the extraction root; the segments '.' and 'x/..' are normalized); for a symlink, \"PATH: unsafe symlink\" if linkname is absolute or, resolved relative to the directory of the link itself, escapes the root. Here PATH stands for the record's actual path. The result is an array of strings in the order of the records.",
+   "hint": "path.normalize; for a link: path.normalize(path.join(path.dirname(entry.path), linkname))."
+  },
+  {
+   "id": "j25-normalize-name",
+   "title": "Normalizing package names",
+   "statement": "Write normalizeName(name) and isConfusable(a, b). normalizeName: lowercase; replace the characters '_' and '.' with '-'; collapse consecutive '-' into one; strip '-' at the edges (do not treat the '@scope/' scope specially: '/' and '@' are kept). isConfusable(a, b): true if a !== b but the normalized names are equal.",
+   "hint": "Two or three replace calls with regular expressions."
+  },
+  {
+   "id": "j25-pkg-score",
+   "title": "Package health score",
+   "statement": "Write packageScore(info): info = { weeklyDownloads, lastPublishDays, openIssuesRatio, hasTypes, license, dependencies } (dependencies is a number). The sum of points: popularity is min(30, round(log10(weeklyDownloads + 1) × 5)); freshness is 25 if lastPublishDays ≤ 90, 15 if ≤ 365, 5 if ≤ 730, otherwise 0; issues are 15 if openIssuesRatio ≤ 0.1, 8 if ≤ 0.3, otherwise 0; types are 10 if hasTypes; license is 10 if MIT, Apache-2.0, BSD-3-Clause or ISC; dependencies are 10 for 0, 5 for ≤ 5, otherwise 0. Return an integer.",
+   "hint": "Add up six terms; Math.log10 and Math.round for popularity."
+  },
+  {
+   "id": "j25-supply-diff",
+   "title": "What changed in the manifest",
+   "statement": "Write diffManifests(oldM, newM): a comparison of manifests { dependencies, scripts, license }. Return an array of risk strings in the order of the groups: 1) \"new dependency: NAME\" for dependencies that did not exist before (alphabetical); 2) \"removed dependency: NAME\" (alphabetical); 3) \"new install script: HOOK\" for preinstall, install, postinstall (in that order) that did not exist before; 4) \"license changed: OLD -> NEW\" (if the licenses differ; a missing one is \"none\"). Here NAME, HOOK, OLD and NEW stand for the actual values. If nothing changed, return an empty array.",
+   "hint": "Compare the dependencies keys as sets; hooks via Object.hasOwn."
+  },
+  {
+   "id": "j25-jsr-score",
+   "title": "JSR-style package score",
+   "statement": "Write jsrScore(pkg): pkg = { hasReadme, hasDescription, hasExamples, docCoverage, runtimes, hasProvenance } (runtimes is an array of node, deno, bun, browser; docCoverage is in percent). Points: README is 10; description is 10; examples are 10; documentation is 20 if docCoverage ≥ 80, 10 if ≥ 50, otherwise 0; runtimes are 5 for each unique one of node, deno, bun, browser; provenance (hasProvenance) is 15. Return { score, missing }, where missing is the list of items not earned (in this order): 'readme', 'description', 'examples', 'docs', 'runtimes', 'provenance'. docs counts as not earned when docCoverage < 80; runtimes when not all four are listed.",
+   "hint": "Accumulate score and push to missing when an item is incomplete."
+  },
+  {
+   "id": "j25-trusted-registry",
+   "title": "Trusted registry address",
+   "statement": "Write isTrustedRegistry(url, allowlist): true only if url parses with new URL, the protocol is https:, the address has no username or password, the port is absent or equal to 443, and hostname equals one of the allowlist entries or ends with '.' + an allowlist entry (a subdomain). The case of the host name is ignored. Any parsing error gives false.",
+   "hint": "try { new URL(url) } catch { return false }; hostname is already lowercase."
+  }
+ ]
+}

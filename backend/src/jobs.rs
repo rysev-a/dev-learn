@@ -17,12 +17,12 @@ use crate::{
 pub const LIGHT: &str = "light";
 pub const HEAVY: &str = "heavy";
 const LANES: [&str; 2] = [LIGHT, HEAVY];
-/// Потолок очереди по умолчанию; меняется переменной `SAY_QUEUE_LIMIT` (при превышении `POST /run` отвечает 503, интерфейс показывает окно о перегрузке).
+/// Потолок очереди по умолчанию; меняется переменной `CS_CORE_QUEUE_LIMIT` (при превышении `POST /run` отвечает 503, интерфейс показывает окно о перегрузке).
 const DEFAULT_QUEUE_LIMIT: i64 = 300;
 
 fn queue_limit() -> i64 {
     static LIMIT: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
-    *LIMIT.get_or_init(|| std::env::var("SAY_QUEUE_LIMIT").ok().and_then(|v| v.trim().parse().ok()).filter(|n| *n > 0).unwrap_or(DEFAULT_QUEUE_LIMIT))
+    *LIMIT.get_or_init(|| std::env::var("CS_CORE_QUEUE_LIMIT").ok().and_then(|v| v.trim().parse().ok()).filter(|n| *n > 0).unwrap_or(DEFAULT_QUEUE_LIMIT))
 }
 pub const LEASE_SEC: f64 = 45.0;
 const MAX_ATTEMPTS: i64 = 2;
@@ -66,14 +66,14 @@ pub async fn submit(state: &AppState, user: &str, book: i64, chapter: i64, task:
     let db = &state.db;
     let db_err = |e: surrealdb::Error| {
         tracing::error!("surrealdb: {e}");
-        JobError(500, "Ошибка базы данных".into())
+        JobError(500, "Database error".into())
     };
     let t = now_secs();
-    reap_throttled(state, t).await.map_err(|_| JobError(500, "Ошибка базы данных".into()))?;
+    reap_throttled(state, t).await.map_err(|_| JobError(500, "Database error".into()))?;
     let mut res = db.query("SELECT VALUE jid FROM exec_jobs WHERE user = $u AND status IN ['queued', 'running'] LIMIT 1").bind(("u", user.to_string())).await.map_err(db_err)?;
     let busy: Vec<String> = res.take(0).map_err(db_err)?;
     if !busy.is_empty() {
-        return Err(JobError(429, "Предыдущая проверка ещё идёт".into()));
+        return Err(JobError(429, "The previous check is still running".into()));
     }
     let key = cache_key(task, code);
     let job_id = uuid::Uuid::new_v4().simple().to_string();
@@ -83,10 +83,10 @@ pub async fn submit(state: &AppState, user: &str, book: i64, chapter: i64, task:
     let cached: Option<Value> = cached.first().and_then(|r| serde_json::from_str(r).ok());
     if cached.is_none() {
         if !runner_ok {
-            return Err(JobError(503, "Проверка кода временно недоступна: сервер проверки не отвечает. Попробуйте чуть позже.".into()));
+            return Err(JobError(503, "Code checking is temporarily unavailable: the checking server is not responding. Please try again a little later.".into()));
         }
-        if count_where(db, "status = 'queued'").await.map_err(|_| JobError(500, "Ошибка базы данных".into()))? >= queue_limit() {
-            return Err(JobError(503, "Сервер проверки перегружен: очередь переполнена. Попробуйте через минуту.".into()));
+        if count_where(db, "status = 'queued'").await.map_err(|_| JobError(500, "Database error".into()))? >= queue_limit() {
+            return Err(JobError(503, "The checking server is overloaded: the queue is full. Please try again in a minute.".into()));
         }
     }
     db.query("CREATE exec_jobs CONTENT { jid: $j, user: $u, book: $b, chapter: $c, tid: $t, code: $code, key: $k, lane: $l, status: 'queued', attempts: 0, created_at: $at }")
@@ -104,7 +104,7 @@ pub async fn submit(state: &AppState, user: &str, book: i64, chapter: i64, task:
         .check()
         .map_err(db_err)?;
     if let Some(cached) = cached {
-        finish(db, &job_id, cached, false).await.map_err(|_| JobError(500, "Ошибка базы данных".into()))?;
+        finish(db, &job_id, cached, false).await.map_err(|_| JobError(500, "Database error".into()))?;
     }
     Ok(job_id)
 }
@@ -115,7 +115,7 @@ fn normalize(result: &Value) -> Value {
     let items: Vec<Value> = result.get("results").and_then(Value::as_array).map(|a| a.iter().filter(|r| r.is_object()).take(100).cloned().collect()).unwrap_or_default();
     let out = json!({ "status": result.get("status").and_then(Value::as_str).unwrap_or("error"), "results": items, "stdout": cut("stdout"), "stderr": cut("stderr") });
     if out.to_string().len() > MAX_RESULT_BYTES {
-        return json!({ "status": "error", "results": [], "stdout": "", "stderr": "Результат проверки слишком большой." });
+        return json!({ "status": "error", "results": [], "stdout": "", "stderr": "The check result is too large." });
     }
     out
 }
@@ -192,7 +192,7 @@ pub async fn claim(state: &AppState, worker: &str, lanes: &[String]) -> ApiResul
         .await?
         .check()?;
     let Some(task) = crate::exercises::find_task(db, i(&job, "book"), i(&job, "chapter"), &s(&job, "tid")).await? else {
-        finish(db, &jid, json!({ "status": "error", "stderr": "Задача удалена." }), false).await?;
+        finish(db, &jid, json!({ "status": "error", "stderr": "The task was deleted." }), false).await?;
         return Ok(None);
     };
     Ok(Some(json!({ "id": jid, "lane": s(&job, "lane"), "task": task, "code": s(&job, "code"), "lease": LEASE_SEC as i64 })))
@@ -243,7 +243,7 @@ pub async fn reap(db: &Db, t: f64) -> ApiResult<()> {
     for job in res.take::<Vec<Value>>(0)? {
         let jid = s(&job, "jid");
         if i(&job, "attempts") >= MAX_ATTEMPTS {
-            finish(db, &jid, json!({ "status": "error", "stderr": "Сервер проверки не ответил. Попробуйте ещё раз." }), false).await?;
+            finish(db, &jid, json!({ "status": "error", "stderr": "The checking server did not respond. Please try again." }), false).await?;
         } else {
             db.query("UPDATE exec_jobs SET status = 'queued', worker = NONE, lease_until = NONE WHERE jid = $j").bind(("j", jid)).await?.check()?;
         }

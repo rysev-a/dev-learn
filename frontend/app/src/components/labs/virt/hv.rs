@@ -83,7 +83,7 @@ impl HvRun {
             Choice::Invalid => None,
             Choice::Wrong { why } => {
                 self.trace.push(Step::Trap { label: label.to_string() });
-                self.notice = Some(Notice { bad: true, text: format!("Нет: {why}.") });
+                self.notice = Some(Notice { bad: true, text: i18n::trf!("No: {0}.", why) });
                 None
             }
             Choice::Applied => {
@@ -211,7 +211,7 @@ fn hv_body(program: Program, goals: Goals, run: RwSignal<HvRun>, restart: RwSign
         <div class="vl-grid">
             <div class="vl-card">
                 <p class="vl-goal">
-                    <span class="s-label">"цель"</span>
+                    <span class="s-label">{i18n::tr("goal")}</span>
                     " "
                     {program.goal.clone()}
                 </p>
@@ -226,14 +226,14 @@ fn hv_body(program: Program, goals: Goals, run: RwSignal<HvRun>, restart: RwSign
                             run.update(|r| r.set_translate(on));
                         }
                     />
-                    <span>"двоичная трансляция гостевого ядра (до запуска)"</span>
+                    <span>{i18n::tr("binary translation of the guest kernel (before it runs)")}</span>
                 </label>
                 <div class="vl-actions">
                     <button class="quiz-btn" prop:disabled=move || !run.with(HvRun::can_step) on:click=move |_| run.update(HvRun::step)>
-                        "Шаг"
+                        {i18n::tr("Step")}
                     </button>
                     <button class="quiz-btn ghost" on:click=move |_| run.update(HvRun::reset)>
-                        "Сначала"
+                        {i18n::tr("Restart")}
                     </button>
                 </div>
             </div>
@@ -241,23 +241,23 @@ fn hv_body(program: Program, goals: Goals, run: RwSignal<HvRun>, restart: RwSign
             <div class="vl-card">
                 <div class="vl-state">
                     <div>
-                        <span class="s-label">"гость видит"</span>
+                        <span class="s-label">{i18n::tr("guest sees")}</span>
                         <table class="vl-stat">
                             <tbody>
                                 <tr><td>"acc"</td><td>{move || state(|s| s.acc.to_string())}</td></tr>
-                                <tr><td>"vif (виртуальный IF)"</td><td>{move || state(|s| s.vif.to_string())}</td></tr>
+                                <tr><td>{i18n::tr("vif (virtual IF)")}</td><td>{move || state(|s| s.vif.to_string())}</td></tr>
                                 <tr><td>"vcr3"</td><td>{move || state(|s| s.vcr3.to_string())}</td></tr>
-                                <tr><td>"очередь IRQ"</td><td>{move || run.with(|r| list(&r.session().state().queue))}</td></tr>
-                                <tr><td>"доставлено"</td><td>{move || run.with(|r| list(&r.session().state().delivered))}</td></tr>
+                                <tr><td>{i18n::tr("IRQ queue")}</td><td>{move || run.with(|r| list(&r.session().state().queue))}</td></tr>
+                                <tr><td>{i18n::tr("delivered")}</td><td>{move || run.with(|r| list(&r.session().state().delivered))}</td></tr>
                             </tbody>
                         </table>
                     </div>
                     <div>
-                        <span class="s-label">"настоящий процессор"</span>
+                        <span class="s-label">{i18n::tr("real CPU")}</span>
                         <table class="vl-stat">
                             <tbody>
-                                <tr><td>"IF"</td><td>"1 всегда"</td></tr>
-                                <tr><td>"CR3"</td><td>"монитор"</td></tr>
+                                <tr><td>"IF"</td><td>{i18n::tr("always 1")}</td></tr>
+                                <tr><td>"CR3"</td><td>{i18n::tr("monitor")}</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -271,7 +271,7 @@ fn hv_body(program: Program, goals: Goals, run: RwSignal<HvRun>, restart: RwSign
                     let options = run.with(HvRun::options);
                     Some(view! {
                         <div class="vl-trap">
-                            <div class="vl-trap-t">{format!("⚡ Ловушка: {title}")}</div>
+                            <div class="vl-trap-t">{i18n::trf!("⚡ Trap: {0}", title)}</div>
                             <div class="vl-opts">
                                 {options
                                     .into_iter()
@@ -289,9 +289,9 @@ fn hv_body(program: Program, goals: Goals, run: RwSignal<HvRun>, restart: RwSign
                     run.with(|r| r.session().finish().cloned())
                         .map(|f| {
                             let text = if f.ok {
-                                format!("✓ Программа выполнена верно (ошибок выбора: {}).", f.mistakes)
+                                i18n::trf!("✓ The program ran correctly (wrong choices: {0}).", f.mistakes)
                             } else {
-                                "Программа дала неверный результат: монитор не заметил команду POPF, и vif остался 0. Включите двоичную трансляцию и начните сначала."
+                                i18n::tr("The program gave a wrong result: the monitor missed the POPF instruction and vif stayed 0. Enable binary translation and start over.")
                                     .to_string()
                             };
                             view! { <p class={if f.ok { "vl-yes" } else { "vl-no" }}>{text}</p> }
@@ -336,6 +336,7 @@ mod tests {
 
     #[test]
     fn ideal_run_reaches_goal_with_replayable_trace() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         for p in default_programs() {
             let mut run = HvRun::new(&p, p.id == "popf").expect("прогон");
             let info = solve(&mut run).unwrap_or_else(|| panic!("{}: цель не достигнута", p.id));
@@ -351,6 +352,7 @@ mod tests {
 
     #[test]
     fn mistakes_are_counted_and_traced() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let p = program("base");
         let mut run = HvRun::new(&p, false).expect("прогон");
         run.step(); // ADD 3
@@ -366,6 +368,7 @@ mod tests {
 
     #[test]
     fn popf_without_translation_is_silent_and_not_a_goal() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let p = program("popf");
         let mut run = HvRun::new(&p, false).expect("прогон");
         assert!(solve(&mut run).is_none());
@@ -382,6 +385,7 @@ mod tests {
 
     #[test]
     fn step_is_blocked_on_trap() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut run = HvRun::new(&program("irq"), false).expect("прогон");
         assert!(!run.can_step(), "первая команда — CLI, ловушка");
         run.step();
@@ -390,6 +394,7 @@ mod tests {
 
     #[test]
     fn shuffle_is_a_stable_permutation() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let v: Vec<u32> = (0..6).collect();
         for seed in 0..20 {
             let s = shuffle(&v, seed);

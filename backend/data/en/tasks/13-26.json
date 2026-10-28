@@ -1,0 +1,54 @@
+{
+ "book": 13,
+ "chapter": 26,
+ "tasks": [
+  {
+   "id": "make-multiplier",
+   "title": "A multiplier factory",
+   "statement": "Write a function make_multiplier(n) that returns a function multiplying its argument by n.",
+   "hint": "Define def mul(x): return x * n inside and return mul."
+  },
+  {
+   "id": "make-counter",
+   "title": "A counter with state",
+   "statement": "Write a function make_counter(start=0) that returns a function; each call of it returns the next number, starting from start + 1. The state is kept in the closure (nonlocal); every counter has its own.",
+   "hint": "count = start; inside inner: nonlocal count; count += 1; return count."
+  },
+  {
+   "id": "make-accumulator",
+   "title": "An accumulator",
+   "statement": "Write a function make_accumulator() that returns a function which takes a number, adds it to the accumulated sum (kept in the closure) and returns the current sum.",
+   "hint": "total = 0 in the outer function; nonlocal total in the inner one."
+  },
+  {
+   "id": "count-calls-deco",
+   "title": "A call-counting decorator",
+   "statement": "Write a decorator count_calls: after each call of the decorated function, the attribute wrapper.calls grows by one (starting from 0). The function's arguments and result must be preserved.",
+   "hint": "Set wrapper.calls = 0 after defining wrapper; inside wrapper: wrapper.calls += 1."
+  },
+  {
+   "id": "logged-deco",
+   "title": "A decorator with a log",
+   "statement": "Write a decorator logged: before each call it prints «вызов <имя функции>» (that is, the Russian word «вызов», a space and the function's name), then calls the function and returns its result. The function's name and docstring must be preserved (functools.wraps).",
+   "hint": "@wraps(func) above wrapper(*args, **kwargs); `print(f'вызов {func.__name__}')`; return func(*args, **kwargs)."
+  },
+  {
+   "id": "repeat-deco",
+   "title": "A decorator with a parameter",
+   "statement": "Write a decorator repeat(times): it calls the function times times in a row and returns the result of the last call.",
+   "hint": "Three levels: repeat(times) -> decorator(func) -> wrapper(*args, **kwargs)."
+  },
+  {
+   "id": "memoize-deco",
+   "title": "Caching",
+   "statement": "Write a decorator memoize: it remembers the results of a one-argument function in a dictionary; a repeated call with the same argument does not call the function again.",
+   "hint": "cache = {} in the decorator; in wrapper: if n not in cache: cache[n] = func(n); return cache[n]."
+  },
+  {
+   "id": "positive-args-deco",
+   "title": "Positive only",
+   "statement": "Write a decorator positive_only: if at least one positional argument is less than zero, it raises ValueError; otherwise it calls the function and returns the result.",
+   "hint": "In wrapper: for a in args: if a < 0: raise ValueError(...)."
+  }
+ ]
+}

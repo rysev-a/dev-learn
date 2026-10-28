@@ -1,0 +1,79 @@
+{
+ "book": 18,
+ "chapter": 6,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd06-retry-storm",
+   "title": "The retry storm",
+   "statement": "An S database is overloaded: 1300 reads against a limit of 1000. On error the app retries the database request up to three times with no pause, which raises the load on the database even more, and the service cannot recover. Stop the storm: turn on the circuit breaker, which cuts off retries when the database is overloaded, so that the success rate is at least 72%.",
+   "hint": "The app server has “DB retries” and “Circuit breaker” parameters (shown in this exercise). Turn on the breaker or set retries to zero.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd06-idempotency",
+   "title": "Double charge",
+   "statement": "A payment service: clients repeat a request if they do not get a response in time. Because of this, money is sometimes charged twice. Turn on idempotency keys (a server parameter), keep at least one retry (clients and the server repeat requests), and turn on the circuit breaker so that retries do not amplify overload.",
+   "hint": "App server parameters: “Idempotency keys” on; “DB retries” at least 1; “Circuit breaker” on.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd06-strong",
+   "title": "Strong consistency",
+   "statement": "A balance service must not lose an acknowledged write or show a stale balance. Build the database from three copies (a leader and two replicas) with synchronous replication and automatic failover: replica lag of zero, survival of a database failure, p99 at most 160 ms.",
+   "hint": "Database: “Replicas per shard” 2, “Replication” synchronous, “Automatic failover” on. Synchronous replication adds a few milliseconds to a write.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd06-eventual",
+   "title": "Eventual consistency",
+   "statement": "A news feed tolerates a small lag: freshness within a few hundred milliseconds bothers nobody, but you need fast reads and cheap writes. Keep asynchronous replication with two replicas and make sure that the lag is at most 200 ms, the design survives a database failure, and p99 is at most 100 ms.",
+   "hint": "Synchronous replicas are not needed here: they slow down writes. Choose “asynchronous”.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd06-redelivery",
+   "title": "Redelivery from a queue",
+   "statement": "Orders are accepted through a queue, and workers consume it with \"at-least-once\" delivery: a single message sometimes arrives twice. Build a \"server → queue → workers → database\" design with idempotent workers, so that the queue drains with no backlog (after a 60 s peak) and the workers are at most 90% loaded.",
+   "hint": "The worker's “Idempotent processing” parameter. The write load is 400 per second: three S workers handle 450.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd06-final",
+   "title": "The payment loop",
+   "statement": "The final exercise of the chapter. A payment service: reliability matters more than speed. You need: idempotency keys, a circuit breaker, a database with a synchronous replica and automatic failover, a pair of load balancers, survival of a database failure and an app server failure, load at most 80%, budget of $1500 per month.",
+   "hint": "Three M servers (after losing one, 1400 requests, which is enough), an M database with a synchronous replica and automatic failover, and a pair of load balancers.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  }
+ ]
+}

@@ -33,14 +33,14 @@ impl IntoResponse for ApiError {
 impl From<surrealdb::Error> for ApiError {
     fn from(e: surrealdb::Error) -> Self {
         tracing::error!("surrealdb: {e}");
-        Self::new(500, "Ошибка базы данных")
+        Self::new(500, "Database error")
     }
 }
 
 impl From<anyhow::Error> for ApiError {
     fn from(e: anyhow::Error) -> Self {
         tracing::error!("{e:#}");
-        Self::new(500, "Внутренняя ошибка")
+        Self::new(500, "Internal error")
     }
 }
 

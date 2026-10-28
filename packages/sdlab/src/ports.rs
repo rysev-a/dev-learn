@@ -75,16 +75,16 @@ pub fn reaches(edges: &[SdEdge], a: &str, b: &str) -> bool {
 /// Причина, по которой связь `a → b` поставить нельзя; `None` — можно.
 pub fn connect_error(state: &SdState, a: &SdNode, b: &SdNode) -> Option<String> {
     if a.id == b.id {
-        return Some("Компонент нельзя соединить с самим собой.".into());
+        return Some(i18n::tr("A component cannot be linked to itself.").into());
     }
     if !can_link(a.kind, b.kind) {
-        return Some(format!("«{}» не соединяется с «{}»: так в этой модели не устроено.", a.name, b.name));
+        return Some(i18n::trf!("“{0}” cannot be linked to “{1}”: this model does not work that way.", a.name, b.name));
     }
     if state.edges.iter().any(|e| e.from == a.id && e.to == b.id) {
-        return Some("Такая связь уже есть.".into());
+        return Some(i18n::tr("This link already exists.").into());
     }
     if reaches(&state.edges, &b.id, &a.id) {
-        return Some("Так схема замкнётся в цикл — запросы будут ходить по кругу.".into());
+        return Some(i18n::tr("This would close the diagram into a cycle — requests would go in circles.").into());
     }
     None
 }

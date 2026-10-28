@@ -9,6 +9,7 @@ use sdlab::{parse_solution, verify, verify_raw, Kind, LabChapter, ParamValue, Pr
 
 #[test]
 fn data_is_complete() {
+    i18n::set_locale(i18n::Locale::Ru);
     let chapters = common::chapters();
     assert_eq!(chapters.len(), 24);
     for (i, c) in chapters.iter().enumerate() {
@@ -20,6 +21,7 @@ fn data_is_complete() {
 /// Исходная схема не решает упражнение, эталон решает, компоненты эталона — в палитре, id уникальны.
 #[test]
 fn self_check_all_tasks() {
+    i18n::set_locale(i18n::Locale::Ru);
     let mut ids = HashSet::new();
     let mut bad = Vec::new();
     for c in common::chapters() {
@@ -44,6 +46,7 @@ fn self_check_all_tasks() {
 
 #[test]
 fn serde_round_trip() {
+    i18n::set_locale(i18n::Locale::Ru);
     for c in common::chapters() {
         // файл данных → текст → тот же файл
         let pretty = sdlab::pretty::to_string(&c).expect("запись");
@@ -62,6 +65,7 @@ fn serde_round_trip() {
 /// Файл на диске — ровно то, что пишет форматировщик (правки руками не ломают формат молча).
 #[test]
 fn files_are_canonical() {
+    i18n::set_locale(i18n::Locale::Ru);
     for c in common::chapters() {
         let name = sdlab::data::file_name(c.book, c.chapter);
         let text = std::fs::read_to_string(common::data_dir().join(&name)).expect("чтение");
@@ -71,6 +75,7 @@ fn files_are_canonical() {
 
 #[test]
 fn legacy_names_are_accepted() {
+    i18n::set_locale(i18n::Locale::Ru);
     // имена из TypeScript-версии: dataGB, searchShare, camelCase-параметры
     let json = r#"{"static":1,"read":2,"write":3,"dataGB":4,"hotSet":0.5,"searchShare":0.1,"mediaTB":2,"calls":{"auth":1}}"#;
     let w: sdlab::Workload = serde_json::from_str(json).expect("разбор");
@@ -87,6 +92,7 @@ fn task(id: &str) -> sdlab::Task {
 
 #[test]
 fn verify_accepts_solutions_and_rejects_start() {
+    i18n::set_locale(i18n::Locale::Ru);
     let mut accepted = 0;
     for c in common::chapters() {
         for t in &c.tasks {
@@ -106,6 +112,7 @@ fn verify_accepts_solutions_and_rejects_start() {
 
 #[test]
 fn parse_solution_is_tolerant() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("sd01-wire");
     let s = &t.spec.solution;
     let plain = serde_json::to_string(s).expect("запись");
@@ -130,6 +137,7 @@ fn parse_solution_is_tolerant() {
 
 #[test]
 fn verify_rejects_cheating() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("sd01-fleet");
     let sol = t.spec.solution.clone();
     let reject = |s: &SdState, what: &str| {
@@ -200,6 +208,7 @@ fn verify_rejects_cheating() {
 /// Схема с циклом не приводит к бесконечной рекурсии: лишняя связь отбрасывается с предупреждением.
 #[test]
 fn evaluate_survives_cycles() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("sd01-fleet");
     let mut s = t.spec.solution.clone();
     s.edges.push(SdEdge::new("lb", "lb"));
@@ -213,6 +222,7 @@ fn evaluate_survives_cycles() {
 
 #[test]
 fn client_copy_has_no_solution() {
+    i18n::set_locale(i18n::Locale::Ru);
     let t = task("sd01-wire");
     let c = t.spec.without_solution();
     assert!(c.solution.nodes.is_empty());
@@ -222,6 +232,7 @@ fn client_copy_has_no_solution() {
 /// Крейт собирается под wasm32 (если цель установлена в тулчейне).
 #[test]
 fn builds_for_wasm() {
+    i18n::set_locale(i18n::Locale::Ru);
     let sysroot = std::process::Command::new("rustc").args(["--print", "sysroot"]).output().expect("rustc");
     let sysroot = String::from_utf8_lossy(&sysroot.stdout).trim().to_owned();
     if !std::path::Path::new(&sysroot).join("lib/rustlib/wasm32-unknown-unknown").exists() {

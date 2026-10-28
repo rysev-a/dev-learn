@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "j5-divmod",
+   "title": "Division with remainder, C rules",
+   "statement": "Write a function divmod(a, b) that returns an array [q, r], where q is the integer part of the division with the fraction truncated toward zero, and r is the remainder whose sign matches the dividend's (the % operator).",
+   "hint": "Math.trunc(a / b) and a % b"
+  },
+  {
+   "id": "j5-floormod",
+   "title": "Remainder like Python",
+   "statement": "Write a function mod(a, b), b > 0: the remainder that always lies between 0 and b - 1 (also for negative a), like a % b in Python.",
+   "hint": "((a % b) + b) % b. Check that the result is not -0."
+  },
+  {
+   "id": "j5-is-even",
+   "title": "Is the number even (with negatives)",
+   "statement": "Write a function isEven(n) that returns true for even integers, including negative ones, and false for odd ones. The remainder of dividing a negative number by 2 can be -1: take that into account.",
+   "hint": "n % 2 === 0: -0 === 0 is true as well."
+  },
+  {
+   "id": "j5-clamp",
+   "title": "Clamp a number to a range",
+   "statement": "Write a function clamp(x, lo, hi) that returns lo if x < lo, hi if x > hi, and x otherwise. If x is NaN, return NaN.",
+   "hint": "Math.min(hi, Math.max(lo, x)): Math.max and Math.min return NaN if any argument is NaN."
+  },
+  {
+   "id": "j5-to-int32",
+   "title": "Drop the fraction with a bitwise operator",
+   "statement": "Write a function toInt(x) that drops the fractional part of a number (toward zero) using a bitwise operator, without Math.trunc, Math.floor, parseInt or Number. For NaN the result must be 0.",
+   "hint": "x | 0 gives a 32-bit signed integer."
+  },
+  {
+   "id": "j5-add-nums",
+   "title": "Add numbers stored in strings",
+   "statement": "Write a function addNums(a, b): the arguments are numbers or strings containing numbers (for example, \"5\" and 1); the function returns their sum as a number, not a concatenation.",
+   "hint": "Number(a) + Number(b), or the unary plus."
+  },
+  {
+   "id": "j5-concat-all",
+   "title": "Concatenate everything into a string",
+   "statement": "Write a function joinAll(arr) that returns one string made of all the array elements written one after another with no separators (numbers, booleans, null and undefined are written as their usual string form: \"null\", \"undefined\").",
+   "hint": "Do not use join: it turns null and undefined into an empty string. You need String(x)."
+  },
+  {
+   "id": "j5-to-bool",
+   "title": "Explicit coercion to boolean",
+   "statement": "Write a function toBool(x) that returns true or false by the truthiness rules (like Boolean(x)), but without calling Boolean and without the double negation \"!!\".",
+   "hint": "x ? true : false"
+  },
+  {
+   "id": "j5-parse-int",
+   "title": "Integer from pixels",
+   "statement": "Write a function px(s) that reads a value like \"12px\" or \"-5px\" and returns a number; if the string does not start with a number, it returns null. Give the radix explicitly.",
+   "hint": "parseInt(s, 10), then a check for NaN."
+  },
+  {
+   "id": "j5-parse-price",
+   "title": "Price with a comma",
+   "statement": "Write a function parsePrice(s): for a string like «3,50 ₽» or «1299.9 руб» return a number (3.5 and 1299.9). The decimal separator may be a comma. If there is no number, return NaN.",
+   "hint": "parseFloat(s.replace(\",\", \".\"))"
+  },
+  {
+   "id": "j5-loose-table",
+   "title": "== and === side by side",
+   "statement": "Write a function eqPair(a, b) that returns an array of two booleans: the result of the loose comparison a == b and of the strict one a === b (in that order). Nothing else needs checking: run it and study the table in the output.",
+   "hint": "return [a == b, a === b];"
+  },
+  {
+   "id": "j5-is-numeric",
+   "title": "Does it look like a number",
+   "statement": "Write a function isNumeric(v): true if v is a finite number or a non-empty string (with no spaces at the edges) that Number turns into a finite number. Everything else is false (including NaN, Infinity, an empty string, \"  \" and \"abc\").",
+   "hint": "For strings: trim() must not change the string and must be non-empty; then Number.isFinite(Number(v))."
+  },
+  {
+   "id": "j5-compare-versions",
+   "title": "Comparing versions",
+   "statement": "Write a function compareVersions(a, b): versions are written with dots (\"1.10.2\"); return -1 if a < b, 1 if a > b, and 0 if equal. Parts are compared as numbers (\"1.10\" is greater than \"1.9\"); a missing part counts as zero.",
+   "hint": "Split by \".\", convert the parts to numbers and compare them in order."
+  },
+  {
+   "id": "j5-sort-numeric",
+   "title": "Sorting numbers",
+   "statement": "Write a function sortNumbers(arr) that returns a new array sorted in ascending order as numbers; the original array is not changed. Remember that sort without a function compares strings.",
+   "hint": "[...arr].sort((a, b) => a - b)"
+  },
+  {
+   "id": "j5-sort-ru",
+   "title": "Sorting by the Russian alphabet",
+   "statement": "Write a function sortWords(words) that returns a new array of strings sorted by Russian language rules («ё» sorts next to «е»), using localeCompare and the locale \"ru\". Do not change the original array.",
+   "hint": "a.localeCompare(b, \"ru\")"
+  },
+  {
+   "id": "j5-approx",
+   "title": "Comparing fractional numbers",
+   "statement": "Write a function approxEqual(a, b, eps = 1e-9) that returns true if the absolute difference of the numbers is not greater than eps. For 0.1 + 0.2 and 0.3 the result is true.",
+   "hint": "Math.abs(a - b) <= eps"
+  },
+  {
+   "id": "j5-round-away",
+   "title": "Rounding away from zero",
+   "statement": "Write a function roundHalfAway(x) that rounds to an integer and sends halves away from zero: 2.5 → 3, -2.5 → -3, -2.4 → -2. Math.round gives something different for negative halves.",
+   "hint": "Math.sign(x) * Math.round(Math.abs(x))"
+  },
+  {
+   "id": "j5-thousands",
+   "title": "Thousands separators",
+   "statement": "Write a function thousands(n): n is an integer; return a string where digit groups are separated by a space: 1234567 → \"1 234 567\", -1000 → \"-1 000\". You may not use Intl or toLocaleString.",
+   "hint": "Walk through the digits; put a space before a digit if the number of digits left to the end is a multiple of three."
+  },
+  {
+   "id": "j5-fill-defaults",
+   "title": "Default values with ??=",
+   "statement": "Write a function fillDefaults(opts) that writes default values into the object if a field is missing (null or undefined): size = 10, name = «аноним», debug = false. Existing values, including 0, an empty string and false, stay. Return the same object. You may not use the || operator.",
+   "hint": "opts.size ??= 10;"
+  },
+  {
+   "id": "j5-tally",
+   "title": "Counting words",
+   "statement": "Write a function tally(words) that returns an object whose keys are words and whose values are how many times each word occurred. Use the ??= operator.",
+   "hint": "counts[w] ??= 0; counts[w]++;"
+  },
+  {
+   "id": "j5-flags",
+   "title": "Flags: masks and bits",
+   "statement": "Write four functions for working with a set of flags in one number: hasFlag(mask, f) tells whether flag f is set; setFlag(mask, f) returns the mask with f set; clearFlag(mask, f) with it cleared; toggleFlag(mask, f) with it toggled. Flags are powers of two (1, 2, 4, …).",
+   "hint": "& tests, | sets, & ~ clears, ^ toggles."
+  },
+  {
+   "id": "j5-popcount",
+   "title": "How many ones in a number",
+   "statement": "Write a function bitCount(n): n is a non-negative integer less than 2 to the power 32; return the number of set bits. Use bitwise operators, without toString(2) and without regular expressions.",
+   "hint": "Shift with >>> (unsigned) and add n & 1."
+  },
+  {
+   "id": "j5-pow2",
+   "title": "Power of two",
+   "statement": "Write a function isPowerOfTwo(n): true for 1, 2, 4, 8 … (n is an integer less than 2 to the power 31); false for 0 and negatives. Do not use loops or logarithms, only bitwise operators.",
+   "hint": "n & (n - 1) clears the lowest set bit."
+  },
+  {
+   "id": "j5-wrap32",
+   "title": "Wrap to 32 bits",
+   "statement": "Write a function wrap32(n) that returns the signed 32-bit number an integer n \"wraps\" to, as in C for int32_t: wrap32(2 ** 31) = -2147483648, wrap32(2 ** 32 + 5) = 5.",
+   "hint": "n | 0"
+  },
+  {
+   "id": "j5-classify",
+   "title": "What kind of value",
+   "statement": "Write a function kind(v) that returns a string: \"null\", \"array\", \"date\", \"regexp\", \"function\", \"object\" (for other objects) or the result of typeof for primitives. For a date and a regular expression use instanceof.",
+   "hint": "The order of checks matters: null first, then array, date, regular expression."
+  },
+  {
+   "id": "j5-own-vs-in",
+   "title": "Own or inherited",
+   "statement": "Write a function keyInfo(obj, key) that returns \"own\" if the property key exists on the object itself, \"inherited\" if it exists only in the prototype chain (the in operator), and \"none\" if it does not exist at all.",
+   "hint": "Object.hasOwn(obj, key) is own; key in obj is any, including inherited."
+  },
+  {
+   "id": "j5-money-object",
+   "title": "An object that acts like a number and a string",
+   "statement": "Write a function makeMoney(cents) that returns an object with the methods valueOf() (a number: the amount in cents) and toString() (a string like \"12.34 ₽\"). Then m * 2 gives doubled cents, and `${m}` gives the text.",
+   "hint": "valueOf returns a number, toString a string; (cents / 100).toFixed(2) + \" ₽\"."
+  },
+  {
+   "id": "j5-fix-chain",
+   "title": "Fix it: comparison chain",
+   "statement": "The function inRange(x) must return true if x is strictly greater than 0 and strictly less than 10. Right now it uses the chain 0 < x < 10 and is wrong for x ≥ 10. Fix it.",
+   "hint": "x > 0 && x < 10"
+  },
+  {
+   "id": "j5-eval-rpn",
+   "title": "Reverse Polish notation calculator",
+   "statement": "Write a function evalRpn(tokens): the tokens are an array of strings with numbers and the operators + - * /; return the result of evaluating them in reverse Polish notation, for example [\"3\", \"4\", \"+\", \"2\", \"*\"] → 14. Convert numbers explicitly; division is fractional.",
+   "hint": "A stack: push numbers; an operator pops two values and pushes the result. Do not forget Number(t), or + will concatenate strings."
+  },
+  {
+   "id": "j5-fix-concat",
+   "title": "Fix it: form prices are strings",
+   "statement": "The function total(prices) takes an array of prices written as strings (\"10\", \"2.5\") and must return their sum as a number. Right now it produces a concatenation instead of a sum. Fix it.",
+   "hint": "Number(p) before adding."
+  }
+ ]
+}

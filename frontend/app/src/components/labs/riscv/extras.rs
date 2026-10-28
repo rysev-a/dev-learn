@@ -41,7 +41,7 @@ pub fn ProjectCard(session: Session) -> impl IntoView {
         Some(view! {
             <p class="lab-muted">
                 {f.note.clone()}" "
-                <button type="button" class="quiz-btn ghost" on:click=move |_| { let _ = save_text(&content, &name); }>{format!("Скачать {}", f.name)}</button>
+                <button type="button" class="quiz-btn ghost" on:click=move |_| { let _ = save_text(&content, &name); }>{i18n::trf!("Download {0}", f.name)}</button>
             </p>
             <pre class="lab-data mono lab-file">{f.content}</pre>
         })
@@ -50,16 +50,14 @@ pub fn ProjectCard(session: Session) -> impl IntoView {
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Собрать у себя на компьютере"</h3>
+                    <h3>{i18n::tr("Build on your own computer")}</h3>
                     <p>
-                        "Эта программа — обычный файл на ассемблере RISC-V. Скачайте проект, установите инструменты (команды — в README) \
-                         и выполните "<span class="mono">"make run"</span>": настоящий компилятор превратит текст в те же 32-битные слова, \
-                         что в листинге выше, а qemu выполнит их."
+                        {i18n::tr("This program is a plain RISC-V assembly file. Download the project, install the tools (commands are in the README) and run ")}<span class="mono">"make run"</span>{i18n::tr(": a real compiler will turn the text into the same 32-bit words as in the listing above, and qemu will run them.")}
                     </p>
                 </div>
-                <button type="button" class="quiz-btn" on:click=download_zip>"Скачать проект (.zip)"</button>
+                <button type="button" class="quiz-btn" on:click=download_zip>{i18n::tr("Download project (.zip)")}</button>
             </div>
-            <div class="lab-seg" role="group" aria-label="Файлы проекта">{tabs}</div>
+            <div class="lab-seg" role="group" aria-label=i18n::tr("Project files")>{tabs}</div>
             {file}
         </div>
     }
@@ -75,8 +73,8 @@ pub fn ReferenceCard() -> impl IntoView {
             view! {
                 <tr>
                     <td class="left mono"><strong>{o.mnemonic}</strong></td>
-                    <td class="left mono">{o.example}</td>
-                    <td class="left">{o.meaning}</td>
+                    <td class="left mono">{i18n::tr(o.example)}</td>
+                    <td class="left">{i18n::tr(o.meaning)}</td>
                     <td class="mono">{fmt}</td>
                 </tr>
             }
@@ -84,17 +82,15 @@ pub fn ReferenceCard() -> impl IntoView {
         .collect_view();
     let pseudo = PSEUDO
         .iter()
-        .map(|p| view! { <tr><td class="left mono"><strong>{p.example}</strong></td><td class="left mono">{format!("= {}", p.becomes)}</td></tr> })
+        .map(|p| view! { <tr><td class="left mono"><strong>{i18n::tr(p.example)}</strong></td><td class="left mono">{format!("= {}", i18n::tr(p.becomes))}</td></tr> })
         .collect_view();
     view! {
         <div class="lab-card">
             <div class="lab-card-head">
                 <div>
-                    <h3>"Справочник: команды RISC-V (RV32IM)"</h3>
+                    <h3>{i18n::tr("Reference: RISC-V instructions (RV32IM)")}</h3>
                     <p>
-                        "32 регистра по 32 бита; x0 (zero) всегда равен нулю. У регистров есть «ABI-имена»: a0…a7 — аргументы и результат, \
-                         t0…t6 — временные, s0…s11 — «неприкосновенные» (функция обязана вернуть их как были), ra — адрес возврата, sp — стек. \
-                         Комментарии — после «#». Метки — «имя:»."
+                        {i18n::tr("32 registers of 32 bits each; x0 (zero) is always zero. Registers have “ABI names”: a0…a7 — arguments and result, t0…t6 — temporaries, s0…s11 — “saved” (a function must return them unchanged), ra — return address, sp — stack. Comments start with “#”. Labels are “name:”.")}
                     </p>
                 </div>
             </div>
@@ -102,15 +98,15 @@ pub fn ReferenceCard() -> impl IntoView {
                 <table class="lab-table ref">
                     <thead>
                         <tr>
-                            <th class="left">"команда"</th>
-                            <th class="left">"пример"</th>
-                            <th class="left">"что делает"</th>
-                            <th>"формат"</th>
+                            <th class="left">{i18n::tr("instruction")}</th>
+                            <th class="left">{i18n::tr("example")}</th>
+                            <th class="left">{i18n::tr("what it does")}</th>
+                            <th>{i18n::tr("format")}</th>
                         </tr>
                     </thead>
                     <tbody>{ops}</tbody>
                 </table>
-                <h4 class="lab-ref-sub">"Псевдокоманды — сокращения, которые ассемблер разворачивает сам"</h4>
+                <h4 class="lab-ref-sub">{i18n::tr("Pseudo-instructions — shortcuts the assembler expands by itself")}</h4>
                 <table class="lab-table ref"><tbody>{pseudo}</tbody></table>
             </div>
         </div>

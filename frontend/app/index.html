@@ -23,9 +23,9 @@
     <!-- режим и цветовая тема до загрузки приложения, чтобы страница не мигала цветами по умолчанию -->
     <script>
       try {
-        var d = document.documentElement, t = localStorage.getItem("say-theme") === "light" ? "light" : "dark";
+        var d = document.documentElement, t = localStorage.getItem("cs-core-theme") === "light" ? "light" : "dark";
         d.dataset.theme = t;
-        var p = localStorage.getItem("say-palette-" + t);
+        var p = localStorage.getItem("cs-core-palette-" + t);
         if (p && p !== "default") d.dataset.palette = p;
       } catch (e) {}
     </script>

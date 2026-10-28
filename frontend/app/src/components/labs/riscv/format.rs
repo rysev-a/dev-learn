@@ -21,9 +21,9 @@ pub struct MemWindow {
 
 /// Окна памяти: команды, данные, вершина стека.
 pub const WINDOWS: [MemWindow; 3] = [
-    MemWindow { title: "Команды (0x0000)", from: 0x0000 },
-    MemWindow { title: "Данные (0x1000)", from: 0x1000 },
-    MemWindow { title: "Стек (вершина)", from: STACK_TOP - WINDOW_BYTES },
+    MemWindow { title: i18n::t!("Instructions (0x0000)"), from: 0x0000 },
+    MemWindow { title: i18n::t!("Data (0x1000)"), from: 0x1000 },
+    MemWindow { title: i18n::t!("Stack (top)"), from: STACK_TOP - WINDOW_BYTES },
 ];
 
 /// Окно, в которое попадает адрес: после команды окно перескакивает туда, где она читала или писала.
@@ -196,7 +196,7 @@ pub fn led_cells(value: u8) -> [(u8, bool); 8] {
 
 /// Код возврата так, как его видит оболочка: младший байт.
 pub fn exit_code_text(code: i32) -> String {
-    format!("код возврата: {}", code & 0xff)
+    i18n::trf!("exit code: {0}", code & 0xff)
 }
 
 /// Итог запуска: плашка «Задание выполнено!» или «Пока не то» с пояснением.
@@ -253,7 +253,7 @@ pub fn evaluate(spec: &TaskSpec, asm: &AsmResult, m: &Machine, program: &str) ->
         return None;
     }
     let Some(test) = spec.tests.first() else {
-        return Some(RunResult::bad("У задачи нет тестов".to_string()));
+        return Some(RunResult::bad(i18n::tr("The task has no tests").to_string()));
     };
     let checked = test.check.evaluate(&m.view(), &asm.symbols);
     if !checked.ok {
@@ -271,12 +271,14 @@ mod tests {
 
     #[test]
     fn address_is_four_uppercase_hex_digits() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(hex_addr(0x1a0), "01A0");
         assert_eq!(hex_addr(0x4000), "4000");
     }
 
     #[test]
     fn memory_windows_cover_text_data_and_stack() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(window_for(0), Some(0));
         assert_eq!(window_for(0xff), Some(0));
         assert_eq!(window_for(0x100), None);
@@ -287,6 +289,7 @@ mod tests {
 
     #[test]
     fn registers_show_signed_and_hex_values() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut regs = vec![0u32; 32];
         regs[10] = 0xffff_fffe;
         let rows = reg_rows(&regs, Some(10));
@@ -298,6 +301,7 @@ mod tests {
 
     #[test]
     fn listing_splits_every_word_into_fields() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let asm = assemble("  addi a0, zero, 5\n  ebreak\n");
         let rows = listing_rows(&asm.lines);
         assert_eq!(rows.len(), 2);
@@ -309,6 +313,7 @@ mod tests {
 
     #[test]
     fn memory_grid_marks_access_and_prints_ascii() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut mem = vec![0u8; 0x200];
         mem[0x10] = b'A';
         mem[0x11] = 7;
@@ -324,6 +329,7 @@ mod tests {
 
     #[test]
     fn leds_go_from_seven_down_to_zero() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let cells = led_cells(0b1010_0101);
         assert_eq!(cells[0], (7, true));
         assert_eq!(cells[1], (6, false));
@@ -332,6 +338,7 @@ mod tests {
 
     #[test]
     fn exit_code_is_one_byte() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(exit_code_text(3), "код возврата: 3");
         assert_eq!(exit_code_text(-1), "код возврата: 255");
         assert_eq!(exit_code_text(256), "код возврата: 0");
@@ -358,6 +365,7 @@ mod tests {
 
     #[test]
     fn reference_programs_pass_and_starters_do_not() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let tasks = chapters();
         assert_eq!(tasks.len(), 15);
         for (id, spec, reference) in tasks {
@@ -377,6 +385,7 @@ mod tests {
 
     #[test]
     fn stepping_does_not_report_until_the_machine_halts() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let spec: TaskSpec = serde_json::from_value(serde_json::json!({
             "profile": "board", "starter": "", "data": "",
             "tests": [{ "check": { "kind": "reg", "reg": 10, "expected": 5, "ok": "готово" } }],
@@ -393,6 +402,7 @@ mod tests {
 
     #[test]
     fn machine_is_not_built_from_a_broken_program() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let spec: TaskSpec = serde_json::from_value(serde_json::json!({
             "profile": "board", "starter": "", "data": "", "tests": [],
         }))
@@ -403,6 +413,7 @@ mod tests {
 
     #[test]
     fn machine_takes_switches_and_registers_from_the_first_test() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let spec: TaskSpec = serde_json::from_value(serde_json::json!({
             "profile": "board", "starter": "", "data": "",
             "tests": [{ "switches": 178, "regs": [{ "reg": 10, "value": 7 }],

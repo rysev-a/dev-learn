@@ -1,11 +1,11 @@
 //! Точка входа: окружение, подключение к SurrealDB, сид, роутер, запуск сервера.
 
-use say_backend::{build, config::Config, db};
+use cs_core_backend::{build, config::Config, db};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
-    let otel = observability::init("say-backend");
+    let otel = observability::init("cs-core-backend");
     let cfg = Config::from_env();
 
     let (database, in_memory) = db::connect(&cfg.surreal_url).await?;
@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     let app = app.layer(axum::middleware::from_fn(observability::track_http_metrics)).layer(observability::OtelAxumLayer::default());
 
     let listener = tokio::net::TcpListener::bind(&bind).await?;
-    tracing::info!("say-backend слушает http://{bind} (db: {})", if in_memory { "memory" } else { &url });
+    tracing::info!("cs-core-backend слушает http://{bind} (db: {})", if in_memory { "memory" } else { &url });
     axum::serve(listener, app).await?;
     otel.shutdown();
     Ok(())

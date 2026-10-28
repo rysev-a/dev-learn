@@ -1,0 +1,72 @@
+{
+ "book": 15,
+ "chapter": 20,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n20-docker",
+   "title": "Docker: outbound access and port publishing",
+   "statement": "On the Docker host 192.168.0.5 containers c1 (172.17.0.2, web on port 80) and c2 run on the bridge br0 (172.17.0.0/16). Forwarding between interfaces is off on the host, and there is no address translation. Make the containers reach the external network (source substitution on eth0), and make c1's web reachable by a client from the local network at the host address on port 8080 (forward 8080 → 172.17.0.2:80). The host's direct port 80 stays closed.",
+   "hint": "Three steps on the host: `sysctl -w net.ipv4.ip_forward=1`; `iptables -t nat -A POSTROUTING -s 172.17.0.0/16 -o eth0 -j MASQUERADE`; `iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 8080 -j DNAT --to-destination 172.17.0.2:80`. This is exactly what Docker does by itself when it starts a container with -p 8080:80.",
+   "spec_text": {
+    "/goals/0/text": "Container c2 pings an external host (192.168.0.30)",
+    "/goals/1/text": "Client opens c1's web through the host: 192.168.0.5:8080",
+    "/goals/2/text": "Host port 80 is closed from outside",
+    "/start/devices/0/name": "Docker host",
+    "/start/devices/1/name": "br0 (bridge)",
+    "/start/devices/2/name": "c1 (web)",
+    "/start/devices/5/name": "Client",
+    "/start/devices/6/name": "External host"
+   }
+  },
+  {
+   "id": "n20-natgw",
+   "title": "VPC private subnet and NAT gateway",
+   "statement": "The application server 10.0.2.10 in the private subnet must reach the repository 198.51.100.10 for updates but remain unreachable from outside. The NAT gateway (10.0.1.5 in the public subnet, external address 203.0.113.9) already exists. Configure: the private subnet's default route through the NAT gateway (on the VPC router), source substitution on the gateway, and a return route to the private subnet on the gateway.",
+   "hint": "On the VPC router: `ip route add default via 10.0.1.5`. On the NAT gateway: `iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE` and `ip route add 10.0.2.0/24 via 10.0.1.1`.",
+   "spec_text": {
+    "/goals/0/text": "The application server pings the repository",
+    "/goals/1/text": "The repository sees the NAT gateway's address",
+    "/goals/2/text": "The repository cannot reach the private server directly",
+    "/start/devices/0/name": "Application server",
+    "/start/devices/1/name": "VPC router",
+    "/start/devices/2/name": "NAT gateway",
+    "/start/devices/3/name": "Internet",
+    "/start/devices/4/name": "Repository"
+   }
+  },
+  {
+   "id": "n20-sg",
+   "title": "Three-tier application: security groups",
+   "statement": "Web (10.0.1.10), application (10.0.2.10) and database (10.0.3.10) sit in different subnets behind the VPC router. The policy is DROP. Configure the permissions on the least-privilege principle: from the internet only HTTPS to web; web → application on port 8080; application → database on 3306; replies are allowed. Everything else, including web → database and internet → application, is closed.",
+   "hint": "FORWARD rules: 1) ESTABLISHED,RELATED; 2) `-p tcp -d 10.0.1.10 --dport 443`; 3) `-p tcp -s 10.0.1.10 -d 10.0.2.10 --dport 8080`; 4) `-p tcp -s 10.0.2.10 -d 10.0.3.10 --dport 3306`. The DROP policy stops the rest.",
+   "spec_text": {
+    "/goals/0/text": "Internet → web (443)",
+    "/goals/1/text": "Web → application (8080)",
+    "/goals/2/text": "Application → database (3306)",
+    "/goals/3/text": "Internet → application is closed",
+    "/goals/4/text": "Web → database is closed",
+    "/start/devices/0/name": "Client from the internet",
+    "/start/devices/1/name": "VPC router",
+    "/start/devices/2/name": "Web",
+    "/start/devices/3/name": "Application",
+    "/start/devices/4/name": "Database"
+   }
+  },
+  {
+   "id": "n20-k8s",
+   "title": "Kubernetes Service and pod readiness",
+   "statement": "The service web (virtual address 10.96.0.10:80) must spread requests across three pods, 10.244.1.5, 10.244.1.6 and 10.244.1.7, but the endpoint list holds only one so far. On top of that, the second pod is not ready yet (the port is not listening). Add the endpoints and enable the readiness check so that requests go only to ready pods and are distributed among them.",
+   "hint": "On the node (kube-proxy): `lb add 10.244.1.6:80`, `lb add 10.244.1.7:80`, `lb health on` — the readiness probe excludes the pod that does not listen on the port.",
+   "spec_text": {
+    "/goals/0/text": "6 connections are split between the ready pods",
+    "/start/devices/0/name": "Pod client",
+    "/start/devices/1/name": "Node (kube-proxy)",
+    "/start/devices/2/name": "Pod bridge",
+    "/start/devices/3/name": "pod 1",
+    "/start/devices/4/name": "pod 2 (not ready)",
+    "/start/devices/5/name": "pod 3"
+   }
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 25,
+ "tasks": [
+  {
+   "id": "j17-form-entries",
+   "title": "What goes into the form data",
+   "statement": "A form is an array of elements { tag: \"input\"|\"select\"|\"textarea\"|\"button\", type?, name?, value?, checked?, disabled?, multiple?, options?: [{ value, selected }] } in document order. Write a function formEntries(elements, submitter = null) → an array of [name, value] pairs by the HTML rules: elements without a name or disabled are skipped; input of type checkbox/radio — only if checked (value is value, or \"on\" if not set); input of types button, reset, image, submit and the button tag — only if it is the submitter (the button used to submit); select without multiple — the selected option (the first one if none is selected); select multiple — a pair for each selected one; textarea and other inputs — value (empty string if absent); input type file without a file is skipped (in this model: value === undefined).",
+   "hint": "Walk the elements in document order; each kind has its own rule."
+  },
+  {
+   "id": "j17-urlencoded",
+   "title": "application/x-www-form-urlencoded",
+   "statement": "Write the functions encodeForm(entries) → a string \"k=v&k2=v2\" (pairs [name, value]): names and values are encoded as in forms — a space becomes \"+\", characters outside the set A–Z a–z 0–9 * - . _ become percent-encoded UTF-8 (uppercase hex digits); and decodeForm(str) → an array of [name, value] pairs in order of appearance (empty string → []; \"+\" → space; \"%XX\" is decoded; a pair without \"=\" gets an empty string value; an invalid % is left as is). You may not use encodeURIComponent or URLSearchParams.",
+   "hint": "Encode UTF-8 bytes; when decoding, accumulate the bytes of consecutive %XX and build the string from them."
+  },
+  {
+   "id": "j17-multipart",
+   "title": "multipart/form-data",
+   "statement": "Write a function buildMultipart(parts, boundary): parts is an array of { name, value } (a text field) or { name, filename, type, data (a string) }; the body: for each part \"--boundary\\r\\n\" + \"Content-Disposition: form-data; name=\\\"name\\\"\" (for a file add \"; filename=\\\"name\\\"\" and a line \"Content-Type: type\") + an empty line + the data + \"\\r\\n\"; at the end \"--boundary--\\r\\n\". And a function parseMultipart(body, boundary) → an array of the same objects (value for text, filename/type/data for files; name/filename without escaping). Escape quotes inside names as %22.",
+   "hint": "Separator --boundary, part headers, an empty line, data; when parsing, split on the separator."
+  },
+  {
+   "id": "j17-formdata",
+   "title": "Your own FormData",
+   "statement": "Write a class MyFormData: append(name, value), set(name, value) (replaces all values of that name with one — at the position of the first if there was one, otherwise at the end), get(name) (the first value or null), getAll(name), has(name), delete(name), entries() (an iterator of pairs in insertion order), [Symbol.iterator], keys(), values(), forEach(cb), and a static MyFormData.from(entries); values are converted to strings (except file objects: an object with a name field is kept as is).",
+   "hint": "Inside, an array of pairs; set replaces the first occurrence and removes the rest."
+  },
+  {
+   "id": "j17-search-params",
+   "title": "Your own URLSearchParams",
+   "statement": "Write a class MySearchParams(init): init is a string (\"?a=1&b=2\" or \"a=1&b=2\"), an array of pairs or an object. Methods: get(name) (the first value or null), getAll(name), has(name), append(name, value), set(name, value) (as in FormData), delete(name), sort() (by name, stable), toString() (encoding as in forms: space → \"+\", everything else percent-encoded; safe characters A–Za–z0–9*-._), size, entries(). Parsing: \"+\" is a space, \"%XX\" is decoded; a pair without \"=\" gives an empty value. Use your own encoding (encodeURIComponent and URLSearchParams may not be used).",
+   "hint": "Inside, an array of pairs; encoding and decoding are as in the urlencoded task."
+  },
+  {
+   "id": "j17-validity",
+   "title": "ValidityState",
+   "statement": "A field: { type, value, required, min, max, minLength, maxLength, pattern, step, multiple }. Write a function validity(field) → { valueMissing, typeMismatch, patternMismatch, tooLong, tooShort, rangeUnderflow, rangeOverflow, stepMismatch, valid } (booleans). Rules: an empty value (the string ''), if not required, violates nothing; valueMissing = required and value === ''; typeMismatch for type=email (a simple pattern \"something@something.something\" without spaces; with multiple — a comma-separated list) and url (scheme://…); patternMismatch — the whole value does not match pattern (the regular expression \"^(?:pattern)$\"); tooLong/tooShort — the length (in Unicode characters) is compared with maxLength/minLength; for type=number and range: the value is a number (a non-number — typeMismatch? no: we count badInput as typeMismatch), rangeUnderflow/Overflow — by min/max; stepMismatch — (value - min (0 by default)) is not divisible by step (tolerance 1e-9). valid — no violation at all.",
+   "hint": "Each violation is an independent check; an empty optional field violates nothing."
+  },
+  {
+   "id": "j17-form-validate",
+   "title": "Validating a whole form",
+   "statement": "The rules are given by a schema { field: [{ test(value, values) → boolean, message }] } (in order). Write a function validateForm(schema, values) → { valid, errors: { field: first message }, firstInvalid: the name of the first wrong field in schema order or null, summary: [messages of all fields as \"field: message\" in schema order] }. Rules can access all values (for \"passwords match\"). A field with no rules is ignored; if a field has errors, only the first one is taken.",
+   "hint": "For each field run the rules in order and stop at the first violation."
+  },
+  {
+   "id": "j17-password-strength",
+   "title": "Password strength",
+   "statement": "Write a function passwordStrength(pw) → { score (0–4), level: \"очень слабый\"|\"слабый\"|\"средний\"|\"хороший\"|\"отличный\", hints: [...] } (the level strings stay in Russian exactly as written; they mean very weak, weak, medium, good, excellent). Points: +1 for length ≥ 8, +1 for length ≥ 12, +1 for having at least three of four classes (lowercase, uppercase, digits, other characters), +1 for having no weak signs (no 3 identical characters in a row, not from the list of popular ones \"123456\", \"password\", \"qwerty\", \"111111\", \"пароль\", not consisting only of digits); cap the total at 4; an empty password — 0. hints are recommendations in this order: «Добавьте длину», «Смешайте регистры, цифры и символы», «Избегайте повторов и популярных паролей» (only for the criteria that are not met; the texts stay in Russian exactly as written).",
+   "hint": "Four independent criteria; hints are for the ones not met."
+  },
+  {
+   "id": "j17-luhn",
+   "title": "Card number: Luhn, brand, format",
+   "statement": "Write the functions luhn(number) → boolean (the Luhn algorithm; spaces and hyphens are ignored; non-digits — false; length 12–19), brand(number) → \"visa\" (starts with 4), \"mastercard\" (51–55 or 2221–2720), \"mir\" (2200–2204), \"amex\" (34 or 37), otherwise \"unknown\"; formatCard(number) → groups of 4 digits separated by a space (for amex — 4-6-5), maskCard(number) → \"•••• •••• •••• 1234\" (shows the last 4, groups as in formatCard, hidden digits replaced with \"•\").",
+   "hint": "Luhn: every second digit from the right is doubled; format and mask go by groups."
+  },
+  {
+   "id": "j17-dates",
+   "title": "Dates in input fields",
+   "statement": "Write the functions parseDate(str) → { y, m, d } or null: the format YYYY-MM-DD (as in input type=date), with a check that the day exists (31 February, or 29 February in a non-leap year — null); formatDate({ y, m, d }, \"DD.MM.YYYY\") → a string (support the templates DD, MM, YYYY, YY); age(birth, today) → full years (both are { y, m, d } objects); inRange(date, min, max) — inclusive (min, max may be null); and daysBetween(a, b) → the number of days (b - a, may be negative) via the Gregorian calendar without Date.",
+   "hint": "Check the day against a table of month lengths with the leap year; the difference is via the ordinal day number."
+  },
+  {
+   "id": "j17-dirty",
+   "title": "Changes in a form",
+   "statement": "Write the functions diffForm(initial, current) → { changed: { field: { from, to } }, added: [fields that were not there], removed: [fields that are gone], dirty: boolean } (values are compared deeply for arrays and objects: the order of array elements matters, object keys do not; the order of fields in the result arrays follows key order: first initial, then current), and reset(initial) → a deep copy that the form will accept as its initial state (changes to the copy do not affect initial).",
+   "hint": "Deep comparison; three categories: changed, added, removed."
+  },
+  {
+   "id": "j17-autosave",
+   "title": "Draft autosave",
+   "statement": "You are given virtual timers FAKE (now, setTimeout, clearTimeout, advance) and a storage (getItem, setItem, removeItem — as in Web Storage). Write a function createDraft(key, storage, timers, { delay = 500, maxWait = 3000, version = 1 }): it returns { update(values) (deferred saving: delay ms after the last update, but no later than maxWait after the first unsaved update), load() → values or null (reads the JSON {version, savedAt, values}; a different version or corrupted JSON → null and the entry is removed), clear() (cancels waiting and removes the entry), flush() (save immediately if there is anything unsaved) }. savedAt is timers.now().",
+   "hint": "Two timers: \"after a pause\" and \"no later than maxWait\"; saving cancels both."
+  },
+  {
+   "id": "j17-set-cookie",
+   "title": "Parsing and building Set-Cookie",
+   "statement": "Write the functions parseSetCookie(header) → { name, value, path?, domain?, expires? (a string), maxAge? (a number), secure (boolean), httpOnly (boolean), sameSite? (lowercase: strict/lax/none) } (attribute names are case-insensitive; the cookie value may contain \"=\"; the value is decoded with decodeURIComponent if possible, otherwise left as is; the domain is without a leading dot, in lowercase) and serializeCookie(name, value, options) → a string: \"name=value\" (the value is encoded with encodeURIComponent) + attributes in the order Domain, Path, Expires, Max-Age, SameSite (Strict|Lax|None), Secure, HttpOnly; for SameSite=None without Secure throw Error(\"SameSite=None требует Secure\") (the message stays in Russian exactly as written).",
+   "hint": "Split on \";\", the first part is name=value; the rest are attributes by name, case-insensitive."
+  },
+  {
+   "id": "j17-cookie-jar",
+   "title": "Cookie storage (cookie jar)",
+   "statement": "Write a class CookieJar(now): store(url, setCookieHeader) (parses the header (simple Set-Cookie parsing: name=value and the attributes Domain, Path, Max-Age, Secure, HttpOnly) and saves it; the default domain is the host from url (host-only: matches only the exact host); with Domain=x.ru — for x.ru and its subdomains; the default path is the directory of the url path (up to the last \"/\", \"/\" if there is no path); Max-Age ≤ 0 deletes the cookie; Secure cookies are accepted only over https), and cookieHeader(url) → a string \"a=1; b=2\" for a request: matching by domain, path (prefix on a segment boundary) and security (Secure — only https); not expired; order — the longer path first, then the earlier creation. A duplicate (name, domain, path) replaces the previous one.",
+   "hint": "Cookies: {name, value, domain, hostOnly, path, secure, expires}; check domain, path, Secure and expiry when building the header."
+  },
+  {
+   "id": "j17-samesite",
+   "title": "SameSite: whether to send cookies",
+   "statement": "A request is described as: { initiator (the address of the initiating page), target (the request address), method, topLevel (a top-level navigation?), type: \"navigation\"|\"subresource\"|\"form\"|\"fetch\" }; a cookie is { sameSite: \"strict\"|\"lax\"|\"none\"|undefined (lax by default), secure }. Write a function sameSiteOf(url1, url2) → true if the addresses share one \"site\" (scheme and registrable domain: the last two parts of the host; localhost and IPs as is), and shouldSend(cookie, request): none — always sent (but cookie.secure must be true and the target must be https, otherwise not); strict — only if the sites match; lax (and undefined) — if the sites match, or the request is a top-level navigation (topLevel) with the GET method; Secure cookies are not sent over http. For requests within one site all modes send (except Secure over http).",
+   "hint": "First Secure/https, then the mode: none, same-site, strict, lax (only top-level GET navigation)."
+  },
+  {
+   "id": "j17-storage",
+   "title": "Your own Storage",
+   "statement": "Write a class MyStorage(quota = 5000): like Web Storage: getItem(key) (null if absent), setItem(key, value) (values are converted to strings; the \"size\" of an entry is the key length + the value length; if the sum of the sizes of all entries after the write exceeds quota — throw an error with the name \"QuotaExceededError\" and change nothing), removeItem, clear, key(i) (the key by insertion order or null), length, and subscribers: onChange(fn) → an unsubscribe function; fn is called like a storage event: { key, oldValue, newValue } (for clear — key: null; writing the same value generates no event; removeItem of a missing key does not either).",
+   "hint": "A Map; the size is the sum of key and value lengths; the event is generated only on a real change."
+  },
+  {
+   "id": "j17-ttl-storage",
+   "title": "Storage with TTL, namespace and versions",
+   "statement": "Write a function createCache(storage, { namespace, version, now, migrations = {} }): it returns { set(key, value, ttlMs?), get(key, fallback = null), remove(key), keys(), purge() }. Entries lie in storage under the key \"namespace:v<version>:key\" as JSON { value, expires (ms | null) }; get returns fallback for missing, expired (the entry is removed then) and corrupted (removed) ones; keys() — the keys of the current namespace and version without the prefix (not expired); purge() — remove expired entries and entries of old versions of this namespace (keys \"namespace:v<other>:…\"), return the number removed. Migrations: if there is no entry of the current version for a key, but there is one of the previous version (version - 1) and migrations[version] is a function value → newValue, get migrates the value, saves it under the new key and removes the old one. storage is { getItem, setItem, removeItem, key(i), length }.",
+   "hint": "The prefix namespace:vN:; reading with a check for expiry and corruption; migration from the previous version on get."
+  },
+  {
+   "id": "j17-tab-sync",
+   "title": "Syncing tabs via the storage event",
+   "statement": "Two tabs write settings to a shared storage. Each record is { value, ts (write time, ms), tab (tab id) }. Write a function createSynced(tabId, storage, now, key): it returns { set(settingName, value) (writes into a shared JSON object under the key key; a setting value is stored as { value, ts, tab }), get(settingName), onStorage(event) → an array of names of the settings that changed for this tab (event = { key, newValue (a JSON string) }; ignores foreign keys; applies \"last write wins\" by ts, on a tie by tab id in alphabetical order (the greater wins); ignores records of its own tab) }. A local cache holds the current values: get reads it.",
+   "hint": "A cache of values with metadata; the winner rule is the greater ts, on a tie the greater tab id."
+  },
+  {
+   "id": "j17-idb-store",
+   "title": "An object store like in IndexedDB",
+   "statement": "Write a class ObjectStore({ keyPath?, autoIncrement = false }): methods add(value, key?) → the key (if an entry with that key already exists — an error with the name \"ConstraintError\"; the key is taken from value[keyPath], or from auto-increment (1, 2, …; when a numeric key is given manually, the counter catches up), or from the argument key; if there is no key at all — DataError), put(value, key?) (create or replace), get(key) (a copy of the value or undefined), delete(key), clear(), getAll() (copies in key order: numbers ascending before strings, strings alphabetical), getAllKeys(), count(). Values are stored as copies (structuredClone): changing the object you got does not change the store.",
+   "hint": "A Map from key to copy; the auto-increment counter catches up on numeric keys."
+  },
+  {
+   "id": "j17-idb-index",
+   "title": "Indexes and key ranges",
+   "statement": "You are given records (an array of objects). Write KeyRange: the statics bound(lower, upper, lowerOpen = false, upperOpen = false), lowerBound(x, open = false), upperBound(x, open = false), only(x) and the method includes(key) (comparison with the usual <, >). And a function createIndex(records, keyPath, { unique = false }) → an object { get(key) (the first record with that value or undefined), getAll(rangeOrKey?) (records sorted by index value (stable by original order), filtered by a range or a specific value), count(range?), keys() (sorted unique values), openCursor(range, direction = \"next\"|\"prev\") → an array of records in the needed order }. With unique = true a duplicate value is an Error with the name \"ConstraintError\" on creating the index. Records without a value at keyPath do not go into the index.",
+   "hint": "Sort the records with keys stably; a range is an object with an includes(key) check."
+  },
+  {
+   "id": "j17-idb-tx",
+   "title": "Transactions with rollback",
+   "statement": "Write a function createDb(initial) → { transaction(fn) }: the data is an object \"store → object key → value\". transaction(fn) calls fn(tx) with an object tx = { get(store, key), put(store, key, value), delete(store, key), abort() }; while the transaction runs, changes are visible only to it (inside it reads its own writes), and when fn finishes normally (including the returned value) the changes are applied atomically to the whole database; if fn throws or tx.abort() is called — all changes are rolled back and the exception is rethrown (for abort — an Error with the name \"AbortError\" is thrown). It returns the result of fn. The method snapshot() — a copy of the database data. An unknown store — NotFoundError.",
+   "hint": "Work on a copy of the data and swap it in only if fn finished without an exception."
+  },
+  {
+   "id": "j17-migrations",
+   "title": "Schema migrations by version",
+   "statement": "Write a function runMigrations(db, migrations, targetVersion): db = { version, data } (version is the current one; data is an arbitrary object); migrations is an array of { version, up(data) → newData } (ascending by number). All migrations with version > db.version and ≤ targetVersion are applied in order; each gets a deep copy of the data; after success the version is updated to that migration's version; if a migration throws — the whole operation is rolled back (db stays at the original version with the original data), and the exception is rethrown with «миграция v<N>: …» added to the message (the prefix stays in Russian exactly as written). It returns { version, data, applied: [numbers] } — without modifying the db passed in. If targetVersion is less than db.version — Error(\"Понижение версии не поддерживается\") (the message stays in Russian exactly as written).",
+   "hint": "Copy the data before each migration; apply only versions in the range (db.version, target]."
+  },
+  {
+   "id": "j17-url-normalize",
+   "title": "Address normalization",
+   "statement": "Write a function normalizeUrl(str, base?) → a string: parses the address (a relative one against base), lowercases the scheme and host, removes default ports (:80 for http, :443 for https), removes the fragment (#…), removes advertising parameters (utm_*, fbclid, gclid, yclid), sorts the remaining parameters by name (stable), removes an empty \"?\", collapses \".\" and \"..\" in the path, removes the trailing \"/\" of a path longer than one character, and converts percent-encoding to uppercase hex digits. An invalid address — TypeError. And a function sameResource(a, b) — whether the normalized addresses match.",
+   "hint": "The URL class does the main work; add parameter filtering and sorting, ports and the trailing slash."
+  },
+  {
+   "id": "j17-query-nested",
+   "title": "Nested query parameters",
+   "statement": "Write the functions parseNested(query) and stringifyNested(obj): the format as in popular libraries: \"a=1&a=2\" → { a: [\"1\", \"2\"] }, \"tags[]=x&tags[]=y\" → { tags: [\"x\", \"y\"] }, \"user[name]=Ada&user[age]=36\" → { user: { name: \"Ada\", age: \"36\" } }, \"list[0]=a&list[1]=b\" → { list: [\"a\", \"b\"] } (numeric indexes give an array), any depth (\"a[b][c]=1\"); values are strings (decode %XX and \"+\"); an empty query — {}; a leading \"?\" is allowed. stringifyNested is the inverse: arrays as \"k[]=v\" (one per element), objects as \"k[sub]=v\", numbers and booleans as strings, null/undefined are skipped; keys and values are encoded with encodeURIComponent (brackets in keys are not encoded).",
+   "hint": "Split the key into a path [name, subkey1, …]; for \"[]\" append to an array, for numbers and names — by key."
+  },
+  {
+   "id": "j17-history",
+   "title": "A History API model",
+   "statement": "Write a class MyHistory(initialUrl, initialState = null): pushState(state, url) (adds an entry after the current one, dropping the \"forward\" ones), replaceState(state, url), back(), forward(), go(delta) (outside the bounds nothing happens) — history transitions are asynchronous in a browser, but in the model they are synchronous and call popstate listeners: { state, url } (popstate is not called for pushState/replaceState), properties length, state, url (the current), index, and the method onPopState(fn) → unsubscribe. A relative url in pushState is resolved against the current address (use the URL class), and an address of another origin is an Error with the name \"SecurityError\".",
+   "hint": "An array of entries and a current index; pushState truncates \"forward\"; popstate only on go/back/forward."
+  },
+  {
+   "id": "j17-router-match",
+   "title": "Route matching",
+   "statement": "Write a function createRouter(routes): routes is an array of { path, name }; the path template: static segments, \":param\", \":param?\" (optional, only at the end), \"*\" (the rest of the path in params['*']), \":id(\\\\d+)\" (a parameter with a regular-expression constraint). It returns a function match(url) → { name, params, query } or null: url is a string like \"/users/42?tab=info#x\" (the fragment is dropped; the query is parsed into an object of strings; a repeated key gives an array); a trailing \"/\" is ignored; path case matters; params are decoded; the most specific route wins: more static segments, on a tie the earlier one in the list (not just declaration order: \"/users/new\" beats \"/users/:id\").",
+   "hint": "Compile the templates into segments; find all matching ones and choose by the number of static segments."
+  },
+  {
+   "id": "j17-spa-link",
+   "title": "Whether to intercept a link click",
+   "statement": "Write a function shouldIntercept(event, link, location): event = { button, ctrlKey, metaKey, shiftKey, altKey, defaultPrevented }, link = { href (an absolute address), target?, download?, rel?, hasAttribute? }, location = { origin, pathname, search }. It returns true if the router should intercept the click (call pushState): the left button (button 0), no modifiers and no defaultPrevented; link.target is empty or \"_self\"; no download; rel does not contain \"external\"; the link's origin equals location.origin; the link does not lead to the same address with only a fragment (the same pathname+search and a non-empty #hash — the browser scrolls to the anchor itself: false); the protocols mailto:, tel:, javascript: and any non-http(s) — false. And a function toPath(href, location) → \"pathname + search + hash\" for pushState.",
+   "hint": "A series of independent checks; for an anchor compare pathname and search with the current ones."
+  },
+  {
+   "id": "j17-scroll-restore",
+   "title": "Restoring scroll position",
+   "statement": "Write a function createScrollManager(history): history is an object with an array of entries and a current index (interface: getCurrentKey() → the unique key of the current entry, defined from outside). It returns { save(scrollY) (remembers the scroll under the current key), onNavigate(key, kind, hash) → where to scroll: kind \"push\" — 0 (or the anchor if hash is non-empty — return { anchor: hash }); kind \"pop\" (back/forward) — the saved position of this key or 0; kind \"replace\" — do not change (null) }, clear(key) }. The result is a number (scroll to Y), { anchor } or null. Keys must not overwrite each other when the same address is visited again in different history entries.",
+   "hint": "A Map \"entry key → scroll\"; for push return 0 or the anchor, for pop the saved value."
+  },
+  {
+   "id": "j17-quota-store",
+   "title": "Quota and eviction (LRU)",
+   "statement": "Write a class QuotaStore(quota): a store with a limit (the total size of values ≤ quota; the size of a value is its length in characters): set(key, value, { persist = false }) — writes; if there is not enough room, the least recently used (by get/set) non-persist entries are evicted until room is freed; if even after evicting all non-persist entries there is no room — an error with the name \"QuotaExceededError\" is thrown and nothing changes (the eviction is rolled back); get(key) → the value or undefined and refreshes the \"recency\"; delete(key); keys() → keys from the least recent to the most recent; used() → the occupied size; estimate() → { usage, quota }. An entry exceeding quota by itself is a QuotaExceededError.",
+   "hint": "A Map keeps insertion order: to \"refresh\" an entry, delete it and insert it again; evict from the start."
+  },
+  {
+   "id": "j17-phone-mask",
+   "title": "Phone mask",
+   "statement": "Write the functions maskPhone(input) → a string like \"+7 (999) 123-45-67\" and unmaskPhone(masked) → \"79991234567\". Rules: only digits are taken; if the first digit is 8 or 7 it is the country code (8 is replaced with 7); if the first digit is different (and the input is not empty), the country code 7 is considered implied and the digit belongs to the number; at most 11 digits, extra ones are dropped; the mask is built gradually as you type: \"7\" → \"+7\", \"79\" → \"+7 (9\", \"79991\" → \"+7 (999) 1\", \"799912\" → \"+7 (999) 12\", after the 7th digit a \"-\" is added, after the 9th a \"-\"; empty input → \"\". The parenthesis is closed only when there is at least one digit after the operator code.",
+   "hint": "First normalize the digits (country code, at most 11), then build the mask by length."
+  }
+ ]
+}

@@ -24,7 +24,7 @@ use session::Session;
 
 /// Описание упражнения из `spec` задачи (эталона в нём нет, поэтому `reference` пуст).
 fn parse_spec(raw: &serde_json::Value) -> Result<TaskSpec, String> {
-    serde_json::from_value(raw.clone()).map_err(|e| format!("Неверное описание упражнения: {e}"))
+    serde_json::from_value(raw.clone()).map_err(|e| i18n::trf!("Invalid exercise description: {0}", e))
 }
 
 /// Лаборатория выбранного упражнения.
@@ -76,6 +76,7 @@ mod tests {
 
     #[test]
     fn spec_from_server_has_no_reference() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let raw = json!({
             "profile": "linux", "starter": "_start:\n", "data": "msg: .asciz \"x\"\n", "max_steps": 1000,
             "tests": [{ "check": { "kind": "run", "stdout": "x", "code": 0, "ok": "ок" } }],
@@ -86,6 +87,7 @@ mod tests {
 
     #[test]
     fn broken_spec_is_reported_in_russian() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let err = parse_spec(&json!({ "profile": "mars" })).expect_err("профиля «mars» нет");
         assert!(err.starts_with("Неверное описание упражнения"), "{err}");
     }

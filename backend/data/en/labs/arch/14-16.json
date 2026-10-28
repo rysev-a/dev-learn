@@ -1,0 +1,98 @@
+{
+ "book": 14,
+ "chapter": 16,
+ "lab": "riscv",
+ "tasks": [
+  {
+   "id": "uart-hi",
+   "title": "Hi from the UART",
+   "statement": "The soft processor prints text through a UART, a device at address 0x10000000: a byte written (sb) to this address appears in the console. Print “Hi!” and a newline (four bytes in all) and stop with the ebreak instruction. li puts the address in a register, and a character code can be written in quotes: li t1, 'H'.",
+   "hint": "The UART address is 0x10000000; let it sit in t0. For each character: li t1, 'H' and sb t1, 0(t0). The newline is the number 10. The last instruction is ebreak.",
+   "spec_text": {
+    "/tests/0/check/ok": "The console shows “Hi!”, all correct.",
+    "/starter": "# Print “Hi!” and a newline to the UART (address 0x10000000)\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "uart-string",
+   "title": "String up to the zero byte",
+   "statement": "The memory (in the task's data) holds the string msg: “Hello, RISC-V!” with a newline and a zero byte at the end. Print it to the UART: walk along the string with a pointer (lbu reads a byte) until you meet the zero. The label msg is available in your code: la t1, msg.",
+   "hint": "Keep the string pointer in t1 (la t1, msg). In a loop: lbu t2, 0(t1); if t2 is zero (beqz), it is the end; otherwise sb t2, 0(t0); addi t1, t1, 1; j loop.",
+   "spec_text": {
+    "/tests/0/check/ok": "The whole string is printed, the zero byte is not.",
+    "/starter": "# Print the string msg to the UART (address 0x10000000)\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "leds",
+   "title": "LED pattern",
+   "statement": "The LEDs are a device at address 0x10001000: the low 8 bits of the written word light LED0…LED7. Light the pattern 1010 0101 (LED7, LED5, LED2 and LED0), that is, write the number 0xA5 (sw), and stop.",
+   "hint": "li t0, 0x10001000 is the LED address; li t1, 0xA5 is the pattern; sw t1, 0(t0).",
+   "spec_text": {
+    "/tests/0/check/ok": "The LEDs show the pattern 1010 0101.",
+    "/starter": "# Light the pattern 1010 0101 on the LEDs (address 0x10001000)\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "switches-invert",
+   "title": "Switches → LEDs",
+   "statement": "The switches are a device at address 0x10001004: a read returns their state (8 bits). Read the switches and light the LEDs (0x10001000) with the INVERTED pattern: where a switch is on, the LED is off, and vice versa. The switches are currently set to 1011 0010.",
+   "hint": "lw reads the switches; not (that is, xori with −1) flips all 32 bits, but the LEDs need only the low 8: add andi t2, t2, 0xff (or just write it, since the device takes only 8 bits anyway).",
+   "spec_text": {
+    "/tests/0/check/ok": "The LEDs show the inverse of the switches",
+    "/tests/0/check/bad_suffix": " — the inverse of 1011 0010",
+    "/starter": "# Read the switches (0x10001004) and light the inverse pattern on the LEDs (0x10001000)\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "sum-100",
+   "title": "Sum from 1 to 100",
+   "statement": "Compute the sum of all integers from 1 to 100 with a loop and put the result in register a0, then stop with the ebreak instruction. The expected answer is 5050.",
+   "hint": "Two registers: the sum (initially 0) and the counter (initially 1). In a loop: add the counter to the sum, increment the counter, repeat until it exceeds 100 (blt counter, 101, loop; load the limit into a register).",
+   "spec_text": {
+    "/tests/0/check/ok": "a0 = 5050, the sum is correct.",
+    "/starter": "# The sum 1 + 2 + … + 100 goes to register a0\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "upper",
+   "title": "Uppercase letters in memory",
+   "statement": "The task's data holds the string text: “risc-v is fun!” (with a zero byte). Make all the Latin letters uppercase right in memory: “RISC-V IS FUN!”. Do not touch the other characters (the hyphen, the spaces, “!”). The difference between an uppercase and a lowercase letter is 32.",
+   "hint": "Walk along with a pointer: lbu reads, sb writes. A letter is lowercase if 'a' ≤ code ≤ 'z': skip everything below 'a' (bltu) or above 'z' (bltu with swapped registers). Otherwise subtract 32 and write it back.",
+   "spec_text": {
+    "/tests/0/check/ok": "String in memory: “RISC-V IS FUN!”.",
+    "/starter": "# Make the letters of the string text uppercase (the string is in memory, with a zero byte at the end)\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "factorial",
+   "title": "Factorial: function and stack",
+   "statement": "Write a recursive function fact(n) = n! and call it with n = 6: the result (720) must end up in a0. The calling convention: the argument and the result are in a0; the function must save the return address ra on the stack before calling itself; the stack grows downward (sp decreases). The main program already calls fact, so just write the function. At the end the stack must be back in place.",
+   "hint": "The function prologue: addi sp, sp, -16; sw ra, 12(sp); sw s0, 8(sp); mv s0, a0 (we save n in s0, which is a “preserved” register). If n < 2, return 1. Otherwise: a0 = n − 1; call fact; mul a0, a0, s0. The epilogue: lw s0, 8(sp); lw ra, 12(sp); addi sp, sp, 16; ret.",
+   "spec_text": {
+    "/tests/0/check/ok": "fact(6) = 720, and the stack is back in place.",
+    "/starter": "# Call fact(6) and stop. The result is in a0.\n  li   a0, 6\n  call fact\n  ebreak\n\nfact:\n  # your code\n  ret\n"
+   }
+  },
+  {
+   "id": "sort-words",
+   "title": "Sorting an array of words",
+   "statement": "The task's data has n, the number of elements (8), and arr, an array of signed 32-bit WORDS: 5, −3, 99, 0, −100, 42, 7, −1. Sort the array in place in ascending order. Words take four bytes each, so the address of element i is arr + 4·i (a slli shift by 2). Compare as signed (blt/bge), otherwise the negative numbers would turn out to be the “largest”.",
+   "hint": "Bubble sort as in Mini-8, but the step is four bytes: lw t3, 0(t2) and lw t4, 4(t2) read the neighbors, and sw puts them back in the opposite order. Multiply the element index by 4 with slli.",
+   "spec_text": {
+    "/tests/0/check/ok": "The array is sorted: −100, −3, −1, 0, 5, 7, 42, 99.",
+    "/starter": "# n is the count, arr is an array of signed 32-bit words. Sort in ascending order.\n\n  ebreak\n"
+   }
+  },
+  {
+   "id": "timer-blink",
+   "title": "Blinking on a timer",
+   "statement": "The timer is a device at address 0x10002000: a read returns the number of instructions executed. Make LED0 blink: eight toggles in a row (on, off, on…), and each state must last at least 200 clock cycles. Make the delay by waiting: remember the time, then read the timer until it has moved forward by 200.",
+   "hint": "A loop of eight passes: write 1 or 0 to the LEDs (flip t3 with xori t3, t3, 1); remember the time with lw t4, 0(t1); add 200; in the wait loop read the timer and compare it with the limit (bltu).",
+   "spec_text": {
+    "/tests/0/check/ok": "The LED blinks: 8 toggles, each at least 200 cycles.",
+    "/starter": "# LED0 is at 0x10001000, the timer at 0x10002000. 8 toggles, each held for ≥ 200 cycles.\n\n  ebreak\n"
+   }
+  }
+ ]
+}

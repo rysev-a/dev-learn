@@ -1,0 +1,57 @@
+{
+ "book": 15,
+ "chapter": 15,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n15-where",
+   "title": "Where the packet disappeared",
+   "statement": "The client pings the server fine, but a connection to port 8080 is silent — neither a refusal nor a reply. There are three routers on the path. Run `traceroute 10.0.4.10` on the client, then `curl 10.0.4.10:8080`, and then open the router terminals and run `tcpdump -i any tcp`. Find the router where the SYN arrives but does not go any further, and remove the rule that stops it.",
+   "hint": "On the router where the SYN comes in but does not go out, delete the DROP rule for tcp/8080 in the “Firewall” section. Hint: the ▶ log shows “firewall: DROP” and the device.",
+   "spec_text": {
+    "/goals/0/text": "ping to the server succeeds",
+    "/goals/1/text": "Server port 8080 opens",
+    "/start/devices/0/name": "Client",
+    "/start/devices/4/name": "Server"
+   }
+  },
+  {
+   "id": "n15-mtu",
+   "title": "Small passes, large does not",
+   "statement": "A tunnel with MTU 1400 runs between the offices, and router R1 blocks ICMP “frag needed”. The client sends 1500-byte packets with the don't-fragment flag, they vanish, and nobody tells the sender. Find the threshold: `ping -c 1 -s 1472 -M do 10.0.2.10` fails, `-s 1372` passes. Set the client interface MTU so large packets fit into the tunnel (no lower than 1300, to avoid losing efficiency).",
+   "hint": "`ip link set eth0 mtu 1400` on the client. The ping data size = MTU − 28 bytes of headers: 1400 − 28 = 1372.",
+   "spec_text": {
+    "/goals/0/text": "A packet of the client's MTU size with don't-fragment passes",
+    "/goals/1/text": "Client MTU is at least 1300 and at most 1400",
+    "/start/devices/0/name": "Client",
+    "/start/devices/1/name": "R1 (ICMP blocked)",
+    "/start/devices/3/name": "Server"
+   }
+  },
+  {
+   "id": "n15-bind",
+   "title": "The service listens only on localhost",
+   "statement": "The web service on the server is running: `curl 127.0.0.1` from the inside answers. But clients are refused on port 80. Open the server terminal and run `ss -ltn`: the service listens on 127.0.0.1:80, that is, only for local connections. Rebind it so that it listens on all addresses.",
+   "hint": "On the server: `listen tcp 80 0.0.0.0` or the “listen on all” button in the listening ports section.",
+   "spec_text": {
+    "/goals/0/text": "The client opens server port 80",
+    "/goals/1/text": "The server still listens on port 80",
+    "/start/devices/0/name": "Client",
+    "/start/devices/2/name": "Server"
+   }
+  },
+  {
+   "id": "n15-triage",
+   "title": "Three layers at once",
+   "statement": "A user writes: “https://www.example.org does not open”. There are three independent faults on the path: the client has the wrong DNS server, the service on port 443 listens in the wrong place, and the certificate has expired. Go layer by layer: `dig www.example.org`, then `curl -v https://www.example.org/`, `ss -ltn` on the server, `tls show`. Find and fix all three causes.",
+   "hint": "1) on the client: `echo \"nameserver 192.168.0.53\" > /etc/resolv.conf`; 2) on the server: `listen tcp 443 0.0.0.0`; 3) on the server: `tls cert new www.example.org --issuer PublicIntCA --days 90`.",
+   "spec_text": {
+    "/goals/0/text": "The name www.example.org resolves",
+    "/goals/1/text": "https://www.example.org/ returns 200",
+    "/start/devices/0/name": "Client",
+    "/start/devices/2/name": "DNS resolver",
+    "/start/devices/3/name": "Web server"
+   }
+  }
+ ]
+}

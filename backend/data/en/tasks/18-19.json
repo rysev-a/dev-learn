@@ -1,0 +1,54 @@
+{
+ "book": 18,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "sd19-s1-mvp",
+   "title": "Stage 1. First version",
+   "statement": "The cloud drive launches with 200 reads and 30 metadata writes per second, 120 file downloads per second and 2 TB of files. Add object storage for file contents and connect it to the app server: metadata goes in the database, bytes go in storage. Load at most 80%, cost at most $350 per month.",
+   "hint": "The database holds names and permissions; storage holds file blocks. Server → storage: files bypass the database. Storage costs $25 plus $23 per TB."
+  },
+  {
+   "id": "sd19-s2-growth",
+   "title": "Stage 2. Growth and metadata",
+   "statement": "There are ten times as many users: 2,400 reads and 300 metadata writes per second, 40 TB of files. Strengthen the metadata path: a load balancer, several servers, a folder-listing cache (≥85%, 4 GB working set), a database with a replica and automatic failover. The design survives a database and cache failure, load is at most 80%, and the budget is $2,500 per month.",
+   "hint": "Five M servers, a 4 GB cache with a replica and TTL 3600, an M database with a replica and automatic failover. Most of the money goes to storage: 40 TB × $23."
+  },
+  {
+   "id": "sd19-s3-cdn",
+   "title": "Stage 3. Downloads through a CDN",
+   "statement": "Downloads have reached 15,000 per second. Each one goes through storage with a 45 ms latency. Put a CDN in front of storage (≥90% hit ratio) and bring the average latency down to 40 ms or less. Everything else is as in stage 2, and the budget is $2,500 per month.",
+   "hint": "CDN → storage; the CDN passes dynamic requests (metadata) to the load balancer. Blocks are immutable, so a TTL of 300 s or more gives 90% and higher."
+  },
+  {
+   "id": "sd19-s4-sync",
+   "title": "Stage 4. Device sync",
+   "statement": "Sync has been added: 150,000 clients hold a connection and receive change signals (0.02 signals per second per client — 3,000 per second). Add WebSocket gateways, route the changes through an event stream and connect notifications: the gateways, servers and notifications are loaded at most 80%, and the budget is $4,700 per month.",
+   "hint": "WebSocket gateways — about 14 (150,000 / 15,000 = 10 at 71%). The app server also receives the signals: about eleven M. An event stream with three partitions, three instances of notifications."
+  },
+  {
+   "id": "sd19-s5-share",
+   "title": "Stage 5. Permissions and search",
+   "statement": "Sharing and search have been added: every request checks permissions in the auth service, and 10% of reads are file searches (an 80 GB index). Connect the auth service (load at most 80%, survives a failure) and a search cluster (shards by volume, two replicas, survives a failure). The budget is $5,600 per month.",
+   "hint": "Auth service: three instances (4,000 requests per second each; after one fails, 8,000 remain at a load of about 6,000). Search: 2 shards × 2 replicas."
+  },
+  {
+   "id": "sd19-s6-storage",
+   "title": "Stage 6. Storage cost",
+   "statement": "The data has grown to 900 TB, and storage eats almost the entire budget. Move the files to a cheaper storage class (the “Storage class” parameter) so that the design fits within $15,000 per month, the average latency stays at 40 ms or less (the CDN covers cold blocks), and the other goals are not affected.",
+   "hint": "Hot costs $23 per TB — 20,700 per month. The mixed class is $10 per TB (9,000), cold is $4 (3,600). Popular blocks are still served by the CDN."
+  },
+  {
+   "id": "sd19-s7-reliability",
+   "title": "Stage 7. Reliability and monitoring",
+   "statement": "The drive has become critical: user data must not be lost, and downtime must be under a minute. Spread the servers, cache and database across three zones, enable a rolling deployment, add monitoring and a second load balancer. The design survives a zone, deployment, server, database, cache and auth service failure, load is at most 80%, and the budget is $16,000 per month.",
+   "hint": "About 14 M servers across three zones (after losing a zone, two thirds remain). Two load balancers; the cache and database are placed in three zones with replicas; add monitoring to the design."
+  },
+  {
+   "id": "sd19-exam",
+   "title": "Exam. The whole cloud drive",
+   "statement": "Final assignment. Build the drive from scratch: object storage (800 TB, mixed class), a CDN (≥90%), a listing cache (≥85%), metadata with a replica, WebSocket gateways, an event stream and notifications, an auth service, search (shards by volume, two replicas), monitoring, two load balancers. Load: 15,000 downloads, 3,800 reads and 500 writes per second, 150,000 clients on connections. The design survives a zone, deployment, server, database, cache, auth service and search failure; load at most 80%; average latency ≤ 40 ms; budget $15,000 per month.",
+   "hint": "The stage 7 design (an L database: 500 writes per second): M servers in three zones (about 17: after losing a zone, 11 remain — 7,700 requests at a load of 7,300), a cache and database with replicas, CDN → storage, ws → servers → stream → notifications, auth service ×3, search 2×2."
+  }
+ ]
+}

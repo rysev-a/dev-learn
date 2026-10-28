@@ -1,0 +1,126 @@
+{
+ "book": 11,
+ "chapter": 20,
+ "tasks": [
+  {
+   "id": "w20-three-cols",
+   "title": "Three equal columns",
+   "statement": "The markup is given and cannot change. Make the .layout container a grid of three equal columns (use the fr unit) with a 12px gap between cells.",
+   "hint": "display: grid turns on the grid; grid-template-columns: repeat(3, 1fr) sets three equal shares; gap sets the spacing."
+  },
+  {
+   "id": "w20-fr-mix",
+   "title": "One fixed and two flexible",
+   "statement": "The .page container is a grid of three columns: the first is exactly 200px, and the others share the remaining space: the second gets one share, the third gets two.",
+   "hint": "Track sizes are separated by spaces: 200px 1fr 2fr. The fr unit divides the space left after the fixed columns."
+  },
+  {
+   "id": "w20-gap",
+   "title": "Gaps for rows and columns",
+   "statement": "The .grid is already a grid in the markup: three columns and six cells. Set the gaps: 8px between rows and 24px between columns.",
+   "hint": "The gap shorthand takes two values: first for rows, then for columns. You can also set them separately: row-gap and column-gap."
+  },
+  {
+   "id": "w20-rows",
+   "title": "Grid rows",
+   "statement": "The .box container, 300px tall, is already a grid. Define three rows: a 60px header, a 40px footer, and the content between them taking all the remaining space.",
+   "hint": "grid-template-rows works just like grid-template-columns: 60px 1fr 40px."
+  },
+  {
+   "id": "w20-auto-fit",
+   "title": "A responsive grid without media queries",
+   "statement": "Turn .cards into a responsive grid: columns at least 200px wide, as many as fit in a row, stretched to the full width (repeat with auto-fit and minmax). The gap is 16px. No media queries are needed.",
+   "hint": "grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); don't forget display: grid and gap: 16px. Resize the preview and watch how the number of columns changes."
+  },
+  {
+   "id": "w20-span",
+   "title": "An item spanning two columns",
+   "statement": "The .grid has four columns. Make the .wide item take two columns (use grid-column).",
+   "hint": "grid-column: span 2 means “take two tracks from your position”. You can also use lines: 1 / 3."
+  },
+  {
+   "id": "w20-full-row",
+   "title": "A full-width heading",
+   "statement": "The .grid has three columns, but their number may change. Stretch the .title heading across the whole row, from the first line to the last, so that it works for any number of columns.",
+   "hint": "Negative line numbers count from the end: grid-column: 1 / -1."
+  },
+  {
+   "id": "w20-areas",
+   "title": "A page built from areas",
+   "statement": "Lay out .page using named areas: a 200px menu column on the left, flexible content on the right; the header and footer span both columns. The area names are header, nav, main and footer, and each element must have its own grid-area.",
+   "hint": "On .page: display: grid; grid-template-columns: 200px 1fr; grid-template-areas: \"header header\" \"nav main\" \"footer footer\". On the elements: header { grid-area: header } and so on."
+  },
+  {
+   "id": "w20-center",
+   "title": "Content in the center of cells",
+   "statement": "The .grid is already built: three columns, with cells 80px tall. Place the content of every cell in its center, both horizontally and vertically, with a single shorthand.",
+   "hint": "place-items: center is a shorthand for align-items and justify-items together."
+  },
+  {
+   "id": "w20-content",
+   "title": "A grid inside its container",
+   "statement": "The .box container, 240px tall, is a grid of two 80px columns with plenty of space left over. Push the columns to the left and right edges, dividing the free space between them (space-between), and place the grid vertically in the center of the container.",
+   "hint": "justify-content aligns tracks horizontally, align-content vertically. The place-content shorthand takes them in the order “align justify”."
+  },
+  {
+   "id": "w20-auto-rows",
+   "title": "Height of implicit rows",
+   "statement": "The .grid has three columns and seven items, so the browser adds the rows itself. Make every such row exactly 100px tall.",
+   "hint": "The size of implicit rows is set by grid-auto-rows."
+  },
+  {
+   "id": "w20-auto-rows-minmax",
+   "title": "Rows with a minimum height that can grow",
+   "statement": "The implicit rows of the .grid must be at least 80px tall but grow if the text in a cell is longer.",
+   "hint": "grid-auto-rows: minmax(80px, auto) means a minimum of 80px and a maximum determined by the content."
+  },
+  {
+   "id": "w20-dense",
+   "title": "Dense packing",
+   "statement": "The .gallery has wide tiles (.wide) that leave holes in the grid. Turn on dense packing so that later tiles fill the empty spots while keeping row-by-row filling.",
+   "hint": "grid-auto-flow: row dense (the single word dense is enough)."
+  },
+  {
+   "id": "w20-sidebar",
+   "title": "A sidebar and content",
+   "statement": "The .layout container must be a grid of two columns: a sidebar with a fixed width of 240px and flexible content that takes all the remaining space. The gap between the columns is 24px.",
+   "hint": "grid-template-columns: 240px 1fr; gap: 24px."
+  },
+  {
+   "id": "w20-narrow",
+   "title": "One column on a narrow window",
+   "statement": "Make .cards a grid of three equal columns with a 16px gap, and on screens no wider than 600px a single column. Use @media (max-width: …).",
+   "hint": "First the regular rules for a wide screen: display: grid and repeat(3, 1fr). Then @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }."
+  },
+  {
+   "id": "w20-nested",
+   "title": "A grid inside a cell",
+   "statement": "The outer container .outer is a grid of two equal columns with a 16px gap. Inside each card, the .inner block is its own grid, also of two equal columns, with an 8px gap.",
+   "hint": "A nested grid is an ordinary container: .inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px }."
+  },
+  {
+   "id": "w20-subgrid",
+   "title": "Cards on shared rows",
+   "statement": "The outer grid .cards is already built: three columns and three rows. Make each .card a grid that spans three rows of its parent and adopts them (subgrid), so that headings, texts and links line up on shared lines.",
+   "hint": "A card needs display: grid, grid-row: span 3 and grid-template-rows: subgrid."
+  },
+  {
+   "id": "w20-page-lines",
+   "title": "A page built from lines",
+   "statement": "Build the .page frame without areas, using lines only: two columns (a 200px menu and flexible content) and three rows (a header sized by its content, a body taking all the rest, a footer sized by its content), with a height of at least the window height (100vh). The header and footer span both columns.",
+   "hint": "On .page: display: grid; grid-template-columns: 200px 1fr; grid-template-rows: auto 1fr auto; min-height: 100vh. For the header and footer: grid-column: 1 / -1."
+  },
+  {
+   "id": "w20-auto-fill",
+   "title": "Empty tracks stay",
+   "statement": "The .gallery has only three tiles, but the columns must stay in place and not stretch to the full width: columns at least 120px wide, as many as fit, with empty tracks not collapsing (auto-fill). The gap is 8px.",
+   "hint": "repeat(auto-fill, minmax(120px, 1fr)): unlike auto-fit, empty tracks are kept."
+  },
+  {
+   "id": "w20-row-span",
+   "title": "A tall tile",
+   "statement": "The .gallery has three columns. Make the .tall tile two grid rows high (grid-row).",
+   "hint": "grid-row: span 2, by analogy with grid-column: span 2."
+  }
+ ]
+}

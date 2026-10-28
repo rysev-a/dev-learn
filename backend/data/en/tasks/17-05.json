@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "virt-overcommit",
+   "title": "Overcommit ratio",
+   "statement": "Write a function overcommit_percent(guests, host): guests is a list of memory sizes given to the guests, host is the host's physical memory (in the same units, greater than zero). Return an integer percentage: the total given out divided by the host memory, multiplied by 100, rounded down.",
+   "hint": "Multiply by 100 before dividing."
+  },
+  {
+   "id": "virt-balloon-plan",
+   "title": "Balloon inflation plan",
+   "statement": "Write a function balloon_plan(guests, needed): guests is a list of [name, given, minimum, used] (in MiB), needed is how much memory must be freed. A guest's slack is given minus the larger of minimum and used. Take memory from guests in descending order of slack (ties broken by name): from each no more than its slack and no more than what is still needed. Return a dictionary of name to amount to take, only for those from whom more than zero is taken, or None if the total slack is not enough.",
+   "hint": "Sort by (-slack, name) and go on until the needed amount drops to zero."
+  },
+  {
+   "id": "virt-ksm-merge",
+   "title": "Merging identical pages",
+   "statement": "Write a function ksm_merge(vms): vms is a list of machines, each one a list of page \"contents\" (integers or strings). Pages with identical contents are merged into one physical page. Return a tuple (how many physical pages remain, how many pages were saved).",
+   "hint": "Put all the pages into a set."
+  },
+  {
+   "id": "virt-ksm-cow",
+   "title": "Copy on write to a merged page",
+   "statement": "Write a function ksm_cow(pages, writes): pages is a list of pages [machine, number, contents]; initially all pages with identical contents are merged into one physical frame. writes is a list of writes [machine, number]. A write to a merged page that still has at least one \"neighbor\" in that frame triggers copy on write: the page gets its own frame, and the neighbors stay in the shared one. If no neighbors are left, the page takes the frame for itself without copying. A write to a page that is already private changes nothing. Return a tuple (number of physical frames, number of copies on write).",
+   "hint": "For each content value keep the number of pages still sharing the common frame, and count private pages separately."
+  },
+  {
+   "id": "virt-reclaim",
+   "title": "Stepwise memory policy",
+   "statement": "Write a function reclaim_action(total, used): total is the host memory, used is the amount in use (total is greater than zero). The share of free memory in whole percent is (total - used) * 100 // total. If it is at least 20, return \"none\"; if at least 10, return \"balloon\" (inflate balloons); otherwise return \"swap\".",
+   "hint": "First compute the whole percent of free memory."
+  },
+  {
+   "id": "virt-mem-blocks",
+   "title": "Memory in virtio-mem blocks",
+   "statement": "A guest's memory changes in blocks of block MiB. Write a function hotplug_blocks(current, target, block): current is the current size (a multiple of block), target is the desired one. The desired size is rounded up to a multiple of block. Return how many blocks to plug in (a positive number) or unplug (a negative number).",
+   "hint": "Rounding up to a multiple: -(-target // block) * block."
+  },
+  {
+   "id": "virt-balloon-run",
+   "title": "A balloon inside the guest",
+   "statement": "Write a function balloon_run(free, cache, used, events): the guest's memory state in pages: free (free pages), cache (cache), used (program data). events are events [\"inflate\", n] and [\"deflate\", n]. Inflating by n takes pages from the guest in this order: free first, then cache, then data (which goes to the guest's swap, and each such page increases swapped). If there are fewer than n pages in total, everything possible is taken. The balloon grows by the number taken. Deflating by n returns min(n, balloon) pages to free. Return a tuple (free, cache, used, balloon, swapped).",
+   "hint": "Take in turn from free, cache and used, reducing the remainder of n."
+  },
+  {
+   "id": "virt-ksm-scan",
+   "title": "Time of a full KSM pass",
+   "statement": "In one pass the KSM background thread scans pages_to_scan pages and then sleeps for sleep_ms milliseconds (ignore the scanning time itself). Write a function ksm_scan_ms(pages, pages_to_scan, sleep_ms): how many milliseconds of sleep accumulate until pages pages have been scanned (the number of passes is rounded up).",
+   "hint": "The number of passes is a division rounded up."
+  }
+ ]
+}

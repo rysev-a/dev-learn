@@ -45,7 +45,7 @@ pub fn Theory() -> impl IntoView {
         (Load::Ready(ch), Load::Ready(Some(data))) => view! { <Slides book=book chapter=ch deck=Deck::data(data) /> }.into_any(),
         (Load::Ready(ch), Load::Ready(None)) => view! { <PlainText chapter=ch /> }.into_any(),
         (Load::Failed(e), _) | (_, Load::Failed(e)) => view! { <p class="error">{e}</p> }.into_any(),
-        _ => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        _ => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
     }
 }
 
@@ -79,7 +79,7 @@ impl Deck {
 fn PlainText(chapter: Chapter) -> impl IntoView {
     let paragraphs = chapter.lessons.into_iter().map(|l| view! { <p class="s-hint">{l.text}</p> }).collect_view();
     view! {
-        <p class="empty">"У этой главы пока нет слайдов. Текст урока:"</p>
+        <p class="empty">{i18n::tr("This chapter has no slides yet. The lesson text:")}</p>
         {paragraphs}
     }
 }

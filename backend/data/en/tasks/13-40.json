@@ -1,0 +1,61 @@
+{
+ "book": 13,
+ "chapter": 40,
+ "tasks": [
+  {
+   "id": "abc-shape",
+   "title": "Abstract shape",
+   "statement": "Write an abstract class Shape (inheriting from ABC) with a required method area(), plus classes Rect(w, h) and Circle(r) (the area of a circle is 3.14 * r * r). Shape cannot be created directly.",
+   "hint": "class Shape(ABC): @abstractmethod def area(self): ...; subclasses implement area."
+  },
+  {
+   "id": "abc-exporter",
+   "title": "Exporter contract",
+   "statement": "Write an abstract Exporter: a required method export(data) and a required property extension. A class that leaves any one of them unimplemented cannot be created; a complete subclass is created and works.",
+   "hint": "For the property: @property above @abstractmethod. A class attribute extension = \"csv\" also satisfies the abstract property."
+  },
+  {
+   "id": "abc-template",
+   "title": "Report template method",
+   "statement": "Write an abstract Report with a ready-made method render(): it builds a string from header(), body() and footer(). header and footer are implemented (they return «== отчёт ==» and «== конец ==»), and body is an abstract step. The parts are joined with a newline.",
+   "hint": "def render(self): return \"\\n\".join([self.header(), self.body(), self.footer()])."
+  },
+  {
+   "id": "abc-factory",
+   "title": "Abstract factory",
+   "statement": "Write an abstract Animal: an abstract class method create() and an abstract method speak(). Create an object of each subclass through create(); Animal cannot be created directly.",
+   "hint": "@classmethod above @abstractmethod; the body of create() in the base class can be empty or return cls()."
+  },
+  {
+   "id": "abc-subclasshook",
+   "title": "Automatic \"subclass\"",
+   "statement": "Write an ABC class HasLen: any class that has a __len__ method automatically counts as its subclass (via __subclasshook__), without explicit inheritance. Check that isinstance works for lists and for your own classes with __len__, but not for numbers.",
+   "hint": "@classmethod def __subclasshook__(cls, C): if cls is HasLen: return hasattr(C, \"__len__\"); return NotImplemented."
+  },
+  {
+   "id": "abc-register",
+   "title": "Virtual subclass",
+   "statement": "The class Duck already exists and inherits from nothing. Write an abstract Quacker and register Duck as its virtual subclass, so that isinstance(Duck(), Quacker) is true, while for Dog it is not.",
+   "hint": "class Quacker(ABC): pass; Quacker.register(Duck).",
+   "starter": "from abc import ABC\n\n\nclass Duck:\n    def quack(self):\n        return \"кря\"\n\n\nclass Dog:\n    pass\n"
+  },
+  {
+   "id": "abc-sequence",
+   "title": "A sequence on two methods",
+   "statement": "Write Countdown(n), a subclass of collections.abc.Sequence holding the numbers n, n-1, ..., 1. Implement only __len__ and __getitem__ (an index out of range raises IndexError): everything else comes from the base class.",
+   "hint": "__getitem__(self, i): if isinstance(i, slice): return [self[k] for k in range(*i.indices(len(self)))]; otherwise check the bounds and return self.n - i (for negative indexes, first do i += len(self))."
+  },
+  {
+   "id": "abc-storage-copy",
+   "title": "Storages and swapping",
+   "statement": "Write an abstract Storage (methods read(key) and write(key, value)), an implementation MemoryStorage on top of a dict (reading a missing key raises KeyError), and a function copy_all(src, dst, keys) that copies the values for the given keys from src to dst. The function must work with any Storage.",
+   "hint": "copy_all: for key in keys: dst.write(key, src.read(key))."
+  },
+  {
+   "id": "abc-describe",
+   "title": "Kind of a value via abstract classes",
+   "statement": "Write describe(x): return «строка» for str; «отображение» for Mapping; «последовательность» for Sequence; «итерируемое» for other Iterable; «число» for numbers.Number; otherwise «прочее». The order of checks matters: a string is also a sequence.",
+   "hint": "Check in turn: str, Mapping, Sequence, Iterable, numbers.Number."
+  }
+ ]
+}

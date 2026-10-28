@@ -17,15 +17,15 @@ pub struct SectionInfo {
 
 /// Разделы со схемами по порядку глав 6–14.
 pub const SECTIONS: [SectionInfo; 9] = [
-    SectionInfo { slug: "simple-circuits", title: "Простые схемы", description: "Логические элементы и таблицы истинности: от провода до мультиплексора", progress_key: "simple", chapter: 6 },
-    SectionInfo { slug: "mux", title: "Мультиплексоры", description: "Выбор и распределение сигналов: мультиплексоры, дешифраторы, шифраторы, шины", progress_key: "mux", chapter: 7 },
-    SectionInfo { slug: "latches", title: "Защёлки", description: "Первая память на вентилях: SR- и D-защёлки, регистр, ячейка памяти", progress_key: "latches", chapter: 8 },
-    SectionInfo { slug: "adders", title: "Сумматоры", description: "Сложение битов: полусумматор и полный сумматор", progress_key: "adders", chapter: 9 },
-    SectionInfo { slug: "registers", title: "Регистры и такт", description: "Триггер по фронту, регистры, сдвиг, счётчики и аккумулятор — под управлением такта", progress_key: "registers", chapter: 10 },
-    SectionInfo { slug: "alu", title: "АЛУ", description: "Арифметика и логика по выбору операции: двухбитное АЛУ, флаги и условия перехода", progress_key: "alu", chapter: 11 },
-    SectionInfo { slug: "memory", title: "Память", description: "ПЗУ, карта адресов, ячейки из защёлок, ОЗУ и синхронная память на триггерах", progress_key: "memory", chapter: 12 },
-    SectionInfo { slug: "decoder", title: "Декодер команд", description: "Из кода команды — в сигналы управления: условия, следующий адрес и фазы такта", progress_key: "decoder", chapter: 13 },
-    SectionInfo { slug: "cpu", title: "Процессор из блоков", description: "Ваши схемы как блоки с интерфейсами: шины, заглянуть внутрь и собрать процессор", progress_key: "cpu", chapter: 14 },
+    SectionInfo { slug: "simple-circuits", title: i18n::t!("Simple circuits"), description: i18n::t!("Logic gates and truth tables: from a wire to a multiplexer"), progress_key: "simple", chapter: 6 },
+    SectionInfo { slug: "mux", title: i18n::t!("Multiplexers"), description: i18n::t!("Selecting and routing signals: multiplexers, decoders, encoders, buses"), progress_key: "mux", chapter: 7 },
+    SectionInfo { slug: "latches", title: i18n::t!("Latches"), description: i18n::t!("First memory built from gates: SR and D latches, register, memory cell"), progress_key: "latches", chapter: 8 },
+    SectionInfo { slug: "adders", title: i18n::t!("Adders"), description: i18n::t!("Adding bits: half adder and full adder"), progress_key: "adders", chapter: 9 },
+    SectionInfo { slug: "registers", title: i18n::t!("Registers and clock"), description: i18n::t!("Edge-triggered flip-flop, registers, shifting, counters and accumulator — driven by the clock"), progress_key: "registers", chapter: 10 },
+    SectionInfo { slug: "alu", title: i18n::t!("ALU"), description: i18n::t!("Arithmetic and logic with operation select: 2-bit ALU, flags and branch conditions"), progress_key: "alu", chapter: 11 },
+    SectionInfo { slug: "memory", title: i18n::t!("Memory"), description: i18n::t!("ROM, address map, latch-based cells, RAM and synchronous flip-flop memory"), progress_key: "memory", chapter: 12 },
+    SectionInfo { slug: "decoder", title: i18n::t!("Instruction decoder"), description: i18n::t!("From opcode to control signals: conditions, next address and clock phases"), progress_key: "decoder", chapter: 13 },
+    SectionInfo { slug: "cpu", title: i18n::t!("Processor from blocks"), description: i18n::t!("Your circuits as blocks with interfaces: buses, looking inside, and assembling a processor"), progress_key: "cpu", chapter: 14 },
 ];
 
 /// Глава с ассемблером Мини-8.

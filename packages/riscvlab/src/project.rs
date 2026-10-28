@@ -13,58 +13,17 @@ pub struct ProjectFile {
     pub note: String,
 }
 
-const MAKEFILE: &str = "# Сборка программы для RISC-V (32 бита, команды RV32IM) обычным clang + lld.
-CLANG ?= clang
-FLAGS  = --target=riscv32 -march=rv32im -mabi=ilp32 -nostdlib -static -fuse-ld=lld
+const MAKEFILE: &str = i18n::t!("# Build a RISC-V program (32-bit, RV32IM instructions) with plain clang + lld.\nCLANG ?= clang\nFLAGS  = --target=riscv32 -march=rv32im -mabi=ilp32 -nostdlib -static -fuse-ld=lld\n\nprogram: program.s\n\t$(CLANG) $(FLAGS) -o program program.s\n\n# run it in the qemu emulator (user-mode emulation)\nrun: program\n\tqemu-riscv32 ./program; echo \"exit code: $$?\"\n\n# see which 32-bit words you got (compare with the listing on the site)\ndump: program\n\tllvm-objdump -d program\n\nclean:\n\trm -f program\n");
 
-program: program.s
-\t$(CLANG) $(FLAGS) -o program program.s
-
-# запустить в эмуляторе qemu (режим «пользовательских программ»)
-run: program
-\tqemu-riscv32 ./program; echo \"код возврата: $$?\"
-
-# посмотреть, какие 32-битные слова получились (сравните с листингом на сайте)
-dump: program
-\tllvm-objdump -d program
-
-clean:
-\trm -f program
-";
-
-const README: &str = "# Программа для RISC-V
-
-Файл program.s — ваша программа на ассемблере RISC-V (то, что вы писали на сайте).
-Точка входа — метка _start. Вывод — системный вызов write (a7 = 64),
-завершение — exit (a7 = 93), как в Linux.
-
-## Что нужно установить
-
-macOS:
-  brew install llvm lld qemu
-  export PATH=\"$(brew --prefix llvm)/bin:$(brew --prefix lld)/bin:$PATH\"
-
-Ubuntu / Debian:
-  sudo apt install clang lld llvm qemu-user
-
-## Сборка и запуск
-
-  make run     # собрать и запустить, в конце покажет код возврата
-  make dump    # дизассемблировать: увидеть настоящие 32-битные слова
-  make clean
-
-Если у вас GNU-инструментарий (riscv64-unknown-elf-gcc), сборка такая:
-  riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -nostdlib -static -o program program.s
-  qemu-riscv32 ./program
-";
+const README: &str = i18n::t!("# RISC-V program\n\nThe file program.s is your RISC-V assembly program (what you wrote on the site).\nThe entry point is the _start label. Output is the write system call (a7 = 64),\nexit is the exit call (a7 = 93), as in Linux.\n\n## What to install\n\nmacOS:\n  brew install llvm lld qemu\n  export PATH=\"$(brew --prefix llvm)/bin:$(brew --prefix lld)/bin:$PATH\"\n\nUbuntu / Debian:\n  sudo apt install clang lld llvm qemu-user\n\n## Build and run\n\n  make run     # build and run; shows the exit code at the end\n  make dump    # disassemble: see the real 32-bit words\n  make clean\n\nIf you have the GNU toolchain (riscv64-unknown-elf-gcc), build like this:\n  riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -nostdlib -static -o program program.s\n  qemu-riscv32 ./program\n");
 
 /// Файлы проекта, который можно собрать на своём компьютере.
 pub fn project_files(source: &str) -> Vec<ProjectFile> {
     let program = if source.ends_with('\n') { source.to_string() } else { format!("{source}\n") };
     vec![
-        ProjectFile { name: "program.s".into(), content: program, note: "ваша программа".into() },
-        ProjectFile { name: "Makefile".into(), content: MAKEFILE.into(), note: "сборка: make run".into() },
-        ProjectFile { name: "README.md".into(), content: README.into(), note: "что установить".into() },
+        ProjectFile { name: "program.s".into(), content: program, note: i18n::tr("your program").into() },
+        ProjectFile { name: "Makefile".into(), content: i18n::tr(MAKEFILE).into(), note: i18n::tr("build: make run").into() },
+        ProjectFile { name: "README.md".into(), content: i18n::tr(README).into(), note: i18n::tr("what to install").into() },
     ]
 }
 

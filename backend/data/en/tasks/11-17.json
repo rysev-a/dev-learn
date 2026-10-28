@@ -1,0 +1,126 @@
+{
+ "book": 11,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "w17-color-size",
+   "title": "Color and font size",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .title heading must be colored #c0392b, and the .lead paragraph must be between 18 and 24 pixels.",
+   "hint": "color sets the text color, font-size sets the font size. The size can be written in pixels or in rems: the browser converts everything to pixels."
+  },
+  {
+   "id": "w17-specificity",
+   "title": "Winning by specificity",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The document already has the rule #card .text { color: red }. Make the text blue without !important: your rule must be more specific.",
+   "hint": "The selector #card .text weighs (1, 1, 0). Add one more class or tag without touching anything else. Order of writing will not help here: weight decides."
+  },
+  {
+   "id": "w17-order",
+   "title": "Winning by order",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. Two rules of equal specificity match an element with the classes a b: .a { color: red } and .b { color: green }, and the last one wins. Make the text red without raising the selector's specificity and without using !important.",
+   "hint": "With equal specificity the rule written lower wins. Your CSS comes after what is already there."
+  },
+  {
+   "id": "w17-important-inline",
+   "title": "When you cannot do without importance",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The markup colors the text right in the style attribute, and it cannot be removed. Make the text blue: this is one of the few cases where the importance flag is justified.",
+   "hint": "The style attribute beats any selector. Only a declaration marked !important can override it."
+  },
+  {
+   "id": "w17-no-important",
+   "title": "Without !important",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. In the menu all .menu a links are gray. The item with the class active must be red, and the rest must stay gray. The starter works but uses !important, which is a bad habit: rewrite it so there is no importance flag.",
+   "hint": "Instead of importance, raise the specificity: .menu a.active weighs more than .menu a."
+  },
+  {
+   "id": "w17-inherit-parent",
+   "title": "Color inheritance",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. With one rule on .post set the color #444444 so that the heading and both paragraphs get that color on their own. For .note additionally set the font size to 14px.",
+   "hint": "color is inherited: it is enough to set it on the parent. font-size for .note is a separate rule."
+  },
+  {
+   "id": "w17-inherit-keyword",
+   "title": "The inherit keyword",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The link in the card is painted in the browser's default blue, while the .card card is green (#00aa77). Make the link take its color from the parent without repeating the color itself.",
+   "hint": "The value inherit tells the property to be taken from the parent: color: inherit."
+  },
+  {
+   "id": "w17-reset-keywords",
+   "title": "initial and unset",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .note block has a red color, an outer margin and italics. Return the color to “inherited from the parent” with the keyword unset (color is inherited, so it becomes the parent's color #336699), and reset the margin and the font style to their initial values with the keyword initial.",
+   "hint": "color: unset; margin: initial; font-style: initial. For an inherited property, unset acts like inherit."
+  },
+  {
+   "id": "w17-em",
+   "title": "The em unit",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .box has a font size of 20px, and its padding equals 1.5em. The browser will work out how many pixels that is.",
+   "hint": "em is calculated from the font size of the element itself: 1.5em at a 20px font gives 30px."
+  },
+  {
+   "id": "w17-em-nested",
+   "title": "Nested ems multiply",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .a has a font size of 20px. Make the font of the .b block one and a half times the parent's, and the font of the paragraph #t inside it one and a half times larger again, and write both sizes in em.",
+   "hint": "em is calculated from the parent's font: 20 × 1.5 = 30px for .b, then 30 × 1.5 = 45px for the paragraph."
+  },
+  {
+   "id": "w17-rem",
+   "title": "The rem unit",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .wrap block has increased its font to 30px. The paragraph #t inside must be exactly 2 root units (32px) regardless of its parent. Write the size in rem.",
+   "hint": "rem is calculated from the root element's font size (16px by default), so 2rem is always 32px."
+  },
+  {
+   "id": "w17-calc",
+   "title": "calc(): window minus margin",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .panel block must take the window width minus 40 pixels: 960px for a 1000px window, 360px for a 400px window. Use calc() and viewport units.",
+   "hint": "The window width is 100vw. calc(100vw - 40px) can add and subtract different units."
+  },
+  {
+   "id": "w17-clamp",
+   "title": "clamp(): a fluid heading",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The font size of .title must grow with the window as 4vw, but be no less than 16px and no more than 40px: 16px at a 320px window, 24px at 600px, 40px at 1200px.",
+   "hint": "clamp(minimum, preferred, maximum): clamp(16px, 4vw, 40px)."
+  },
+  {
+   "id": "w17-vars-root",
+   "title": "CSS variables",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. Declare the variable --brand with the value #2563eb on :root and use it for the text color of .t and for the border color of .box (border 2px solid).",
+   "hint": "Declare --brand: ...; on :root and use it as var(--brand)."
+  },
+  {
+   "id": "w17-vars-scope",
+   "title": "Overriding in a scope",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .panel panels take their background from --bg and their text color from --fg; light values are set on :root. For a panel with the class dark, override the variables: background #111111, text #eeeeee. The .panel rule does not need to be changed.",
+   "hint": "One rule is enough: .dark { --bg: #111111; --fg: #eeeeee; }. Variables are inherited, so a .panel inside .dark will see the new values."
+  },
+  {
+   "id": "w17-vars-fallback",
+   "title": "The var() fallback value",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The h1 heading takes its color from the variable --accent, and if it is missing, #c0392b is used. The .themed block sets --accent: #2563eb, so a heading inside it must be blue and one outside must be red.",
+   "hint": "var(--accent, #c0392b): the second argument is the fallback value. Set the variable on .themed."
+  },
+  {
+   "id": "w17-dark-media",
+   "title": "Dark theme from the system scheme",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. Declare the variables --bg (#ffffff) and --fg (#222222) on :root, apply them to body (background and text color), and in @media (prefers-color-scheme: dark) override them with #111111 and #eeeeee.",
+   "hint": "First declare the variables on :root and use them in body, then add @media (prefers-color-scheme: dark) { :root { --bg: ...; --fg: ...; } }."
+  },
+  {
+   "id": "w17-currentcolor",
+   "title": "Border matching the text",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .tag labels have different text colors (red and blue). With one rule for .tag draw a 2px solid border so that each label's border color matches its text color, without naming a color.",
+   "hint": "The keyword currentcolor means “the text color of this element”: border: 2px solid currentcolor. By default the border takes the text color anyway, but writing it explicitly is useful."
+  },
+  {
+   "id": "w17-ch",
+   "title": "Line length in characters",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .text paragraph has stretched across the whole screen and is hard to read. Limit its width to exactly sixty characters using the ch unit, and set the line height with line-height as a unitless number (for example, one and a half).",
+   "hint": "max-width: 60ch; line-height is set as a number without a unit: 1.5."
+  },
+  {
+   "id": "w17-rgba",
+   "title": "Semi-transparent background",
+   "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .caption label sits on top of an image. Give it a black background at 50% opacity and white text color.",
+   "hint": "rgb(0 0 0 / 50%) or rgba(0, 0, 0, 0.5). The text color is white or #ffffff."
+  }
+ ]
+}

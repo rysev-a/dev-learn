@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "virt-ffd-hosts",
+   "title": "How many servers are needed",
+   "statement": "Write a function hosts_needed(loads, capacity): loads are the loads of the virtual machines in abstract CPU units, capacity is the capacity of one server. Place them greedily: first the machines in descending order of load, each onto the first server where it fits, otherwise open a new one. Return the number of servers. If any load is greater than capacity, return -1.",
+   "hint": "Keep a list of free space on the servers already opened; sorted(loads, reverse=True) gives the order."
+  },
+  {
+   "id": "virt-peaks",
+   "title": "Sum of peaks and peak of sums",
+   "statement": "Write a function consolidation(series, capacity): series is a list of load series (by hour), one for each virtual machine, all of the same length; capacity is the capacity of a server. Return a tuple of two numbers: how many servers are needed if the peak of each machine is counted separately (the sum of the maxima divided by capacity, rounded up), and how many if the common peak is counted (the maximum over the hours of the total load, also rounded up). For an empty list, return (0, 0).",
+   "hint": "The total load by hour comes from zip(*series); rounding up is -(-x // capacity)."
+  },
+  {
+   "id": "virt-popek",
+   "title": "The Popek and Goldberg theorem",
+   "statement": "Write a function check_isa(isa): isa is a dictionary \"instruction name -> [privileged, sensitive]\" (two boolean values). Return a tuple (whether a monitor can be built by the Popek and Goldberg theorem, the sorted list of \"holes\"), where a hole is a sensitive but not privileged instruction. A privileged instruction that is not sensitive does no harm.",
+   "hint": "A monitor can be built when there are no holes."
+  },
+  {
+   "id": "virt-conflicts",
+   "title": "Someone else's memory",
+   "statement": "The monitor must not give a guest another machine's memory. Write a function find_conflicts(regions): regions is a list of areas [vm_name, start, size]. An area occupies addresses from start to start + size (the end is not included). Return a sorted list of tuples (a, b), where a < b are the names of two different machines that have overlapping areas; each pair appears once. Areas of one machine do not conflict with each other, and an area of size zero overlaps nothing.",
+   "hint": "Two areas overlap when the start of each is less than the end of the other."
+  },
+  {
+   "id": "virt-direct-percent",
+   "title": "What share of instructions run directly",
+   "statement": "Write a function direct_percent(trace, privileged): trace is a list of names of instructions executed by the guest, privileged is a list of names of privileged instructions (they go through the monitor). Return the integer percentage of instructions executed directly, rounded down. For an empty trace, return 100.",
+   "hint": "Count the instructions that are not in privileged, and multiply by 100 before dividing."
+  },
+  {
+   "id": "virt-place-vms",
+   "title": "Placing machines",
+   "statement": "Write a function place_vms(vms, hosts, max_ratio): vms is a list of [name, vcpu, memory_GB], hosts is a list of [name, cores, memory_GB] in the order to try. On a host, the total number of vCPUs is at most cores * max_ratio, and memory is not overcommitted (the sum is at most the host's memory). Put each machine, in order, on the first suitable host. Return a dictionary \"VM name -> host name\", and None for a machine that did not fit anywhere.",
+   "hint": "For each host, keep the sum of the vCPUs and memory already taken."
+  },
+  {
+   "id": "virt-carve",
+   "title": "Carving up host memory",
+   "statement": "The monitor gives guests contiguous areas of physical memory one after another, starting from zero. Write a function carve(total, requests): total is the host's memory, requests is a list of [vm_name, size]. Return a list of tuples (name, start, size) in the order of the requests, and if the sum of the sizes is greater than total, return None.",
+   "hint": "The start of the next area is the sum of the sizes of the previous ones."
+  },
+  {
+   "id": "virt-holes-table",
+   "title": "Holes in the instruction table",
+   "statement": "Write a function parse_holes(text): text is an instruction table with one instruction per line: \"NAME mode class\", where mode is user or priv, and class is safe or sensitive; fields are separated by spaces (there may be several). Skip empty lines and lines that start with #. Return a sorted list of the names of instructions that are sensitive but not privileged (user).",
+   "hint": "Split the line with split(): three fields are the name, the mode, and the class."
+  }
+ ]
+}

@@ -59,11 +59,11 @@ pub enum PageloadResult {
 pub fn pageload(state: &mut NetState, dev_id: &str, dst: u32, https: bool) -> PageloadResult {
     let info = path_info(state, dev_id, dst);
     let PathInfo::Ok { dst_id, rtt0, rate, loss_p, .. } = info else {
-        return PageloadResult::Failed("нет связи с сервером".into());
+        return PageloadResult::Failed(i18n::tr("no connection to the server").into());
     };
     let http = dst_id.as_deref().and_then(|id| state.devices.get(id)).and_then(|d| d.http.clone());
     let Some(page) = http.as_ref().and_then(|h| h.page.clone()) else {
-        return PageloadResult::Failed("на сервере нет страницы для измерения".into());
+        return PageloadResult::Failed(i18n::tr("the server has no page to measure").into());
     };
     let want = http.as_ref().and_then(|h| h.protocol).unwrap_or(HttpProto::H1);
     let mut used = want;
@@ -72,7 +72,7 @@ pub fn pageload(state: &mut NetState, dev_id: &str, dst: u32, https: bool) -> Pa
         let u = udp1(state, dev_id, dst, 443, 50001);
         if u.status != ProbeStatus::Reply {
             used = HttpProto::H2;
-            note = "UDP/443 до сервера не проходит или не слушается — браузер откатился на HTTP/2".into();
+            note = i18n::tr("UDP/443 to the server is blocked or nobody is listening — the browser fell back to HTTP/2").into();
         }
     }
     let env = PageEnv { rtt: rtt0, rate, loss_p, count: page.count, kb: page.kb, https };
@@ -89,28 +89,14 @@ pub fn fmt_page(r: &PageloadResult) -> String {
             let s = |us: f64| to_fixed(us / 1e6, 2);
             let arrow = if note.is_empty() { String::new() } else { format!(" → {}", used.name()) };
             let mut l = vec![
-                format!(
-                    "страница: {} ресурсов по ~{} КБ · RTT {} мс · канал {} Мбит/с · потери {}%",
-                    num_str(env.count + 1.0),
-                    num_str(env.kb),
-                    to_fixed(env.rtt / 1000.0, 0),
-                    num_str(env.rate),
-                    to_fixed(env.loss_p * 100.0, 1)
-                ),
-                format!("сервер предлагает: {}{}", want.name(), arrow),
-                format!(
-                    "загрузка: {} с (рукопожатия {}, {} кругов запросов, передача {}, потери {})",
-                    s(chosen.total),
-                    s(chosen.setup),
-                    num_str(chosen.rounds),
-                    s(chosen.xfer),
-                    s(chosen.loss)
-                ),
+                i18n::trf!("page: {0} resources of ~{1} KB · RTT {2} ms · link {3} Mbit/s · loss {4}%", num_str(env.count + 1.0), num_str(env.kb), to_fixed(env.rtt / 1000.0, 0), num_str(env.rate), to_fixed(env.loss_p * 100.0, 1)),
+                i18n::trf!("server offers: {0}{1}", want.name(), arrow),
+                i18n::trf!("load: {0} s (handshakes {1}, {2} request rounds, transfer {3}, loss {4})", s(chosen.total), s(chosen.setup), num_str(chosen.rounds), s(chosen.xfer), s(chosen.loss)),
                 String::new(),
-                "для сравнения:".to_string(),
+                i18n::tr("for comparison:").to_string(),
             ];
             for x in all {
-                l.push(format!("  {:<9} {} с{}", x.proto.name(), s(x.total), if x.proto == *used { "   ← сейчас" } else { "" }));
+                l.push(i18n::trf!("  {0} {1} s{2}", format!("{:<9}", x.proto.name()), s(x.total), if x.proto == *used { i18n::tr("   ← current") } else { "" }));
             }
             if !note.is_empty() {
                 l.push(String::new());

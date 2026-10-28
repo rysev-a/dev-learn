@@ -26,16 +26,16 @@ struct ResetCopy {
 fn reset_copy(scope: ResetScope) -> ResetCopy {
     match scope {
         ResetScope::Practice => ResetCopy {
-            title: "Сбросить прогресс упражнений",
-            text: "Удаляет статусы задач, черновики кода и историю попыток. Вопросы и слайды не затрагиваются.",
-            confirm: "Удалить решения, черновики и историю попыток во всех упражнениях?",
-            button: "Сбросить",
+            title: i18n::tr("Reset exercise progress"),
+            text: i18n::tr("Deletes task statuses, code drafts and attempt history. Quiz answers and slides are not affected."),
+            confirm: i18n::tr("Delete solutions, drafts and attempt history in all exercises?"),
+            button: i18n::tr("Reset"),
         },
         ResetScope::All => ResetCopy {
-            title: "Сбросить весь прогресс",
-            text: "Обнуляет дашборд на главной: просмотренные слайды, ответы на вопросы и упражнения.",
-            confirm: "Обнулить весь прогресс: слайды, вопросы и упражнения?",
-            button: "Сбросить всё",
+            title: i18n::tr("Reset all progress"),
+            text: i18n::tr("Resets the dashboard on the home page: viewed slides, quiz answers and exercises."),
+            confirm: i18n::tr("Reset all progress: slides, quiz answers and exercises?"),
+            button: i18n::tr("Reset everything"),
         },
     }
 }
@@ -54,54 +54,54 @@ pub fn SettingsPage(theme: RwSignal<Theme>) -> impl IntoView {
     view! {
         <main class="set-page">
             <section class="set-card">
-                <h2>"Настройки"</h2>
-                <p class="set-sub">"Внешний вид хранится в этом браузере и применяется сразу; прогресс — в вашем кабинете на сервере."</p>
+                <h2>{i18n::tr("Settings")}</h2>
+                <p class="set-sub">{i18n::tr("Appearance is stored in this browser and applied immediately; progress is stored in your account on the server.")}</p>
 
-                <h3 class="set-group">"Аккаунт"</h3>
+                <h3 class="set-group">{i18n::tr("Account")}</h3>
                 <AccountRow />
 
-                <h3 class="set-group">"Внешний вид"</h3>
+                <h3 class="set-group">{i18n::tr("Appearance")}</h3>
                 <SwitchRow
-                    title="Светлая тема"
-                    text="Переключает тёмную и светлую палитру интерфейса и слайдов."
+                    title=i18n::tr("Light theme")
+                    text=i18n::tr("Switches the interface and slides between the dark and light palettes.")
                     on=Signal::derive(move || theme.get() == Theme::Light)
                     on_toggle=Callback::new(move |()| settings::switch_theme(theme, theme.get_untracked().toggled()))
                 />
                 <PalettePicker theme=theme />
                 <SwitchRow
-                    title="Свёрнутое меню разделов"
-                    text="Вместо названий в левом меню — колонка иконок. Можно переключать и кнопкой над меню."
+                    title=i18n::tr("Collapsed sections menu")
+                    text=i18n::tr("Shows a column of icons instead of titles in the left menu. You can also toggle it with the button above the menu.")
                     on=Signal::derive(move || aside.is_collapsed())
                     on_toggle=Callback::new(move |()| aside.set(!aside.is_collapsed()))
                 />
 
-                <h3 class="set-group">"Слайды"</h3>
+                <h3 class="set-group">{i18n::tr("Slides")}</h3>
                 <FlagRow
                     flag=settings::ANIM_FLAG
-                    title="Автопроигрывание анимаций"
-                    text="Схемы на слайдах сами проходят шаги по таймеру, когда озвучка выключена. Если отключить, схема сразу показывает итог, а шаги переключаются вручную."
+                    title=i18n::tr("Autoplay animations")
+                    text=i18n::tr("Diagrams on slides step through on a timer while the voice-over is off. If disabled, a diagram shows the final result at once and steps are switched by hand.")
                 />
 
-                <h3 class="set-group">"Упражнения"</h3>
+                <h3 class="set-group">{i18n::tr("Exercises")}</h3>
                 <FlagRow
                     flag=settings::AUTO_NEXT_FLAG
-                    title="Автопереход к следующему упражнению"
-                    text="Когда проверка кода прошла успешно, через секунду открывается следующее упражнение (после последнего — первое упражнение следующей главы). По умолчанию выключено: решение остаётся на экране, дальше — по кнопке или Ctrl+Enter."
+                    title=i18n::tr("Auto-advance to the next exercise")
+                    text=i18n::tr("When a code check passes, the next exercise opens after a second (after the last one — the first exercise of the next chapter). Off by default: the solution stays on screen and you move on with the button or Ctrl+Enter.")
                 />
 
-                <h3 class="set-group">"Диаграммы"</h3>
+                <h3 class="set-group">{i18n::tr("Diagrams")}</h3>
                 <FlagRow
                     flag=settings::AUTOWIRE_LAB_FLAG
-                    title="Автосвязывание в «Архитектуре компьютера»"
-                    text="Пока вы двигаете вентиль или блок, подходящие выводы соседей показываются пунктиром и соединяются сами при отпускании. Если выключить, провода тянутся только вручную."
+                    title=i18n::tr("Auto-wiring in “Computer Architecture”")
+                    text=i18n::tr("While you drag a gate or block, matching pins of its neighbours are shown dashed and connect on their own when you release. If disabled, wires are drawn by hand only.")
                 />
                 <FlagRow
                     flag=settings::AUTOWIRE_SD_FLAG
-                    title="Автосвязывание в «Системном дизайне»"
-                    text="Новый или перетаскиваемый компонент сам подключается к подходящим соседям (пунктир-подсказка). Если выключить, связи тянутся от выходного порта к входному вручную."
+                    title=i18n::tr("Auto-wiring in “System Design”")
+                    text=i18n::tr("A new or dragged component connects to suitable neighbours by itself (dashed hint). If disabled, links are drawn from an output port to an input port by hand.")
                 />
 
-                <h3 class="set-group">"Прогресс"</h3>
+                <h3 class="set-group">{i18n::tr("Progress")}</h3>
                 <ResetRow scope=ResetScope::Practice done=done failure=failure />
                 <ResetRow scope=ResetScope::All done=done failure=failure />
                 {move || failure.get().map(|e| view! { <p class="error">{e}</p> })}
@@ -121,7 +121,7 @@ fn AccountRow() -> impl IntoView {
         <div class="set-row">
             <div class="set-row-text">
                 <span class="set-row-title">{name}</span>
-                <span class="set-row-desc">{email}". Прогресс, ответы и история попыток хранятся в кабинете и доступны с любого браузера."</span>
+                <span class="set-row-desc">{email}{i18n::tr(". Progress, answers and attempt history are stored in your account and available from any browser.")}</span>
             </div>
             <button
                 class="quiz-btn ghost"
@@ -130,7 +130,7 @@ fn AccountRow() -> impl IntoView {
                     session.logout(client());
                 }
             >
-                "Выйти"
+                {i18n::tr("Sign out")}
             </button>
         </div>
     }
@@ -174,7 +174,7 @@ fn PalettePicker(theme: RwSignal<Theme>) -> impl IntoView {
                             settings::choose_palette(theme, mode, id);
                         }
                     >
-                        <span class="palette-name">{p.name}</span>
+                        <span class="palette-name">{i18n::tr(p.name)}</span>
                         <span class="palette-code">{code}</span>
                         <span class="palette-chips"><i style="background: var(--accent)"></i><i style="background: var(--green)"></i><i style="background: var(--amber)"></i><i style="background: var(--error)"></i><i style="background: var(--syn-keyword, var(--s-blue))"></i><i style="background: var(--syn-string, var(--s-amber))"></i></span>
                     </button>
@@ -191,11 +191,11 @@ fn PalettePicker(theme: RwSignal<Theme>) -> impl IntoView {
     view! {
         <div class="set-row palette-row">
             <div class="set-row-text">
-                <span class="set-row-title">"Цветовая тема"</span>
-                <span class="set-row-desc">"Цвета интерфейса, слайдов и редактора кода. Выбор темы переключает светлый или тёмный режим; для каждого режима тема запоминается отдельно."</span>
+                <span class="set-row-title">{i18n::tr("Color theme")}</span>
+                <span class="set-row-desc">{i18n::tr("Colors of the interface, slides and code editor. Picking a theme switches between light and dark mode; the theme is remembered separately for each mode.")}</span>
             </div>
-            {group("Тёмные", Theme::Dark, dark)}
-            {group("Светлые", Theme::Light, light)}
+            {group(i18n::tr("Dark themes"), Theme::Dark, dark)}
+            {group(i18n::tr("Light themes"), Theme::Light, light)}
         </div>
     }
 }
@@ -262,7 +262,7 @@ fn ResetRow(scope: ResetScope, done: RwSignal<Option<ResetScope>>, failure: RwSi
                 <span class="set-row-title">{copy.title}</span>
                 <span class="set-row-desc">
                     {copy.text}
-                    {move || (done.get() == Some(scope)).then(|| view! { <b class="set-done">" Готово."</b> })}
+                    {move || (done.get() == Some(scope)).then(|| view! { <b class="set-done">{i18n::tr(" Done.")}</b> })}
                 </span>
             </div>
             <button class="quiz-btn ghost" disabled=move || busy.get() on:click=reset>{copy.button}</button>
@@ -280,6 +280,6 @@ mod tests {
         assert_ne!(practice.title, all.title);
         assert_ne!(practice.confirm, all.confirm);
         assert!(practice.confirm.ends_with('?') && all.confirm.ends_with('?'));
-        assert!(practice.text.contains("Вопросы и слайды не затрагиваются"), "сброс упражнений не трогает вопросы и слайды");
+        assert!(practice.text.contains("Quiz answers and slides are not affected"), "сброс упражнений не трогает вопросы и слайды");
     }
 }

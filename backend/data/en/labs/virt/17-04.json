@@ -1,0 +1,27 @@
+{
+ "book": 17,
+ "chapter": 4,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-ept",
+   "title": "Address translation simulator",
+   "statement": "Compare shadow page tables and nested EPT/NPT on four workloads. Change the mode and the guest and host page sizes, and watch the two-dimensional walk on a TLB miss and the total cost in memory accesses. The exercise is solved when all four goals are met.",
+   "hint": "A TLB entry covers a page of the smaller of the two sizes: a guest huge page is useless if the host pages are small.",
+   "spec_text": {
+    "/workloads/0/title": "A single TLB miss",
+    "/workloads/0/note": "one memory access: look at the cost of the walk",
+    "/workloads/1/title": "Scanning 8 MiB",
+    "/workloads/1/note": "2048 consecutive accesses with a 4 KiB stride",
+    "/workloads/2/title": "Random accesses over 64 MiB",
+    "/workloads/2/note": "4000 random accesses; TLB of 64 entries",
+    "/workloads/3/title": "Frequent page table changes",
+    "/workloads/3/note": "500 mapping changes by the guest and 2000 random accesses over 1 GiB",
+    "/goals/0/text": "A single miss costs at most 15 accesses (nested tables)",
+    "/goals/1/text": "Scanning 8 MiB in 4 KiB pages is cheaper than in EPT: at most 15,000",
+    "/goals/2/text": "Random accesses over 64 MiB fit in 10,000 accesses",
+    "/goals/3/text": "Frequent page table changes: at most 35,000 accesses"
+   }
+  }
+ ]
+}

@@ -1,0 +1,42 @@
+{
+ "book": 18,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "sd07-search",
+   "title": "Search moved out of the database",
+   "statement": "Half of the 800 reads per second are full-text search queries, and the database handles them several times more heavily than ordinary ones, so it is overloaded. Add a search index and connect the app server to it so that the database is relieved: load at most 80%.",
+   "hint": "The palette contains “Search”. Link the app server to search: search queries will go there, and the database stays for ordinary reads."
+  },
+  {
+   "id": "sd07-search-shards",
+   "title": "Search shards and replicas",
+   "statement": "The index has grown to 150 GB, while a shard must be at most 40 GB. There are 1000 search queries per second, and one replica handles 1200. Choose the shards (by size) and the replicas (by load): load at most 80%, survival of the loss of a search replica, cost at most $1500 per month.",
+   "hint": "Shards: 150 / 40 → four (about 37 GB each). Replicas: one is not enough (83%), you need two; besides, the second replica survives the failure of the first. Price: 150 × shards × replicas."
+  },
+  {
+   "id": "sd07-blob",
+   "title": "Files go to object storage",
+   "statement": "The site serves 8000 requests per second of images and video straight through the app servers, which spend their effort on moving bytes. Add object storage and connect the app server to it so that static content bypasses it, and shrink the fleet at the same time: cost at most $300 per month with load at most 80%.",
+   "hint": "The storage serves static content, and the server remains for dynamic content. Then one M server and an S database are enough. You can skip the load balancer if there is only one server."
+  },
+  {
+   "id": "sd07-cdn-blob",
+   "title": "A CDN in front of storage",
+   "statement": "Files live in object storage, but users around the world get them slowly, and 30,000 requests per second are expensive. Put a CDN in front of the storage (the CDN connects to the storage): at least 90% of static content is served from the CDN, and the design fits within $700 per month.",
+   "hint": "The CDN takes the users, fetches static content from the storage on a miss, and passes dynamic requests to the load balancer. A TTL of 300 gives 90%."
+  },
+  {
+   "id": "sd07-search-ha",
+   "title": "A search replica fails",
+   "statement": "Search is a single node: when it fails, users get an error on every search query. Add a search replica so that the design survives the failure of a replica and the load stays normal at that moment.",
+   "hint": "Search has a “Replicas” parameter: you need at least two. Each replica handles 1200 requests and the load is 600, so after losing one the load is 50%."
+  },
+  {
+   "id": "sd07-final",
+   "title": "A catalog with images and search",
+   "statement": "The final exercise of the chapter. A marketplace: 20,000 static requests, 1200 reads (half of them search over a 90 GB catalog) and 100 writes per second. Build the design: a CDN in front of the storage (≥90%), a search index with shards by size and two replicas, a database that is not overloaded, load at most 80%, survival of a search failure, budget of $2000 per month.",
+   "hint": "Search shards: 90 / 40 → three. Replicas: two. CDN → storage, app → search and storage. Three M servers and an M database."
+  }
+ ]
+}

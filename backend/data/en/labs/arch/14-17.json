@@ -1,0 +1,67 @@
+{
+ "book": 14,
+ "chapter": 17,
+ "lab": "riscv",
+ "tasks": [
+  {
+   "id": "real-hello",
+   "title": "Hello from a real write",
+   "statement": "Now without the teaching board's peripherals: this is an ordinary program. The entry point is the label _start, and the string is in the .rodata section. Print it with the write system call (fd = 1, buffer, length): the call number 64 goes in a7, the arguments in a0, a1, a2, then ecall. Then end the program with exit(0): a7 = 93, a0 = the return code. Build it on your own machine: make run (described below).",
+   "hint": "a0 = 1 (standard output), a1 = the string address (la a1, msg), a2 = its length (15 bytes including the newline), a7 = 64, ecall. Then li a0, 0; li a7, 93; ecall.",
+   "spec_text": {
+    "/tests/0/check/ok": "Correct output, exit code 0. The same program will build on your machine.",
+    "/starter": "  .globl _start\n  .text\n_start:\n  # call write(1, msg, 15), then exit(0)\n\n  .section .rodata\nmsg:\n  .ascii \"Hello, RISC-V!\\n\"\n"
+   }
+  },
+  {
+   "id": "real-print-uint",
+   "title": "Printing a number: print_uint",
+   "statement": "write can only output bytes, so you have to turn the number into text yourself. Finish the function print_uint(a0): it prints an unsigned number in decimal followed by a newline. The main program already calls it for 0, 7, 1234567 and 4294967295. The algorithm: while the number is not zero, take the remainder of division by 10 (remu), add the code of the character “0”, store it in a buffer on the stack and divide the number by 10 (divu). The digits come out from the end, so the buffer is filled from right to left.",
+   "hint": "Allocate 16 bytes on the stack (addi sp, sp, -16), put a newline (10) at the end and write the digits, decrementing the pointer. The number 0 is a special case: the loop must run at least once (check the condition at the end of the loop, like do…while). At the end: write(1, start, length) and addi sp, sp, 16 before ret.",
+   "spec_text": {
+    "/tests/0/check/ok": "Correct output, exit code 0. The same program will build on your machine.",
+    "/starter": "  .globl _start\n  .text\n_start:\n  li   a0, 0\n  call print_uint\n  li   a0, 7\n  call print_uint\n  li   a0, 1234567\n  call print_uint\n  li   a0, 4294967295\n  call print_uint\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_uint(a0): print the number and a newline\nprint_uint:\n  # your code\n  ret\n"
+   }
+  },
+  {
+   "id": "real-fizzbuzz",
+   "title": "FizzBuzz",
+   "statement": "The classic: for the numbers 1 to 30 print one line each: “FizzBuzz” if the number is divisible by both 3 and 5; “Fizz” if only by 3; “Buzz” if only by 5; otherwise the number itself. A ready-made print_int is provided: it prints a number and a newline. Print the words yourself with write. The rem instruction gives the remainder of a division.",
+   "hint": "Keep the counter in s0: this register is not clobbered by a call to print_int (a called function must preserve it; our print_int does not touch it at all). Test divisibility by 15 first, then by 3, then by 5.",
+   "spec_text": {
+    "/tests/0/check/ok": "Correct output, exit code 0. The same program will build on your machine.",
+    "/starter": "  .globl _start\n  .text\n_start:\n  li   s0, 1             # counter\n  # your loop from 1 to 30\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): prints a signed number and a newline.\n# The digits are collected in a buffer on the stack from right to left, then sent to the console with a single write.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 points to where the next character goes\n  li   t1, 10\n  sb   t1, 0(t0)         # the newline goes last\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 for a negative number, otherwise 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = absolute value of the number\nprint_int_loop:\n  remu t4, t2, t1        # lowest digit\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: standard output\n  mv   a1, t0            # address of the first character\n  addi a2, sp, 32\n  sub  a2, a2, t0        # length\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n\n  .section .rodata\nfizz:\n  .ascii \"Fizz\\n\"\nbuzz:\n  .ascii \"Buzz\\n\"\nfizzbuzz:\n  .ascii \"FizzBuzz\\n\"\n"
+   }
+  },
+  {
+   "id": "real-fib",
+   "title": "Fibonacci numbers",
+   "statement": "Print the first 15 Fibonacci numbers (0, 1, 1, 2, 3, 5, …, 377), one number per line. A ready-made print_int is provided. Each next number is the sum of the two previous ones, so keep two registers and update them in a loop.",
+   "hint": "Let s0 = the current number (initially 0), s1 = the next one (initially 1), s2 = how many are left to print. In the loop: print s0; t = s0 + s1; s0 = s1; s1 = t; s2--.",
+   "spec_text": {
+    "/tests/0/check/ok": "Correct output, exit code 0. The same program will build on your machine.",
+    "/starter": "  .globl _start\n  .text\n_start:\n  # your loop: 15 Fibonacci numbers\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): prints a signed number and a newline.\n# The digits are collected in a buffer on the stack from right to left, then sent to the console with a single write.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 points to where the next character goes\n  li   t1, 10\n  sb   t1, 0(t0)         # the newline goes last\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 for a negative number, otherwise 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = absolute value of the number\nprint_int_loop:\n  remu t4, t2, t1        # lowest digit\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: standard output\n  mv   a1, t0            # address of the first character\n  addi a2, sp, 32\n  sub  a2, a2, t0        # length\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n"
+   }
+  },
+  {
+   "id": "real-sort-print",
+   "title": "Sort and print",
+   "statement": "The .data section holds an array of eight signed 32-bit words: 5, −3, 99, 0, −100, 42, 7, −1 (label arr, the number of elements is the constant N). Sort it in place in ascending order and print the elements one per line (the ready-made print_int also prints negative numbers).",
+   "hint": "Bubble sort, as before: the address of the i-th word is arr + 4·i. To print, walk the array once more: lw a0, 0(pointer); call print_int. Keep counters and pointers that must survive a call in s-registers.",
+   "spec_text": {
+    "/tests/0/check/ok": "Correct output, exit code 0. The same program will build on your machine.",
+    "/starter": "  .equ N, 8              # number of elements\n  .globl _start\n  .text\n_start:\n  # 1) sort arr   2) print the elements in order\n  li   a0, 0\n  li   a7, 93            # exit(0)\n  ecall\n\n# print_int(a0): prints a signed number and a newline.\n# The digits are collected in a buffer on the stack from right to left, then sent to the console with a single write.\nprint_int:\n  addi sp, sp, -32\n  addi t0, sp, 31        # t0 points to where the next character goes\n  li   t1, 10\n  sb   t1, 0(t0)         # the newline goes last\n  mv   t2, a0\n  srai t3, t2, 31        # t3 = -1 for a negative number, otherwise 0\n  xor  t2, t2, t3\n  sub  t2, t2, t3        # t2 = absolute value of the number\nprint_int_loop:\n  remu t4, t2, t1        # lowest digit\n  addi t4, t4, '0'\n  addi t0, t0, -1\n  sb   t4, 0(t0)\n  divu t2, t2, t1\n  bnez t2, print_int_loop\n  beqz t3, print_int_out\n  addi t0, t0, -1\n  li   t4, '-'\n  sb   t4, 0(t0)\nprint_int_out:\n  li   a0, 1             # fd = 1: standard output\n  mv   a1, t0            # address of the first character\n  addi a2, sp, 32\n  sub  a2, a2, t0        # length\n  li   a7, 64            # write\n  ecall\n  addi sp, sp, 32\n  ret\n\n  .data\narr:\n  .word 5, -3, 99, 0, -100, 42, 7, -1\n"
+   }
+  },
+  {
+   "id": "real-exit-code",
+   "title": "Exit code: vowels",
+   "statement": "A program can report a result through its exit code: it is in a0 when exit is called, and the terminal shows it with “echo $?”. Count how many English vowels (a, e, i, o, u, lowercase only; the string ends with a zero byte) the string text contains and return that number as the exit code. Nothing needs to be printed.",
+   "hint": "Walk along the string with lbu up to the zero byte. For each character compare it in turn with the five vowels (beq) and increment the counter. The result goes in a0, then li a7, 93; ecall.",
+   "spec_text": {
+    "/tests/0/check/ok": "Correct output, exit code 8. The same program will build on your machine.",
+    "/starter": "  .globl _start\n  .text\n_start:\n  la   t0, text\n  # count the vowels, put the result in a0, then exit(a0)\n\n  .section .rodata\ntext:\n  .asciz \"programming in assembly is fun\"\n"
+   }
+  }
+ ]
+}

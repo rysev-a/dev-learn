@@ -54,11 +54,11 @@ pub fn LabHost(
     let chapter = use_load(move || Some(()), move |c, _| async move { c.lab_chapter(book, num).await });
     let error = RwSignal::new(String::new());
     move || match chapter.get() {
-        Load::Loading => view! { <p class="empty">"Загрузка…"</p> }.into_any(),
+        Load::Loading => view! { <p class="empty">{i18n::tr("Loading…")}</p> }.into_any(),
         Load::Failed(e) => view! { <p class="error">{e}</p> }.into_any(),
         Load::Ready(ch) => {
             let Some(task) = ch.tasks.iter().find(|t| t.id == task_id).cloned() else {
-                return view! { <p class="empty">"Упражнение не найдено"</p> }.into_any();
+                return view! { <p class="empty">{i18n::tr("Exercise not found")}</p> }.into_any();
             };
             let id = task.id.clone();
             let report = Callback::new(move |solution: String| {
@@ -81,11 +81,11 @@ pub fn LabHost(
                 "arch" => view! { <arch::ArchLab props=props /> }.into_any(),
                 "riscv" => view! { <riscv::RiscvLab props=props /> }.into_any(),
                 "web" => view! { <web::WebLab props=props /> }.into_any(),
-                other => view! { <p class="empty">{format!("Неизвестная лаборатория «{other}»")}</p> }.into_any(),
+                other => view! { <p class="empty">{i18n::trf!("Unknown lab “{0}”", other)}</p> }.into_any(),
             };
             view! {
                 {lab}
-                {move || (!error.get().is_empty()).then(|| view! { <p class="error">{format!("Решение не принято: {}", error.get())}</p> })}
+                {move || (!error.get().is_empty()).then(|| view! { <p class="error">{i18n::trf!("Solution rejected: {0}", error.get())}</p> })}
             }
             .into_any()
         }

@@ -1,0 +1,60 @@
+{
+ "book": 17,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "virt-sim-qcow2",
+   "title": "qcow2 layer simulator",
+   "statement": "Work with an image layer chain: take snapshots, write and read clusters, merge layers and revert the top one. Watch how a read descends down the chain and how many table accesses it costs. The exercise is solved when all three goals are met.",
+   "hint": "A snapshot is instant, but the longer the chain, the more expensive reads from the lower layers are: merging shortens the chain."
+  },
+  {
+   "id": "virt-qcow2-split",
+   "title": "Finding a cluster in qcow2",
+   "statement": "Write a function qcow2_split(addr, cluster_size): addr is the guest offset in bytes, cluster_size is the cluster size in bytes. A second-level table (L2) takes one cluster, and an entry is 8 bytes. Return a tuple (L1 index, L2 index, offset within the cluster).",
+   "hint": "Cluster number = addr // cluster_size; entries per L2 table = cluster_size // 8."
+  },
+  {
+   "id": "virt-overlay-read",
+   "title": "Reading through a layer chain",
+   "statement": "Write a function overlay_read(chain, cluster): chain is the image's layer chain, from the top (current) layer to the base; each layer is a dictionary \"cluster number (string) → data\". cluster is the cluster number. Return the data from the topmost layer that has the cluster; if no layer has it, return None (the cluster reads as zeros).",
+   "hint": "Walk the layers from top to bottom and take the first match."
+  },
+  {
+   "id": "virt-layer-run",
+   "title": "Writes, reads, and snapshots",
+   "statement": "Write a function layer_run(layers, ops): layers is a layer chain (dictionaries \"cluster number (string) → data\"), from top to base; do not modify the input data. ops are operations: [\"w\", cluster, data] (the write goes only to the top layer), [\"r\", cluster] (a read from the topmost layer that has the cluster, otherwise None), and [\"snap\"] (a snapshot: a new empty layer is added on top). Return a tuple (list of the results of all reads in order, list of layer sizes: the number of clusters in each, from top to bottom).",
+   "hint": "The top layer is the first element of the list; a snapshot inserts an empty dictionary at the front."
+  },
+  {
+   "id": "virt-chain-lookups",
+   "title": "The cost of reading through a chain",
+   "statement": "Write a function chain_lookups(chain, clusters): chain is a layer chain (dictionaries \"cluster number (string) → data\"), from top to base; clusters are the numbers of the clusters being read. Reading a cluster from the layer at depth d (the top layer has depth 0) costs d + 1 table lookups; if the cluster is nowhere, all layers are checked. Return the total number of lookups.",
+   "hint": "For each cluster, find the index of the first layer that has it."
+  },
+  {
+   "id": "virt-commit-layer",
+   "title": "Merging a layer down",
+   "statement": "Write a function commit_layer(top, base): top and base are layers (dictionaries \"cluster number (string) → data\"). Merging moves all clusters of the top layer into the lower one; on a conflict the top one wins. Do not modify the input dictionaries. Return a tuple (the new lower layer, how many clusters were moved: the size of top).",
+   "hint": "Copy base and update it with the contents of top."
+  },
+  {
+   "id": "virt-thin-size",
+   "title": "Size of a sparse qcow2",
+   "statement": "A model of the qcow2 file size. Write a function thin_size(written, cluster_size): written is a list of the numbers of clusters the guest wrote to (numbers may repeat), cluster_size is the cluster size. File size = (number of distinct written clusters + number of distinct L2 tables needed for them + 1 cluster for the header and the L1 table) * cluster_size. An L2 table holds cluster_size // 8 entries, and its number is cluster // (cluster_size // 8).",
+   "hint": "The distinct L2 tables are the set of values cluster // per_l2."
+  },
+  {
+   "id": "virt-discard",
+   "title": "Returning space with discard",
+   "statement": "Write a function allocated_after(ops, discard): ops is a list of operations [\"w\", cluster] (a write allocates the cluster) and [\"d\", cluster] (the guest discards the cluster with a TRIM command). If discard is true, the d command frees the cluster; if false, it is ignored (the device does not pass discard through). Return the sorted list of allocated clusters at the end.",
+   "hint": "Keep a set of allocated clusters."
+  },
+  {
+   "id": "virt-fsfreeze",
+   "title": "Snapshot consistency",
+   "statement": "Write a function snapshot_states(events): events are \"write\" (a guest write), \"flush\" (the guest flushed its cache to disk), \"freeze\" (the agent: flush the cache and freeze writes), \"thaw\" (unfreeze), and \"snapshot\". The guest has a counter of \"dirty\" data in the cache (initially 0). A write while writes are not frozen increases it by 1; while frozen, the write is put in a queue. flush resets the counter to zero. freeze resets the counter and freezes writes. thaw unfreezes and moves the queue into the counter. For each snapshot, return \"consistent\" if the counter is 0, otherwise \"crash-consistent\".",
+   "hint": "Keep a counter, a queue, and a frozen flag."
+  }
+ ]
+}

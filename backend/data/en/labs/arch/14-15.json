@@ -1,0 +1,96 @@
+{
+ "book": 14,
+ "chapter": 15,
+ "lab": "arch",
+ "tasks": [
+  {
+   "id": "patch-byte",
+   "title": "Change one byte",
+   "statement": "The disk holds the string “Hello” at address 0x10 (ending with a zero byte, the end-of-string marker). Replace the first letter with “J” to get “Jello”. Nothing else on the disk may be changed.",
+   "hint": "You need three instructions: put the letter's code in a register (li r1, 'J'), put the address in another register (li r2, 0x10) and write the byte to the disk: sb r1, 0(r2). And do not forget to stop the processor with hlt.",
+   "spec_text": {
+    "/regions/0/name": "string",
+    "/starter": "; Replace “H” with “J”\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "upper",
+   "title": "Uppercase letters",
+   "statement": "The disk holds the string “hello, world!” at address 0x10 (with a zero byte at the end). Make all the Latin letters uppercase: “HELLO, WORLD!”. The comma, the space and “!” must not be touched. A hint from the ASCII table: an uppercase letter is 32 less than the lowercase one.",
+   "hint": "Walk along the string with a pointer: lb reads a byte, addi r1, r1, 1 advances the pointer. A zero byte is the end (beqz r5, end). A letter is lowercase if 'a' ≤ code ≤ 'z': skip everything below 'a' (bltu) or above 'z' (bgtu). Otherwise subtract 32 and write it back.",
+   "spec_text": {
+    "/regions/0/name": "string",
+    "/starter": "; Turn all lowercase Latin letters into uppercase\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "reverse",
+   "title": "Reverse a string",
+   "statement": "Address 0x0F holds the length of the string (6), and the string itself, “abcdef” (no zero byte), starts at address 0x10. Reverse it in place: “fedcba”. There is no extra memory on the disk, so swap bytes in pairs from both ends.",
+   "hint": "Two pointers: i at the start, j at the end (address 0x10 + length − 1). While i < j: read both bytes, write them crosswise, i++, j−−. The exit condition: bgeu r1, r2, end.",
+   "spec_text": {
+    "/regions/0/name": "length",
+    "/regions/1/name": "string",
+    "/starter": "; String length at address 0x0F, the string itself from 0x10\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "max",
+   "title": "Largest element",
+   "statement": "Address 0x0F holds the number of array elements (8), and the elements themselves (unsigned bytes) start at 0x10: 23, 7, 200, 56, 91, 3, 150, 77. Find the largest and write it to address 0x0E.",
+   "hint": "Keep a register for “largest so far” (initially 0) and walk the array with a pointer to the end (address of the first + count). If the next element is larger, remember it: bgeu r2, r4, skips the replacement.",
+   "spec_text": {
+    "/regions/0/name": "answer",
+    "/regions/1/name": "length",
+    "/regions/2/name": "array",
+    "/starter": "; Element count at address 0x0F, the array from 0x10.\n; Put the largest at address 0x0E.\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "sort",
+   "title": "Sorting an array",
+   "statement": "Address 0x0F holds the number of elements (8), and the array of unsigned bytes starts at 0x10: 42, 17, 99, 3, 250, 8, 63, 31. Sort it in place in ascending order: 3, 8, 17, 31, 42, 63, 99, 250.",
+   "hint": "Bubble sort: the outer loop reduces the array “end” by 1 on every pass, and the inner loop runs from the start to the end and swaps neighbors if the left one is larger than the right (lb r4, 0(r1) and lb r5, 1(r1)). Finish when the “end” reaches the start.",
+   "spec_text": {
+    "/regions/0/name": "length",
+    "/regions/1/name": "array",
+    "/starter": "; Element count at address 0x0F, the array from 0x10.\n; Sort the array in ascending order.\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "sum16",
+   "title": "Sum of two-byte numbers",
+   "statement": "The numbers no longer fit in a byte, so each takes two bytes: the high byte first, then the low byte (the number 0x0123 is stored as 01 23). Address 0x0E holds the element size (2), 0x0F the count (5), and the numbers themselves start at 0x10: 0x0123, 0x00FF, 0x01C8, 0x0099, 0x0234. Find their sum and write it as two bytes at addresses 0x0C (high) and 0x0D (low).",
+   "hint": "Add the high bytes and the low bytes separately. The key is the carry: when the low bytes add up past 255, the result “wraps around” and becomes LESS than the addend. That is the sign of a carry: if lo after the addition is less than the byte added (bltu), add one to the high byte.",
+   "spec_text": {
+    "/regions/0/name": "sum",
+    "/regions/1/name": "size and count",
+    "/regions/2/name": "numbers",
+    "/starter": "; Element size at 0x0E (it is 2), count at 0x0F, the numbers from 0x10.\n; Put the sum at address 0x0C (high byte) and 0x0D (low byte).\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "max16",
+   "title": "Largest two-byte number",
+   "statement": "The same format: 0x0E holds the element size (2), 0x0F the count (5), and the numbers (high byte first) start at 0x10: 0x0102, 0x00FF, 0x0300, 0x02FE, 0x0301. Find the largest and write it at 0x0C (high) and 0x0D (low).",
+   "hint": "Two numbers are compared like words in a dictionary: the high bytes first, and the low bytes only if the high ones are equal. For each number: high byte less than the maximum, skip; high byte greater, take it as the new maximum; equal, compare the low bytes.",
+   "spec_text": {
+    "/regions/0/name": "answer",
+    "/regions/1/name": "size and count",
+    "/regions/2/name": "numbers",
+    "/starter": "; Element size at 0x0E (it is 2), count at 0x0F, the numbers from 0x10.\n; Put the largest at address 0x0C (high byte) and 0x0D (low byte).\n\n  hlt\n"
+   }
+  },
+  {
+   "id": "sort-sized",
+   "title": "Sorting elements of any size",
+   "statement": "The general case: address 0x0E holds the element size in bytes (currently 2), 0x0F the count (6), and the array starts at 0x10. The elements are two-byte numbers (high byte first): 0x0305, 0x0102, 0x02FF, 0x0101, 0x0300, 0x0102. Sort the array in place in ascending order. The program must read the size and the count from the disk rather than “know” them in advance, so that it also works for one-byte and three-byte elements.",
+   "hint": "This is the same bubble sort, but the steps are by the element size S, not by 1 (keep it in a register): the array end = start + N·S (multiply with a loop of additions), the neighboring element is p + S. Compare elements byte by byte from left to right up to the first difference, and swap them byte by byte in a loop of S steps. Conditional branches reach at most 31 instructions, so use j beyond that.",
+   "spec_text": {
+    "/regions/0/name": "size and count",
+    "/regions/1/name": "array",
+    "/starter": "; Element size at 0x0E, count at 0x0F, the array from 0x10.\n; Sort the array in ascending order, comparing elements byte by byte from left to right.\n\n  hlt\n"
+   }
+  }
+ ]
+}

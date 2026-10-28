@@ -111,6 +111,7 @@ mod tests {
 
     #[test]
     fn every_table_exercise_is_solved_by_the_reference_drawing_through_the_same_reactive_chain() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let reference = ArchLab::load_dir(&data_dir()).expect("данные лаборатории");
         // библиотека блоков — как её собрал бы клиент из решений ученика (здесь — эталонных)
         let lab = ArchLab::from_chapters(reference.chapters().filter(|c| c.chapter <= 14).map(|c| archlab::exercise::LabChapter { tasks: c.tasks.iter().map(|t| archlab::Task { spec: strip(&t.spec), ..t.clone() }).collect(), ..c.clone() }).collect()).expect("клиентский движок");
@@ -241,6 +242,7 @@ mod tests {
 
     #[test]
     fn every_scenario_exercise_is_passed_step_by_step_on_the_reference_drawing() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let reference = ArchLab::load_dir(&data_dir()).expect("данные лаборатории");
         let lab = ArchLab::from_chapters(reference.chapters().filter(|c| c.chapter <= 14).map(|c| archlab::exercise::LabChapter { tasks: c.tasks.iter().map(|t| archlab::Task { spec: strip(&t.spec), ..t.clone() }).collect(), ..c.clone() }).collect()).expect("клиентский движок");
         let drafts: Vec<(u32, String, String)> = reference
@@ -273,6 +275,7 @@ mod tests {
 
     #[test]
     fn clearing_the_board_empties_the_drawing_and_the_result() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let chapters = {
             // без обращения к серверу: данные из файлов в виде, который отдаёт API
             let dir = data_dir();

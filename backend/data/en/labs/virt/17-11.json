@@ -1,0 +1,19 @@
+{
+ "book": 17,
+ "chapter": 11,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-numa",
+   "title": "NUMA node placement simulator",
+   "statement": "The host has two nodes with 8 cores and 32 GiB each. Place the machines of two scenarios: choose which nodes their CPUs run on and where their memory lives, and reach the required share of remote accesses without exceeding the node resources. The exercise is solved when both placements are accepted.",
+   "hint": "Keep a machine's CPUs and memory on the same node; stretch a machine that does not fit in one node across both and enable virtual NUMA topology.",
+   "spec_text": {
+    "/scenarios/0/title": "Four small machines",
+    "/scenarios/0/goal": "Everything fits, and there are no remote accesses at all (0%)",
+    "/scenarios/1/title": "A large machine",
+    "/scenarios/1/goal": "Everything fits, and the average share of remote accesses (per vCPU) is at most 20%"
+   }
+  }
+ ]
+}

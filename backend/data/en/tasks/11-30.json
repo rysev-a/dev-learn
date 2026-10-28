@@ -1,0 +1,186 @@
+{
+ "book": 11,
+ "chapter": 30,
+ "tasks": [
+  {
+   "id": "j22-parse-query",
+   "title": "Parsing a query string",
+   "statement": "Write parseQuery(qs): qs is a query string without the '?'. Pairs are separated by '&', and inside a pair it is 'key=value'; values are decoded (%XX, and '+' as a space). Repeated keys are collected into an array in order of appearance; a key without '=' gives an empty string; empty parts ('&&') are skipped. The result is a plain object.",
+   "hint": "URLSearchParams can decode; collect repeats by hand: if the key already exists, turn it into an array."
+  },
+  {
+   "id": "j22-match-route",
+   "title": "A path pattern with parameters",
+   "statement": "Write matchRoute(pattern, path): the pattern consists of segments separated by '/', and a segment like ':name' captures a value (decode it with decodeURIComponent). The number of segments must match; a trailing '/' is ignored, and so are empty segments at the edges. The result is an object of parameters or null. If the last segment of the pattern is '*', it captures the whole non-empty rest of the path (as a string with '/') under the key '*'; if there is no rest — null.",
+   "hint": "Split both paths into segments (filter(Boolean)); compare one by one; '*' takes the rest."
+  },
+  {
+   "id": "j22-router",
+   "title": "A router: find the handler",
+   "statement": "Write createRouter() with methods add(method, pattern, handler) and find(method, path). Patterns are as with ':id' (the number of segments is equal, a trailing '/' is ignored). find returns { handler, params } for the first matching route (in order of addition; the method is compared case-insensitively). If no path matched — { status: 404 }. If the path matched but not for this method — { status: 405, allow } (allow is a sorted array of unique methods in upper case).",
+   "hint": "Keep the routes in an array; for 405 collect the methods of all routes whose path matched."
+  },
+  {
+   "id": "j22-compose",
+   "title": "compose for middleware",
+   "statement": "Write compose(middlewares): it returns an async function run(ctx). Each middleware is called as mw(ctx, next); next() starts the next one and returns a promise of its completion; after the last middleware next() simply completes. If a middleware called next() twice, the second call must reject with Error('next() called multiple times'). run returns a promise that completes after the whole chain (in \"onion\" order).",
+   "hint": "A recursive function dispatch(i): remember the maximum i to catch a repeated call."
+  },
+  {
+   "id": "j22-safe-handler",
+   "title": "A safe handler",
+   "statement": "Write safeHandler(handler, onError): it returns an async function (...args). It calls handler(...args) and returns its result (if the result is a promise, it waits for it). If handler threw an exception synchronously or returned a rejected promise, onError(err, ...args) is called, and the result of onError becomes the result.",
+   "hint": "An async function with try/catch and await around the handler call catches both synchronous and asynchronous errors."
+  },
+  {
+   "id": "j22-read-body",
+   "title": "Reading a body with a limit",
+   "statement": "Write readBody(chunks, limit): chunks is an array of strings or Buffers (pieces of the body), limit is the maximum number of bytes (UTF-8). Read the pieces in order and add up the bytes. If the sum became greater than limit — stop immediately and return { ok: false, status: 413, consumed } (consumed is the number of pieces read, including the one on which the limit was exceeded). Otherwise — { ok: true, text, bytes }, where text is the joined UTF-8 string.",
+   "hint": "Convert everything to Buffer (Buffer.from(chunk)); accumulate an array and a byte counter."
+  },
+  {
+   "id": "j22-parse-json",
+   "title": "Parsing a JSON body",
+   "statement": "Write parseJsonBody(text, contentType). If contentType does not start with application/json (case-insensitive; parameters after ';' are allowed), return { ok: false, status: 415 }. An empty body (or only whitespace) — { ok: false, status: 400, message: 'empty' }. Invalid JSON — { ok: false, status: 400, message: 'invalid json' }. Otherwise — { ok: true, value }.",
+   "hint": "Check the type first, then emptiness, then try/catch around JSON.parse."
+  },
+  {
+   "id": "j22-status-text",
+   "title": "Status code text",
+   "statement": "Write statusText(code): 200 OK, 201 Created, 204 No Content, 301 Moved Permanently, 302 Found, 304 Not Modified, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 405 Method Not Allowed, 409 Conflict, 413 Payload Too Large, 415 Unsupported Media Type, 422 Unprocessable Content, 429 Too Many Requests, 500 Internal Server Error, 503 Service Unavailable. For other codes use the class: 1xx 'Informational', 2xx 'Success', 3xx 'Redirection', 4xx 'Client Error', 5xx 'Server Error'; outside 100–599 or not an integer — 'Unknown'.",
+   "hint": "A lookup object for the known codes and a fallback based on Math.floor(code / 100)."
+  },
+  {
+   "id": "j22-paginate",
+   "title": "Paginating a list",
+   "statement": "Write paginate(items, { page, perPage }, base). By default page = 1 and perPage = 10; page is coerced to an integer ≥ 1, perPage to an integer in the range 1…100 (non-numbers get the defaults). The result: { data, meta: { total, page, perPage, pages }, links: { next, prev } }. pages = max(1, ceil(total / perPage)). If page is greater than pages — data is an empty array and page stays as it is. links.next/prev are strings `${base}?page=N&per_page=P`, or null if there is no such page (prev — when page > 1; next — when page < pages).",
+   "hint": "Normalize page and perPage first, then slice((page - 1) * perPage, page * perPage)."
+  },
+  {
+   "id": "j22-cookies",
+   "title": "Cookies: parsing and writing",
+   "statement": "Write parseCookies(header) and serializeCookie(name, value, opts). parseCookies: 'name=value' pairs separated by '; ', the value is decoded with decodeURIComponent; pairs without '=' and with an empty name are skipped; when a name repeats, the first one wins; an empty or missing header → {}. serializeCookie: 'name=encodeURIComponent(value)', then in this order: '; Max-Age=N' (if opts.maxAge is set), '; Path=P', '; HttpOnly', '; Secure', '; SameSite=S' — only for the options that were given.",
+   "hint": "split(';'), trim, indexOf('='); when building, append the parts in order."
+  },
+  {
+   "id": "j22-cors",
+   "title": "CORS headers",
+   "statement": "Write corsHeaders({ origin, method, requestHeaders }, allow). allow is an array of allowed origins. If origin is not given or not in the list — {}. Otherwise: { 'Access-Control-Allow-Origin': origin, 'Vary': 'Origin' }. For method = 'OPTIONS' (preflight) also add 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE', 'Access-Control-Allow-Headers': the value of requestHeaders if it exists, otherwise 'Content-Type', and 'Access-Control-Max-Age': '600'.",
+   "hint": "Build the object step by step; keep the keys in the given order."
+  },
+  {
+   "id": "j22-etag",
+   "title": "An ETag from the content",
+   "statement": "Write makeEtag(body): the body is a string. Compute a 32-bit FNV-1a hash over the UTF-8 bytes (initial value 0x811c9dc5, for each byte: h ^= byte, then h = Math.imul(h, 0x01000193) >>> 0). The result is a string in double quotes: '\"' + the hash as 8 hex digits (lower case, with leading zeros) + '-' + the body length in bytes in hex + '\"'.",
+   "hint": "Buffer.from(body) gives the UTF-8 bytes; padStart(8, '0') for the hash."
+  },
+  {
+   "id": "j22-not-modified",
+   "title": "Conditional requests: 304",
+   "statement": "Write notModified(etag, ifNoneMatch): it returns true if the server should answer 304. ifNoneMatch is the value of the If-None-Match header (or undefined): a comma-separated list of etags (with or without spaces), and '*' matches any etag. The weak comparison prefix 'W/' before an etag is ignored on both sides. No header or an empty one — false.",
+   "hint": "Split on commas, trim spaces, strip a leading W/ and compare."
+  },
+  {
+   "id": "j22-rate-limit",
+   "title": "Rate limiting (fixed window)",
+   "statement": "Write createLimiter(max, windowMs): a checking function allow(key, now). A key's window starts at its first request and lasts windowMs ms ([start, start + windowMs)). Inside the window the first max requests are allowed. The result is { allowed, remaining, resetMs }: remaining is how many more requests are allowed (after this one), resetMs is how many ms are left until the end of the window. When the window is over (now ≥ start + windowMs), the next request opens a new window. Keys are independent.",
+   "hint": "A Map: key → { start, count }; when now - start >= windowMs, start a new window."
+  },
+  {
+   "id": "j22-bearer",
+   "title": "Checking a Bearer token",
+   "statement": "Write bearerAuth(header, tokens): tokens is an object \"token → user\". No header — { ok: false, status: 401, reason: 'missing' }. The scheme is not Bearer (case-insensitive) or there is not exactly one token after it — reason 'malformed'. The token is not in tokens — reason 'invalid'. Otherwise — { ok: true, user }.",
+   "hint": "split(/\\s+/), compare the scheme in lower case, then Object.hasOwn(tokens, token)."
+  },
+  {
+   "id": "j22-validate",
+   "title": "Validating input data",
+   "statement": "Write validate(schema, obj): schema is an object \"field → rules\" ({ type: 'string'|'number'|'boolean', required, min, max, integer }). Return an array of error strings sorted by field name (at most one error per field, checked in order): 'field: required' (the field is missing or null/undefined, and required: true); if the field is missing and not required — skip; 'field: must be type'; for number with integer: true — 'field: must be integer'; min/max for string is the length, for number the value: 'field: too small' (less than min) / 'field: too large' (greater than max). Extra fields are ignored.",
+   "hint": "Go through the sorted keys of schema; for string min/max compare length."
+  },
+  {
+   "id": "j22-safe-join",
+   "title": "Protection against leaving the directory",
+   "statement": "Write safeJoin(root, urlPath) (use node:path/posix): urlPath is the path from the request URL, possibly with %XX. Decode it (decodeURIComponent; on a decoding error — null), reject a null byte (null), join it with root and normalize. The result is an absolute path inside root (equal to root or starting with root + '/'), otherwise null. root is an absolute path without a trailing '/'.",
+   "hint": "path.resolve(root, '.' + p) and the check full === root || full.startsWith(root + '/')."
+  },
+  {
+   "id": "j22-mime",
+   "title": "Content type by extension",
+   "statement": "Write mimeType(filename): the extension is what follows the last dot in the last segment of the name, case-insensitive. The table: html → text/html, css → text/css, js and mjs → text/javascript, json → application/json, txt → text/plain, png → image/png, jpg and jpeg → image/jpeg, svg → image/svg+xml. For text/* and application/json append '; charset=utf-8'. No extension or an unknown one — application/octet-stream. A name that starts with a dot and has no other dots (.env) has no extension.",
+   "hint": "Take the basename and find lastIndexOf('.'); index 0 or -1 means no extension."
+  },
+  {
+   "id": "j22-range",
+   "title": "The Range header",
+   "statement": "Write parseRange(header, size): a single range of the form 'bytes=a-b', 'bytes=a-' or 'bytes=-n' (the last n bytes) is supported. The result is { start, end } (inclusive, end at most size − 1). If the header is missing, does not start with 'bytes=' or contains several ranges (a comma) — null (ignore it). If the range is parsed but cannot be satisfied (start ≥ size, start > end, n = 0, size = 0) — { status: 416 }.",
+   "hint": "Parse with the regular expression /^bytes=(\\d*)-(\\d*)$/; for the suffix -n: start = max(0, size - n)."
+  },
+  {
+   "id": "j22-encoding",
+   "title": "Choosing compression",
+   "statement": "Write chooseEncoding(acceptEncoding, supported = ['br', 'gzip']). Parse the header: comma-separated items, each with an optional ';q=number' (default 1), the name is case-insensitive, and '*' means any. Encodings with q = 0 are forbidden. Choose the supported encoding with the highest q (ties go to the one earlier in supported); '*' gives its q to the other supported encodings not mentioned explicitly. If nothing suitable exists — 'identity'. No header — 'identity'.",
+   "hint": "Build a Map name → q; for each supported encoding take its q or the q of '*'."
+  },
+  {
+   "id": "j22-request-id",
+   "title": "A request identifier",
+   "statement": "Write createRequestId(): it returns a function nextId(incoming). If incoming is a string made up entirely of Latin letters, digits, '_' and '-' with a length of 1…64, return it as is. Otherwise generate 'req-' and a sequence number (1, 2, 3…) of 6 digits with leading zeros; the number grows only when generating.",
+   "hint": "A closure with a counter; check with the regular expression /^[\\w-]{1,64}$/."
+  },
+  {
+   "id": "j22-idempotent",
+   "title": "Idempotent requests",
+   "statement": "Write createIdempotent(handler): it returns an async function (key, body). handler(body) is an async function that returns a response { status, body }. Without a key (undefined or empty) — just call handler. With a key: the first call runs handler and remembers the result together with the request body (compare via JSON.stringify); a repeat with the same key and the same body returns the remembered response without calling handler; the same key with a different body — { status: 422, body: { error: 'key reused' } }. Parallel calls with one key and an identical body must call handler once (remember the promise).",
+   "hint": "A Map: key → { bodyJson, promise }; store the promise right away, before handler finishes."
+  },
+  {
+   "id": "j22-sort-routes",
+   "title": "Route specificity",
+   "statement": "Write sortRoutes(patterns): return a new array of patterns ordered by specificity. Compare segment by segment from left to right: a static segment (for example users) is more specific than a parameter (:id), and a parameter is more specific than '*'. If all the common segments are equal, the longer pattern comes later; patterns that are completely equal in structure keep their original order.",
+   "hint": "Give the segments ranks 0, 1, 2 and compare the rank arrays lexicographically; sort in Node is stable."
+  },
+  {
+   "id": "j22-build-query",
+   "title": "Building a query string",
+   "statement": "Write buildQuery(obj): keys are sorted alphabetically; an array value gives a repeated key (elements in their original order); undefined and null values are skipped (including inside an array); numbers and booleans are converted to strings; keys and values are encoded with encodeURIComponent. The result is 'a=1&b=2' without the '?'; an empty object gives an empty string.",
+   "hint": "Object.keys().sort(), flatMap over the values, encodeURIComponent(String(v))."
+  },
+  {
+   "id": "j22-cache-control",
+   "title": "Cache-Control",
+   "statement": "Write parseCacheControl(header) and isFresh(cc, ageSeconds). parseCacheControl: directives separated by commas (spaces around them are ignored, names are lower-cased); 'name=number' → a numeric value, 'name' with no value → true; quotes around a value are removed, non-numeric values stay strings; empty/missing → {}. isFresh: false if there is no-store or no-cache; otherwise true if max-age is set and ageSeconds < max-age; otherwise false.",
+   "hint": "split(','), then split on the first '='; Number(...) for numbers."
+  },
+  {
+   "id": "j22-hello-server",
+   "title": "The first server",
+   "statement": "Write createApp(): it returns an http.Server (not started). For GET / answer 200 with the body \"hello\" and Content-Type text/plain. For any other request — 404 and the JSON {\"error\":\"not found\"} with Content-Type application/json.",
+   "hint": "http.createServer((req, res) => { res.writeHead(...); res.end(...); })."
+  },
+  {
+   "id": "j22-echo-server",
+   "title": "A server with a JSON body",
+   "statement": "Write createApp(): an http.Server. POST /echo reads the request body (a stream), parses the JSON and answers 201 with the JSON {\"received\": the value}; for invalid JSON — 400 and {\"error\":\"bad json\"}. For /echo with another method — 405 and the header Allow: POST. Other paths — 404 (any body). Responses use Content-Type application/json.",
+   "hint": "for await (const chunk of req) collects the body; try/catch around JSON.parse."
+  },
+  {
+   "id": "j22-users-server",
+   "title": "A server with path parameters",
+   "statement": "Write createApp(users): users is an object \"id → name\". GET /users — 200 and a JSON array [{id, name}, …] in key order. GET /users/:id — 200 and {id, name}, or 404 and {\"error\":\"not found\"} if there is no such user. Any other method on these paths — 405 with the header Allow: GET. Other paths — 404 with the same JSON. Responses are application/json.",
+   "hint": "Parse the path with new URL(req.url, 'http://x'); segments via split('/')."
+  },
+  {
+   "id": "j22-middleware-server",
+   "title": "A server with a middleware chain",
+   "statement": "Write createApp(middlewares): an http.Server that, for each request, calls middleware of the form (req, res, next) one after another. next() passes control to the next one; if the end of the chain is reached and no response has been sent — 404 with the body \"not found\". If a middleware threw an exception (synchronously) or called next(err) — answer 500 with the body \"error: \" + the error message. Once a response is sent, there is no need to continue the chain.",
+   "hint": "A function step(i, err): on err → 500; when i === length → 404; otherwise mw(req, res, e => step(i + 1, e)) in try/catch."
+  },
+  {
+   "id": "j22-graceful-stop",
+   "title": "Stopping a server gracefully",
+   "statement": "Write stopServer(server): it returns a promise that completes when the server has stopped accepting connections and all requests in progress have finished. New connections must not be accepted meanwhile. Idle keep-alive connections must be closed so that we do not wait for their timeout. If a closing error occurs during the stop — reject the promise.",
+   "hint": "server.close(cb) + server.closeIdleConnections(); a slow request will finish by itself."
+  }
+ ]
+}

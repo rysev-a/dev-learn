@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "counter-class",
+   "title": "Counter class",
+   "statement": "Define a class Counter: a new counter has the attribute value equal to 0; the method inc() increases value by 1; the method reset() sets value back to 0. Print nothing: the checker will call your class itself.",
+   "hint": "Set self.value = 0 in __init__; change self.value in the methods."
+  },
+  {
+   "id": "rectangle-class",
+   "title": "Rectangle",
+   "statement": "Define a class Rectangle(w, h) with the methods area() for the area, perimeter() for the perimeter, and is_square(), which returns True if the sides are equal.",
+   "hint": "Store self.w and self.h; use them in the methods."
+  },
+  {
+   "id": "dog-str",
+   "title": "A dog with a description",
+   "statement": "Define a class Dog(name, age) with a method __str__ that returns «Собака Рекс, 5 лет» (the name and age are substituted in), and a method birthday() that increases the age by 1.",
+   "hint": "def __str__(self): return f\"Собака {self.name}, {self.age} лет\"."
+  },
+  {
+   "id": "bank-account",
+   "title": "Bank account",
+   "statement": "Define a class BankAccount(balance=0): an attribute balance; a method deposit(x) adds money to the account (x must be greater than 0, otherwise ValueError); a method withdraw(x) takes money out (x greater than 0 and not more than the balance, otherwise ValueError).",
+   "hint": "At the start of each method check the condition and do raise ValueError(...), then change the balance."
+  },
+  {
+   "id": "stack-class",
+   "title": "Your own stack",
+   "statement": "Define a class Stack with the methods push(x), pop() (removes and returns the top element), peek() (returns the top element without removing it), is_empty() and size(). The elements must be kept in a list inside the object.",
+   "hint": "self._items = [] in __init__; peek is self._items[-1]."
+  },
+  {
+   "id": "best-student",
+   "title": "Best student",
+   "statement": "Define a class Student(name, grade) and a function best_student(students): it takes a list of Student objects and returns the NAME of the student with the highest grade (on a tie, the one who comes earlier in the list).",
+   "hint": "Walk through the list and update the best one only for a strictly greater grade."
+  },
+  {
+   "id": "team-members",
+   "title": "A team without a shared list",
+   "statement": "Define a class Team: the method add(name) adds a member, and the method size() returns their number. Each team has its own list, so don't make it a class attribute.",
+   "hint": "self.members = [] inside __init__, so that each instance has its own list."
+  }
+ ]
+}

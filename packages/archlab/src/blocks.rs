@@ -95,15 +95,15 @@ pub enum Solution {
 impl Solution {
     /// Разбор присланного решения с понятной ошибкой (TS: `isSolution` + `JSON.parse`).
     pub fn from_json(text: &str) -> Result<Solution, String> {
-        let v: serde_json::Value = serde_json::from_str(text).map_err(|e| format!("не JSON: {e}"))?;
+        let v: serde_json::Value = serde_json::from_str(text).map_err(|e| i18n::trf!("not JSON: {0}", e))?;
         let Some(o) = v.as_object() else {
-            return Err("решение должно быть объектом".into());
+            return Err(i18n::tr("the solution must be an object").into());
         };
         let arr = |k: &str| o.get(k).is_some_and(|x| x.is_array());
         if !((arr("gates") && arr("wires")) || (arr("instances") && (arr("bus_wires") || arr("busWires"))) || o.contains_key("native")) {
-            return Err("ожидалась схема: {gates, wires} или {instances, bus_wires}".into());
+            return Err(i18n::tr("expected a circuit: {gates, wires} or {instances, bus_wires}").into());
         }
-        serde_json::from_value(v).map_err(|e| format!("схема не разобрана: {e}"))
+        serde_json::from_value(v).map_err(|e| i18n::trf!("circuit could not be parsed: {0}", e))
     }
 
     /// Схема из блоков?
@@ -215,8 +215,8 @@ impl BlockLibrary {
     pub fn builtin() -> Self {
         let mut lib = BlockLibrary::default();
         for (def, sol) in [
-            adapter("adapter-w2a", "Слово → адрес", Iface::Word2, Iface::Addr2, ["A", "B"], ["Y1", "Y0"]),
-            adapter("adapter-a2w", "Адрес → слово", Iface::Addr2, Iface::Word2, ["A", "B"], ["Y1", "Y0"]),
+            adapter("adapter-w2a", i18n::tr("Word → address"), Iface::Word2, Iface::Addr2, ["A", "B"], ["Y1", "Y0"]),
+            adapter("adapter-a2w", i18n::tr("Address → word"), Iface::Addr2, Iface::Word2, ["A", "B"], ["Y1", "Y0"]),
         ] {
             lib.insert(def, Some(sol), String::new());
         }
@@ -317,19 +317,19 @@ pub fn is_source_end(end: &BusEnd, info: &EndInfo) -> bool {
 /// Можно ли соединить: возвращает причину отказа.
 pub fn connection_error(from: &BusEnd, to: &BusEnd, ports_of: &PortsOf) -> Option<String> {
     let (Some(a), Some(b)) = (end_info(from, ports_of), end_info(to, ports_of)) else {
-        return Some("Такого порта нет".into());
+        return Some(i18n::tr("No such port").into());
     };
     if !is_source_end(from, &a) {
-        return Some("Провод должен начинаться с выхода".into());
+        return Some(i18n::tr("A wire must start at an output").into());
     }
     if is_source_end(to, &b) {
-        return Some("Провод должен заканчиваться на входе".into());
+        return Some(i18n::tr("A wire must end at an input").into());
     }
     if from.node == to.node && from.node != TOP {
-        return Some("Нельзя замыкать блок на самого себя".into());
+        return Some(i18n::tr("A block cannot be wired to itself").into());
     }
     if !can_connect(a.ty, b.ty) {
-        return Some(format!("Тип {} не подходит к {} — нужен переходник", a.ty.name(), b.ty.name()));
+        return Some(i18n::trf!("Type {0} does not fit {1} — an adapter is needed", a.ty.name(), b.ty.name()));
     }
     None
 }

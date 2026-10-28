@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 50,
+ "tasks": [
+  {
+   "id": "pj-parse-requirement",
+   "title": "Parsing a dependency string",
+   "statement": "Write parse_requirement(text): from a string like \"requests>=2.31,<3\" return a tuple (name, list of (operator, version) pairs). Ignore spaces around the parts and drop any extras in square brackets. The operators are ==, !=, <=, >=, ~=, <, >. Reject a string that cannot be parsed with ValueError.",
+   "hint": "Use the regex ^([A-Za-z0-9._-]+)(?:\\[[^\\]]*\\])?(.*)$ for the name, split the remainder on commas and parse the operator and version."
+  },
+  {
+   "id": "pj-compare-versions",
+   "title": "Comparing versions",
+   "statement": "Write compare_versions(a, b): return -1, 0 or 1 for versions like \"1.10.2\". Compare by numbers, not by strings (\"1.10\" is newer than \"1.2\"), and treat missing parts as zeros (\"1.0\" equals \"1.0.0\").",
+   "hint": "Split on dots into lists of int, pad them with zeros to the same length and compare the lists."
+  },
+  {
+   "id": "pj-satisfies",
+   "title": "Does a version satisfy a condition",
+   "statement": "The function compare_versions is already there. Write satisfies(version, spec): spec is several conditions separated by commas (>=, >, <=, <, ==, !=, ~=). A compatible release ~=1.4.2 means \">=1.4.2 and the version starts with 1.4\", and ~=1.4 means \">=1.4 and starts with 1\".",
+   "hint": "For ~=: the lower bound >= spec, and all parts of the version match except the last part of spec."
+  },
+  {
+   "id": "pj-read-pyproject",
+   "title": "Reading pyproject.toml",
+   "statement": "Write project_info(text): parse the TOML with the tomllib module and return a tuple (name, version, required Python, list of dependencies) from the [project] section. If a field is missing, use None (for dependencies, an empty list).",
+   "hint": "data = tomllib.loads(text).get(\"project\", {}); then data.get(\"name\") and so on."
+  },
+  {
+   "id": "pj-entry-point",
+   "title": "Entry point",
+   "statement": "Write resolve_entry_point(spec): a string like \"package.module:function\" (as in [project.scripts]) is turned into a callable object; a nested dotted name after the colon is allowed. A format without a colon raises ValueError; a missing module raises ImportError, a missing name raises AttributeError.",
+   "hint": "module, sep, attr = spec.partition(\":\"); if there is no sep, raise ValueError; then import_module and getattr for each part of attr.split(\".\")."
+  },
+  {
+   "id": "pj-find-packages",
+   "title": "Finding packages in a directory",
+   "statement": "Write find_packages(root): a sorted list of the full names of the packages in the directory root, meaning directories with an __init__.py. Descend only into packages (if the parent is not a package, nested ones do not count).",
+   "hint": "A recursive function: for each subdirectory with __init__.py, add the name and descend into it with a prefix."
+  },
+  {
+   "id": "pj-cli-main",
+   "title": "The project's command line",
+   "statement": "Write main(argv=None): argparse with a required --name, an optional --times (an integer, 1 by default) and a --shout flag. It prints the greeting \"Здравствуйте, <name>!\" the required number of times (with --shout, in upper case) and returns 0. An argument error is the normal argparse behavior (SystemExit with code 2).",
+   "hint": "parser = argparse.ArgumentParser(); parser.add_argument(\"--name\", required=True); --times type=int default=1; --shout action=\"store_true\"."
+  },
+  {
+   "id": "pj-lock-diff",
+   "title": "What changed in the lock",
+   "statement": "Write lock_diff(old, new): old and new are dicts of package to version. Return a tuple of three sorted lists of strings: added (\"+ name version\"), removed (\"- name version\") and updated (\"~ name old → new\").",
+   "hint": "Compare the key sets: new - old, old - new, and the intersection with differing values."
+  },
+  {
+   "id": "pj-env-settings",
+   "title": "Settings from the environment",
+   "statement": "Write load_settings(environ): a dict of settings from environment variables (environ is an ordinary dict): DEBUG (\"1\", \"true\", \"yes\" in any case is True, anything else False), PORT (an integer, 8000 by default; not a number or outside 1..65535 raises ValueError), HOSTS (a list from the comma-separated value with no spaces at the edges, [\"localhost\"] by default).",
+   "hint": "Treat an empty HOSTS as missing; check PORT with int(...) and the range."
+  }
+ ]
+}

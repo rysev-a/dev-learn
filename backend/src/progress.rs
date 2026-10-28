@@ -28,7 +28,7 @@ pub fn check_range(name: &str, v: i64, lo: i64, hi: i64) -> ApiResult<()> {
     if (lo..=hi).contains(&v) {
         Ok(())
     } else {
-        Err(ApiError::invalid(format!("{name}: от {lo} до {hi}")))
+        Err(ApiError::invalid(format!("{name}: from {lo} to {hi}")))
     }
 }
 
@@ -143,7 +143,7 @@ async fn reset_progress(State(state): State<AppState>, Extension(me): Extension<
     match q.scope.as_str() {
         "practice" => {}
         "all" => tables.extend(["slide_views", "quiz_picks"]),
-        _ => return Err(ApiError::invalid("scope: practice или all")),
+        _ => return Err(ApiError::invalid("scope: practice or all")),
     }
     for t in tables {
         state.db.query(format!("DELETE {t} WHERE user = $u")).bind(("u", me.user.id.clone())).await?.check()?;

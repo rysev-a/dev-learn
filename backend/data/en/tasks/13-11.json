@@ -1,0 +1,48 @@
+{
+ "book": 13,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "unpack-point",
+   "title": "Unpack a point",
+   "statement": "You are given a tuple point with coordinates. Unpack it into variables x and y in one line and print their product.",
+   "hint": "x, y = point, then print(x * y)."
+  },
+  {
+   "id": "swap-pair",
+   "title": "Swap the elements",
+   "statement": "Write a function swap_pair(p) that takes a tuple of two elements and returns a new tuple with the elements swapped.",
+   "hint": "a, b = p; return b, a. The comma in return builds a tuple."
+  },
+  {
+   "id": "min-max",
+   "title": "Minimum and maximum",
+   "statement": "Write a function min_max(nums) that returns a tuple of the smallest and the largest element of a non-empty list. It must return a tuple, not a list.",
+   "hint": "return min(nums), max(nums)."
+  },
+  {
+   "id": "div-mod",
+   "title": "Division with remainder",
+   "statement": "Write a function div_mod(a, b) that returns a tuple of the quotient and the remainder of dividing a by b (b is not zero). Don't use the built-in divmod: use the operators // and %.",
+   "hint": "return a // b, a % b."
+  },
+  {
+   "id": "split-first",
+   "title": "Head and tail",
+   "statement": "Write a function split_first(items) that returns a tuple of the first element and a list of the rest. The list is non-empty. Use unpacking with a star.",
+   "hint": "first, *rest = items; return first, rest."
+  },
+  {
+   "id": "lookup-cell",
+   "title": "A board cell",
+   "statement": "Write a function lookup(cells, row, col). cells is a list of tuples (row, column, value). Build a dictionary whose key is the tuple (row, column), and return the value of the cell (row, col), or None if there is no such cell.",
+   "hint": "field[(r, c)] = value while building, then field.get((row, col))."
+  },
+  {
+   "id": "sort-people",
+   "title": "Oldest first",
+   "statement": "Write a function sort_people(people), where people is a list of tuples (name, age). Return a new list sorted by age from oldest to youngest, and for equal ages, by name alphabetically. The sort key is the tuple (minus age, name).",
+   "hint": "def by_key(person): name, age = person; return -age, name."
+  }
+ ]
+}

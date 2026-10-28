@@ -79,7 +79,7 @@ impl Verdict {
     pub fn first_rejection(&self) -> Option<String> {
         self.goals.iter().find_map(|g| match &g.status {
             GoalStatus::Rejected { reason } => Some(format!("{}: {reason}", g.id)),
-            GoalStatus::Missing => Some(format!("{}: цель не достигнута", g.id)),
+            GoalStatus::Missing => Some(i18n::trf!("{0}: goal not reached", g.id)),
             _ => None,
         })
     }
@@ -120,7 +120,7 @@ fn truthy(v: &Value) -> bool {
 }
 
 fn parse<T: serde::de::DeserializeOwned>(info: &Value) -> Result<T, SpecError> {
-    serde_json::from_value(info.clone()).map_err(|e| SpecError::new(format!("неверная форма данных: {e}")))
+    serde_json::from_value(info.clone()).map_err(|e| SpecError::new(i18n::trf!("invalid data shape: {0}", e)))
 }
 
 fn rejected(reason: impl Into<String>) -> Result<GoalStatus, SpecError> {
@@ -134,7 +134,7 @@ fn trace_of<A: serde::de::DeserializeOwned>(info: &Value) -> Result<Option<Vec<A
     };
     let v: Vec<A> = parse(t)?;
     if v.len() > MAX_TRACE {
-        return Err(SpecError::new(format!("запись действий длиннее {MAX_TRACE}")));
+        return Err(SpecError::new(i18n::trf!("action trace longer than {0}", MAX_TRACE)));
     }
     Ok(Some(v))
 }
@@ -149,40 +149,40 @@ fn check_goal(spec: &Spec, id: &str, info: &Value) -> Result<GoalStatus, SpecErr
                 #[serde(default)]
                 trace: Option<Vec<hv::Step>>,
             }
-            let program = programs.iter().find(|p| p.id == id).ok_or_else(|| SpecError::new("нет такой программы"))?;
+            let program = programs.iter().find(|p| p.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such program")))?;
             let i: Info = parse(info)?;
             match i.trace {
                 Some(steps) => {
                     if steps.len() > MAX_TRACE {
-                        return rejected(format!("запись действий длиннее {MAX_TRACE}"));
+                        return rejected(i18n::trf!("action trace longer than {0}", MAX_TRACE));
                     }
                     let fin = hv::replay(program, &hv::Run { translate: i.translate, steps })?;
                     if !fin.ok {
-                        return rejected("прогон закончился неверным состоянием гостя");
+                        return rejected(i18n::tr("the run ended with an incorrect guest state"));
                     }
                     if fin.mistakes != i.mistakes {
-                        return rejected("число ошибок не совпадает с записью действий");
+                        return rejected(i18n::tr("the number of mistakes does not match the action trace"));
                     }
                     Ok(GoalStatus::Verified)
                 }
                 None => {
                     if hv::needs_translation(program)? && !i.translate {
-                        return rejected("в программе есть POPF: без двоичной трансляции она не проходится верно");
+                        return rejected(i18n::tr("the program contains POPF: without binary translation it cannot be completed correctly"));
                     }
                     Ok(GoalStatus::Unverified)
                 }
             }
         }
         Spec::Ept { workloads, goals } => {
-            let goal = goals.iter().find(|g| g.id == id).ok_or_else(|| SpecError::new("нет такой цели"))?;
+            let goal = goals.iter().find(|g| g.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such goal")))?;
             let cfg: ept::SimInput = parse(info)?;
             if cfg.workload != goal.workload {
-                return rejected("запуск выполнен на другой нагрузке");
+                return rejected(i18n::tr("the run was made on a different workload"));
             }
             if ept::achieved(workloads, goals, &cfg)?.iter().any(|g| g == id) {
                 Ok(GoalStatus::Verified)
             } else {
-                rejected("при этих настройках цель не достигается")
+                rejected(i18n::tr("the goal is not reached with these settings"))
             }
         }
         Spec::Virtq { size, goals } => match trace_of::<virtq::Action>(info)? {
@@ -190,7 +190,7 @@ fn check_goal(spec: &Spec, id: &str, info: &Value) -> Result<GoalStatus, SpecErr
                 if virtq::replay(*size, goals, &actions).iter().any(|g| g == id) {
                     Ok(GoalStatus::Verified)
                 } else {
-                    rejected("по записи действий цель не достигается")
+                    rejected(i18n::tr("the goal is not reached according to the action trace"))
                 }
             }
             None => Ok(GoalStatus::Unverified),
@@ -200,39 +200,39 @@ fn check_goal(spec: &Spec, id: &str, info: &Value) -> Result<GoalStatus, SpecErr
                 if qcow2::replay(&base_map(base), goals, &actions).iter().any(|g| g == id) {
                     Ok(GoalStatus::Verified)
                 } else {
-                    rejected("по записи действий цель не достигается")
+                    rejected(i18n::tr("the goal is not reached according to the action trace"))
                 }
             }
             None => Ok(GoalStatus::Unverified),
         },
         Spec::Numa { nodes, scenarios } => {
-            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new("нет такого сценария"))?;
+            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such scenario")))?;
             let plan: numa::Plan = parse(info)?;
             match numa::accept(nodes, sc, &plan)? {
                 numa::Accept::Ok { .. } => Ok(GoalStatus::Verified),
-                numa::Accept::Over => rejected("размещение не помещается в узлы"),
-                numa::Accept::TooRemote { .. } => rejected("слишком много удалённых обращений"),
+                numa::Accept::Over => rejected(i18n::tr("the placement does not fit into the nodes")),
+                numa::Accept::TooRemote { .. } => rejected(i18n::tr("too many remote accesses")),
             }
         }
         Spec::Migration { scenarios } => {
-            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new("нет такого сценария"))?;
+            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such scenario")))?;
             let p: migration::MigrationInput = parse(info)?;
             if p.dirty != sc.dirty || p.bw != sc.bw {
-                return rejected("скорости гостя и сети не совпадают со сценарием");
+                return rejected(i18n::tr("guest and network rates do not match the scenario"));
             }
             if !p.downtime_ms.is_finite() || !(20.0..=1000.0).contains(&p.downtime_ms) {
-                return rejected("допустимый простой вне диапазона 20–1000 мс");
+                return rejected(i18n::tr("the allowed downtime is outside the range of 20–1000 ms"));
             }
             if p.postcopy_after.is_some_and(|n| !(1..=6).contains(&n)) {
-                return rejected("переход на post-copy возможен после 1–6 кругов");
+                return rejected(i18n::tr("switching to post-copy is possible after 1–6 rounds"));
             }
             if p.mem.is_some_and(|m| m != migration::MEM_MIB) {
-                return rejected("память гостя не совпадает со сценарием");
+                return rejected(i18n::tr("guest memory does not match the scenario"));
             }
             if sc.reached(&p) {
                 Ok(GoalStatus::Verified)
             } else {
-                rejected("при этих параметрах цель сценария не достигается")
+                rejected(i18n::tr("the scenario goal is not reached with these parameters"))
             }
         }
     }

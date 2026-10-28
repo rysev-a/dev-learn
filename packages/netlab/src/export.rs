@@ -130,29 +130,29 @@ pub fn normalize(v: &Value, in_devices: bool) -> Value {
 /// Превратить упражнение выгрузки в задачу. Ошибка — что-то потерялось при разборе.
 pub fn convert(s: &TsScenario) -> Result<Task, String> {
     let ctx = |e: String| format!("{}: {e}", s.id);
-    let start: NetState = serde_json::from_str(s.start.get()).map_err(|e| ctx(format!("исходная сеть: {e}")))?;
-    start.validate().map_err(|e| ctx(format!("исходная сеть: {e}")))?;
+    let start: NetState = serde_json::from_str(s.start.get()).map_err(|e| ctx(i18n::trf!("start network: {0}", e)))?;
+    start.validate().map_err(|e| ctx(i18n::trf!("start network: {0}", e)))?;
     let start_value: Value = serde_json::from_str(s.start.get()).map_err(|e| ctx(e.to_string()))?;
     let a = normalize(&start_value, false);
     let b = normalize(&serde_json::to_value(&start).map_err(|e| ctx(e.to_string()))?, false);
     if a != b {
-        return Err(ctx(format!("исходная сеть изменилась при разборе:\n  было   {a}\n  стало  {b}")));
+        return Err(ctx(i18n::trf!("start network changed during parsing:\n  was    {0}\n  became {1}", a, b)));
     }
     let mut goals: Vec<Goal> = Vec::new();
     for g in &s.goals {
-        let goal: Goal = serde_json::from_str(g.get()).map_err(|e| ctx(format!("цель: {e}")))?;
+        let goal: Goal = serde_json::from_str(g.get()).map_err(|e| ctx(i18n::trf!("goal: {0}", e)))?;
         let gv: Value = serde_json::from_str(g.get()).map_err(|e| ctx(e.to_string()))?;
         let a = normalize(&gv, false);
         let b = normalize(&serde_json::to_value(&goal).map_err(|e| ctx(e.to_string()))?, false);
         if a != b {
-            return Err(ctx(format!("цель изменилась при разборе:\n  было   {a}\n  стало  {b}")));
+            return Err(ctx(i18n::trf!("goal changed during parsing:\n  was    {0}\n  became {1}", a, b)));
         }
         goals.push(goal);
     }
     let mut tools = Tools::default();
     for (k, v) in &s.tools {
         if !tools.set(k, v.unwrap_or(false)) {
-            return Err(ctx(format!("неизвестный инструмент «{k}»")));
+            return Err(ctx(i18n::trf!("unknown tool \"{0}\"", k)));
         }
     }
     Ok(Task {

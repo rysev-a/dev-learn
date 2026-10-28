@@ -1,0 +1,55 @@
+{
+ "book": 13,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "build-dict",
+   "title": "First dictionary",
+   "statement": "You are given the price list {«яблоко»: 50, «банан»: 70}. Add «киви» for 90, raise the price of «яблоко» to 55, delete «банан», and print the whole dictionary. You should get `{'яблоко': 55, 'киви': 90}`.",
+   "hint": "prices[\"киви\"] = 90; prices[\"яблоко\"] = 55; del prices[\"банан\"]; print(prices).",
+   "starter": "prices = {\"яблоко\": 50, \"банан\": 70}\n# add, change, delete, print\n"
+  },
+  {
+   "id": "price-of",
+   "title": "Price of a product",
+   "statement": "Write a function price_of(prices, name): the price of the product name from the dictionary prices, or 0 if there is no such product. The program must not crash on an unknown product.",
+   "hint": "prices.get(name, 0) -- the second argument is the default value."
+  },
+  {
+   "id": "with-item",
+   "title": "Dictionary with a new pair",
+   "statement": "Write a function with_item(d, key, value): a new dictionary, a copy of d with the pair key: value added (or replaced). The original dictionary d must not be changed.",
+   "hint": "Copy the dictionary, then assign result[key] = value and return result."
+  },
+  {
+   "id": "count-words",
+   "title": "Word frequencies",
+   "statement": "Write a function count_words(words): a dictionary \"word -> how many times it occurred in the list\". Use the pattern counts.get(word, 0) + 1.",
+   "hint": "for w in words: counts[w] = counts.get(w, 0) + 1."
+  },
+  {
+   "id": "total-price",
+   "title": "Cart total",
+   "statement": "Write a function total_price(prices, cart): prices holds the product prices, cart is a dictionary \"product -> number of items\". Return the total cost. Products that are not in the price list cost nothing.",
+   "hint": "total += prices.get(name, 0) * qty for each pair in cart.items()."
+  },
+  {
+   "id": "word-lengths-dict",
+   "title": "Word -> length",
+   "statement": "Write a function length_map(words): a dictionary where the key is a word from the list and the value is its length.",
+   "hint": "result[word] = len(word) on each turn of the loop."
+  },
+  {
+   "id": "has-value",
+   "title": "Is there such a value",
+   "statement": "Write a function has_value(d, value): True if value occurs among the VALUES of the dictionary d (not among the keys), otherwise False.",
+   "hint": "The word in on the dictionary itself looks at keys; the values come from d.values()."
+  },
+  {
+   "id": "most-expensive",
+   "title": "The most expensive",
+   "statement": "Write a function most_expensive(prices): the name of the most expensive product in a non-empty price list. Loop over the pairs with prices.items() and remember the best one.",
+   "hint": "If best_price is None or price > best_price, update both variables."
+  }
+ ]
+}

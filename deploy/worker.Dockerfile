@@ -4,7 +4,7 @@ COPY --from=docker:29-cli /usr/local/bin/docker /usr/local/bin/docker
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY worker/worker.py worker/runner.py ./
-# контекст сборки say-rust-crates:1 и скрипт заливки образов (сервис `images`)
+# контекст сборки cs-core-rust-crates:1 и скрипт заливки образов (сервис `images`)
 COPY worker/docker /app/docker
 COPY deploy/init-images.sh /app/init-images.sh
 RUN chmod +x /app/init-images.sh

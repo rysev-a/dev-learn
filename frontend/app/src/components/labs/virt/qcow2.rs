@@ -18,24 +18,22 @@ const LETTERS: &str = "EFGHIJKLMNOPQRSTUVWXYZ";
 /// Подпись под цепочкой по тому, что произошло; `cluster` и `data` — параметры записи или чтения.
 pub fn note_text(note: &Note, cluster: u32, data: &str) -> String {
     match note {
-        Note::Snapshot => "Снимок: сверху добавлен пустой слой, прежний заморожен. Ничего не копировалось.".to_string(),
-        Note::Write { copy_up: true } => format!(
-            "Запись «{data}» в кластер {cluster}: кластер лежит в нижнем слое, новая версия появилась только в верхнем (копирование при записи)."
-        ),
-        Note::Write { copy_up: false } => format!("Запись «{data}» в кластер {cluster}: кластер выделен в верхнем слое."),
+        Note::Snapshot => i18n::tr("Snapshot: an empty layer was added on top, the previous one is frozen. Nothing was copied.").to_string(),
+        Note::Write { copy_up: true } => i18n::trf!("Write \"{0}\" to cluster {1}: the cluster lives in a lower layer, the new version appeared only in the top one (copy-on-write).", data, cluster),
+        Note::Write { copy_up: false } => i18n::trf!("Write \"{0}\" to cluster {1}: the cluster is allocated in the top layer.", data, cluster),
         Note::Read(r) => match (&r.value, &r.layer) {
             (Some(v), Some(layer)) => {
-                format!("Кластер {cluster} = «{v}», найден в слое «{layer}», обращений к таблицам: {}.", r.lookups)
+                i18n::trf!("Cluster {0} = \"{1}\", found in layer \"{2}\", table lookups: {3}.", cluster, v, layer, r.lookups)
             }
-            _ => format!("Кластера {cluster} нет ни в одном слое: читаются нули (проверено слоёв: {}).", r.lookups),
+            _ => i18n::trf!("Cluster {0} is in no layer: zeros are read (layers checked: {1}).", cluster, r.lookups),
         },
-        Note::Committed => "Слияние: кластеры верхнего слоя перенесены в нижний, цепочка стала короче.".to_string(),
-        Note::CommitImpossible => "Слияние невозможно: слой всего один.".to_string(),
+        Note::Committed => i18n::tr("Merge: the top layer's clusters were moved into the lower one, the chain got shorter.").to_string(),
+        Note::CommitImpossible => i18n::tr("Merge is impossible: there is only one layer.").to_string(),
         Note::Reverted { had_data: true } => {
-            "Откат: верхний слой с записями отброшен. Прочитайте кластер, который вы в него писали.".to_string()
+            i18n::tr("Revert: the top layer with writes was discarded. Read the cluster you wrote into it.").to_string()
         }
-        Note::Reverted { had_data: false } => "Откат: пустой верхний слой отброшен.".to_string(),
-        Note::RevertImpossible => "Откат невозможен: слой всего один.".to_string(),
+        Note::Reverted { had_data: false } => i18n::tr("Revert: the empty top layer was discarded.").to_string(),
+        Note::RevertImpossible => i18n::tr("Revert is impossible: there is only one layer.").to_string(),
     }
 }
 
@@ -67,7 +65,7 @@ impl Qcow2Run {
             session: Session::new(base, goals),
             trace: vec![],
             path: None,
-            msg: "Цепочка из одного слоя: база с кластерами 0–3.".to_string(),
+            msg: i18n::tr("A one-layer chain: a base with clusters 0–3.").to_string(),
             seen: 0,
         }
     }
@@ -142,11 +140,11 @@ pub fn Qcow2Lab(clusters: u32, base: Vec<BaseCluster>, targets: Vec<Qcow2Goal>, 
             <div class="vl-grid">
                 <div class="vl-card">
                     <div class="vl-field">
-                        <span>"кластер"</span>
+                        <span>{i18n::tr("cluster")}</span>
                         <div class="vl-seg">{picks}</div>
                     </div>
                     <label class="vl-field">
-                        <span>"данные для записи"</span>
+                        <span>{i18n::tr("data to write")}</span>
                         <select on:change=move |ev| letter.set(event_target_value(&ev))>{letters}</select>
                     </label>
                     <div class="vl-actions wrap">
@@ -154,25 +152,25 @@ pub fn Qcow2Lab(clusters: u32, base: Vec<BaseCluster>, targets: Vec<Qcow2Goal>, 
                             class="quiz-btn"
                             on:click=move |_| act(Action::Write { cluster: cluster.get_untracked(), data: letter.get_untracked() })
                         >
-                            "Записать"
+                            {i18n::tr("Write")}
                         </button>
                         <button class="quiz-btn" on:click=move |_| act(Action::Read { cluster: cluster.get_untracked() })>
-                            "Прочитать"
+                            {i18n::tr("Read")}
                         </button>
-                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Snapshot)>"Снимок"</button>
-                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Commit)>"Слить верхний слой"</button>
-                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Revert)>"Откатить верхний слой"</button>
+                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Snapshot)>{i18n::tr("Snapshot")}</button>
+                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Commit)>{i18n::tr("Merge top layer")}</button>
+                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Revert)>{i18n::tr("Revert top layer")}</button>
                     </div>
                     <GoalList goals=goals items=items />
                 </div>
 
                 <div class="vl-card">
                     <div class="pr-res-head">
-                        <span class="s-label">"цепочка слоёв (сверху вниз)"</span>
-                        <span class="pr-res-time">{move || format!("{} сл.", run.with(|r| r.chain().len()))}</span>
+                        <span class="s-label">{i18n::tr("layer chain (top to bottom)")}</span>
+                        <span class="pr-res-time">{move || i18n::trf!("{0} layers", run.with(|r| r.chain().len()))}</span>
                     </div>
                     <div class="vl-layers">{move || run.with(|r| layers_view(r.chain(), r.path(), clusters))}</div>
-                    <p class="vl-hint">{format!("Клетки — кластеры 0…{}; подсвечены слои, которые прошло чтение.", clusters.saturating_sub(1))}</p>
+                    <p class="vl-hint">{i18n::trf!("Cells are clusters 0…{0}; the layers the read passed through are highlighted.", clusters.saturating_sub(1))}</p>
                     <p class="vl-final">{move || run.with(|r| r.msg().to_string())}</p>
                 </div>
             </div>
@@ -224,6 +222,7 @@ mod tests {
 
     #[test]
     fn deep_read_goal_with_path() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         for _ in 0..3 {
             r.act(Action::Snapshot);
@@ -240,6 +239,7 @@ mod tests {
 
     #[test]
     fn read_of_missing_cluster_walks_whole_chain() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Snapshot);
         r.act(Action::Read { cluster: 7 });
@@ -249,6 +249,7 @@ mod tests {
 
     #[test]
     fn rollback_goal_and_trace_replays_on_server() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Snapshot);
         r.act(write(1, "Z"));
@@ -271,6 +272,7 @@ mod tests {
 
     #[test]
     fn squash_goal_after_commits() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         for _ in 0..3 {
             r.act(Action::Snapshot);
@@ -282,6 +284,7 @@ mod tests {
 
     #[test]
     fn impossible_actions_are_not_traced_and_keep_path() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Read { cluster: 0 });
         let traced = r.trace.len();
@@ -295,6 +298,7 @@ mod tests {
 
     #[test]
     fn copy_up_write_note() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Snapshot);
         r.act(write(0, "F"));
@@ -308,6 +312,7 @@ mod tests {
 
     #[test]
     fn walked_layers() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let p = Some(Path { cluster: 0, depth: 1 });
         assert!(walked(p, 0, 3) && walked(p, 1, 3) && !walked(p, 2, 3));
         assert!(!walked(None, 0, 3));

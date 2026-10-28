@@ -1,0 +1,70 @@
+{
+ "book": 15,
+ "chapter": 19,
+ "lab": "net",
+ "tasks": [
+  {
+   "id": "n19-arp",
+   "title": "ARP spoofing: traffic goes through someone else's PC",
+   "statement": "An attacker's PC, 192.168.0.66, has appeared on the local network: it broadcasts forged ARP replies, and traffic from the PC to the gateway 192.168.0.1 goes through it. Run `arp -n` on the PC: the gateway has the wrong MAC. Find the gateway's real MAC (`ip addr` on the gateway) and pin it on the PC with a static entry so that the forged replies stop working.",
+   "hint": "On the gateway: `ip addr` → the MAC of eth0 (28:28:00:00:…). On the PC: `arp -s 192.168.0.1 <that MAC>`. Check with `arp -n` and ▶ next to the goal — packets no longer reach the attacker's PC.",
+   "spec_text": {
+    "/goals/0/text": "PC pings the site",
+    "/goals/1/text": "PC traffic does not pass through the attacker's PC",
+    "/start/devices/0/name": "Victim PC",
+    "/start/devices/1/name": "Attacker PC",
+    "/start/devices/3/name": "Gateway",
+    "/start/devices/4/name": "Internet",
+    "/start/devices/5/name": "Website"
+   }
+  },
+  {
+   "id": "n19-synflood",
+   "title": "SYN flood against a web server",
+   "statement": "An attacker floods the server with SYN packets, and real clients cannot connect (the client's request is silent; the ▶ log says “queue overflow”). Enable SYN cookies on the server: then no state is stored before the handshake is confirmed and the queue does not overflow. You can also block the source with the firewall, but cookies protect against any source.",
+   "hint": "On the server: `sysctl -w net.ipv4.tcp_syncookies=1`. Alternative on the firewall: `iptables -A FORWARD -s 198.51.100.66 -j DROP`.",
+   "spec_text": {
+    "/goals/0/text": "The client connects to port 80 during the attack",
+    "/start/devices/0/name": "Client",
+    "/start/devices/1/name": "Attacker",
+    "/start/devices/2/name": "Internet",
+    "/start/devices/3/name": "Firewall",
+    "/start/devices/4/name": "Web server"
+   }
+  },
+  {
+   "id": "n19-scan",
+   "title": "Find the scanner and close what is unneeded",
+   "statement": "Someone is walking through the server's ports. Run `tcpdump -i any tcp` on the gateway and find the source: dozens of SYNs to different ports from one address. Block it on the firewall, close the unneeded Telnet (port 23) on the server, and make sure the legitimate user can still use SSH and the website.",
+   "hint": "The source is 198.51.100.66. On the gateway: `iptables -A FORWARD -s 198.51.100.66 -j DROP`. On the server: `close tcp 23`. Port 3306 (the database) must be closed to all external hosts; it is not needed from outside anyway, so close it the same way: `close tcp 3306`.",
+   "spec_text": {
+    "/goals/0/text": "The scanner cannot reach SSH (port 22)",
+    "/goals/1/text": "Telnet (23) is closed for the user",
+    "/goals/2/text": "The database (3306) is closed from outside",
+    "/goals/3/text": "The user can still use SSH",
+    "/goals/4/text": "…and opens the website (80)",
+    "/start/devices/0/name": "User",
+    "/start/devices/1/name": "Scanner",
+    "/start/devices/2/name": "Internet",
+    "/start/devices/3/name": "Gateway",
+    "/start/devices/4/name": "Server"
+   }
+  },
+  {
+   "id": "n19-exposure",
+   "title": "The database is visible from the internet",
+   "statement": "The “internal” zone holds web (443), an application server and a database (3306). The FORWARD policy is currently ACCEPT, so the database is visible from the internet. Allow the database port only to the application server 203.0.113.20 and block it for everyone else. Rule order matters: allow first, then block.",
+   "hint": "`iptables -A FORWARD -p tcp --dport 3306 -s 203.0.113.20 -j ACCEPT`, then `iptables -A FORWARD -p tcp --dport 3306 -j DROP`. Web (443) stays open because there is no block rule for it.",
+   "spec_text": {
+    "/goals/0/text": "Guest opens web (443)",
+    "/goals/1/text": "Guest cannot reach the database (3306)",
+    "/goals/2/text": "The application server reaches the database",
+    "/start/devices/0/name": "Guest from the internet",
+    "/start/devices/1/name": "Firewall",
+    "/start/devices/3/name": "Web",
+    "/start/devices/4/name": "Application",
+    "/start/devices/5/name": "Database"
+   }
+  }
+ ]
+}

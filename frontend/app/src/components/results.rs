@@ -30,12 +30,12 @@ pub fn Results(res: Signal<Option<RunResult>>, running: Signal<bool>, phase: Sig
             {move || {
                 if running.get() {
                     let p = phase.get();
-                    return view! { <p class="pr-empty">{if p.is_empty() { "Ставлю в очередь…".to_string() } else { p }}</p> }.into_any();
+                    return view! { <p class="pr-empty">{if p.is_empty() { i18n::tr("Queuing…").to_string() } else { p }}</p> }.into_any();
                 }
                 match res.get() {
                     None => view! {
                         <p class="pr-empty">
-                            "Нажмите «Проверить» (Ctrl/Cmd+Enter): здесь появятся тесты и логи выполнения. Когда решение принято, Ctrl/Cmd+Enter ведёт к следующему упражнению."
+                            {i18n::tr("Press “Check” (Ctrl/Cmd+Enter): tests and run logs will appear here. Once a solution is accepted, Ctrl/Cmd+Enter goes to the next exercise.")}
                         </p>
                     }
                     .into_any(),
@@ -54,8 +54,8 @@ fn test_view(k: usize, r: TestResult) -> impl IntoView {
             let got = show(&r.got);
             view! {
                 <div class="pr-diff">
-                    <div><span class="s-label">"ожидалось"</span><pre>{show(&r.expected)}</pre></div>
-                    <div><span class="s-label">"получено"</span><pre>{if got.is_empty() { "(пусто)".to_string() } else { got }}</pre></div>
+                    <div><span class="s-label">{i18n::tr("expected")}</span><pre>{show(&r.expected)}</pre></div>
+                    <div><span class="s-label">{i18n::tr("got")}</span><pre>{if got.is_empty() { i18n::tr("(empty)").to_string() } else { got }}</pre></div>
                 </div>
             }
             .into_any()
@@ -65,8 +65,8 @@ fn test_view(k: usize, r: TestResult) -> impl IntoView {
         <li class=format!("pr-test {}", if r.ok { "ok" } else { "bad" })>
             <div class="pr-test-head">
                 <span class="cx-mark">{if r.ok { "✓" } else { "✗" }}</span>
-                <span>{format!("тест {}", k + 1)}</span>
-                {r.args.clone().map(|a| view! { <code class="cx-args">{format!("вызов {a}")}</code> })}
+                <span>{i18n::trf!("test {}", k + 1)}</span>
+                {r.args.clone().map(|a| view! { <code class="cx-args">{i18n::trf!("call {}", a)}</code> })}
             </div>
             {details}
         </li>
@@ -90,17 +90,17 @@ fn result_view(res: RunResult) -> impl IntoView {
     view! {
         <div class="pr-res-block">
             <div class="pr-res-head">
-                <span class="s-label">"тесты"</span>
-                {(total > 0).then(|| view! { <span class=format!("pr-res-sum {}", if res.solved { "ok" } else { "bad" })>{format!("{passed} из {total}")}</span> })}
+                <span class="s-label">{i18n::tr("tests")}</span>
+                {(total > 0).then(|| view! { <span class=format!("pr-res-sum {}", if res.solved { "ok" } else { "bad" })>{i18n::trf!("{} of {}", passed, total)}</span> })}
             </div>
-            {timeout.then(|| view! { <p class="ex-note">"Проверка не уложилась в лимит времени — возможно, в коде бесконечный цикл."</p> })}
-            {(total == 0 && !timeout).then(|| view! { <p class="pr-empty">"Тесты не запускались — смотрите логи ниже."</p> })}
+            {timeout.then(|| view! { <p class="ex-note">{i18n::tr("The check ran out of time — the code may contain an infinite loop.")}</p> })}
+            {(total == 0 && !timeout).then(|| view! { <p class="pr-empty">{i18n::tr("The tests did not run — see the logs below.")}</p> })}
             <ul class="pr-tests">{tests}</ul>
         </div>
         <div class="pr-res-block">
-            <div class="pr-res-head"><span class="s-label">"логи выполнения"</span></div>
-            {if program.is_empty() { view! { <p class="pr-empty">"программа ничего не вывела"</p> }.into_any() } else { view! { <pre class="pr-log">{program}</pre> }.into_any() }}
-            {(!res.stderr.is_empty() && !timeout).then(|| view! { <pre class="cx-error">{res.stderr.clone()}</pre> })}
+            <div class="pr-res-head"><span class="s-label">{i18n::tr("run logs")}</span></div>
+            {if program.is_empty() { view! { <p class="pr-empty">{i18n::tr("the program printed nothing")}</p> }.into_any() } else { view! { <pre class="pr-log">{program}</pre> }.into_any() }}
+            {(!res.stderr.is_empty() && !timeout).then(|| view! { <pre class="cx-error">{i18n::tr_dyn(&res.stderr)}</pre> })}
         </div>
     }
 }
@@ -126,7 +126,7 @@ pub fn History(#[prop(into)] items: Signal<Vec<Attempt>>, #[prop(into)] current:
                 };
                 view! {
                     <li>
-                        <button class=format!("pr-hist-item {}", a.status) class:on=on title="Вернуть этот код в редактор" on:click=move |_| on_pick.run(code.clone())>
+                        <button class=format!("pr-hist-item {}", a.status) class:on=on title=i18n::tr("Restore this code in the editor") on:click=move |_| on_pick.run(code.clone())>
                             <span class="pr-hist-n">{format!("#{}", n - i)}</span>
                             <span class="pr-hist-mark">{if a.status == "ok" { "✓" } else { "✗" }}</span>
                             <span class="pr-hist-score">{format!("{}/{}", a.passed, a.total)}</span>
@@ -139,7 +139,7 @@ pub fn History(#[prop(into)] items: Signal<Vec<Attempt>>, #[prop(into)] current:
             .collect_view();
         view! {
             <div class="pr-hist">
-                <div class="pr-res-head"><span class="s-label">"история попыток"</span><span class="pr-res-time">{n}</span></div>
+                <div class="pr-res-head"><span class="s-label">{i18n::tr("attempt history")}</span><span class="pr-res-time">{n}</span></div>
                 <ul class="pr-hist-list">{rows}</ul>
             </div>
         }

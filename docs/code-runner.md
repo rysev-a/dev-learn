@@ -12,7 +12,7 @@
 ## Воркеры
 
 Встроенного воркера нет: задания выполняют только внешние воркеры `worker/worker.py` (Python, только стандартная библиотека + Docker CLI) — для разработки
-запускается рядом с бэкендом, в проде — отдельным сервисом compose с собственным Docker-демоном `dind` или на другой машине. Нужен `SAY_WORKER_TOKEN`
+запускается рядом с бэкендом, в проде — отдельным сервисом compose с собственным Docker-демоном `dind` или на другой машине. Нужен `CS_CORE_WORKER_TOKEN`
 (общий секрет бэкенда и воркеров); без него `/internal/worker/*` отвечает 404. Если ни один воркер не отозвался за 30 с, `POST /run` отвечает 503
 «проверка временно недоступна» (теория, вопросы и лаборатории в браузере продолжают работать). Состояние — `GET /api/exercises/runner/status`.
 Очередь ведёт один экземпляр бэкенда (изменения под замком процесса).
@@ -31,21 +31,21 @@
 `--network none`, лимиты памяти/CPU/процессов, `--read-only`, tmpfs, `--cap-drop ALL`, `no-new-privileges`, `ulimit`,
 пользователь `nobody` (кроме задач с PostgreSQL: им нужен root и несколько возможностей), потолок вывода 1 МБ, контейнер
 получает имя и **останавливается по имени при таймауте** (раньше убивался только клиент docker, а цикл крутился дальше),
-при старте воркер удаляет забытые контейнеры `say-run-*`.
+при старте воркер удаляет забытые контейнеры `cs-core-run-*`.
 
 ## Воркер на домашнем сервере
 
 1. VM (KVM: Proxmox/libvirt) в отдельной сети, лимиты на ядра/память/диск. Файрвол VM: исходящее **только** на VPS:443 (плюс DNS и
    окно обновлений), в домашнюю сеть доступа нет, входящих нет (кроме SSH из админской сети). Раз в сутки или при подозрении — откат к снимку.
-2. В VM: Docker, образы `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine`, `say-rust-crates:1`
-   (`docker build -t say-rust-crates:1 worker/docker/rust-crates`), репозиторий и `uv`.
+2. В VM: Docker, образы `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine`, `cs-core-rust-crates:1`
+   (`docker build -t cs-core-rust-crates:1 worker/docker/rust-crates`), репозиторий и `uv`.
 3. Запуск (systemd-юнит с `Restart=always`):
 
    ```
-   cd worker && SAY_WORKER_TOKEN=… uv run worker.py --server https://say.example.com --name home-1 --light 4 --heavy 2
+   cd worker && CS_CORE_WORKER_TOKEN=… uv run worker.py --server https://cs-core.example.com --name home-1 --light 4 --heavy 2
    ```
 
-   На VPS бэкенд запускается с тем же `SAY_WORKER_TOKEN`.
+   На VPS бэкенд запускается с тем же `CS_CORE_WORKER_TOKEN`.
 4. Усиление изоляции следующим шагом: gVisor (`--runtime=runsc`) внутри VM; метрики очереди и числа контейнеров.
 
 ## Что ещё нужно до публичного запуска

@@ -28,7 +28,7 @@ export default defineConfig({
   webServer: external
     ? undefined
     : {
-    command: "./target/debug/say-backend",
+    command: "./target/debug/cs-core-backend",
     cwd: path.join(root, "backend"),
     url: `http://127.0.0.1:${port}/api/books`,
     timeout: 180_000,
@@ -37,7 +37,7 @@ export default defineConfig({
       BIND: `127.0.0.1:${port}`,
       SURREALDB_URL: "memory",
       STATIC_DIR: path.join(root, "e2e", ".dist"),
-      SAY_WORKER_TOKEN: "e2e",
+      CS_CORE_WORKER_TOKEN: "e2e",
       DEMO_USER_EMAIL: "student@mail.com",
       DEMO_USER_PASSWORD: "student",
       DEMO_ADMIN_EMAIL: "programmer@mail.com",

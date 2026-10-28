@@ -1,0 +1,60 @@
+{
+ "book": 13,
+ "chapter": 28,
+ "tasks": [
+  {
+   "id": "first-squares",
+   "title": "First squares",
+   "statement": "Write a function first_squares(n): a list of the first n squares of natural numbers: 1, 4, 9, … Use itertools.count and islice.",
+   "hint": "list(islice((x * x for x in count(1)), n))."
+  },
+  {
+   "id": "chain-all",
+   "title": "Chain the lists",
+   "statement": "Write a function chain_all(*lists): one list with the elements of all the given lists in order. Use itertools.chain.",
+   "hint": "list(chain(*lists)): the star unpacks the arguments further."
+  },
+  {
+   "id": "running-max",
+   "title": "Records so far",
+   "statement": "Write a function running_max(nums): a list of the running maximum: for 3, 1, 4, 1, 5 it is 3, 3, 4, 4, 5. Use accumulate with the function max.",
+   "hint": "list(accumulate(nums, max))."
+  },
+  {
+   "id": "group-sizes",
+   "title": "Group sizes",
+   "statement": "Write a function group_sizes(words): a dictionary mapping the first letter to how many words start with it. Use groupby, and remember that the data must be sorted.",
+   "hint": "for k, g in groupby(sorted(words), key=lambda w: w[0]): result[k] = len(list(g))."
+  },
+  {
+   "id": "all-pairs",
+   "title": "All pairs",
+   "statement": "Write a function all_pairs(items): a list of all pairs of distinct elements (each pair once, in the order of the list) as tuples. Use itertools.combinations.",
+   "hint": "list(combinations(items, 2))."
+  },
+  {
+   "id": "passwords-product",
+   "title": "All passwords",
+   "statement": "Write a function passwords(alphabet, length): a list of all strings of the given length made of the characters of alphabet (with repeats), in lexicographic order of the alphabet. Use itertools.product.",
+   "hint": "[\"\".join(p) for p in product(alphabet, repeat=length)]."
+  },
+  {
+   "id": "rle-groupby",
+   "title": "Compressing repeats",
+   "statement": "Write a function rle(s): compression of consecutive repeats in a string, as a list of tuples (character, how many times in a row): for \"aaabcc\" it is [('a', 3), ('b', 1), ('c', 2)]. Use groupby without sorting.",
+   "hint": "[(k, len(list(g))) for k, g in groupby(s)]."
+  },
+  {
+   "id": "pairwise-diffs",
+   "title": "Differences of neighbors",
+   "statement": "Write a function diffs(nums): a list of differences between neighboring elements: for 1, 4, 9, 16 it is 3, 5, 7. Use itertools.pairwise.",
+   "hint": "[b - a for a, b in pairwise(nums)]."
+  },
+  {
+   "id": "small-prefix",
+   "title": "While the numbers are small",
+   "statement": "Write a function small_prefix(nums, limit): the initial piece of the list while the elements are less than limit; stop at the first element that is greater than or equal to it. Use itertools.takewhile.",
+   "hint": "list(takewhile(lambda x: x < limit, nums))."
+  }
+ ]
+}

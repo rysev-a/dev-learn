@@ -181,7 +181,7 @@ pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> Fetch
     let mut run: Option<ProbeRun> = None;
     for _hop in 0..6 {
         let Some(u) = parse_url(&cur) else {
-            return FetchResult { responses, error: Some(format!("curl: (3) неверный адрес «{cur}»")), run };
+            return FetchResult { responses, error: Some(i18n::trf!("curl: (3) bad address “{0}”", cur)), run };
         };
         if let Some(proxy) = &o.proxy {
             let px = via_proxy(state, dev_id, &u, proxy, &o.method, &o.headers);
@@ -195,7 +195,7 @@ pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> Fetch
                     r.ip = px.ip;
                     responses.push(r);
                 }
-                _ => return FetchResult { responses, error: Some(px.error.unwrap_or_else(|| "proxy: нет ответа".into())), run },
+                _ => return FetchResult { responses, error: Some(px.error.unwrap_or_else(|| i18n::tr("proxy: no response").into())), run },
             }
             break;
         }
@@ -236,7 +236,7 @@ pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> Fetch
             if r.status != ProbeStatus::Connected {
                 return FetchResult {
                     responses,
-                    error: Some(format!("curl: (28) Connection timed out — {}:{} не отвечает", u.host, u.port)),
+                    error: Some(i18n::trf!("curl: (28) Connection timed out — {0}:{1} does not answer", u.host, u.port)),
                     run: Some(r),
                 };
             }
@@ -244,7 +244,7 @@ pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> Fetch
             let rtt = r.rtt_us.unwrap_or(0.0);
             if let Some(dev) = dev.as_ref().filter(|d| d.rproxy.is_some()) {
                 let rp = rproxy_handle(state, dev, &u, &o.method, &o.headers, &r);
-                let cache = rp.headers.get("x-cache").filter(|c| !c.is_empty()).map(|c| format!(" (кэш: {c})")).unwrap_or_default();
+                let cache = rp.headers.get("x-cache").filter(|c| !c.is_empty()).map(|c| i18n::trf!(" (cache: {0})", c)).unwrap_or_default();
                 r.events.push(NetEvent {
                     t: rtt + 40.0,
                     dev: dev.id.clone(),
@@ -260,7 +260,7 @@ pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> Fetch
                 let Some(http) = dev.as_ref().and_then(|d| d.http.as_ref()) else {
                     return FetchResult {
                         responses,
-                        error: Some("curl: (52) Empty reply from server — на порту нет веб-сервера".into()),
+                        error: Some(i18n::tr("curl: (52) Empty reply from server — no web server on the port").into()),
                         run: Some(r),
                     };
                 };
@@ -350,11 +350,11 @@ fn rproxy_handle(
     };
     let up = tcp1(state, &dev.id, bip_n, port, 50000, true);
     if up.status != ProbeStatus::Connected {
-        let why = if up.status == ProbeStatus::Refused { "порт закрыт" } else { "нет ответа" };
-        return bad(502, &format!("прокси: сервер {} недоступен ({why})", rule.backend));
+        let why = if up.status == ProbeStatus::Refused { i18n::tr("port closed") } else { i18n::tr("no reply") };
+        return bad(502, &i18n::trf!("proxy: server {0} is unavailable ({1})", rule.backend, why));
     }
     let site = delivered_to(state, &up, Some(bip_n));
-    let Some(http) = site.as_ref().and_then(|s| s.http.as_ref()) else { return bad(502, "пустой ответ сервера") };
+    let Some(http) = site.as_ref().and_then(|s| s.http.as_ref()) else { return bad(502, i18n::tr("empty response from the server")) };
     let resp = respond(
         http,
         &HttpRequest { method: method.to_string(), path: u.path.clone(), host: Some(u.host.clone()), headers: headers.clone() },
@@ -402,7 +402,7 @@ fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, met
     }
     if run.status != ProbeStatus::Connected {
         return ProxyResult {
-            error: Some(format!("curl: (28) Connection timed out — прокси {proxy} не отвечает")),
+            error: Some(i18n::trf!("curl: (28) Connection timed out — proxy {0} does not answer", proxy)),
             run: Some(run),
             ..Default::default()
         };
@@ -410,7 +410,7 @@ fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, met
     let pd = delivered_to(state, &run, Some(pr.ip));
     let Some(pd) = pd.filter(|d| d.proxy.is_some()) else {
         return ProxyResult {
-            error: Some("curl: (56) на порту нет HTTP-прокси".into()), run: Some(run), ..Default::default()
+            error: Some(i18n::tr("curl: (56) no HTTP proxy on the port").into()), run: Some(run), ..Default::default()
         };
     };
     let Some(pcfg) = pd.proxy.clone() else { return ProxyResult::default() };
@@ -431,14 +431,14 @@ fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, met
         r
     };
     if pcfg.deny.iter().any(|x| *x == u.host) {
-        note(&mut run, 20.0, format!("прокси: {} запрещён политикой — 403", u.host));
+        note(&mut run, 20.0, i18n::trf!("proxy: {0} is forbidden by policy — 403", u.host));
         let r = mk(403, ("Forbidden", "Access denied by proxy policy"), rtt * 2.0);
         return ProxyResult { response: Some(r), run: Some(run), ip: Some(pr.ip), error: None };
     }
     let up = match to_ip(state, &pd.id, &u.host) {
         Ok(r) => r,
         Err(_) => {
-            note(&mut run, 20.0, format!("прокси: не разрешил имя {} — 502", u.host));
+            note(&mut run, 20.0, i18n::trf!("proxy: could not resolve name {0} — 502", u.host));
             let r = mk(502, ("Bad Gateway", "proxy: cannot resolve"), rtt * 2.0);
             return ProxyResult { response: Some(r), run: Some(run), ip: Some(pr.ip), error: None };
         }
@@ -456,7 +456,7 @@ fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, met
         run.events.push(e);
     }
     if up_run.status != ProbeStatus::Connected {
-        note(&mut run, 30.0, format!("прокси: сайт {} недоступен ({}) — 502", u.host, up_run.status.as_str()));
+        note(&mut run, 30.0, i18n::trf!("proxy: site {0} is unavailable ({1}) — 502", u.host, up_run.status.as_str()));
         let r = mk(502, ("Bad Gateway", "proxy: upstream failure"), rtt * 2.0);
         return ProxyResult { response: Some(r), run: Some(run), ip: Some(pr.ip), error: None };
     }
@@ -469,7 +469,7 @@ fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, met
         http,
         &HttpRequest { method: method.to_string(), path: u.path.clone(), host: Some(u.host.clone()), headers: headers.clone() },
     );
-    note(&mut run, up_run.rtt_us.unwrap_or(0.0) + 60.0, format!("прокси: {} {}{} → {}", method, u.host, u.path, resp.status));
+    note(&mut run, up_run.rtt_us.unwrap_or(0.0) + 60.0, i18n::trf!("proxy: {0} {1}{2} → {3}", method, u.host, u.path, resp.status));
     let mut h = resp.headers.clone();
     h.insert("via", "1.1 proxy".to_string());
     let out = HttpResponse { headers: h, rtt_us: Some(rtt * 2.0 + up_run.rtt_us.unwrap_or(0.0) * 2.0), ..resp };
@@ -486,7 +486,7 @@ pub fn fmt_curl(r: &FetchResult, verbose: bool, head: bool, method: &str) -> Str
         let Some(u) = parse_url(x.url.as_deref().unwrap_or("")) else { continue };
         if verbose {
             let via = x.via.as_ref().map(|v| format!(" — {v}")).unwrap_or_default();
-            out.push(format!("* подключено к {} ({}) порт {}{}", u.host, ip_str_opt(x.ip), u.port, via));
+            out.push(i18n::trf!("* connected to {0} ({1}) port {2}{3}", u.host, ip_str_opt(x.ip), u.port, via));
             out.push(format!("> {} {} HTTP/1.1", method, u.path));
             out.push(format!("> Host: {}", u.host));
             out.push("> Accept: */*".into());
@@ -504,7 +504,7 @@ pub fn fmt_curl(r: &FetchResult, verbose: bool, head: bool, method: &str) -> Str
         }
         if verbose {
             if let Some(rtt) = x.rtt_us.filter(|r| *r != 0.0) {
-                out.push(format!("* ответ получен за {}", fmt_ms(Some(rtt))));
+                out.push(i18n::trf!("* response received in {0}", fmt_ms(Some(rtt))));
             }
         }
     }

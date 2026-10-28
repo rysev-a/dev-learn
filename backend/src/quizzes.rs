@@ -11,6 +11,7 @@ use serde_json::{json, Map, Value};
 
 use crate::{
     error::{i, iso_now, s, ApiError, ApiResult},
+    lang::{self, Lang},
     AppState,
 };
 
@@ -45,13 +46,17 @@ struct Quiz {
     questions: Vec<Value>,
 }
 
-async fn load(state: &AppState, book: i64, chapter: i64) -> ApiResult<Option<Quiz>> {
+async fn load(state: &AppState, lang: Lang, book: i64, chapter: i64) -> ApiResult<Option<Quiz>> {
+    let tr = lang::translated(&state.db, lang, book).await?;
+    let (quizzes_t, cond) = lang::source("quizzes", tr);
+    let (questions_t, _) = lang::source("quiz_questions", tr);
     let mut res = state
         .db
-        .query("SELECT title, kind FROM quizzes WHERE book = $b AND chapter = $c")
-        .query("SELECT q, options, answer, expl FROM quiz_questions WHERE book = $b AND chapter = $c ORDER BY ord")
+        .query(format!("SELECT title, kind FROM {quizzes_t} WHERE book = $b AND chapter = $c{cond}"))
+        .query(format!("SELECT q, options, answer, expl FROM {questions_t} WHERE book = $b AND chapter = $c{cond} ORDER BY ord"))
         .bind(("b", book))
         .bind(("c", chapter))
+        .bind(("l", lang.code()))
         .await?;
     let head: Vec<Value> = res.take(0)?;
     let Some(head) = head.into_iter().next() else { return Ok(None) };
@@ -71,8 +76,8 @@ async fn picks_of(state: &AppState, user: &str, book: i64, chapter: i64) -> ApiR
 }
 
 /// Вопросы с вариантами. `reveal[i]` — ответ и пояснение для вопросов, на которые пользователь уже ответил.
-async fn get_quiz(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
-    let quiz = load(&state, book, chapter).await?.ok_or_else(|| ApiError::not_found("У этой главы нет вопросов"))?;
+async fn get_quiz(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
+    let quiz = load(&state, lang, book, chapter).await?.ok_or_else(|| ApiError::not_found("This chapter has no questions"))?;
     let picks = picks_of(&state, &me.user.id, book, chapter).await?;
     let reveal: Vec<Value> = quiz
         .questions
@@ -94,14 +99,14 @@ struct AnswerIn {
 }
 
 /// Записать выбор и вернуть верный ответ. На вопрос отвечают один раз: повторный запрос ничего не меняет.
-async fn answer(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>, Json(b): Json<AnswerIn>) -> ApiResult<Json<Value>> {
+async fn answer(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>, Json(b): Json<AnswerIn>) -> ApiResult<Json<Value>> {
     crate::progress::check_range("question", b.question, 0, 500)?;
     crate::progress::check_range("pick", b.pick, 0, 50)?;
-    let quiz = load(&state, book, chapter).await?;
-    let quiz = quiz.filter(|q| (b.question as usize) < q.questions.len()).ok_or_else(|| ApiError::not_found("Вопрос не найден"))?;
+    let quiz = load(&state, lang, book, chapter).await?;
+    let quiz = quiz.filter(|q| (b.question as usize) < q.questions.len()).ok_or_else(|| ApiError::not_found("Question not found"))?;
     let q = &quiz.questions[b.question as usize];
     if b.pick as usize >= q.get("options").and_then(Value::as_array).map_or(0, Vec::len) {
-        return Err(ApiError::invalid("Нет такого варианта"));
+        return Err(ApiError::invalid("No such option"));
     }
     let total = quiz.questions.len();
     let mut picks = picks_of(&state, &me.user.id, book, chapter).await?;

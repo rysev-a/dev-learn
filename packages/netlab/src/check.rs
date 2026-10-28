@@ -244,7 +244,7 @@ pub fn resolve_target(state: &NetState, spec: &str) -> Option<u32> {
 pub fn resolve_from(state: &mut NetState, spec: &str, from_id: &str) -> Result<crate::term::Resolved, crate::term::ResolveErr> {
     if spec.starts_with('@') {
         return match resolve_target(state, spec) {
-            None => Err(crate::term::ResolveErr { err: "у цели нет адреса".into(), run: None }),
+            None => Err(crate::term::ResolveErr { err: i18n::tr("the goal has no address").into(), run: None }),
             Some(ip) => Ok(crate::term::Resolved { ip, from: None, run: None }),
         };
     }
@@ -290,7 +290,7 @@ pub fn run_probe(state: &mut NetState, goal: &Goal) -> ProbeOutcome {
         _ => {
             return ProbeOutcome {
                 status: ProbeStatus::Noaddr,
-                err: Some("это не проба".into()),
+                err: Some(i18n::tr("this is not a probe").into()),
                 code: None,
                 mtu: None,
                 rtt_us: None,
@@ -359,14 +359,14 @@ pub fn run_probe(state: &mut NetState, goal: &Goal) -> ProbeOutcome {
 
 fn status_text(s: ProbeStatus) -> &'static str {
     match s {
-        ProbeStatus::Reply => "ответ получен",
-        ProbeStatus::Connected => "соединение установлено",
-        ProbeStatus::Refused => "порт закрыт (RST)",
-        ProbeStatus::Timeout => "ответа нет",
-        ProbeStatus::Ttl => "TTL истёк по дороге",
-        ProbeStatus::Unreach => "получено «недоступно»",
-        ProbeStatus::Noaddr => "имя или адрес цели не определились",
-        ProbeStatus::Toolong => "пакет больше MTU интерфейса",
+        ProbeStatus::Reply => i18n::tr("reply received"),
+        ProbeStatus::Connected => i18n::tr("connection established"),
+        ProbeStatus::Refused => i18n::tr("port closed (RST)"),
+        ProbeStatus::Timeout => i18n::tr("no response"),
+        ProbeStatus::Ttl => i18n::tr("TTL expired along the way"),
+        ProbeStatus::Unreach => i18n::tr("received “unreachable”"),
+        ProbeStatus::Noaddr => i18n::tr("target name or address could not be resolved"),
+        ProbeStatus::Toolong => i18n::tr("packet is larger than the interface MTU"),
     }
 }
 
@@ -416,7 +416,7 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
             let r = to_ip(&mut s, &x.from, &x.name);
             let (got, ok, detail, run) = match r {
                 Err(e) => {
-                    let got = if e.err.contains("NXDOMAIN") { "NXDOMAIN".to_string() } else { "ошибка".to_string() };
+                    let got = if e.err.contains("NXDOMAIN") { "NXDOMAIN".to_string() } else { i18n::tr("error").to_string() };
                     let ok = got == x.expect;
                     let detail = if ok { format!("{} → {got}", x.name) } else { format!("{}: {}", x.name, e.err) };
                     (got, ok, detail, from_run(e.run.as_ref()))
@@ -427,7 +427,7 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
                     let detail = if ok {
                         format!("{} → {got}", x.name)
                     } else {
-                        format!("{} → {got}, а ожидалось {}", x.name, x.expect)
+                        i18n::trf!("{0} → {1}, expected {2}", x.name, got, x.expect)
                     };
                     (got, ok, detail, from_run(o.run.as_ref()))
                 }
@@ -442,9 +442,9 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
             let detail = if ok {
                 format!("MTU {} = {m}", i.map(|i| i.name.as_str()).unwrap_or("undefined"))
             } else {
-                let lo = x.min.map(|v| format!("не меньше {v}")).unwrap_or_default();
-                let hi = x.max.map(|v| format!(" не больше {v}")).unwrap_or_default();
-                format!("MTU {} = {m}, нужно {lo}{hi}", i.map(|i| i.name.as_str()).unwrap_or("?"))
+                let lo = x.min.map(|v| i18n::trf!("at least {0}", v)).unwrap_or_default();
+                let hi = x.max.map(|v| i18n::trf!(" at most {0}", v)).unwrap_or_default();
+                i18n::trf!("MTU {0} = {1}, need {2}{3}", i.map(|i| i.name.as_str()).unwrap_or("?"), m, lo, hi)
             };
             res(g, ok, detail, GoalRun::default())
         }
@@ -470,21 +470,21 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
             }
             let mut bad: Vec<String> = Vec::new();
             if ok_n < x.n {
-                bad.push(format!("успешных соединений {ok_n} из {}", x.n));
+                bad.push(i18n::trf!("successful connections: {0} of {1}", ok_n, x.n));
             }
             let used: Vec<&String> = hits.keys().collect();
             if let Some(d) = x.distinct.filter(|d| *d != 0) {
                 if (used.len() as u32) < d {
-                    bad.push(format!("задействовано серверов {}, а нужно {d}", used.len()));
+                    bad.push(i18n::trf!("servers used: {0}, need {1}", used.len(), d));
                 }
             }
             for a in &x.avoid {
                 if hits.get(a).copied().unwrap_or(0) != 0 {
-                    bad.push(format!("запросы попали на неисправный «{}»", dev_name(&s, a)));
+                    bad.push(i18n::trf!("requests reached the failed “{0}”", dev_name(&s, a)));
                 }
             }
             if x.sticky && used.len() > 1 {
-                bad.push("один клиент попадает на разные серверы".into());
+                bad.push(i18n::tr("one client reaches different servers").into());
             }
             let spread: Vec<String> = hits.iter().map(|(k, v)| format!("{}: {v}", dev_name(&s, k))).collect();
             res(g, bad.is_empty(), if bad.is_empty() { spread.join(", ") } else { bad.join("; ") }, from_run(last.as_ref()))
@@ -510,15 +510,11 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
             };
             let ok = if want_fail { !r.ok } else { r.ok && auth_ok };
             let detail = if r.ok {
-                format!(
-                    "вход выполнен ({}){}",
-                    if r.auth == Some(Auth::Key) { "по ключу" } else { "по паролю" },
-                    if want_fail { " — а должен быть закрыт" } else { "" }
-                )
+                i18n::trf!("logged in ({0}){1}", if r.auth == Some(Auth::Key) { i18n::tr("by key") } else { i18n::tr("by password") }, if want_fail { i18n::tr(" — but it should be closed") } else { "" })
             } else {
                 let last = r.error.clone().unwrap_or_default();
                 let last = last.split('\n').next_back().unwrap_or("").to_string();
-                format!("{last}{}", if want_fail { " — так и задумано" } else { "" })
+                format!("{last}{}", if want_fail { i18n::tr(" — as intended") } else { "" })
             };
             res(g, ok, detail, from_run(r.run.as_ref()))
         }
@@ -534,9 +530,9 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
                     let sec = chosen.total / 1e6;
                     let ok = sec <= x.max_s;
                     let mut detail =
-                        format!("{} с по {}{}", to_fixed(sec, 2), proto_name(used), if note.is_empty() { "" } else { " (откат с HTTP/3)" });
+                        i18n::trf!("{0} s over {1}{2}", to_fixed(sec, 2), proto_name(used), if note.is_empty() { "" } else { i18n::tr(" (fell back from HTTP/3)") });
                     if !ok {
-                        detail.push_str(&format!(", нужно не больше {} с", num_str(x.max_s)));
+                        detail.push_str(&i18n::trf!(", need at most {0} s", num_str(x.max_s)));
                     }
                     res(g, ok, detail, GoalRun::default())
                 }
@@ -545,7 +541,7 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
         GoalKind::Http(x) => check_http(state, g, x),
         GoalKind::Xfer(x) => {
             let mut s = state.stripped();
-            let Some(dst) = resolve_target(&s, &x.to) else { return fail(g, "у цели нет адреса", GoalRun::default()) };
+            let Some(dst) = resolve_target(&s, &x.to) else { return fail(g, i18n::tr("the target has no address"), GoalRun::default()) };
             let r = transfer(&mut s, &x.from, dst, x.mb.unwrap_or(50.0) * 1e6);
             if !r.ok {
                 return fail(g, r.text, GoalRun::default());
@@ -553,16 +549,16 @@ fn check_goal(state: &NetState, g: &Goal) -> GoalResult {
             let mut bad: Vec<String> = Vec::new();
             if let Some(m) = x.min_mbps {
                 if r.mbps < m {
-                    bad.push(format!("скорость {} Мбит/с — нужно не меньше {}", to_fixed(r.mbps, 1), num_str(m)));
+                    bad.push(i18n::trf!("speed {0} Mbit/s — need at least {1}", to_fixed(r.mbps, 1), num_str(m)));
                 }
             }
             if let Some(m) = x.max_loaded_rtt_ms {
                 if r.loaded_rtt_ms > m {
-                    bad.push(format!("RTT под нагрузкой {} мс — нужно не больше {}", to_fixed(r.loaded_rtt_ms, 0), num_str(m)));
+                    bad.push(i18n::trf!("RTT under load {0} ms — need at most {1}", to_fixed(r.loaded_rtt_ms, 0), num_str(m)));
                 }
             }
             let detail = if bad.is_empty() {
-                format!("{} Мбит/с, RTT под нагрузкой до {} мс", to_fixed(r.mbps, 1), to_fixed(r.loaded_rtt_ms, 0))
+                i18n::trf!("{0} Mbit/s, RTT under load up to {1} ms", to_fixed(r.mbps, 1), to_fixed(r.loaded_rtt_ms, 0))
             } else {
                 bad.join("; ")
             };
@@ -591,8 +587,8 @@ fn check_http(state: &NetState, g: &Goal, x: &HttpGoal) -> GoalResult {
     let run = from_run(r.run.as_ref());
     if x.fail {
         return match &r.error {
-            Some(e) => res(g, true, format!("{e} — так и задумано"), run),
-            None => res(g, false, "запрос прошёл, а должен быть запрещён", run),
+            Some(e) => res(g, true, i18n::trf!("{0} — as intended", e), run),
+            None => res(g, false, i18n::tr("the request went through, but it should be blocked"), run),
         };
     }
     if let Some(e) = &r.error {
@@ -604,21 +600,21 @@ fn check_http(state: &NetState, g: &Goal, x: &HttpGoal) -> GoalResult {
     };
     let mut bad: Vec<String> = Vec::new();
     match resp {
-        None => bad.push("ответа нет".into()),
+        None => bad.push(i18n::tr("no response").into()),
         Some(resp) => {
             let rtt = resp.rtt_us.unwrap_or(0.0) / 1000.0;
             if let Some(st) = x.status {
                 if resp.status != st {
-                    bad.push(format!("код {} {}, а нужен {st}", resp.status, resp.reason));
+                    bad.push(i18n::trf!("status {0} {1}, expected {2}", resp.status, resp.reason, st));
                 }
             }
             for (k, v) in x.header.iter() {
                 match resp.headers.get(&k.to_lowercase()) {
-                    None => bad.push(format!("нет заголовка {k}")),
+                    None => bad.push(i18n::trf!("missing header {0}", k)),
                     Some(got) => {
                         if let HeaderWant::Contains(want) = v {
                             if !got.to_lowercase().contains(&want.to_lowercase()) {
-                                bad.push(format!("{k}: «{got}», нужно содержащее «{want}»"));
+                                bad.push(i18n::trf!("{0}: “{1}”, expected to contain “{2}”", k, got, want));
                             }
                         }
                     }
@@ -626,27 +622,27 @@ fn check_http(state: &NetState, g: &Goal, x: &HttpGoal) -> GoalResult {
             }
             for k in &x.no_header {
                 if resp.headers.get(&k.to_lowercase()).is_some() {
-                    bad.push(format!("заголовок {k} не нужен"));
+                    bad.push(i18n::trf!("header {0} must not be present", k));
                 }
             }
             if let Some(b) = x.body_includes.as_deref().filter(|b| !b.is_empty()) {
                 if !resp.body.contains(b) {
-                    bad.push(format!("в теле нет «{b}»"));
+                    bad.push(i18n::trf!("body does not contain “{0}”", b));
                 }
             }
             if let Some(m) = x.max_rtt_ms {
                 if rtt > m {
-                    bad.push(format!("ответ за {} мс, нужно быстрее {}", to_fixed(rtt, 0), num_str(m)));
+                    bad.push(i18n::trf!("response in {0} ms, must be faster than {1}", to_fixed(rtt, 0), num_str(m)));
                 }
             }
             if let Some(h) = x.hops {
                 if r.responses.len() != h {
-                    bad.push(format!("запросов {}, а нужно {h}", r.responses.len()));
+                    bad.push(i18n::trf!("requests: {0}, expected {1}", r.responses.len(), h));
                 }
             }
             if let Some(f) = x.final_url.as_deref().filter(|f| !f.is_empty()) {
                 if !resp.url.as_deref().unwrap_or("").ends_with(f) {
-                    bad.push(format!("итоговый адрес {}", resp.url.as_deref().unwrap_or("undefined")));
+                    bad.push(i18n::trf!("final address {0}", resp.url.as_deref().unwrap_or("undefined")));
                 }
             }
         }
@@ -654,7 +650,7 @@ fn check_http(state: &NetState, g: &Goal, x: &HttpGoal) -> GoalResult {
     let detail = if !bad.is_empty() {
         bad.join("; ")
     } else if let Some(resp) = resp {
-        let more = if r.responses.len() > 1 { format!(", запросов: {}", r.responses.len()) } else { String::new() };
+        let more = if r.responses.len() > 1 { i18n::trf!(", requests: {0}", r.responses.len()) } else { String::new() };
         format!("{} {}{}", resp.status, resp.reason, more)
     } else {
         String::new()
@@ -671,9 +667,9 @@ fn check_probe(state: &NetState, g: &Goal, p: &ProbeGoal) -> GoalResult {
     let mut ok = want_ok == got_ok;
     let mtu_s = o.mtu.map(|m| m.to_string()).unwrap_or_else(|| "undefined".into());
     let mut detail = if o.status == ProbeStatus::Unreach && o.code == Some(IcmpCode::Port) {
-        "порт недоступен (ICMP)".to_string()
+        i18n::tr("port unreachable (ICMP)").to_string()
     } else if o.status == ProbeStatus::Unreach && o.code == Some(IcmpCode::Frag) {
-        format!("нужна фрагментация, а DF запрещает (MTU {mtu_s})")
+        i18n::trf!("fragmentation needed but DF forbids it (MTU {0})", mtu_s)
     } else if o.status == ProbeStatus::Toolong {
         format!("{} (MTU {mtu_s})", status_text(ProbeStatus::Toolong))
     } else {
@@ -685,11 +681,11 @@ fn check_probe(state: &NetState, g: &Goal, p: &ProbeGoal) -> GoalResult {
         }
     }
     if p.no_loop && o.events.iter().any(|e| e.kind == EventKind::Loop) {
-        return fail(g, "в сети петля: кадры ходят по кругу", run);
+        return fail(g, i18n::tr("there is a loop in the network: frames go round in circles"), run);
     }
     if let Some(n) = p.not_seen_by.as_deref().filter(|n| !n.is_empty()) {
         if o.hops.iter().any(|h| h.to == n && matches!(h.frame.body, Payload::Ip(_))) {
-            return fail(g, format!("чужой кадр дошёл до «{}» — его можно подслушать", dev_name(&s, n)), run);
+            return fail(g, i18n::trf!("another host's frame reached “{0}” — it can be eavesdropped", dev_name(&s, n)), run);
         }
     }
     let rtt_us = o.rtt_us;
@@ -700,36 +696,36 @@ fn check_probe(state: &NetState, g: &Goal, p: &ProbeGoal) -> GoalResult {
         };
         if let Some((m, rtt)) = slow {
             ok = false;
-            detail = format!("ответ пришёл за {}, а нужно быстрее {} мс", fmt_ms(Some(rtt)), num_str(m));
+            detail = i18n::trf!("reply arrived in {0}, must be faster than {1} ms", fmt_ms(Some(rtt)), num_str(m));
         } else if let Some(v) = p.via.as_deref().filter(|v| !v.is_empty()).filter(|v| !touches(&run, &s, v)) {
             ok = false;
-            detail = format!("пакет дошёл, но не через «{}»", dev_name(&s, v));
+            detail = i18n::trf!("the packet arrived, but not via “{0}”", dev_name(&s, v));
         } else if let Some(a) = p.avoid.as_deref().filter(|a| !a.is_empty()).filter(|a| touches(&run, &s, a)) {
             ok = false;
-            detail = format!("пакет дошёл, но прошёл через «{}»", dev_name(&s, a));
+            detail = i18n::trf!("the packet arrived, but passed through “{0}”", dev_name(&s, a));
         } else if let Some(ss) = p.seen_src.as_deref().filter(|v| !v.is_empty()) {
             let want = resolve_target(&s, ss);
             let to_dev = p.to.strip_prefix('@').unwrap_or(&p.to).split('.').next().unwrap_or("").to_string();
             let hit = o.delivered.iter().find(|x| x.dev == to_dev);
             match hit {
-                Some(h) if h.src == want => detail = format!("получатель видит отправителя {}", ip_str_opt(h.src)),
+                Some(h) if h.src == want => detail = i18n::trf!("the receiver sees the sender as {0}", ip_str_opt(h.src)),
                 other => {
                     ok = false;
                     detail = match other {
-                        Some(h) => format!("получатель видит отправителя {}, а должен видеть {}", ip_str_opt(h.src), ip_str_opt(want)),
-                        None => "получатель не видит запрос".to_string(),
+                        Some(h) => i18n::trf!("the receiver sees the sender as {0}, but should see {1}", ip_str_opt(h.src), ip_str_opt(want)),
+                        None => i18n::tr("the receiver does not see the request").to_string(),
                     };
                 }
             }
         } else if let Some(rtt) = rtt_us {
-            detail.push_str(&format!(" за {}", fmt_ms(Some(rtt))));
+            detail.push_str(&i18n::trf!(" in {0}", fmt_ms(Some(rtt))));
         }
     } else if !ok && want_ok {
-        detail = format!("{detail} — должно получиться");
+        detail = i18n::trf!("{0} — it should succeed", detail);
     } else if !ok && !want_ok {
-        detail = format!("{detail} — а должно быть запрещено");
+        detail = i18n::trf!("{0} — but it should be blocked", detail);
     } else if ok && !want_ok {
-        detail = format!("{detail} — так и задумано");
+        detail = i18n::trf!("{0} — as intended", detail);
     }
     res(g, ok, detail, run)
 }
@@ -765,7 +761,7 @@ pub fn apply_ops(state: &mut NetState, ops: &[Step]) -> Result<(), String> {
                     let y = split_ref(&l.b).0;
                     (x == a && y == b) || (x == b && y == a)
                 });
-                let Some(i) = i else { return Err(format!("нет кабеля {a}–{b}")) };
+                let Some(i) = i else { return Err(i18n::trf!("no cable {0}–{1}", a, b)) };
                 state.links.remove(i);
             }
             Step::Drop { dev } => state.links.retain(|l| split_ref(&l.a).0 != dev && split_ref(&l.b).0 != dev),

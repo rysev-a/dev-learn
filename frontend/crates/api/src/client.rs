@@ -25,8 +25,8 @@ impl Client {
     }
 
     async fn send(&self, method: Method, path: &str, body: Option<Value>) -> Result<Value, ApiError> {
-        let net = |e: gloo_net::Error| ApiError { status: 0, message: format!("Нет связи с сервером: {e}") };
-        let mut rb = RequestBuilder::new(path).method(method);
+        let net = |e: gloo_net::Error| ApiError { status: 0, message: i18n::trf!("No connection to the server: {}", e) };
+        let mut rb = RequestBuilder::new(path).method(method).header("Accept-Language", i18n::locale().code());
         if let Some(token) = (self.token)() {
             rb = rb.header("Authorization", &format!("Bearer {token}"));
         }
@@ -49,7 +49,7 @@ impl Client {
 
     async fn call<T: DeserializeOwned>(&self, method: Method, path: &str, body: Option<Value>) -> Result<T, ApiError> {
         let v = self.send(method, path, body).await?;
-        serde_json::from_value(v).map_err(|e| ApiError { status: 0, message: format!("Неожиданный ответ сервера ({path}): {e}") })
+        serde_json::from_value(v).map_err(|e| ApiError { status: 0, message: i18n::trf!("Unexpected server response ({}): {}", path, e) })
     }
 
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T, ApiError> {
@@ -198,7 +198,7 @@ impl Client {
     pub async fn run(&self, book: i64, chapter: i64, task: &str, code: &str) -> Result<(String, RunState), ApiError> {
         let v: Value = self.post("/api/exercises/run", &serde_json::json!({ "book": book, "chapter": chapter, "task": task, "code": code })).await?;
         let id = v.get("id").and_then(Value::as_str).unwrap_or_default().to_string();
-        let state = serde_json::from_value(v).map_err(|e| ApiError { status: 0, message: format!("Неожиданный ответ сервера: {e}") })?;
+        let state = serde_json::from_value(v).map_err(|e| ApiError { status: 0, message: i18n::trf!("Unexpected server response: {}", e) })?;
         Ok((id, state))
     }
 

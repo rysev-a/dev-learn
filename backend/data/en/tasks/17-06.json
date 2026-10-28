@@ -1,0 +1,60 @@
+{
+ "book": 17,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "virt-sim-virtqueue",
+   "title": "Virtio queue simulator",
+   "statement": "Work with a virtual queue of 8 descriptors: the guest posts buffers one at a time or in a batch, the device processes them, and the guest reaps the finished ones. Count the notifications, which are exits to the hypervisor: batches and notification suppression reduce their number. The exercise is solved when all three goals are met.",
+   "hint": "A batch of several buffers needs a single notification; with suppression, the bell is rung only when the device is asleep."
+  },
+  {
+   "id": "virt-io-exits",
+   "title": "Exits per packets",
+   "statement": "Write a function exits_for(mode, packets, regs=12, batch=32): how many exits into the hypervisor are needed to send packets packets. Mode \"emulated\": regs card register accesses per packet. Mode \"virtio\": one notification per batch of batch packets (the last batch may be incomplete). Mode \"polling\": no exits (the device polls the queue).",
+   "hint": "The number of batches is a division rounded up."
+  },
+  {
+   "id": "virt-virtqueue",
+   "title": "A virtio ring",
+   "statement": "Write a function run_queue(size, ops): size is the number of descriptors in the queue, ops are operations [\"post\", n] (the guest puts n buffers), [\"device\", n] (the device moves up to n buffers from the available ring to the used ring) and [\"reap\", n] (the guest collects up to n completed buffers). The number of free descriptors is size minus the buffers in the available and used rings. The guest cannot post buffers beyond the free ones: they count as rejected. Return a tuple (in the available ring, in the used ring, free, rejected).",
+   "hint": "Keep two counters: avail and used; free is size - avail - used."
+  },
+  {
+   "id": "virt-notify",
+   "title": "Notification suppression",
+   "statement": "Write a function notify_count(events, suppress): events is a list of events \"post\" (the guest put a buffer) and \"idle\" (the device finished work and is waiting for notifications again). At the start the device is waiting. If suppress is false, every post notifies the device. If it is true, a notification is needed only when the device is waiting; after a notification it is busy and not waiting until an idle arrives. Return the number of notifications (exits).",
+   "hint": "Keep a \"device is waiting\" flag; with suppress, notify only when it is set."
+  },
+  {
+   "id": "virt-desc-chain",
+   "title": "A descriptor chain",
+   "statement": "Write a function desc_chain(table, head): table is a descriptor table, each descriptor a list [address, length, flags, next]. Bit 1 of the flags (value 1) means \"there is a next descriptor\", bit 2 (value 2) means \"buffer for the device to write\". Walk the chain from head and return a list of tuples (address, length, device_may_write). If the chain loops or refers to a nonexistent descriptor, return None.",
+   "hint": "Remember the visited indexes to notice a loop."
+  },
+  {
+   "id": "virt-route-exit",
+   "title": "Where a device access goes",
+   "statement": "Write a function route_exit(addr, ioeventfd, regions): addr is the guest physical address the guest accessed; ioeventfd is a list of addresses for which an ioeventfd is registered; regions is a list of device regions [name, start, size] (addresses from start up to start + size, end not included). Return \"ioeventfd\" if the address is in ioeventfd (the kernel handles it without QEMU); otherwise \"qemu:name\" if the address falls into a device region; otherwise \"ept-fault\".",
+   "hint": "Check ioeventfd first, then the regions."
+  },
+  {
+   "id": "virt-ring-slots",
+   "title": "Ring indexes",
+   "statement": "The virtio ring indexes are freely running 16-bit counters (modulo 65536). Write a function ring_slots(prod, cons, size): prod is the producer index, cons is the consumer index, size is the ring size (a power of two). Return a tuple (how many elements are waiting to be processed, the slot number where the producer will put the next element). The number waiting is (prod - cons) modulo 65536.",
+   "hint": "The % operation in Python gives a non-negative result for negative numbers."
+  },
+  {
+   "id": "virt-rss",
+   "title": "Queues per virtual processor",
+   "statement": "Write a function rss_queues(flows, nqueues, vcpus): flows is a list of flow hashes (integers), nqueues is the number of queues, vcpus is the number of virtual processors. A flow goes to queue hash % nqueues; queue i is served by processor i % vcpus. Return a list of length vcpus: how many flows each processor handles.",
+   "hint": "First find the flow's queue, then the queue's processor."
+  },
+  {
+   "id": "virt-merge-reqs",
+   "title": "Merging block requests",
+   "statement": "Write a function merge_requests(reqs, max_len): reqs is a list of requests [first sector, number of sectors]. Sort them by first sector and merge adjacent requests if the end of one (start + length) equals the start of the next and the length of the merged request does not exceed max_len. A single request longer than max_len stays as it is. Return a list of tuples (first sector, number of sectors).",
+   "hint": "Go through the sorted requests and compare with the last one built."
+  }
+ ]
+}

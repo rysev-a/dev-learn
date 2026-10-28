@@ -1,4 +1,4 @@
-//! Бэкенд «say»: axum + SurrealDB. Auth:
+//! Бэкенд «cs-core»: axum + SurrealDB. Auth:
 //! вход, регистрация и админка — общие crates lab (`auth`, `auth_api`, `admin_api`, `system_tasks`, `mail`).
 //! Проверка кода выполняется внешним воркером (`worker/worker.py`): бэкенд ведёт очередь и отдаёт задания по `/internal/worker/*`.
 
@@ -9,6 +9,7 @@ pub mod db;
 pub mod error;
 pub mod exercises;
 pub mod jobs;
+pub mod lang;
 pub mod labs;
 pub mod practice;
 pub mod progress;

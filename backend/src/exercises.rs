@@ -7,6 +7,7 @@ use axum::{
     Extension, Json, Router,
 };
 use auth::Identity;
+use crate::lang::Lang;
 use serde::Deserialize;
 use serde_json::{json, Value};
 
@@ -83,14 +84,14 @@ struct RunIn {
 /// Ставит решение в очередь проверки: результат — по GET /run/{id} (у пользователя идёт не больше одной проверки).
 async fn run_code(State(state): State<AppState>, Extension(me): Extension<Identity>, Json(b): Json<RunIn>) -> ApiResult<(StatusCode, Json<Value>)> {
     if b.code.chars().count() > MAX_CODE {
-        return Err(ApiError::invalid(format!("code: не длиннее {MAX_CODE} символов")));
+        return Err(ApiError::invalid(format!("code: at most {MAX_CODE} characters")));
     }
-    let task = find_task(&state.db, b.book, b.chapter, &b.task).await?.ok_or_else(|| ApiError::not_found("Задача не найдена"))?;
+    let task = find_task(&state.db, b.book, b.chapter, &b.task).await?.ok_or_else(|| ApiError::not_found("Task not found"))?;
     if task.get("mode").and_then(Value::as_str) == Some("lab") {
-        return Err(ApiError::invalid("Это упражнение проверяется в браузере, а не в песочнице"));
+        return Err(ApiError::invalid("This exercise is checked in the browser, not in the sandbox"));
     }
     if b.code.trim().is_empty() {
-        return Err(ApiError::invalid("Пустой код — нечего проверять"));
+        return Err(ApiError::invalid("Empty code — nothing to check"));
     }
     let ok = jobs::workers_alive(&state.db).await? > 0;
     let job_id = jobs::submit(&state, &me.user.id, b.book, b.chapter, &task, &b.code, ok).await.map_err(|e| ApiError::new(e.0, e.1))?;
@@ -100,7 +101,7 @@ async fn run_code(State(state): State<AppState>, Extension(me): Extension<Identi
 }
 
 async fn run_state(State(state): State<AppState>, Extension(me): Extension<Identity>, Path(job_id): Path<String>) -> ApiResult<Json<Value>> {
-    jobs::get_for_user(&state.db, &job_id, &me.user.id).await?.map(Json).ok_or_else(|| ApiError::not_found("Проверка не найдена"))
+    jobs::get_for_user(&state.db, &job_id, &me.user.id).await?.map(Json).ok_or_else(|| ApiError::not_found("Check not found"))
 }
 
 /// Схема и данные учебных баз — описание SQLite строится один раз на набор и кэшируется.
@@ -114,17 +115,18 @@ async fn dataset(state: &AppState, setup: String) -> ApiResult<Value> {
     Ok(v)
 }
 
-async fn list_tasks(State(state): State<AppState>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
+async fn list_tasks(State(state): State<AppState>, lang: Lang, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
     let mut res = state
         .db
         .query("SELECT tid, mode, title, statement, starter, hint, spec, ord FROM tasks WHERE book = $b AND chapter = $c ORDER BY ord")
         .bind(("b", book))
         .bind(("c", chapter))
         .await?;
-    let rows: Vec<Value> = res.take(0)?;
+    let mut rows: Vec<Value> = res.take(0)?;
     if rows.is_empty() {
-        return Err(ApiError::not_found("У этой главы нет код-упражнений"));
+        return Err(ApiError::not_found("This chapter has no code exercises"));
     }
+    crate::lang::overlay(&state.db, "tasks_i18n", lang, book, chapter, &mut rows, &["title", "statement", "starter", "hint"]).await?;
     let (mut items, mut datasets) = (Vec::new(), serde_json::Map::new());
     for r in &rows {
         let mut item = json!({ "id": s(r, "tid"), "mode": s(r, "mode"), "title": s(r, "title"), "statement": s(r, "statement"), "starter": s(r, "starter"), "hint": s(r, "hint") });
@@ -155,16 +157,16 @@ struct DraftIn {
 
 async fn save_draft(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter, task)): Path<(i64, i64, String)>, Json(b): Json<DraftIn>) -> ApiResult<StatusCode> {
     if b.code.chars().count() > MAX_DRAFT {
-        return Err(ApiError::invalid(format!("code: не длиннее {MAX_DRAFT} символов")));
+        return Err(ApiError::invalid(format!("code: at most {MAX_DRAFT} characters")));
     }
-    find_task(&state.db, book, chapter, &task).await?.ok_or_else(|| ApiError::not_found("Задача не найдена"))?;
+    find_task(&state.db, book, chapter, &task).await?.ok_or_else(|| ApiError::not_found("Task not found"))?;
     practice::save_draft(&state.db, &me.user.id, book, chapter, &task, &b.code).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
 /// История попыток пользователя по задаче: от новых к старым, с кодом.
 async fn task_attempts(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter, task)): Path<(i64, i64, String)>) -> ApiResult<Json<Value>> {
-    find_task(&state.db, book, chapter, &task).await?.ok_or_else(|| ApiError::not_found("Задача не найдена"))?;
+    find_task(&state.db, book, chapter, &task).await?.ok_or_else(|| ApiError::not_found("Task not found"))?;
     Ok(Json(json!({ "attempts": practice::attempts(&state.db, &me.user.id, book, chapter, &task).await? })))
 }
 
@@ -175,13 +177,13 @@ struct SolvedIn {
 }
 
 /// Интерактивное упражнение (схема, ассемблер) решено — проверка прошла в браузере; принимается только для задач режима lab.
-async fn mark_lab_solved(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter, task_id)): Path<(i64, i64, String)>, Json(b): Json<SolvedIn>) -> ApiResult<StatusCode> {
+async fn mark_lab_solved(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter, task_id)): Path<(i64, i64, String)>, Json(b): Json<SolvedIn>) -> ApiResult<StatusCode> {
     if b.solution.chars().count() > MAX_DRAFT {
-        return Err(ApiError::invalid(format!("solution: не длиннее {MAX_DRAFT} символов")));
+        return Err(ApiError::invalid(format!("solution: at most {MAX_DRAFT} characters")));
     }
-    find_task(&state.db, book, chapter, &task_id).await?.filter(|t| t.get("mode").and_then(Value::as_str) == Some("lab")).ok_or_else(|| ApiError::not_found("Задача не найдена"))?;
+    find_task(&state.db, book, chapter, &task_id).await?.filter(|t| t.get("mode").and_then(Value::as_str) == Some("lab")).ok_or_else(|| ApiError::not_found("Task not found"))?;
     // решение лаборатории перепроверяет сервер движком лаборатории: клиенту засчитывать «решено» на слово нельзя
-    if let Some(reason) = crate::labs::check(&state, &me.user.id, book, chapter, &task_id, &b.solution).await? {
+    if let Some(reason) = crate::labs::check(&state, lang, &me.user.id, book, chapter, &task_id, &b.solution).await? {
         return Err(ApiError::invalid(reason));
     }
     practice::record_attempt(&state.db, practice::Attempt { user: &me.user.id, book, chapter, task: &task_id, code: &b.solution, passed: 1, total: 1, solved: true }).await?;

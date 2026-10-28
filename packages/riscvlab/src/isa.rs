@@ -114,56 +114,56 @@ ops! {
     Add, "add", R, 0x33, Some(0), Some(0x00), I, "rd = rs1 + rs2", "add a0, a1, a2";
     Sub, "sub", R, 0x33, Some(0), Some(0x20), I, "rd = rs1 − rs2", "sub a0, a1, a2";
     Sll, "sll", R, 0x33, Some(1), Some(0x00), I, "rd = rs1 << rs2[4:0]", "sll a0, a1, a2";
-    Slt, "slt", R, 0x33, Some(2), Some(0x00), I, "rd = (rs1 < rs2) со знаком", "slt a0, a1, a2";
-    Sltu, "sltu", R, 0x33, Some(3), Some(0x00), I, "rd = (rs1 < rs2) без знака", "sltu a0, a1, a2";
+    Slt, "slt", R, 0x33, Some(2), Some(0x00), I, "rd = (rs1 < rs2), signed", "slt a0, a1, a2";
+    Sltu, "sltu", R, 0x33, Some(3), Some(0x00), I, "rd = (rs1 < rs2), unsigned", "sltu a0, a1, a2";
     Xor, "xor", R, 0x33, Some(4), Some(0x00), I, "rd = rs1 XOR rs2", "xor a0, a1, a2";
-    Srl, "srl", R, 0x33, Some(5), Some(0x00), I, "rd = rs1 >> rs2[4:0] (логически)", "srl a0, a1, a2";
-    Sra, "sra", R, 0x33, Some(5), Some(0x20), I, "rd = rs1 >> rs2[4:0] (с сохранением знака)", "sra a0, a1, a2";
-    Or, "or", R, 0x33, Some(6), Some(0x00), I, "rd = rs1 ИЛИ rs2", "or a0, a1, a2";
-    And, "and", R, 0x33, Some(7), Some(0x00), I, "rd = rs1 И rs2", "and a0, a1, a2";
+    Srl, "srl", R, 0x33, Some(5), Some(0x00), I, "rd = rs1 >> rs2[4:0] (logical)", "srl a0, a1, a2";
+    Sra, "sra", R, 0x33, Some(5), Some(0x20), I, "rd = rs1 >> rs2[4:0] (arithmetic, keeps the sign)", "sra a0, a1, a2";
+    Or, "or", R, 0x33, Some(6), Some(0x00), I, "rd = rs1 OR rs2", "or a0, a1, a2";
+    And, "and", R, 0x33, Some(7), Some(0x00), I, "rd = rs1 AND rs2", "and a0, a1, a2";
     // --- умножение и деление (расширение M) ---
-    Mul, "mul", R, 0x33, Some(0), Some(0x01), M, "rd = младшие 32 бита rs1 · rs2", "mul a0, a1, a2";
-    Mulh, "mulh", R, 0x33, Some(1), Some(0x01), M, "rd = старшие 32 бита rs1 · rs2 (оба со знаком)", "mulh a0, a1, a2";
-    Mulhsu, "mulhsu", R, 0x33, Some(2), Some(0x01), M, "rd = старшие 32 бита (rs1 со знаком, rs2 без)", "mulhsu a0, a1, a2";
-    Mulhu, "mulhu", R, 0x33, Some(3), Some(0x01), M, "rd = старшие 32 бита rs1 · rs2 (без знака)", "mulhu a0, a1, a2";
-    Div, "div", R, 0x33, Some(4), Some(0x01), M, "rd = rs1 / rs2 (со знаком)", "div a0, a1, a2";
-    Divu, "divu", R, 0x33, Some(5), Some(0x01), M, "rd = rs1 / rs2 (без знака)", "divu a0, a1, a2";
-    Rem, "rem", R, 0x33, Some(6), Some(0x01), M, "rd = остаток rs1 / rs2 (со знаком)", "rem a0, a1, a2";
-    Remu, "remu", R, 0x33, Some(7), Some(0x01), M, "rd = остаток rs1 / rs2 (без знака)", "remu a0, a1, a2";
+    Mul, "mul", R, 0x33, Some(0), Some(0x01), M, "rd = low 32 bits of rs1 · rs2", "mul a0, a1, a2";
+    Mulh, "mulh", R, 0x33, Some(1), Some(0x01), M, "rd = high 32 bits of rs1 · rs2 (both signed)", "mulh a0, a1, a2";
+    Mulhsu, "mulhsu", R, 0x33, Some(2), Some(0x01), M, "rd = high 32 bits (rs1 signed, rs2 unsigned)", "mulhsu a0, a1, a2";
+    Mulhu, "mulhu", R, 0x33, Some(3), Some(0x01), M, "rd = high 32 bits of rs1 · rs2 (unsigned)", "mulhu a0, a1, a2";
+    Div, "div", R, 0x33, Some(4), Some(0x01), M, "rd = rs1 / rs2 (signed)", "div a0, a1, a2";
+    Divu, "divu", R, 0x33, Some(5), Some(0x01), M, "rd = rs1 / rs2 (unsigned)", "divu a0, a1, a2";
+    Rem, "rem", R, 0x33, Some(6), Some(0x01), M, "rd = remainder of rs1 / rs2 (signed)", "rem a0, a1, a2";
+    Remu, "remu", R, 0x33, Some(7), Some(0x01), M, "rd = remainder of rs1 / rs2 (unsigned)", "remu a0, a1, a2";
     // --- с числом из команды (0010011) ---
-    Addi, "addi", I, 0x13, Some(0), None, I, "rd = rs1 + число (−2048…2047)", "addi a0, a0, -1";
-    Slti, "slti", I, 0x13, Some(2), None, I, "rd = (rs1 < число) со знаком", "slti a0, a1, 10";
-    Sltiu, "sltiu", I, 0x13, Some(3), None, I, "rd = (rs1 < число) без знака", "sltiu a0, a1, 10";
-    Xori, "xori", I, 0x13, Some(4), None, I, "rd = rs1 XOR число", "xori a0, a1, -1";
-    Ori, "ori", I, 0x13, Some(6), None, I, "rd = rs1 ИЛИ число", "ori a0, a1, 0x0f";
-    Andi, "andi", I, 0x13, Some(7), None, I, "rd = rs1 И число", "andi a0, a1, 0xff";
-    Slli, "slli", SH, 0x13, Some(1), Some(0x00), I, "rd = rs1 << число (0…31)", "slli a0, a1, 2";
-    Srli, "srli", SH, 0x13, Some(5), Some(0x00), I, "rd = rs1 >> число (логически)", "srli a0, a1, 2";
-    Srai, "srai", SH, 0x13, Some(5), Some(0x20), I, "rd = rs1 >> число (со знаком)", "srai a0, a1, 2";
+    Addi, "addi", I, 0x13, Some(0), None, I, "rd = rs1 + imm (−2048…2047)", "addi a0, a0, -1";
+    Slti, "slti", I, 0x13, Some(2), None, I, "rd = (rs1 < imm), signed", "slti a0, a1, 10";
+    Sltiu, "sltiu", I, 0x13, Some(3), None, I, "rd = (rs1 < imm), unsigned", "sltiu a0, a1, 10";
+    Xori, "xori", I, 0x13, Some(4), None, I, "rd = rs1 XOR imm", "xori a0, a1, -1";
+    Ori, "ori", I, 0x13, Some(6), None, I, "rd = rs1 OR imm", "ori a0, a1, 0x0f";
+    Andi, "andi", I, 0x13, Some(7), None, I, "rd = rs1 AND imm", "andi a0, a1, 0xff";
+    Slli, "slli", SH, 0x13, Some(1), Some(0x00), I, "rd = rs1 << imm (0…31)", "slli a0, a1, 2";
+    Srli, "srli", SH, 0x13, Some(5), Some(0x00), I, "rd = rs1 >> imm (logical)", "srli a0, a1, 2";
+    Srai, "srai", SH, 0x13, Some(5), Some(0x20), I, "rd = rs1 >> imm (arithmetic)", "srai a0, a1, 2";
     // --- память (0000011 / 0100011) ---
-    Lb, "lb", L, 0x03, Some(0), None, I, "rd = байт [rs1+смещение] со знаком", "lb a0, 0(a1)";
-    Lh, "lh", L, 0x03, Some(1), None, I, "rd = полуслово [rs1+смещение] со знаком", "lh a0, 0(a1)";
-    Lw, "lw", L, 0x03, Some(2), None, I, "rd = слово [rs1+смещение]", "lw a0, 4(a1)";
-    Lbu, "lbu", L, 0x03, Some(4), None, I, "rd = байт [rs1+смещение] без знака", "lbu a0, 0(a1)";
-    Lhu, "lhu", L, 0x03, Some(5), None, I, "rd = полуслово [rs1+смещение] без знака", "lhu a0, 0(a1)";
-    Sb, "sb", S, 0x23, Some(0), None, I, "байт [rs1+смещение] = rs2", "sb a0, 0(a1)";
-    Sh, "sh", S, 0x23, Some(1), None, I, "полуслово [rs1+смещение] = rs2", "sh a0, 0(a1)";
-    Sw, "sw", S, 0x23, Some(2), None, I, "слово [rs1+смещение] = rs2", "sw a0, 4(a1)";
+    Lb, "lb", L, 0x03, Some(0), None, I, "rd = signed byte [rs1+offset]", "lb a0, 0(a1)";
+    Lh, "lh", L, 0x03, Some(1), None, I, "rd = signed halfword [rs1+offset]", "lh a0, 0(a1)";
+    Lw, "lw", L, 0x03, Some(2), None, I, "rd = word [rs1+offset]", "lw a0, 4(a1)";
+    Lbu, "lbu", L, 0x03, Some(4), None, I, "rd = unsigned byte [rs1+offset]", "lbu a0, 0(a1)";
+    Lhu, "lhu", L, 0x03, Some(5), None, I, "rd = unsigned halfword [rs1+offset]", "lhu a0, 0(a1)";
+    Sb, "sb", S, 0x23, Some(0), None, I, "byte [rs1+offset] = rs2", "sb a0, 0(a1)";
+    Sh, "sh", S, 0x23, Some(1), None, I, "halfword [rs1+offset] = rs2", "sh a0, 0(a1)";
+    Sw, "sw", S, 0x23, Some(2), None, I, "word [rs1+offset] = rs2", "sw a0, 4(a1)";
     // --- переходы (1100011) ---
-    Beq, "beq", B, 0x63, Some(0), None, I, "если rs1 = rs2 — перейти", "beq a0, a1, метка";
-    Bne, "bne", B, 0x63, Some(1), None, I, "если rs1 ≠ rs2 — перейти", "bne a0, a1, метка";
-    Blt, "blt", B, 0x63, Some(4), None, I, "если rs1 < rs2 (со знаком) — перейти", "blt a0, a1, метка";
-    Bge, "bge", B, 0x63, Some(5), None, I, "если rs1 ≥ rs2 (со знаком) — перейти", "bge a0, a1, метка";
-    Bltu, "bltu", B, 0x63, Some(6), None, I, "если rs1 < rs2 (без знака) — перейти", "bltu a0, a1, метка";
-    Bgeu, "bgeu", B, 0x63, Some(7), None, I, "если rs1 ≥ rs2 (без знака) — перейти", "bgeu a0, a1, метка";
-    Jal, "jal", J, 0x6f, None, None, I, "rd = pc + 4; перейти на метку", "jal ra, функция";
-    Jalr, "jalr", JR, 0x67, Some(0), None, I, "rd = pc + 4; перейти на rs1 + смещение", "jalr ra, 0(t0)";
+    Beq, "beq", B, 0x63, Some(0), None, I, "if rs1 = rs2, branch", "beq a0, a1, label";
+    Bne, "bne", B, 0x63, Some(1), None, I, "if rs1 ≠ rs2, branch", "bne a0, a1, label";
+    Blt, "blt", B, 0x63, Some(4), None, I, "if rs1 < rs2 (signed), branch", "blt a0, a1, label";
+    Bge, "bge", B, 0x63, Some(5), None, I, "if rs1 ≥ rs2 (signed), branch", "bge a0, a1, label";
+    Bltu, "bltu", B, 0x63, Some(6), None, I, "if rs1 < rs2 (unsigned), branch", "bltu a0, a1, label";
+    Bgeu, "bgeu", B, 0x63, Some(7), None, I, "if rs1 ≥ rs2 (unsigned), branch", "bgeu a0, a1, label";
+    Jal, "jal", J, 0x6f, None, None, I, "rd = pc + 4; jump to label", "jal ra, function";
+    Jalr, "jalr", JR, 0x67, Some(0), None, I, "rd = pc + 4; jump to rs1 + offset", "jalr ra, 0(t0)";
     // --- длинные числа и адреса ---
-    Lui, "lui", U, 0x37, None, None, I, "rd = число << 12", "lui a0, 0x12345";
-    Auipc, "auipc", U, 0x17, None, None, I, "rd = pc + (число << 12)", "auipc a0, 1";
+    Lui, "lui", U, 0x37, None, None, I, "rd = imm << 12", "lui a0, 0x12345";
+    Auipc, "auipc", U, 0x17, None, None, I, "rd = pc + (imm << 12)", "auipc a0, 1";
     // --- система ---
-    Ecall, "ecall", SYS, 0x73, None, None, I, "вызов системы (номер в a7)", "ecall";
-    Ebreak, "ebreak", SYS, 0x73, None, None, I, "остановка (точка останова)", "ebreak";
+    Ecall, "ecall", SYS, 0x73, None, None, I, "system call (number in a7)", "ecall";
+    Ebreak, "ebreak", SYS, 0x73, None, None, I, "halt (breakpoint)", "ebreak";
 }
 
 impl Op {
@@ -194,28 +194,28 @@ pub struct Pseudo {
 /// Псевдокоманды — сокращения, которые разворачивает ассемблер.
 pub const PSEUDO: &[Pseudo] = &[
     Pseudo { example: "nop", becomes: "addi zero, zero, 0" },
-    Pseudo { example: "li a0, 1000", becomes: "addi a0, zero, 1000  (длинное число — lui + addi)" },
-    Pseudo { example: "la a0, метка", becomes: "auipc a0, … ; addi a0, a0, …  (адрес метки)" },
+    Pseudo { example: "li a0, 1000", becomes: i18n::t!("addi a0, zero, 1000  (large number — lui + addi)") },
+    Pseudo { example: i18n::t!("la a0, label"), becomes: i18n::t!("auipc a0, … ; addi a0, a0, …  (label address)") },
     Pseudo { example: "mv a0, a1", becomes: "addi a0, a1, 0" },
     Pseudo { example: "not a0, a1", becomes: "xori a0, a1, -1" },
     Pseudo { example: "neg a0, a1", becomes: "sub a0, zero, a1" },
     Pseudo { example: "seqz a0, a1", becomes: "sltiu a0, a1, 1" },
     Pseudo { example: "snez a0, a1", becomes: "sltu a0, zero, a1" },
-    Pseudo { example: "j метка", becomes: "jal zero, метка" },
-    Pseudo { example: "jal метка", becomes: "jal ra, метка" },
+    Pseudo { example: i18n::t!("j label"), becomes: i18n::t!("jal zero, label") },
+    Pseudo { example: i18n::t!("jal label"), becomes: i18n::t!("jal ra, label") },
     Pseudo { example: "jr a0", becomes: "jalr zero, 0(a0)" },
     Pseudo { example: "ret", becomes: "jalr zero, 0(ra)" },
-    Pseudo { example: "call функция", becomes: "auipc ra, … ; jalr ra, …(ra)" },
-    Pseudo { example: "beqz a0, метка", becomes: "beq a0, zero, метка" },
-    Pseudo { example: "bnez a0, метка", becomes: "bne a0, zero, метка" },
-    Pseudo { example: "blez a0, метка", becomes: "bge zero, a0, метка" },
-    Pseudo { example: "bgez a0, метка", becomes: "bge a0, zero, метка" },
-    Pseudo { example: "bltz a0, метка", becomes: "blt a0, zero, метка" },
-    Pseudo { example: "bgtz a0, метка", becomes: "blt zero, a0, метка" },
-    Pseudo { example: "bgt a0, a1, метка", becomes: "blt a1, a0, метка" },
-    Pseudo { example: "ble a0, a1, метка", becomes: "bge a1, a0, метка" },
-    Pseudo { example: "bgtu a0, a1, метка", becomes: "bltu a1, a0, метка" },
-    Pseudo { example: "bleu a0, a1, метка", becomes: "bgeu a1, a0, метка" },
+    Pseudo { example: i18n::t!("call function"), becomes: "auipc ra, … ; jalr ra, …(ra)" },
+    Pseudo { example: i18n::t!("beqz a0, label"), becomes: i18n::t!("beq a0, zero, label") },
+    Pseudo { example: i18n::t!("bnez a0, label"), becomes: i18n::t!("bne a0, zero, label") },
+    Pseudo { example: i18n::t!("blez a0, label"), becomes: i18n::t!("bge zero, a0, label") },
+    Pseudo { example: i18n::t!("bgez a0, label"), becomes: i18n::t!("bge a0, zero, label") },
+    Pseudo { example: i18n::t!("bltz a0, label"), becomes: i18n::t!("blt a0, zero, label") },
+    Pseudo { example: i18n::t!("bgtz a0, label"), becomes: i18n::t!("blt zero, a0, label") },
+    Pseudo { example: i18n::t!("bgt a0, a1, label"), becomes: i18n::t!("blt a1, a0, label") },
+    Pseudo { example: i18n::t!("ble a0, a1, label"), becomes: i18n::t!("bge a1, a0, label") },
+    Pseudo { example: i18n::t!("bgtu a0, a1, label"), becomes: i18n::t!("bltu a1, a0, label") },
+    Pseudo { example: i18n::t!("bleu a0, a1, label"), becomes: i18n::t!("bgeu a1, a0, label") },
 ];
 
 /* ============================================================
@@ -525,7 +525,7 @@ pub fn fields_of(word: u32) -> Fields {
         bits: bin(word, hi, lo),
         cls,
     };
-    let opcode = || f("код", 6, 0, FieldClass::Op);
+    let opcode = || f(i18n::tr("opcode field"), 6, 0, FieldClass::Op);
     let fmt = d.op.map(|o| o.info().fmt);
     match fmt {
         Some(Fmt::R) => Fields {
@@ -542,7 +542,7 @@ pub fn fields_of(word: u32) -> Fields {
         Some(Fmt::I | Fmt::L | Fmt::JR) => Fields {
             fmt: FieldFmt::I,
             fields: vec![
-                f("число [11:0]", 31, 20, FieldClass::Imm),
+                f(i18n::tr("imm [11:0]"), 31, 20, FieldClass::Imm),
                 f("rs1", 19, 15, FieldClass::Rs1),
                 f("f3", 14, 12, FieldClass::F3),
                 f("rd", 11, 7, FieldClass::Rd),
@@ -553,7 +553,7 @@ pub fn fields_of(word: u32) -> Fields {
             fmt: FieldFmt::I,
             fields: vec![
                 f("f7", 31, 25, FieldClass::F7),
-                f("сдвиг", 24, 20, FieldClass::Imm),
+                f(i18n::tr("shift"), 24, 20, FieldClass::Imm),
                 f("rs1", 19, 15, FieldClass::Rs1),
                 f("f3", 14, 12, FieldClass::F3),
                 f("rd", 11, 7, FieldClass::Rd),
@@ -563,11 +563,11 @@ pub fn fields_of(word: u32) -> Fields {
         Some(Fmt::S) => Fields {
             fmt: FieldFmt::S,
             fields: vec![
-                f("число [11:5]", 31, 25, FieldClass::Imm),
+                f(i18n::tr("imm [11:5]"), 31, 25, FieldClass::Imm),
                 f("rs2", 24, 20, FieldClass::Rs2),
                 f("rs1", 19, 15, FieldClass::Rs1),
                 f("f3", 14, 12, FieldClass::F3),
-                f("число [4:0]", 11, 7, FieldClass::Imm),
+                f(i18n::tr("imm [4:0]"), 11, 7, FieldClass::Imm),
                 opcode(),
             ],
         },
@@ -584,15 +584,15 @@ pub fn fields_of(word: u32) -> Fields {
         },
         Some(Fmt::U) => Fields {
             fmt: FieldFmt::U,
-            fields: vec![f("число [31:12]", 31, 12, FieldClass::Imm), f("rd", 11, 7, FieldClass::Rd), opcode()],
+            fields: vec![f(i18n::tr("imm [31:12]"), 31, 12, FieldClass::Imm), f("rd", 11, 7, FieldClass::Rd), opcode()],
         },
         Some(Fmt::J) => Fields {
             fmt: FieldFmt::J,
             fields: vec![f("[20|10:1|11|19:12]", 31, 12, FieldClass::Imm), f("rd", 11, 7, FieldClass::Rd), opcode()],
         },
         Some(Fmt::SYS) => {
-            Fields { fmt: FieldFmt::Sys, fields: vec![f("номер", 31, 7, FieldClass::Imm), opcode()] }
+            Fields { fmt: FieldFmt::Sys, fields: vec![f(i18n::tr("number"), 31, 7, FieldClass::Imm), opcode()] }
         }
-        None => Fields { fmt: FieldFmt::Unknown, fields: vec![f("слово", 31, 0, FieldClass::Imm)] },
+        None => Fields { fmt: FieldFmt::Unknown, fields: vec![f(i18n::tr("word"), 31, 0, FieldClass::Imm)] },
     }
 }

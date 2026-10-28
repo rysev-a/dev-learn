@@ -25,8 +25,8 @@ const MIN_POS: f64 = 4.0;
 /// Сдвиг меньше этого — клик (открывает данные таблицы), а не перетаскивание.
 const CLICK_SLOP: f64 = 3.0;
 
-const KEY_OPEN: &str = "say-sx-open";
-const KEY_VIEW: &str = "say-sx-view";
+const KEY_OPEN: &str = "cs-core-sx-open";
+const KEY_VIEW: &str = "cs-core-sx-view";
 
 // --- чистая логика ------------------------------------------------------------------------------
 
@@ -161,23 +161,13 @@ impl Drag {
     }
 }
 
-/// «1 таблица», «2 таблицы», «5 таблиц», «21 таблица».
-pub fn plural(n: usize, one: &'static str, few: &'static str, many: &'static str) -> &'static str {
-    match (n % 10, n % 100) {
-        (_, 11..=14) => many,
-        (1, _) => one,
-        (2..=4, _) => few,
-        _ => many,
-    }
-}
-
 /// Подпись в заголовке виджета: «5 таблиц · 2 представл.».
 fn summary(schema: &SqlDataset) -> String {
     let tables = schema.tables.iter().filter(|t| !t.is_view()).count();
     let views = schema.tables.len() - tables;
-    let base = format!("{tables} {}", plural(tables, "таблица", "таблицы", "таблиц"));
+    let base = format!("{tables} {}", i18n::plural(tables as u64, "table", "tables"));
     if views > 0 {
-        format!("{base} · {views} представл.")
+        format!("{base} · {views} {}", i18n::plural(views as u64, "view", "views"))
     } else {
         base
     }
@@ -377,7 +367,7 @@ fn Erd(schema: Arc<SqlDataset>, on_open_table: Callback<String>) -> impl IntoVie
                 viewBox=move || { let (w, h) = canvas.get(); format!("0 0 {w} {h}") }
                 style=move || svg_style(canvas.get().0)
                 role="img"
-                aria-label="ERD-диаграмма учебной базы"
+                aria-label=i18n::tr("ERD diagram of the practice database")
                 on:pointermove=on_move
                 on:pointerup=on_up
                 on:pointercancel=on_up
@@ -386,8 +376,8 @@ fn Erd(schema: Arc<SqlDataset>, on_open_table: Callback<String>) -> impl IntoVie
                 {tables}
             </svg>
             <div class="sx-erd-foot">
-                <span>"PK — первичный ключ · FK — внешний ключ · N : 1 — связь"</span>
-                <button class="sx-link" title="Вернуть таблицы на места" on:click=move |_| layout.set(initial.get_value())>"расставить заново"</button>
+                <span>{i18n::tr("PK — primary key · FK — foreign key · N : 1 — relationship")}</span>
+                <button class="sx-link" title=i18n::tr("Put the tables back in place") on:click=move |_| layout.set(initial.get_value())>{i18n::tr("rearrange")}</button>
             </div>
         </div>
     }
@@ -413,11 +403,11 @@ fn grid_view(t: &SqlTable) -> impl IntoView {
         })
         .collect_view();
     let body = if t.rows.is_empty() {
-        view! { <tr><td colspan=t.columns.len() class="sx-empty">"таблица пуста"</td></tr> }.into_any()
+        view! { <tr><td colspan=t.columns.len() class="sx-empty">{i18n::tr("table is empty")}</td></tr> }.into_any()
     } else {
         t.rows.iter().map(|r| view! { <tr>{r.iter().map(|v| view! { <td>{cell_view(v)}</td> }).collect_view()}</tr> }).collect_view().into_any()
     };
-    let more = (t.total > t.rows.len()).then(|| view! { <p class="sx-more">{format!("Показаны первые {} из {} строк.", t.rows.len(), t.total)}</p> });
+    let more = (t.total > t.rows.len()).then(|| view! { <p class="sx-more">{i18n::trf!("Showing the first {} of {} rows.", t.rows.len(), t.total)}</p> });
     view! {
         <div class="sx-scroll">
             <table class="sx-grid">
@@ -497,16 +487,16 @@ pub fn SqlSchema(schema: SqlDataset) -> impl IntoView {
     let seg = move |v: View, title: &'static str| view! { <button class:on=move || open.get() && mode.get() == v on:click=move |_| show(v)>{title}</button> };
 
     view! {
-        <section class="sx" aria-label="Учебная база">
+        <section class="sx" aria-label=i18n::tr("Practice database")>
             <div class="sx-bar">
                 <button class="sx-fold" aria-expanded=move || open.get().to_string() on:click=fold>
                     <span class="sx-chev" class:on=move || open.get()>"▸"</span>
-                    "База данных"
+                    {i18n::tr("Database")}
                     <em>{label}</em>
                 </button>
-                <div class="sx-seg" role="group" aria-label="Вид">
+                <div class="sx-seg" role="group" aria-label=i18n::tr("View")>
                     {seg(View::Erd, "ERD")}
-                    {seg(View::Data, "Данные")}
+                    {seg(View::Data, i18n::tr("Data"))}
                 </div>
             </div>
             {move || {
@@ -672,17 +662,11 @@ mod tests {
     }
 
     #[test]
-    fn plurals_in_russian() {
-        let p = |n| plural(n, "таблица", "таблицы", "таблиц");
-        assert_eq!([p(1), p(2), p(4), p(5), p(11), p(14), p(21), p(22), p(25)], ["таблица", "таблицы", "таблицы", "таблиц", "таблиц", "таблиц", "таблица", "таблицы", "таблиц"]);
-    }
-
-    #[test]
     fn summary_counts_tables_and_views_separately() {
         let mut s = shop();
-        assert_eq!(summary(&s), "4 таблицы");
+        assert_eq!(summary(&s), "4 tables");
         s.tables[3].kind = "view".into();
-        assert_eq!(summary(&s), "3 таблицы · 1 представл.");
+        assert_eq!(summary(&s), "3 tables · 1 view");
     }
 
     #[test]

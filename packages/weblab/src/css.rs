@@ -110,7 +110,7 @@ pub fn parse_selector(raw: &str) -> Result<SelectorParts, String> {
                 let functional = chars.get(end) == Some(&'(');
                 if !functional && (double || matches!(name.as_str(), "before" | "after" | "first-line" | "first-letter")) {
                     if !PSEUDO_ELEMENTS.contains(&name.as_str()) {
-                        return Err(format!("псевдоэлемент ::{name} не поддерживается"));
+                        return Err(i18n::trf!("pseudo-element ::{0} is not supported", name));
                     }
                     pseudo = Some(name);
                 } else if !functional && DYNAMIC.contains(&name.as_str()) {
@@ -132,7 +132,7 @@ pub fn parse_selector(raw: &str) -> Result<SelectorParts, String> {
     if t.is_empty() || t.ends_with(['>', '+', '~', ',']) || out.ends_with(char::is_whitespace) {
         out = format!("{}{}*", out.trim_end(), if t.is_empty() { "" } else { " " });
     }
-    let selector = selector(&out).map_err(|_| format!("селектор «{raw}» не разобран"))?;
+    let selector = selector(&out).map_err(|_| i18n::trf!("selector “{0}” could not be parsed", raw))?;
     Ok(SelectorParts { selector, states, pseudo })
 }
 
@@ -235,7 +235,7 @@ pub fn parse_decls(body: &str, errors: &mut Vec<String>) -> Vec<Decl> {
             continue;
         }
         let Some((p, v)) = part.split_once(':') else {
-            errors.push(format!("в объявлении «{part}» нет двоеточия"));
+            errors.push(i18n::trf!("declaration “{0}” has no colon", part));
             continue;
         };
         let prop = p.trim().to_lowercase();
@@ -247,11 +247,11 @@ pub fn parse_decls(body: &str, errors: &mut Vec<String>) -> Vec<Decl> {
             value = value[..pos].trim().to_string();
         }
         if prop.is_empty() || value.is_empty() {
-            errors.push(format!("в объявлении «{part}» нет {}", if prop.is_empty() { "свойства" } else { "значения" }));
+            errors.push(i18n::trf!("declaration “{0}” has no {1}", part, if prop.is_empty() { i18n::tr("property") } else { i18n::tr("a value") }));
             continue;
         }
         if !prop.starts_with("--") && !prop.starts_with('-') && !KNOWN.split(' ').any(|k| k == prop) {
-            errors.push(format!("неизвестное свойство `{prop}`"));
+            errors.push(i18n::trf!("unknown property `{0}`", prop));
         }
         out.push(Decl { prop, value, important });
     }
@@ -302,17 +302,17 @@ impl Stylesheet {
                 Some(';') => {
                     // `@import …;` и подобное: игнорируем
                     if !head.starts_with('@') {
-                        self.errors.push(format!("«{head}» вне правила"));
+                        self.errors.push(i18n::trf!("“{0}” outside a rule", head));
                     }
                     i += 1;
                 }
                 Some('}') => {
-                    self.errors.push("лишняя закрывающая `}`".into());
+                    self.errors.push(i18n::tr("extra closing `}`").into());
                     i += 1;
                 }
                 Some('{') => {
                     let Some((body, next)) = block(chars, i + 1) else {
-                        self.errors.push(format!("не закрыта `{{` после «{head}»"));
+                        self.errors.push(i18n::trf!("`{{` after “{0}” is not closed", head));
                         break;
                     };
                     i = next;
@@ -343,7 +343,7 @@ impl Stylesheet {
                         }
                     } else {
                         if head.is_empty() {
-                            self.errors.push("правило без селектора".into());
+                            self.errors.push(i18n::tr("rule without a selector").into());
                             continue;
                         }
                         let selectors: Vec<String> = split_outside(&head, ',').into_iter().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
@@ -358,7 +358,7 @@ impl Stylesheet {
                 }
                 _ => {
                     if !head.is_empty() {
-                        self.errors.push(format!("«{head}» не закончено: нет `{{`"));
+                        self.errors.push(i18n::trf!("“{0}” is unfinished: no `{{`", head));
                     }
                     break;
                 }
@@ -1365,52 +1365,52 @@ fn plain(prop: &str, v: &str) -> String {
 /// `sheet` — все правила (из `<style>` задания и ученика) для каскада, `user` — только правила ученика для статических условий.
 pub fn run(doc: &Doc, sheet: &Stylesheet, user: &Stylesheet, check: &Check, viewport: f64) -> Option<Item> {
     Some(match check {
-        Check::CssValid => Item { text: "CSS без ошибок".into(), ok: user.errors.is_empty(), detail: user.errors.first().cloned().unwrap_or_default() },
-        Check::NoImportant => Item { text: "Без `!important`".into(), ok: !user.uses_important(), detail: "найден `!important`".into() },
-        Check::NoIds => Item { text: "Без селекторов по `#id`".into(), ok: !user.uses_ids(), detail: "найден селектор по идентификатору".into() },
+        Check::CssValid => Item { text: i18n::tr("CSS without errors").into(), ok: user.errors.is_empty(), detail: user.errors.first().cloned().unwrap_or_default() },
+        Check::NoImportant => Item { text: i18n::tr("No `!important`").into(), ok: !user.uses_important(), detail: i18n::tr("`!important` found").into() },
+        Check::NoIds => Item { text: i18n::tr("No selectors by `#id`").into(), ok: !user.uses_ids(), detail: i18n::tr("an id selector was found").into() },
         Check::Uses { prop, value, msg } => {
             let p = prop.to_lowercase();
             let text = msg.clone().unwrap_or_else(|| match value {
-                Some(v) => format!("Используется `{p}: {v}`"),
-                None => format!("Используется `{p}`"),
+                Some(v) => i18n::trf!("Uses `{0}: {1}`", p, v),
+                None => i18n::trf!("Uses `{0}`", p),
             });
             let ctx0 = Ctx { font: 16.0, viewport: 1024.0, unitless: false };
             let same = |a: &str, b: &str| a.trim().eq_ignore_ascii_case(b.trim()) || norm(a, &ctx0) == norm(b, &ctx0);
             let ok = user.rules.iter().flat_map(|r| &r.decls).any(|d| d.prop == p && value.as_ref().is_none_or(|v| same(&d.value, v)));
-            Item { text, ok, detail: "такого объявления нет в вашем CSS".into() }
+            Item { text, ok, detail: i18n::tr("no such declaration in your CSS").into() }
         }
         Check::Keyframes { name, contains, msg } => {
             let text = msg.clone().unwrap_or_else(|| match contains {
-                Some(c) => format!("Есть `@keyframes {name}` с `{c}`"),
-                None => format!("Есть `@keyframes {name}`"),
+                Some(c) => i18n::trf!("There is `@keyframes {0}` with `{1}`", name, c),
+                None => i18n::trf!("There is `@keyframes {0}`", name),
             });
             let found = user.keyframes.iter().find(|(n, _)| n == name);
             let ok = found.is_some_and(|(_, body)| contains.as_ref().is_none_or(|c| body.to_lowercase().contains(&c.to_lowercase())));
-            Item { text, ok, detail: if found.is_some() { "в кадрах нет нужного свойства".into() } else { "такой анимации (@keyframes) нет в вашем CSS".into() } }
+            Item { text, ok, detail: if found.is_some() { i18n::tr("the required property is missing from the keyframes").into() } else { i18n::tr("no such animation (@keyframes) in your CSS").into() } }
         }
         Check::Container { contains, msg } => {
-            let text = msg.clone().unwrap_or_else(|| format!("Есть `@container` с `{contains}`"));
+            let text = msg.clone().unwrap_or_else(|| i18n::trf!("There is `@container` with `{0}`", contains));
             let ok = user.containers.iter().any(|m| m.to_lowercase().contains(&contains.to_lowercase()));
-            Item { text, ok, detail: "правила `@container` с таким условием нет".into() }
+            Item { text, ok, detail: i18n::tr("no `@container` rule with this condition").into() }
         }
         Check::Media { contains, msg } => {
-            let text = msg.clone().unwrap_or_else(|| format!("Есть `@media` с `{contains}`"));
+            let text = msg.clone().unwrap_or_else(|| i18n::trf!("There is `@media` with `{0}`", contains));
             let ok = user.media.iter().any(|m| m.to_lowercase().contains(&contains.to_lowercase()));
-            Item { text, ok, detail: "правила `@media` с таким условием нет".into() }
+            Item { text, ok, detail: i18n::tr("no `@media` rule with this condition").into() }
         }
         Check::Style { sel, prop, equals, one_of, min, max, any, viewport: vp, state, pseudo, container_width, env, contains, msg } => {
             let prop = prop.to_lowercase();
             let width = vp.unwrap_or(viewport);
-            let want = equals.clone().or_else(|| (!one_of.is_empty()).then(|| one_of.join(" | "))).or_else(|| contains.as_ref().map(|c| format!("содержит «{c}»"))).unwrap_or_else(|| match (min, max) {
-                (Some(a), Some(b)) => format!("от {} до {} px", fmt_num(*a), fmt_num(*b)),
-                (Some(a), None) => format!("не меньше {} px", fmt_num(*a)),
-                (None, Some(b)) => format!("не больше {} px", fmt_num(*b)),
-                _ => "задано".into(),
+            let want = equals.clone().or_else(|| (!one_of.is_empty()).then(|| one_of.join(" | "))).or_else(|| contains.as_ref().map(|c| i18n::trf!("contains “{0}”", c))).unwrap_or_else(|| match (min, max) {
+                (Some(a), Some(b)) => i18n::trf!("from {0} to {1} px", fmt_num(*a), fmt_num(*b)),
+                (Some(a), None) => i18n::trf!("at least {0} px", fmt_num(*a)),
+                (None, Some(b)) => i18n::trf!("at most {0} px", fmt_num(*b)),
+                _ => i18n::tr("set").into(),
             });
             let at = [
-                vp.map(|_| format!("при ширине {}px", fmt_num(width))),
-                state.as_ref().map(|st| format!("в состоянии :{st}")),
-                container_width.map(|w| format!("в контейнере {}px", fmt_num(w))),
+                vp.map(|_| i18n::trf!("at width {0}px", fmt_num(width))),
+                state.as_ref().map(|st| i18n::trf!("in state :{0}", st)),
+                container_width.map(|w| i18n::trf!("in container {0}px", fmt_num(w))),
                 (!env.is_empty()).then(|| env.iter().map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")),
             ]
             .into_iter()
@@ -1419,10 +1419,10 @@ pub fn run(doc: &Doc, sheet: &Stylesheet, user: &Stylesheet, check: &Check, view
             .join(", ");
             let at = if at.is_empty() { at } else { format!(" ({at})") };
             let target = pseudo.as_ref().map(|p| format!("{sel}::{p}")).unwrap_or_else(|| sel.clone());
-            let text = msg.clone().unwrap_or_else(|| format!("У `{target}` {prop}: {want}{at}"));
+            let text = msg.clone().unwrap_or_else(|| i18n::trf!("For `{0}` {1}: {2}{3}", target, prop, want, at));
             let els = match doc.select(sel) {
                 Err(e) => return Some(Item { text, ok: false, detail: e }),
-                Ok(v) if v.is_empty() => return Some(Item { text, ok: false, detail: "в разметке нет такого элемента".into() }),
+                Ok(v) if v.is_empty() => return Some(Item { text, ok: false, detail: i18n::tr("no such element in the markup").into() }),
                 Ok(v) => v,
             };
             let cascade = Cascade { doc, sheet, viewport: width, state: state.as_deref(), container: *container_width, env };
@@ -1448,7 +1448,7 @@ pub fn run(doc: &Doc, sheet: &Stylesheet, user: &Stylesheet, check: &Check, view
                 if ok {
                     good += 1;
                 } else if first_bad.is_none() {
-                    first_bad = Some(format!("у {} сейчас {}", describe(el), got.map(|g| format!("`{}`", plain(&prop, &g))).unwrap_or_else(|| "не задано".into())));
+                    first_bad = Some(i18n::trf!("{0} currently has {1}", describe(el), got.map(|g| format!("`{}`", plain(&prop, &g))).unwrap_or_else(|| i18n::tr("not set").into())));
                 }
             }
             let ok = if *any { good > 0 } else { good == els.len() };

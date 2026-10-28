@@ -38,7 +38,7 @@ pub fn parse_scenario(spec: &Value) -> Result<Scenario, String> {
     if let Some(obj) = value.as_object_mut() {
         obj.entry("solution").or_insert_with(|| json!({ "nodes": [], "edges": [] }));
     }
-    serde_json::from_value(value).map_err(|e| format!("Не удалось разобрать упражнение: {e}"))
+    serde_json::from_value(value).map_err(|e| i18n::trf!("Failed to parse the exercise: {0}", e))
 }
 
 /// Схема с расставленными компонентами и названиями.
@@ -310,21 +310,21 @@ pub fn name_lines(name: &str) -> Vec<String> {
 /// Краткие параметры под названием компонента.
 pub fn summary(n: &SdNode) -> String {
     let t = |k: &str| n.text(k).into_owned();
-    let replicas = |k: &str| if n.num(k) > 0.0 { format!(" +{}р", t(k)) } else { String::new() };
+    let replicas = |k: &str| if n.num(k) > 0.0 { i18n::trf!(" +{0}r", t(k)) } else { String::new() };
     match n.kind {
         Kind::App | Kind::Worker => format!("×{} · {}", t("instances"), t("size")),
         Kind::Lb | Kind::Gateway | Kind::Ws | Kind::Auth | Kind::Geo | Kind::Ml | Kind::Pay | Kind::Notify | Kind::Analytics => format!("×{}", t("instances")),
-        Kind::Stream | Kind::Queue => format!("{} парт.", t("partitions")),
+        Kind::Stream | Kind::Queue => i18n::trf!("{0} part.", t("partitions")),
         Kind::Blob => match t("tier").as_str() {
-            "cold" => "холодное".into(),
-            "mix" => "гор.+хол.".into(),
-            _ => "горячее".into(),
+            "cold" => i18n::tr("cold").into(),
+            "mix" => i18n::tr("hot+cold").into(),
+            _ => i18n::tr("hot").into(),
         },
-        Kind::Cache => format!("{} ГБ{}", t("size_gb"), replicas("replicas")),
-        Kind::Db => format!("{}{}{}", t("size"), if n.num("shards") > 1.0 { format!(" ·{}ш", t("shards")) } else { String::new() }, replicas("replicas")),
-        Kind::Limiter => format!("{}/с", t("limit")),
+        Kind::Cache => i18n::trf!("{0} GB{1}", t("size_gb"), replicas("replicas")),
+        Kind::Db => format!("{}{}{}", t("size"), if n.num("shards") > 1.0 { i18n::trf!(" ·{0}sh", t("shards")) } else { String::new() }, replicas("replicas")),
+        Kind::Limiter => i18n::trf!("{0}/s", t("limit")),
         Kind::Cdn => format!("TTL {}", t("ttl")),
-        Kind::Search => format!("{}ш ×{}р", t("shards"), t("replicas")),
+        Kind::Search => i18n::trf!("{0}sh ×{1}r", t("shards"), t("replicas")),
         Kind::Clients | Kind::Monitor => String::new(),
     }
 }
@@ -334,7 +334,7 @@ pub fn describe_node(n: &SdNode) -> String {
     let parts = kinds::spec(n.kind).params.iter().map(|p| {
         let v = n.params.get(p.key).unwrap_or(&p.default);
         let shown = match p.ty {
-            kinds::ParamType::Bool => (if v.is_true() { "да" } else { "нет" }).to_owned(),
+            kinds::ParamType::Bool => (if v.is_true() { i18n::tr("yes") } else { i18n::tr("no") }).to_owned(),
             _ => p.options.iter().find(|o| o.value == *v).map_or_else(|| v.as_text().into_owned(), |o| o.label.to_owned()),
         };
         format!("{}: {shown}", p.label)
@@ -352,31 +352,31 @@ pub fn workload_chips(w: &Workload) -> Vec<String> {
     let n = jsfmt::num;
     let mut out = Vec::new();
     if truthy(w.static_rps) {
-        out.push(format!("статика {}/с", n(w.static_rps)));
+        out.push(i18n::trf!("static {0}/s", n(w.static_rps)));
     }
     if truthy(w.read_rps) {
-        out.push(format!("чтения {}/с", n(w.read_rps)));
+        out.push(i18n::trf!("reads {0}/s", n(w.read_rps)));
     }
     if truthy(w.write_rps) {
-        out.push(format!("записи {}/с", n(w.write_rps)));
+        out.push(i18n::trf!("writes {0}/s", n(w.write_rps)));
     }
-    out.push(format!("данные {} ГБ", n(w.data_gb)));
-    out.push(format!("рабочий набор {}%", n(js_round(w.hot_set * 100.0))));
+    out.push(i18n::trf!("data {0} GB", n(w.data_gb)));
+    out.push(i18n::trf!("working set {0}%", n(js_round(w.hot_set * 100.0))));
     let some = |x: Option<f64>| x.filter(|v| truthy(*v));
     if let Some(x) = some(w.search_share) {
-        out.push(format!("поиск {}% чтений", n(js_round(x * 100.0))));
+        out.push(i18n::trf!("search {0}% of reads", n(js_round(x * 100.0))));
     }
     if let Some(x) = some(w.hot_key) {
-        out.push(format!("горячий ключ {}%", n(js_round(x * 100.0))));
+        out.push(i18n::trf!("hot key {0}%", n(js_round(x * 100.0))));
     }
     if let Some(x) = some(w.connections) {
-        out.push(format!("соединений {}", n(x)));
+        out.push(i18n::trf!("connections {0}", n(x)));
     }
     if let Some(x) = some(w.msg_per_conn) {
-        out.push(format!("{} сообщ/с на соединение", n(x)));
+        out.push(i18n::trf!("{0} msg/s per connection", n(x)));
     }
     if let Some(x) = some(w.spike_sec) {
-        out.push(format!("пик {} с", n(x)));
+        out.push(i18n::trf!("peak {0} s", n(x)));
     }
     out
 }
@@ -396,27 +396,27 @@ pub fn fmt_pct(x: f64) -> String {
 /// Что ломается, словами для выбора отказа; `None` — для такого вида отказ не предлагается.
 pub fn fail_text(f: FailKind) -> Option<&'static str> {
     Some(match f {
-        FailKind::Zone => "отказ зоны доступности",
-        FailKind::Region => "отказ региона",
-        FailKind::Deploy => "выкладка новой версии",
+        FailKind::Zone => i18n::tr("availability zone failure"),
+        FailKind::Region => i18n::tr("region failure"),
+        FailKind::Deploy => i18n::tr("new version rollout"),
         FailKind::Component(k) => match k {
-            Kind::App => "падает сервер приложения",
-            Kind::Lb => "падает балансировщик",
-            Kind::Db => "падает лидер базы",
-            Kind::Cache => "падает кэш",
-            Kind::Cdn => "падает CDN",
-            Kind::Queue => "падает очередь",
-            Kind::Worker => "падает обработчик",
-            Kind::Gateway => "падает шлюз",
-            Kind::Search => "падает реплика поиска",
-            Kind::Ws => "падает WebSocket-шлюз",
-            Kind::Auth => "падает сервис входа",
-            Kind::Geo => "падает геосервис",
-            Kind::Ml => "падает сервис ранжирования",
-            Kind::Pay => "падает платёжный канал",
-            Kind::Stream => "падает поток событий",
-            Kind::Notify => "падает сервис уведомлений",
-            Kind::Analytics => "падает узел аналитики",
+            Kind::App => i18n::tr("app server crashes"),
+            Kind::Lb => i18n::tr("load balancer crashes"),
+            Kind::Db => i18n::tr("database leader crashes"),
+            Kind::Cache => i18n::tr("cache crashes"),
+            Kind::Cdn => i18n::tr("CDN crashes"),
+            Kind::Queue => i18n::tr("queue crashes"),
+            Kind::Worker => i18n::tr("worker crashes"),
+            Kind::Gateway => i18n::tr("gateway crashes"),
+            Kind::Search => i18n::tr("search replica crashes"),
+            Kind::Ws => i18n::tr("WebSocket gateway crashes"),
+            Kind::Auth => i18n::tr("auth service crashes"),
+            Kind::Geo => i18n::tr("geo service crashes"),
+            Kind::Ml => i18n::tr("ranking service crashes"),
+            Kind::Pay => i18n::tr("payment channel crashes"),
+            Kind::Stream => i18n::tr("event stream crashes"),
+            Kind::Notify => i18n::tr("notification service crashes"),
+            Kind::Analytics => i18n::tr("analytics node crashes"),
             Kind::Clients | Kind::Monitor | Kind::Limiter | Kind::Blob => return None,
         },
     })
@@ -439,31 +439,13 @@ pub fn reference_lines() -> Vec<String> {
     let n = jsfmt::num;
     let by = |b: r::BySize| format!("{}/{}/{}", n(b.s), n(b.m), n(b.l));
     vec![
-        format!("Сервер приложения: S/M/L = {} запр/с, ${}; статика — {} запроса.", by(r::APP_CAP), by(r::APP_COST), n(r::STATIC_WEIGHT)),
-        format!(
-            "База: чтения {} в с, записи {} в с на узел; ${} за узел; NoSQL ×{}.",
-            by(r::DB_READ),
-            by(r::DB_WRITE),
-            by(r::DB_COST),
-            n(r::DB_NOSQL)
-        ),
-        format!(
-            "Кэш: {} запр/с, ${} за ГБ; CDN ${}; балансировщик {} запр/с, ${}.",
-            n(r::CACHE_CAP),
-            n(r::CACHE_COST_PER_GB),
-            n(r::CDN.cost),
-            n(r::LB.cap),
-            n(r::LB.cost)
-        ),
-        format!(
-            "Очередь: {} сообщ/с на партицию; обработчик S/M: {}/{} записей/с.",
-            n(r::QUEUE_CAP_PER_PARTITION),
-            n(r::WORKER_CAP.s),
-            n(r::WORKER_CAP.m)
-        ),
-        format!("Поиск: {} запр/с на реплику, не больше {} ГБ на шард, ${} за узел.", n(r::SEARCH_CAP), n(r::SEARCH_MAX_GB_PER_SHARD), n(r::SEARCH_COST)),
-        format!("WebSocket-шлюз: {} соединений на экземпляр, ${}.", n(r::WS.cap), n(r::WS.cost)),
-        "Доступность одного экземпляра: сервер 99,5%, база 99,9%, балансировщик 99,95%; n экземпляров: 1 − (1 − a)ⁿ.".to_owned(),
+        i18n::trf!("App server: S/M/L = {0} req/s, ${1}; a static request counts as {2}.", by(r::APP_CAP), by(r::APP_COST), n(r::STATIC_WEIGHT)),
+        i18n::trf!("Database: reads {0}/s, writes {1}/s per node; ${2} per node; NoSQL ×{3}.", by(r::DB_READ), by(r::DB_WRITE), by(r::DB_COST), n(r::DB_NOSQL)),
+        i18n::trf!("Cache: {0} req/s, ${1} per GB; CDN ${2}; load balancer {3} req/s, ${4}.", n(r::CACHE_CAP), n(r::CACHE_COST_PER_GB), n(r::CDN.cost), n(r::LB.cap), n(r::LB.cost)),
+        i18n::trf!("Queue: {0} msg/s per partition; worker S/M: {1}/{2} records/s.", n(r::QUEUE_CAP_PER_PARTITION), n(r::WORKER_CAP.s), n(r::WORKER_CAP.m)),
+        i18n::trf!("Search: {0} req/s per replica, at most {1} GB per shard, ${2} per node.", n(r::SEARCH_CAP), n(r::SEARCH_MAX_GB_PER_SHARD), n(r::SEARCH_COST)),
+        i18n::trf!("WebSocket gateway: {0} connections per instance, ${1}.", n(r::WS.cap), n(r::WS.cost)),
+        i18n::tr("Availability of one instance: server 99.5%, database 99.9%, load balancer 99.95%; n instances: 1 − (1 − a)ⁿ.").to_owned(),
     ]
 }
 
@@ -498,6 +480,7 @@ mod tests {
 
     #[test]
     fn spec_without_solution_still_parses() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let spec = json!({
             "workload": { "static_rps": 0, "read_rps": 50, "write_rps": 10, "data_gb": 5, "hot_set": 0.2 },
             "palette": ["app", "db"],
@@ -513,6 +496,7 @@ mod tests {
 
     #[test]
     fn draft_restores_the_schema_or_falls_back_to_the_start() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sc = scenario(sample());
         let mut changed = sample();
         changed.nodes[1].x = 400.0;
@@ -526,6 +510,7 @@ mod tests {
 
     #[test]
     fn unplaced_nodes_are_laid_out_into_columns() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let start = SdState { nodes: vec![SdNode::new("users", Kind::Clients, &[]), SdNode::new("app", Kind::App, &[])], edges: vec![] };
         let s = initial_state(&scenario(start));
         assert!(s.nodes.iter().all(|n| n.x >= 0.0 && n.y >= 0.0));
@@ -534,6 +519,7 @@ mod tests {
 
     #[test]
     fn crowded_draft_is_tidied_and_loose_one_is_kept() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut crowded = sample();
         crowded.nodes[1].x = 80.0;
         crowded.nodes[1].y = 240.0;
@@ -545,6 +531,7 @@ mod tests {
 
     #[test]
     fn new_nodes_get_free_ids_numbered_names_and_default_params() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut s = sample();
         let id = add_node(&mut s, Kind::App, Some(Point::new(500.0, 300.0)), &[]);
         assert_eq!(id, "app1", "id по виду и номеру, «app» занят прежним узлом с другим id");
@@ -558,6 +545,7 @@ mod tests {
 
     #[test]
     fn placed_node_takes_the_suggested_edges_without_duplicates() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut s = sample();
         let edges = [SdEdge::new("users", GHOST), SdEdge::new(GHOST, "db"), SdEdge::new("users", GHOST)];
         let id = add_node(&mut s, Kind::Cache, None, &edges);
@@ -567,6 +555,7 @@ mod tests {
 
     #[test]
     fn removing_a_node_drops_its_edges_and_clients_are_not_deletable() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut s = sample();
         add_edge(&mut s, SdEdge::new("app", "db"));
         add_edge(&mut s, SdEdge::new("app", "db"));
@@ -578,6 +567,7 @@ mod tests {
 
     #[test]
     fn int_parameters_are_rounded_and_clamped() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(clamp_int("5", Some(1.0), Some(40.0)), Some(5.0));
         assert_eq!(clamp_int("0", Some(1.0), Some(40.0)), Some(1.0));
         assert_eq!(clamp_int("99", Some(1.0), Some(40.0)), Some(40.0));
@@ -591,6 +581,7 @@ mod tests {
 
     #[test]
     fn board_height_follows_the_window_only_when_sized() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(world_height(false, 1000.0, 400.0), layout::BOARD_H);
         assert_eq!(world_height(true, 0.0, 400.0), layout::BOARD_H);
         assert_eq!(world_height(true, 780.0, 390.0), 390.0);
@@ -599,6 +590,7 @@ mod tests {
 
     #[test]
     fn fit_shows_every_node_with_margins() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(fit_view(&[], 560.0), BOARD.home_view());
         let pts = [Point::new(70.0, 235.0), Point::new(1120.0, 235.0)];
         let v = fit_view(&pts, 560.0);
@@ -619,6 +611,7 @@ mod tests {
 
     #[test]
     fn wire_ends_are_resolved_for_both_pins() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let out = Pending { id: "app".into(), pin: Pin::Out };
         let inn = Pending { id: "app".into(), pin: Pin::In };
         assert_eq!(pin_edge(&out, "db"), ("app".to_owned(), "db".to_owned()));
@@ -627,6 +620,7 @@ mod tests {
 
     #[test]
     fn node_under_the_cursor_is_the_nearest_other_one() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = sample();
         assert_eq!(node_at(&s, "users", Point::new(680.0, 240.0)).as_deref(), Some("app"));
         assert_eq!(node_at(&s, "app", Point::new(680.0, 240.0)), None, "сам компонент не считается");
@@ -638,6 +632,7 @@ mod tests {
 
     #[test]
     fn ports_light_up_by_what_can_be_connected() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = sample();
         let from_app = Pending { id: "app".into(), pin: Pin::Out };
         // от выхода сервера: вход базы подходит, вход пользователей — нет (так в модели не устроено)
@@ -658,6 +653,7 @@ mod tests {
 
     #[test]
     fn hover_and_pending_wire_tones() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = sample();
         let p = Pending { id: "app".into(), pin: Pin::Out };
         assert_eq!(hover_class(&s, Some(&p), "db"), "hover-ok");
@@ -676,6 +672,7 @@ mod tests {
 
     #[test]
     fn edge_paths_follow_the_nodes_and_the_ghost() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = sample();
         assert!(edge_path(&s, &SdEdge::new("users", "app")).is_some());
         assert_eq!(edge_path(&s, &SdEdge::new("users", "zzz")), None);
@@ -687,6 +684,7 @@ mod tests {
 
     #[test]
     fn long_names_wrap_into_two_lines() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(name_lines("Кэш"), ["Кэш"]);
         assert_eq!(name_lines("Сервер приложения"), ["Сервер приложения"]);
         assert_eq!(name_lines("Сервер приложения 2"), ["Сервер приложения", "2"]);
@@ -703,6 +701,7 @@ mod tests {
 
     #[test]
     fn node_summary_reads_the_main_parameters() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let app = SdNode::new("a", Kind::App, &[("instances", 3.into()), ("size", "M".into())]);
         assert_eq!(summary(&app), "×3 · M");
         let cache = SdNode::new("c", Kind::Cache, &[("size_gb", 8.into()), ("replicas", 1.into())]);
@@ -723,6 +722,7 @@ mod tests {
 
     #[test]
     fn node_tooltip_lists_name_and_every_parameter() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let app = SdNode::new("a", Kind::App, &[("size", "L".into()), ("breaker", true.into())]);
         let text = describe_node(&app);
         let lines: Vec<&str> = text.lines().collect();
@@ -735,12 +735,14 @@ mod tests {
 
     #[test]
     fn workload_chips_skip_zero_values() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let w = Workload { search_share: Some(0.25), hot_key: Some(0.0), connections: Some(5000.0), ..Workload::new(0.0, 50.0, 10.0) };
         assert_eq!(workload_chips(&w), ["чтения 50/с", "записи 10/с", "данные 10 ГБ", "рабочий набор 20%", "поиск 25% чтений", "соединений 5000"]);
     }
 
     #[test]
     fn percentages_gain_digits_near_one() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         assert_eq!(fmt_pct(0.5), "50.0%");
         assert_eq!(fmt_pct(0.9995), "99.950%");
         assert_eq!(fmt_pct(0.99995), "99.9950%");
@@ -750,6 +752,7 @@ mod tests {
 
     #[test]
     fn failures_offered_for_kinds_on_the_schema_only() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut s = sample();
         add_node(&mut s, Kind::Monitor, None, &[]);
         add_node(&mut s, Kind::Blob, None, &[]);
@@ -767,6 +770,7 @@ mod tests {
 
     #[test]
     fn reference_lists_the_model_numbers() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let lines = reference_lines();
         assert_eq!(lines.len(), 7);
         assert_eq!(lines[0], "Сервер приложения: S/M/L = 300/700/1500 запр/с, $60/120/240; статика — 0.1 запроса.");
@@ -778,6 +782,7 @@ mod tests {
     /// Настоящие данные глав: каждое упражнение разбирается, его начало непустое, а эталон через черновик проходит все цели.
     #[test]
     fn every_real_exercise_loads_and_its_solution_survives_the_draft_round_trip() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd");
         let Ok(files) = std::fs::read_dir(&dir) else { return };
         let mut tasks = 0;
@@ -802,6 +807,7 @@ mod tests {
     /// 1120 + 62 + 30 − (70 − 62 − 30) = 1234, поэтому масштаб 780 / 1234 ≈ 0,632 — и в React, и здесь.
     #[test]
     fn fit_of_the_vertical_growth_start_matches_the_react_formula() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd/18-02.json");
         let Ok(text) = std::fs::read_to_string(path) else { return };
         let chapter: Value = serde_json::from_str(&text).expect("файл — JSON");
@@ -819,6 +825,7 @@ mod tests {
     /// Для всех настоящих упражнений: вписывание не выходит за пределы масштаба и показывает все узлы.
     #[test]
     fn fit_shows_every_node_of_every_real_start_scheme() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd");
         let Ok(files) = std::fs::read_dir(&dir) else { return };
         for file in files.flatten().filter(|f| f.path().extension().is_some_and(|e| e == "json")) {
@@ -846,6 +853,7 @@ mod tests {
     /// Черновик в том виде, в каком его сохраняет React (`JSON.stringify` схемы), читается без потерь.
     #[test]
     fn draft_written_by_react_is_restored_with_positions() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let sc = scenario(sample());
         let react = r#"{"nodes":[{"id":"users","kind":"clients","name":"Пользователи","x":70,"y":235,"params":{}},
             {"id":"app","kind":"app","name":"Сервер приложения","x":220,"y":235,"params":{"instances":1,"size":"L","sessions":"local","zone":"single","weight":1,"idempotency":false,"retries":0,"breaker":false,"feed":"pull","deploy":"all","pricing":"ondemand"}},
@@ -859,6 +867,7 @@ mod tests {
 
     #[test]
     fn select_option_text_maps_back_to_a_typed_value() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let ttl = kinds::param_spec(Kind::Cdn, "ttl").expect("параметр ttl");
         assert_eq!(option_value(ttl, "300"), Some(ParamValue::Num(300.0)), "число остаётся числом");
         let size = kinds::param_spec(Kind::App, "size").expect("параметр size");

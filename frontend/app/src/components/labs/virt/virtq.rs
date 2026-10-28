@@ -56,14 +56,14 @@ pub fn cells(size: u32, s: &QueueState) -> Vec<Cell> {
 pub fn note_text(n: &Note) -> Option<String> {
     Some(match n {
         Note::Overflow { need, free } => {
-            format!("Свободных дескрипторов {free}, а нужно {need}: очередь переполнена, гость ждёт.")
+            i18n::trf!("Free descriptors: {0}, but {1} needed: the queue is full, the guest waits.", free, need)
         }
-        Note::Notified { n } => format!("Положено {n}; оповещение отправлено (выход в гипервизор)."),
-        Note::Quiet { n } => format!("Положено {n}; устройство занято и само увидит буферы — оповещение не нужно."),
-        Note::DeviceIdle => "Устройство спит: пока гость не оповестит, оно ничего не обрабатывает.".to_string(),
-        Note::Processed => "Устройство обработало один буфер и положило его в использованное кольцо.".to_string(),
-        Note::Reaped => "Гость забрал готовые буферы: дескрипторы свободны.".to_string(),
-        Note::Reset => "Очередь сброшена.".to_string(),
+        Note::Notified { n } => i18n::trf!("Posted {0}; notification sent (exit to the hypervisor).", n),
+        Note::Quiet { n } => i18n::trf!("Posted {0}; the device is busy and will see the buffers itself, no notification needed.", n),
+        Note::DeviceIdle => i18n::tr("The device is asleep: until the guest notifies it, it processes nothing.").to_string(),
+        Note::Processed => i18n::tr("The device processed one buffer and put it on the used ring.").to_string(),
+        Note::Reaped => i18n::tr("The guest reaped the finished buffers: the descriptors are free.").to_string(),
+        Note::Reset => i18n::tr("The queue was reset.").to_string(),
         Note::SuppressSet => return None,
     })
 }
@@ -83,7 +83,7 @@ impl VirtqRun {
         Self {
             session: Session::new(size, goals),
             trace: vec![],
-            note: format!("Очередь пуста: {size} свободных дескрипторов."),
+            note: i18n::trf!("The queue is empty: {0} free descriptors.", size),
             seen: 0,
         }
     }
@@ -137,22 +137,22 @@ pub fn VirtqLab(size: u32, targets: Vec<VirtqGoal>, goals: Goals) -> impl IntoVi
                             prop:checked=move || run.with(VirtqRun::suppress)
                             on:change=move |ev| act(Action::Suppress { on: event_target_checked(&ev) })
                         />
-                        <span>"подавление оповещений: звонить, только если устройство спит"</span>
+                        <span>{i18n::tr("notification suppression: ring only if the device is asleep")}</span>
                     </label>
                     <div class="vl-actions wrap">
-                        <button class="quiz-btn" on:click=move |_| act(Action::Post { n: 1 })>"Гость: положить 1 буфер"</button>
-                        <button class="quiz-btn" on:click=move |_| act(Action::Post { n: 3 })>"Гость: положить пачку из 3"</button>
-                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Device)>"Устройство: обработать 1"</button>
-                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Reap)>"Гость: забрать готовые"</button>
-                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Reset)>"Сбросить"</button>
+                        <button class="quiz-btn" on:click=move |_| act(Action::Post { n: 1 })>{i18n::tr("Guest: post 1 buffer")}</button>
+                        <button class="quiz-btn" on:click=move |_| act(Action::Post { n: 3 })>{i18n::tr("Guest: post a batch of 3")}</button>
+                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Device)>{i18n::tr("Device: process 1")}</button>
+                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Reap)>{i18n::tr("Guest: reap finished")}</button>
+                        <button class="quiz-btn ghost" on:click=move |_| act(Action::Reset)>{i18n::tr("Reset")}</button>
                     </div>
                     <GoalList goals=goals items=items />
                 </div>
 
                 <div class="vl-card">
                     <div class="pr-res-head">
-                        <span class="s-label">"дескрипторы очереди"</span>
-                        <span class="pr-res-time">{move || format!("свободно {} из {size}", free(size, &used()))}</span>
+                        <span class="s-label">{i18n::tr("queue descriptors")}</span>
+                        <span class="pr-res-time">{move || i18n::trf!("{0} of {1} free", free(size, &used()), size)}</span>
                     </div>
                     <div class="vl-desc">
                         {move || {
@@ -163,14 +163,14 @@ pub fn VirtqLab(size: u32, targets: Vec<VirtqGoal>, goals: Goals) -> impl IntoVi
                         }}
                     </div>
                     <p class="vl-hint">
-                        "серые — свободны, синие — ждут устройство (доступное кольцо), зелёные — обработаны, ждут гостя (использованное кольцо)."
+                        {i18n::tr("gray are free, blue wait for the device (available ring), green are processed and wait for the guest (used ring).")}
                     </p>
                     <table class="vl-stat">
                         <tbody>
-                            <tr><td>"устройство"</td><td>{move || if used().busy { "занято" } else { "спит" }}</td></tr>
-                            <tr><td>"положено буферов"</td><td>{move || used().posted}</td></tr>
-                            <tr><td>"обработано"</td><td>{move || used().processed}</td></tr>
-                            <tr><td><b>"оповещений (выходов)"</b></td><td><b>{move || used().notifies}</b></td></tr>
+                            <tr><td>{i18n::tr("device")}</td><td>{move || if used().busy { i18n::tr("busy") } else { i18n::tr("asleep") }}</td></tr>
+                            <tr><td>{i18n::tr("buffers posted")}</td><td>{move || used().posted}</td></tr>
+                            <tr><td>{i18n::tr("processed")}</td><td>{move || used().processed}</td></tr>
+                            <tr><td><b>{i18n::tr("notifications (exits)")}</b></td><td><b>{move || used().notifies}</b></td></tr>
                         </tbody>
                     </table>
                     <p class="vl-final">{move || run.with(|r| r.note().to_string())}</p>
@@ -197,6 +197,7 @@ mod tests {
 
     #[test]
     fn cells_layout() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let s = QueueState { avail: 2, used: 1, ..QueueState::default() };
         let c = cells(4, &s);
         assert_eq!(c, [Cell::Used, Cell::Avail, Cell::Avail, Cell::Free]);
@@ -205,6 +206,7 @@ mod tests {
 
     #[test]
     fn overflow_goal_and_note() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         for _ in 0..2 {
             r.act(Action::Post { n: 3 });
@@ -216,6 +218,7 @@ mod tests {
 
     #[test]
     fn batch_goal_trace_replays_on_server() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Post { n: 3 });
         let got = r.act(Action::Post { n: 3 });
@@ -232,6 +235,7 @@ mod tests {
 
     #[test]
     fn idle_device_is_not_traced_and_goals_are_reported_once() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Device);
         assert_eq!(r.note(), "Устройство спит: пока гость не оповестит, оно ничего не обрабатывает.");
@@ -257,6 +261,7 @@ mod tests {
 
     #[test]
     fn reset_clears_queue_but_keeps_suppress() {
+        let _ru = i18n::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Suppress { on: true });
         r.act(Action::Post { n: 3 });

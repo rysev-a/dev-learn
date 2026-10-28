@@ -484,14 +484,14 @@ test.describe("действия на поле", () => {
     await dragTo(page, grip, { x: grip.x, y: grip.y + 120 });
     await expect(viewport).toHaveClass(/\bsized\b/);
     await expect.poll(async () => (await box(viewport)).height).toBeGreaterThan(h0 + 80);
-    expect(await page.evaluate(() => window.localStorage.getItem("say-sd-board-h"))).not.toBeNull();
+    expect(await page.evaluate(() => window.localStorage.getItem("cs-core-sd-board-h"))).not.toBeNull();
     // выбранная высота переживает перезагрузку
     await page.reload();
     await expect(viewport).toHaveClass(/\bsized\b/);
     await page.locator(".sd-resize").dblclick();
     await expect(viewport).not.toHaveClass(/\bsized\b/);
     await expect.poll(async () => Math.abs((await box(viewport)).height - h0)).toBeLessThan(2);
-    expect(await page.evaluate(() => window.localStorage.getItem("say-sd-board-h"))).toBeNull();
+    expect(await page.evaluate(() => window.localStorage.getItem("cs-core-sd-board-h"))).toBeNull();
     guard.assertClean();
   });
 

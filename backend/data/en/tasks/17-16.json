@@ -1,0 +1,54 @@
+{
+ "book": 17,
+ "chapter": 16,
+ "tasks": [
+  {
+   "id": "virt-kvm-stat-top",
+   "title": "kvm_stat leaders",
+   "statement": "Write a function kvm_stat_top(text, n): text is kvm_stat output as lines of \"counter name, total, per second\" separated by spaces (for example \"kvm_exit  120000 3500\"). Skip lines whose second field is not an integer (headers, empty lines). Return a list of the names of the n counters with the largest total; break ties by name.",
+   "hint": "Split the line with split() and check the second field with isdigit()."
+  },
+  {
+   "id": "virt-perf-report",
+   "title": "perf kvm stat report",
+   "statement": "Write a function perf_report(text): text is a perf kvm stat report, where event lines have the form \"event name, number of samples, share of samples %, share of time %, ...\" (fields separated by spaces, percentages with a % sign). Skip the other lines (headers, empty lines). Return a list of tuples (event name, share of time as a float), sorted by share of time in descending order and by name on ties.",
+   "hint": "An event is a line where the second field is an integer and the fourth ends with \"%\"."
+  },
+  {
+   "id": "virt-backing-chain",
+   "title": "Image chain",
+   "statement": "Write a function backing_chain(text): text is the output of qemu-img info --backing-chain: blocks with lines \"image: name\" and (not in all of them) \"backing file: name (actual path: ...)\". Return a list of image names in the order of the \"image:\" lines (the current layer on top, the base at the bottom).",
+   "hint": "Look for lines that start with \"image:\"."
+  },
+  {
+   "id": "virt-psi",
+   "title": "Resource pressure (PSI)",
+   "statement": "Write a function psi_status(text, warn, crit): text is the content of a file from /proc/pressure/ of the form \"some avg10=1.50 avg60=0.80 avg300=0.20 total=12345\" and (not always) a \"full ...\" line. warn and crit are thresholds for avg10 in percent. Take the largest avg10 value among all lines and return \"crit\" if it is not less than crit; otherwise \"warn\" if it is not less than warn; otherwise \"ok\". Empty text gives \"ok\".",
+   "hint": "The avg10 value is the number after \"avg10=\" in the line."
+  },
+  {
+   "id": "virt-domstats",
+   "title": "Parsing virsh domstats",
+   "statement": "Write a function parse_domstats(text): text is the output of virsh domstats for one machine: a line \"Domain: 'name'\" and lines of the form \"key=value\". Return a dictionary \"key -> integer\" only for lines whose value is an integer (negative values do not occur); skip the other lines and pairs.",
+   "hint": "Split lines at the first \"=\" sign and check the value with isdigit()."
+  },
+  {
+   "id": "virt-first-check",
+   "title": "Where to start diagnostics",
+   "statement": "Write a function first_check(symptom, facts): symptom is the complaint, facts is a dictionary of boolean facts about the machine (\"virtio\", \"vhost\", \"multiqueue\", \"cache_none\", \"pinned\", \"kvm_access\"). Return the code of the first check. slow-net: no virtio - \"use-virtio\"; otherwise no vhost - \"enable-vhost\"; otherwise no multiqueue - \"enable-multiqueue\"; otherwise \"profile-exits\". slow-disk: no virtio - \"use-virtio\"; otherwise no cache_none - \"cache-none\"; otherwise \"check-iothread\". high-steal: not pinned - \"pin-vcpus\"; otherwise \"reduce-overcommit\". no-start: no kvm_access - \"fix-dev-kvm\"; otherwise \"check-nested-and-cpu-model\". Any other complaint - \"unknown\".",
+   "hint": "Handle each complaint in its own branch and check the facts in order."
+  },
+  {
+   "id": "virt-virt-flags",
+   "title": "Virtualization flags in cpuinfo",
+   "statement": "Write a function virt_flags(cpuinfo): cpuinfo is the text of /proc/cpuinfo; it may contain several cores, each with a \"flags : ...\" line. Among the flags, find the known virtualization flags: vmx, ept, vpid (Intel) and svm, npt (AMD). The flag hypervisor means you are inside a guest. Return a tuple (a sorted list of the virtualization flags found, without duplicates; whether we are in a guest).",
+   "hint": "Collect all flags from lines starting with flags into a set."
+  },
+  {
+   "id": "virt-user-data",
+   "title": "The cloud-init configuration file",
+   "statement": "Write a function render_user_data(hostname, users, packages): hostname is the machine name, users is a list of [user name, public key], packages is a list of packages. Return text in cloud-config format with these lines (with a newline at the end): \"#cloud-config\", \"hostname: <name>\", \"users:\", for each user \"  - name: <name>\", \"    ssh_authorized_keys:\", \"      - <key>\". If there are packages, add \"packages:\" and for each \"  - <package>\". If there are no users, do not output the users section.",
+   "hint": "Build a list of lines and join them with a newline."
+  }
+ ]
+}

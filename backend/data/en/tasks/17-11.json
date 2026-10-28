@@ -1,0 +1,60 @@
+{
+ "book": 17,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "virt-sim-numa",
+   "title": "NUMA node placement simulator",
+   "statement": "The host has two nodes with 8 cores and 32 GiB each. Place the machines of two scenarios: choose which nodes their CPUs run on and where their memory lives, and reach the required share of remote accesses without exceeding the node resources. The exercise is solved when both placements are accepted.",
+   "hint": "Keep a machine's CPUs and memory on the same node; stretch a machine that does not fit in one node across both and enable virtual NUMA topology."
+  },
+  {
+   "id": "virt-vcpu-ratio",
+   "title": "CPU overcommit",
+   "statement": "Write a function vcpu_ratio(vms, cores): vms is a list of vCPU counts for the machines, cores is the number of physical cores (greater than zero). Return a tuple (total vCPUs, overcommit in hundredths: total * 100 // cores). For example, 8 vCPUs on 4 cores gives (8, 200).",
+   "hint": "Add up the vCPUs and multiply by 100 before dividing."
+  },
+  {
+   "id": "virt-steal",
+   "title": "Steal time percentage",
+   "statement": "Write a function steal_percent(prev, cur): prev and cur are two snapshots of the CPU counters from /proc/stat, given as lists of 8 numbers [user, nice, system, idle, iowait, irq, softirq, steal]. Return the integer share of stolen time over the interval in percent (rounded down): the growth of steal * 100, divided by the growth of the sum of all eight counters. If the sum did not grow, return 0.",
+   "hint": "Compare the differences cur - prev for each field."
+  },
+  {
+   "id": "virt-cpu-shares",
+   "title": "CPU shares by weight",
+   "statement": "Write a function cpu_shares(weights, demands, capacity): the control groups have weights weights and demands demands (in cores), and capacity is how many cores the host has. When there is a shortage, the cores are split proportionally to the weights, but nobody gets more than its demand; whatever is freed up is split among the others in the same way. Return a list of what each group was given (round each number to 2 decimal places).",
+   "hint": "Repeat: hand out the remainder proportionally, satisfy the groups whose demand is below their share, and remove them."
+  },
+  {
+   "id": "virt-quota",
+   "title": "Quota and throttling",
+   "statement": "Write a function quota_run(quota_us, demands): a group is allowed quota_us microseconds of CPU time in each period; demands is how many microseconds the group wants to use in each period. The time used in a period is the smaller of the demand and the quota, and the rest is \"throttled\" (the group waits until the next period, and the remainder is not carried over). Return a tuple (total used, total throttled).",
+   "hint": "For each period: used = min(demand, quota), throttled = demand - used."
+  },
+  {
+   "id": "virt-pin-vcpus",
+   "title": "Pinning to physical cores",
+   "statement": "Write a function pin_vcpus(vms, pairs): vms is a list of [name, vCPU count], pairs is a list of physical cores, each one a pair of logical processor numbers [first, second] (hyper-threading). Two different machines must not share a physical core, so a machine is given whole pairs in a row: ceil(vCPU / 2) free pairs from the start of the list; vCPU i gets the i-th logical processor, in order, from the pairs it was given. If there are not enough free pairs, the machine gets None, but the following ones can still get what is left. Return a dictionary \"name -> list of logical processors or None\".",
+   "hint": "Keep the index of the first free pair and unroll the pairs you hand out into a flat list."
+  },
+  {
+   "id": "virt-numa-place",
+   "title": "Placement on NUMA nodes",
+   "statement": "Write a function numa_place(vms, nodes): vms is a list of [name, vCPU count, memory in GiB], nodes is a list of nodes [free cores, free memory in GiB]. Each machine, in order, is placed on the first node that has enough of both cores and memory (and they are subtracted). If no single node has enough, but all nodes together do, the machine is \"wide\" (it is stretched; resources are not subtracted from the nodes, treat it as placed \"on top\"). If even the total is not enough, the result is None. Return a dictionary \"name -> node number, \"wide\", or None\".",
+   "hint": "First look for a suitable single node, then check the total remainders."
+  },
+  {
+   "id": "virt-halt-poll",
+   "title": "Polling before halt",
+   "statement": "Write a function halt_poll_cost(gaps, poll_ns, wake_penalty): gaps are the intervals (ns) from the vCPU halting to the interrupt arriving, poll_ns is how many ns the host polls before going to sleep, wake_penalty is the extra delay of waking from sleep. If the gap is no more than poll_ns, the CPU burns gap ns on polling and there is no delay. Otherwise it burns poll_ns, the vCPU goes to sleep and wakes up with a delay of wake_penalty. Return a tuple (total ns of CPU burned by polling, total wake-up delay).",
+   "hint": "For each gap, choose the branch \"polling was in time\" or \"fell asleep\"."
+  },
+  {
+   "id": "virt-overcommit-ok",
+   "title": "Are there enough cores",
+   "statement": "Write a function overcommit_ok(vms, cores, max_ratio): vms is a list of [name, vCPUs, whether it is latency-sensitive]. Latency-sensitive machines get dedicated cores one to one, and the rest share the remaining cores with overcommit no higher than max_ratio vCPUs per core. Return True if everything fits: the vCPUs of the sensitive machines are at most cores, and the vCPUs of the rest are at most (cores - sensitive vCPUs) * max_ratio.",
+   "hint": "Split the vCPUs into sensitive and ordinary, and check both conditions."
+  }
+ ]
+}

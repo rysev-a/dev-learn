@@ -1,0 +1,79 @@
+{
+ "book": 18,
+ "chapter": 5,
+ "lab": "sd",
+ "tasks": [
+  {
+   "id": "sd05-write-shards",
+   "title": "Hitting the write limit",
+   "statement": "The service takes 1500 writes per second, while an S database handles 200, M handles 600, and L handles 1500 (barely). Replicas will not speed up writes. Split the data into shards (the database's “Shards” parameter): load at most 80%, cost at most $1600 per month.",
+   "hint": "Writes are divided evenly between shards (with hashing). Four M shards: 375 writes per shard, 63%. Ten S shards cost the same, but M is simpler.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd05-monotonic",
+   "title": "A key that grows over time",
+   "statement": "The data is already split into four shards by key range, but the key is the record creation time, so all new records land in the last shard. The skew hurts: change the partitioning method so that the busiest shard gets at most 40% of the load, while overall load stays at most 80%.",
+   "hint": "The database has a “Shard key” parameter: hash or range. Hash spreads writes evenly.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd05-hotkey",
+   "title": "The hot key",
+   "statement": "The service has a \"celebrity\": 20% of requests go to a single key. So one shard receives 20% plus its share of the rest. Right now there are four M shards, and the busiest one is overloaded. Which is cheaper: more shards or bigger shards? Achieve load of at most 80% at a cost of at most $1800.",
+   "hint": "Hot shard share = hot key + the rest / number of shards. Adding shards helps little: the 20% does not go away. Bigger shards help more.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd05-with-replicas",
+   "title": "Shards and replicas together",
+   "statement": "The load is 3000 reads and 900 writes per second. You need both to split the data (writes) and to replicate it (reads and fault tolerance). Build the database from M shards with replicas and automatic failover: load at most 80%, survival of a database failure, budget of $2700 per month.",
+   "hint": "Three M shards: 300 writes each (50%); 1000 reads per shard, and an M replica handles 3000. Turn on automatic failover.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd05-nosql",
+   "title": "Choosing a data store",
+   "statement": "The service stores events by key, with no joins or complex queries, so NoSQL fits: it is about 1.8 times faster on simple operations. With 1500 writes per second, fit the whole design into $1100: choose the “NoSQL” type and pick the shards.",
+   "hint": "A NoSQL M handles about 1080 writes per second per shard. Two shards: 750 per shard, 69%.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  },
+  {
+   "id": "sd05-final",
+   "title": "A social network: skew and reliability",
+   "statement": "The final exercise of the chapter. An event feed: 3000 reads and 1200 writes per second, keys grow over time, and 10% of requests go to the most popular key. Build the database: hash sharding, replicas and automatic failover, load at most 85%, survival of a database failure, budget of $3500 per month.",
+   "hint": "Hashing removes the time skew, but the hot 10% remain: bigger shards help. Three M shards with a replica, or two L shards, will do.",
+   "spec_text": {
+    "/start/nodes/0/name": "Users",
+    "/start/nodes/1/name": "Load balancer",
+    "/start/nodes/2/name": "App server",
+    "/start/nodes/3/name": "Database"
+   }
+  }
+ ]
+}

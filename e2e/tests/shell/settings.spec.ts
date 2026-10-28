@@ -43,26 +43,26 @@ test("значения по умолчанию: тёмная тема, меню 
   await expect(sw(page, "Автосвязывание в «Архитектуре компьютера»")).toHaveAttribute("aria-checked", "true");
   await expect(sw(page, "Автосвязывание в «Системном дизайне»")).toHaveAttribute("aria-checked", "true");
   // в хранилище лежит только отклонение от умолчания
-  for (const key of ["say-aside-collapsed", "say-anim-auto", "say-auto-next", "say-autowire-lab", "say-autowire-sd"]) {
+  for (const key of ["cs-core-aside-collapsed", "cs-core-anim-auto", "cs-core-auto-next", "cs-core-autowire-lab", "cs-core-autowire-sd"]) {
     expect(await stored(page, key), key).toBeNull();
   }
 });
 
 test.describe("тема", () => {
-  test("переключатель «Светлая тема»: data-theme, say-theme, кнопка в шапке", async ({ page, request }) => {
+  test("переключатель «Светлая тема»: data-theme, cs-core-theme, кнопка в шапке", async ({ page, request }) => {
     await loginFresh(page, request);
     await openSettings(page);
     const html = page.locator("html");
     await sw(page, "Светлая тема").click();
     await expect(html).toHaveAttribute("data-theme", "light");
     await expect(sw(page, "Светлая тема")).toHaveAttribute("aria-checked", "true");
-    expect(await stored(page, "say-theme")).toBe("light");
+    expect(await stored(page, "cs-core-theme")).toBe("light");
     await expect(page.getByRole("button", { name: "Переключить тему" })).toHaveAttribute("title", "Тёмная тема");
 
     await sw(page, "Светлая тема").click();
     await expect(html).toHaveAttribute("data-theme", "dark");
     await expect(sw(page, "Светлая тема")).toHaveAttribute("aria-checked", "false");
-    expect(await stored(page, "say-theme")).toBe("dark");
+    expect(await stored(page, "cs-core-theme")).toBe("dark");
     await expect(page.getByRole("button", { name: "Переключить тему" })).toHaveAttribute("title", "Светлая тема");
   });
 
@@ -90,19 +90,19 @@ test.describe("тема", () => {
 });
 
 test.describe("свёрнутое меню", () => {
-  test("переключатель сворачивает меню разделов и пишет say-aside-collapsed", async ({ page, request }) => {
+  test("переключатель сворачивает меню разделов и пишет cs-core-aside-collapsed", async ({ page, request }) => {
     await loginFresh(page, request);
     await openSettings(page);
     await sw(page, "Свёрнутое меню разделов").click();
     await expect(page.locator(".sidebar")).toHaveClass(/collapsed/);
     await expect(sw(page, "Свёрнутое меню разделов")).toHaveAttribute("aria-checked", "true");
-    expect(await stored(page, "say-aside-collapsed")).toBe("1");
+    expect(await stored(page, "cs-core-aside-collapsed")).toBe("1");
     await page.reload();
     await expect(page.locator(".sidebar")).toHaveClass(/collapsed/);
     await expect(sw(page, "Свёрнутое меню разделов")).toHaveAttribute("aria-checked", "true");
     await sw(page, "Свёрнутое меню разделов").click();
     await expect(page.locator(".sidebar")).not.toHaveClass(/collapsed/);
-    expect(await stored(page, "say-aside-collapsed")).toBeNull();
+    expect(await stored(page, "cs-core-aside-collapsed")).toBeNull();
   });
 });
 
@@ -110,16 +110,16 @@ test.describe("автопроигрывание анимаций", () => {
   const chips = (page: Page) => page.locator(".slide-stage .a-chip");
   const current = (page: Page) => chips(page).evaluateAll((els) => els.findIndex((e) => e.classList.contains("on")));
 
-  test("выключатель пишет say-anim-auto=0 и возвращает умолчание", async ({ page, request }) => {
+  test("выключатель пишет cs-core-anim-auto=0 и возвращает умолчание", async ({ page, request }) => {
     await loginFresh(page, request);
     await openSettings(page);
     await sw(page, "Автопроигрывание анимаций").click();
     await expect(sw(page, "Автопроигрывание анимаций")).toHaveAttribute("aria-checked", "false");
-    expect(await stored(page, "say-anim-auto")).toBe("0");
+    expect(await stored(page, "cs-core-anim-auto")).toBe("0");
     await page.reload();
     await expect(sw(page, "Автопроигрывание анимаций")).toHaveAttribute("aria-checked", "false");
     await sw(page, "Автопроигрывание анимаций").click();
-    expect(await stored(page, "say-anim-auto")).toBeNull();
+    expect(await stored(page, "cs-core-anim-auto")).toBeNull();
   });
 
   test("включено: схема начинает с первого шага и сама проходит шаги по таймеру", async ({ page, request }) => {
@@ -138,7 +138,7 @@ test.describe("автопроигрывание анимаций", () => {
   test("выключено: схема сразу показывает итог и не движется, шаги переключаются вручную", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
-    await page.addInitScript(() => window.localStorage.setItem("say-anim-auto", "0"));
+    await page.addInitScript(() => window.localStorage.setItem("cs-core-anim-auto", "0"));
     await controlClock(page);
     await page.goto(`/book/12/chapter/${ch.id}`);
     await expect(chips(page).first()).toBeVisible();
@@ -155,24 +155,24 @@ test.describe("автопроигрывание анимаций", () => {
 });
 
 test.describe("упражнения и диаграммы", () => {
-  test("автопереход: выключен по умолчанию, при включении пишет say-auto-next=1", async ({ page, request }) => {
+  test("автопереход: выключен по умолчанию, при включении пишет cs-core-auto-next=1", async ({ page, request }) => {
     await loginFresh(page, request);
     await openSettings(page);
     const row = sw(page, "Автопереход к следующему упражнению");
     await expect(row).toHaveAttribute("aria-checked", "false");
     await row.click();
     await expect(row).toHaveAttribute("aria-checked", "true");
-    expect(await stored(page, "say-auto-next")).toBe("1");
+    expect(await stored(page, "cs-core-auto-next")).toBe("1");
     await page.reload();
     await expect(row).toHaveAttribute("aria-checked", "true");
     await row.click();
     await expect(row).toHaveAttribute("aria-checked", "false");
-    expect(await stored(page, "say-auto-next")).toBeNull();
+    expect(await stored(page, "cs-core-auto-next")).toBeNull();
   });
 
   for (const [name, key] of [
-    ["Автосвязывание в «Архитектуре компьютера»", "say-autowire-lab"],
-    ["Автосвязывание в «Системном дизайне»", "say-autowire-sd"],
+    ["Автосвязывание в «Архитектуре компьютера»", "cs-core-autowire-lab"],
+    ["Автосвязывание в «Системном дизайне»", "cs-core-autowire-sd"],
   ] as const) {
     test(`${name}: включено по умолчанию, выключенное хранится как «0» в ${key}`, async ({ page, request }) => {
       await loginFresh(page, request);
@@ -183,7 +183,7 @@ test.describe("упражнения и диаграммы", () => {
       await expect(row).toHaveAttribute("aria-checked", "false");
       expect(await stored(page, key)).toBe("0");
       // независимость двух настроек
-      const other = key === "say-autowire-lab" ? "say-autowire-sd" : "say-autowire-lab";
+      const other = key === "cs-core-autowire-lab" ? "cs-core-autowire-sd" : "cs-core-autowire-lab";
       expect(await stored(page, other)).toBeNull();
       await page.reload();
       await expect(sw(page, name)).toHaveAttribute("aria-checked", "false");
@@ -204,7 +204,7 @@ test.describe("аккаунт", () => {
     await expect(row).toContainText(email);
     await row.getByRole("button", { name: "Выйти" }).click();
     await expect(page.locator(".auth-card")).toBeVisible();
-    expect(await stored(page, "say-token")).toBeNull();
+    expect(await stored(page, "cs-core-token")).toBeNull();
     expect((await request.get("/api/progress", { headers: bearer(token) })).status()).toBe(401);
   });
 });
@@ -323,7 +323,7 @@ test.describe("цветовые темы", () => {
     await card(page, "Dracula").click();
     await expect(html(page)).toHaveAttribute("data-theme", "dark");
     await expect(html(page)).toHaveAttribute("data-palette", "dracula");
-    expect(await stored(page, "say-palette-dark")).toBe("dracula");
+    expect(await stored(page, "cs-core-palette-dark")).toBe("dracula");
     expect(await cssVar(page, "--bg")).toBe("#282a36");
     await expect(page.locator("body")).toHaveCSS("background-color", "rgb(40, 42, 54)");
     await expect(card(page, "Dracula")).toHaveAttribute("aria-pressed", "true");
@@ -332,9 +332,9 @@ test.describe("цветовые темы", () => {
     await card(page, "GitHub Light").click();
     await expect(html(page)).toHaveAttribute("data-theme", "light");
     await expect(html(page)).toHaveAttribute("data-palette", "github-light");
-    expect(await stored(page, "say-theme")).toBe("light");
-    expect(await stored(page, "say-palette-light")).toBe("github-light");
-    expect(await stored(page, "say-palette-dark")).toBe("dracula");
+    expect(await stored(page, "cs-core-theme")).toBe("light");
+    expect(await stored(page, "cs-core-palette-light")).toBe("github-light");
+    expect(await stored(page, "cs-core-palette-dark")).toBe("dracula");
     await expect(card(page, "Dracula")).toHaveAttribute("aria-pressed", "false");
 
     // кнопка в шапке возвращает в тёмный режим с той же темой
@@ -359,13 +359,13 @@ test.describe("цветовые темы", () => {
     await expect(html(page)).toHaveAttribute("data-palette", "nord");
     await card(page, "Тёмная").click();
     await expect(html(page)).not.toHaveAttribute("data-palette", /.+/);
-    expect(await stored(page, "say-palette-dark")).toBeNull();
+    expect(await stored(page, "cs-core-palette-dark")).toBeNull();
     expect(await cssVar(page, "--bg")).toBe("#0f1115");
   });
 
   test("неизвестное значение в хранилище игнорируется", async ({ page, request }) => {
     await loginFresh(page, request);
-    await page.addInitScript(() => window.localStorage.setItem("say-palette-dark", "no-such-theme"));
+    await page.addInitScript(() => window.localStorage.setItem("cs-core-palette-dark", "no-such-theme"));
     await openSettings(page);
     await expect(html(page)).not.toHaveAttribute("data-palette", /.+/);
     await expect(card(page, "Тёмная")).toHaveAttribute("aria-pressed", "true");
