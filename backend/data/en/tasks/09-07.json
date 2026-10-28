@@ -53,8 +53,8 @@
   {
    "id": "s07-08",
    "title": "The NOT IN trap with NULL",
-   "statement": "The brand for category `'Art supplies'` is unknown (NULL), and NOT IN with such a list returns nothing. Select the title of products whose brand matches none of the known brands of category `'Art supplies'` (add WHERE brand IS NOT NULL to the subquery); products with an unknown brand are not part of the answer. Order by title.",
-   "hint": "If an IN/NOT IN list contains NULL, the result of NOT IN becomes undefined.",
+   "statement": "The brand of every product in category `'Art supplies'` is unknown (NULL), and NOT IN with a list of such values returns nothing. Select the title of products whose brand matches none of the known brands of category `'Art supplies'` (add WHERE brand IS NOT NULL to the subquery). That category has no known brands, so the list is empty and every product qualifies, including those with an unknown brand. Order by title.",
+   "hint": "If an IN/NOT IN list contains NULL, the result of NOT IN becomes undefined; after the IS NOT NULL filter an empty list makes NOT IN true for every row.",
    "starter": "-- Write a query\n"
   },
   {
