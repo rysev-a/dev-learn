@@ -1,55 +1,55 @@
-Создаем курс для обучения программированию
-Основная идея в том, чтобы пользователь мог сам малыми шагами пройти весь путь от изучения дискретной математики до написания сложного веб-сервиса на Rust и Javascript, попутно изучив все необходимые инструменты и технологии.
+Creating a course for learning programming.
+The main idea is that a user can walk the whole path in small steps by themselves, from studying discrete mathematics to writing a complex web service in Rust and JavaScript, learning all the necessary tools and technologies along the way.
 
-Темы (порядок книг в левом меню):
+Topics (order of the books in the left menu):
 
-01. Дискретная математика
-02. Python как первый язык
-    - Основы языка, функции, циклы, данные, классы, исключения и файлы
-    - Модель данных: специальные методы, операторы, контейнеры, дескрипторы
-    - Итераторы и генераторы (send/throw/yield from), функциональное программирование
-    - Метапрограммирование: декораторы, интроспекция, метаклассы, ast и dis
-    - Стандартная библиотека; проектирование классов: abc, протоколы и обобщения, MRO
-    - Асинхронность, Питон изнутри (память, GC, байт-код, GIL, производительность)
-    - Проекты и инструменты: пакеты, uv, качество кода, шаблоны проектирования
-03. Алгоритмы и структуры данных
-    - на основе python рассматриваем всевозможные алгоритмы и структуры данных
-04. Архитектура компьютера
-05. От assembler к языку C
-    - только язык, без ОС
-06. Погружаемся в Unix
-    - упражнения на C
-07. Компьютерные сети
-08. Виртуализация
-09. Базы данных
-10. Изучаем Rust
-    - Основы
-    - Ядро языка
-    - Данные и абстракции
-    - Язык глубже
-    - Алгоритмы
-    - Архитектура
-    - Операционные системы
-    - Самописный веб сервер
-    - Чат на основе Axum, Sqlx, Tokio
-11. Современный Frontend
-    - История: рождение JavaScript, Node.js и io.js, ES5 → ES6, Babel, сборщики и препроцессоры
-    - Введение в язык JavaScript (без браузера)
-    - JavaScript в браузере: движок и цикл событий, DOM, CSS, события, сеть, Service Worker
-    - JavaScript в Node.js
-    - Сборщики (webpack, Vite, esbuild, Rollup), пакетные менеджеры, реестры npm и JSR, TypeScript
-    - Свой мини-фреймворк (фреймворки не разбираем, алгоритмы — в отдельной книге)
+01. Discrete Mathematics
+02. Python as a First Language
+    - Language basics, functions, loops, data, classes, exceptions and files
+    - Data model: special methods, operators, containers, descriptors
+    - Iterators and generators (send/throw/yield from), functional programming
+    - Metaprogramming: decorators, introspection, metaclasses, ast and dis
+    - Standard library; class design: abc, protocols and generics, MRO
+    - Asynchrony, Python internals (memory, GC, bytecode, GIL, performance)
+    - Projects and tools: packages, uv, code quality, design patterns
+03. Algorithms and Data Structures
+    - using Python we go through all kinds of algorithms and data structures
+04. Computer Architecture
+05. From Assembler to C
+    - the language only, without an OS
+06. Diving into Unix
+    - exercises in C
+07. Computer Networks
+08. Virtualization
+09. Databases
+10. Learning Rust
+    - Basics
+    - Core of the language
+    - Data and abstractions
+    - The language in depth
+    - Algorithms
+    - Architecture
+    - Operating systems
+    - A hand-written web server
+    - A chat based on Axum, Sqlx, Tokio
+11. Modern Frontend
+    - History: the birth of JavaScript, Node.js and io.js, ES5 -> ES6, Babel, bundlers and preprocessors
+    - Introduction to the JavaScript language (without a browser)
+    - JavaScript in the browser: the engine and the event loop, DOM, CSS, events, network, Service Worker
+    - JavaScript in Node.js
+    - Bundlers (webpack, Vite, esbuild, Rollup), package managers, the npm and JSR registries, TypeScript
+    - Our own mini-framework (we do not cover frameworks, algorithms have their own book)
 
-Дальше по плану: Системный дизайн — создаем полноценный высоконагруженный сервис с применением CI/CD, e2e тестированием и всеми паттернами на gitlab и деплоем его на облако
+Next in the plan: System Design. We build a full-fledged high-load service using CI/CD, e2e testing and all the patterns on gitlab, and deploy it to the cloud.
 
-Итоговый результат - пользователь заходит, регистрируется в системе и начинает проходить упражнения шаг за шагом, видит свой прогресс и может возвращаться к предыдущим темам
+The end result: the user comes in, registers in the system and goes through the exercises step by step, sees their progress and can return to previous topics.
 
-Упражнения нужно построить таким образом, чтобы пользователь не мог посмотреть ответ, но при этом у него не возникало трудностей с решением задачи, потому что уровень сложности возрастает очень и очень постепенно, от самого простого до самого сложного
+The exercises must be built so that the user cannot look up the answer, yet has no difficulty solving the task, because the difficulty grows very, very gradually, from the simplest to the hardest.
 
-Допустим вначале пользователь изучает Python и делает множество упражнений на простые операции - сложение, вычитание, умножение и деление, работа со списками, словарем, множествами, функциями, классами, циклами
+Say, at first the user studies Python and does many exercises on simple operations: addition, subtraction, multiplication and division, working with lists, dictionaries, sets, functions, classes, loops.
 
-Когда пользователь доходит до раздела Алгоритмов, у него уже не возникает вопросов о том, что такое функция, цикл или словарь, он уже знаком с основными типами данных и даже уже умеет составлять простые алгоритмы, потому что решал небольшие задачи из предыдущих глав, допустим
+When the user reaches the Algorithms section, they no longer have questions about what a function, a loop or a dictionary is; they already know the basic data types and can even write simple algorithms, because they solved small tasks in the previous chapters, for example:
 
-- найти сумму элементов в списке
-- найти максимальный элемент в списке
-- найти минимальный элемент в списке
+- find the sum of the elements in a list
+- find the maximum element in a list
+- find the minimum element in a list
