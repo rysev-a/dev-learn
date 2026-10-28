@@ -181,9 +181,9 @@
   {
    "id": "r15-moved-args",
    "title": "Fix it: the arguments moved into longest",
-   "statement": "report returns «<longest> (из <a> и <b>)» (the words «из» and «и» are printed exactly like this, in Russian). But longest takes both strings, and they are no longer there in format!. Fix report: you need exactly two clones, and longest does not need to change.",
+   "statement": "report returns \"<longest> (of <a> and <b>)\". But longest takes both strings, and they are no longer there in format!. Fix report: you need exactly two clones, and longest does not need to change.",
    "hint": "longest(a.clone(), b.clone()) hands copies to the function, and the originals stay with report.",
-   "starter": "fn longest(a: String, b: String) -> String {\n    if a.len() >= b.len() { a } else { b }\n}\n\nfn report(a: String, b: String) -> String {\n    let winner = longest(a, b);\n    format!(\"{winner} (из {a} и {b})\")\n}\n"
+   "starter": "fn longest(a: String, b: String) -> String {\n    if a.len() >= b.len() { a } else { b }\n}\n\nfn report(a: String, b: String) -> String {\n    let winner = longest(a, b);\n    format!(\"{winner} (of {a} and {b})\")\n}\n"
   }
  ]
 }

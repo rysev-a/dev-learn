@@ -26,14 +26,14 @@
   {
    "id": "r8-struct-shorthand",
    "title": "Field init shorthand",
-   "statement": "Write a function make_user(name: &str, age: u32) -> User, where User { name: String, age: u32 }, using the shorthand (name and age match the fields; for name you need name.to_string()). Print «Аня 30».\n\nExpected output:\n«Аня 30»",
+   "statement": "Write a function make_user(name: &str, age: u32) -> User, where User { name: String, age: u32 }, using the shorthand (name and age match the fields; for name you need name.to_string()). Print «Anya 30».\n\nExpected output:\n«Anya 30»",
    "hint": "let name = name.to_string(); then User { name, age }.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r8-struct-update",
    "title": "Struct update",
-   "statement": "Config { width, height, title: &'static str }. Create base (800, 600, \"окно\"), then big — a copy with width = 1920 through ..base. Print «1920x600 окно».\n\nExpected output:\n«1920x600 окно»",
+   "statement": "Config { width, height, title: &'static str }. Create base (800, 600, \"window\"), then big — a copy with width = 1920 through ..base. Print «1920x600 window».\n\nExpected output:\n«1920x600 window»",
    "hint": "Config { width: 1920, ..base }",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -124,25 +124,25 @@
   {
    "id": "r8-option-match",
    "title": "match on Option",
-   "statement": "Write a function describe(x: Option<i32>) -> String: «нет значения» for None, «ноль» for Some(0), and otherwise «число N» (N is the value).",
+   "statement": "Write a function describe(x: Option<i32>) -> String: «no value» for None, «zero» for Some(0), and otherwise «number N» (N is the value).",
    "hint": "The pattern Some(0) goes before the general Some(n)."
   },
   {
    "id": "r8-if-let",
    "title": "if let",
-   "statement": "Write a function print_first(v: &[&str]): if the slice is not empty, it prints «первый: …», otherwise «пусто». Use if let Some(x) = v.first().",
+   "statement": "Write a function print_first(v: &[&str]): if the slice is not empty, it prints «first: …», otherwise «empty». Use if let Some(x) = v.first().",
    "hint": "if let Some(x) = … { } else { }"
   },
   {
    "id": "r8-result-parse",
    "title": "Result from parse",
-   "statement": "Write a function to_num(s: &str) -> Result<i32, String>: Ok(number) if the string is an integer, otherwise Err(\"не число: <s>\").",
+   "statement": "Write a function to_num(s: &str) -> Result<i32, String>: Ok(number) if the string is an integer, otherwise Err(\"not a number: <s>\").",
    "hint": "match s.parse::<i32>() { Ok(n) => …, Err(_) => … }"
   },
   {
    "id": "r8-result-div",
    "title": "Division with an error",
-   "statement": "Write a function divide(a: f64, b: f64) -> Result<f64, String>: Err(\"деление на ноль\") if b == 0.0, otherwise Ok(quotient).",
+   "statement": "Write a function divide(a: f64, b: f64) -> Result<f64, String>: Err(\"division by zero\") if b == 0.0, otherwise Ok(quotient).",
    "hint": "Err(String::from(\"…\")) and Ok(a / b)"
   },
   {
@@ -172,9 +172,9 @@
   {
    "id": "r8-fix-missing-variant",
    "title": "Fix it: a match without all the variants",
-   "statement": "The match does not cover the variant Blue. Add a branch so that the output is «синий» for Color::Blue.\n\nExpected output:\n«синий»",
-   "hint": "Add Color::Blue => \"синий\",",
-   "starter": "enum Color {\n    Red,\n    Green,\n    Blue,\n}\n\nfn name(c: Color) -> &'static str {\n    match c {\n        Color::Red => \"красный\",\n        Color::Green => \"зелёный\",\n    }\n}\n\nfn main() {\n    println!(\"{}\", name(Color::Blue));\n}\n"
+   "statement": "The match does not cover the variant Blue. Add a branch so that the output is «blue» for Color::Blue.\n\nExpected output:\n«blue»",
+   "hint": "Add Color::Blue => \"blue\",",
+   "starter": "enum Color {\n    Red,\n    Green,\n    Blue,\n}\n\nfn name(c: Color) -> &'static str {\n    match c {\n        Color::Red => \"red\",\n        Color::Green => \"green\",\n    }\n}\n\nfn main() {\n    println!(\"{}\", name(Color::Blue));\n}\n"
   },
   {
    "id": "r8-fix-self",
@@ -185,7 +185,7 @@
   {
    "id": "r8-vec-of-enum",
    "title": "A shopping list",
-   "statement": "An enum Item { Apple(u32), Milk(f64) } (a number of apples and liters of milk). A function describe(items: &[Item]) -> String: for each element «N яблок» or «X л молока», separated by «; ».",
+   "statement": "An enum Item { Apple(u32), Milk(f64) } (a number of apples and liters of milk). A function describe(items: &[Item]) -> String: for each element «N apples» or «X l of milk», separated by «; ».",
    "hint": "Collect the strings into a Vec<String> and glue them with join(\"; \")."
   }
  ]

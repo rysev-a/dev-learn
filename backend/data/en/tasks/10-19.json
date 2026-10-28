@@ -30,7 +30,7 @@
   {
    "id": "r19-default-method",
    "title": "Default method and override",
-   "statement": "The trait Describe has a required method name(&self) → String and a default method describe(&self) → String = «<name>: описание отсутствует» (the words after the colon stay in Russian, exactly like this). Implement it for Cat (use the default method) and for Dog (override describe: «<name> лает», also in Russian).",
+   "statement": "The trait Describe has a required method name(&self) → String and a default method describe(&self) → String = «<name>: description missing». Implement it for Cat (use the default method) and for Dog (override describe: «<name> barks»).",
    "hint": "In the trait, describe has a body, and the impl for Cat does not write it; for Dog you write your own describe.",
    "starter": "trait Describe {\n    fn name(&self) -> String;\n    // add describe with a default implementation\n}\n\nstruct Cat;\nstruct Dog {\n    nick: String,\n}\n\n// impl Describe for Cat / Dog\n"
   },
@@ -69,7 +69,7 @@
   {
    "id": "r19-mono-name",
    "title": "Monomorphization: type and size",
-   "statement": "Write describe<T>(_: &T) → String: «<type name> = <size> байт» (the word «байт» stays in Russian, exactly like this) with the type name from std::any::type_name::<T>() and the size from size_of::<T>(). Every call with a new T is a separate copy of the function, made by the compiler at build time.",
+   "statement": "Write describe<T>(_: &T) → String: «<type name> = <size> bytes» with the type name from std::any::type_name::<T>() and the size from size_of::<T>(). Every call with a new T is a separate copy of the function, made by the compiler at build time.",
    "hint": "type_name and size_of are std functions; the type is given with a turbofish: type_name::<T>()."
   },
   {
@@ -125,13 +125,13 @@
   {
    "id": "r19-generic-stack",
    "title": "Stack<T> and a conditional impl",
-   "statement": "Stack<T> on top of Vec<T>: new, push, pop → Option<T>, peek → Option<&T>, len, is_empty. A separate block impl<T: Display> Stack<T> adds show() → String: the elements from top to bottom joined by « > » (an empty one gives «(пусто)», in Russian, exactly like this).",
+   "statement": "Stack<T> on top of Vec<T>: new, push, pop → Option<T>, peek → Option<&T>, len, is_empty. A separate block impl<T: Display> Stack<T> adds show() → String: the elements from top to bottom joined by « > » (an empty stack gives «(empty)»).",
    "hint": "show goes over items.iter().rev(): the top of the stack is at the end of the vector."
   },
   {
    "id": "r19-blanket-impl",
    "title": "A blanket impl for all T: Display",
-   "statement": "The trait Shout has a method shout(&self) → String. With one blanket impl<T: Display> Shout for T, make the method available on numbers, strings, and your own types: the result is the text in uppercase with «!» at the end. For Money(i64) implement Display («<n> руб.», the suffix stays in Russian, exactly like this).",
+   "statement": "The trait Shout has a method shout(&self) → String. With one blanket impl<T: Display> Shout for T, make the method available on numbers, strings, and your own types: the result is the text in uppercase with «!» at the end. For Money(i64) implement Display («<n> rub.»).",
    "hint": "The blanket impl works for any type with Display, including Money once Display is implemented."
   },
   {
@@ -144,7 +144,7 @@
   {
    "id": "r19-try-from",
    "title": "TryFrom: a checked value",
-   "statement": "Percent(u8) holds a number from 0 to 100. Implement TryFrom<i32> for Percent with Error = String: «вне диапазона: N» (in Russian, exactly like this) when N < 0 or N > 100. parse_all(v: &[i32]) → Result<Vec<Percent>, String> returns all values or the first error.",
+   "statement": "Percent(u8) holds a number from 0 to 100. Implement TryFrom<i32> for Percent with Error = String: «out of range: N» when N < 0 or N > 100. parse_all(v: &[i32]) → Result<Vec<Percent>, String> returns all values or the first error.",
    "hint": "try_into appears for free; collect into Result<Vec<_>, _> stops at the first error."
   },
   {

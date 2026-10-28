@@ -17,7 +17,7 @@
   {
    "id": "bellman-ford-neg",
    "title": "Bellman-Ford",
-   "statement": "Write a function bellman_ford(n, edges, src): vertices 0..n-1, edges is a list of triples [u, v, weight] (weights may be negative). Return the list of distances from src (None for unreachable vertices), or the string «цикл» if a cycle of negative weight is reachable from src.",
+   "statement": "Write a function bellman_ford(n, edges, src): vertices 0..n-1, edges is a list of triples [u, v, weight] (weights may be negative). Return the list of distances from src (None for unreachable vertices), or the string \"cycle\" if a cycle of negative weight is reachable from src.",
    "hint": "Relax all edges n - 1 times; one more pass that improves anything means a negative cycle."
   },
   {

@@ -35,9 +35,9 @@
   {
    "id": "r21-static-table",
    "title": "'static: tables and constants",
-   "statement": "static NAMES: [&str; 4] = [\"север\", \"восток\", \"юг\", \"запад\"]. direction_name(i: usize) → &'static str (the index wraps around), direction_index(name: &str) → Option<usize>, turn(from: &str, steps: i32) → Option<&'static str> — turn by steps quarters (may be negative). const QUARTER: i32 = 90.",
+   "statement": "static NAMES: [&str; 4] = [\"north\", \"east\", \"south\", \"west\"]. direction_name(i: usize) → &'static str (the index wraps around), direction_index(name: &str) → Option<usize>, turn(from: &str, steps: i32) → Option<&'static str> — turn by steps quarters (may be negative). const QUARTER: i32 = 90.",
    "hint": "rem_euclid(4) gives a non-negative remainder even for negative turns.",
-   "starter": "static NAMES: [&str; 4] = [\"север\", \"восток\", \"юг\", \"запад\"];\nconst QUARTER: i32 = 90;\n\nfn direction_name(i: usize) -> &'static str {\n    todo!()\n}\n\nfn direction_index(name: &str) -> Option<usize> {\n    todo!()\n}\n\nfn turn(from: &str, steps: i32) -> Option<&'static str> {\n    todo!()\n}\n"
+   "starter": "static NAMES: [&str; 4] = [\"north\", \"east\", \"south\", \"west\"];\nconst QUARTER: i32 = 90;\n\nfn direction_name(i: usize) -> &'static str {\n    todo!()\n}\n\nfn direction_index(name: &str) -> Option<usize> {\n    todo!()\n}\n\nfn turn(from: &str, steps: i32) -> Option<&'static str> {\n    todo!()\n}\n"
   },
   {
    "id": "r21-box-list",
@@ -69,7 +69,7 @@
    "title": "Your own smart pointer: Deref",
    "statement": "MyBox<T>(T) with new(x). Implement Deref (Target = T) and DerefMut. After that hello(&MyBox<String>) accepts &str thanks to deref coercion, and *b gives the inner value. shout(b: &MyBox<String>) → String calls a string method directly.",
    "hint": "deref returns &self.0; DerefMut returns &mut self.0. The coercion &MyBox<String> → &String → &str is done by the compiler.",
-   "starter": "use std::ops::{Deref, DerefMut};\n\nstruct MyBox<T>(T);\n\nimpl<T> MyBox<T> {\n    fn new(x: T) -> MyBox<T> {\n        todo!()\n    }\n}\n\n// impl Deref and DerefMut for MyBox<T>\n\nfn hello(name: &str) -> String {\n    format!(\"Привет, {name}!\")\n}\n\nfn shout(b: &MyBox<String>) -> String {\n    todo!()\n}\n"
+   "starter": "use std::ops::{Deref, DerefMut};\n\nstruct MyBox<T>(T);\n\nimpl<T> MyBox<T> {\n    fn new(x: T) -> MyBox<T> {\n        todo!()\n    }\n}\n\n// impl Deref and DerefMut for MyBox<T>\n\nfn hello(name: &str) -> String {\n    format!(\"Hello, {name}!\")\n}\n\nfn shout(b: &MyBox<String>) -> String {\n    todo!()\n}\n"
   },
   {
    "id": "r21-deref-slice",
@@ -105,7 +105,7 @@
   {
    "id": "r21-shared-account",
    "title": "Rc<RefCell<Account>>: a shared account",
-   "statement": "Account { balance: i64 }. Two owners share one account through Rc<RefCell<Account>>. deposit(acc, n) and withdraw(acc, n) → Result<(), String> with the error «недостаточно средств: нужно N, есть M»; transfer(from, to, n) → Result<(), String> transfers between two accounts (if from and to are the same account, the transfer changes nothing).",
+   "statement": "Account { balance: i64 }. Two owners share one account through Rc<RefCell<Account>>. deposit(acc, n) and withdraw(acc, n) → Result<(), String> with the error «insufficient funds: needed N, present M»; transfer(from, to, n) → Result<(), String> transfers between two accounts (if from and to are the same account, the transfer changes nothing).",
    "hint": "If from and to are the same account, a second borrow_mut would panic: check Rc::ptr_eq beforehand."
   },
   {

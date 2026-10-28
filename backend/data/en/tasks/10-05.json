@@ -5,7 +5,7 @@
   {
    "id": "r5-if-sign",
    "title": "Sign of a number",
-   "statement": "n = -7. Print «минус» if n < 0, «ноль» if n == 0, otherwise «плюс». Use if – else if – else.\n\nExpected output:\n```\nминус\n```",
+   "statement": "n = -7. Print «minus» if n < 0, «zero» if n == 0, otherwise «plus». Use if – else if – else.\n\nExpected output:\n```\nminus\n```",
    "hint": "Three branches: if n < 0, else if n == 0, else.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -19,8 +19,8 @@
   {
    "id": "r5-if-expr",
    "title": "if as an expression",
-   "statement": "Declare x = 12. Store in let parity the result of an if expression: «чётное» if x % 2 == 0, otherwise «нечётное». Print parity.\n\nExpected output:\n```\nчётное\n```",
-   "hint": "let parity = if … { \"чётное\" } else { \"нечётное\" };",
+   "statement": "Declare x = 12. Store in let parity the result of an if expression: «even» if x % 2 == 0, otherwise «odd». Print parity.\n\nExpected output:\n```\neven\n```",
+   "hint": "let parity = if … { \"even\" } else { \"odd\" };",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
@@ -75,7 +75,7 @@
   {
    "id": "r5-countdown",
    "title": "Countdown",
-   "statement": "Print the numbers from 5 to 1, one per line, then «Пуск!». Use rev() on the range.\n\nExpected output:\n```\n5\n4\n3\n2\n1\nПуск!\n```",
+   "statement": "Print the numbers from 5 to 1, one per line, then «Launch!». Use rev() on the range.\n\nExpected output:\n```\n5\n4\n3\n2\n1\nLaunch!\n```",
    "hint": "for i in (1..=5).rev() { … }",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -131,7 +131,7 @@
   {
    "id": "r5-is-prime",
    "title": "Is 97 prime",
-   "statement": "Check whether 97 is prime (divisible only by 1 and itself): go through d from 2 to n−1 and look for a divisor. Print «простое» (prime) or «составное» (composite).\n\nExpected output:\n```\nпростое\n```",
+   "statement": "Check whether 97 is prime (divisible only by 1 and itself): go through d from 2 to n−1 and look for a divisor. Print «prime» or «composite».\n\nExpected output:\n```\nprime\n```",
    "hint": "A flag prime = true; when you find a divisor, set it to false and exit with break.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -187,14 +187,14 @@
   {
    "id": "r5-match-number",
    "title": "match on a number",
-   "statement": "For n = 3, use match to print: «один» for 1, «два» for 2, «три» for 3, otherwise «много».\n\nExpected output:\n```\nтри\n```",
-   "hint": "match n { 1 => \"один\", …, _ => \"много\" }",
+   "statement": "For n = 3, use match to print: «one» for 1, «two» for 2, «three» for 3, otherwise «many».\n\nExpected output:\n```\nthree\n```",
+   "hint": "match n { 1 => \"one\", …, _ => \"many\" }",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r5-match-range",
    "title": "match and ranges",
-   "statement": "For age = 34, use match to print the category: 0..=12 — «ребёнок», 13..=17 — «подросток», 18..=64 — «взрослый», otherwise «пожилой».\n\nExpected output:\n```\nвзрослый\n```",
+   "statement": "For age = 34, use match to print the category: 0..=12 — «child», 13..=17 — «teenager», 18..=64 — «adult», otherwise «senior».\n\nExpected output:\n```\nadult\n```",
    "hint": "A range pattern: 0..=12 =>",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -207,9 +207,9 @@
   {
    "id": "r5-fix-condition",
    "title": "Fix it: the condition is not a bool",
-   "statement": "The program does not compile: the if has an assignment instead of a comparison. Fix it so that it prints «пять» (five).\n\nExpected output:\n```\nпять\n```",
+   "statement": "The program does not compile: the if has an assignment instead of a comparison. Fix it so that it prints «five».\n\nExpected output:\n```\nfive\n```",
    "hint": "A comparison uses two equals signs: x == 5.",
-   "starter": "fn main() {\n    let x = 5;\n    if x = 5 {\n        println!(\"пять\");\n    }\n}\n"
+   "starter": "fn main() {\n    let x = 5;\n    if x = 5 {\n        println!(\"five\");\n    }\n}\n"
   }
  ]
 }

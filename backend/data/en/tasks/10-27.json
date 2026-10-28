@@ -89,7 +89,7 @@
   {
    "id": "r27-path-parts",
    "title": "Parts of a path",
-   "statement": "Write describe(p: &str) -> String: «каталог=…, имя=…, расширение=…» (directory, name, extension; use parent, file_stem, extension; a missing part is \"-\").",
+   "statement": "Write describe(p: &str) -> String: a string like \"directory=…, name=…, extension=…\" (use parent, file_stem, extension; a missing part is \"-\").",
    "hint": "Path::new(p).parent(), file_stem(), extension() all return Option."
   },
   {
@@ -125,7 +125,7 @@
   {
    "id": "r27-error-kind",
    "title": "Kind of error",
-   "statement": "Write open_kind(path: &str) -> String: try to open the file; return \"ok\" on success, «нет файла» for NotFound, «нет доступа» for PermissionDenied and «ошибка» for anything else.",
+   "statement": "Write open_kind(path: &str) -> String: try to open the file; return \"ok\" on success, \"no file\" for NotFound, \"no access\" for PermissionDenied and \"error\" for anything else.",
    "hint": "e.kind() returns an ErrorKind. A directory can be opened for reading, but it cannot be read."
   },
   {
@@ -149,7 +149,7 @@
   {
    "id": "r27-csv-sum",
    "title": "CSV column",
-   "statement": "Write column_sum<R: BufRead>(r: R, col: usize) -> io::Result<f64>: the sum of the numbers in column col (from 0) of lines like «a,1.5,b»; the first line is a header and is skipped; empty fields count as zero; a non-numeric field is an InvalidData error.",
+   "statement": "Write column_sum<R: BufRead>(r: R, col: usize) -> io::Result<f64>: the sum of the numbers in column col (from 0) of lines like \"a,1.5,b\"; the first line is a header and is skipped; empty fields count as zero; a non-numeric field is an InvalidData error.",
    "hint": "split(',').nth(col) is the field you need."
   },
   {

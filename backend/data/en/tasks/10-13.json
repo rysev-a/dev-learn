@@ -5,8 +5,8 @@
   {
    "id": "r13-class-basic",
    "title": "Class → struct",
-   "statement": "Python: class Dog with name and a speak() method → «<name>: гав!». Write a struct Dog { name: String }, a function new(name: &str) -> Dog, and a method speak(&self) -> String.",
-   "hint": "format!(\"{}: гав!\", self.name)"
+   "statement": "Python: class Dog with name and a speak() method → \"<name>: woof!\". Write a struct Dog { name: String }, a function new(name: &str) -> Dog, and a method speak(&self) -> String.",
+   "hint": "format!(\"{}: woof!\", self.name)"
   },
   {
    "id": "r13-property",
@@ -23,19 +23,19 @@
   {
    "id": "r13-composition",
    "title": "Composition instead of inheritance",
-   "statement": "Python: class Employee(Person). Structs Person { name: String } and Employee { person: Person, salary: u32 }; Employee has a method describe(&self) -> String: «<name> зарабатывает <salary>».",
+   "statement": "Python: class Employee(Person). Structs Person { name: String } and Employee { person: Person, salary: u32 }; Employee has a method describe(&self) -> String: \"<name> earns <salary>\".",
    "hint": "self.person.name is a field of the nested struct."
   },
   {
    "id": "r13-trait-basic",
    "title": "First trait",
-   "statement": "A trait Animal with a method sound(&self) -> String; structs Dog and Cat implement it: «гав» and «мяу». The function chorus(a: &impl Animal) -> String returns the sound repeated three times separated by spaces.",
+   "statement": "A trait Animal with a method sound(&self) -> String; structs Dog and Cat implement it: \"woof\" and \"meow\". The function chorus(a: &impl Animal) -> String returns the sound repeated three times separated by spaces.",
    "hint": "impl Animal for Dog { … } — a separate block for each type."
   },
   {
    "id": "r13-trait-default",
    "title": "Default method",
-   "statement": "A trait Greeter: the method name(&self) -> String is required, and greet(&self) -> String has a default implementation: «Привет, <name>!». The struct English implements only name; the struct Formal overrides greet: «Здравствуйте, <name>.».",
+   "statement": "A trait Greeter: the method name(&self) -> String is required, and greet(&self) -> String has a default implementation: \"Hello, <name>!\". The struct English implements only name; the struct Formal overrides greet: \"Greetings, <name>.\". English's name is \"friend\", Formal's is \"colleague\".",
    "hint": "The default method calls the required one: self.name()."
   },
   {
@@ -125,7 +125,7 @@
   {
    "id": "r13-builder",
    "title": "Chained builder",
-   "statement": "A struct Pizza { size: u32, cheese: bool, toppings: Vec<String> }. Write Pizza::new(size), the methods with_cheese(mut self) -> Pizza and with_topping(mut self, t: &str) -> Pizza, and describe(&self) -> String of the form «30 см, сыр, начинки: гриб, лук» (without cheese — no «сыр»; without toppings — no «начинки»).",
+   "statement": "A struct Pizza { size: u32, cheese: bool, toppings: Vec<String> }. Write Pizza::new(size), the methods with_cheese(mut self) -> Pizza and with_topping(mut self, t: &str) -> Pizza, and describe(&self) -> String of the form \"30 cm, cheese, toppings: mushroom, onion\" (without cheese - no \"cheese\"; without toppings - no \"toppings\").",
    "hint": "Builder methods take self by value and return it."
   },
   {

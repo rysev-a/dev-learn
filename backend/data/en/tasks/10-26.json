@@ -35,7 +35,7 @@
   {
    "id": "r26-strip-prefix",
    "title": "strip_prefix",
-   "statement": "Write command(line: &str) -> String: «ECHO <text>» → the text; «UP <text>» → the text in uppercase; otherwise «неизвестная команда». Use strip_prefix.",
+   "statement": "Write command(line: &str) -> String: «ECHO <text>» → the text; «UP <text>» → the text in uppercase; otherwise «unknown command». Use strip_prefix.",
    "hint": "strip_prefix returns Option<&str>."
   },
   {
@@ -113,13 +113,13 @@
   {
    "id": "r26-display-pad",
    "title": "Display that respects the width",
-   "statement": "The struct Name(String) implements Display through f.pad(&self.0), so that width and alignment work: «[{:>8}]» for Name(\"Аня\") gives «[     Аня]».",
+   "statement": "The struct Name(String) implements Display through f.pad(&self.0), so that width and alignment work: «[{:>8}]» for Name(\"Ann\") gives «[     Ann]».",
    "hint": "f.pad takes the width, alignment and precision (truncation) into account."
   },
   {
    "id": "r26-debug-manual",
    "title": "Debug by hand",
-   "statement": "The struct User { name: String, age: u32, secret: String } — implement Debug by hand via debug_struct so that the field secret is not printed (the output is «User { name: \"Аня\", age: 30 }»).",
+   "statement": "The struct User { name: String, age: u32, secret: String } — implement Debug by hand via debug_struct so that the field secret is not printed (the output is «User { name: \"Anya\", age: 30 }»).",
    "hint": "debug_struct(\"User\").field(…).finish()"
   },
   {
@@ -137,7 +137,7 @@
   {
    "id": "r26-parse-csv",
    "title": "A CSV line to numbers",
-   "statement": "Write parse_row(s: &str) -> Result<Vec<f64>, String>: comma-separated numbers (with spaces around); on error — Err(«плохое поле: <field>»).",
+   "statement": "Write parse_row(s: &str) -> Result<Vec<f64>, String>: comma-separated numbers (with spaces around); on error — Err(«bad field: <field>»).",
    "hint": "collect::<Result<Vec<_>, _>>()"
   },
   {

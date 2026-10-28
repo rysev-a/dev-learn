@@ -172,7 +172,7 @@
   {
    "id": "r9-copy-vs-clone",
    "title": "Copying a string",
-   "statement": "Create a = String::from(\"раст\"), a clone b = a.clone(), append the string \"!\" to b and print both: «раст» and «раст!». In Python you would have to call copy for this.\n\nExpected output (each line is shown in «», the quotes themselves are not printed):\n«раст»\n«раст!»",
+   "statement": "Create a = String::from(\"rust\"), a clone b = a.clone(), append the string \"!\" to b and print both: «rust» and «rust!». In Python you would have to call copy for this.\n\nExpected output (each line is shown in «», the quotes themselves are not printed):\n«rust»\n«rust!»",
    "hint": "clone() makes a full copy, so a stays intact.",
    "starter": "fn main() {\n    // your code\n}\n"
   },

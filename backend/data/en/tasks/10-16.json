@@ -35,9 +35,9 @@
   {
    "id": "r16-fix-dangle",
    "title": "Fix it: a reference to a local string",
-   "statement": "greeting builds the string «Привет, <name>!» and tries to return a reference to it, but the local string is destroyed when the function exits. Fix it: return ownership, not a reference.",
+   "statement": "greeting builds the string \"Hello, <name>!\" and tries to return a reference to it, but the local string is destroyed when the function exits. Fix it: return ownership, not a reference.",
    "hint": "The result type is String; the last expression of the function can be format! itself.",
-   "starter": "fn greeting(name: &str) -> &str {\n    let s = format!(\"Привет, {name}!\");\n    &s\n}\n"
+   "starter": "fn greeting(name: &str) -> &str {\n    let s = format!(\"Hello, {name}!\");\n    &s\n}\n"
   },
   {
    "id": "r16-longest",
@@ -180,9 +180,9 @@
   {
    "id": "r16-fix-report",
    "title": "Fix it: a reference to the first element and clear",
-   "statement": "report(names) returns the string «первое — <name>; осталось <N>» (the words «первое» and «осталось» are printed exactly like this, in Russian) and clears the vector. The reference first to an element of the vector is still needed when the vector is cleared. Fix it: make an independent copy of the name.",
+   "statement": "report(names) returns the string \"first — <name>; left <N>\" and clears the vector. The reference first to an element of the vector is still needed when the vector is cleared. Fix it: make an independent copy of the name.",
    "hint": "names[0].clone() gives a new String unrelated to the vector.",
-   "starter": "fn report(names: &mut Vec<String>) -> String {\n    let first = &names[0];\n    names.clear();\n    format!(\"первое — {}; осталось {}\", first, names.len())\n}\n"
+   "starter": "fn report(names: &mut Vec<String>) -> String {\n    let first = &names[0];\n    names.clear();\n    format!(\"first — {}; left {}\", first, names.len())\n}\n"
   }
  ]
 }

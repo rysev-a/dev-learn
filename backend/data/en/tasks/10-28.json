@@ -161,7 +161,7 @@
   {
    "id": "r28-mem-take-state",
    "title": "State machine and mem::replace",
-   "statement": "There is a declared enum State { Idle, Running(u32), Done(String) }. Write finish(s: &mut State) -> Option<u32>: if it is Running(n), replace it with Done(«готово за n») (n is the number, for example «готово за 5»), and return Some(n); otherwise change nothing and return None. Use mem::replace.",
+   "statement": "There is a declared enum State { Idle, Running(u32), Done(String) }. Write finish(s: &mut State) -> Option<u32>: if it is Running(n), replace it with Done(\"done in n\") (n is the number, for example \"done in 5\"), and return Some(n); otherwise change nothing and return None. Use mem::replace.",
    "hint": "Take the value out with replace, then write the state you need."
   },
   {

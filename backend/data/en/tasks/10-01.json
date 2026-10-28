@@ -5,21 +5,21 @@
   {
    "id": "r1-hello",
    "title": "Hello, world!",
-   "statement": "Write a program that prints a single line: «Привет, мир!»\n\nExpected output:\n«Привет, мир!»",
+   "statement": "Write a program that prints a single line: «Hello, world!»\n\nExpected output:\n«Hello, world!»",
    "hint": "Inside fn main() call println!(\"…\"); do not forget the semicolon at the end.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-two-lines",
    "title": "Two lines",
-   "statement": "Print two lines: first «Меня зовут Rust», then «Мне уже больше десяти лет».\n\nExpected output:\n«Меня зовут Rust\nМне уже больше десяти лет»",
+   "statement": "Print two lines: first «My name is Rust», then «I am already more than ten years old».\n\nExpected output:\n«My name is Rust\nI am already more than ten years old»",
    "hint": "Each println! call prints a line and ends it. Two calls — two lines.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-print-one-line",
    "title": "print! without a newline",
-   "statement": "Using three calls of print! (not println!), print on one line «Раз, два, три!», and then make one call of println!() that only ends the line.\n\nExpected output:\n«Раз, два, три!»",
+   "statement": "Using three calls of print! (not println!), print on one line «One, two, three!», and then make one call of println!() that only ends the line.\n\nExpected output:\n«One, two, three!»",
    "hint": "print!(\"…\") does not add a newline; an empty println!() ends the line.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -33,14 +33,14 @@
   {
    "id": "r1-expression-arg",
    "title": "An expression right in the argument",
-   "statement": "Print the line «Сумма: 12», but let the program compute the number 12: pass the expression 5 + 7 to println!.\n\nExpected output:\n«Сумма: 12»",
-   "hint": "Any expression can be an argument of println!: println!(\"Сумма: {}\", 5 + 7);",
+   "statement": "Print the line «Sum: 12», but let the program compute the number 12: pass the expression 5 + 7 to println!.\n\nExpected output:\n«Sum: 12»",
+   "hint": "Any expression can be an argument of println!: println!(\"Sum: {}\", 5 + 7);",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-named-args",
    "title": "Names inside the braces",
-   "statement": "Declare two variables: `let name = \"Аня\"; let age = 30;` and print «Аня, 30 лет», inserting them right into the string: {name} and {age} (no arguments after the string).\n\nExpected output:\n«Аня, 30 лет»",
+   "statement": "Declare two variables: `let name = \"Anya\"; let age = 30;` and print «Anya, 30 years», inserting them right into the string: {name} and {age} (no arguments after the string).\n\nExpected output:\n«Anya, 30 years»",
    "hint": "If you write a variable name inside the braces, println! takes its value: {name}.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -54,36 +54,36 @@
   {
    "id": "r1-quotes",
    "title": "Quotes and the backslash",
-   "statement": "Print two lines. The first: «Он сказал: \"привет\"» (with double quotes inside). The second: C:\\temp\\new (with backslashes).\n\nExpected output:\n«Он сказал: \"привет\"»\nC:\\temp\\new",
+   "statement": "Print two lines. The first: «He said: \"hello\"» (with double quotes inside). The second: C:\\temp\\new (with backslashes).\n\nExpected output:\n«He said: \"hello\"»\nC:\\temp\\new",
    "hint": "Inside a string a quote is written as \\\" and a backslash as \\\\.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-tabs",
    "title": "Tab",
-   "statement": "Print a table of two lines where the columns are separated by the tab character \\t: «Имя<tab>Возраст» and «Аня<tab>30».\n\nExpected output:\n«Имя\tВозраст»\n«Аня\t30»",
+   "statement": "Print a table of two lines where the columns are separated by the tab character \\t: «Name<tab>Age» and «Anya<tab>30».\n\nExpected output:\n«Name\tAge»\n«Anya\t30»",
    "hint": "\\t inside a string is one tab character.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-card",
    "title": "Business card",
-   "statement": "Print a business card of four lines (the output is shown below; note the frame made of the characters + - |).\n\nExpected output:\n+----------------+\n«| Аня Петрова    |\n| Rust-новичок   |»\n+----------------+",
+   "statement": "Print a business card of four lines (the output is shown below; note the frame made of the characters + - |).\n\nExpected output:\n+----------------+\n«| Anya Petrov    |\n| Rust-learner   |»\n+----------------+",
    "hint": "Each line of the card is a separate println!; the spaces inside the quotes matter.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-cat",
    "title": "A cat from characters",
-   "statement": "Draw a cat in four lines (the exact look is in the expected output below).\n\nExpected output:\n /\\_/\\\n( o.o )\n > ^ <\n«мяу!»",
+   "statement": "Draw a cat in four lines (the exact look is in the expected output below).\n\nExpected output:\n /\\_/\\\n( o.o )\n > ^ <\n«meow!»",
    "hint": "A backslash in a string is written as \\\\ — otherwise it starts an escape sequence.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-receipt",
    "title": "A receipt with calculations",
-   "statement": "Print a receipt: «Хлеб: 40», «Молоко: 95», «Сыр: 310» and the total line «Итого: 445». Do not type the total by hand — compute it with the expression 40 + 95 + 310 right inside println!.\n\nExpected output:\n«Хлеб: 40\nМолоко: 95\nСыр: 310\nИтого: 445»",
-   "hint": "println!(\"Итого: {}\", 40 + 95 + 310);",
+   "statement": "Print a receipt: «Bread: 40», «Milk: 95», «Cheese: 310» and the total line «Total: 445». Do not type the total by hand — compute it with the expression 40 + 95 + 310 right inside println!.\n\nExpected output:\n«Bread: 40\nMilk: 95\nCheese: 310\nTotal: 445»",
+   "hint": "println!(\"Total: {}\", 40 + 95 + 310);",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
@@ -117,7 +117,7 @@
   {
    "id": "r1-debug",
    "title": "Debug output {:?}",
-   "statement": "Print on one line separated by spaces using {:?}: the string \"текст\", the number 5, the character 'a' and the tuple (1, 2.5, true). The {:?} format shows values the way they look in code (with the string in quotes).\n\nExpected output:\n\"текст\" 5 'a' (1, 2.5, true)",
+   "statement": "Print on one line separated by spaces using {:?}: the string \"text\", the number 5, the character 'a' and the tuple (1, 2.5, true). The {:?} format shows values the way they look in code (with the string in quotes).\n\nExpected output:\n\"text\" 5 'a' (1, 2.5, true)",
    "hint": "{:?} works for almost any value — handy for debugging.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -138,7 +138,7 @@
   {
    "id": "r1-multiline-literal",
    "title": "A string of several lines",
-   "statement": "With a single call of println!, print three lines: «Первая», «Вторая», «Третья». To do this, put two newline characters \\n into the string (or write the string over several lines of code).\n\nExpected output:\n«Первая\nВторая\nТретья»",
+   "statement": "With a single call of println!, print three lines: «First», «Second», «Third». To do this, put two newline characters \\n into the string (or write the string over several lines of code).\n\nExpected output:\n«First\nSecond\nThird»",
    "hint": "\\n inside a string is a newline; println! adds one more at the very end.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -159,14 +159,14 @@
   {
    "id": "r1-seconds",
    "title": "Seconds in a day",
-   "statement": "Print the line «В сутках 86400 секунд», computing the number with the expression 24 * 60 * 60 inside println!.\n\nExpected output:\n«В сутках 86400 секунд»",
-   "hint": "println!(\"В сутках {} секунд\", 24 * 60 * 60);",
+   "statement": "Print the line «A day has 86400 seconds», computing the number with the expression 24 * 60 * 60 inside println!.\n\nExpected output:\n«A day has 86400 seconds»",
+   "hint": "println!(\"A day has {} seconds\", 24 * 60 * 60);",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-circle",
    "title": "Area of a circle",
-   "statement": "The area of a circle with radius 5 is 3.14159 · 5 · 5. Print «Площадь: 78.54» (two decimal places), computing the number in the program.\n\nExpected output:\n«Площадь: 78.54»",
+   "statement": "The area of a circle with radius 5 is 3.14159 · 5 · 5. Print «Area: 78.54» (two decimal places), computing the number in the program.\n\nExpected output:\n«Area: 78.54»",
    "hint": "Fractional numbers in the expression use a dot: 3.14159 * 5.0 * 5.0; format {:.2}.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -201,14 +201,14 @@
   {
    "id": "r1-schedule",
    "title": "Daily schedule",
-   "statement": "Print a schedule of five lines in the format «time<tab>activity»: 08:00 «зарядка», 09:00 «работа», 13:00 «обед», 18:00 «прогулка», 22:00 «сон».\n\nExpected output:\n«08:00\tзарядка»\n«09:00\tработа»\n«13:00\tобед»\n«18:00\tпрогулка»\n«22:00\tсон»",
+   "statement": "Print a schedule of five lines in the format «time<tab>activity»: 08:00 «exercise», 09:00 «work», 13:00 «lunch», 18:00 «walk», 22:00 «sleep».\n\nExpected output:\n«08:00\texercise»\n«09:00\twork»\n«13:00\tlunch»\n«18:00\twalk»\n«22:00\tsleep»",
    "hint": "Separate the time and the activity with the \\t character.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r1-comments",
    "title": "Comments are not printed",
-   "statement": "The program must print exactly two lines: «Видно» and «Тоже видно». Between the two println! calls add two comments: a line comment (// …) with any text and a block comment (/* … */) containing the fragment `println!(\"не должно быть видно\");` — it must not run.\n\nExpected output:\n«Видно\nТоже видно»",
+   "statement": "The program must print exactly two lines: «Visible» and «Also visible». Between the two println! calls add two comments: a line comment (// …) with any text and a block comment (/* … */) containing the fragment `println!(\"should not be visible\");` — it must not run.\n\nExpected output:\n«Visible\nAlso visible»",
    "hint": "Everything after // to the end of the line and inside /* … */ is a comment; the compiler skips it.",
    "starter": "fn main() {\n    // your code\n}\n"
   }

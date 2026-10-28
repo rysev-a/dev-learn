@@ -47,8 +47,8 @@
   {
    "id": "r4-greet",
    "title": "Greeting",
-   "statement": "Write a function greet(name: &str) -> String that returns the string «Привет, <name>!» (the word «Привет» exactly as written, then the name). Use the format! macro.",
-   "hint": "format!(\"Привет, {}!\", name) returns a String instead of printing."
+   "statement": "Write a function greet(name: &str) -> String that returns the string «Hello, <name>!». Use the format! macro.",
+   "hint": "format!(\"Hello, {}!\", name) returns a String instead of printing."
   },
   {
    "id": "r4-divmod",
@@ -179,7 +179,7 @@
   {
    "id": "r4-bmi-class",
    "title": "BMI category",
-   "statement": "Write a function category(bmi: f64) -> &'static str: «недостаток» if bmi < 18.5, «норма» if bmi < 25.0, «избыток» if bmi < 30.0, otherwise «ожирение».",
+   "statement": "Write a function category(bmi: f64) -> &'static str: «deficiency» if bmi < 18.5, «normal» if bmi < 25.0, «excess» if bmi < 30.0, otherwise «obesity».",
    "hint": "String literals are &'static str: you can return them straight from the branches."
   }
  ]

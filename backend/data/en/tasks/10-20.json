@@ -23,9 +23,9 @@
   {
    "id": "r20-fix-move",
    "title": "Fix it: the closure outlives the function",
-   "statement": "make_greeter returns a closure that greets by name (the greeting text stays in Russian, as in the starter). The compiler answers: the closure may outlive a local variable it refers to. Fix it with one word.",
+   "statement": "make_greeter returns a closure that greets by name. The compiler answers: the closure may outlive a local variable it refers to. Fix it with one word.",
    "hint": "The word move before the vertical bars: name moves into the closure.",
-   "starter": "fn make_greeter(name: String) -> impl Fn() -> String {\n    || format!(\"Привет, {name}!\")\n}\n"
+   "starter": "fn make_greeter(name: String) -> impl Fn() -> String {\n    || format!(\"Hello, {name}!\")\n}\n"
   },
   {
    "id": "r20-fix-fnonce",

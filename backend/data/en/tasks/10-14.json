@@ -119,7 +119,7 @@
   {
    "id": "r14-inventory",
    "title": "Warehouse",
-   "statement": "Write update_stock(stock: &mut HashMap<String, u32>, op: &str, item: &str, n: u32) -> Result<(), String>: «add» increases the stock; «take» decreases it (Err(\"нет товара\") if the key is missing, and Err(\"мало\") if the stock is less than n; when the stock reaches 0 the key is removed); any other operation — Err(\"операция\").",
+   "statement": "Write update_stock(stock: &mut HashMap<String, u32>, op: &str, item: &str, n: u32) -> Result<(), String>: \"add\" increases the stock; \"take\" decreases it (Err(\"no item\") if the key is missing, and Err(\"few\") if the stock is less than n; when the stock reaches 0 the key is removed); any other operation - Err(\"operation\").",
    "hint": "get_mut gives &mut to the value; remove at zero."
   },
   {

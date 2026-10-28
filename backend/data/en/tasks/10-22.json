@@ -11,7 +11,7 @@
   {
    "id": "r22-fix-field",
    "title": "Private fields: constructor and getters",
-   "statement": "The fields of Rect are private, so from outside the struct can be neither built nor read. Write new(w, h) → Result<Rect, String> (the sides must be > 0, otherwise the error «сторона должна быть положительной»), width(), height(), area() and scale(&self, k: u32) → Rect.",
+   "statement": "The fields of Rect are private, so from outside the struct can be neither built nor read. Write new(w, h) → Result<Rect, String> (the sides must be > 0, otherwise the error «side must be positive»), width(), height(), area() and scale(&self, k: u32) → Rect.",
    "hint": "The constructor is the only way to get a Rect from outside; so inside it you can guarantee w > 0 and h > 0."
   },
   {
@@ -36,19 +36,19 @@
   {
    "id": "r22-fmt-write",
    "title": "use std::fmt::Write for String",
-   "statement": "render_table(rows: &[(&str, i32)]) → String: lines of the form name<padded with spaces to 8>|<number right-aligned to width 5> with a newline; at the end a line «итого» with the sum. Build the result with writeln! directly into the String (for this you need to import the trait std::fmt::Write).",
+   "statement": "render_table(rows: &[(&str, i32)]) → String: lines of the form name<padded with spaces to 8>|<number right-aligned to width 5> with a newline; at the end a line «total» with the sum. Build the result with writeln! directly into the String (for this you need to import the trait std::fmt::Write).",
    "hint": "writeln!(out, \"...\") is available on String only if use std::fmt::Write is imported; the result needs unwrap() or ?."
   },
   {
    "id": "r22-invariant-ctor",
    "title": "An invariant in the constructor: Kelvin",
-   "statement": "In the module temp the type Kelvin(f64) with a private field. new(k) → Result<Kelvin, String> (the error «ниже абсолютного нуля: K»), from_celsius(c) → Result, kelvin(), celsius(), add(&self, delta: f64) → Result<Kelvin, String> (the sum must not go below zero). From outside it is impossible to get a value below zero.",
+   "statement": "In the module temp the type Kelvin(f64) with a private field. new(k) → Result<Kelvin, String> (the error «below absolute zero: K»), from_celsius(c) → Result, kelvin(), celsius(), add(&self, delta: f64) → Result<Kelvin, String> (the sum must not go below zero). From outside it is impossible to get a value below zero.",
    "hint": "Every way to create a value goes through new: that is where the check k >= 0 lives."
   },
   {
    "id": "r22-builder",
    "title": "A builder with validation in build()",
-   "statement": "Config { host, port, tls, timeout_ms }. ConfigBuilder::new(host) with defaults (port 80, tls false, timeout 1000); the methods port(self, p), tls(self, on), timeout_ms(self, t) return Self; build(self) → Result<Config, String>: errors «пустой хост», «порт 0», «таймаут больше 60000»; if tls = true and the port is 80, the port automatically becomes 443.",
+   "statement": "Config { host, port, tls, timeout_ms }. ConfigBuilder::new(host) with defaults (port 80, tls false, timeout 1000); the methods port(self, p), tls(self, on), timeout_ms(self, t) return Self; build(self) → Result<Config, String>: errors «empty host», «port 0», «timeout greater 60000»; if tls = true and the port is 80, the port automatically becomes 443.",
    "hint": "The setting methods return self, and all checks are gathered in build."
   },
   {
@@ -60,7 +60,7 @@
   {
    "id": "r22-fromstr-version",
    "title": "Version: parsing, ordering, output",
-   "statement": "Version { major, minor, patch } (u32). Implement FromStr for \"1.2.3\" (exactly three numbers, otherwise Err with the word «формат»; a non-number → Err «число: <часть>», with the offending part), Display \"1.2.3\" and ordering (derive Ord over the fields major, minor, patch). Then sort() and max() work.",
+   "statement": "Version { major, minor, patch } (u32). Implement FromStr for \"1.2.3\" (exactly three numbers, otherwise Err with the word «format»; a non-number → Err «number: <part>», with the offending part), Display \"1.2.3\" and ordering (derive Ord over the fields major, minor, patch). Then sort() and max() work.",
    "hint": "split('.') and a length check; parse the numbers in a closure with map_err and the ? operator.",
    "starter": "use std::fmt;\nuse std::str::FromStr;\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]\nstruct Version {\n    major: u32,\n    minor: u32,\n    patch: u32,\n}\n\n// impl FromStr and Display\n"
   },
@@ -79,19 +79,19 @@
   {
    "id": "r22-cargo-toml-parse",
    "title": "Parsing Cargo.toml",
-   "statement": "parse_manifest(text) → Result<Manifest, String>. Manifest { name, version, deps: BTreeMap<String, String> }. Sections [package] (name, version — in quotes) and [dependencies] (name = \"version\" or name = { version = \"version\", … }). Skip \"#\" comments and empty lines; ignore other sections. A missing name or version → Err(\"нет name\") / Err(\"нет version\").",
+   "statement": "parse_manifest(text) → Result<Manifest, String>. Manifest { name, version, deps: BTreeMap<String, String> }. Sections [package] (name, version — in quotes) and [dependencies] (name = \"version\" or name = { version = \"version\", … }). Skip \"#\" comments and empty lines; ignore other sections. A missing name or version → Err(\"no name\") / Err(\"no version\").",
    "hint": "Remember the current section in a variable; get a quoted value with strip_prefix('\"') and strip_suffix('\"')."
   },
   {
    "id": "r22-dep-graph",
    "title": "Crate build order",
-   "statement": "build_order(deps: &[(&str, &[&str])]) → Result<Vec<String>, String>: each pair is a crate and its dependencies. Dependencies are built first; among the crates ready to build take them alphabetically. A dependency that is not in the list is considered external and is ignored. A cycle → Err(\"цикл: a b c\") with the remaining crates in alphabetical order.",
+   "statement": "build_order(deps: &[(&str, &[&str])]) → Result<Vec<String>, String>: each pair is a crate and its dependencies. Dependencies are built first; among the crates ready to build take them alphabetically. A dependency that is not in the list is considered external and is ignored. A cycle → Err(\"loop: a b c\") with the remaining crates in alphabetical order.",
    "hint": "BTreeMap keys go alphabetically — the first crate with no remaining dependencies is the next one."
   },
   {
    "id": "r22-features-closure",
    "title": "Features: the closure of enabled ones",
-   "statement": "resolve(features: &[(&str, &[&str])], requested: &[&str]) → Result<Vec<String>, String>. Each feature enables others. The result is all enabled features alphabetically (including nested ones); \"default\" is always enabled if it is described. An unknown name in requested or in a dependency → Err(\"нет feature X\").",
+   "statement": "resolve(features: &[(&str, &[&str])], requested: &[&str]) → Result<Vec<String>, String>. Each feature enables others. The result is all enabled features alphabetically (including nested ones); \"default\" is always enabled if it is described. An unknown name in requested or in a dependency → Err(\"no feature X\").",
    "hint": "Traverse with a stack and a set of already enabled ones; on an unknown name return the error at once."
   },
   {
@@ -133,7 +133,7 @@
   {
    "id": "r22-assert-helpers",
    "title": "Your own checks that return Result",
-   "statement": "check_eq<T: PartialEq + Debug>(left, right) → Result<(), String> \"left: <l:?>, right: <r:?>\" when not equal. check_close(a, b, eps) → Result<(), String> \"|a-b| = <d> > <eps>\". check_sorted<T: PartialOrd + Debug>(v) → Result<(), String> «не отсортировано на позиции <i>: <a:?> > <b:?>» (the index of the first violating pair). All checks are functions and do not panic.",
+   "statement": "check_eq<T: PartialEq + Debug>(left, right) → Result<(), String> \"left: <l:?>, right: <r:?>\" when not equal. check_close(a, b, eps) → Result<(), String> \"|a-b| = <d> > <eps>\". check_sorted<T: PartialOrd + Debug>(v) → Result<(), String> «not sorted at position <i>: <a:?> > <b:?>» (the index of the first violating pair). All checks are functions and do not panic.",
    "hint": "Build the message with format! and {:?}; windows(2) gives the index of the first violation."
   },
   {
@@ -173,7 +173,7 @@
   {
    "id": "r22-error-api",
    "title": "Library errors: enum, Display, Error, From",
-   "statement": "ConfigError: Missing(String) — a missing key, BadNumber { key: String, source: ParseIntError }. Implement Display («нет ключа X» / «ключ X: неверное число») and std::error::Error with the method source (for BadNumber — the cause, for Missing — None). load(text) → Result<Settings, ConfigError>: lines key=value; port and workers are required (numbers u16 and u8).",
+   "statement": "ConfigError: Missing(String) — a missing key, BadNumber { key: String, source: ParseIntError }. Implement Display («no key X» / «key X: invalid number») and std::error::Error with the method source (for BadNumber — the cause, for Missing — None). load(text) → Result<Settings, ConfigError>: lines key=value; port and workers are required (numbers u16 and u8).",
    "hint": "source() returns Some(source) as &dyn Error; for u16 and u8 the numbers 70000 and 256 are already a parse error.",
    "starter": "use std::error::Error;\nuse std::fmt;\nuse std::num::ParseIntError;\n\n#[derive(Debug)]\nenum ConfigError {\n    Missing(String),\n    BadNumber { key: String, source: ParseIntError },\n}\n\n#[derive(Debug, PartialEq)]\nstruct Settings {\n    port: u16,\n    workers: u8,\n}\n\n// impl Display and Error for ConfigError\n\nfn load(text: &str) -> Result<Settings, ConfigError> {\n    todo!()\n}\n"
   },

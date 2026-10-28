@@ -178,9 +178,9 @@
   {
    "id": "r3-fix-if-int",
    "title": "Fix it: the condition is not a bool",
-   "statement": "The if has a number in it, which is an error. Fix the condition so that it prints «не ноль» for n = 5.\n\nExpected output:\n```\nне ноль\n```",
+   "statement": "The if has a number in it, which is an error. Fix the condition so that it prints «non-zero» for n = 5.\n\nExpected output:\n```\nnon-zero\n```",
    "hint": "The condition is an explicit comparison n != 0.",
-   "starter": "fn main() {\n    let n = 5;\n    if n {\n        println!(\"не ноль\");\n    }\n}\n"
+   "starter": "fn main() {\n    let n = 5;\n    if n {\n        println!(\"non-zero\");\n    }\n}\n"
   },
   {
    "id": "r3-char-basic",
@@ -192,7 +192,7 @@
   {
    "id": "r3-char-case",
    "title": "Character case",
-   "statement": "For 'q' print c.to_ascii_uppercase() («Q»), for `'Я'` print c.to_lowercase().next().unwrap() («я») and for the digit character '8' print '8'.to_digit(10).unwrap() + 1 («9») — three lines.\n\nExpected output:\n```\nQ\nя\n9\n```",
+   "statement": "For 'q' print c.to_ascii_uppercase() («Q»), for `'I'` print c.to_lowercase().next().unwrap() («i») and for the digit character '8' print '8'.to_digit(10).unwrap() + 1 («9») — three lines.\n\nExpected output:\n```\nQ\ni\n9\n```",
    "hint": "to_lowercase returns an iterator, so we take the first character with next().unwrap().",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -206,7 +206,7 @@
   {
    "id": "r3-final-types",
    "title": "Final: summary of types",
-   "statement": "Declare n: i32 = -17, x: f64 = 2.5, ok: bool = true, c: char = `'Я'`. Print one line with spaces in the format «n=-17 x=2.5 ok=true c=Я», then on a separate line n.abs() as f64 * x («42.5»).\n\nExpected output:\n```\nn=-17 x=2.5 ok=true c=Я\n42.5\n```",
+   "statement": "Declare n: i32 = -17, x: f64 = 2.5, ok: bool = true, c: char = `'I'`. Print one line with spaces in the format «n=-17 x=2.5 ok=true c=I», then on a separate line n.abs() as f64 * x («42.5»).\n\nExpected output:\n```\nn=-17 x=2.5 ok=true c=I\n42.5\n```",
    "hint": "First cast n.abs() to f64 with as, then multiply by x.",
    "starter": "fn main() {\n    // your code\n}\n"
   }

@@ -5,7 +5,7 @@
   {
    "id": "r7-tuple-basic",
    "title": "A tuple of three",
-   "statement": "Create a tuple person = (\"Аня\", 30, 1.68). Print its elements by number, separated by spaces: «Аня 30 1.68».\n\nExpected output:\n«Аня 30 1.68»",
+   "statement": "Create a tuple person = (\"Anya\", 30, 1.68). Print its elements by number, separated by spaces: «Anya 30 1.68».\n\nExpected output:\n«Anya 30 1.68»",
    "hint": "Access the elements with person.0, person.1, person.2.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -19,7 +19,7 @@
   {
    "id": "r7-tuple-debug",
    "title": "Printing a tuple",
-   "statement": "Print the tuple (1, \"два\", 3.0) in the debug format {:?}: «(1, \"два\", 3.0)».\n\nExpected output:\n«(1, \"два\", 3.0)»",
+   "statement": "Print the tuple (1, \"two\", 3.0) in the debug format {:?}: «(1, \"two\", 3.0)».\n\nExpected output:\n«(1, \"two\", 3.0)»",
    "hint": "A tuple cannot be printed with {} — you need {:?}.",
    "starter": "fn main() {\n    // your code\n}\n"
   },

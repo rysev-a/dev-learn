@@ -11,8 +11,8 @@
   {
    "id": "r10-default-arg",
    "title": "Default value",
-   "statement": "Python: def hi(name=\"мир\"): return f\"Привет, {name}!\". Write hi(name: Option<&str>) -> String, substituting «мир» for None.",
-   "hint": "unwrap_or(\"мир\") substitutes the default value."
+   "statement": "Python: def hi(name=\"world\"): return f\"Hello, {name}!\". Write hi(name: Option<&str>) -> String, substituting «world» for None.",
+   "hint": "unwrap_or(\"world\") substitutes the default value."
   },
   {
    "id": "r10-floor-divmod",
@@ -29,7 +29,7 @@
   {
    "id": "r10-elif-chain",
    "title": "elif → else if",
-   "statement": "Python: if/elif for temperature categories. Write category(t: i32) -> &'static str: «мороз» for t < 0, «холодно» for t < 10, «тепло» for t < 25, otherwise «жарко».",
+   "statement": "Python: if/elif for temperature categories. Write category(t: i32) -> &'static str: «frost» for t < 0, «cold» for t < 10, «warm» for t < 25, otherwise «hot».",
    "hint": "The if / else if / else chain is a single expression."
   },
   {
@@ -137,13 +137,13 @@
   {
    "id": "r10-try-except",
    "title": "try/except → Result",
-   "statement": "Python: int(s) in try/except. Write parse_age(s: &str) -> Result<u8, String>: Ok(age) for integers in 0..=150, otherwise Err(\"…\"): «не число» if parsing failed, and «вне диапазона» for numbers outside 0..=150.",
+   "statement": "Python: int(s) in try/except. Write parse_age(s: &str) -> Result<u8, String>: Ok(age) for integers in 0..=150, otherwise Err(\"…\"): «not a number» if parsing failed, and «out of range» for numbers outside 0..=150.",
    "hint": "match s.parse() with an early return Err(…)."
   },
   {
    "id": "r10-raise",
    "title": "raise → Err",
-   "statement": "Python: def sqrt(x): if x < 0: raise ValueError. Write safe_sqrt(x: f64) -> Result<f64, String>: Err(\"отрицательное\") if x < 0, otherwise Ok(√x).",
+   "statement": "Python: def sqrt(x): if x < 0: raise ValueError. Write safe_sqrt(x: f64) -> Result<f64, String>: Err(\"negative\") if x < 0, otherwise Ok(√x).",
    "hint": "Err(String::from(\"…\")) and Ok(x.sqrt())."
   },
   {
@@ -173,7 +173,7 @@
   {
    "id": "r10-config-default",
    "title": "A builder instead of kwargs",
-   "statement": "Python: def window(width=800, height=600, title=\"окно\"). Implement the struct Config { width: u32, height: u32, title: String } with a function default() (800, 600, «окно») and the builder methods with_width(mut self, w: u32) -> Config and with_title(mut self, t: &str) -> Config.",
+   "statement": "Python: def window(width=800, height=600, title=\"window\"). Implement the struct Config { width: u32, height: u32, title: String } with a function default() (800, 600, «window») and the builder methods with_width(mut self, w: u32) -> Config and with_title(mut self, t: &str) -> Config.",
    "hint": "The method takes self by value, changes the field and returns self — the chain can go on."
   },
   {

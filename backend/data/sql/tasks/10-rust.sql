@@ -3,25 +3,25 @@
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-hello', 0, 'rust', 'Привет, мир!', 'Напишите программу, которая печатает одну строку: Привет, мир!
 
 Ожидаемый вывод:
-Привет, мир!', 'fn main() {
+Hello, world!', 'fn main() {
     // ваш код
 }
-', 'Внутри fn main() вызовите println!("…"); не забудьте точку с запятой в конце.', '{"driver": "", "expected": ["Привет, мир!"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-two-lines', 1, 'rust', 'Две строки', 'Напечатайте две строки: сначала «Меня зовут Rust», затем «Мне уже больше десяти лет».
+', 'Внутри fn main() вызовите println!("…"); не забудьте точку с запятой в конце.', '{"driver": "", "expected": ["Hello, world!"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-two-lines', 1, 'rust', 'Две строки', 'Напечатайте две строки: сначала «My name is Rust», затем «I am already more than ten years old».
 
 Ожидаемый вывод:
-Меня зовут Rust
-Мне уже больше десяти лет', 'fn main() {
+My name is Rust
+I am already more than ten years old', 'fn main() {
     // ваш код
 }
-', 'Каждый вызов println! печатает строку и переводит её. Два вызова — две строки.', '{"driver": "", "expected": ["Меня зовут Rust", "Мне уже больше десяти лет"], "standalone": true}');
+', 'Каждый вызов println! печатает строку и переводит её. Два вызова — две строки.', '{"driver": "", "expected": ["My name is Rust", "I am already more than ten years old"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-print-one-line', 2, 'rust', 'print! без перевода строки', 'С помощью трёх вызовов print! (а не println!) напечатайте на одной строке: Раз, два, три! — и затем один вызов println!(), который только переведёт строку.
 
 Ожидаемый вывод:
-Раз, два, три!', 'fn main() {
+One, two, three!', 'fn main() {
     // ваш код
 }
-', 'print!("…") не добавляет перевод строки; пустой println!() переводит строку.', '{"driver": "", "expected": ["Раз, два, три!"], "standalone": true}');
+', 'print!("…") не добавляет перевод строки; пустой println!() переводит строку.', '{"driver": "", "expected": ["One, two, three!"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-placeholders', 3, 'rust', 'Подстановка значений', 'Напечатайте равенство 2 + 3 = 5, передав числа 2, 3 и 5 как аргументы println! (в строке используйте три пары {}).
 
 Ожидаемый вывод:
@@ -29,20 +29,20 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'println!("{} + {} = {}", 2, 3, 5); — значения подставляются слева направо.', '{"driver": "", "expected": ["2 + 3 = 5"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-expression-arg', 4, 'rust', 'Выражение прямо в аргументе', 'Напечатайте строку «Сумма: 12», но число 12 пусть вычисляет программа: передайте в println! выражение 5 + 7.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-expression-arg', 4, 'rust', 'Выражение прямо в аргументе', 'Напечатайте строку «Sum: 12», но число 12 пусть вычисляет программа: передайте в println! выражение 5 + 7.
 
 Ожидаемый вывод:
-Сумма: 12', 'fn main() {
+Sum: 12', 'fn main() {
     // ваш код
 }
-', 'Аргументом println! может быть любое выражение: println!("Сумма: {}", 5 + 7);', '{"driver": "", "expected": ["Сумма: 12"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-named-args', 5, 'rust', 'Имена внутри скобок', 'Объявите две переменные: let name = "Аня"; let age = 30; и напечатайте «Аня, 30 лет», подставив их прямо в строку: {name} и {age} (без аргументов после строки).
+', 'Аргументом println! может быть любое выражение: println!("Sum: {}", 5 + 7);', '{"driver": "", "expected": ["Sum: 12"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-named-args', 5, 'rust', 'Имена внутри скобок', 'Объявите две переменные: let name = "Anya"; let age = 30; и напечатайте «Anya, 30 years», подставив их прямо в строку: {name} и {age} (без аргументов после строки).
 
 Ожидаемый вывод:
-Аня, 30 лет', 'fn main() {
+Anya, 30 years', 'fn main() {
     // ваш код
 }
-', 'Если в скобках написать имя переменной, println! возьмёт её значение: {name}.', '{"driver": "", "expected": ["Аня, 30 лет"], "standalone": true}');
+', 'Если в скобках написать имя переменной, println! возьмёт её значение: {name}.', '{"driver": "", "expected": ["Anya, 30 years"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-escape-braces', 6, 'rust', 'Настоящие фигурные скобки', 'Напечатайте строку {ok} вместе со скобками, а на следующей строке — {} (пустые скобки).
 
 Ожидаемый вывод:
@@ -51,52 +51,52 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'Чтобы напечатать одну фигурную скобку, пишут две подряд: {{ и }}.', '{"driver": "", "expected": ["{ok}", "{}"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-quotes', 7, 'rust', 'Кавычки и обратная косая черта', 'Напечатайте две строки. Первая: Он сказал: "привет" (с двойными кавычками внутри). Вторая: C:\temp\new (с обратными косыми чертами).
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-quotes', 7, 'rust', 'Кавычки и обратная косая черта', 'Напечатайте две строки. Первая: Он сказал: "hello" (с двойными кавычками внутри). Вторая: C:\temp\new (с обратными косыми чертами).
 
 Ожидаемый вывод:
-Он сказал: "привет"
+He said: "hello"
 C:\temp\new', 'fn main() {
     // ваш код
 }
-', 'Внутри строки кавычка пишется как \", а обратная косая черта — как \\.', '{"driver": "", "expected": ["Он сказал: \"привет\"", "C:\\temp\\new"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-tabs', 8, 'rust', 'Табуляция', 'Напечатайте таблицу из двух строк, где колонки разделены символом табуляции \t: «Имя<tab>Возраст» и «Аня<tab>30».
+', 'Внутри строки кавычка пишется как \", а обратная косая черта — как \\.', '{"driver": "", "expected": ["He said: \"hello\"", "C:\\temp\\new"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-tabs', 8, 'rust', 'Табуляция', 'Напечатайте таблицу из двух строк, где колонки разделены символом табуляции \t: «Name<tab>Age» и «Anya<tab>30».
 
 Ожидаемый вывод:
-Имя	Возраст
-Аня	30', 'fn main() {
+Name	Age
+Anya	30', 'fn main() {
     // ваш код
 }
-', '\t внутри строки — один символ табуляции.', '{"driver": "", "expected": ["Имя\tВозраст", "Аня\t30"], "standalone": true}');
+', '\t внутри строки — один символ табуляции.', '{"driver": "", "expected": ["Name\tAge", "Anya\t30"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-card', 9, 'rust', 'Визитка', 'Напечатайте визитку из четырёх строк (вывод показан ниже; обратите внимание на рамку из символов + - |).
 
 Ожидаемый вывод:
 +----------------+
-| Аня Петрова    |
-| Rust-новичок   |
+| Anya Petrova    |
+| Rust-newbie   |
 +----------------+', 'fn main() {
     // ваш код
 }
-', 'Каждая строка визитки — отдельный println!; пробелы внутри кавычек важны.', '{"driver": "", "expected": ["+----------------+", "| Аня Петрова    |", "| Rust-новичок   |", "+----------------+"], "standalone": true}');
+', 'Каждая строка визитки — отдельный println!; пробелы внутри кавычек важны.', '{"driver": "", "expected": ["+----------------+", "| Anya Petrov    |", "| Rust-learner   |", "+----------------+"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-cat', 10, 'rust', 'Кот из символов', 'Нарисуйте кота четырьмя строками (точный вид — в ожидаемом выводе ниже).
 
 Ожидаемый вывод:
  /\_/\
 ( o.o )
  > ^ <
-мяу!', 'fn main() {
+meow!', 'fn main() {
     // ваш код
 }
-', 'Косая черта «\» в строке пишется как \\ — иначе она начинает управляющую последовательность.', '{"driver": "", "expected": [" /\\_/\\", "( o.o )", " > ^ <", "мяу!"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-receipt', 11, 'rust', 'Чек с вычислениями', 'Напечатайте чек: «Хлеб: 40», «Молоко: 95», «Сыр: 310» и итоговую строку «Итого: 445». Итог не вводите вручную — вычислите его выражением 40 + 95 + 310 прямо в println!.
+', 'Косая черта «\» в строке пишется как \\ — иначе она начинает управляющую последовательность.', '{"driver": "", "expected": [" /\\_/\\", "( o.o )", " > ^ <", "meow!"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-receipt', 11, 'rust', 'Чек с вычислениями', 'Напечатайте чек: «Bread: 40», «Milk: 95», «Cheese: 310» и итоговую строку «Total: 445». Итог не вводите вручную — вычислите его выражением 40 + 95 + 310 прямо в println!.
 
 Ожидаемый вывод:
-Хлеб: 40
-Молоко: 95
-Сыр: 310
-Итого: 445', 'fn main() {
+Bread: 40
+Milk: 95
+Cheese: 310
+Total: 445', 'fn main() {
     // ваш код
 }
-', 'println!("Итого: {}", 40 + 95 + 310);', '{"driver": "", "expected": ["Хлеб: 40", "Молоко: 95", "Сыр: 310", "Итого: 445"], "standalone": true}');
+', 'println!("Total: {}", 40 + 95 + 310);', '{"driver": "", "expected": ["Bread: 40", "Milk: 95", "Cheese: 310", "Total: 445"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-mult-table', 12, 'rust', 'Таблица умножения 3×3', 'Напечатайте таблицу умножения 3×3: три строки, в каждой три числа через пробел (произведения i·j). Вычисляйте произведения в аргументах println!, а не вписывайте готовые числа.
 
 Ожидаемый вывод:
@@ -130,13 +130,13 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', '{:.2} — два знака после запятой; округление выполняется автоматически.', '{"driver": "", "expected": ["3.14", "0.667"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-debug', 16, 'rust', 'Отладочный вывод {:?}', 'Напечатайте в одной строке через пробел с помощью {:?}: строку "текст", число 5, символ ''a'' и кортеж (1, 2.5, true). Формат {:?} показывает значения так, как они выглядят в коде (со строкой в кавычках).
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-debug', 16, 'rust', 'Отладочный вывод {:?}', 'Напечатайте в одной строке через пробел с помощью {:?}: строку "text", число 5, символ ''a'' и кортеж (1, 2.5, true). Формат {:?} показывает значения так, как они выглядят в коде (со строкой в кавычках).
 
 Ожидаемый вывод:
-"текст" 5 ''a'' (1, 2.5, true)', 'fn main() {
+"text" 5 ''a'' (1, 2.5, true)', 'fn main() {
     // ваш код
 }
-', '{:?} работает почти для любых значений — удобно при отладке.', '{"driver": "", "expected": ["\"текст\" 5 ''a'' (1, 2.5, true)"], "standalone": true}');
+', '{:?} работает почти для любых значений — удобно при отладке.', '{"driver": "", "expected": ["\"text\" 5 ''a'' (1, 2.5, true)"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-raw-string', 17, 'rust', 'Сырая строка', 'Напечатайте путь C:\Users\anna\docs одной сырой строкой r"…" (в такой строке обратные косые черты не нужно удваивать).
 
 Ожидаемый вывод:
@@ -152,15 +152,15 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'Строки в расте — UTF-8, поэтому русские буквы и эмодзи можно писать прямо в кавычках.', '{"driver": "", "expected": ["Раст любит Unicode", "Краб 🦀 говорит привет"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-multiline-literal', 19, 'rust', 'Строка из нескольких строк', 'Одним вызовом println! напечатайте три строки: «Первая», «Вторая», «Третья». Для этого вставьте в строку два символа перевода строки \n (или напишите строку прямо на нескольких строках кода).
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-multiline-literal', 19, 'rust', 'Строка из нескольких строк', 'Одним вызовом println! напечатайте три строки: «First», «Second», «Third». Для этого вставьте в строку два символа перевода строки \n (или напишите строку прямо на нескольких строках кода).
 
 Ожидаемый вывод:
-Первая
-Вторая
-Третья', 'fn main() {
+First
+Second
+Third', 'fn main() {
     // ваш код
 }
-', '\n внутри строки — перевод строки; println! добавит ещё один в самом конце.', '{"driver": "", "expected": ["Первая", "Вторая", "Третья"], "standalone": true}');
+', '\n внутри строки — перевод строки; println! добавит ещё один в самом конце.', '{"driver": "", "expected": ["First", "Second", "Third"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-arith-ops', 20, 'rust', 'Пять арифметических действий', 'Напечатайте пять строк с действиями над целыми 7 и 3: «7 + 3 = 10», «7 - 3 = 4», «7 * 3 = 21», «7 / 3 = 2» (целочисленное деление) и «7 % 3 = 1» (остаток). Результаты вычисляйте в программе.
 
 Ожидаемый вывод:
@@ -181,20 +181,20 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'Дробные литералы пишутся с точкой: 7.0, а не 7.', '{"driver": "", "expected": ["2.333", "10.0", "9.90"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-seconds', 22, 'rust', 'Секунд в сутках', 'Напечатайте строку «В сутках 86400 секунд», вычислив число выражением 24 * 60 * 60 внутри println!.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-seconds', 22, 'rust', 'Секунд в сутках', 'Напечатайте строку «A day has 86400 seconds», вычислив число выражением 24 * 60 * 60 внутри println!.
 
 Ожидаемый вывод:
-В сутках 86400 секунд', 'fn main() {
+A day has 86400 seconds', 'fn main() {
     // ваш код
 }
-', 'println!("В сутках {} секунд", 24 * 60 * 60);', '{"driver": "", "expected": ["В сутках 86400 секунд"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-circle', 23, 'rust', 'Площадь круга', 'Площадь круга радиуса 5 равна 3.14159 · 5 · 5. Напечатайте «Площадь: 78.54» (два знака после запятой), вычислив число в программе.
+', 'println!("A day has {} seconds", 24 * 60 * 60);', '{"driver": "", "expected": ["A day has 86400 seconds"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-circle', 23, 'rust', 'Площадь круга', 'Площадь круга радиуса 5 равна 3.14159 · 5 · 5. Напечатайте «Area: 78.54» (два знака после запятой), вычислив число в программе.
 
 Ожидаемый вывод:
-Площадь: 78.54', 'fn main() {
+Area: 78.54', 'fn main() {
     // ваш код
 }
-', 'Дробные числа в выражении — через точку: 3.14159 * 5.0 * 5.0; формат {:.2}.', '{"driver": "", "expected": ["Площадь: 78.54"], "standalone": true}');
+', 'Дробные числа в выражении — через точку: 3.14159 * 5.0 * 5.0; формат {:.2}.', '{"driver": "", "expected": ["Area: 78.54"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-celsius', 24, 'rust', 'Градусы Цельсия и Фаренгейта', 'Напечатайте «100°C = 212°F», вычислив 212 по формуле 100.0 * 9.0 / 5.0 + 32.0 (выведите число без знаков после запятой: формат {:.0}).
 
 Ожидаемый вывод:
@@ -223,40 +223,40 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'Знак процента в println! печатается как есть: символа % в формате не требуется экранировать.', '{"driver": "", "expected": ["[#####-----] 50%"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-schedule', 28, 'rust', 'Расписание дня', 'Напечатайте расписание из пяти строк в формате «время<tab>занятие»: 08:00 зарядка, 09:00 работа, 13:00 обед, 18:00 прогулка, 22:00 сон.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-schedule', 28, 'rust', 'Расписание дня', 'Напечатайте расписание из пяти строк в формате «time<tab>activity»: 08:00 зарядка, 09:00 работа, 13:00 обед, 18:00 прогулка, 22:00 сон.
 
 Ожидаемый вывод:
-08:00	зарядка
-09:00	работа
-13:00	обед
-18:00	прогулка
-22:00	сон', 'fn main() {
+08:00	exercise
+09:00	work
+13:00	lunch
+18:00	walk
+22:00	sleep', 'fn main() {
     // ваш код
 }
-', 'Время и занятие разделяйте символом \t.', '{"driver": "", "expected": ["08:00\tзарядка", "09:00\tработа", "13:00\tобед", "18:00\tпрогулка", "22:00\tсон"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-comments', 29, 'rust', 'Комментарии не печатаются', 'Программа должна напечатать ровно две строки: «Видно» и «Тоже видно». Между двумя println! добавьте два комментария: строчный (// …) с любым текстом и блочный (/* … */), внутри которого лежит фрагмент println!("не должно быть видно"); — он не должен выполняться.
+', 'Время и занятие разделяйте символом \t.', '{"driver": "", "expected": ["08:00\texercise", "09:00\twork", "13:00\tlunch", "18:00\twalk", "22:00\tsleep"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 1, 'r1-comments', 29, 'rust', 'Комментарии не печатаются', 'Программа должна напечатать ровно две строки: «Visible» и «Also visible». Между двумя println! добавьте два комментария: строчный (// …) с любым текстом и блочный (/* … */), внутри которого лежит фрагмент println!("should not be visible"); — он не должен выполняться.
 
 Ожидаемый вывод:
-Видно
-Тоже видно', 'fn main() {
+Visible
+Also visible', 'fn main() {
     // ваш код
 }
-', 'Всё внутри // до конца строки и внутри /* … */ — комментарий, компилятор его пропускает.', '{"driver": "", "expected": ["Видно", "Тоже видно"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-first-variable', 0, 'rust', 'Первая переменная', 'Объявите две переменные: name со значением "Аня" и age со значением 30. Напечатайте их через пробел: «Аня 30».
+', 'Всё внутри // до конца строки и внутри /* … */ — комментарий, компилятор его пропускает.', '{"driver": "", "expected": ["Visible", "Also visible"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-first-variable', 0, 'rust', 'Первая переменная', 'Объявите две переменные: name со значением "Anya" и age со значением 30. Напечатайте их через пробел: «Anya 30».
 
 Ожидаемый вывод:
-Аня 30', 'fn main() {
+Anya 30', 'fn main() {
     // ваш код
 }
-', 'let name = "Аня"; let age = 30; затем println!("{} {}", name, age);', '{"driver": "", "expected": ["Аня 30"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-sum-diff', 1, 'rust', 'Сумма и разность', 'Объявите a = 17 и b = 5. Напечатайте две строки: «Сумма: …» и «Разность: …», подставив значения вычислений.
+', 'let name = "Anya"; let age = 30; затем println!("{} {}", name, age);', '{"driver": "", "expected": ["Anya 30"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-sum-diff', 1, 'rust', 'Сумма и разность', 'Объявите a = 17 и b = 5. Напечатайте две строки: «Sum: …» и «Difference: …», подставив значения вычислений.
 
 Ожидаемый вывод:
-Сумма: 22
-Разность: 12', 'fn main() {
+Sum: 22
+Difference: 12', 'fn main() {
     // ваш код
 }
-', 'Выражения a + b и a - b можно подставить прямо в println!.', '{"driver": "", "expected": ["Сумма: 22", "Разность: 12"], "standalone": true}');
+', 'Выражения a + b и a - b можно подставить прямо в println!.', '{"driver": "", "expected": ["Sum: 22", "Difference: 12"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-mut-counter', 2, 'rust', 'Счётчик с mut', 'Объявите изменяемый счётчик count = 0. Трижды увеличьте его на 1 (count = count + 1), и после каждого шага печатайте его значение: 1, 2, 3 — по одному на строке.
 
 Ожидаемый вывод:
@@ -307,22 +307,22 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'Каждый раз пишите новое let x = …; это не изменение, а новая переменная.', '{"driver": "", "expected": ["5", "6", "12"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-shadow-type', 7, 'rust', 'Затенение с новым типом', 'Объявите data = "12345" (строка). Затените её длиной строки data.len(). Напечатайте «Длина: 5».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-shadow-type', 7, 'rust', 'Затенение с новым типом', 'Объявите data = "12345" (строка). Затените её длиной строки data.len(). Напечатайте «Length: 5».
 
 Ожидаемый вывод:
-Длина: 5', 'fn main() {
+Length: 5', 'fn main() {
     // ваш код
 }
-', 'let data = data.len(); — переменная теперь число, а не строка.', '{"driver": "", "expected": ["Длина: 5"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-fix-type-change', 8, 'rust', 'Исправьте: нельзя сменить тип через mut', 'Программа хочет превратить строку в её длину под тем же именем, но через присваивание это невозможно (mismatched types). Исправьте затенением. Результат: «Длина: 6».
+', 'let data = data.len(); — переменная теперь число, а не строка.', '{"driver": "", "expected": ["Length: 5"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-fix-type-change', 8, 'rust', 'Исправьте: нельзя сменить тип через mut', 'Программа хочет превратить строку в её длину под тем же именем, но через присваивание это невозможно (mismatched types). Исправьте затенением. Результат: «Length: 6».
 
 Ожидаемый вывод:
-Длина: 6', 'fn main() {
-    let mut s = "привет";
+Length: 6', 'fn main() {
+    let mut s = "planet";
     s = s.len();
-    println!("Длина: {}", s);
+    println!("Length: {}", s);
 }
-', 'Вместо s = … напишите новое let s = …; обратите внимание: s.len() — длина в байтах (12), а нужно число символов: s.chars().count().', '{"driver": "", "expected": ["Длина: 6"], "standalone": true}');
+', 'Вместо s = … напишите новое let s = …; s.len() — длина строки в байтах (для ASCII совпадает с числом символов).', '{"driver": "", "expected": ["Length: 6"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-const-seconds', 9, 'rust', 'Константы времени', 'Объявите константы SECONDS_PER_MINUTE: u32 = 60 и MINUTES_PER_HOUR: u32 = 60. Вычислите и напечатайте, сколько секунд в 3 часах: «10800».
 
 Ожидаемый вывод:
@@ -382,28 +382,28 @@ a=8 b=3', 'fn main() {
     // ваш код
 }
 ', 'Справа сначала собирается кортеж (b, a), потом он раскладывается в a и b.', '{"driver": "", "expected": ["a=8 b=3"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-destructure', 17, 'rust', 'Разбор кортежа', 'Разберите кортеж (1, 2.5, "три") в переменные x, y, z одним let. Напечатайте «1 2.5 три».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-destructure', 17, 'rust', 'Разбор кортежа', 'Разберите кортеж (1, 2.5, "three") в переменные x, y, z одним let. Напечатайте «1 2.5 three».
 
 Ожидаемый вывод:
-1 2.5 три', 'fn main() {
+1 2.5 three', 'fn main() {
     // ваш код
 }
-', 'let (x, y, z) = (…); — три переменные сразу.', '{"driver": "", "expected": ["1 2.5 три"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-deferred-init', 18, 'rust', 'Присвоить позже', 'Объявите let grade; без значения. Если score (= 85) не меньше 60, присвойте «сдано», иначе «не сдано». Напечатайте «Оценка: сдано».
+', 'let (x, y, z) = (…); — три переменные сразу.', '{"driver": "", "expected": ["1 2.5 three"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-deferred-init', 18, 'rust', 'Присвоить позже', 'Объявите let grade; без значения. Если score (= 85) не меньше 60, присвойте «passed», иначе «not passed». Напечатайте «Grade: passed».
 
 Ожидаемый вывод:
-Оценка: сдано', 'fn main() {
+Grade: passed', 'fn main() {
     // ваш код
 }
-', 'if условие { … } else { … } — условие в расте без скобок; в каждой ветке grade присваивается ровно один раз.', '{"driver": "", "expected": ["Оценка: сдано"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-rectangle', 19, 'rust', 'Прямоугольник', 'width = 12, height = 5. Напечатайте две строки: «Площадь: 60» и «Периметр: 34».
+', 'if условие { … } else { … } — условие в расте без скобок; в каждой ветке grade присваивается ровно один раз.', '{"driver": "", "expected": ["Grade: passed"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-rectangle', 19, 'rust', 'Прямоугольник', 'width = 12, height = 5. Напечатайте две строки: «Area: 60» и «Perimeter: 34».
 
 Ожидаемый вывод:
-Площадь: 60
-Периметр: 34', 'fn main() {
+Area: 60
+Perimeter: 34', 'fn main() {
     // ваш код
 }
-', 'Площадь — width * height, периметр — 2 * (width + height).', '{"driver": "", "expected": ["Площадь: 60", "Периметр: 34"], "standalone": true}');
+', 'Площадь — width * height, периметр — 2 * (width + height).', '{"driver": "", "expected": ["Area: 60", "Perimeter: 34"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-bank-balance', 20, 'rust', 'Баланс счёта', 'balance = 1000 (mut). Зачислите 250, спишите 400, зачислите 75. После каждой операции печатайте баланс: 1250, 850, 925.
 
 Ожидаемый вывод:
@@ -434,30 +434,30 @@ r=21 n=10', 'fn main() {
     // ваш код
 }
 ', 'Блок вернёт последнее выражение (n без точки с запятой); внешняя n не изменится.', '{"driver": "", "expected": ["r=21 n=10"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-countdown', 24, 'rust', 'Обратный отсчёт вручную', 'n = 3 (mut). Напечатайте n, уменьшите на 1 (n -= 1), снова напечатайте — так для 3, 2, 1, затем напечатайте «Старт!».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-countdown', 24, 'rust', 'Обратный отсчёт вручную', 'n = 3 (mut). Напечатайте n, уменьшите на 1 (n -= 1), снова напечатайте — так для 3, 2, 1, затем напечатайте «Start!».
 
 Ожидаемый вывод:
 3
 2
 1
-Старт!', 'fn main() {
+Start!', 'fn main() {
     // ваш код
 }
-', 'Три пары «печать, уменьшение» (последнее уменьшение можно не писать) и финальная строка.', '{"driver": "", "expected": ["3", "2", "1", "Старт!"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-string-mut', 25, 'rust', 'Изменяемая строка', 'Создайте изменяемую строку let mut s = String::from("Привет"); допишите к ней методом push_str текст ", мир!" и напечатайте: «Привет, мир!».
+', 'Три пары «print, decrease» (последнее уменьшение можно не писать) и финальная строка.', '{"driver": "", "expected": ["3", "2", "1", "Start!"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-string-mut', 25, 'rust', 'Изменяемая строка', 'Создайте изменяемую строку let mut s = String::from("Hello"); допишите к ней методом push_str текст ", world!" и напечатайте: «Hello, world!».
 
 Ожидаемый вывод:
-Привет, мир!', 'fn main() {
+Hello, world!', 'fn main() {
     // ваш код
 }
-', 'String::from("…") создаёт владеющую строку, а s.push_str("…") дописывает в конец; для этого нужен mut.', '{"driver": "", "expected": ["Привет, мир!"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-bmi', 26, 'rust', 'Индекс массы тела', 'weight = 70.0 (кг), height = 1.75 (м). ИМТ = weight / (height * height). Напечатайте «ИМТ: 22.9».
+', 'String::from("…") создаёт владеющую строку, а s.push_str("…") дописывает в конец; для этого нужен mut.', '{"driver": "", "expected": ["Hello, world!"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-bmi', 26, 'rust', 'Индекс массы тела', 'weight = 70.0 (кг), height = 1.75 (м). ИМТ = weight / (height * height). Напечатайте «BMI: 22.9».
 
 Ожидаемый вывод:
-ИМТ: 22.9', 'fn main() {
+BMI: 22.9', 'fn main() {
     // ваш код
 }
-', 'Все числа дробные — с точкой; формат {:.1}.', '{"driver": "", "expected": ["ИМТ: 22.9"], "standalone": true}');
+', 'Все числа дробные — с точкой; формат {:.1}.', '{"driver": "", "expected": ["BMI: 22.9"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-fix-annotation', 27, 'rust', 'Исправьте: тип не подходит значению', 'Программа не собирается: число 5.5 нельзя записать в переменную с типом i32. Исправьте тип так, чтобы вывод был «5.5».
 
 Ожидаемый вывод:
@@ -466,27 +466,27 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     println!("{}", n);
 }
 ', 'Дробным числам подходит f64 (или f32).', '{"driver": "", "expected": ["5.5"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-fix-uninit', 28, 'rust', 'Исправьте: переменная без значения', 'Программа читает переменную, которой могло не быть присвоено значение. Исправьте так, чтобы напечатать «большое», когда n = 150, и «маленькое» иначе.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-fix-uninit', 28, 'rust', 'Исправьте: переменная без значения', 'Программа читает переменную, которой могло не быть присвоено значение. Исправьте так, чтобы напечатать «large», когда n = 150, и «small» иначе.
 
 Ожидаемый вывод:
-большое', 'fn main() {
+large', 'fn main() {
     let n = 150;
     let label;
     if n > 100 {
-        label = "большое";
+        label = "large";
     }
     println!("{}", label);
 }
-', 'Добавьте ветку else: тогда во всех путях значение будет присвоено.', '{"driver": "", "expected": ["большое"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-final-program', 29, 'rust', 'Итоговая программа: зарплата', 'Salary = 120000. Налог 13% — вычтите (используйте целочисленную арифметику: salary * 13 / 100). Затем затените salary суммой после налога и напечатайте три строки: «Налог: 15600», «На руки: 104400» и «В месяц на аренду: 31320» (30% от оставшегося, снова salary * 30 / 100).
+', 'Добавьте ветку else: тогда во всех путях значение будет присвоено.', '{"driver": "", "expected": ["large"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 2, 'r2-final-program', 29, 'rust', 'Итоговая программа: зарплата', 'Salary = 120000. Налог 13% — вычтите (используйте целочисленную арифметику: salary * 13 / 100). Затем затените salary суммой после налога и напечатайте три строки: «Tax: 15600», «Net pay: 104400» и «Monthly rent: 31320» (30% от оставшегося, снова salary * 30 / 100).
 
 Ожидаемый вывод:
-Налог: 15600
-На руки: 104400
-В месяц на аренду: 31320', 'fn main() {
+Tax: 15600
+Net pay: 104400
+Monthly rent: 31320', 'fn main() {
     // ваш код
 }
-', 'tax = salary * 13 / 100; затем let salary = salary - tax; rent = salary * 30 / 100.', '{"driver": "", "expected": ["Налог: 15600", "На руки: 104400", "В месяц на аренду: 31320"], "standalone": true}');
+', 'tax = salary * 13 / 100; затем let salary = salary - tax; rent = salary * 30 / 100.', '{"driver": "", "expected": ["Tax: 15600", "Net pay: 104400", "Monthly rent: 31320"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-i32-default', 0, 'rust', 'Целое по умолчанию', 'Объявите n = 2147483647 (это i32::MAX) и напечатайте n. Затем напечатайте значение константы i32::MIN. Две строки.
 
 Ожидаемый вывод:
@@ -704,16 +704,16 @@ true', 'fn main() {
     // ваш код
 }
 ', 'Результат сравнения — bool, его можно печатать прямо.', '{"driver": "", "expected": ["true", "true", "false", "false", "true"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-fix-if-int', 25, 'rust', 'Исправьте: условие не bool', 'В if стоит число — это ошибка. Исправьте условие так, чтобы напечатать «не ноль» для n = 5.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-fix-if-int', 25, 'rust', 'Исправьте: условие не bool', 'В if стоит число — это ошибка. Исправьте условие так, чтобы напечатать «non-zero» для n = 5.
 
 Ожидаемый вывод:
-не ноль', 'fn main() {
+non-zero', 'fn main() {
     let n = 5;
     if n {
-        println!("не ноль");
+        println!("non-zero");
     }
 }
-', 'Условие — явное сравнение n != 0.', '{"driver": "", "expected": ["не ноль"], "standalone": true}');
+', 'Условие — явное сравнение n != 0.', '{"driver": "", "expected": ["non-zero"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-char-basic', 26, 'rust', 'Символы', 'c = ''ж''. Напечатайте сам символ, затем его код через as u32 («1078»), затем c.is_alphabetic() («true»), и ''7''.is_numeric() («true») — по строке.
 
 Ожидаемый вывод:
@@ -724,15 +724,15 @@ true', 'fn main() {
     // ваш код
 }
 ', '''ж'' as u32 — код символа в Юникоде.', '{"driver": "", "expected": ["ж", "1078", "true", "true"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-char-case', 27, 'rust', 'Регистр символа', 'Для ''q'' напечатайте c.to_ascii_uppercase() («Q»), для ''Я'' — c.to_lowercase().next().unwrap() («я») и символ-цифру ''8''.to_digit(10).unwrap() + 1 («9») — три строки.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-char-case', 27, 'rust', 'Регистр символа', 'Для ''q'' напечатайте c.to_ascii_uppercase() («Q»), для ''I'' — c.to_lowercase().next().unwrap() («i») и символ-цифру ''8''.to_digit(10).unwrap() + 1 («9») — три строки.
 
 Ожидаемый вывод:
 Q
-я
+i
 9', 'fn main() {
     // ваш код
 }
-', 'to_lowercase возвращает итератор — берём первый символ через next().unwrap().', '{"driver": "", "expected": ["Q", "я", "9"], "standalone": true}');
+', 'to_lowercase возвращает итератор — берём первый символ через next().unwrap().', '{"driver": "", "expected": ["Q", "i", "9"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-char-shift', 28, 'rust', 'Сдвиг по алфавиту', 'Возьмите ''a'' и напечатайте символ, следующий за ним в таблице (через as u8 + 1 as char): «b». Затем так же получите ''z'' из ''a'' + 25: «z».
 
 Ожидаемый вывод:
@@ -741,14 +741,14 @@ z', 'fn main() {
     // ваш код
 }
 ', '(c as u8 + 1) as char', '{"driver": "", "expected": ["b", "z"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-final-types', 29, 'rust', 'Итоговая: сводка типов', 'Объявите n: i32 = -17, x: f64 = 2.5, ok: bool = true, c: char = ''Я''. Напечатайте четыре строки через пробел в формате «n=-17 x=2.5 ok=true c=Я», затем отдельной строкой n.abs() as f64 * x («42.5»).
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 3, 'r3-final-types', 29, 'rust', 'Итоговая: сводка типов', 'Объявите n: i32 = -17, x: f64 = 2.5, ok: bool = true, c: char = ''I''. Напечатайте четыре строки через пробел в формате «n=-17 x=2.5 ok=true c=I», затем отдельной строкой n.abs() as f64 * x («42.5»).
 
 Ожидаемый вывод:
-n=-17 x=2.5 ok=true c=Я
+n=-17 x=2.5 ok=true c=I
 42.5', 'fn main() {
     // ваш код
 }
-', 'Сначала приведите n.abs() к f64 через as, затем умножьте на x.', '{"driver": "", "expected": ["n=-17 x=2.5 ok=true c=Я", "42.5"], "standalone": true}');
+', 'Сначала приведите n.abs() к f64 через as, затем умножьте на x.', '{"driver": "", "expected": ["n=-17 x=2.5 ok=true c=I", "42.5"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 4, 'r4-add', 0, 'rust', 'Сумма двух', 'Напишите функцию add, которая принимает два числа i32 и возвращает их сумму.', 'fn add(a: i32, b: i32) -> i32 {
     todo!()
 }
@@ -781,10 +781,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'Числа в формуле — дробные литералы: 9.0, 5.0, 32.0.', '{"driver": "fn main() {\n    println!(\"{:.1}\", c_to_f(0.0));\n    println!(\"{:.1}\", c_to_f(100.0));\n    println!(\"{:.1}\", c_to_f(-40.0));\n    println!(\"{:.1}\", c_to_f(36.6));\n}\n", "expected": ["32.0", "212.0", "-40.0", "97.9"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 4, 'r4-greet', 7, 'rust', 'Приветствие', 'Напишите функцию greet(name: &str) -> String, возвращающую строку «Привет, <имя>!». Используйте макрос format!.', 'fn greet(name: &str) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 4, 'r4-greet', 7, 'rust', 'Приветствие', 'Напишите функцию greet(name: &str) -> String, возвращающую строку «Hello, <name>!». Используйте макрос format!.', 'fn greet(name: &str) -> String {
     todo!()
 }
-', 'format!("Привет, {}!", name) возвращает String, а не печатает.', '{"driver": "fn main() {\n    println!(\"{}\", greet(\"Аня\"));\n    println!(\"{}\", greet(\"мир\"));\n}\n", "expected": ["Привет, Аня!", "Привет, мир!"]}');
+', 'format!("Hello, {}!", name) возвращает String, а не печатает.', '{"driver": "fn main() {\n    println!(\"{}\", greet(\"Anya\"));\n    println!(\"{}\", greet(\"world\"));\n}\n", "expected": ["Hello, Anya!", "Hello, world!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 4, 'r4-divmod', 8, 'rust', 'Частное и остаток', 'Напишите функцию divmod(a, b) -> (i32, i32): частное и остаток от деления a на b (b > 0, a ≥ 0).', 'fn divmod(a: i32, b: i32) -> (i32, i32) {
     todo!()
 }
@@ -873,17 +873,17 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'Сначала проверяйте деление на 15. Число в строку превращает n.to_string().', '{"driver": "fn main() {\n    for n in [1, 3, 5, 15, 7, 30, 98] {\n        println!(\"{}\", fizz(n));\n    }\n}\n", "expected": ["1", "Fizz", "Buzz", "FizzBuzz", "7", "FizzBuzz", "98"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 4, 'r4-bmi-class', 29, 'rust', 'Категория ИМТ', 'Напишите функцию category(bmi: f64) -> &''static str: «недостаток» при bmi < 18.5, «норма» при bmi < 25.0, «избыток» при bmi < 30.0, иначе «ожирение».', 'fn category(bmi: f64) -> &''static str {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 4, 'r4-bmi-class', 29, 'rust', 'Категория ИМТ', 'Напишите функцию category(bmi: f64) -> &''static str: «deficiency» при bmi < 18.5, «normal» при bmi < 25.0, «excess» при bmi < 30.0, иначе «obesity».', 'fn category(bmi: f64) -> &''static str {
     todo!()
 }
-', 'Строковые литералы — &''static str: возвращать их из ветвей можно сразу.', '{"driver": "fn main() {\n    for b in [17.0, 18.5, 22.9, 25.0, 29.9, 35.0] {\n        println!(\"{}\", category(b));\n    }\n}\n", "expected": ["недостаток", "норма", "норма", "избыток", "избыток", "ожирение"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-if-sign', 0, 'rust', 'Знак числа', 'n = -7. Напечатайте «минус», если n < 0, «ноль», если n == 0, иначе «плюс». Используйте if – else if – else.
+', 'Строковые литералы — &''static str: возвращать их из ветвей можно сразу.', '{"driver": "fn main() {\n    for b in [17.0, 18.5, 22.9, 25.0, 29.9, 35.0] {\n        println!(\"{}\", category(b));\n    }\n}\n", "expected": ["deficiency", "normal", "normal", "excess", "excess", "obesity"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-if-sign', 0, 'rust', 'Знак числа', 'n = -7. Напечатайте «minus», если n < 0, «zero», если n == 0, иначе «plus». Используйте if – else if – else.
 
 Ожидаемый вывод:
-минус', 'fn main() {
+minus', 'fn main() {
     // ваш код
 }
-', 'Три ветки: if n < 0, else if n == 0, else.', '{"driver": "", "expected": ["минус"], "standalone": true}');
+', 'Три ветки: if n < 0, else if n == 0, else.', '{"driver": "", "expected": ["minus"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-if-grade', 1, 'rust', 'Оценка по баллам', 'score = 78. Напечатайте оценку: «A» при score ≥ 90, «B» при ≥ 75, «C» при ≥ 60, иначе «D». Ожидается «B».
 
 Ожидаемый вывод:
@@ -891,13 +891,13 @@ B', 'fn main() {
     // ваш код
 }
 ', 'Проверяйте от высшего порога к низшему.', '{"driver": "", "expected": ["B"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-if-expr', 2, 'rust', 'if как выражение', 'Объявите x = 12. Запишите в let parity результат if-выражения: «чётное», если x % 2 == 0, иначе «нечётное». Напечатайте parity.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-if-expr', 2, 'rust', 'if как выражение', 'Объявите x = 12. Запишите в let parity результат if-выражения: «even», если x % 2 == 0, иначе «odd». Напечатайте parity.
 
 Ожидаемый вывод:
-чётное', 'fn main() {
+even', 'fn main() {
     // ваш код
 }
-', 'let parity = if … { "чётное" } else { "нечётное" };', '{"driver": "", "expected": ["чётное"], "standalone": true}');
+', 'let parity = if … { "even" } else { "odd" };', '{"driver": "", "expected": ["even"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-max-of-three', 3, 'rust', 'Максимум из трёх', 'Даны a = 17, b = 42, c = 29. Найдите наибольшее с помощью if и напечатайте «42».
 
 Ожидаемый вывод:
@@ -961,7 +961,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'println!("7 x {} = {}", i, 7 * i);', '{"driver": "", "expected": ["7 x 1 = 7", "7 x 2 = 14", "7 x 3 = 21", "7 x 4 = 28", "7 x 5 = 35", "7 x 6 = 42", "7 x 7 = 49", "7 x 8 = 56", "7 x 9 = 63", "7 x 10 = 70"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-countdown', 10, 'rust', 'Обратный отсчёт', 'Напечатайте числа от 5 до 1 по одному на строке, затем «Пуск!». Используйте rev() для диапазона.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-countdown', 10, 'rust', 'Обратный отсчёт', 'Напечатайте числа от 5 до 1 по одному на строке, затем «Launch!». Используйте rev() для диапазона.
 
 Ожидаемый вывод:
 5
@@ -969,10 +969,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 3
 2
 1
-Пуск!', 'fn main() {
+Launch!', 'fn main() {
     // ваш код
 }
-', 'for i in (1..=5).rev() { … }', '{"driver": "", "expected": ["5", "4", "3", "2", "1", "Пуск!"], "standalone": true}');
+', 'for i in (1..=5).rev() { … }', '{"driver": "", "expected": ["5", "4", "3", "2", "1", "Launch!"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-step-by', 11, 'rust', 'Шаг три', 'Напечатайте через пробел числа 0, 3, 6, …, 30 (метод step_by(3) у диапазона 0..=30) и перевод строки.
 
 Ожидаемый вывод:
@@ -1043,13 +1043,13 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'Проверяйте остаток n % d для d от 1 до n.', '{"driver": "", "expected": ["24"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-is-prime', 18, 'rust', 'Простое ли 97', 'Проверьте, простое ли число 97 (делится только на 1 и на себя): переберите d от 2 до n−1 и найдите делитель. Напечатайте «простое» или «составное».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-is-prime', 18, 'rust', 'Простое ли 97', 'Проверьте, простое ли число 97 (делится только на 1 и на себя): переберите d от 2 до n−1 и найдите делитель. Напечатайте «prime» или «composite».
 
 Ожидаемый вывод:
-простое', 'fn main() {
+prime', 'fn main() {
     // ваш код
 }
-', 'Флаг prime = true; при нахождении делителя ставьте false и выходите break.', '{"driver": "", "expected": ["простое"], "standalone": true}');
+', 'Флаг prime = true; при нахождении делителя ставьте false и выходите break.', '{"driver": "", "expected": ["prime"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-primes-30', 19, 'rust', 'Простые до 30', 'Напечатайте все простые числа от 2 до 30 через пробел: «2 3 5 7 11 13 17 19 23 29». Внутри внешнего цикла проверяйте делимость вложенным циклом.
 
 Ожидаемый вывод:
@@ -1107,20 +1107,20 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', '''outer: for … и break ''outer;', '{"driver": "", "expected": ["7 13"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-match-number', 26, 'rust', 'match по числу', 'Для n = 3 с помощью match напечатайте: «один» для 1, «два» для 2, «три» для 3, иначе «много».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-match-number', 26, 'rust', 'match по числу', 'Для n = 3 с помощью match напечатайте: «one» для 1, «two» для 2, «three» для 3, иначе «many».
 
 Ожидаемый вывод:
-три', 'fn main() {
+three', 'fn main() {
     // ваш код
 }
-', 'match n { 1 => "один", …, _ => "много" }', '{"driver": "", "expected": ["три"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-match-range', 27, 'rust', 'match и диапазоны', 'Для возраста age = 34 с помощью match напечатайте категорию: 0..=12 — «ребёнок», 13..=17 — «подросток», 18..=64 — «взрослый», иначе «пожилой».
+', 'match n { 1 => "one", …, _ => "many" }', '{"driver": "", "expected": ["three"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-match-range', 27, 'rust', 'match и диапазоны', 'Для возраста age = 34 с помощью match напечатайте категорию: 0..=12 — «child», 13..=17 — «teenager», 18..=64 — «adult», иначе «senior».
 
 Ожидаемый вывод:
-взрослый', 'fn main() {
+adult', 'fn main() {
     // ваш код
 }
-', 'Образец-диапазон: 0..=12 =>', '{"driver": "", "expected": ["взрослый"], "standalone": true}');
+', 'Образец-диапазон: 0..=12 =>', '{"driver": "", "expected": ["adult"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-fix-off-by-one', 28, 'rust', 'Исправьте: потерялась последняя цифра', 'Программа должна напечатать сумму 1 + 2 + … + 10 = 55, но печатает 45. Исправьте диапазон.
 
 Ожидаемый вывод:
@@ -1132,16 +1132,16 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     println!("{}", s);
 }
 ', 'Включите правую границу: 1..=10.', '{"driver": "", "expected": ["55"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-fix-condition', 29, 'rust', 'Исправьте: условие не bool', 'Программа не собирается: в if стоит присваивание вместо сравнения. Исправьте, чтобы напечатать «пять».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 5, 'r5-fix-condition', 29, 'rust', 'Исправьте: условие не bool', 'Программа не собирается: в if стоит присваивание вместо сравнения. Исправьте, чтобы напечатать «five».
 
 Ожидаемый вывод:
-пять', 'fn main() {
+five', 'fn main() {
     let x = 5;
     if x = 5 {
-        println!("пять");
+        println!("five");
     }
 }
-', 'Сравнение — два знака равно: x == 5.', '{"driver": "", "expected": ["пять"], "standalone": true}');
+', 'Сравнение — два знака равно: x == 5.', '{"driver": "", "expected": ["five"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-literal', 0, 'rust', 'Литерал и длина', 'Объявите s = "Привет, мир!" и напечатайте две строки: саму строку, затем «bytes=…» и «chars=…» в одной строке: «bytes=21 chars=12».
 
 Ожидаемый вывод:
@@ -1150,34 +1150,34 @@ bytes=21 chars=12', 'fn main() {
     // ваш код
 }
 ', 'len() — байты, chars().count() — символы.', '{"driver": "", "expected": ["Привет, мир!", "bytes=21 chars=12"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-string-new', 1, 'rust', 'Строим String', 'Создайте пустую изменяемую String, допишите push_str("Rust"), push('' ''), push_str("любит"), push('' ''), push_str("тебя") и напечатайте «Rust любит тебя».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-string-new', 1, 'rust', 'Строим String', 'Создайте пустую изменяемую String, допишите push_str("Rust"), push('' ''), push_str("loves"), push('' ''), push_str("you") и напечатайте «Rust loves you».
 
 Ожидаемый вывод:
-Rust любит тебя', 'fn main() {
+Rust loves you', 'fn main() {
     // ваш код
 }
-', 'push принимает символ в одинарных кавычках, push_str — строку.', '{"driver": "", "expected": ["Rust любит тебя"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-concat-plus', 2, 'rust', 'Склейка плюсом', 'Склейте String a = «раз» и &str «два» оператором +, затем добавьте «три» и напечатайте «раздватри». Левый операнд плюса — String.
+', 'push принимает символ в одинарных кавычках, push_str — строку.', '{"driver": "", "expected": ["Rust loves you"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-concat-plus', 2, 'rust', 'Склейка плюсом', 'Склейте String a = «one» и &str «two» оператором +, затем добавьте «three» и напечатайте «onetwothree». Левый операнд плюса — String.
 
 Ожидаемый вывод:
-раздватри', 'fn main() {
+onetwothree', 'fn main() {
     // ваш код
 }
-', 'Слева String, справа &str.', '{"driver": "", "expected": ["раздватри"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-format', 3, 'rust', 'format!', 'name = "Аня", age = 30. С помощью format! соберите в переменную строку «Аня, 30 лет» и напечатайте её.
+', 'Слева String, справа &str.', '{"driver": "", "expected": ["onetwothree"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-format', 3, 'rust', 'format!', 'name = "Anya", age = 30. С помощью format! соберите в переменную строку «Anya, 30 years» и напечатайте её.
 
 Ожидаемый вывод:
-Аня, 30 лет', 'fn main() {
+Anya, 30 years', 'fn main() {
     // ваш код
 }
-', 'format!("{}, {} лет", name, age)', '{"driver": "", "expected": ["Аня, 30 лет"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-join', 4, 'rust', 'join', 'Склейте слова ["сыр", "хлеб", "молоко"] методом join с разделителем ", " и напечатайте «сыр, хлеб, молоко».
+', 'format!("{}, {} years", name, age)', '{"driver": "", "expected": ["Anya, 30 years"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-join', 4, 'rust', 'join', 'Склейте слова ["cheese", "bread", "milk"] методом join с разделителем ", " и напечатайте «cheese, bread, milk».
 
 Ожидаемый вывод:
-сыр, хлеб, молоко', 'fn main() {
+cheese, bread, milk', 'fn main() {
     // ваш код
 }
-', 'words.join(", ")', '{"driver": "", "expected": ["сыр, хлеб, молоко"], "standalone": true}');
+', 'words.join(", ")', '{"driver": "", "expected": ["cheese, bread, milk"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-repeat', 5, 'rust', 'Повторение', 'Напечатайте строку из 20 тире «--------------------» методом repeat, затем «Rust» и снова 20 тире.
 
 Ожидаемый вывод:
@@ -1187,22 +1187,22 @@ Rust
     // ваш код
 }
 ', '"-".repeat(20)', '{"driver": "", "expected": ["--------------------", "Rust", "--------------------"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-upper-lower', 6, 'rust', 'Регистр', 's = "Привет, Мир". Напечатайте s.to_uppercase() и s.to_lowercase() — две строки: «ПРИВЕТ, МИР» и «привет, мир».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-upper-lower', 6, 'rust', 'Регистр', 's = "Hello, World". Напечатайте s.to_uppercase() и s.to_lowercase() — две строки: «HELLO, WORLD» и «hello, world».
 
 Ожидаемый вывод:
-ПРИВЕТ, МИР
-привет, мир', 'fn main() {
+HELLO, WORLD
+hello, world', 'fn main() {
     // ваш код
 }
-', 'Методы возвращают новую строку.', '{"driver": "", "expected": ["ПРИВЕТ, МИР", "привет, мир"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-trim-replace', 7, 'rust', 'trim и replace', 's = "   много   пробелов   ". Напечатайте trim, а затем replace("много", "мало") у обрезанной строки: «много   пробелов» и «мало   пробелов».
+', 'Методы возвращают новую строку.', '{"driver": "", "expected": ["HELLO, WORLD", "hello, world"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-trim-replace', 7, 'rust', 'trim и replace', 's = "   many   spaces   ". Напечатайте trim, а затем replace("many", "few") у обрезанной строки: «many   spaces» и «few   spaces».
 
 Ожидаемый вывод:
-много   пробелов
-мало   пробелов', 'fn main() {
+many   spaces
+few   spaces', 'fn main() {
     // ваш код
 }
-', 'trim убирает пробелы только по краям.', '{"driver": "", "expected": ["много   пробелов", "мало   пробелов"], "standalone": true}');
+', 'trim убирает пробелы только по краям.', '{"driver": "", "expected": ["many   spaces", "few   spaces"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-contains', 8, 'rust', 'Поиск подстроки', 'text = "Rust — язык системного программирования". Напечатайте три строки: contains("язык"), starts_with("Rust"), ends_with("Go") → true, true, false.
 
 Ожидаемый вывод:
@@ -1220,16 +1220,16 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'find возвращает Option<usize>; unwrap достаёт значение.', '{"driver": "", "expected": ["4", "6"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-chars-loop', 10, 'rust', 'Перебор символов', 'Для строки "раст" напечатайте каждый символ на отдельной строке циклом for по chars().
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-chars-loop', 10, 'rust', 'Перебор символов', 'Для строки "rust" напечатайте каждый символ на отдельной строке циклом for по chars().
 
 Ожидаемый вывод:
-р
-а
-с
-т', 'fn main() {
+r
+a
+s
+t', 'fn main() {
     // ваш код
 }
-', 'for c in "раст".chars() { … }', '{"driver": "", "expected": ["р", "а", "с", "т"], "standalone": true}');
+', 'for c in "rust".chars() { … }', '{"driver": "", "expected": ["r", "a", "s", "t"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-count-vowels', 11, 'rust', 'Гласные', 'В строке "Программирование на Rust" посчитайте русские гласные «аеёиоуыэюя» (регистр не важен: сначала в нижний). Напечатайте «8».
 
 Ожидаемый вывод:
@@ -1237,13 +1237,13 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', '"…".contains(c) умеет искать символ.', '{"driver": "", "expected": ["8"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-reverse', 12, 'rust', 'Развернуть строку', 'Разверните строку "привет" методами chars().rev().collect::<String>() и напечатайте «тевирп».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-reverse', 12, 'rust', 'Развернуть строку', 'Разверните строку "hello" методами chars().rev().collect::<String>() и напечатайте «olleh».
 
 Ожидаемый вывод:
-тевирп', 'fn main() {
+olleh', 'fn main() {
     // ваш код
 }
-', 'chars().rev() и collect в String.', '{"driver": "", "expected": ["тевирп"], "standalone": true}');
+', 'chars().rev() и collect в String.', '{"driver": "", "expected": ["olleh"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-palindrome', 13, 'rust', 'Палиндром', 'Проверьте, является ли «А роза упала на лапу Азора» палиндромом, игнорируя пробелы и регистр. Напечатайте «true».
 
 Ожидаемый вывод:
@@ -1265,15 +1265,15 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'part.trim().parse::<i32>().unwrap()', '{"driver": "", "expected": ["65"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-lines', 16, 'rust', 'Строки текста', 'text = "раз\nдва\nтри". Напечатайте каждую строку с номером в формате «1: раз», «2: два», «3: три» (lines и enumerate).
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-lines', 16, 'rust', 'Строки текста', 'text = "one\ntwo\nthree". Напечатайте каждую строку с номером в формате «1: one», «2: two», «3: three» (lines и enumerate).
 
 Ожидаемый вывод:
-1: раз
-2: два
-3: три', 'fn main() {
+1: one
+2: two
+3: three', 'fn main() {
     // ваш код
 }
-', 'enumerate даёт пары (номер, значение); номер с нуля.', '{"driver": "", "expected": ["1: раз", "2: два", "3: три"], "standalone": true}');
+', 'enumerate даёт пары (номер, значение); номер с нуля.', '{"driver": "", "expected": ["1: one", "2: two", "3: three"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-slice', 17, 'rust', 'Срез строки', 'text = "Hello, Rust!". Напечатайте срезы: &text[0..5], &text[7..11] и &text[7..] — «Hello», «Rust» и «Rust!».
 
 Ожидаемый вывод:
@@ -1283,14 +1283,14 @@ Rust!', 'fn main() {
     // ваш код
 }
 ', 'Для ASCII-строки байты совпадают с символами.', '{"driver": "", "expected": ["Hello", "Rust", "Rust!"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-nth-char', 18, 'rust', 'n-й символ', 's = "привет". Напечатайте третий символ (индекс 2, через chars().nth(2)) и последний (chars().last()). Ожидается «и» и «т». Оба — Option, воспользуйтесь unwrap.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-nth-char', 18, 'rust', 'n-й символ', 's = "hello". Напечатайте третий символ (индекс 2, через chars().nth(2)) и последний (chars().last()). Ожидается «l» и «o». Оба — Option, воспользуйтесь unwrap.
 
 Ожидаемый вывод:
-и
-т', 'fn main() {
+l
+o', 'fn main() {
     // ваш код
 }
-', 'nth(n) возвращает Option<char>.', '{"driver": "", "expected": ["и", "т"], "standalone": true}');
+', 'nth(n) возвращает Option<char>.', '{"driver": "", "expected": ["l", "o"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-char-indices', 19, 'rust', 'Позиции символов', 'Для строки "аб" напечатайте пары «позиция символ» методом char_indices: «0 а» и «2 б» (русская буква — 2 байта).
 
 Ожидаемый вывод:
@@ -1325,14 +1325,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', '{:03} и {:#06x}', '{"driver": "", "expected": ["007", "0x00ff"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-debug-format', 23, 'rust', 'Отладочный формат', 'Напечатайте строку "привет\n" через {:?} (в кавычках и с экранированием: «"привет\n"») и кортеж (1, "a", 2.5) через {:?}: «(1, "a", 2.5)».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-debug-format', 23, 'rust', 'Отладочный формат', 'Напечатайте строку "hello\n" через {:?} (в кавычках и с экранированием: «"hello\n"») и кортеж (1, "a", 2.5) через {:?}: «(1, "a", 2.5)».
 
 Ожидаемый вывод:
-"привет\n"
+"hello\n"
 (1, "a", 2.5)', 'fn main() {
     // ваш код
 }
-', '{:?} — отладочное представление.', '{"driver": "", "expected": ["\"привет\\n\"", "(1, \"a\", 2.5)"], "standalone": true}');
+', '{:?} — отладочное представление.', '{"driver": "", "expected": ["\"hello\\n\"", "(1, \"a\", 2.5)"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-compare', 24, 'rust', 'Сравнение строк', 'Напечатайте: «apple» < «banana» (true), «Zebra» < «apple» (true, заглавные раньше) и String::from("abc") == "abc" (true).
 
 Ожидаемый вывод:
@@ -1345,30 +1345,30 @@ true', 'fn main() {
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-fn-shout', 25, 'rust', 'Крик', 'Напишите функцию shout(s: &str) -> String: строка в верхнем регистре с тремя восклицательными знаками в конце.', 'fn shout(s: &str) -> String {
     todo!()
 }
-', 'format!("{}!!!", s.to_uppercase())', '{"driver": "fn main() {\n    println!(\"{}\", shout(\"привет\"));\n    println!(\"{}\", shout(\"Rust\"));\n}\n", "expected": ["ПРИВЕТ!!!", "RUST!!!"]}');
+', 'format!("{}!!!", s.to_uppercase())', '{"driver": "fn main() {\n    println!(\"{}\", shout(\"hello\"));\n    println!(\"{}\", shout(\"Rust\"));\n}\n", "expected": ["HELLO!!!", "RUST!!!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-fn-count-char', 26, 'rust', 'Сколько раз встречается', 'Напишите функцию count_char(s: &str, ch: char) -> usize: сколько раз символ ch встречается в s.', 'fn count_char(s: &str, ch: char) -> usize {
     todo!()
 }
-', 'Цикл по chars и счётчик.', '{"driver": "fn main() {\n    println!(\"{}\", count_char(\"абракадабра\", ''а''));\n    println!(\"{}\", count_char(\"hello\", ''z''));\n    println!(\"{}\", count_char(\"\", ''a''));\n}\n", "expected": ["5", "0", "0"]}');
+', 'Цикл по chars и счётчик.', '{"driver": "fn main() {\n    println!(\"{}\", count_char(\"abracadabra\", ''a''));\n    println!(\"{}\", count_char(\"hello\", ''z''));\n    println!(\"{}\", count_char(\"\", ''a''));\n}\n", "expected": ["5", "0", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-fn-first-word', 27, 'rust', 'Первое слово', 'Напишите функцию first_word(s: &str) -> &str: первое слово строки (до первого пробела; если пробелов нет — вся строка).', 'fn first_word(s: &str) -> &str {
     todo!()
 }
-', 'find('' '') возвращает позицию пробела; срез &s[..i].', '{"driver": "fn main() {\n    println!(\"{}\", first_word(\"hello world\"));\n    println!(\"{}\", first_word(\"один\"));\n    println!(\"{}\", first_word(\"привет мир\"));\n}\n", "expected": ["hello", "один", "привет"]}');
+', 'find('' '') возвращает позицию пробела; срез &s[..i].', '{"driver": "fn main() {\n    println!(\"{}\", first_word(\"hello world\"));\n    println!(\"{}\", first_word(\"one\"));\n    println!(\"{}\", first_word(\"good morning\"));\n}\n", "expected": ["hello", "one", "good"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-fn-capitalize', 28, 'rust', 'Заглавная первая буква', 'Напишите функцию capitalize(s: &str) -> String: первая буква заглавная, остальные без изменений (пустая строка — пустая).', 'fn capitalize(s: &str) -> String {
     todo!()
 }
-', 'chars().next() даёт первую букву, остаток — chars.as_str().', '{"driver": "fn main() {\n    println!(\"{}\", capitalize(\"привет\"));\n    println!(\"{}\", capitalize(\"rust\"));\n    println!(\"[{}]\", capitalize(\"\"));\n}\n", "expected": ["Привет", "Rust", "[]"]}');
+', 'chars().next() даёт первую букву, остаток — chars.as_str().', '{"driver": "fn main() {\n    println!(\"{}\", capitalize(\"hello\"));\n    println!(\"{}\", capitalize(\"rust\"));\n    println!(\"[{}]\", capitalize(\"\"));\n}\n", "expected": ["Hello", "Rust", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 6, 'r6-fn-caesar', 29, 'rust', 'Шифр Цезаря', 'Напишите функцию caesar(s: &str, shift: u8) -> String для латиницы a–z: каждую строчную букву сдвиньте на shift вперёд по кругу (z → a), остальные символы не меняйте.', 'fn caesar(s: &str, shift: u8) -> String {
     todo!()
 }
 ', 'Номер буквы: c as u8 - b''a''; сдвиг по модулю 26; обратно + b''a''.', '{"driver": "fn main() {\n    println!(\"{}\", caesar(\"hello, world\", 3));\n    println!(\"{}\", caesar(\"xyz\", 3));\n    println!(\"{}\", caesar(\"abc\", 0));\n}\n", "expected": ["khoor, zruog", "abc", "abc"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 7, 'r7-tuple-basic', 0, 'rust', 'Кортеж из трёх', 'Создайте кортеж person = ("Аня", 30, 1.68). Напечатайте его элементы по номеру через пробел: «Аня 30 1.68».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 7, 'r7-tuple-basic', 0, 'rust', 'Кортеж из трёх', 'Создайте кортеж person = ("Anya", 30, 1.68). Напечатайте его элементы по номеру через пробел: «Anya 30 1.68».
 
 Ожидаемый вывод:
 Аня 30 1.68', 'fn main() {
     // ваш код
 }
-', 'Доступ к элементам: person.0, person.1, person.2.', '{"driver": "", "expected": ["Аня 30 1.68"], "standalone": true}');
+', 'Доступ к элементам: person.0, person.1, person.2.', '{"driver": "", "expected": ["Anya 30 1.68"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 7, 'r7-tuple-destructure', 1, 'rust', 'Разбор кортежа', 'Разберите кортеж (10, 20, 30) на переменные a, b, c одним let и напечатайте их сумму «60».
 
 Ожидаемый вывод:
@@ -1376,13 +1376,13 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     // ваш код
 }
 ', 'let (a, b, c) = (…);', '{"driver": "", "expected": ["60"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 7, 'r7-tuple-debug', 2, 'rust', 'Печать кортежа', 'Напечатайте кортеж (1, "два", 3.0) в отладочном формате {:?}: «(1, "два", 3.0)».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 7, 'r7-tuple-debug', 2, 'rust', 'Печать кортежа', 'Напечатайте кортеж (1, "two", 3.0) в отладочном формате {:?}: «(1, "two", 3.0)».
 
 Ожидаемый вывод:
-(1, "два", 3.0)', 'fn main() {
+(1, "two", 3.0)', 'fn main() {
     // ваш код
 }
-', 'Кортеж нельзя печатать через {} — нужен {:?}.', '{"driver": "", "expected": ["(1, \"два\", 3.0)"], "standalone": true}');
+', 'Кортеж нельзя печатать через {} — нужен {:?}.', '{"driver": "", "expected": ["(1, \"two\", 3.0)"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 7, 'r7-array-sum', 3, 'rust', 'Сумма массива', 'Объявите массив nums = [4, 8, 15, 16, 23, 42] и посчитайте сумму его элементов циклом for. Напечатайте «108».
 
 Ожидаемый вывод:
@@ -1596,20 +1596,20 @@ Book {
     // ваш код
 }
 ', '#[derive(Debug)] над структурой; поле-ссылка требует ''static: &''static str.', '{"driver": "", "expected": ["Book { title: \"Rust\", pages: 500 }", "Book {", "    title: \"Rust\",", "    pages: 500,", "}"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-struct-shorthand', 3, 'rust', 'Сокращённая инициализация', 'Напишите функцию make_user(name: &str, age: u32) -> User, где User { name: String, age: u32 }, используя сокращённую запись (name и age совпадают с полями; для name нужно name.to_string()). Напечатайте «Аня 30».
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-struct-shorthand', 3, 'rust', 'Сокращённая инициализация', 'Напишите функцию make_user(name: &str, age: u32) -> User, где User { name: String, age: u32 }, используя сокращённую запись (name и age совпадают с полями; для name нужно name.to_string()). Напечатайте «Anya 30».
 
 Ожидаемый вывод:
 Аня 30', 'fn main() {
     // ваш код
 }
-', 'let name = name.to_string(); затем User { name, age }.', '{"driver": "", "expected": ["Аня 30"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-struct-update', 4, 'rust', 'Обновление структуры', 'Config { width, height, title: &''static str }. Создайте base (800, 600, "окно"), затем big — копия с width = 1920 через ..base. Напечатайте «1920x600 окно».
+', 'let name = name.to_string(); затем User { name, age }.', '{"driver": "", "expected": ["Anya 30"], "standalone": true}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-struct-update', 4, 'rust', 'Обновление структуры', 'Config { width, height, title: &''static str }. Создайте base (800, 600, "window"), затем big — копия с width = 1920 через ..base. Напечатайте «1920x600 window».
 
 Ожидаемый вывод:
 1920x600 окно', 'fn main() {
     // ваш код
 }
-', 'Config { width: 1920, ..base }', '{"driver": "", "expected": ["1920x600 окно"], "standalone": true}');
+', 'Config { width: 1920, ..base }', '{"driver": "", "expected": ["1920x600 window"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-impl-area', 5, 'rust', 'Метод area', 'Для структуры Rect { w: u32, h: u32 } напишите методы area(&self) -> u32 (площадь) и perimeter(&self) -> u32 (периметр).', 'struct Rect {
     w: u32,
     h: u32,
@@ -1756,22 +1756,22 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'v.first() даёт Option<&i32>; unwrap_or(&default), затем звёздочка.', '{"driver": "fn main() {\n    println!(\"{}\", first_or(&[4, 5], 0));\n    println!(\"{}\", first_or(&[], -1));\n}\n", "expected": ["4", "-1"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-option-match', 19, 'rust', 'match по Option', 'Напишите функцию describe(x: Option<i32>) -> String: «нет значения» для None, «ноль» для Some(0), «число N» (N — значение) иначе.', 'fn describe(x: Option<i32>) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-option-match', 19, 'rust', 'match по Option', 'Напишите функцию describe(x: Option<i32>) -> String: «no value» для None, «zero» для Some(0), «number N» (N — значение) иначе.', 'fn describe(x: Option<i32>) -> String {
     todo!()
 }
-', 'Образец Some(0) — до общего Some(n).', '{"driver": "fn main() {\n    println!(\"{}\", describe(None));\n    println!(\"{}\", describe(Some(0)));\n    println!(\"{}\", describe(Some(42)));\n}\n", "expected": ["нет значения", "ноль", "число 42"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-if-let', 20, 'rust', 'if let', 'Напишите функцию print_first(v: &[&str]): если срез не пуст — печатает «первый: …», иначе «пусто». Используйте if let Some(x) = v.first().', 'fn print_first(v: &[&str]) {
+', 'Образец Some(0) — до общего Some(n).', '{"driver": "fn main() {\n    println!(\"{}\", describe(None));\n    println!(\"{}\", describe(Some(0)));\n    println!(\"{}\", describe(Some(42)));\n}\n", "expected": ["no value", "zero", "number 42"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-if-let', 20, 'rust', 'if let', 'Напишите функцию print_first(v: &[&str]): если срез не пуст — печатает «first: …», иначе «empty». Используйте if let Some(x) = v.first().', 'fn print_first(v: &[&str]) {
     todo!()
 }
-', 'if let Some(x) = … { } else { }', '{"driver": "fn main() {\n    print_first(&[\"a\", \"b\"]);\n    print_first(&[]);\n}\n", "expected": ["первый: a", "пусто"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-result-parse', 21, 'rust', 'Result из parse', 'Напишите функцию to_num(s: &str) -> Result<i32, String>: Ok(число), если строка — целое, иначе Err("не число: <s>").', 'fn to_num(s: &str) -> Result<i32, String> {
+', 'if let Some(x) = … { } else { }', '{"driver": "fn main() {\n    print_first(&[\"a\", \"b\"]);\n    print_first(&[]);\n}\n", "expected": ["first: a", "empty"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-result-parse', 21, 'rust', 'Result из parse', 'Напишите функцию to_num(s: &str) -> Result<i32, String>: Ok(число), если строка — целое, иначе Err("not a number: <s>").', 'fn to_num(s: &str) -> Result<i32, String> {
     todo!()
 }
-', 'match s.parse::<i32>() { Ok(n) => …, Err(_) => … }', '{"driver": "fn main() {\n    println!(\"{:?}\", to_num(\"42\"));\n    println!(\"{:?}\", to_num(\"abc\"));\n    println!(\"{:?}\", to_num(\"-7\"));\n}\n", "expected": ["Ok(42)", "Err(\"не число: abc\")", "Ok(-7)"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-result-div', 22, 'rust', 'Деление с ошибкой', 'Напишите функцию divide(a: f64, b: f64) -> Result<f64, String>: Err("деление на ноль"), если b == 0.0, иначе Ok(частное).', 'fn divide(a: f64, b: f64) -> Result<f64, String> {
+', 'match s.parse::<i32>() { Ok(n) => …, Err(_) => … }', '{"driver": "fn main() {\n    println!(\"{:?}\", to_num(\"42\"));\n    println!(\"{:?}\", to_num(\"abc\"));\n    println!(\"{:?}\", to_num(\"-7\"));\n}\n", "expected": ["Ok(42)", "Err(\"not a number: abc\")", "Ok(-7)"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-result-div', 22, 'rust', 'Деление с ошибкой', 'Напишите функцию divide(a: f64, b: f64) -> Result<f64, String>: Err("division by zero"), если b == 0.0, иначе Ok(частное).', 'fn divide(a: f64, b: f64) -> Result<f64, String> {
     todo!()
 }
-', 'Err(String::from("…")) и Ok(a / b)', '{"driver": "fn main() {\n    println!(\"{:?}\", divide(1.0, 4.0));\n    println!(\"{:?}\", divide(5.0, 0.0));\n}\n", "expected": ["Ok(0.25)", "Err(\"деление на ноль\")"]}');
+', 'Err(String::from("…")) и Ok(a / b)', '{"driver": "fn main() {\n    println!(\"{:?}\", divide(1.0, 4.0));\n    println!(\"{:?}\", divide(5.0, 0.0));\n}\n", "expected": ["Ok(0.25)", "Err(\"division by zero\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-struct-vec', 23, 'rust', 'Вектор структур', 'Структура Student { name: String, grade: u32 }. Напишите функцию best(students: &[Student]) -> &str: имя студента с максимальной оценкой (первого из лучших). Список не пуст.', 'struct Student {
     name: String,
     grade: u32,
@@ -1780,7 +1780,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn best(students: &[Student]) -> &str {
     todo!()
 }
-', 'Храните ссылку top на лучшего студента.', '{"driver": "fn main() {\n    let list = vec![\n        Student { name: String::from(\"Аня\"), grade: 4 },\n        Student { name: String::from(\"Боря\"), grade: 5 },\n        Student { name: String::from(\"Вера\"), grade: 5 },\n    ];\n    println!(\"{}\", best(&list));\n}\n", "expected": ["Боря"]}');
+', 'Храните ссылку top на лучшего студента.', '{"driver": "fn main() {\n    let list = vec![\n        Student { name: String::from(\"Anya\"), grade: 4 },\n        Student { name: String::from(\"Borya\"), grade: 5 },\n        Student { name: String::from(\"Vera\"), grade: 5 },\n    ];\n    println!(\"{}\", best(&list));\n}\n", "expected": ["Borya"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-inventory', 24, 'rust', 'Склад', 'Структура Item { name: String, qty: u32 }. Функция total(items: &[Item]) -> u32 — суммарное количество, и функция find_qty(items: &[Item], name: &str) -> Option<u32>.', 'struct Item {
     name: String,
     qty: u32,
@@ -1793,7 +1793,7 @@ fn total(items: &[Item]) -> u32 {
 fn find_qty(items: &[Item], name: &str) -> Option<u32> {
     todo!()
 }
-', 'it.name == name — сравнение String и &str работает.', '{"driver": "fn main() {\n    let items = vec![\n        Item { name: String::from(\"гвозди\"), qty: 120 },\n        Item { name: String::from(\"болты\"), qty: 45 },\n    ];\n    println!(\"{}\", total(&items));\n    println!(\"{:?}\", find_qty(&items, \"болты\"));\n    println!(\"{:?}\", find_qty(&items, \"гайки\"));\n}\n", "expected": ["165", "Some(45)", "None"]}');
+', 'it.name == name — сравнение String и &str работает.', '{"driver": "fn main() {\n    let items = vec![\n        Item { name: String::from(\"nails\"), qty: 120 },\n        Item { name: String::from(\"bolts\"), qty: 45 },\n    ];\n    println!(\"{}\", total(&items));\n    println!(\"{:?}\", find_qty(&items, \"bolts\"));\n    println!(\"{:?}\", find_qty(&items, \"nuts\"));\n}\n", "expected": ["165", "Some(45)", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-traffic-fsm', 25, 'rust', 'Автомат статусов заказа', 'Enum Status { New, Paid, Shipped, Done }. Метод advance(&self) -> Status переводит в следующий статус (Done остаётся Done), а is_final(&self) -> bool истинен только для Done. Derive(Debug).', '#[derive(Debug)]
 enum Status {
     New,
@@ -1824,7 +1824,7 @@ fn main() {
     println!("{}", s.n);
 }
 ', 'Добавьте mut к переменной s.', '{"driver": "", "expected": ["11"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-fix-missing-variant', 27, 'rust', 'Исправьте: match без всех вариантов', 'match не покрывает вариант Blue. Допишите ветку так, чтобы вывод был «синий» для Color::Blue.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-fix-missing-variant', 27, 'rust', 'Исправьте: match без всех вариантов', 'match не покрывает вариант Blue. Допишите ветку так, чтобы вывод был «blue» для Color::Blue.
 
 Ожидаемый вывод:
 синий', 'enum Color {
@@ -1835,15 +1835,15 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 fn name(c: Color) -> &''static str {
     match c {
-        Color::Red => "красный",
-        Color::Green => "зелёный",
+        Color::Red => "red",
+        Color::Green => "green",
     }
 }
 
 fn main() {
     println!("{}", name(Color::Blue));
 }
-', 'Добавьте Color::Blue => "синий",', '{"driver": "", "expected": ["синий"], "standalone": true}');
+', 'Добавьте Color::Blue => "blue",', '{"driver": "", "expected": ["blue"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-fix-self', 28, 'rust', 'Исправьте: метод без &mut self', 'Метод inc должен менять поле, но объявлен с &self. Исправьте сигнатуру; результат «2».
 
 Ожидаемый вывод:
@@ -1863,7 +1863,7 @@ fn main() {
     println!("{}", c.n);
 }
 ', 'Замените &self на &mut self.', '{"driver": "", "expected": ["2"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-vec-of-enum', 29, 'rust', 'Список покупок', 'Enum Item { Apple(u32), Milk(f64) } (число яблок и литры молока). Функция describe(items: &[Item]) -> String: для каждого элемента «N яблок» или «X л молока», через «; ».', 'enum Item {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 8, 'r8-vec-of-enum', 29, 'rust', 'Список покупок', 'Enum Item { Apple(u32), Milk(f64) } (число яблок и литры молока). Функция describe(items: &[Item]) -> String: для каждого элемента «N apples» или «X l of milk», через «; ».', 'enum Item {
     Apple(u32),
     Milk(f64),
 }
@@ -1871,7 +1871,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn describe(items: &[Item]) -> String {
     todo!()
 }
-', 'Соберите строки в Vec<String> и склейте join("; ").', '{"driver": "fn main() {\n    println!(\"{}\", describe(&[Item::Apple(3), Item::Milk(1.5)]));\n    println!(\"{}\", describe(&[]));\n    println!(\"{}\", describe(&[Item::Milk(2.0)]));\n}\n", "expected": ["3 яблок; 1.5 л молока", "", "2 л молока"]}');
+', 'Соберите строки в Vec<String> и склейте join("; ").', '{"driver": "fn main() {\n    println!(\"{}\", describe(&[Item::Apple(3), Item::Milk(1.5)]));\n    println!(\"{}\", describe(&[]));\n    println!(\"{}\", describe(&[Item::Milk(2.0)]));\n}\n", "expected": ["3 apples; 1.5 l of milk", "", "2 l of milk"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 9, 'r9-shadowing', 0, 'rust', 'Затенение: смена типа под тем же именем', 'Напишите fn double_text(input: &str) -> i32: обрежьте пробелы по краям (trim), разберите число (parse) и верните его, умноженное на 2. Используйте затенение: три раза let input = ... с одним именем, тип меняется с &str на i32. Ввод всегда корректен (можно unwrap).', 'fn double_text(input: &str) -> i32 {
     todo!()
 }
@@ -2022,14 +2022,14 @@ hello 5 5
     // ваш код
 }
 ', 'len() — байты, chars().count() — символы.', '{"driver": "", "expected": ["привет 12 6", "hello 5 5", "日本語 9 3", "😀 4 1"], "standalone": true}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 9, 'r9-copy-vs-clone', 27, 'rust', 'Копия строки', 'Создайте a = String::from("раст"), клон b = a.clone(), допишите к b строку "!" и напечатайте обе: «раст» и «раст!». В Python для этого пришлось бы вызывать copy.
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 9, 'r9-copy-vs-clone', 27, 'rust', 'Копия строки', 'Создайте a = String::from("rust"), клон b = a.clone(), допишите к b строку "!" и напечатайте обе: «rust» и «rust!». В Python для этого пришлось бы вызывать copy.
 
 Ожидаемый вывод:
 раст
 раст!', 'fn main() {
     // ваш код
 }
-', 'clone() делает полную копию, поэтому a остаётся цела.', '{"driver": "", "expected": ["раст", "раст!"], "standalone": true}');
+', 'clone() делает полную копию, поэтому a остаётся цела.', '{"driver": "", "expected": ["rust", "rust!"], "standalone": true}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 9, 'r9-bool-sum', 28, 'rust', 'bool — не число', 'В Python sum([True, False, True]) = 2. В Rust bool нельзя складывать. Посчитайте число true в векторе [true, false, true, true, false] двумя способами: фильтром (iter().filter(|b| **b).count()) и приведением (b as i32). Напечатайте две строки «3» и «3».
 
 Ожидаемый вывод:
@@ -2049,10 +2049,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'v.iter().sum() — сумма элементов.', '{"driver": "fn main() {\n    println!(\"{}\", total(&[1, 2, 3]));\n    println!(\"{}\", total(&[]));\n    println!(\"{}\", total(&vec![10, -4]));\n}\n", "expected": ["6", "0", "6"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-default-arg', 1, 'rust', 'Значение по умолчанию', 'Python: def hi(name="мир"): return f"Привет, {name}!". Напишите hi(name: Option<&str>) -> String, подставляя «мир» при None.', 'fn hi(name: Option<&str>) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-default-arg', 1, 'rust', 'Значение по умолчанию', 'Python: def hi(name="world"): return f"Hello, {name}!". Напишите hi(name: Option<&str>) -> String, подставляя «world» при None.', 'fn hi(name: Option<&str>) -> String {
     todo!()
 }
-', 'unwrap_or("мир") подставит значение по умолчанию.', '{"driver": "fn main() {\n    println!(\"{}\", hi(None));\n    println!(\"{}\", hi(Some(\"Аня\")));\n}\n", "expected": ["Привет, мир!", "Привет, Аня!"]}');
+', 'unwrap_or("world") подставит значение по умолчанию.', '{"driver": "fn main() {\n    println!(\"{}\", hi(None));\n    println!(\"{}\", hi(Some(\"Anya\")));\n}\n", "expected": ["Hello, world!", "Hello, Anya!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-floor-divmod', 2, 'rust', 'divmod как в Python', 'Python: divmod(-7, 2) == (-4, 1). Напишите py_divmod(a: i32, b: i32) -> (i32, i32) с питоновскими частным (округление вниз) и остатком (знак делителя), b ≠ 0.', 'fn py_divmod(a: i32, b: i32) -> (i32, i32) {
     todo!()
 }
@@ -2061,10 +2061,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'Две проверки через &&.', '{"driver": "fn main() {\n    println!(\"{}\", strictly_between(5, 1, 10));\n    println!(\"{}\", strictly_between(1, 1, 10));\n    println!(\"{}\", strictly_between(10, 1, 10));\n    println!(\"{}\", strictly_between(0, 1, 10));\n}\n", "expected": ["true", "false", "false", "false"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-elif-chain', 4, 'rust', 'elif → else if', 'Python: if/elif для категорий температуры. Напишите category(t: i32) -> &''static str: «мороз» при t < 0, «холодно» при t < 10, «тепло» при t < 25, иначе «жарко».', 'fn category(t: i32) -> &''static str {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-elif-chain', 4, 'rust', 'elif → else if', 'Python: if/elif для категорий температуры. Напишите category(t: i32) -> &''static str: «frost» при t < 0, «cold» при t < 10, «warm» при t < 25, иначе «hot».', 'fn category(t: i32) -> &''static str {
     todo!()
 }
-', 'Цепочка if / else if / else — одно выражение.', '{"driver": "fn main() {\n    for t in [-5, 0, 9, 10, 24, 25, 40] {\n        println!(\"{} {}\", t, category(t));\n    }\n}\n", "expected": ["-5 мороз", "0 холодно", "9 холодно", "10 тепло", "24 тепло", "25 жарко", "40 жарко"]}');
+', 'Цепочка if / else if / else — одно выражение.', '{"driver": "fn main() {\n    for t in [-5, 0, 9, 10, 24, 25, 40] {\n        println!(\"{} {}\", t, category(t));\n    }\n}\n", "expected": ["-5 frost", "0 cold", "9 cold", "10 warm", "24 warm", "25 hot", "40 hot"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-match-grade', 5, 'rust', 'match вместо if-цепочки', 'Напишите grade(score: u32) -> char через match с диапазонами: 90..=100 → ''A'', 80..=89 → ''B'', 70..=79 → ''C'', 60..=69 → ''D'', иначе ''F''.', 'fn grade(score: u32) -> char {
     todo!()
 }
@@ -2108,11 +2108,11 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-lens', 15, 'rust', 'Длины слов', 'Python: [len(w) for w in words]. Напишите lens(words: &[&str]) -> Vec<usize>: число символов (не байтов!) в каждом слове.', 'fn lens(words: &[&str]) -> Vec<usize> {
     todo!()
 }
-', 'chars().count() — символы.', '{"driver": "fn main() {\n    println!(\"{:?}\", lens(&[\"привет\", \"hi\", \"日本語\", \"\"]));\n}\n", "expected": ["[6, 2, 3, 0]"]}');
+', 'chars().count() — символы.', '{"driver": "fn main() {\n    println!(\"{:?}\", lens(&[\"résumé\", \"hi\", \"日本語\", \"\"]));\n}\n", "expected": ["[6, 2, 3, 0]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-longest', 16, 'rust', 'max с ключом', 'Python: max(words, key=len). Напишите longest<''a>(words: &[&''a str]) -> &''a str — самое длинное по числу символов слово (при равенстве — первое). Срез не пуст.', 'fn longest<''a>(words: &[&''a str]) -> &''a str {
     todo!()
 }
-', 'Сравнивайте количество символов.', '{"driver": "fn main() {\n    println!(\"{}\", longest(&[\"a\", \"ccc\", \"bb\", \"ddd\"]));\n    println!(\"{}\", longest(&[\"один\"]));\n    println!(\"{}\", longest(&[\"аб\", \"вг\", \"дежз\"]));\n}\n", "expected": ["ccc", "один", "дежз"]}');
+', 'Сравнивайте количество символов.', '{"driver": "fn main() {\n    println!(\"{}\", longest(&[\"a\", \"ccc\", \"bb\", \"ddd\"]));\n    println!(\"{}\", longest(&[\"one\"]));\n    println!(\"{}\", longest(&[\"ab\", \"cd\", \"efgh\"]));\n}\n", "expected": ["ccc", "one", "efgh"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-digits-sum', 17, 'rust', 'sum(map(int, str(n)))', 'Python: sum(int(c) for c in str(n)). Напишите digit_sum(n: u64) -> u32 через n.to_string() и chars().', 'fn digit_sum(n: u64) -> u32 {
     todo!()
 }
@@ -2132,15 +2132,15 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-enumerate-lines', 21, 'rust', 'enumerate с единицы', 'Python: for i, line in enumerate(lines, 1): print(f"{i}: {line}"). Напишите numbered(lines: &[&str]) -> Vec<String> строки вида «1: …».', 'fn numbered(lines: &[&str]) -> Vec<String> {
     todo!()
 }
-', 'enumerate даёт индекс с нуля — прибавьте 1.', '{"driver": "fn main() {\n    for l in numbered(&[\"раз\", \"два\", \"три\"]) {\n        println!(\"{}\", l);\n    }\n}\n", "expected": ["1: раз", "2: два", "3: три"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-try-except', 22, 'rust', 'try/except → Result', 'Python: int(s) в try/except. Напишите parse_age(s: &str) -> Result<u8, String>: Ok(возраст) для целых 0..=150, иначе Err("…"): «не число», если разбор не удался, и «вне диапазона» для чисел вне 0..=150.', 'fn parse_age(s: &str) -> Result<u8, String> {
+', 'enumerate даёт индекс с нуля — прибавьте 1.', '{"driver": "fn main() {\n    for l in numbered(&[\"one\", \"two\", \"three\"]) {\n        println!(\"{}\", l);\n    }\n}\n", "expected": ["1: one", "2: two", "3: three"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-try-except', 22, 'rust', 'try/except → Result', 'Python: int(s) в try/except. Напишите parse_age(s: &str) -> Result<u8, String>: Ok(возраст) для целых 0..=150, иначе Err("…"): «not a number», если разбор не удался, и «out of range» для чисел вне 0..=150.', 'fn parse_age(s: &str) -> Result<u8, String> {
     todo!()
 }
-', 'match s.parse() с ранним return Err(…).', '{"driver": "fn main() {\n    for s in [\"30\", \" 7 \", \"abc\", \"200\", \"-1\", \"150\"] {\n        println!(\"{:?}\", parse_age(s));\n    }\n}\n", "expected": ["Ok(30)", "Ok(7)", "Err(\"не число\")", "Err(\"вне диапазона\")", "Err(\"вне диапазона\")", "Ok(150)"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-raise', 23, 'rust', 'raise → Err', 'Python: def sqrt(x): if x < 0: raise ValueError. Напишите safe_sqrt(x: f64) -> Result<f64, String>: Err("отрицательное"), если x < 0, иначе Ok(√x).', 'fn safe_sqrt(x: f64) -> Result<f64, String> {
+', 'match s.parse() с ранним return Err(…).', '{"driver": "fn main() {\n    for s in [\"30\", \" 7 \", \"abc\", \"200\", \"-1\", \"150\"] {\n        println!(\"{:?}\", parse_age(s));\n    }\n}\n", "expected": ["Ok(30)", "Ok(7)", "Err(\"not a number\")", "Err(\"out of range\")", "Err(\"out of range\")", "Ok(150)"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-raise', 23, 'rust', 'raise → Err', 'Python: def sqrt(x): if x < 0: raise ValueError. Напишите safe_sqrt(x: f64) -> Result<f64, String>: Err("negative"), если x < 0, иначе Ok(√x).', 'fn safe_sqrt(x: f64) -> Result<f64, String> {
     todo!()
 }
-', 'Err(String::from("…")) и Ok(x.sqrt()).', '{"driver": "fn main() {\n    println!(\"{:?}\", safe_sqrt(16.0));\n    println!(\"{:?}\", safe_sqrt(-1.0));\n    println!(\"{:?}\", safe_sqrt(0.0));\n}\n", "expected": ["Ok(4.0)", "Err(\"отрицательное\")", "Ok(0.0)"]}');
+', 'Err(String::from("…")) и Ok(x.sqrt()).', '{"driver": "fn main() {\n    println!(\"{:?}\", safe_sqrt(16.0));\n    println!(\"{:?}\", safe_sqrt(-1.0));\n    println!(\"{:?}\", safe_sqrt(0.0));\n}\n", "expected": ["Ok(4.0)", "Err(\"negative\")", "Ok(0.0)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-question-mark', 24, 'rust', 'Оператор ?', 'Напишите sum_two(a: &str, b: &str) -> Result<i32, std::num::ParseIntError>: разберите обе строки и верните сумму. Используйте оператор ? вместо match.', 'fn sum_two(a: &str, b: &str) -> Result<i32, std::num::ParseIntError> {
     todo!()
 }
@@ -2152,12 +2152,12 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-password', 26, 'rust', 'Проверка пароля', 'Напишите is_valid(s: &str) -> bool: длина не меньше 8 символов, есть хотя бы одна цифра и хотя бы одна заглавная буква. Используйте ранние return.', 'fn is_valid(s: &str) -> bool {
     todo!()
 }
-', 'Три проверки: длина, цифра, заглавная.', '{"driver": "fn main() {\n    for p in [\"abc\", \"abcdefgh\", \"abcdefg1\", \"Abcdefg1\", \"Пароль123\", \"пароль123\"] {\n        println!(\"{} {}\", p, is_valid(p));\n    }\n}\n", "expected": ["abc false", "abcdefgh false", "abcdefg1 false", "Abcdefg1 true", "Пароль123 true", "пароль123 false"]}');
+', 'Три проверки: длина, цифра, заглавная.', '{"driver": "fn main() {\n    for p in [\"abc\", \"abcdefgh\", \"abcdefg1\", \"Abcdefg1\", \"Password123\", \"password123\"] {\n        println!(\"{} {}\", p, is_valid(p));\n    }\n}\n", "expected": ["abc false", "abcdefgh false", "abcdefg1 false", "Abcdefg1 true", "Password123 true", "password123 false"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-clamp-all', 27, 'rust', 'Зажать все', 'Python: [max(lo, min(hi, x)) for x in v]. Напишите clamp_all(v: &[i32], lo: i32, hi: i32) -> Vec<i32>.', 'fn clamp_all(v: &[i32], lo: i32, hi: i32) -> Vec<i32> {
     todo!()
 }
 ', 'x.max(lo).min(hi)', '{"driver": "fn main() {\n    println!(\"{:?}\", clamp_all(&[-5, 0, 5, 10, 15], 0, 10));\n    println!(\"{:?}\", clamp_all(&[], 0, 1));\n}\n", "expected": ["[0, 0, 5, 10, 10]", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-config-default', 28, 'rust', 'Строитель вместо kwargs', 'Python: def window(width=800, height=600, title="окно"). Реализуйте структуру Config { width: u32, height: u32, title: String } с функцией default() (800, 600, «окно») и методами-«строителями» with_width(mut self, w: u32) -> Config и with_title(mut self, t: &str) -> Config.', 'struct Config {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-config-default', 28, 'rust', 'Строитель вместо kwargs', 'Python: def window(width=800, height=600, title="window"). Реализуйте структуру Config { width: u32, height: u32, title: String } с функцией default() (800, 600, «window») и методами-«builders» with_width(mut self, w: u32) -> Config и with_title(mut self, t: &str) -> Config.', 'struct Config {
     width: u32,
     height: u32,
     title: String,
@@ -2174,7 +2174,7 @@ impl Config {
         todo!()
     }
 }
-', 'Метод принимает self по значению, меняет поле и возвращает self — цепочку можно продолжать.', '{"driver": "fn main() {\n    let a = Config::default();\n    println!(\"{} {} {}\", a.width, a.height, a.title);\n    let b = Config::default().with_width(1920).with_title(\"игра\");\n    println!(\"{} {} {}\", b.width, b.height, b.title);\n}\n", "expected": ["800 600 окно", "1920 600 игра"]}');
+', 'Метод принимает self по значению, меняет поле и возвращает self — цепочку можно продолжать.', '{"driver": "fn main() {\n    let a = Config::default();\n    println!(\"{} {} {}\", a.width, a.height, a.title);\n    let b = Config::default().with_width(1920).with_title(\"game\");\n    println!(\"{} {} {}\", b.width, b.height, b.title);\n}\n", "expected": ["800 600 window", "1920 600 game"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 10, 'r10-gcd-lcm', 29, 'rust', 'НОД и НОК', 'Напишите gcd(a: u64, b: u64) -> u64 (Евклид) и lcm(a: u64, b: u64) -> u64 (НОК = a / gcd · b); lcm(0, x) = 0.', 'fn gcd(a: u64, b: u64) -> u64 {
     todo!()
 }
@@ -2186,59 +2186,59 @@ fn lcm(a: u64, b: u64) -> u64 {
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-char-len', 0, 'rust', 'len в символах', 'Python: len(s). Напишите char_len(s: &str) -> usize — число символов (не байтов).', 'fn char_len(s: &str) -> usize {
     todo!()
 }
-', 's.chars().count()', '{"driver": "fn main() {\n    println!(\"{}\", char_len(\"привет\"));\n    println!(\"{}\", char_len(\"a😀b\"));\n    println!(\"{}\", char_len(\"\"));\n}\n", "expected": ["6", "3", "0"]}');
+', 's.chars().count()', '{"driver": "fn main() {\n    println!(\"{}\", char_len(\"résumé\"));\n    println!(\"{}\", char_len(\"a😀b\"));\n    println!(\"{}\", char_len(\"\"));\n}\n", "expected": ["6", "3", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-first-last', 1, 'rust', 's[0] и s[-1]', 'Python: s[0] и s[-1]. Напишите first_last(s: &str) -> Option<(char, char)>: первая и последняя буквы или None для пустой строки.', 'fn first_last(s: &str) -> Option<(char, char)> {
     todo!()
 }
-', 'Оператор ? вернёт None, если буквы нет.', '{"driver": "fn main() {\n    println!(\"{:?}\", first_last(\"привет\"));\n    println!(\"{:?}\", first_last(\"я\"));\n    println!(\"{:?}\", first_last(\"\"));\n}\n", "expected": ["Some((''п'', ''т''))", "Some((''я'', ''я''))", "None"]}');
+', 'Оператор ? вернёт None, если буквы нет.', '{"driver": "fn main() {\n    println!(\"{:?}\", first_last(\"planet\"));\n    println!(\"{:?}\", first_last(\"i\"));\n    println!(\"{:?}\", first_last(\"\"));\n}\n", "expected": ["Some((''p'', ''t''))", "Some((''i'', ''i''))", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-nth-char', 2, 'rust', 'Символ по номеру', 'Python: s[i]. Напишите char_at(s: &str, i: usize) -> Option<char>.', 'fn char_at(s: &str, i: usize) -> Option<char> {
     todo!()
 }
-', 's.chars().nth(i)', '{"driver": "fn main() {\n    println!(\"{:?}\", char_at(\"привет\", 2));\n    println!(\"{:?}\", char_at(\"привет\", 6));\n    println!(\"{:?}\", char_at(\"\", 0));\n}\n", "expected": ["Some(''и'')", "None", "None"]}');
+', 's.chars().nth(i)', '{"driver": "fn main() {\n    println!(\"{:?}\", char_at(\"planet\", 2));\n    println!(\"{:?}\", char_at(\"planet\", 6));\n    println!(\"{:?}\", char_at(\"\", 0));\n}\n", "expected": ["Some(''a'')", "None", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-substring', 3, 'rust', 'Срез по символам', 'Python: s[a:b] (по символам). Напишите substr(s: &str, a: usize, b: usize) -> String — символы с номерами a..b (b не включается), для границ за пределами строки — то, что есть.', 'fn substr(s: &str, a: usize, b: usize) -> String {
     todo!()
 }
-', 'skip(a).take(b - a) по chars().', '{"driver": "fn main() {\n    println!(\"{}\", substr(\"привет, мир\", 0, 6));\n    println!(\"{}\", substr(\"привет, мир\", 8, 20));\n    println!(\"{}\", substr(\"abc\", 2, 2));\n}\n", "expected": ["привет", "мир"]}');
+', 'skip(a).take(b - a) по chars().', '{"driver": "fn main() {\n    println!(\"{}\", substr(\"planet, sun\", 0, 6));\n    println!(\"{}\", substr(\"planet, sun\", 8, 20));\n    println!(\"{}\", substr(\"abc\", 2, 2));\n}\n", "expected": ["planet", "sun"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-strip', 4, 'rust', 'strip', 'Python: s.strip(). Напишите clean(s: &str) -> String: обрежьте пробелы по краям и сделайте строчными все буквы.', 'fn clean(s: &str) -> String {
     todo!()
 }
-', 'trim(), затем to_lowercase().', '{"driver": "fn main() {\n    println!(\"[{}]\", clean(\"  Hello World \\n\"));\n    println!(\"[{}]\", clean(\"ПРИВЕТ\"));\n    println!(\"[{}]\", clean(\"   \"));\n}\n", "expected": ["[hello world]", "[привет]", "[]"]}');
+', 'trim(), затем to_lowercase().', '{"driver": "fn main() {\n    println!(\"[{}]\", clean(\"  Hello World \\n\"));\n    println!(\"[{}]\", clean(\"HELLO\"));\n    println!(\"[{}]\", clean(\"   \"));\n}\n", "expected": ["[hello world]", "[hello]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-find-minus-one', 5, 'rust', 'find без -1', 'Python: s.find(sub) возвращает -1, если нет. Напишите find_py(s: &str, sub: &str) -> i32 с таким же поведением, но позиция — номер символа, а не байта.', 'fn find_py(s: &str, sub: &str) -> i32 {
     todo!()
 }
-', 'find даёт байтовую позицию; число символов до неё — s[..i].chars().count().', '{"driver": "fn main() {\n    println!(\"{}\", find_py(\"hello\", \"ll\"));\n    println!(\"{}\", find_py(\"привет\", \"ве\"));\n    println!(\"{}\", find_py(\"abc\", \"z\"));\n}\n", "expected": ["2", "3", "-1"]}');
+', 'find даёт байтовую позицию; число символов до неё — s[..i].chars().count().', '{"driver": "fn main() {\n    println!(\"{}\", find_py(\"hello\", \"ll\"));\n    println!(\"{}\", find_py(\"résumé\", \"um\"));\n    println!(\"{}\", find_py(\"abc\", \"z\"));\n}\n", "expected": ["2", "3", "-1"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-count-sub', 6, 'rust', 'str.count', 'Python: s.count(sub). Напишите count_sub(s: &str, sub: &str) -> usize: число непересекающихся вхождений (sub не пуста).', 'fn count_sub(s: &str, sub: &str) -> usize {
     todo!()
 }
-', 's.matches(sub).count()', '{"driver": "fn main() {\n    println!(\"{}\", count_sub(\"abababa\", \"aba\"));\n    println!(\"{}\", count_sub(\"мама мыла раму\", \"ма\"));\n    println!(\"{}\", count_sub(\"abc\", \"z\"));\n}\n", "expected": ["2", "2", "0"]}');
+', 's.matches(sub).count()', '{"driver": "fn main() {\n    println!(\"{}\", count_sub(\"abababa\", \"aba\"));\n    println!(\"{}\", count_sub(\"mama mila rumi\", \"ma\"));\n    println!(\"{}\", count_sub(\"abc\", \"z\"));\n}\n", "expected": ["2", "2", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-replace-first', 7, 'rust', 'replace с лимитом', 'Python: s.replace(a, b, 1). Напишите replace_first(s: &str, a: &str, b: &str) -> String — заменить только первое вхождение.', 'fn replace_first(s: &str, a: &str, b: &str) -> String {
     todo!()
 }
-', 'replacen(a, b, n)', '{"driver": "fn main() {\n    println!(\"{}\", replace_first(\"a-b-c\", \"-\", \"+\"));\n    println!(\"{}\", replace_first(\"abc\", \"z\", \"y\"));\n    println!(\"{}\", replace_first(\"раз раз раз\", \"раз\", \"два\"));\n}\n", "expected": ["a+b-c", "abc", "два раз раз"]}');
+', 'replacen(a, b, n)', '{"driver": "fn main() {\n    println!(\"{}\", replace_first(\"a-b-c\", \"-\", \"+\"));\n    println!(\"{}\", replace_first(\"abc\", \"z\", \"y\"));\n    println!(\"{}\", replace_first(\"one one one\", \"one\", \"two\"));\n}\n", "expected": ["a+b-c", "abc", "two one one"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-split-comma', 8, 'rust', 'split', 'Python: [p.strip() for p in s.split('','')]. Напишите split_trim(s: &str) -> Vec<String>.', 'fn split_trim(s: &str) -> Vec<String> {
     todo!()
 }
-', 'split('','') → map(trim, to_string) → collect', '{"driver": "fn main() {\n    println!(\"{:?}\", split_trim(\"a, b ,c\"));\n    println!(\"{:?}\", split_trim(\"один\"));\n    println!(\"{:?}\", split_trim(\"\"));\n}\n", "expected": ["[\"a\", \"b\", \"c\"]", "[\"один\"]", "[\"\"]"]}');
+', 'split('','') → map(trim, to_string) → collect', '{"driver": "fn main() {\n    println!(\"{:?}\", split_trim(\"a, b ,c\"));\n    println!(\"{:?}\", split_trim(\"one\"));\n    println!(\"{:?}\", split_trim(\"\"));\n}\n", "expected": ["[\"a\", \"b\", \"c\"]", "[\"one\"]", "[\"\"]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-split-once', 9, 'rust', 'Ключ и значение', 'Python: k, v = line.split(''='', 1). Напишите kv(line: &str) -> Option<(String, String)> через split_once; ключ и значение без пробелов по краям.', 'fn kv(line: &str) -> Option<(String, String)> {
     todo!()
 }
-', 'split_once возвращает Option<(&str, &str)>.', '{"driver": "fn main() {\n    println!(\"{:?}\", kv(\"name = Аня\"));\n    println!(\"{:?}\", kv(\"a=b=c\"));\n    println!(\"{:?}\", kv(\"нет равно\"));\n}\n", "expected": ["Some((\"name\", \"Аня\"))", "Some((\"a\", \"b=c\"))", "None"]}');
+', 'split_once возвращает Option<(&str, &str)>.', '{"driver": "fn main() {\n    println!(\"{:?}\", kv(\"name = Anya\"));\n    println!(\"{:?}\", kv(\"a=b=c\"));\n    println!(\"{:?}\", kv(\"no equals\"));\n}\n", "expected": ["Some((\"name\", \"Anya\"))", "Some((\"a\", \"b=c\"))", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-words', 10, 'rust', 'Слова текста', 'Python: s.split(). Напишите words(s: &str) -> Vec<&str> через split_whitespace.', 'fn words(s: &str) -> Vec<&str> {
     todo!()
 }
-', 'split_whitespace().collect()', '{"driver": "fn main() {\n    println!(\"{:?}\", words(\"  раз   два\\tтри\\nчетыре \"));\n    println!(\"{:?}\", words(\"\"));\n}\n", "expected": ["[\"раз\", \"два\", \"три\", \"четыре\"]", "[]"]}');
+', 'split_whitespace().collect()', '{"driver": "fn main() {\n    println!(\"{:?}\", words(\"  one   two\\tthree\\nfour \"));\n    println!(\"{:?}\", words(\"\"));\n}\n", "expected": ["[\"one\", \"two\", \"three\", \"four\"]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-join', 11, 'rust', 'join', 'Python: '', ''.join(words). Напишите join_comma(words: &[&str]) -> String.', 'fn join_comma(words: &[&str]) -> String {
     todo!()
 }
-', 'words.join(", ")', '{"driver": "fn main() {\n    println!(\"{}\", join_comma(&[\"a\", \"b\", \"c\"]));\n    println!(\"[{}]\", join_comma(&[]));\n    println!(\"{}\", join_comma(&[\"один\"]));\n}\n", "expected": ["a, b, c", "[]", "один"]}');
+', 'words.join(", ")', '{"driver": "fn main() {\n    println!(\"{}\", join_comma(&[\"a\", \"b\", \"c\"]));\n    println!(\"[{}]\", join_comma(&[]));\n    println!(\"{}\", join_comma(&[\"one\"]));\n}\n", "expected": ["a, b, c", "[]", "one"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-fstring', 12, 'rust', 'f-строка', 'Python: f"{name}: {score:>5.1f}". Напишите line(name: &str, score: f64) -> String: имя, двоеточие, пробел и очки с одним знаком после запятой, выровненные вправо в поле шириной 5.', 'fn line(name: &str, score: f64) -> String {
     todo!()
 }
-', '{:>5.1} — ширина 5, одна цифра после точки.', '{"driver": "fn main() {\n    println!(\"[{}]\", line(\"Аня\", 93.456));\n    println!(\"[{}]\", line(\"Боря\", 7.0));\n    println!(\"[{}]\", line(\"Вера\", 100.0));\n}\n", "expected": ["[Аня:  93.5]", "[Боря:   7.0]", "[Вера: 100.0]"]}');
+', '{:>5.1} — ширина 5, одна цифра после точки.', '{"driver": "fn main() {\n    println!(\"[{}]\", line(\"Anya\", 93.456));\n    println!(\"[{}]\", line(\"Borya\", 7.0));\n    println!(\"[{}]\", line(\"Vera\", 100.0));\n}\n", "expected": ["[Anya:  93.5]", "[Borya:   7.0]", "[Vera: 100.0]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-title-case', 13, 'rust', 'title()', 'Python: s.title() для слов, разделённых пробелами. Напишите title(s: &str) -> String: каждое слово с заглавной буквы, остальные строчные; слова через один пробел.', 'fn title(s: &str) -> String {
     todo!()
 }
-', 'Первую букву — в верхний регистр, остальное — в нижний.', '{"driver": "fn main() {\n    println!(\"{}\", title(\"hello wORLD\"));\n    println!(\"{}\", title(\"  привет   мир \"));\n    println!(\"[{}]\", title(\"\"));\n}\n", "expected": ["Hello World", "Привет Мир", "[]"]}');
+', 'Первую букву — в верхний регистр, остальное — в нижний.', '{"driver": "fn main() {\n    println!(\"{}\", title(\"hello wORLD\"));\n    println!(\"{}\", title(\"  hello   world \"));\n    println!(\"[{}]\", title(\"\"));\n}\n", "expected": ["Hello World", "Hello World", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-startswith', 14, 'rust', 'startswith и endswith', 'Python: s.startswith((''http://'', ''https://'')). Напишите is_url(s: &str) -> bool: строка начинается с http:// или https://.', 'fn is_url(s: &str) -> bool {
     todo!()
 }
@@ -2258,19 +2258,19 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-reverse-words', 18, 'rust', 'Слова в обратном порядке', 'Python: '' ''.join(s.split()[::-1]). Напишите reverse_words(s: &str) -> String.', 'fn reverse_words(s: &str) -> String {
     todo!()
 }
-', 'split_whitespace().rev() и join(" ")', '{"driver": "fn main() {\n    println!(\"{}\", reverse_words(\"раз два три\"));\n    println!(\"{}\", reverse_words(\"  один  \"));\n    println!(\"[{}]\", reverse_words(\"\"));\n}\n", "expected": ["три два раз", "один", "[]"]}');
+', 'split_whitespace().rev() и join(" ")', '{"driver": "fn main() {\n    println!(\"{}\", reverse_words(\"one two three\"));\n    println!(\"{}\", reverse_words(\"  one  \"));\n    println!(\"[{}]\", reverse_words(\"\"));\n}\n", "expected": ["three two one", "one", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-anagram', 19, 'rust', 'Анаграммы', 'Python: sorted(a) == sorted(b). Напишите is_anagram(a: &str, b: &str) -> bool без учёта регистра и пробелов.', 'fn is_anagram(a: &str, b: &str) -> bool {
     todo!()
 }
-', 'Нормализуйте обе строки: без пробелов, в нижнем регистре, отсортированные.', '{"driver": "fn main() {\n    println!(\"{}\", is_anagram(\"Лунь\", \"Нуль\"));\n    println!(\"{}\", is_anagram(\"a b c\", \"cba\"));\n    println!(\"{}\", is_anagram(\"abc\", \"abd\"));\n}\n", "expected": ["true", "true", "false"]}');
+', 'Нормализуйте обе строки: без пробелов, в нижнем регистре, отсортированные.', '{"driver": "fn main() {\n    println!(\"{}\", is_anagram(\"Team\", \"Meat\"));\n    println!(\"{}\", is_anagram(\"a b c\", \"cba\"));\n    println!(\"{}\", is_anagram(\"abc\", \"abd\"));\n}\n", "expected": ["true", "true", "false"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-char-freq', 20, 'rust', 'Частоты символов', 'Python: Counter(s). Напишите top_char(s: &str) -> Option<(char, usize)>: самый частый символ и его счёт; при равенстве — тот, что встретился раньше. Для пустой строки — None. Используйте Vec пар (char, usize) без HashMap.', 'fn top_char(s: &str) -> Option<(char, usize)> {
     todo!()
 }
-', 'Храните пары в векторе; обновляйте найденную или добавляйте новую.', '{"driver": "fn main() {\n    println!(\"{:?}\", top_char(\"abracadabra\"));\n    println!(\"{:?}\", top_char(\"ааб\"));\n    println!(\"{:?}\", top_char(\"абв\"));\n    println!(\"{:?}\", top_char(\"\"));\n}\n", "expected": ["Some((''a'', 5))", "Some((''а'', 2))", "Some((''а'', 1))", "None"]}');
+', 'Храните пары в векторе; обновляйте найденную или добавляйте новую.', '{"driver": "fn main() {\n    println!(\"{:?}\", top_char(\"abracadabra\"));\n    println!(\"{:?}\", top_char(\"aab\"));\n    println!(\"{:?}\", top_char(\"abc\"));\n    println!(\"{:?}\", top_char(\"\"));\n}\n", "expected": ["Some((''a'', 5))", "Some((''a'', 2))", "Some((''a'', 1))", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-wrap', 21, 'rust', 'Перенос строк', 'Напишите wrap(text: &str, width: usize) -> Vec<String>: разбейте слова по строкам так, чтобы каждая строка (слова через пробел) была не длиннее width символов (слово длиннее width — на отдельной строке).', 'fn wrap(text: &str, width: usize) -> Vec<String> {
     todo!()
 }
-', 'Копите текущую строку cur и отправляйте её в результат, когда слово не помещается.', '{"driver": "fn main() {\n    for l in wrap(\"раз два три четыре пять шесть семь\", 10) {\n        println!(\"[{}]\", l);\n    }\n    println!(\"{}\", wrap(\"\", 5).len());\n    println!(\"{:?}\", wrap(\"длинноеслово ок\", 5));\n}\n", "expected": ["[раз два]", "[три четыре]", "[пять шесть]", "[семь]", "0", "[\"длинноеслово\", \"ок\"]"]}');
+', 'Копите текущую строку cur и отправляйте её в результат, когда слово не помещается.', '{"driver": "fn main() {\n    for l in wrap(\"one two three four five six seven\", 10) {\n        println!(\"[{}]\", l);\n    }\n    println!(\"{}\", wrap(\"\", 5).len());\n    println!(\"{:?}\", wrap(\"longlongword ok\", 5));\n}\n", "expected": ["[one two]", "[three four]", "[five six]", "[seven]", "0", "[\"longlongword\", \"ok\"]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-vowels', 22, 'rust', 'Гласные и согласные', 'Напишите count_vowels(s: &str) -> (usize, usize): число русских гласных «аеёиоуыэюя» и число остальных букв (регистр не важен; не буквы не считаются).', 'fn count_vowels(s: &str) -> (usize, usize) {
     todo!()
 }
@@ -2278,11 +2278,11 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-compress', 23, 'rust', 'Сжатие повторов', 'Напишите rle(s: &str) -> String: каждый ряд одинаковых символов заменяется на символ и число повторов («aaabcc» → «a3b1c2»).', 'fn rle(s: &str) -> String {
     todo!()
 }
-', 'peekable() позволяет подсмотреть следующий символ.', '{"driver": "fn main() {\n    println!(\"{}\", rle(\"aaabcc\"));\n    println!(\"{}\", rle(\"ббббб\"));\n    println!(\"[{}]\", rle(\"\"));\n    println!(\"{}\", rle(\"abc\"));\n}\n", "expected": ["a3b1c2", "б5", "[]", "a1b1c1"]}');
+', 'peekable() позволяет подсмотреть следующий символ.', '{"driver": "fn main() {\n    println!(\"{}\", rle(\"aaabcc\"));\n    println!(\"{}\", rle(\"bbbbb\"));\n    println!(\"[{}]\", rle(\"\"));\n    println!(\"{}\", rle(\"abc\"));\n}\n", "expected": ["a3b1c2", "b5", "[]", "a1b1c1"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-unrle', 24, 'rust', 'Распаковка', 'Обратная задача: unrle(s: &str) -> String распаковывает вид «a3b1c2» (после каждой буквы идут цифры её количества) в «aaabcc». Буквы — любые не-цифры.', 'fn unrle(s: &str) -> String {
     todo!()
 }
-', 'Накапливайте цифры в num и сбрасывайте при новой букве.', '{"driver": "fn main() {\n    println!(\"{}\", unrle(\"a3b1c2\"));\n    println!(\"{}\", unrle(\"б5\"));\n    println!(\"[{}]\", unrle(\"\"));\n    println!(\"{}\", unrle(\"x12\"));\n}\n", "expected": ["aaabcc", "ббббб", "[]", "xxxxxxxxxxxx"]}');
+', 'Накапливайте цифры в num и сбрасывайте при новой букве.', '{"driver": "fn main() {\n    println!(\"{}\", unrle(\"a3b1c2\"));\n    println!(\"{}\", unrle(\"b5\"));\n    println!(\"[{}]\", unrle(\"\"));\n    println!(\"{}\", unrle(\"x12\"));\n}\n", "expected": ["aaabcc", "bbbbb", "[]", "xxxxxxxxxxxx"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-bytes-hex', 25, 'rust', 'encode → hex', 'Python: s.encode().hex(). Напишите to_hex(s: &str) -> String: байты UTF-8, каждый двумя шестнадцатеричными цифрами без пробелов.', 'fn to_hex(s: &str) -> String {
     todo!()
 }
@@ -2298,7 +2298,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-sort-ci', 28, 'rust', 'Сортировка без учёта регистра', 'Python: sorted(words, key=str.lower). Напишите sort_ci(words: &[&str]) -> Vec<String>: слова по алфавиту без учёта регистра; при равенстве — исходный порядок (сортировка устойчива).', 'fn sort_ci(words: &[&str]) -> Vec<String> {
     todo!()
 }
-', 'sort_by_key(|w| w.to_lowercase())', '{"driver": "fn main() {\n    println!(\"{:?}\", sort_ci(&[\"banana\", \"Apple\", \"cherry\", \"apple\", \"Banana\"]));\n    println!(\"{:?}\", sort_ci(&[\"я\", \"А\", \"б\"]));\n}\n", "expected": ["[\"Apple\", \"apple\", \"banana\", \"Banana\", \"cherry\"]", "[\"А\", \"б\", \"я\"]"]}');
+', 'sort_by_key(|w| w.to_lowercase())', '{"driver": "fn main() {\n    println!(\"{:?}\", sort_ci(&[\"banana\", \"Apple\", \"cherry\", \"apple\", \"Banana\"]));\n    println!(\"{:?}\", sort_ci(&[\"i\", \"A\", \"b\"]));\n}\n", "expected": ["[\"Apple\", \"apple\", \"banana\", \"Banana\", \"cherry\"]", "[\"A\", \"b\", \"i\"]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 11, 'r11-build', 29, 'rust', 'Строим длинную строку', 'Напишите numbers(n: u32) -> String: числа 1…n через запятую без пробелов («1,2,3»). Используйте String::with_capacity и push_str. Для n = 0 — пустая строка.', 'fn numbers(n: u32) -> String {
     todo!()
 }
@@ -2346,7 +2346,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 12, 'r12-sort-key', 10, 'rust', 'key=len', 'Python: sorted(words, key=len). Напишите by_len(words: &[&str]) -> Vec<String>: слова по возрастанию длины в символах; при равной длине — в исходном порядке.', 'fn by_len(words: &[&str]) -> Vec<String> {
     todo!()
 }
-', 'sort_by_key устойчива.', '{"driver": "fn main() {\n    println!(\"{:?}\", by_len(&[\"ccc\", \"a\", \"bb\", \"dd\", \"e\"]));\n    println!(\"{:?}\", by_len(&[\"привет\", \"мир\", \"я\"]));\n}\n", "expected": ["[\"a\", \"e\", \"bb\", \"dd\", \"ccc\"]", "[\"я\", \"мир\", \"привет\"]"]}');
+', 'sort_by_key устойчива.', '{"driver": "fn main() {\n    println!(\"{:?}\", by_len(&[\"ccc\", \"a\", \"bb\", \"dd\", \"e\"]));\n    println!(\"{:?}\", by_len(&[\"planet\", \"sun\", \"i\"]));\n}\n", "expected": ["[\"a\", \"e\", \"bb\", \"dd\", \"ccc\"]", "[\"i\", \"sun\", \"planet\"]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 12, 'r12-top-k', 11, 'rust', 'Топ-k', 'Python: sorted(l, reverse=True)[:k]. Напишите top_k(v: &[i32], k: usize) -> Vec<i32>: k наибольших по убыванию (если элементов меньше — все).', 'fn top_k(v: &[i32], k: usize) -> Vec<i32> {
     todo!()
 }
@@ -2423,7 +2423,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'После цикла допишите хвосты обоих срезов.', '{"driver": "fn main() {\n    println!(\"{:?}\", merge(&[1, 3, 5], &[2, 4, 6, 8]));\n    println!(\"{:?}\", merge(&[], &[1]));\n    println!(\"{:?}\", merge(&[1, 1], &[1]));\n}\n", "expected": ["[1, 2, 3, 4, 5, 6, 8]", "[1]", "[1, 1, 1]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-class-basic', 0, 'rust', 'Класс → struct', 'Python: class Dog с name и методом speak() → «<имя>: гав!». Напишите структуру Dog { name: String }, функцию new(name: &str) -> Dog и метод speak(&self) -> String.', 'struct Dog {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-class-basic', 0, 'rust', 'Класс → struct', 'Python: class Dog с name и методом speak() → «<name>: woof!». Напишите структуру Dog { name: String }, функцию new(name: &str) -> Dog и метод speak(&self) -> String.', 'struct Dog {
     name: String,
 }
 
@@ -2435,7 +2435,7 @@ impl Dog {
         todo!()
     }
 }
-', 'format!("{}: гав!", self.name)', '{"driver": "fn main() {\n    let d = Dog::new(\"Бобик\");\n    println!(\"{}\", d.speak());\n    println!(\"{}\", Dog::new(\"Шарик\").speak());\n}\n", "expected": ["Бобик: гав!", "Шарик: гав!"]}');
+', 'format!("{}: woof!", self.name)', '{"driver": "fn main() {\n    let d = Dog::new(\"Bobik\");\n    println!(\"{}\", d.speak());\n    println!(\"{}\", Dog::new(\"Sharik\").speak());\n}\n", "expected": ["Bobik: woof!", "Sharik: woof!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-property', 1, 'rust', 'property', 'Python: @property celsius / fahrenheit. Структура Temp { celsius: f64 } с методом fahrenheit(&self) -> f64 (c · 9/5 + 32) и set_fahrenheit(&mut self, f: f64) (обновляет celsius).', 'struct Temp {
     celsius: f64,
 }
@@ -2461,7 +2461,7 @@ impl Color {
     }
 }
 ', 'u8::from_str_radix(&s[1..3], 16).unwrap()', '{"driver": "fn main() {\n    let c = Color::from_hex(\"#ff8000\");\n    println!(\"{} {} {}\", c.r, c.g, c.b);\n    let d = Color::from_hex(\"#000a0b\");\n    println!(\"{} {} {}\", d.r, d.g, d.b);\n}\n", "expected": ["255 128 0", "0 10 11"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-composition', 3, 'rust', 'Композиция вместо наследования', 'Python: class Employee(Person). Структуры Person { name: String } и Employee { person: Person, salary: u32 }; у Employee метод describe(&self) -> String: «<имя> зарабатывает <salary>».', 'struct Person {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-composition', 3, 'rust', 'Композиция вместо наследования', 'Python: class Employee(Person). Структуры Person { name: String } и Employee { person: Person, salary: u32 }; у Employee метод describe(&self) -> String: «<name> earns <salary>».', 'struct Person {
     name: String,
 }
 
@@ -2475,8 +2475,8 @@ impl Employee {
         todo!()
     }
 }
-', 'self.person.name — поле вложенной структуры.', '{"driver": "fn main() {\n    let e = Employee { person: Person { name: String::from(\"Аня\") }, salary: 120 };\n    println!(\"{}\", e.describe());\n}\n", "expected": ["Аня зарабатывает 120"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-trait-basic', 4, 'rust', 'Первый трейт', 'Трейт Animal с методом sound(&self) -> String; структуры Dog и Cat реализуют его: «гав» и «мяу». Функция chorus(a: &impl Animal) -> String возвращает звук, повторённый три раза через пробел.', 'trait Animal {
+', 'self.person.name — поле вложенной структуры.', '{"driver": "fn main() {\n    let e = Employee { person: Person { name: String::from(\"Anya\") }, salary: 120 };\n    println!(\"{}\", e.describe());\n}\n", "expected": ["Anya earns 120"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-trait-basic', 4, 'rust', 'Первый трейт', 'Трейт Animal с методом sound(&self) -> String; структуры Dog и Cat реализуют его: «woof» и «meow». Функция chorus(a: &impl Animal) -> String возвращает звук, повторённый три раза через пробел.', 'trait Animal {
     fn sound(&self) -> String;
 }
 
@@ -2498,8 +2498,8 @@ impl Animal for Cat {
 fn chorus(a: &impl Animal) -> String {
     todo!()
 }
-', 'impl Animal for Dog { … } — отдельный блок для каждого типа.', '{"driver": "fn main() {\n    println!(\"{}\", chorus(&Dog));\n    println!(\"{}\", chorus(&Cat));\n}\n", "expected": ["гав гав гав", "мяу мяу мяу"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-trait-default', 5, 'rust', 'Метод по умолчанию', 'Трейт Greeter: метод name(&self) -> String обязателен, а greet(&self) -> String имеет реализацию по умолчанию: «Привет, <имя>!». Структура English реализует только name; структура Formal переопределяет greet: «Здравствуйте, <имя>.».', 'trait Greeter {
+', 'impl Animal for Dog { … } — отдельный блок для каждого типа.', '{"driver": "fn main() {\n    println!(\"{}\", chorus(&Dog));\n    println!(\"{}\", chorus(&Cat));\n}\n", "expected": ["woof woof woof", "meow meow meow"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-trait-default', 5, 'rust', 'Метод по умолчанию', 'Трейт Greeter: метод name(&self) -> String обязателен, а greet(&self) -> String имеет реализацию по умолчанию: «Hello, <name>!». Структура English реализует только name ("friend"); структура Formal переопределяет greet: «Greetings, <name>.» и name возвращает "colleague".', 'trait Greeter {
     fn name(&self) -> String;
     fn greet(&self) -> String {
         todo!()
@@ -2523,7 +2523,7 @@ impl Greeter for Formal {
         todo!()
     }
 }
-', 'Метод по умолчанию вызывает обязательный: self.name().', '{"driver": "fn main() {\n    println!(\"{}\", English.greet());\n    println!(\"{}\", Formal.greet());\n}\n", "expected": ["Привет, друг!", "Здравствуйте, коллега."]}');
+', 'Метод по умолчанию вызывает обязательный: self.name().', '{"driver": "fn main() {\n    println!(\"{}\", English.greet());\n    println!(\"{}\", Formal.greet());\n}\n", "expected": ["Hello, friend!", "Greetings, colleague."]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-dyn-shapes', 6, 'rust', 'Вектор фигур', 'Трейт Shape с area(&self) -> f64; структуры Circle { r }, Rect { w, h } реализуют его (π ≈ 3.14159). Функция total_area(shapes: &[Box<dyn Shape>]) -> f64 — сумма площадей.', 'trait Shape {
     fn area(&self) -> f64;
 }
@@ -2758,7 +2758,7 @@ fn quiet() -> Settings {
     todo!()
 }
 ', '#[derive(Debug, Default)] и ..Default::default().', '{"driver": "fn main() {\n    println!(\"{:?}\", Settings::default());\n    println!(\"{:?}\", quiet());\n}\n", "expected": ["Settings { volume: 0, name: \"\", muted: false }", "Settings { volume: 0, name: \"\", muted: true }"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-builder', 20, 'rust', 'Строитель с цепочкой', 'Структура Pizza { size: u32, cheese: bool, toppings: Vec<String> }. Напишите Pizza::new(size), методы with_cheese(mut self) -> Pizza и with_topping(mut self, t: &str) -> Pizza, а также describe(&self) -> String вида «30 см, сыр, начинки: гриб, лук» (без сыра — без «сыр»; без начинок — без «начинки»).', 'struct Pizza {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-builder', 20, 'rust', 'Строитель с цепочкой', 'Структура Pizza { size: u32, cheese: bool, toppings: Vec<String> }. Напишите Pizza::new(size), методы with_cheese(mut self) -> Pizza и with_topping(mut self, t: &str) -> Pizza, а также describe(&self) -> String вида «30 cm, cheese, toppings: mushroom, onion» (без сыра — без «cheese»; без начинок — без «toppings»).', 'struct Pizza {
     size: u32,
     cheese: bool,
     toppings: Vec<String>,
@@ -2778,7 +2778,7 @@ impl Pizza {
         todo!()
     }
 }
-', 'Методы-строители принимают self по значению и возвращают его.', '{"driver": "fn main() {\n    println!(\"{}\", Pizza::new(30).with_cheese().with_topping(\"гриб\").with_topping(\"лук\").describe());\n    println!(\"{}\", Pizza::new(25).describe());\n    println!(\"{}\", Pizza::new(40).with_topping(\"ананас\").describe());\n}\n", "expected": ["30 см, сыр, начинки: гриб, лук", "25 см", "40 см, начинки: ананас"]}');
+', 'Методы-строители принимают self по значению и возвращают его.', '{"driver": "fn main() {\n    println!(\"{}\", Pizza::new(30).with_cheese().with_topping(\"mushroom\").with_topping(\"onion\").describe());\n    println!(\"{}\", Pizza::new(25).describe());\n    println!(\"{}\", Pizza::new(40).with_topping(\"pineapple\").describe());\n}\n", "expected": ["30 cm, cheese, toppings: mushroom, onion", "25 cm", "40 cm, toppings: pineapple"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-newtype', 21, 'rust', 'Newtype: обёртка вектора', 'Реализуйте fmt::Display для обёртки struct Wrapper(Vec<String>): вывод «[a, b, c]» (элементы через запятую с пробелом).', 'use std::fmt;
 
 struct Wrapper(Vec<String>);
@@ -2869,7 +2869,7 @@ fn pipeline(ps: &[Box<dyn Plugin>], x: i32) -> i32 {
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-generic-trait', 25, 'rust', 'Обобщённая функция с трейтом', 'Напишите функцию largest<T: PartialOrd + Copy>(v: &[T]) -> T, возвращающую наибольший элемент среза (не пуст). Она должна работать и для i32, и для f64, и для char.', 'fn largest<T: PartialOrd + Copy>(v: &[T]) -> T {
     todo!()
 }
-', 'Ограничение T: PartialOrd + Copy позволяет сравнивать и копировать.', '{"driver": "fn main() {\n    println!(\"{}\", largest(&[3, 9, 2]));\n    println!(\"{}\", largest(&[1.5, -2.0]));\n    println!(\"{}\", largest(&[''a'', ''я'', ''z'']));\n}\n", "expected": ["9", "1.5", "я"]}');
+', 'Ограничение T: PartialOrd + Copy позволяет сравнивать и копировать.', '{"driver": "fn main() {\n    println!(\"{}\", largest(&[3, 9, 2]));\n    println!(\"{}\", largest(&[1.5, -2.0]));\n    println!(\"{}\", largest(&[''a'', ''z'', ''z'']));\n}\n", "expected": ["9", "1.5", "z"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-from-trait', 26, 'rust', 'From для преобразований', 'Структура Celsius(f64) и Fahrenheit(f64). Реализуйте From<Celsius> for Fahrenheit (c · 9/5 + 32); тогда Fahrenheit::from(c) и c.into() работают.', 'struct Celsius(f64);
 struct Fahrenheit(f64);
 
@@ -2886,7 +2886,7 @@ impl PartialEq for Name {
         todo!()
     }
 }
-', 'Сравнивайте нижние регистры строк.', '{"driver": "fn main() {\n    let a = Name(String::from(\"Аня\"));\n    let b = Name(String::from(\"аНЯ\"));\n    let c = Name(String::from(\"Боря\"));\n    println!(\"{}\", a == b);\n    println!(\"{}\", a == c);\n    println!(\"{}\", a != c);\n}\n", "expected": ["true", "false", "true"]}');
+', 'Сравнивайте нижние регистры строк.', '{"driver": "fn main() {\n    let a = Name(String::from(\"Anya\"));\n    let b = Name(String::from(\"aNYA\"));\n    let c = Name(String::from(\"Borya\"));\n    println!(\"{}\", a == b);\n    println!(\"{}\", a == c);\n    println!(\"{}\", a != c);\n}\n", "expected": ["true", "false", "true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 13, 'r13-partial-ord-manual', 28, 'rust', 'Своя сортировка', 'Структура Prio(u32): порядок обратный — большее число «меньше» (идёт раньше). Реализуйте PartialOrd вручную (partial_cmp). PartialEq выведен через derive.', '#[derive(PartialEq, Debug)]
 struct Prio(u32);
 
@@ -3011,7 +3011,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn common(a: &str, b: &str) -> String {
     todo!()
 }
-', 'Пересечение двух HashSet<char>.', '{"driver": "fn main() {\n    println!(\"{}\", common(\"hello\", \"world\"));\n    println!(\"[{}]\", common(\"abc\", \"xyz\"));\n    println!(\"{}\", common(\"привет\", \"тире\"));\n}\n", "expected": ["lo", "[]", "еирт"]}');
+', 'Пересечение двух HashSet<char>.', '{"driver": "fn main() {\n    println!(\"{}\", common(\"hello\", \"world\"));\n    println!(\"[{}]\", common(\"abc\", \"xyz\"));\n    println!(\"{}\", common(\"planet\", \"learn\"));\n}\n", "expected": ["lo", "[]", "aeln"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 14, 'r14-pangram', 16, 'rust', 'Панграмма', 'Напишите is_pangram(s: &str) -> bool: содержит ли строка все 26 букв латиницы (регистр не важен).', 'use std::collections::HashSet;
 
 fn is_pangram(s: &str) -> bool {
@@ -3030,12 +3030,12 @@ fn histogram(s: &str) -> BTreeMap<char, usize> {
     todo!()
 }
 ', 'BTreeMap хранит ключи отсортированными.', '{"driver": "fn main() {\n    println!(\"{:?}\", histogram(\"hello world\"));\n    println!(\"{:?}\", histogram(\"\"));\n}\n", "expected": ["{''d'': 1, ''e'': 1, ''h'': 1, ''l'': 3, ''o'': 2, ''r'': 1, ''w'': 1}", "{}"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 14, 'r14-inventory', 19, 'rust', 'Склад', 'Напишите update_stock(stock: &mut HashMap<String, u32>, op: &str, item: &str, n: u32) -> Result<(), String>: «add» увеличивает остаток; «take» уменьшает (Err("нет товара"), если ключа нет, и Err("мало"), если остаток меньше n; при остатке 0 ключ удаляется); иные операции — Err("операция").', 'use std::collections::HashMap;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 14, 'r14-inventory', 19, 'rust', 'Склад', 'Напишите update_stock(stock: &mut HashMap<String, u32>, op: &str, item: &str, n: u32) -> Result<(), String>: «add» увеличивает остаток; «take» уменьшает (Err("no item"), если ключа нет, и Err("few"), если остаток меньше n; при остатке 0 ключ удаляется); иные операции — Err("operation").', 'use std::collections::HashMap;
 
 fn update_stock(stock: &mut HashMap<String, u32>, op: &str, item: &str, n: u32) -> Result<(), String> {
     todo!()
 }
-', 'get_mut даёт &mut значения; remove при нуле.', '{"driver": "fn main() {\n    let mut s = HashMap::new();\n    println!(\"{:?}\", update_stock(&mut s, \"add\", \"гвозди\", 10));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"гвозди\", 4));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"гвозди\", 7));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"болты\", 1));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"гвозди\", 6));\n    println!(\"{}\", s.len());\n    println!(\"{:?}\", update_stock(&mut s, \"sell\", \"x\", 1));\n}\n", "expected": ["Ok(())", "Ok(())", "Err(\"мало\")", "Err(\"нет товара\")", "Ok(())", "0", "Err(\"операция\")"]}');
+', 'get_mut даёт &mut значения; remove при нуле.', '{"driver": "fn main() {\n    let mut s = HashMap::new();\n    println!(\"{:?}\", update_stock(&mut s, \"add\", \"nails\", 10));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"nails\", 4));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"nails\", 7));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"bolts\", 1));\n    println!(\"{:?}\", update_stock(&mut s, \"take\", \"nails\", 6));\n    println!(\"{}\", s.len());\n    println!(\"{:?}\", update_stock(&mut s, \"sell\", \"x\", 1));\n}\n", "expected": ["Ok(())", "Ok(())", "Err(\"few\")", "Err(\"no item\")", "Ok(())", "0", "Err(\"operation\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 14, 'r14-index', 20, 'rust', 'Индекс слов', 'Напишите build_index(docs: &[&str]) -> BTreeMap<String, Vec<usize>>: для каждого слова (в нижнем регистре) — номера документов (с 0, без повторов, по возрастанию), где оно встречается.', 'use std::collections::BTreeMap;
 
 fn build_index(docs: &[&str]) -> BTreeMap<String, Vec<usize>> {
@@ -3144,11 +3144,11 @@ fn scenario() {
     // ваш код
 }
 ', 'drop(b) уничтожает b сразу; внутренний блок { … } уничтожает c на своей скобке; a живёт до конца функции.', '{"driver": "fn main() {\n    scenario();\n}\n", "expected": ["make a", "make b", "drop b", "mid", "make c", "drop c", "end", "drop a"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-move-fix', 2, 'rust', 'Исправьте: значение использовано после переезда', 'Код не компилируется: let upper = name; перемещает строку, и дальше name использовать нельзя. Исправьте describe так, чтобы функция возвращала «<исходная> -> <заглавными>»: например, «rust -> RUST».', 'fn describe(name: String) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-move-fix', 2, 'rust', 'Исправьте: значение использовано после переезда', 'Код не компилируется: let upper = name; перемещает строку, и дальше name использовать нельзя. Исправьте describe так, чтобы функция возвращала «<original> -> <uppercase>»: например, «rust -> RUST».', 'fn describe(name: String) -> String {
     let upper = name;
     format!("{} -> {}", name, upper.to_uppercase())
 }
-', 'Нужны две независимые строки — значит, одну из них создайте через .clone().', '{"driver": "fn main() {\n    println!(\"{}\", describe(String::from(\"rust\")));\n    println!(\"{}\", describe(String::from(\"привет\")));\n}\n", "expected": ["rust -> RUST", "привет -> ПРИВЕТ"]}');
+', 'Нужны две независимые строки — значит, одну из них создайте через .clone().', '{"driver": "fn main() {\n    println!(\"{}\", describe(String::from(\"rust\")));\n    println!(\"{}\", describe(String::from(\"hello\")));\n}\n", "expected": ["rust -> RUST", "hello -> HELLO"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-return-ownership', 3, 'rust', 'Вернуть владение: кортеж и цепочка', 'Функции забирают строку по значению. exclaim(s) дописывает в конец «!» и возвращает строку. measure(s) возвращает пару (строка, длина в байтах), чтобы вызывающий не потерял владение.', 'fn exclaim(s: String) -> String {
     todo!()
 }
@@ -3156,7 +3156,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn measure(s: String) -> (String, usize) {
     todo!()
 }
-', 'Параметр, который меняется, объявляют как mut s. Длину возьмите до того, как отдадите s в кортеж.', '{"driver": "fn main() {\n    let s = String::from(\"привет\");\n    let s = exclaim(s);\n    let (s, n) = measure(s);\n    println!(\"{s} {n}\");\n    let (s, n) = measure(exclaim(s));\n    println!(\"{s} {n}\");\n}\n", "expected": ["привет! 13", "привет!! 14"]}');
+', 'Параметр, который меняется, объявляют как mut s. Длину возьмите до того, как отдадите s в кортеж.', '{"driver": "fn main() {\n    let s = String::from(\"hello, world\");\n    let s = exclaim(s);\n    let (s, n) = measure(s);\n    println!(\"{s} {n}\");\n    let (s, n) = measure(exclaim(s));\n    println!(\"{s} {n}\");\n}\n", "expected": ["hello, world! 13", "hello, world!! 14"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-array-copy', 4, 'rust', 'Массивы и кортежи копируются', 'Массив [i32; 4] и кортеж (i32, i32) целиком лежат на стеке и копируются побитно. Напишите doubled(a) — массив с удвоенными элементами и swapped(p) — кортеж с переставленными местами числами. После вызова исходные значения остаются доступными.', 'fn doubled(a: [i32; 4]) -> [i32; 4] {
     todo!()
 }
@@ -3174,7 +3174,7 @@ struct Point {
 fn shift(p: Point, dx: i32, dy: i32) -> Point {
     Point { x: p.x + dx, y: p.y + dy }
 }
-', '#[derive(Debug, Clone, Copy)] — Copy требует и Clone.', '{"driver": "fn main() {\n    let p = Point { x: 1, y: 2 };\n    let q = shift(p, 10, 20);\n    println!(\"{:?} {:?}\", p, q);\n    println!(\"{} байт\", std::mem::size_of::<Point>());\n}\n", "expected": ["Point { x: 1, y: 2 } Point { x: 11, y: 22 }", "8 байт"]}');
+', '#[derive(Debug, Clone, Copy)] — Copy требует и Clone.', '{"driver": "fn main() {\n    let p = Point { x: 1, y: 2 };\n    let q = shift(p, 10, 20);\n    println!(\"{:?} {:?}\", p, q);\n    println!(\"{} bytes\", std::mem::size_of::<Point>());\n}\n", "expected": ["Point { x: 1, y: 2 } Point { x: 11, y: 22 }", "8 bytes"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-two-clones', 6, 'rust', 'Ровно два клона', 'Напишите triple(s) → (String, String, String): три одинаковые строки. Условие: в коде ровно два вызова .clone() — третья строка получается перемещением самой s. Каждый лишний клон — лишний malloc и memcpy.', 'fn triple(s: String) -> (String, String, String) {
     todo!()
 }
@@ -3467,15 +3467,15 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'size_of::<Тип>() — дженерик-функция из std::mem; тип пишут в угловых скобках.', '{"driver": "fn main() {\n    println!(\"{:?}\", sizes());\n}\n", "expected": ["[1, 4, 8, 24, 24, 8, 8]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-moved-args', 29, 'rust', 'Исправьте: аргументы переехали в longest', 'report возвращает «<самая длинная> (из <a> и <b>)». Но longest забирает обе строки, и в format! их уже нет. Исправьте report: нужны ровно два клона, а longest менять не нужно.', 'fn longest(a: String, b: String) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 15, 'r15-moved-args', 29, 'rust', 'Исправьте: аргументы переехали в longest', 'report возвращает «<longest> (of <a> and <b>)». Но longest забирает обе строки, и в format! их уже нет. Исправьте report: нужны ровно два клона, а longest менять не нужно.', 'fn longest(a: String, b: String) -> String {
     if a.len() >= b.len() { a } else { b }
 }
 
 fn report(a: String, b: String) -> String {
     let winner = longest(a, b);
-    format!("{winner} (из {a} и {b})")
+    format!("{winner} (of {a} and {b})")
 }
-', 'longest(a.clone(), b.clone()) отдаёт функции копии, а оригиналы остаются у report.', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\".clo\", \"ne()\")).count();\n    println!(\"{}\", report(String::from(\"apple\"), String::from(\"fig\")));\n    println!(\"{}\", report(String::from(\"kiwi\"), String::from(\"plum\")));\n    println!(\"clones: {}\", bad0);\n}\n", "expected": ["apple (из apple и fig)", "kiwi (из kiwi и plum)", "clones: 2"]}');
+', 'longest(a.clone(), b.clone()) отдаёт функции копии, а оригиналы остаются у report.', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\".clo\", \"ne()\")).count();\n    println!(\"{}\", report(String::from(\"apple\"), String::from(\"fig\")));\n    println!(\"{}\", report(String::from(\"kiwi\"), String::from(\"plum\")));\n    println!(\"clones: {}\", bad0);\n}\n", "expected": ["apple (of apple and fig)", "kiwi (of kiwi and plum)", "clones: 2"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-count-vowels', 0, 'rust', 'Заём для чтения: &str', 'Напишите count_vowels(s: &str) -> usize: сколько в строке гласных. Гласные — русские а е ё и о у ы э ю я и латинские a e i o u, регистр не важен. Функция только читает: после вызова строка остаётся у владельца.', 'fn count_vowels(s: &str) -> usize {
     todo!()
 }
@@ -3503,23 +3503,23 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     v.push(*first);
 }
 ', 'let first = v[0]; — i32 копируется, заём сразу заканчивается.', '{"driver": "fn main() {\n    let mut v = vec![5, 7];\n    grow_with_first(&mut v);\n    println!(\"{:?}\", v);\n    grow_with_first(&mut v);\n    println!(\"{:?}\", v);\n}\n", "expected": ["[5, 7, 100, 5]", "[5, 7, 100, 5, 100, 5]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-fix-dangle', 5, 'rust', 'Исправьте: ссылка на локальную строку', 'greeting строит строку «Привет, <имя>!» и пытается вернуть ссылку на неё, но локальная строка уничтожается при выходе из функции. Исправьте: верните владение, а не ссылку.', 'fn greeting(name: &str) -> &str {
-    let s = format!("Привет, {name}!");
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-fix-dangle', 5, 'rust', 'Исправьте: ссылка на локальную строку', 'greeting строит строку «Hello, <name>!» и пытается вернуть ссылку на неё, но локальная строка уничтожается при выходе из функции. Исправьте: верните владение, а не ссылку.', 'fn greeting(name: &str) -> &str {
+    let s = format!("Hello, {name}!");
     &s
 }
-', 'Тип результата — String; последнее выражение функции может быть самим format!.', '{"driver": "fn main() {\n    println!(\"{}\", greeting(\"Rust\"));\n    let g = greeting(\"мир\");\n    println!(\"{} ({} байт)\", g, g.len());\n}\n", "expected": ["Привет, Rust!", "Привет, мир! (21 байт)"]}');
+', 'Тип результата — String; последнее выражение функции может быть самим format!.', '{"driver": "fn main() {\n    println!(\"{}\", greeting(\"Rust\"));\n    let g = greeting(\"my Rustaceans\");\n    println!(\"{} ({} bytes)\", g, g.len());\n}\n", "expected": ["Hello, Rust!", "Hello, my Rustaceans! (21 bytes)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-longest', 6, 'rust', 'Время жизни: longest', 'Напишите longest<''a>(a: &''a str, b: &''a str) -> &''a str: вернуть более длинную строку (по байтам); при равной длине — первую. Результат — ссылка на один из аргументов, а не новая строка.', 'fn longest<''a>(a: &''a str, b: &''a str) -> &''a str {
     todo!()
 }
-', 'Сравните len() и верните ту ссылку, которая подходит; аннотации ''a уже в сигнатуре.', '{"driver": "fn main() {\n    let s1 = String::from(\"abcd\");\n    let n;\n    {\n        let s2 = String::from(\"xyz\");\n        n = longest(&s1, &s2).len();\n    }\n    println!(\"{n}\");\n    println!(\"{} {}\", longest(\"aa\", \"bb\"), longest(\"привет\", \"hello\"));\n}\n", "expected": ["4", "aa привет"]}');
+', 'Сравните len() и верните ту ссылку, которая подходит; аннотации ''a уже в сигнатуре.', '{"driver": "fn main() {\n    let s1 = String::from(\"abcd\");\n    let n;\n    {\n        let s2 = String::from(\"xyz\");\n        n = longest(&s1, &s2).len();\n    }\n    println!(\"{n}\");\n    println!(\"{} {}\", longest(\"aa\", \"bb\"), longest(\"greetings\", \"hello\"));\n}\n", "expected": ["4", "aa greetings"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-first-word', 7, 'rust', 'Срез первого слова', 'Напишите first_word(s: &str) -> &str: первое слово — подряд идущие непробельные символы; ведущие пробельные символы пропускаются; если слов нет, вернуть пустую строку. Результат — срез исходной строки, а не новая строка.', 'fn first_word(s: &str) -> &str {
     todo!()
 }
-', 'split_whitespace().next() возвращает Option<&str>; unwrap_or("") даёт пустой срез.', '{"driver": "fn main() {\n    for s in [\"hello world\", \"  padded  text\", \"\", \"   \", \"один\", \"тут много слов\"] {\n        println!(\"{:?}\", first_word(s));\n    }\n    let owned = String::from(\"take me home\");\n    let w = first_word(&owned);\n    println!(\"{} {}\", w, w.as_ptr() == owned.as_ptr());\n}\n", "expected": ["\"hello\"", "\"padded\"", "\"\"", "\"\"", "\"один\"", "\"тут\"", "take true"]}');
+', 'split_whitespace().next() возвращает Option<&str>; unwrap_or("") даёт пустой срез.', '{"driver": "fn main() {\n    for s in [\"hello world\", \"  padded  text\", \"\", \"   \", \"one\", \"here many words\"] {\n        println!(\"{:?}\", first_word(s));\n    }\n    let owned = String::from(\"take me home\");\n    let w = first_word(&owned);\n    println!(\"{} {}\", w, w.as_ptr() == owned.as_ptr());\n}\n", "expected": ["\"hello\"", "\"padded\"", "\"\"", "\"\"", "\"one\"", "\"here\"", "take true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-lifetime-fix', 8, 'rust', 'Исправьте: нет времени жизни у результата', 'pick(a, b, first) возвращает a или b в зависимости от флага. Компилятор не знает, к какому аргументу привязан результат. Допишите параметр времени жизни в сигнатуру.', 'fn pick(a: &str, b: &str, first: bool) -> &str {
     if first { a } else { b }
 }
-', 'fn pick<''a>(a: &''a str, b: &''a str, first: bool) -> &''a str.', '{"driver": "fn main() {\n    let x = String::from(\"левая\");\n    let y = String::from(\"правая\");\n    println!(\"{} {}\", pick(&x, &y, true), pick(&x, &y, false));\n}\n", "expected": ["левая правая"]}');
+', 'fn pick<''a>(a: &''a str, b: &''a str, first: bool) -> &''a str.', '{"driver": "fn main() {\n    let x = String::from(\"left\");\n    let y = String::from(\"right\");\n    println!(\"{} {}\", pick(&x, &y, true), pick(&x, &y, false));\n}\n", "expected": ["left right"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-slice-split', 9, 'rust', 'Две половины одного среза', 'Напишите halves(v: &[i32]) -> (&[i32], &[i32]): левая половина длиной len/2 (округление вниз) и остаток. Данные не копируются: обе части — срезы исходного.', 'fn halves(v: &[i32]) -> (&[i32], &[i32]) {
     todo!()
 }
@@ -3560,7 +3560,7 @@ impl<''a> Parser<''a> {
         todo!()
     }
 }
-', 'Ищите начало слова после trim_start, конец — по первому пробельному символу; сдвигайте self.pos за слово.', '{"driver": "fn main() {\n    let text = String::from(\"  hello   rust world \");\n    let mut words = Vec::new();\n    {\n        let mut p = Parser::new(&text);\n        while let Some(w) = p.next_word() {\n            words.push(w);\n        }\n    }\n    println!(\"{:?}\", words);\n    let mut q = Parser::new(\"привет мир\");\n    println!(\"{:?} {:?} {:?}\", q.next_word(), q.next_word(), q.next_word());\n    println!(\"{:?}\", Parser::new(\"   \").next_word());\n}\n", "expected": ["[\"hello\", \"rust\", \"world\"]", "Some(\"привет\") Some(\"мир\") None", "None"]}');
+', 'Ищите начало слова после trim_start, конец — по первому пробельному символу; сдвигайте self.pos за слово.', '{"driver": "fn main() {\n    let text = String::from(\"  hello   rust world \");\n    let mut words = Vec::new();\n    {\n        let mut p = Parser::new(&text);\n        while let Some(w) = p.next_word() {\n            words.push(w);\n        }\n    }\n    println!(\"{:?}\", words);\n    let mut q = Parser::new(\"hello world\");\n    println!(\"{:?} {:?} {:?}\", q.next_word(), q.next_word(), q.next_word());\n    println!(\"{:?}\", Parser::new(\"   \").next_word());\n}\n", "expected": ["[\"hello\", \"rust\", \"world\"]", "Some(\"hello\") Some(\"world\") None", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-method-forms', 14, 'rust', 'Три формы self', 'Counter считает события. new() — со нулём; get(&self) читает значение; inc(&mut self) увеличивает на 1; finish(self) забирает счётчик и возвращает итог. Выберите для каждого метода нужную форму: после finish использовать счётчик уже нельзя.', 'struct Counter {
     n: u32,
 }
@@ -3650,7 +3650,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-longest-word', 24, 'rust', 'Самое длинное слово', 'Напишите longest_word(text: &str) -> &str: самое длинное слово текста (слова разделены пробельными символами; длина — в символах, не в байтах; при равенстве — первое; пустой текст → ""). Верните срез текста.', 'fn longest_word(text: &str) -> &str {
     todo!()
 }
-', 'Храните лучший срез в переменной типа &str и заменяйте её, когда нашли слово длиннее по chars().count().', '{"driver": "fn main() {\n    println!(\"{:?}\", longest_word(\"a bb ccc dd\"));\n    println!(\"{:?}\", longest_word(\"привет мир кот\"));\n    println!(\"{:?}\", longest_word(\"ab cd\"));\n    println!(\"{:?}\", longest_word(\"  \"));\n}\n", "expected": ["\"ccc\"", "\"привет\"", "\"ab\"", "\"\""]}');
+', 'Храните лучший срез в переменной типа &str и заменяйте её, когда нашли слово длиннее по chars().count().', '{"driver": "fn main() {\n    println!(\"{:?}\", longest_word(\"a bb ccc dd\"));\n    println!(\"{:?}\", longest_word(\"hello world cat\"));\n    println!(\"{:?}\", longest_word(\"ab cd\"));\n    println!(\"{:?}\", longest_word(\"  \"));\n}\n", "expected": ["\"ccc\"", "\"hello\"", "\"ab\"", "\"\""]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-struct-ref-fix', 25, 'rust', 'Исправьте: у структуры со ссылкой нет времени жизни', 'Highlight хранит срез текста и смещение, mark(text, from, to) строит выделение. Компилятор требует указать время жизни. Допишите параметры в определение структуры и в сигнатуру функции.', 'struct Highlight {
     text: &str,
     start: usize,
@@ -3685,12 +3685,12 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'iter_mut().find(|x| **x < 0): в замыкании x имеет тип &&mut i32, поэтому две звёздочки.', '{"driver": "fn main() {\n    let mut v = [3, -1, 4, -5];\n    while let Some(x) = first_negative(&mut v) {\n        *x = 0;\n    }\n    println!(\"{:?}\", v);\n    println!(\"{:?}\", first_negative(&mut [1, 2]));\n}\n", "expected": ["[3, 0, 4, 0]", "None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-fix-report', 29, 'rust', 'Исправьте: ссылка на первый элемент и clear', 'report(names) возвращает строку «первое — <имя>; осталось <N>» и очищает вектор. Ссылка first на элемент вектора ещё нужна, когда вектор очищается. Исправьте: сделайте независимую копию имени.', 'fn report(names: &mut Vec<String>) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 16, 'r16-fix-report', 29, 'rust', 'Исправьте: ссылка на первый элемент и clear', 'report(names) возвращает строку «first — <name>; left <N>» и очищает вектор. Ссылка first на элемент вектора ещё нужна, когда вектор очищается. Исправьте: сделайте независимую копию имени.', 'fn report(names: &mut Vec<String>) -> String {
     let first = &names[0];
     names.clear();
-    format!("первое — {}; осталось {}", first, names.len())
+    format!("first — {}; left {}", first, names.len())
 }
-', 'names[0].clone() даёт новую String, не связанную с вектором.', '{"driver": "fn main() {\n    let mut names = vec![String::from(\"anna\"), String::from(\"bob\")];\n    println!(\"{}\", report(&mut names));\n    println!(\"{:?}\", names);\n}\n", "expected": ["первое — anna; осталось 0", "[]"]}');
+', 'names[0].clone() даёт новую String, не связанную с вектором.', '{"driver": "fn main() {\n    let mut names = vec![String::from(\"anna\"), String::from(\"bob\")];\n    println!(\"{}\", report(&mut names));\n    println!(\"{:?}\", names);\n}\n", "expected": ["first — anna; left 0", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-point-new', 0, 'rust', 'Структура и методы: Point', 'Опишите методы Point: origin() — точка (0, 0); new(x, y); manhattan(&self, other: &Point) → |dx| + |dy|; translate(&mut self, dx, dy) — сдвинуть на месте.', 'struct Point {
     x: i32,
     y: i32,
@@ -3746,7 +3746,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     age: u32,
     active: bool,
 }
-', '#[derive(Debug, Clone, PartialEq, Default)] — все поля уже умеют всё это, поэтому derive сработает.', '{"driver": "fn main() {\n    let u = User { name: String::from(\"Анна\"), age: 30, active: true };\n    let v = u.clone();\n    println!(\"{:?}\", u);\n    println!(\"{}\", u == v);\n    let d = User::default();\n    println!(\"{:?} {}\", d, d == u);\n    println!(\"{:#?}\", v);\n}\n", "expected": ["User { name: \"Анна\", age: 30, active: true }", "true", "User { name: \"\", age: 0, active: false } false", "User {", "    name: \"Анна\",", "    age: 30,", "    active: true,", "}"]}');
+', '#[derive(Debug, Clone, PartialEq, Default)] — все поля уже умеют всё это, поэтому derive сработает.', '{"driver": "fn main() {\n    let u = User { name: String::from(\"Anna\"), age: 30, active: true };\n    let v = u.clone();\n    println!(\"{:?}\", u);\n    println!(\"{}\", u == v);\n    let d = User::default();\n    println!(\"{:?} {}\", d, d == u);\n    println!(\"{:#?}\", v);\n}\n", "expected": ["User { name: \"Anna\", age: 30, active: true }", "true", "User { name: \"\", age: 0, active: false } false", "User {", "    name: \"Anna\",", "    age: 30,", "    active: true,", "}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-display-impl', 3, 'rust', 'Display вручную', 'Реализуйте std::fmt::Display: для Point — «(x, y)»; для Temp — «21.5°C» или «70.7°F» (одно знак после запятой). Тогда работают {} и to_string().', 'use std::fmt;
 
 struct Point {
@@ -3868,7 +3868,7 @@ fn name_len(name: Option<&str>) -> usize {
 fn parse_or(s: &str, default: i32) -> i32 {
     todo!()
 }
-', 'find возвращает Option<&i32>; map превращает значение внутри. Для разбора строки: s.trim().parse().unwrap_or(default).', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\"mat\", \"ch \")).count();\n    let bad1 = src.matches(concat!(\"if \", \"let \")).count();\n    println!(\"{:?} {:?}\", first_even_square(&[3, 5, 6, 8]), first_even_square(&[1, 3]));\n    println!(\"{} {}\", name_len(Some(\"Анна\")), name_len(None));\n    println!(\"{} {} {}\", parse_or(\" 42 \", 0), parse_or(\"abc\", -1), parse_or(\"\", 7));\n    println!(\"banned: {} {}\", bad0, bad1);\n}\n", "expected": ["Some(36) None", "8 0", "42 -1 7", "banned: 0 0"]}');
+', 'find возвращает Option<&i32>; map превращает значение внутри. Для разбора строки: s.trim().parse().unwrap_or(default).', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\"mat\", \"ch \")).count();\n    let bad1 = src.matches(concat!(\"if \", \"let \")).count();\n    println!(\"{:?} {:?}\", first_even_square(&[3, 5, 6, 8]), first_even_square(&[1, 3]));\n    println!(\"{} {}\", name_len(Some(\"Jonathan\")), name_len(None));\n    println!(\"{} {} {}\", parse_or(\" 42 \", 0), parse_or(\"abc\", -1), parse_or(\"\", 7));\n    println!(\"banned: {} {}\", bad0, bad1);\n}\n", "expected": ["Some(36) None", "8 0", "42 -1 7", "banned: 0 0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-let-else', 13, 'rust', 'let else и if let', 'parse_kv(line) → String: строка вида "ключ=значение"; через let else разобрать по первому «=», иначе вернуть "bad"; результат — «ключ -> значение» (обе части с обрезанными пробелами). show(o: Option<i32>) → String: «got N», если число есть, иначе «nothing» — через if let / else.', 'fn parse_kv(line: &str) -> String {
     todo!()
 }
@@ -3942,7 +3942,7 @@ fn display_name(p: &Person) -> String {
         None => p.name.clone(),
     }
 }
-', 'match &p.nickname даёт привязку n: &String; вернуть нужно владельца — n.clone().', '{"driver": "fn main() {\n    let a = Person { name: String::from(\"Александр\"), nickname: Some(String::from(\"Саша\")) };\n    let b = Person { name: String::from(\"Борис\"), nickname: None };\n    println!(\"{} {}\", display_name(&a), display_name(&b));\n    println!(\"{} {}\", a.name, display_name(&a));\n}\n", "expected": ["Саша Борис", "Александр Саша"]}');
+', 'match &p.nickname даёт привязку n: &String; вернуть нужно владельца — n.clone().', '{"driver": "fn main() {\n    let a = Person { name: String::from(\"Alexander\"), nickname: Some(String::from(\"Sasha\")) };\n    let b = Person { name: String::from(\"Boris\"), nickname: None };\n    println!(\"{} {}\", display_name(&a), display_name(&b));\n    println!(\"{} {}\", a.name, display_name(&a));\n}\n", "expected": ["Sasha Boris", "Alexander Sasha"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-match-mut', 18, 'rust', 'Изменение внутри Option', 'increment_if_some(o: &mut Option<i32>) — прибавить 1, если значение есть. take_or(o: &mut Option<String>, default: &str) → String: забрать значение из o (в o остаётся None) или вернуть default. append_default(o: &mut Option<Vec<i32>>, x) — добавить x в вектор; если вектора ещё нет, создать.', 'fn increment_if_some(o: &mut Option<i32>) {
     todo!()
 }
@@ -3958,11 +3958,11 @@ fn append_default(o: &mut Option<Vec<i32>>, x: i32) {
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-fix-move-in-match', 19, 'rust', 'Исправьте: значение переехало в match', 'describe сначала разбирает msg через match, а затем печатает его же через {:?}. match перемещает строку из варианта, и msg после него недоступно. Исправьте минимальной правкой (data нужны и текст, и сам msg).', 'fn describe(msg: Option<String>) -> String {
     let text = match msg {
         Some(s) => s,
-        None => String::from("пусто"),
+        None => String::from("empty"),
     };
     format!("{text} ({:?})", msg)
 }
-', 'match &msg разбирает ссылку: привязка s — &String, а msg остаётся целым.', '{"driver": "fn main() {\n    println!(\"{}\", describe(Some(String::from(\"привет\"))));\n    println!(\"{}\", describe(None));\n}\n", "expected": ["привет (Some(\"привет\"))", "пусто (None)"]}');
+', 'match &msg разбирает ссылку: привязка s — &String, а msg остаётся целым.', '{"driver": "fn main() {\n    println!(\"{}\", describe(Some(String::from(\"hello\"))));\n    println!(\"{}\", describe(None));\n}\n", "expected": ["hello (Some(\"hello\"))", "empty (None)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-expr-eval', 20, 'rust', 'Дерево выражений: eval', 'Expr — Num(i64), Add, Mul (по два Box<Expr>) и Neg (один). Напишите eval(e: &Expr) → i64 рекурсивным match. Ссылка на Box<Expr> автоматически приводится к &Expr, так что eval(a) работает.', 'enum Expr {
     Num(i64),
     Add(Box<Expr>, Box<Expr>),
@@ -4108,7 +4108,7 @@ fn texts(v: &Value) -> Vec<String> {
     todo!()
 }
 ', 'Список обрабатывается рекурсивно: items.iter().map(total).sum(); max() по пустому итератору даёт None — подойдёт unwrap_or(0).', '{"driver": "fn main() {\n    use Value::*;\n    let v = List(vec![\n        Int(2),\n        Text(\"a\".into()),\n        List(vec![Float(1.5), List(vec![Text(\"b\".into()), Int(10)])]),\n        Text(\"c\".into()),\n    ]);\n    println!(\"{} {} {:?}\", total(&v), depth(&v), texts(&v));\n    println!(\"{} {} {:?}\", total(&Int(5)), depth(&List(vec![])), texts(&Float(1.0)));\n}\n", "expected": ["13.5 3 [\"a\", \"b\", \"c\"]", "5 1 []"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-json', 28, 'rust', 'Рендер JSON из enum', 'Json — Null, Bool, Num(f64), Str(String), Arr(Vec<Json>), Obj(Vec<(String, Json)>). render(&self) → String: компактный JSON без пробелов: null, true/false, число как в {}, строка в двойных кавычках (экранируйте \" и \\), массив [a,b], объект {"k":v,...} в порядке вектора.', 'enum Json {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-json', 28, 'rust', 'Рендер JSON из enum', 'Json — Null, Bool, Num(f64), Str(String), Arr(Vec<Json>), Obj(Vec<(String, Json)>). render(&self) → String: компактный JSON без пробелов: null, true/false, число как в {}, строка в двойных кавычках (экранируйте \" and \\), array [a,b], object {"k":v,...} в порядке вектора.', 'enum Json {
     Null,
     Bool(bool),
     Num(f64),
@@ -4122,7 +4122,7 @@ impl Json {
         todo!()
     }
 }
-', 'Вспомогательная функция quote(s) экранирует символы по одному; в format! фигурные скобки удваивают: {{ и }}.', '{"driver": "fn main() {\n    use Json::*;\n    let j = Obj(vec![\n        (\"name\".to_string(), Str(\"Анна \\\"Ню\\\"\".to_string())),\n        (\"age\".to_string(), Num(30.0)),\n        (\"pi\".to_string(), Num(3.5)),\n        (\"tags\".to_string(), Arr(vec![Bool(true), Null, Str(\"a\\\\b\".to_string())])),\n        (\"empty\".to_string(), Arr(vec![])),\n    ]);\n    println!(\"{}\", j.render());\n    println!(\"{}\", Null.render());\n}\n", "expected": ["{\"name\":\"Анна \\\"Ню\\\"\",\"age\":30,\"pi\":3.5,\"tags\":[true,null,\"a\\\\b\"],\"empty\":[]}", "null"]}');
+', 'Вспомогательная функция quote(s) экранирует символы по одному; в format! фигурные скобки удваивают: {{ и }}.', '{"driver": "fn main() {\n    use Json::*;\n    let j = Obj(vec![\n        (\"name\".to_string(), Str(\"Anna \\\"Nyu\\\"\".to_string())),\n        (\"age\".to_string(), Num(30.0)),\n        (\"pi\".to_string(), Num(3.5)),\n        (\"tags\".to_string(), Arr(vec![Bool(true), Null, Str(\"a\\\\b\".to_string())])),\n        (\"empty\".to_string(), Arr(vec![])),\n    ]);\n    println!(\"{}\", j.render());\n    println!(\"{}\", Null.render());\n}\n", "expected": ["{\"name\":\"Anna \\\"Nyu\\\"\",\"age\":30,\"pi\":3.5,\"tags\":[true,null,\"a\\\\b\"],\"empty\":[]}", "null"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 17, 'r17-event-log', 29, 'rust', 'Журнал событий: struct-варианты', 'Event — Login { user }, Logout { user }, Purchase { user, cents: u32 } (struct-варианты). summarize(events: &[Event]) → (usize, u32, Vec<String>): число входов, сумма покупок в центах и имена пользователей, которые остались в системе (вошли и не вышли) — в порядке последнего входа без выхода.', 'enum Event {
     Login { user: String },
     Logout { user: String },
@@ -4190,10 +4190,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     squares.iter().sum()
 }
 ', 'collect::<Vec<i32>>() или тип у переменной: let squares: Vec<i32> = ….', '{"driver": "fn main() {\n    println!(\"{} {}\", squares_sum(&[1, 2, 3]), squares_sum(&[]));\n}\n", "expected": ["14 0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-caesar', 9, 'rust', 'String: шифр Цезаря', 'caesar(s: &str, k: u8) → String: сдвинуть каждую латинскую букву на k вперёд по кругу (0 ≤ k ≤ 25), регистр сохранить; остальные символы (в том числе кириллицу) оставить как есть.', 'fn caesar(s: &str, k: u8) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-caesar', 9, 'rust', 'String: шифр Цезаря', 'caesar(s: &str, k: u8) → String: сдвинуть каждую латинскую букву на k вперёд по кругу (0 ≤ k ≤ 25), регистр сохранить; остальные символы (цифры, знаки, пробелы) оставить как есть.', 'fn caesar(s: &str, k: u8) -> String {
     todo!()
 }
-', 'c as u8 - b''a'' + k даёт позицию в алфавите; % 26 заворачивает по кругу; collect() из итератора char в String.', '{"driver": "fn main() {\n    println!(\"{}\", caesar(\"Hello, World!\", 3));\n    println!(\"{}\", caesar(\"xyz XYZ\", 3));\n    println!(\"{}\", caesar(\"привет abc\", 1));\n    println!(\"{}\", caesar(&caesar(\"Round trip\", 7), 19));\n}\n", "expected": ["Khoor, Zruog!", "abc ABC", "привет bcd", "Round trip"]}');
+', 'c as u8 - b''a'' + k даёт позицию в алфавите; % 26 заворачивает по кругу; collect() из итератора char в String.', '{"driver": "fn main() {\n    println!(\"{}\", caesar(\"Hello, World!\", 3));\n    println!(\"{}\", caesar(\"xyz XYZ\", 3));\n    println!(\"{}\", caesar(\"123? abc\", 1));\n    println!(\"{}\", caesar(&caesar(\"Round trip\", 7), 19));\n}\n", "expected": ["Khoor, Zruog!", "abc ABC", "123? bcd", "Round trip"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-utf8-stats', 10, 'rust', 'Символы и байты', 'char_stats(s) → (usize, usize): число символов и число байт. is_palindrome(s) → bool: палиндром, если игнорировать регистр и все символы, кроме букв и цифр. reverse_words(s) → String: слова в обратном порядке, через один пробел.', 'fn char_stats(s: &str) -> (usize, usize) {
     todo!()
 }
@@ -4205,29 +4205,29 @@ fn is_palindrome(s: &str) -> bool {
 fn reverse_words(s: &str) -> String {
     todo!()
 }
-', 'Соберите Vec<char> из букв и цифр в нижнем регистре и сравните его с самим собой в обратном порядке.', '{"driver": "fn main() {\n    println!(\"{:?} {:?}\", char_stats(\"привет\"), char_stats(\"abc\"));\n    println!(\"{} {}\", is_palindrome(\"А роза упала на лапу Азора\"), is_palindrome(\"не палиндром\"));\n    println!(\"{}\", is_palindrome(\"A man, a plan, a canal: Panama\"));\n    println!(\"{:?}\", reverse_words(\"  один  два три \"));\n}\n", "expected": ["(6, 12) (3, 3)", "true false", "true", "\"три два один\""]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-title-case', 11, 'rust', 'Первая буква заглавная', 'title_case(s) → String: каждое слово с заглавной буквы, остальные буквы строчные (работает и с кириллицей); слова разделяются в результате ровно одним пробелом.', 'fn title_case(s: &str) -> String {
+', 'Соберите Vec<char> из букв и цифр в нижнем регистре и сравните его с самим собой в обратном порядке.', '{"driver": "fn main() {\n    println!(\"{:?} {:?}\", char_stats(\"éàèùçï\"), char_stats(\"abc\"));\n    println!(\"{} {}\", is_palindrome(\"A roza upala na lapu Azora\"), is_palindrome(\"not a palindrome\"));\n    println!(\"{}\", is_palindrome(\"A man, a plan, a canal: Panama\"));\n    println!(\"{:?}\", reverse_words(\"  one  two three \"));\n}\n", "expected": ["(6, 12) (3, 3)", "true false", "true", "\"three two one\""]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-title-case', 11, 'rust', 'Первая буква заглавная', 'title_case(s) → String: каждое слово с заглавной буквы, остальные буквы строчные; слова разделяются в результате ровно одним пробелом.', 'fn title_case(s: &str) -> String {
     todo!()
 }
-', 'chars() даёт первую букву, а остаток — cs.as_str(); to_uppercase() возвращает итератор, соберите его в String.', '{"driver": "fn main() {\n    println!(\"{}\", title_case(\"hELLO   wORLD\"));\n    println!(\"{}\", title_case(\"привет мир\"));\n    println!(\"{:?}\", title_case(\"   \"));\n    println!(\"{}\", title_case(\"rust\"));\n}\n", "expected": ["Hello World", "Привет Мир", "\"\"", "Rust"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-fix-string-add', 12, 'rust', 'Исправьте: + забрал строку', 'join3 склеивает три строки и дописывает «(из a b c)». Оператор + забирает левый операнд, и a после него использовать нельзя. Исправьте, чтобы функция вернула, например, «xyz (из x y z)».', 'fn join3(a: String, b: String, c: String) -> String {
+', 'chars() даёт первую букву, а остаток — cs.as_str(); to_uppercase() возвращает итератор, соберите его в String.', '{"driver": "fn main() {\n    println!(\"{}\", title_case(\"hELLO   wORLD\"));\n    println!(\"{}\", title_case(\"hello world\"));\n    println!(\"{:?}\", title_case(\"   \"));\n    println!(\"{}\", title_case(\"rust\"));\n}\n", "expected": ["Hello World", "Hello World", "\"\"", "Rust"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-fix-string-add', 12, 'rust', 'Исправьте: + забрал строку', 'join3 склеивает три строки и дописывает «(of a b c)». Оператор + забирает левый операнд, и a после него использовать нельзя. Исправьте, чтобы функция вернула, например, «xyz (of x y z)».', 'fn join3(a: String, b: String, c: String) -> String {
     let ab = a + &b;
     let abc = ab + &c;
-    format!("{abc} (из {a} {b} {c})")
+    format!("{abc} (of {a} {b} {c})")
 }
-', 'format! не забирает аргументы, поэтому после него строки остаются доступны.', '{"driver": "fn main() {\n    println!(\"{}\", join3(\"x\".into(), \"y\".into(), \"z\".into()));\n    println!(\"{}\", join3(\"при\".into(), \"вет\".into(), \"!\".into()));\n}\n", "expected": ["xyz (из x y z)", "привет! (из при вет !)"]}');
+', 'format! не забирает аргументы, поэтому после него строки остаются доступны.', '{"driver": "fn main() {\n    println!(\"{}\", join3(\"x\".into(), \"y\".into(), \"z\".into()));\n    println!(\"{}\", join3(\"hel\".into(), \"lo\".into(), \"!\".into()));\n}\n", "expected": ["xyz (of x y z)", "hello! (of hel lo !)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-word-count', 13, 'rust', 'HashMap и entry: частоты слов', 'word_count(text) → Vec<(String, usize)>: слова (последовательности букв; всё остальное — разделители; регистр не важен) с количеством вхождений, отсортированные по убыванию количества, затем по алфавиту. Подсчёт — через entry.', 'use std::collections::HashMap;
 
 fn word_count(text: &str) -> Vec<(String, usize)> {
     todo!()
 }
-', 'split(|c: char| !c.is_alphabetic()) разбивает по небуквам; *m.entry(слово).or_insert(0) += 1 считает; сортировка — sort_by с then.', '{"driver": "fn main() {\n    let r = word_count(\"The fox, the DOG; the end. Fox? dog!\");\n    println!(\"{:?}\", r);\n    println!(\"{:?}\", word_count(\"Привет, привет, мир!\"));\n    println!(\"{:?}\", word_count(\"...  \"));\n}\n", "expected": ["[(\"the\", 3), (\"dog\", 2), (\"fox\", 2), (\"end\", 1)]", "[(\"привет\", 2), (\"мир\", 1)]", "[]"]}');
+', 'split(|c: char| !c.is_alphabetic()) разбивает по небуквам; *m.entry(слово).or_insert(0) += 1 считает; сортировка — sort_by с then.', '{"driver": "fn main() {\n    let r = word_count(\"The fox, the DOG; the end. Fox? dog!\");\n    println!(\"{:?}\", r);\n    println!(\"{:?}\", word_count(\"Hello, hello, world!\"));\n    println!(\"{:?}\", word_count(\"...  \"));\n}\n", "expected": ["[(\"the\", 3), (\"dog\", 2), (\"fox\", 2), (\"end\", 1)]", "[(\"hello\", 2), (\"world\", 1)]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-group-by-len', 14, 'rust', 'Группировка по длине', 'group_by_len(words: &[&str]) → BTreeMap<usize, Vec<String>>: ключ — длина слова в символах, значение — слова этой длины в порядке появления. Используйте entry(…).or_insert_with(Vec::new).', 'use std::collections::BTreeMap;
 
 fn group_by_len(words: &[&str]) -> BTreeMap<usize, Vec<String>> {
     todo!()
 }
-', 'or_insert_with(Vec::new) создаёт пустой вектор только если ключа ещё нет; push вызывается на возвращённой &mut.', '{"driver": "fn main() {\n    let m = group_by_len(&[\"a\", \"bb\", \"cc\", \"d\", \"привет\", \"eee\", \"мир\", \"ё\"]);\n    println!(\"{:?}\", m);\n    println!(\"{}\", group_by_len(&[]).len());\n}\n", "expected": ["{1: [\"a\", \"d\", \"ё\"], 2: [\"bb\", \"cc\"], 3: [\"eee\", \"мир\"], 6: [\"привет\"]}", "0"]}');
+', 'or_insert_with(Vec::new) создаёт пустой вектор только если ключа ещё нет; push вызывается на возвращённой &mut.', '{"driver": "fn main() {\n    let m = group_by_len(&[\"a\", \"bb\", \"cc\", \"d\", \"planet\", \"eee\", \"sun\", \"z\"]);\n    println!(\"{:?}\", m);\n    println!(\"{}\", group_by_len(&[]).len());\n}\n", "expected": ["{1: [\"a\", \"d\", \"z\"], 2: [\"bb\", \"cc\"], 3: [\"eee\", \"sun\"], 6: [\"planet\"]}", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-two-sum', 15, 'rust', 'Два числа за один проход: HashMap', 'two_sum(v: &[i64], target) → Option<(usize, usize)>: индексы i < j с v[i] + v[j] = target; из всех пар нужна та, у которой j наименьшее (при равных j — наименьшее i). Входы большие, поэтому двойной цикл не уложится в лимит: используйте HashMap «значение → индекс» и один проход.', 'fn two_sum(v: &[i64], target: i64) -> Option<(usize, usize)> {
     todo!()
 }
@@ -4235,14 +4235,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-anagrams', 16, 'rust', 'Анаграммы: ключ из отсортированных букв', 'anagram_groups(words: &[&str]) → Vec<Vec<String>>: сгруппируйте слова-анаграммы (регистр не важен, но слова сохраняются как есть). Верните только группы из двух и более слов; слова внутри группы — в порядке появления; группы — в порядке возрастания ключа (букв слова по алфавиту).', 'fn anagram_groups(words: &[&str]) -> Vec<Vec<String>> {
     todo!()
 }
-', 'Ключ группы — слово, у которого буквы отсортированы; BTreeMap сам упорядочит группы по ключу.', '{"driver": "fn main() {\n    println!(\"{:?}\", anagram_groups(&[\"listen\", \"silent\", \"enlist\", \"google\", \"gogole\", \"cat\", \"act\", \"Tac\", \"dog\"]));\n    println!(\"{:?}\", anagram_groups(&[\"один\", \"два\"]));\n    println!(\"{:?}\", anagram_groups(&[]));\n}\n", "expected": ["[[\"cat\", \"act\", \"Tac\"], [\"google\", \"gogole\"], [\"listen\", \"silent\", \"enlist\"]]", "[]", "[]"]}');
+', 'Ключ группы — слово, у которого буквы отсортированы; BTreeMap сам упорядочит группы по ключу.', '{"driver": "fn main() {\n    println!(\"{:?}\", anagram_groups(&[\"listen\", \"silent\", \"enlist\", \"google\", \"gogole\", \"cat\", \"act\", \"Tac\", \"dog\"]));\n    println!(\"{:?}\", anagram_groups(&[\"one\", \"two\"]));\n    println!(\"{:?}\", anagram_groups(&[]));\n}\n", "expected": ["[[\"cat\", \"act\", \"Tac\"], [\"google\", \"gogole\"], [\"listen\", \"silent\", \"enlist\"]]", "[]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-merge-counts', 17, 'rust', 'Слияние словарей с владением', 'merge_counts(a, b) → BTreeMap<String, i32>: объединить два словаря счётчиков, складывая значения для общих ключей. Оба словаря передаются по значению: ключи-строки должны переехать, а не копироваться.', 'use std::collections::{BTreeMap, HashMap};
 
 fn merge_counts(a: HashMap<String, i32>, b: HashMap<String, i32>) -> BTreeMap<String, i32> {
     todo!()
 }
 ', 'into_iter() у HashMap отдаёт пары (String, i32) с владением; chain соединяет два итератора.', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\".clo\", \"ne()\")).count();\n    let mut a = HashMap::new();\n    a.insert(String::from(\"x\"), 1);\n    a.insert(String::from(\"y\"), 2);\n    let mut b = HashMap::new();\n    b.insert(String::from(\"y\"), 10);\n    b.insert(String::from(\"z\"), 5);\n    println!(\"{:?}\", merge_counts(a, b));\n    println!(\"{:?}\", merge_counts(HashMap::new(), HashMap::new()));\n    println!(\"clones: {}\", bad0);\n}\n", "expected": ["{\"x\": 1, \"y\": 12, \"z\": 5}", "{}", "clones: 0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-fix-key-move', 18, 'rust', 'Исправьте: ключ переехал в таблицу', 'index(words) → (HashMap<String, usize>, usize): отображение «слово → последний индекс» и суммарная длина всех слов в байтах. Код не собирается: w переезжает в insert, а затем читается. Исправьте минимальной правкой.', 'use std::collections::HashMap;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-fix-key-move', 18, 'rust', 'Исправьте: ключ переехал в таблицу', 'index(words) → (HashMap<String, usize>, usize): отображение «word → last index» и суммарная длина всех слов в байтах. Код не собирается: w переезжает в insert, а затем читается. Исправьте минимальной правкой.', 'use std::collections::HashMap;
 
 fn index(words: Vec<String>) -> (HashMap<String, usize>, usize) {
     let mut m = HashMap::new();
@@ -4253,13 +4253,13 @@ fn index(words: Vec<String>) -> (HashMap<String, usize>, usize) {
     }
     (m, total)
 }
-', 'Прочитайте w.len() до insert: после insert строка принадлежит таблице. Клонировать не нужно.', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\".clo\", \"ne()\")).count();\n    let (m, total) = index(vec![\"aa\".into(), \"b\".into(), \"aa\".into(), \"привет\".into()]);\n    let mut items: Vec<_> = m.iter().collect();\n    items.sort();\n    println!(\"{:?} {}\", items, total);\n    println!(\"clones: {}\", bad0);\n}\n", "expected": ["[(\"aa\", 2), (\"b\", 1), (\"привет\", 3)] 17", "clones: 0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-parse-age', 19, 'rust', 'Result<u8, String> и виды ошибок разбора', 'parse_age(s) → Result<u8, String>: разберите строку как u8 и верните понятное сообщение: пустая строка → "пусто"; не число (в том числе отрицательное) → "не число"; больше 255 → "слишком велико"; число больше 150 → "нереальный возраст". Вид ошибки узнают через e.kind() и IntErrorKind.', 'use std::num::IntErrorKind;
+', 'Прочитайте w.len() до insert: после insert строка принадлежит таблице. Клонировать не нужно.', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\".clo\", \"ne()\")).count();\n    let (m, total) = index(vec![\"aa\".into(), \"b\".into(), \"aa\".into(), \"encyclopedia\".into()]);\n    let mut items: Vec<_> = m.iter().collect();\n    items.sort();\n    println!(\"{:?} {}\", items, total);\n    println!(\"clones: {}\", bad0);\n}\n", "expected": ["[(\"aa\", 2), (\"b\", 1), (\"encyclopedia\", 3)] 17", "clones: 0"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-parse-age', 19, 'rust', 'Result<u8, String> и виды ошибок разбора', 'parse_age(s) → Result<u8, String>: разберите строку как u8 и верните понятное сообщение: пустая строка → "empty"; не число (в том числе отрицательное) → "not a number"; больше 255 → "too large"; число больше 150 → "unrealistic age". Вид ошибки узнают через e.kind() и IntErrorKind.', 'use std::num::IntErrorKind;
 
 fn parse_age(s: &str) -> Result<u8, String> {
     todo!()
 }
-', 'Охрана в match: Ok(n) if n > 150 => …; для ошибок — match e.kind() { IntErrorKind::Empty => …, … }.', '{"driver": "fn main() {\n    for s in [\"42\", \"\", \"abc\", \"-5\", \"300\", \"200\", \"150\", \"0\"] {\n        println!(\"{:?} -> {:?}\", s, parse_age(s));\n    }\n}\n", "expected": ["\"42\" -> Ok(42)", "\"\" -> Err(\"пусто\")", "\"abc\" -> Err(\"не число\")", "\"-5\" -> Err(\"не число\")", "\"300\" -> Err(\"слишком велико\")", "\"200\" -> Err(\"нереальный возраст\")", "\"150\" -> Ok(150)", "\"0\" -> Ok(0)"]}');
+', 'Охрана в match: Ok(n) if n > 150 => …; для ошибок — match e.kind() { IntErrorKind::Empty => …, … }.', '{"driver": "fn main() {\n    for s in [\"42\", \"\", \"abc\", \"-5\", \"300\", \"200\", \"150\", \"0\"] {\n        println!(\"{:?} -> {:?}\", s, parse_age(s));\n    }\n}\n", "expected": ["\"42\" -> Ok(42)", "\"\" -> Err(\"empty\")", "\"abc\" -> Err(\"not a number\")", "\"-5\" -> Err(\"not a number\")", "\"300\" -> Err(\"too large\")", "\"200\" -> Err(\"unrealistic age\")", "\"150\" -> Ok(150)", "\"0\" -> Ok(0)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-question-mark', 20, 'rust', 'Оператор ?: цепочка разборов', 'sum_strs(a, b) → Result<i32, ParseIntError>: разобрать обе строки и сложить; average(items: &[&str]) → Result<f64, ParseIntError>: среднее значение чисел (пустой набор → 0.0). Оператор ? обязателен.', 'use std::num::ParseIntError;
 
 fn sum_strs(a: &str, b: &str) -> Result<i32, ParseIntError> {
@@ -4269,8 +4269,8 @@ fn sum_strs(a: &str, b: &str) -> Result<i32, ParseIntError> {
 fn average(items: &[&str]) -> Result<f64, ParseIntError> {
     todo!()
 }
-', 'let x: i32 = a.trim().parse()?; — при ошибке функция сразу вернёт Err.', '{"driver": "fn main() {\n    println!(\"{:?}\", sum_strs(\"3\", \" 4 \"));\n    match sum_strs(\"3\", \"x\") {\n        Ok(v) => println!(\"{v}\"),\n        Err(e) => println!(\"ошибка: {e}\"),\n    }\n    println!(\"{:?}\", average(&[\"1\", \"2\", \"4\"]));\n    println!(\"{:?} {}\", average(&[]), average(&[\"1\", \"\"]).is_err());\n    match average(&[\"99999999999\"]) {\n        Ok(v) => println!(\"{v}\"),\n        Err(e) => println!(\"ошибка: {e}\"),\n    }\n}\n", "expected": ["Ok(7)", "ошибка: invalid digit found in string", "Ok(2.3333333333333335)", "Ok(0.0) true", "ошибка: number too large to fit in target type"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-custom-error', 21, 'rust', 'Своя ошибка: enum, Display, From', 'AppError — Empty, Parse(ParseIntError), Negative(i32). Реализуйте Display («пустая строка» / «не число: <причина>» / «отрицательное: N»), std::error::Error и From<ParseIntError>, затем parse_positive(s) → Result<u32, AppError>: строка с обрезанными пробелами; пустая → Empty; не число → Parse (через ?); меньше нуля → Negative.', 'use std::fmt;
+', 'let x: i32 = a.trim().parse()?; — при ошибке функция сразу вернёт Err.', '{"driver": "fn main() {\n    println!(\"{:?}\", sum_strs(\"3\", \" 4 \"));\n    match sum_strs(\"3\", \"x\") {\n        Ok(v) => println!(\"{v}\"),\n        Err(e) => println!(\"error: {e}\"),\n    }\n    println!(\"{:?}\", average(&[\"1\", \"2\", \"4\"]));\n    println!(\"{:?} {}\", average(&[]), average(&[\"1\", \"\"]).is_err());\n    match average(&[\"99999999999\"]) {\n        Ok(v) => println!(\"{v}\"),\n        Err(e) => println!(\"error: {e}\"),\n    }\n}\n", "expected": ["Ok(7)", "error: invalid digit found in string", "Ok(2.3333333333333335)", "Ok(0.0) true", "error: number too large to fit in target type"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-custom-error', 21, 'rust', 'Своя ошибка: enum, Display, From', 'AppError — Empty, Parse(ParseIntError), Negative(i32). Реализуйте Display («empty string» / «not a number: <reason>» / «negative: N»), std::error::Error и From<ParseIntError>, затем parse_positive(s) → Result<u32, AppError>: строка с обрезанными пробелами; пустая → Empty; не число → Parse (через ?); меньше нуля → Negative.', 'use std::fmt;
 use std::num::ParseIntError;
 
 #[derive(Debug)]
@@ -4289,13 +4289,13 @@ impl fmt::Display for AppError {
 fn parse_positive(s: &str) -> Result<u32, AppError> {
     todo!()
 }
-', 'impl From<ParseIntError> for AppError { fn from(e) -> AppError { AppError::Parse(e) } } — тогда ? преобразует ошибку сам.', '{"driver": "fn main() {\n    for s in [\"17\", \"  \", \"x1\", \"-3\", \" 0 \"] {\n        match parse_positive(s) {\n            Ok(n) => println!(\"ok {n}\"),\n            Err(e) => println!(\"{e}\"),\n        }\n    }\n    let e: Box<dyn std::error::Error> = Box::new(AppError::Negative(-1));\n    println!(\"{e}\");\n    println!(\"{:?}\", parse_positive(\"\"));\n}\n", "expected": ["ok 17", "пустая строка", "не число: invalid digit found in string", "отрицательное: -3", "ok 0", "отрицательное: -1", "Err(Empty)"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-box-dyn-error', 22, 'rust', 'Box<dyn Error>: любая ошибка', 'run(a, b) → Result<i32, Box<dyn Error>>: разобрать оба аргумента как i32 (ошибка разбора пробрасывается через ?) и разделить a на b; при b == 0 вернуть собственную ошибку «деление на ноль» (строку можно превратить в Box<dyn Error> через .into()).', 'use std::error::Error;
+', 'impl From<ParseIntError> for AppError { fn from(e) -> AppError { AppError::Parse(e) } } — тогда ? преобразует ошибку сам.', '{"driver": "fn main() {\n    for s in [\"17\", \"  \", \"x1\", \"-3\", \" 0 \"] {\n        match parse_positive(s) {\n            Ok(n) => println!(\"ok {n}\"),\n            Err(e) => println!(\"{e}\"),\n        }\n    }\n    let e: Box<dyn std::error::Error> = Box::new(AppError::Negative(-1));\n    println!(\"{e}\");\n    println!(\"{:?}\", parse_positive(\"\"));\n}\n", "expected": ["ok 17", "empty string", "not a number: invalid digit found in string", "negative: -3", "ok 0", "negative: -1", "Err(Empty)"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-box-dyn-error', 22, 'rust', 'Box<dyn Error>: любая ошибка', 'run(a, b) → Result<i32, Box<dyn Error>>: разобрать оба аргумента как i32 (ошибка разбора пробрасывается через ?) и разделить a на b; при b == 0 вернуть собственную ошибку «division by zero» (строку можно превратить в Box<dyn Error> через .into()).', 'use std::error::Error;
 
 fn run(a: &str, b: &str) -> Result<i32, Box<dyn Error>> {
     todo!()
 }
-', 'Err("текст".into()) строит Box<dyn Error> из строки; ? сам упаковывает ParseIntError.', '{"driver": "fn main() {\n    for (a, b) in [(\"84\", \"2\"), (\"1\", \"0\"), (\"x\", \"1\"), (\"5\", \"\"), (\"-9\", \"3\")] {\n        match run(a, b) {\n            Ok(v) => println!(\"{v}\"),\n            Err(e) => println!(\"ошибка: {e}\"),\n        }\n    }\n}\n", "expected": ["42", "ошибка: деление на ноль", "ошибка: invalid digit found in string", "ошибка: cannot parse integer from empty string", "-3"]}');
+', 'Err("text".into()) строит Box<dyn Error> из строки; ? сам упаковывает ParseIntError.', '{"driver": "fn main() {\n    for (a, b) in [(\"84\", \"2\"), (\"1\", \"0\"), (\"x\", \"1\"), (\"5\", \"\"), (\"-9\", \"3\")] {\n        match run(a, b) {\n            Ok(v) => println!(\"{v}\"),\n            Err(e) => println!(\"error: {e}\"),\n        }\n    }\n}\n", "expected": ["42", "error: division by zero", "error: invalid digit found in string", "error: cannot parse integer from empty string", "-3"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-map-err', 23, 'rust', 'map_err: понятное сообщение', 'read_port(s) → Result<u16, String>: порт из строки. Ошибка разбора превращается в «bad port ''<s>'': <причина>» через map_err, а значение 0 — в «port 0 reserved». Допустимые значения: 1..=65535.', 'fn read_port(s: &str) -> Result<u16, String> {
     todo!()
 }
@@ -4310,7 +4310,7 @@ fn sum_valid(items: &[&str]) -> i32 {
     todo!()
 }
 ', 'collect() в Result<Vec<_>, _> берёт итератор из Result и останавливается на первой ошибке; ok() превращает Result в Option.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_all(&[\"1\", \" 2 \", \"3\"]));\n    println!(\"{:?}\", parse_all(&[\"1\", \"x\", \"3\", \"y\"]));\n    println!(\"{:?}\", parse_all(&[]));\n    println!(\"{} {}\", sum_valid(&[\"1\", \"x\", \"30\", \"\"]), sum_valid(&[]));\n}\n", "expected": ["Ok([1, 2, 3])", "Err(ParseIntError { kind: InvalidDigit })", "Ok([])", "31 0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-ok-or', 25, 'rust', 'ok_or: из Option в Result', 'lookup(m: &HashMap<&str, i32>, key) → Result<i32, String>: значение по ключу или ошибка «нет ключа <key>» (ok_or_else). first_digit(s) → Result<u32, String>: значение первой цифры строки или ошибка «нет цифр» (используйте chars, find и to_digit).', 'use std::collections::HashMap;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-ok-or', 25, 'rust', 'ok_or: из Option в Result', 'lookup(m: &HashMap<&str, i32>, key) → Result<i32, String>: значение по ключу или ошибка «no key <key>» (ok_or_else). first_digit(s) → Result<u32, String>: значение первой цифры строки или ошибка «no digits» (используйте chars, find и to_digit).', 'use std::collections::HashMap;
 
 fn lookup(m: &HashMap<&str, i32>, key: &str) -> Result<i32, String> {
     todo!()
@@ -4319,7 +4319,7 @@ fn lookup(m: &HashMap<&str, i32>, key: &str) -> Result<i32, String> {
 fn first_digit(s: &str) -> Result<u32, String> {
     todo!()
 }
-', 'get возвращает Option<&i32>; copied() даёт Option<i32>; ok_or_else(|| …) превращает None в Err.', '{"driver": "fn main() {\n    let mut m = HashMap::new();\n    m.insert(\"a\", 1);\n    m.insert(\"b\", 2);\n    println!(\"{:?} {:?}\", lookup(&m, \"a\"), lookup(&m, \"z\"));\n    println!(\"{:?} {:?} {:?}\", first_digit(\"abc7x9\"), first_digit(\"none\"), first_digit(\"\"));\n}\n", "expected": ["Ok(1) Err(\"нет ключа z\")", "Ok(7) Err(\"нет цифр\") Err(\"нет цифр\")"]}');
+', 'get возвращает Option<&i32>; copied() даёт Option<i32>; ok_or_else(|| …) превращает None в Err.', '{"driver": "fn main() {\n    let mut m = HashMap::new();\n    m.insert(\"a\", 1);\n    m.insert(\"b\", 2);\n    println!(\"{:?} {:?}\", lookup(&m, \"a\"), lookup(&m, \"z\"));\n    println!(\"{:?} {:?} {:?}\", first_digit(\"abc7x9\"), first_digit(\"none\"), first_digit(\"\"));\n}\n", "expected": ["Ok(1) Err(\"no key z\")", "Ok(7) Err(\"no digits\") Err(\"no digits\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-fix-question-mark', 26, 'rust', 'Исправьте: ? в функции без Result', 'double разбирает строку и удваивает число. Оператор ? использован в функции, которая возвращает просто i32 — компилятор отвечает ошибкой. Исправьте сигнатуру (результат — Result<i32, ParseIntError>), тело меняется минимально.', 'use std::num::ParseIntError;
 
 fn double(s: &str) -> i32 {
@@ -4339,16 +4339,16 @@ fn risky() {
     // создайте Guard и вызовите panic!
 }
 ', 'let _g = Guard("g"); — привязка с именем живёт до конца функции, и при панике drop вызывается во время размотки.', '{"driver": "fn main() {\n    std::panic::set_hook(Box::new(|_| {}));\n    let r = std::panic::catch_unwind(|| risky());\n    println!(\"{}\", if r.is_err() { \"caught\" } else { \"no panic\" });\n}\n", "expected": ["drop g", "caught"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-retry', 28, 'rust', 'Повторные попытки: замыкание FnMut', 'retry(n, f) → Result<i32, String>: вызывайте f(попытка) для попыток 1, 2, …, n, пока не получите Ok; верните первый Ok или последнюю ошибку (n = 0 → «нет попыток»). f — замыкание FnMut(u32) -> Result<i32, String>, оно может менять захваченные переменные.', 'fn retry(n: u32, mut f: impl FnMut(u32) -> Result<i32, String>) -> Result<i32, String> {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-retry', 28, 'rust', 'Повторные попытки: замыкание FnMut', 'retry(n, f) → Result<i32, String>: вызывайте f(попытка) для попыток 1, 2, …, n, пока не получите Ok; верните первый Ok или последнюю ошибку (n = 0 → «no attempts»). f — замыкание FnMut(u32) -> Result<i32, String>, оно может менять захваченные переменные.', 'fn retry(n: u32, mut f: impl FnMut(u32) -> Result<i32, String>) -> Result<i32, String> {
     todo!()
 }
-', 'Храните последнюю ошибку в переменной и возвращайте её после цикла; Ok — сразу через return.', '{"driver": "fn main() {\n    let mut calls = 0;\n    let r = retry(5, |k| {\n        calls += 1;\n        if k < 3 { Err(format!(\"fail {k}\")) } else { Ok(k as i32 * 10) }\n    });\n    println!(\"{:?} calls={}\", r, calls);\n    println!(\"{:?}\", retry(3, |k| Err(format!(\"fail {k}\"))));\n    println!(\"{:?}\", retry(0, |_| Ok(1)));\n}\n", "expected": ["Ok(30) calls=3", "Err(\"fail 3\")", "Err(\"нет попыток\")"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-config-parser', 29, 'rust', 'Разбор конфигурации с номерами строк', 'parse_config(text) → Result<BTreeMap<String, String>, String>: строки «ключ = значение»; пустые строки и строки, начинающиеся с «#», пропускаются; пробелы по краям ключа и значения обрезаются. Первая же ошибка: «line N: нет ''=''», «line N: пустой ключ» или «line N: дубликат ключа K» (N — номер строки с единицы).', 'use std::collections::BTreeMap;
+', 'Храните последнюю ошибку в переменной и возвращайте её после цикла; Ok — сразу через return.', '{"driver": "fn main() {\n    let mut calls = 0;\n    let r = retry(5, |k| {\n        calls += 1;\n        if k < 3 { Err(format!(\"fail {k}\")) } else { Ok(k as i32 * 10) }\n    });\n    println!(\"{:?} calls={}\", r, calls);\n    println!(\"{:?}\", retry(3, |k| Err(format!(\"fail {k}\"))));\n    println!(\"{:?}\", retry(0, |_| Ok(1)));\n}\n", "expected": ["Ok(30) calls=3", "Err(\"fail 3\")", "Err(\"no attempts\")"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 18, 'r18-config-parser', 29, 'rust', 'Разбор конфигурации с номерами строк', 'parse_config(text) → Result<BTreeMap<String, String>, String>: строки «key = value»; пустые строки и строки, начинающиеся с «#», пропускаются; пробелы по краям ключа и значения обрезаются. Первая же ошибка: «line N: no ''=''», «line N: empty key» или «line N: duplicate key K» (N — номер строки с единицы).', 'use std::collections::BTreeMap;
 
 fn parse_config(text: &str) -> Result<BTreeMap<String, String>, String> {
     todo!()
 }
-', 'lines().enumerate() даёт индекс с нуля — добавьте 1; split_once(''='') делит по первому знаку равенства.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_config(\"# comment\\nname = app\\n\\nport=8080\\nmode =  fast = yes\\n\"));\n    println!(\"{:?}\", parse_config(\"a=1\\nbroken\\nb=2\"));\n    println!(\"{:?}\", parse_config(\"a=1\\n = 5\"));\n    println!(\"{:?}\", parse_config(\"x=1\\ny=2\\nx=3\"));\n    println!(\"{:?}\", parse_config(\"\"));\n}\n", "expected": ["Ok({\"mode\": \"fast = yes\", \"name\": \"app\", \"port\": \"8080\"})", "Err(\"line 2: нет ''=''\")", "Err(\"line 2: пустой ключ\")", "Err(\"line 3: дубликат ключа x\")", "Ok({})"]}');
+', 'lines().enumerate() даёт индекс с нуля — добавьте 1; split_once(''='') делит по первому знаку равенства.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_config(\"# comment\\nname = app\\n\\nport=8080\\nmode =  fast = yes\\n\"));\n    println!(\"{:?}\", parse_config(\"a=1\\nbroken\\nb=2\"));\n    println!(\"{:?}\", parse_config(\"a=1\\n = 5\"));\n    println!(\"{:?}\", parse_config(\"x=1\\ny=2\\nx=3\"));\n    println!(\"{:?}\", parse_config(\"\"));\n}\n", "expected": ["Ok({\"mode\": \"fast = yes\", \"name\": \"app\", \"port\": \"8080\"})", "Err(\"line 2: no ''=''\")", "Err(\"line 2: empty key\")", "Err(\"line 3: duplicate key x\")", "Ok({})"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-largest', 0, 'rust', 'Обобщённая функция: наибольший элемент', 'Напишите largest<T: PartialOrd>(v: &[T]) → Option<&T>: ссылка на наибольший элемент среза (при равных — первый), None для пустого среза. Функция должна работать и с числами, и с дробными, и со строками.', 'fn largest<T: PartialOrd>(v: &[T]) -> Option<&T> {
     todo!()
 }
@@ -4404,7 +4404,7 @@ fn total_area(shapes: &[Box<dyn Shape>]) -> f64 {
     todo!()
 }
 ', 'Для Rect: self.0 * self.1. total_area: shapes.iter().map(|s| s.area()).sum().', '{"driver": "fn main() {\n    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(Circle(1.0)), Box::new(Rect(2.0, 3.0)), Box::new(Square(4.0))];\n    for s in &shapes {\n        println!(\"{} {:.2}\", s.name(), s.area());\n    }\n    println!(\"{:.3}\", total_area(&shapes));\n    println!(\"{}\", total_area(&[]) == 0.0);\n}\n", "expected": ["circle 3.14", "rect 6.00", "square 16.00", "25.142", "true"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-default-method', 4, 'rust', 'Метод по умолчанию и переопределение', 'Трейт Describe: обязательный метод name(&self) → String и метод по умолчанию describe(&self) → String = «<name>: описание отсутствует». Реализуйте для Cat (используйте метод по умолчанию) и для Dog (переопределите describe: «<name> лает»).', 'trait Describe {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-default-method', 4, 'rust', 'Метод по умолчанию и переопределение', 'Трейт Describe: обязательный метод name(&self) → String и метод по умолчанию describe(&self) → String = «<name>: description missing». Реализуйте для Cat (используйте метод по умолчанию) и для Dog (переопределите describe: «<name> barks»).', 'trait Describe {
     fn name(&self) -> String;
     // добавьте describe с реализацией по умолчанию
 }
@@ -4415,7 +4415,7 @@ struct Dog {
 }
 
 // impl Describe for Cat / Dog
-', 'В трейте у describe есть тело, а в impl для Cat его не пишут; для Dog пишут свой describe.', '{"driver": "fn main() {\n    println!(\"{}\", Cat.describe());\n    let d = Dog { nick: \"Рекс\".into() };\n    println!(\"{} | {}\", d.name(), d.describe());\n}\n", "expected": ["cat: описание отсутствует", "Рекс | Рекс лает"]}');
+', 'В трейте у describe есть тело, а в impl для Cat его не пишут; для Dog пишут свой describe.', '{"driver": "fn main() {\n    println!(\"{}\", Cat.describe());\n    let d = Dog { nick: \"Rex\".into() };\n    println!(\"{} | {}\", d.name(), d.describe());\n}\n", "expected": ["cat: description missing", "Rex | Rex barks"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-supertrait', 5, 'rust', 'Супертрейт: Named: Display', 'Трейт Tagged требует Display (супертрейт): tag(&self) → String по умолчанию «<ЗНАЧЕНИЕ>» — результат Display, обёрнутый в угловые скобки. Реализуйте Tagged для Point (Display — «(x, y)») и для u32 (Display уже есть).', 'use std::fmt;
 
 struct Point {
@@ -4489,10 +4489,10 @@ struct Score(f64);
 
 // impl PartialEq, Eq, PartialOrd, Ord for Score
 ', 'cmp = self.0.total_cmp(&other.0); остальные три трейта выражаются через него.', '{"driver": "fn main() {\n    let mut v: Vec<Score> = [3.5, -1.0, f64::NAN, 2.0, -0.0, 0.0].iter().map(|&x| Score(x)).collect();\n    v.sort();\n    println!(\"{:?}\", v.iter().map(|s| s.0).collect::<Vec<_>>());\n    println!(\"{:?}\", v.iter().max().map(|s| s.0.is_nan()));\n    println!(\"{}\", Score(1.0) < Score(2.0));\n}\n", "expected": ["[-1.0, -0.0, 0.0, 2.0, 3.5, NaN]", "Some(true)", "true"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-mono-name', 10, 'rust', 'Мономорфизация: тип и размер', 'Напишите describe<T>(_: &T) → String: «<имя типа> = <размер> байт» — имя через std::any::type_name::<T>(), размер через size_of::<T>(). Каждый вызов с новым T — это отдельная копия функции, которую компилятор создал при сборке.', 'fn describe<T>(_: &T) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-mono-name', 10, 'rust', 'Мономорфизация: тип и размер', 'Напишите describe<T>(_: &T) → String: «<type name> = <size> bytes» — имя через std::any::type_name::<T>(), размер через size_of::<T>(). Каждый вызов с новым T — это отдельная копия функции, которую компилятор создал при сборке.', 'fn describe<T>(_: &T) -> String {
     todo!()
 }
-', 'type_name и size_of — функции std; тип указывают через turbofish: type_name::<T>().', '{"driver": "fn main() {\n    println!(\"{}\", describe(&1i32));\n    println!(\"{}\", describe(&1u8));\n    println!(\"{}\", describe(&\"text\"));\n    println!(\"{}\", describe(&vec![1u8, 2]));\n    println!(\"{}\", describe(&(1i32, 2u8)));\n    println!(\"{}\", describe(&Some(Box::new(3i32))));\n}\n", "expected": ["i32 = 4 байт", "u8 = 1 байт", "&str = 16 байт", "alloc::vec::Vec<u8> = 24 байт", "(i32, u8) = 8 байт", "core::option::Option<alloc::boxed::Box<i32>> = 8 байт"]}');
+', 'type_name и size_of — функции std; тип указывают через turbofish: type_name::<T>().', '{"driver": "fn main() {\n    println!(\"{}\", describe(&1i32));\n    println!(\"{}\", describe(&1u8));\n    println!(\"{}\", describe(&\"text\"));\n    println!(\"{}\", describe(&vec![1u8, 2]));\n    println!(\"{}\", describe(&(1i32, 2u8)));\n    println!(\"{}\", describe(&Some(Box::new(3i32))));\n}\n", "expected": ["i32 = 4 bytes", "u8 = 1 bytes", "&str = 16 bytes", "alloc::vec::Vec<u8> = 24 bytes", "(i32, u8) = 8 bytes", "core::option::Option<alloc::boxed::Box<i32>> = 8 bytes"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-dyn-size', 11, 'rust', 'Размер толстого указателя', 'Напишите sizes() → [usize; 5]: size_of для &i32, &dyn Shape, Box<dyn Shape>, &[i32], Box<i32> — в таком порядке. Какие из них «толстые» (два слова), а какие — обычные указатели?', 'trait Shape {
     fn area(&self) -> f64;
 }
@@ -4536,7 +4536,7 @@ where
     todo!()
 }
 ', 'filter(|x| pred(x)) — внутри filter элемент имеет тип &&T, а pred ждёт &T; при вызове pred(x) раст сам разыменует.', '{"driver": "fn main() {\n    println!(\"{}\", count_matching(&[1, 2, 3, 4, 5], |x| x % 2 == 1));\n    println!(\"{}\", count_matching(&[\"a\", \"bb\", \"ccc\"], |s| s.len() > 1));\n    println!(\"{}\", show_pairs(&[(\"a\", 1), (\"b\", 2)]));\n    println!(\"{}\", show_pairs(&[(1, \"x\"), (2, \"y\")]));\n    println!(\"{:?}\", show_pairs::<i32, i32>(&[]));\n}\n", "expected": ["3", "2", "a=1; b=2", "1=\"x\"; 2=\"y\"", "\"\""]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-plugin-registry', 15, 'rust', 'Плагины: Vec<Box<dyn Plugin>>', 'Трейт Plugin: name(&self) → &str и run(&mut self, input: &str) → String. Реализуйте Upper (переводит в верхний регистр), Reverse (переворачивает символы) и Counter (возвращает «#N: input», где N — номер вызова с единицы). run_all(plugins: &mut [Box<dyn Plugin>], input) → Vec<String> «имя: результат».', 'trait Plugin {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-plugin-registry', 15, 'rust', 'Плагины: Vec<Box<dyn Plugin>>', 'Трейт Plugin: name(&self) → &str и run(&mut self, input: &str) → String. Реализуйте Upper (переводит в верхний регистр), Reverse (переворачивает символы) и Counter (возвращает «#N: input», где N — номер вызова с единицы). run_all(plugins: &mut [Box<dyn Plugin>], input) → Vec<String> «name: result».', 'trait Plugin {
     fn name(&self) -> &str;
     fn run(&mut self, input: &str) -> String;
 }
@@ -4552,7 +4552,7 @@ struct Counter {
 fn run_all(plugins: &mut [Box<dyn Plugin>], input: &str) -> Vec<String> {
     todo!()
 }
-', 'Метод run изменяет плагин, поэтому нужен iter_mut(); имя возьмите заранее (to_string), иначе заём от name() помешает вызвать run.', '{"driver": "fn main() {\n    let mut ps: Vec<Box<dyn Plugin>> = vec![Box::new(Upper), Box::new(Reverse), Box::new(Counter { calls: 0 })];\n    for line in run_all(&mut ps, \"привет\") {\n        println!(\"{line}\");\n    }\n    println!(\"{:?}\", run_all(&mut ps, \"abc\"));\n    println!(\"{}\", std::mem::size_of::<Box<dyn Plugin>>());\n}\n", "expected": ["upper: ПРИВЕТ", "reverse: тевирп", "counter: #1: привет", "[\"upper: ABC\", \"reverse: cba\", \"counter: #2: abc\"]", "16"]}');
+', 'Метод run изменяет плагин, поэтому нужен iter_mut(); имя возьмите заранее (to_string), иначе заём от name() помешает вызвать run.', '{"driver": "fn main() {\n    let mut ps: Vec<Box<dyn Plugin>> = vec![Box::new(Upper), Box::new(Reverse), Box::new(Counter { calls: 0 })];\n    for line in run_all(&mut ps, \"hello\") {\n        println!(\"{line}\");\n    }\n    println!(\"{:?}\", run_all(&mut ps, \"abc\"));\n    println!(\"{}\", std::mem::size_of::<Box<dyn Plugin>>());\n}\n", "expected": ["upper: HELLO", "reverse: olleh", "counter: #1: hello", "[\"upper: ABC\", \"reverse: cba\", \"counter: #2: abc\"]", "16"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-fib-iterator', 16, 'rust', 'Свой итератор: Фибоначчи', 'Структура Fib реализует Iterator<Item = u64>: 0, 1, 1, 2, 3, 5, … (бесконечно; при переполнении итератор заканчивается — используйте checked_add). Fib::new() создаёт начало ряда. Все адаптеры (take, filter, sum) приходят сами.', 'struct Fib {
     a: u64,
     b: u64,
@@ -4612,7 +4612,7 @@ fn total_sides<A: Polygon, B: Polygon>() -> u32 {
     todo!()
 }
 ', 'Внутри трейта константу называют Self::SIDES; у типа без данных size_of равен нулю.', '{"driver": "fn main() {\n    println!(\"{} {} {}\", Triangle::SIDES, Square::angle_sum(), Hexagon::angle_sum());\n    println!(\"{}\", total_sides::<Triangle, Hexagon>());\n    println!(\"{}\", total_sides::<Square, Square>());\n    println!(\"{}\", std::mem::size_of::<Hexagon>());\n}\n", "expected": ["3 360 720", "9", "8", "0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-generic-stack', 19, 'rust', 'Stack<T> и условный impl', 'Stack<T> на Vec<T>: new, push, pop → Option<T>, peek → Option<&T>, len, is_empty. Отдельный блок impl<T: Display> Stack<T> добавляет show() → String: элементы от вершины к основанию через « > » (пустой — «(пусто)»).', 'use std::fmt::Display;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-generic-stack', 19, 'rust', 'Stack<T> и условный impl', 'Stack<T> на Vec<T>: new, push, pop → Option<T>, peek → Option<&T>, len, is_empty. Отдельный блок impl<T: Display> Stack<T> добавляет show() → String: элементы от вершины к основанию через « > » (пустой — «(empty)»).', 'use std::fmt::Display;
 
 struct Stack<T> {
     items: Vec<T>,
@@ -4644,8 +4644,8 @@ impl<T: Display> Stack<T> {
         todo!()
     }
 }
-', 'show идёт по items.iter().rev() — вершина стека в конце вектора.', '{"driver": "fn main() {\n    let mut s = Stack::new();\n    println!(\"{} {}\", s.is_empty(), s.show());\n    for i in [1, 2, 3] {\n        s.push(i);\n    }\n    println!(\"{} {:?} {}\", s.len(), s.peek(), s.show());\n    println!(\"{:?} {:?}\", s.pop(), s.pop());\n    let mut t: Stack<String> = Stack::new();\n    t.push(\"a\".into());\n    t.push(\"b\".into());\n    println!(\"{}\", t.show());\n    let mut v: Stack<Vec<u8>> = Stack::new();\n    v.push(vec![1]);\n    println!(\"{} {}\", v.len(), std::mem::size_of::<Stack<u8>>());\n}\n", "expected": ["true (пусто)", "3 Some(3) 3 > 2 > 1", "Some(3) Some(2)", "b > a", "1 24"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-blanket-impl', 20, 'rust', 'Общая реализация для всех T: Display', 'Трейт Shout с методом shout(&self) → String. Одной общей реализацией impl<T: Display> Shout for T сделайте метод доступным у чисел, строк и ваших типов: результат — текст в верхнем регистре с «!» в конце. Для Money(i64) реализуйте Display («<n> руб.»).', 'use std::fmt::{self, Display};
+', 'show идёт по items.iter().rev() — вершина стека в конце вектора.', '{"driver": "fn main() {\n    let mut s = Stack::new();\n    println!(\"{} {}\", s.is_empty(), s.show());\n    for i in [1, 2, 3] {\n        s.push(i);\n    }\n    println!(\"{} {:?} {}\", s.len(), s.peek(), s.show());\n    println!(\"{:?} {:?}\", s.pop(), s.pop());\n    let mut t: Stack<String> = Stack::new();\n    t.push(\"a\".into());\n    t.push(\"b\".into());\n    println!(\"{}\", t.show());\n    let mut v: Stack<Vec<u8>> = Stack::new();\n    v.push(vec![1]);\n    println!(\"{} {}\", v.len(), std::mem::size_of::<Stack<u8>>());\n}\n", "expected": ["true (empty)", "3 Some(3) 3 > 2 > 1", "Some(3) Some(2)", "b > a", "1 24"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-blanket-impl', 20, 'rust', 'Общая реализация для всех T: Display', 'Трейт Shout с методом shout(&self) → String. Одной общей реализацией impl<T: Display> Shout for T сделайте метод доступным у чисел, строк и ваших типов: результат — текст в верхнем регистре с «!» в конце. Для Money(i64) реализуйте Display («<n> rub.»).', 'use std::fmt::{self, Display};
 
 trait Shout {
     fn shout(&self) -> String;
@@ -4656,7 +4656,7 @@ trait Shout {
 struct Money(i64);
 
 // impl Display for Money
-', 'Общая реализация сработает для любого типа с Display — в том числе для Money после реализации Display.', '{"driver": "fn main() {\n    println!(\"{}\", \"hello\".shout());\n    println!(\"{}\", 42.shout());\n    println!(\"{}\", 2.5f32.shout());\n    println!(\"{}\", ''x''.shout());\n    println!(\"{}\", Money(99).shout());\n    println!(\"{}\", String::from(\"привет\").shout());\n}\n", "expected": ["HELLO!", "42!", "2.5!", "X!", "99 РУБ.!", "ПРИВЕТ!"]}');
+', 'Общая реализация сработает для любого типа с Display — в том числе для Money после реализации Display.', '{"driver": "fn main() {\n    println!(\"{}\", \"hello\".shout());\n    println!(\"{}\", 42.shout());\n    println!(\"{}\", 2.5f32.shout());\n    println!(\"{}\", ''x''.shout());\n    println!(\"{}\", Money(99).shout());\n    println!(\"{}\", String::from(\"hello\").shout());\n}\n", "expected": ["HELLO!", "42!", "2.5!", "X!", "99 RUB.!", "HELLO!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-from-into', 21, 'rust', 'From и Into: температуры', 'Celsius(f64) и Fahrenheit(f64). Реализуйте From<Celsius> for Fahrenheit (f = c·9/5 + 32) и From<Fahrenheit> for Celsius. to_f(t: impl Into<Fahrenheit>) → f64 принимает любую из шкал. Into получается бесплатно.', '#[derive(Debug, Clone, Copy)]
 struct Celsius(f64);
 #[derive(Debug, Clone, Copy)]
@@ -4668,7 +4668,7 @@ fn to_f(t: impl Into<Fahrenheit>) -> f64 {
     todo!()
 }
 ', 'impl From<A> for B даёт A::into() → B без дополнительного кода; to_f просто вызывает t.into().', '{"driver": "fn main() {\n    let f: Fahrenheit = Celsius(100.0).into();\n    println!(\"{:.1}\", f.0);\n    let c = Celsius::from(Fahrenheit(212.0));\n    println!(\"{:.1}\", c.0);\n    println!(\"{:.1} {:.1}\", to_f(Celsius(-40.0)), to_f(Fahrenheit(50.0)));\n    println!(\"{:.1}\", to_f(Fahrenheit(32.0)));\n}\n", "expected": ["212.0", "100.0", "-40.0 50.0", "32.0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-try-from', 22, 'rust', 'TryFrom: проверенное значение', 'Percent(u8) хранит число от 0 до 100. Реализуйте TryFrom<i32> for Percent с Error = String: «вне диапазона: N» при N < 0 или N > 100. parse_all(v: &[i32]) → Result<Vec<Percent>, String> — все или первая ошибка.', '#[derive(Debug, PartialEq)]
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-try-from', 22, 'rust', 'TryFrom: проверенное значение', 'Percent(u8) хранит число от 0 до 100. Реализуйте TryFrom<i32> for Percent с Error = String: «out of range: N» при N < 0 или N > 100. parse_all(v: &[i32]) → Result<Vec<Percent>, String> — все или первая ошибка.', '#[derive(Debug, PartialEq)]
 struct Percent(u8);
 
 // impl TryFrom<i32> for Percent
@@ -4676,7 +4676,7 @@ struct Percent(u8);
 fn parse_all(v: &[i32]) -> Result<Vec<Percent>, String> {
     todo!()
 }
-', 'try_into появляется бесплатно; collect в Result<Vec<_>, _> остановится на первой ошибке.', '{"driver": "fn main() {\n    println!(\"{:?}\", Percent::try_from(50));\n    println!(\"{:?}\", Percent::try_from(101));\n    let r: Result<Percent, _> = (-5).try_into();\n    println!(\"{:?}\", r);\n    println!(\"{:?}\", parse_all(&[0, 10, 100]));\n    println!(\"{:?}\", parse_all(&[10, 200, -1]));\n}\n", "expected": ["Ok(Percent(50))", "Err(\"вне диапазона: 101\")", "Err(\"вне диапазона: -5\")", "Ok([Percent(0), Percent(10), Percent(100)])", "Err(\"вне диапазона: 200\")"]}');
+', 'try_into появляется бесплатно; collect в Result<Vec<_>, _> остановится на первой ошибке.', '{"driver": "fn main() {\n    println!(\"{:?}\", Percent::try_from(50));\n    println!(\"{:?}\", Percent::try_from(101));\n    let r: Result<Percent, _> = (-5).try_into();\n    println!(\"{:?}\", r);\n    println!(\"{:?}\", parse_all(&[0, 10, 100]));\n    println!(\"{:?}\", parse_all(&[10, 200, -1]));\n}\n", "expected": ["Ok(Percent(50))", "Err(\"out of range: 101\")", "Err(\"out of range: -5\")", "Ok([Percent(0), Percent(10), Percent(100)])", "Err(\"out of range: 200\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-fromstr', 23, 'rust', 'FromStr: разбор Point', 'Point { x, y } (i32). Реализуйте FromStr: «3,4» (пробелы вокруг чисел допускаются). Ошибки ParsePointError: Missing — нет запятой или частей больше двух; BadNumber(строка) — часть не число. После этого работает "3,4".parse::<Point>().', 'use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
@@ -4700,7 +4700,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn checksum<B: AsRef<[u8]>>(b: B) -> u32 {
     todo!()
 }
-', 'as_ref() даёт &str или &[u8] — дальше обычная работа со срезом.', '{"driver": "fn main() {\n    println!(\"{}\", total_len(&[\"ab\", \"cde\"]));\n    println!(\"{}\", total_len(&[String::from(\"привет\"), String::from(\"x\")]));\n    println!(\"{}\", checksum(vec![1u8, 2, 3]));\n    println!(\"{}\", checksum([10u8, 20]));\n    println!(\"{}\", checksum(\"AB\"));\n    println!(\"{}\", checksum(String::from(\"a\")));\n}\n", "expected": ["5", "13", "6", "30", "131", "97"]}');
+', 'as_ref() даёт &str или &[u8] — дальше обычная работа со срезом.', '{"driver": "fn main() {\n    println!(\"{}\", total_len(&[\"ab\", \"cde\"]));\n    println!(\"{}\", total_len(&[String::from(\"éàèùçï\"), String::from(\"x\")]));\n    println!(\"{}\", checksum(vec![1u8, 2, 3]));\n    println!(\"{}\", checksum([10u8, 20]));\n    println!(\"{}\", checksum(\"AB\"));\n    println!(\"{}\", checksum(String::from(\"a\")));\n}\n", "expected": ["5", "13", "6", "30", "131", "97"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 19, 'r19-sum-trait', 25, 'rust', 'impl Sum для своего типа', 'Money(i64) (Copy): реализуйте Add и два трейта std::iter::Sum — для Money и для &Money, чтобы работали v.iter().sum::<Money>() и v.into_iter().sum::<Money>().', 'use std::iter::Sum;
 use std::ops::Add;
 
@@ -4780,10 +4780,10 @@ fn best<T: Scored>(items: &[T]) -> Option<&T> {
     todo!()
 }
 ', 'sort_by устойчив: для равных счетов порядок исходного среза сохраняется; truncate(n) оставляет первые n.', '{"driver": "fn main() {\n    let p = |n: &str, s| Player { name: n.to_string(), points: s };\n    let v = vec![p(\"ann\", 50), p(\"bob\", 80), p(\"cat\", 80), p(\"dan\", 10), p(\"eve\", 65)];\n    let top = top_n(&v, 3);\n    let names: Vec<&str> = top.iter().map(|x| x.name.as_str()).collect();\n    println!(\"{:?}\", names);\n    println!(\"{:?}\", top_n(&v, 10).len());\n    println!(\"{:?}\", best(&v).map(|x| &x.name));\n    println!(\"{:?}\", best::<Player>(&[]).is_none());\n}\n", "expected": ["[\"bob\", \"cat\", \"eve\"]", "5", "Some(\"bob\")", "true"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-compose', 0, 'rust', 'Композиция функций', 'compose(f, g) → impl Fn(A) → C: возвращает функцию «сначала f, затем g». Работает для любых типов: числа → строки → длины. Результат — замыкание, которое владеет обеими функциями.', 'fn compose<A, B, C>(f: impl Fn(A) -> B, g: impl Fn(B) -> C) -> impl Fn(A) -> C {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-compose', 0, 'rust', 'Композиция функций', 'compose(f, g) → impl Fn(A) → C: возвращает функцию «first f, then g». Работает для любых типов: числа → строки → длины. Результат — замыкание, которое владеет обеими функциями.', 'fn compose<A, B, C>(f: impl Fn(A) -> B, g: impl Fn(B) -> C) -> impl Fn(A) -> C {
     todo!()
 }
-', 'Верните move |x| g(f(x)): move нужен, чтобы замыкание забрало f и g — иначе оно переживёт их.', '{"driver": "fn main() {\n    let inc_then_double = compose(|x: i32| x + 1, |x: i32| x * 2);\n    println!(\"{}\", inc_then_double(4));\n    let to_len = compose(|n: i32| n.to_string(), |s: String| s.len());\n    println!(\"{} {}\", to_len(12345), to_len(-7));\n    let shout = compose(|s: &str| s.to_uppercase(), |s: String| s + \"!\");\n    println!(\"{}\", shout(\"привет\"));\n}\n", "expected": ["10", "5 2", "ПРИВЕТ!"]}');
+', 'Верните move |x| g(f(x)): move нужен, чтобы замыкание забрало f и g — иначе оно переживёт их.', '{"driver": "fn main() {\n    let inc_then_double = compose(|x: i32| x + 1, |x: i32| x * 2);\n    println!(\"{}\", inc_then_double(4));\n    let to_len = compose(|n: i32| n.to_string(), |s: String| s.len());\n    println!(\"{} {}\", to_len(12345), to_len(-7));\n    let shout = compose(|s: &str| s.to_uppercase(), |s: String| s + \"!\");\n    println!(\"{}\", shout(\"hello\"));\n}\n", "expected": ["10", "5 2", "HELLO!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-make-adder', 1, 'rust', 'Фабрики замыканий', 'make_adder(n) → impl Fn(i32) → i32 прибавляет n; make_counter() → impl FnMut() → u32 при каждом вызове возвращает 1, 2, 3, …; make_accumulator(start) → impl FnMut(i32) → i32 добавляет число к сумме и возвращает её.', 'fn make_adder(n: i32) -> impl Fn(i32) -> i32 {
     todo!()
 }
@@ -4809,13 +4809,13 @@ fn iterate_until(f: impl Fn(i32) -> i32, x: i32, limit: i32) -> Vec<i32> {
 }
 ', 'apply_n — свёртка по диапазону (0..n): fold(x, |acc, _| f(acc)).', '{"driver": "fn main() {\n    println!(\"{}\", apply_n(|x| x * 2, 10, 1));\n    println!(\"{}\", apply_n(|x| x + 3, 0, 7));\n    let add10 = twice(|x| x + 5);\n    println!(\"{} {}\", add10(1), twice(twice(|x| x * 3))(1));\n    println!(\"{:?}\", iterate_until(|x| x * 2 + 1, 1, 100));\n    println!(\"{:?}\", iterate_until(|x| x + 1, 50, 10));\n}\n", "expected": ["1024", "7", "11 81", "[1, 3, 7, 15, 31, 63]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-fix-move', 3, 'rust', 'Исправьте: замыкание переживёт функцию', 'make_greeter возвращает замыкание, которое здоровается по имени. Компилятор отвечает: замыкание может пережить локальную переменную, на которую ссылается. Исправьте одним словом.', 'fn make_greeter(name: String) -> impl Fn() -> String {
-    || format!("Привет, {name}!")
+    || format!("Hello, {name}!")
 }
-', 'Слово move перед вертикальными чертами: name переедет в замыкание.', '{"driver": "fn main() {\n    let g = make_greeter(String::from(\"Аня\"));\n    println!(\"{}\", g());\n    println!(\"{}\", g());\n    let h = make_greeter(\"Борис\".to_string());\n    println!(\"{}\", h());\n}\n", "expected": ["Привет, Аня!", "Привет, Аня!", "Привет, Борис!"]}');
+', 'Слово move перед вертикальными чертами: name переедет в замыкание.', '{"driver": "fn main() {\n    let g = make_greeter(String::from(\"Anya\"));\n    println!(\"{}\", g());\n    println!(\"{}\", g());\n    let h = make_greeter(\"Boris\".to_string());\n    println!(\"{}\", h());\n}\n", "expected": ["Hello, Anya!", "Hello, Anya!", "Hello, Boris!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-fix-fnonce', 4, 'rust', 'Исправьте: замыкание вызывается один раз', 'run_once вызывает переданное замыкание единственный раз, но объявлено как F: Fn. Замыкание из драйвера потребляет строку (FnOnce), и сборка падает. Исправьте ограничение трейта.', 'fn run_once<F: Fn() -> String>(f: F) -> String {
     f()
 }
-', 'FnOnce — самый слабый трейт: подходит и замыканию, которое отдаёт захваченное значение.', '{"driver": "fn main() {\n    let s = String::from(\"уникальная строка\");\n    println!(\"{}\", run_once(move || s));\n    println!(\"{}\", run_once(|| String::from(\"статическая\")));\n    let v = vec![1, 2, 3];\n    println!(\"{}\", run_once(move || format!(\"{:?}\", v)));\n}\n", "expected": ["уникальная строка", "статическая", "[1, 2, 3]"]}');
+', 'FnOnce — самый слабый трейт: подходит и замыканию, которое отдаёт захваченное значение.', '{"driver": "fn main() {\n    let s = String::from(\"unique string\");\n    println!(\"{}\", run_once(move || s));\n    println!(\"{}\", run_once(|| String::from(\"static\")));\n    let v = vec![1, 2, 3];\n    println!(\"{}\", run_once(move || format!(\"{:?}\", v)));\n}\n", "expected": ["unique string", "static", "[1, 2, 3]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-repeat-call', 5, 'rust', 'FnMut: повторять действие', 'repeat_call(n, f: impl FnMut()) вызывает f ровно n раз. times_table(n, f: impl FnMut(u32, u32)) вызывает f(i, j) для всех 1 ≤ i ≤ j ≤ n в порядке (1,1), (1,2), …, (2,2), …. Накопление результата выполняет замыкание вызывающего.', 'fn repeat_call(n: u32, mut f: impl FnMut()) {
     todo!()
 }
@@ -4972,7 +4972,7 @@ fn char_counts(s: &str) -> BTreeMap<char, usize> {
 fn length_histogram(words: &[&str]) -> Vec<usize> {
     todo!()
 }
-', 'fold(начальный_контейнер, |mut acc, x| { …; acc }): накопитель объявляется mut и возвращается в конце.', '{"driver": "fn main() {\n    println!(\"{:?}\", char_counts(\"hello\"));\n    println!(\"{:?}\", char_counts(\"привет мир\"));\n    println!(\"{:?}\", char_counts(\"\"));\n    println!(\"{:?}\", length_histogram(&[\"a\", \"bb\", \"cc\", \"dddd\", \"e\"]));\n    println!(\"{:?}\", length_histogram(&[]));\n}\n", "expected": ["{''e'': 1, ''h'': 1, ''l'': 2, ''o'': 1}", "{'' '': 1, ''в'': 1, ''е'': 1, ''и'': 2, ''м'': 1, ''п'': 1, ''р'': 2, ''т'': 1}", "{}", "[2, 2, 0, 1]", "[]"]}');
+', 'fold(начальный_контейнер, |mut acc, x| { …; acc }): накопитель объявляется mut и возвращается в конце.', '{"driver": "fn main() {\n    println!(\"{:?}\", char_counts(\"hello\"));\n    println!(\"{:?}\", char_counts(\"efcabg dcf\"));\n    println!(\"{:?}\", char_counts(\"\"));\n    println!(\"{:?}\", length_histogram(&[\"a\", \"bb\", \"cc\", \"dddd\", \"e\"]));\n    println!(\"{:?}\", length_histogram(&[]));\n}\n", "expected": ["{''e'': 1, ''h'': 1, ''l'': 2, ''o'': 1}", "{'' '': 1, ''a'': 1, ''b'': 1, ''c'': 2, ''d'': 1, ''e'': 1, ''f'': 2, ''g'': 1}", "{}", "[2, 2, 0, 1]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-collect-result', 18, 'rust', 'collect в Option и Result', 'parse_list(s) → Result<Vec<i32>, ParseIntError> — числа из «1,2,3» (первая ошибка прерывает). all_some(v: &[Option<i32>]) → Option<Vec<i32>> — Some, только если все Some. sum_ok(items: &[&str]) → i32 — сумма разобравшихся чисел, остальные пропускаются.', 'use std::num::ParseIntError;
 
 fn parse_list(s: &str) -> Result<Vec<i32>, ParseIntError> {
@@ -5000,7 +5000,7 @@ fn index_by_len<''a>(words: &[&''a str]) -> BTreeMap<usize, Vec<&''a str>> {
 fn to_lookup<''a>(pairs: &[(&''a str, i32)]) -> HashMap<&''a str, i32> {
     todo!()
 }
-', 'Итератор пар (K, V) собирается в HashMap, а позже пара с тем же ключом затирает прежнюю.', '{"driver": "fn main() {\n    println!(\"{}\", acronym(\"portable network graphics\"));\n    println!(\"{} {:?}\", acronym(\"  по  умолчанию \"), acronym(\"\"));\n    println!(\"{:?}\", index_by_len(&[\"a\", \"bb\", \"c\", \"dd\", \"eee\"]));\n    let m = to_lookup(&[(\"x\", 1), (\"y\", 2), (\"x\", 3)]);\n    let mut items: Vec<_> = m.iter().collect();\n    items.sort();\n    println!(\"{:?}\", items);\n}\n", "expected": ["PNG", "ПУ \"\"", "{1: [\"a\", \"c\"], 2: [\"bb\", \"dd\"], 3: [\"eee\"]}", "[(\"x\", 3), (\"y\", 2)]"]}');
+', 'Итератор пар (K, V) собирается в HashMap, а позже пара с тем же ключом затирает прежнюю.', '{"driver": "fn main() {\n    println!(\"{}\", acronym(\"portable network graphics\"));\n    println!(\"{} {:?}\", acronym(\"  by  default \"), acronym(\"\"));\n    println!(\"{:?}\", index_by_len(&[\"a\", \"bb\", \"c\", \"dd\", \"eee\"]));\n    let m = to_lookup(&[(\"x\", 1), (\"y\", 2), (\"x\", 3)]);\n    let mut items: Vec<_> = m.iter().collect();\n    items.sort();\n    println!(\"{:?}\", items);\n}\n", "expected": ["PNG", "BD \"\"", "{1: [\"a\", \"c\"], 2: [\"bb\", \"dd\"], 3: [\"eee\"]}", "[(\"x\", 3), (\"y\", 2)]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-peekable-tokens', 20, 'rust', 'peekable: разбор выражения на токены', 'Token — Num(i64) или Op(char) (+ - * /, скобки ''('' и '')'' тоже Op). tokenize(s) → Result<Vec<Token>, String>: числа из нескольких цифр, пробелы пропускаются; недопустимый символ → Err("bad char X"). Используйте peekable, чтобы дочитать число до конца.', '#[derive(Debug, PartialEq)]
 enum Token {
     Num(i64),
@@ -5018,7 +5018,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn unrle(s: &str) -> Option<String> {
     todo!()
 }
-', 'В rle после символа продолжайте читать, пока peek() равен тому же символу; в unrle длину читайте цифрами.', '{"driver": "fn main() {\n    println!(\"{}\", rle(\"aaabcc\"));\n    println!(\"{:?}\", rle(\"\"));\n    println!(\"{}\", rle(\"ppppppppppppq\"));\n    println!(\"{:?}\", unrle(\"a3b1c2\"));\n    println!(\"{:?}\", unrle(\"x12\"));\n    println!(\"{:?} {:?}\", unrle(\"ab\"), unrle(\"3a\"));\n    println!(\"{}\", unrle(&rle(\"привет миииир\")).unwrap());\n}\n", "expected": ["a3b1c2", "\"\"", "p12q1", "Some(\"aaabcc\")", "Some(\"xxxxxxxxxxxx\")", "None None", "привет миииир"]}');
+', 'В rle после символа продолжайте читать, пока peek() равен тому же символу; в unrle длину читайте цифрами.', '{"driver": "fn main() {\n    println!(\"{}\", rle(\"aaabcc\"));\n    println!(\"{:?}\", rle(\"\"));\n    println!(\"{}\", rle(\"ppppppppppppq\"));\n    println!(\"{:?}\", unrle(\"a3b1c2\"));\n    println!(\"{:?}\", unrle(\"x12\"));\n    println!(\"{:?} {:?}\", unrle(\"ab\"), unrle(\"3a\"));\n    println!(\"{}\", unrle(&rle(\"hello woooorld\")).unwrap());\n}\n", "expected": ["a3b1c2", "\"\"", "p12q1", "Some(\"aaabcc\")", "Some(\"xxxxxxxxxxxx\")", "None None", "hello woooorld"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 20, 'r20-successors', 22, 'rust', 'successors: ряды по правилу', 'collatz(n) → Vec<u64> — последовательность Коллатца от n до 1 включительно (чётное /2, нечётное 3n+1). powers_of_two_below(limit) → Vec<u64> — 1, 2, 4, … меньше limit. digits(n: u64) → Vec<u8> — цифры числа слева направо (через successors и деление на 10).', 'fn collatz(n: u64) -> Vec<u64> {
     todo!()
 }
@@ -5105,7 +5105,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'size_of_val(&замыкание); ссылка занимает 8 байт, String — 24, i32 — 4, пустое замыкание — 0.', '{"driver": "fn main() {\n    println!(\"{:?}\", closure_sizes());\n}\n", "expected": ["[0, 4, 8, 24]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-longest', 0, 'rust', 'Метки времени жизни: longest и пары', 'longest<''a>(a, b) → &''a str — более длинная по числу символов (при равенстве первая). first_two<''a>(s) → (&''a str, &''a str) — первые два слова строки (пустая строка вместо отсутствующего). shorter_of<''a>(words: &[&''a str]) → Option<&''a str> — самое короткое слово (первое при равенстве).', 'fn longest<''a>(a: &''a str, b: &''a str) -> &''a str {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-longest', 0, 'rust', 'Метки времени жизни: longest и пары', 'longest<''a>(a, b) → &''a str — более длинная по числу символов (при равенстве первая). first_two<''a>(s) → (&''a str, &''a str) — first two words of the string (empty string instead of missing). shorter_of<''a>(words: &[&''a str]) → Option<&''a str> — самое короткое слово (первое при равенстве).', 'fn longest<''a>(a: &''a str, b: &''a str) -> &''a str {
     todo!()
 }
 
@@ -5116,24 +5116,24 @@ fn first_two<''a>(s: &''a str) -> (&''a str, &''a str) {
 fn shorter_of<''a>(words: &[&''a str]) -> Option<&''a str> {
     todo!()
 }
-', 'Метка ''a на всех ссылках говорит: результат живёт не дольше обоих аргументов; в shorter_of слова несут ''a внутри среза.', '{"driver": "fn main() {\n    println!(\"{} {}\", longest(\"привет\", \"hello\"), longest(\"ab\", \"cd\"));\n    println!(\"{:?} {:?} {:?}\", first_two(\"  one two three\"), first_two(\"solo\"), first_two(\"\"));\n    println!(\"{:?} {:?}\", shorter_of(&[\"pear\", \"fig\", \"kiwi\", \"fog\"]), shorter_of(&[]));\n}\n", "expected": ["привет ab", "(\"one\", \"two\") (\"solo\", \"\") (\"\", \"\")", "Some(\"fig\") None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-two-lifetimes', 1, 'rust', 'Две независимые метки', 'pick_first<''a, ''b>(a: &''a str, _b: &''b str) → &''a str всегда возвращает a. В драйвере вторая строка умирает раньше результата — это допустимо только с ДВУМЯ метками. Реализуйте также between<''a, ''b>(text: &''a str, left: &''b str, right: &''b str) → Option<&''a str> — часть text между первым left и следующим right.', 'fn pick_first<''a, ''b>(a: &''a str, _b: &''b str) -> &''a str {
+', 'Метка ''a on all references says: result lives no longer than both arguments; v shorter_of words carry ''a внутри среза.', '{"driver": "fn main() {\n    println!(\"{} {}\", longest(\"bigger\", \"hello\"), longest(\"ab\", \"cd\"));\n    println!(\"{:?} {:?} {:?}\", first_two(\"  one two three\"), first_two(\"solo\"), first_two(\"\"));\n    println!(\"{:?} {:?}\", shorter_of(&[\"pear\", \"fig\", \"kiwi\", \"fog\"]), shorter_of(&[]));\n}\n", "expected": ["bigger ab", "(\"one\", \"two\") (\"solo\", \"\") (\"\", \"\")", "Some(\"fig\") None"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-two-lifetimes', 1, 'rust', 'Две независимые метки', 'pick_first<''a, ''b>(a: &''a str, _b: &''b str) → &''a str always returns a. In the driver the second string dies before the result — this is allowed only with TWO labels. Also implement between<''a, ''b>(text: &''a str, left: &''b str, right: &''b str) → Option<&''a str> — часть text между первым left и следующим right.', 'fn pick_first<''a, ''b>(a: &''a str, _b: &''b str) -> &''a str {
     todo!()
 }
 
 fn between<''a, ''b>(text: &''a str, left: &''b str, right: &''b str) -> Option<&''a str> {
     todo!()
 }
-', 'Каждой ссылке — своя метка: результат привязан только к ''a, а ''b может закончиться раньше.', '{"driver": "fn main() {\n    let a = String::from(\"долгоживущая\");\n    let r;\n    {\n        let b = String::from(\"короткая\");\n        r = pick_first(&a, &b);\n    }\n    println!(\"{}\", r);\n    let text = String::from(\"x=[alpha]; y=[beta]\");\n    let found;\n    {\n        let (l, rr) = (String::from(\"[\"), String::from(\"]\"));\n        found = between(&text, &l, &rr);\n    }\n    println!(\"{:?}\", found);\n    println!(\"{:?} {:?}\", between(\"no brackets\", \"[\", \"]\"), between(\"[open\", \"[\", \"]\"));\n}\n", "expected": ["долгоживущая", "Some(\"alpha\")", "None None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-split-kv', 2, 'rust', 'Срезы без копирования: key=value', 'split_kv<''a>(line: &''a str) → Option<(&''a str, &''a str)> — «ключ=значение»: ключ и значение без пробелов по краям; None, если нет «=» или ключ пустой. parse_lines<''a>(text: &''a str) → Vec<(&''a str, &''a str)> — все корректные строки. Результат — срезы исходного текста, копий нет.', 'fn split_kv<''a>(line: &''a str) -> Option<(&''a str, &''a str)> {
+', 'Каждой ссылке — своя метка: результат привязан только к ''a, a ''b может закончиться раньше.', '{"driver": "fn main() {\n    let a = String::from(\"long-lived\");\n    let r;\n    {\n        let b = String::from(\"short\");\n        r = pick_first(&a, &b);\n    }\n    println!(\"{}\", r);\n    let text = String::from(\"x=[alpha]; y=[beta]\");\n    let found;\n    {\n        let (l, rr) = (String::from(\"[\"), String::from(\"]\"));\n        found = between(&text, &l, &rr);\n    }\n    println!(\"{:?}\", found);\n    println!(\"{:?} {:?}\", between(\"no brackets\", \"[\", \"]\"), between(\"[open\", \"[\", \"]\"));\n}\n", "expected": ["long-lived", "Some(\"alpha\")", "None None"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-split-kv', 2, 'rust', 'Срезы без копирования: key=value', 'split_kv<''a>(line: &''a str) → Option<(&''a str, &''a str)> — «key=value»: ключ и значение без пробелов по краям; None, если нет «=» или ключ пустой. parse_lines<''a>(text: &''a str) → Vec<(&''a str, &''a str)> — все корректные строки. Результат — срезы исходного текста, копий нет.', 'fn split_kv<''a>(line: &''a str) -> Option<(&''a str, &''a str)> {
     todo!()
 }
 
 fn parse_lines<''a>(text: &''a str) -> Vec<(&''a str, &''a str)> {
     todo!()
 }
-', 'trim() возвращает срез той же строки — копии не создаются; filter_map(split_kv) подходит, потому что split_kv принимает &str.', '{"driver": "fn main() {\n    println!(\"{:?} {:?} {:?}\", split_kv(\" a = 1 \"), split_kv(\"=x\"), split_kv(\"novalue\"));\n    let text = String::from(\"host = example.org\\nbad line\\nport=8080\\n=oops\\nmode =\");\n    let kv = parse_lines(&text);\n    println!(\"{:?}\", kv);\n    let (k, _) = kv[0];\n    let off = k.as_ptr() as usize - text.as_ptr() as usize;\n    println!(\"указывает в исходный текст: {}\", off < text.len());\n}\n", "expected": ["Some((\"a\", \"1\")) None None", "[(\"host\", \"example.org\"), (\"port\", \"8080\"), (\"mode\", \"\")]", "указывает в исходный текст: true"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-tokens-iterator', 3, 'rust', 'Итератор срезов: Tokens<''a>', 'Tokens<''a> хранит остаток текста и выдаёт слова (непробельные куски) как &''a str — без копирования. Реализуйте Tokens::new(text) и Iterator<Item = &''a str>. Слова должны быть срезами исходной строки (тот же буфер).', 'struct Tokens<''a> {
+', 'trim() возвращает срез той же строки — копии не создаются; filter_map(split_kv) подходит, потому что split_kv принимает &str.', '{"driver": "fn main() {\n    println!(\"{:?} {:?} {:?}\", split_kv(\" a = 1 \"), split_kv(\"=x\"), split_kv(\"novalue\"));\n    let text = String::from(\"host = example.org\\nbad line\\nport=8080\\n=oops\\nmode =\");\n    let kv = parse_lines(&text);\n    println!(\"{:?}\", kv);\n    let (k, _) = kv[0];\n    let off = k.as_ptr() as usize - text.as_ptr() as usize;\n    println!(\"points into the source text: {}\", off < text.len());\n}\n", "expected": ["Some((\"a\", \"1\")) None None", "[(\"host\", \"example.org\"), (\"port\", \"8080\"), (\"mode\", \"\")]", "points into the source text: true"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-tokens-iterator', 3, 'rust', 'Итератор срезов: Tokens<''a>', 'Tokens<''a> keeps the rest of the text and yields words (non-whitespace pieces) as &''a str — без копирования. Реализуйте Tokens::new(text) и Iterator<Item = &''a str>. Слова должны быть срезами исходной строки (тот же буфер).', 'struct Tokens<''a> {
     rest: &''a str,
 }
 
@@ -5149,12 +5149,12 @@ impl<''a> Iterator for Tokens<''a> {
         todo!()
     }
 }
-', 'split_at(end) делит срез на слово и остаток — оба с тем же временем жизни ''a.', '{"driver": "fn main() {\n    let text = String::from(\"  привет  мир\\tи\\nвсе \");\n    let words: Vec<&str> = Tokens::new(&text).collect();\n    println!(\"{:?}\", words);\n    let inside = words.iter().all(|w| {\n        let p = w.as_ptr() as usize;\n        p >= text.as_ptr() as usize && p + w.len() <= text.as_ptr() as usize + text.len()\n    });\n    println!(\"{}\", inside);\n    println!(\"{}\", Tokens::new(\"a b c d\").count());\n    println!(\"{:?}\", Tokens::new(\"   \").next());\n    println!(\"{:?}\", Tokens::new(\"x\").map(str::len).sum::<usize>());\n}\n", "expected": ["[\"привет\", \"мир\", \"и\", \"все\"]", "true", "4", "None", "1"]}');
+', 'split_at(end) делит срез на слово и остаток — оба с тем же временем жизни ''a.', '{"driver": "fn main() {\n    let text = String::from(\"  hello  world\\tand\\nall \");\n    let words: Vec<&str> = Tokens::new(&text).collect();\n    println!(\"{:?}\", words);\n    let inside = words.iter().all(|w| {\n        let p = w.as_ptr() as usize;\n        p >= text.as_ptr() as usize && p + w.len() <= text.as_ptr() as usize + text.len()\n    });\n    println!(\"{}\", inside);\n    println!(\"{}\", Tokens::new(\"a b c d\").count());\n    println!(\"{:?}\", Tokens::new(\"   \").next());\n    println!(\"{:?}\", Tokens::new(\"x\").map(str::len).sum::<usize>());\n}\n", "expected": ["[\"hello\", \"world\", \"and\", \"all\"]", "true", "4", "None", "1"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-fix-capture', 4, 'rust', 'Исправьте: итератор захватывает ссылку', 'evens_of возвращает итератор по чётным числам вектора, но компилятор жалуется: скрытый тип захватывает время жизни ссылки, которого нет в ограничениях. Допишите в сигнатуру метку, связывающую итератор с аргументом.', 'fn evens_of(v: &Vec<i32>) -> impl Iterator<Item = i32> {
     v.iter().copied().filter(|x| x % 2 == 0)
 }
 ', '+ ''_ означает: итератор живёт не дольше заимствованного аргумента.', '{"driver": "fn main() {\n    let v = vec![1, 2, 3, 4, 5, 6];\n    println!(\"{:?}\", evens_of(&v).collect::<Vec<_>>());\n    println!(\"{}\", evens_of(&v).sum::<i32>());\n    println!(\"{}\", evens_of(&Vec::new()).count());\n}\n", "expected": ["[2, 4, 6]", "12", "0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-static-table', 5, 'rust', '''static: таблицы и константы', 'static NAMES: [&str; 4] = ["север", "восток", "юг", "запад"]. direction_name(i: usize) → &''static str (индекс по кругу), direction_index(name: &str) → Option<usize>, turn(from: &str, steps: i32) → Option<&''static str> — повернуть на steps четвертей (может быть отрицательным). const QUARTER: i32 = 90.', 'static NAMES: [&str; 4] = ["север", "восток", "юг", "запад"];
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-static-table', 5, 'rust', '''static: таблицы и константы', 'static NAMES: [&str; 4] = ["north", "east", "south", "west"]. direction_name(i: usize) → &''static str (index around the circle), direction_index(name: &str) → Option<usize>, turn(from: &str, steps: i32) → Option<&''static str> — повернуть на steps четвертей (может быть отрицательным). const QUARTER: i32 = 90.', 'static NAMES: [&str; 4] = ["north", "east", "south", "west"];
 const QUARTER: i32 = 90;
 
 fn direction_name(i: usize) -> &''static str {
@@ -5168,7 +5168,7 @@ fn direction_index(name: &str) -> Option<usize> {
 fn turn(from: &str, steps: i32) -> Option<&''static str> {
     todo!()
 }
-', 'rem_euclid(4) даёт неотрицательный остаток даже для отрицательных поворотов.', '{"driver": "fn main() {\n    println!(\"{} {} {}\", direction_name(0), direction_name(5), direction_name(11));\n    println!(\"{:?} {:?}\", direction_index(\"юг\"), direction_index(\"вверх\"));\n    println!(\"{:?} {:?} {:?}\", turn(\"север\", 1), turn(\"север\", -1), turn(\"запад\", 6));\n    println!(\"{:?}\", turn(\"x\", 1));\n    println!(\"{}\", QUARTER * 4);\n}\n", "expected": ["север восток запад", "Some(2) None", "Some(\"восток\") Some(\"запад\") Some(\"восток\")", "None", "360"]}');
+', 'rem_euclid(4) даёт неотрицательный остаток даже для отрицательных поворотов.', '{"driver": "fn main() {\n    println!(\"{} {} {}\", direction_name(0), direction_name(5), direction_name(11));\n    println!(\"{:?} {:?}\", direction_index(\"south\"), direction_index(\"up\"));\n    println!(\"{:?} {:?} {:?}\", turn(\"north\", 1), turn(\"north\", -1), turn(\"west\", 6));\n    println!(\"{:?}\", turn(\"x\", 1));\n    println!(\"{}\", QUARTER * 4);\n}\n", "expected": ["north east west", "Some(2) None", "Some(\"east\") Some(\"west\") Some(\"east\")", "None", "360"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-box-list', 6, 'rust', 'Список на Box: длина, сумма, разворот', 'List { Cons(i32, Box<List>), Nil }. len(&List), sum(&List), to_vec(&List), reverse(List) → List (забирает список и переставляет звенья, без новых выделений через clone), from_slice(&[i32]) → List.', 'enum List {
     Cons(i32, Box<List>),
     Nil,
@@ -5260,13 +5260,13 @@ impl<T> MyBox<T> {
 // impl Deref и DerefMut для MyBox<T>
 
 fn hello(name: &str) -> String {
-    format!("Привет, {name}!")
+    format!("Hello, {name}!")
 }
 
 fn shout(b: &MyBox<String>) -> String {
     todo!()
 }
-', 'deref возвращает &self.0; DerefMut — &mut self.0. Приведение &MyBox<String> → &String → &str делает компилятор.', '{"driver": "fn main() {\n    let b = MyBox::new(String::from(\"мир\"));\n    println!(\"{}\", hello(&b));\n    println!(\"{} {}\", shout(&b), b.len());\n    let mut n = MyBox::new(5);\n    *n += 10;\n    println!(\"{}\", *n);\n    let mut s = MyBox::new(String::from(\"a\"));\n    s.push_str(\"bc\");\n    println!(\"{}\", *s);\n}\n", "expected": ["Привет, мир!", "МИР 6", "15", "abc"]}');
+', 'deref возвращает &self.0; DerefMut — &mut self.0. Приведение &MyBox<String> → &String → &str делает компилятор.', '{"driver": "fn main() {\n    let b = MyBox::new(String::from(\"planet\"));\n    println!(\"{}\", hello(&b));\n    println!(\"{} {}\", shout(&b), b.len());\n    let mut n = MyBox::new(5);\n    *n += 10;\n    println!(\"{}\", *n);\n    let mut s = MyBox::new(String::from(\"a\"));\n    s.push_str(\"bc\");\n    println!(\"{}\", *s);\n}\n", "expected": ["Hello, planet!", "PLANET 6", "15", "abc"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-deref-slice', 11, 'rust', 'Deref к срезу: Sorted', 'Sorted хранит Vec<i32> в отсортированном виде. new(v) сортирует; insert(&mut self, x) вставляет на нужное место (бинарный поиск); Deref<Target = [i32]> даёт len(), iter(), first(), contains() и срезы без повторения методов.', 'use std::ops::Deref;
 
 struct Sorted(Vec<i32>);
@@ -5341,7 +5341,7 @@ fn counts() -> Vec<usize> {
     todo!()
 }
 ', 'strong_count после каждого действия: 1, 3, 4, 3, 2, 1 — клон увеличивает, выход из блока и drop уменьшают.', '{"driver": "fn main() {\n    println!(\"{:?}\", counts());\n}\n", "expected": ["[1, 3, 4, 3, 2, 1]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-shared-account', 16, 'rust', 'Rc<RefCell<Account>>: общий счёт', 'Account { balance: i64 }. Два владельца делят один счёт через Rc<RefCell<Account>>. deposit(acc, n) и withdraw(acc, n) → Result<(), String> «недостаточно средств: нужно N, есть M»; transfer(from, to, n) → Result<(), String> переводит между двумя счетами (если from и to — один и тот же счёт, перевод ничего не меняет).', 'use std::cell::RefCell;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-shared-account', 16, 'rust', 'Rc<RefCell<Account>>: общий счёт', 'Account { balance: i64 }. Два владельца делят один счёт через Rc<RefCell<Account>>. deposit(acc, n) и withdraw(acc, n) → Result<(), String> «insufficient funds: needed N, present M»; transfer(from, to, n) → Result<(), String> переводит между двумя счетами (если from и to — один и тот же счёт, перевод ничего не меняет).', 'use std::cell::RefCell;
 use std::rc::Rc;
 
 struct Account {
@@ -5361,7 +5361,7 @@ fn withdraw(acc: &Shared, n: i64) -> Result<(), String> {
 fn transfer(from: &Shared, to: &Shared, n: i64) -> Result<(), String> {
     todo!()
 }
-', 'Если from и to — один счёт, второй borrow_mut вызвал бы панику: проверьте Rc::ptr_eq заранее.', '{"driver": "fn main() {\n    let a: Shared = Rc::new(RefCell::new(Account { balance: 100 }));\n    let a2 = Rc::clone(&a);\n    let b: Shared = Rc::new(RefCell::new(Account { balance: 5 }));\n    deposit(&a2, 50);\n    println!(\"{}\", a.borrow().balance);\n    println!(\"{:?}\", withdraw(&a, 500));\n    println!(\"{:?} {} {}\", transfer(&a, &b, 120), a.borrow().balance, b.borrow().balance);\n    println!(\"{:?} {}\", transfer(&a, &a2, 30), a.borrow().balance);\n    println!(\"{:?}\", transfer(&b, &a, 1000));\n    println!(\"{}\", Rc::strong_count(&a));\n}\n", "expected": ["150", "Err(\"недостаточно средств: нужно 500, есть 150\")", "Ok(()) 30 125", "Ok(()) 30", "Err(\"недостаточно средств: нужно 1000, есть 125\")", "2"]}');
+', 'Если from и to — один счёт, второй borrow_mut вызвал бы панику: проверьте Rc::ptr_eq заранее.', '{"driver": "fn main() {\n    let a: Shared = Rc::new(RefCell::new(Account { balance: 100 }));\n    let a2 = Rc::clone(&a);\n    let b: Shared = Rc::new(RefCell::new(Account { balance: 5 }));\n    deposit(&a2, 50);\n    println!(\"{}\", a.borrow().balance);\n    println!(\"{:?}\", withdraw(&a, 500));\n    println!(\"{:?} {} {}\", transfer(&a, &b, 120), a.borrow().balance, b.borrow().balance);\n    println!(\"{:?} {}\", transfer(&a, &a2, 30), a.borrow().balance);\n    println!(\"{:?}\", transfer(&b, &a, 1000));\n    println!(\"{}\", Rc::strong_count(&a));\n}\n", "expected": ["150", "Err(\"insufficient funds: needed 500, present 150\")", "Ok(()) 30 125", "Ok(()) 30", "Err(\"insufficient funds: needed 1000, present 125\")", "2"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-rc-diamond', 17, 'rust', 'Общие узлы: Rc в графе без циклов', 'Node { val: i32, kids: Vec<Rc<Node>> }. total(&Node) → i32 — сумма по всем путям (общий узел считается каждый раз), unique_total(&Node) → i32 — каждый узел один раз (множество адресов *const Node). refs(&Rc<Node>) → usize — strong_count.', 'use std::collections::HashSet;
 use std::rc::Rc;
 
@@ -5412,7 +5412,7 @@ impl Stats {
     }
 }
 ', 'Cell::get/set работают с копируемыми значениями без выдачи ссылок — поэтому им не нужны проверки при запуске.', '{"driver": "fn main() {\n    let s = Stats::new();\n    let r1 = &s;\n    let r2 = &s;\n    r1.touch(5);\n    r2.touch(7);\n    r1.touch(-1);\n    println!(\"{} {:?}\", s.hits(), s.last());\n    println!(\"{} {}\", std::mem::size_of::<Cell<u32>>(), std::mem::size_of::<Stats>());\n}\n", "expected": ["3 Some(-1)", "4 12"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-observer-weak', 20, 'rust', 'Наблюдатели на Weak', 'Subject хранит Vec<Weak<RefCell<Vec<String>>>> — «почтовые ящики» наблюдателей. subscribe(&mut self, inbox: &Rc<RefCell<Vec<String>>>) добавляет слабую ссылку; publish(&mut self, msg) → usize кладёт сообщение в живые ящики, удаляет умершие и возвращает число доставленных.', 'use std::cell::RefCell;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-observer-weak', 20, 'rust', 'Наблюдатели на Weak', 'Subject хранит Vec<Weak<RefCell<Vec<String>>>> — «mailboxes» наблюдателей. subscribe(&mut self, inbox: &Rc<RefCell<Vec<String>>>) добавляет слабую ссылку; publish(&mut self, msg) → usize кладёт сообщение в живые ящики, удаляет умершие и возвращает число доставленных.', 'use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 struct Subject {
@@ -5430,7 +5430,7 @@ impl Subject {
         todo!()
     }
 }
-', 'Rc::downgrade(&rc) — слабая ссылка; upgrade() вернёт None, когда владельцев не осталось.', '{"driver": "fn main() {\n    let mut subj = Subject::new();\n    let a = Rc::new(RefCell::new(Vec::new()));\n    let b = Rc::new(RefCell::new(Vec::new()));\n    subj.subscribe(&a);\n    subj.subscribe(&b);\n    println!(\"{}\", subj.publish(\"первое\"));\n    drop(b);\n    println!(\"{}\", subj.publish(\"второе\"));\n    println!(\"{:?}\", a.borrow());\n    println!(\"{} {}\", Rc::strong_count(&a), Rc::weak_count(&a));\n    println!(\"{}\", Subject::new().publish(\"никому\"));\n}\n", "expected": ["2", "1", "[\"первое\", \"второе\"]", "1 1", "0"]}');
+', 'Rc::downgrade(&rc) — слабая ссылка; upgrade() вернёт None, когда владельцев не осталось.', '{"driver": "fn main() {\n    let mut subj = Subject::new();\n    let a = Rc::new(RefCell::new(Vec::new()));\n    let b = Rc::new(RefCell::new(Vec::new()));\n    subj.subscribe(&a);\n    subj.subscribe(&b);\n    println!(\"{}\", subj.publish(\"first\"));\n    drop(b);\n    println!(\"{}\", subj.publish(\"second\"));\n    println!(\"{:?}\", a.borrow());\n    println!(\"{} {}\", Rc::strong_count(&a), Rc::weak_count(&a));\n    println!(\"{}\", Subject::new().publish(\"nobody\"));\n}\n", "expected": ["2", "1", "[\"first\", \"second\"]", "1 1", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-parent-weak', 21, 'rust', 'Дерево с Weak на родителя', 'Node { name: String, parent: RefCell<Weak<Node>>, kids: RefCell<Vec<Rc<Node>>> }. new(name) → Rc<Node>; add_child(parent: &Rc<Node>, child: Rc<Node>) прикрепляет ребёнка и записывает слабую ссылку на родителя; path(n: &Rc<Node>) → String — путь от корня «a/b/c».', 'use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -5531,7 +5531,7 @@ impl Interner {
         todo!()
     }
 }
-', 'Rc<str> — толстый указатель (адрес и длина); Rc::from(&str) копирует байты один раз в блок с счётчиками.', '{"driver": "fn main() {\n    let mut i = Interner::new();\n    let a = i.intern(\"привет\");\n    let b = i.intern(\"мир\");\n    let c = i.intern(\"привет\");\n    println!(\"{} {}\", Rc::ptr_eq(&a, &c), Rc::ptr_eq(&a, &b));\n    println!(\"{} {}\", i.len(), i.total_refs());\n    drop(c);\n    println!(\"{}\", i.total_refs());\n    println!(\"{} {}\", &*a, std::mem::size_of::<Rc<str>>());\n}\n", "expected": ["true false", "2 5", "4", "привет 16"]}');
+', 'Rc<str> — толстый указатель (адрес и длина); Rc::from(&str) копирует байты один раз в блок с счётчиками.', '{"driver": "fn main() {\n    let mut i = Interner::new();\n    let a = i.intern(\"hello\");\n    let b = i.intern(\"world\");\n    let c = i.intern(\"hello\");\n    println!(\"{} {}\", Rc::ptr_eq(&a, &c), Rc::ptr_eq(&a, &b));\n    println!(\"{} {}\", i.len(), i.total_refs());\n    drop(c);\n    println!(\"{}\", i.total_refs());\n    println!(\"{} {}\", &*a, std::mem::size_of::<Rc<str>>());\n}\n", "expected": ["true false", "2 5", "4", "hello 16"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 21, 'r21-arena-tree', 27, 'rust', 'Дерево в арене: индексы вместо указателей', 'Arena { nodes: Vec<Item> } с Item { name, parent: Option<usize>, kids: Vec<usize> }. add(name, parent: Option<usize>) → usize — id нового узла (и запись в kids родителя); depth(id) → usize — число предков; path(id) → String «a/b/c»; leaves(&self) → Vec<&str> — имена узлов без детей в порядке id. Ни Rc, ни RefCell.', 'struct Item {
     name: String,
     parent: Option<usize>,
@@ -5639,7 +5639,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     }
 }
 ', 'Слово pub перед fn: new_account и deposit станут видимы снаружи модуля.', '{"driver": "fn main() {\n    let mut a = bank::new_account(10);\n    bank::deposit(&mut a, 5);\n    println!(\"{}\", bank::audit(&a));\n}\n", "expected": ["balance=15"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fix-field', 1, 'rust', 'Закрытые поля: конструктор и геттеры', 'Поля Rect закрыты, поэтому снаружи структуру не собрать и не прочитать. Напишите new(w, h) → Result<Rect, String> (стороны должны быть > 0, иначе «сторона должна быть положительной»), width(), height(), area() и scale(&self, k: u32) → Rect.', 'mod shapes {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fix-field', 1, 'rust', 'Закрытые поля: конструктор и геттеры', 'Поля Rect закрыты, поэтому снаружи структуру не собрать и не прочитать. Напишите new(w, h) → Result<Rect, String> (стороны должны быть > 0, иначе «side must be positive»), width(), height(), area() и scale(&self, k: u32) → Rect.', 'mod shapes {
     pub struct Rect {
         w: u32,
         h: u32,
@@ -5649,7 +5649,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
         // new, width, height, area, scale
     }
 }
-', 'Конструктор — единственный способ получить Rect снаружи; поэтому внутри него можно гарантировать w > 0 и h > 0.', '{"driver": "fn main() {\n    let r = shapes::Rect::new(3, 4).unwrap();\n    println!(\"{} {} {}\", r.width(), r.height(), r.area());\n    let big = r.scale(3);\n    println!(\"{}x{} {}\", big.width(), big.height(), big.area());\n    println!(\"{:?}\", shapes::Rect::new(0, 5).err());\n    println!(\"{:?}\", shapes::Rect::new(2, 0).err());\n}\n", "expected": ["3 4 12", "9x12 108", "Some(\"сторона должна быть положительной\")", "Some(\"сторона должна быть положительной\")"]}');
+', 'Конструктор — единственный способ получить Rect снаружи; поэтому внутри него можно гарантировать w > 0 и h > 0.', '{"driver": "fn main() {\n    let r = shapes::Rect::new(3, 4).unwrap();\n    println!(\"{} {} {}\", r.width(), r.height(), r.area());\n    let big = r.scale(3);\n    println!(\"{}x{} {}\", big.width(), big.height(), big.area());\n    println!(\"{:?}\", shapes::Rect::new(0, 5).err());\n    println!(\"{:?}\", shapes::Rect::new(2, 0).err());\n}\n", "expected": ["3 4 12", "9x12 108", "Some(\"side must be positive\")", "Some(\"side must be positive\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fix-use-trait', 2, 'rust', 'Исправьте: трейт не в области видимости', 'Трейт Shout реализован для str в модуле text, но метод shout() в функции loud вызвать нельзя: имя трейта не подключено (E0599). Исправьте одной строкой use.', 'mod text {
     pub trait Shout {
         fn shout(&self) -> String;
@@ -5665,7 +5665,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn loud(s: &str) -> String {
     s.shout()
 }
-', 'Методы трейта доступны, только если сам трейт подключён: use text::Shout;', '{"driver": "fn main() {\n    println!(\"{}\", loud(\"привет\"));\n    println!(\"{}\", loud(\"rust\"));\n}\n", "expected": ["ПРИВЕТ!", "RUST!"]}');
+', 'Методы трейта доступны, только если сам трейт подключён: use text::Shout;', '{"driver": "fn main() {\n    println!(\"{}\", loud(\"hello\"));\n    println!(\"{}\", loud(\"rust\"));\n}\n", "expected": ["HELLO!", "RUST!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-reexport', 3, 'rust', 'pub use: плоский публичный интерфейс', 'Типы Circle и Rect лежат глубоко: shapes::circle::Circle и shapes::rect::Rect, а трейт Shape — в shapes::Shape. Сделайте так, чтобы из корня крейта были доступны Circle, Rect и Shape (pub use), а также модуль prelude с теми же тремя именами.', 'mod shapes {
     pub trait Shape {
         fn area(&self) -> f64;
@@ -5718,19 +5718,19 @@ mod engine {
     }
 }
 ', 'Три разных начала пути: crate::util::double, super::run, self::step — каждое по разу.', '{"driver": "fn main() {\n    let src = include_str!(\"main.rs\");\n    let bad0 = src.matches(concat!(\"crate\", \"::util\")).count();\n    let bad1 = src.matches(concat!(\"super\", \"::run\")).count();\n    let bad2 = src.matches(concat!(\"self:\", \":step\")).count();\n    println!(\"{} {}\", engine::run(5), engine::fast::run(5));\n    println!(\"{}\", engine::fast::twice(1));\n    println!(\"paths: {} {} {}\", bad0, bad1, bad2);\n}\n", "expected": ["11 11", "22", "paths: 1 1 1"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fmt-write', 5, 'rust', 'use std::fmt::Write для String', 'render_table(rows: &[(&str, i32)]) → String: строки «имя<пробелы до 8>|<число по правому краю в 5>» с переводом строки; в конце строка «итого» с суммой. Формируйте результат через writeln! прямо в String (для этого нужно подключить трейт std::fmt::Write).', 'fn render_table(rows: &[(&str, i32)]) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fmt-write', 5, 'rust', 'use std::fmt::Write для String', 'render_table(rows: &[(&str, i32)]) → String: строки «name<spaces up to 8>|<number right-aligned in 5>» с переводом строки; в конце строка «total» с суммой. Формируйте результат через writeln! прямо в String (для этого нужно подключить трейт std::fmt::Write).', 'fn render_table(rows: &[(&str, i32)]) -> String {
     todo!()
 }
-', 'writeln!(out, "...") доступен у String, только если подключён use std::fmt::Write; результат нужно unwrap() или ?.', '{"driver": "fn main() {\n    print!(\"{}\", render_table(&[(\"хлеб\", 40), (\"молоко\", 95), (\"сыр\", 310)]));\n    print!(\"{}\", render_table(&[]));\n}\n", "expected": ["хлеб    |   40", "молоко  |   95", "сыр     |  310", "итого   |  445", "итого   |    0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-invariant-ctor', 6, 'rust', 'Инвариант в конструкторе: Kelvin', 'В модуле temp тип Kelvin(f64) с закрытым полем. new(k) → Result<Kelvin, String> («ниже абсолютного нуля: K»), from_celsius(c) → Result, kelvin(), celsius(), add(&self, delta: f64) → Result<Kelvin, String> (сумма не должна выйти ниже нуля). Снаружи значения ниже нуля получить невозможно.', 'mod temp {
+', 'writeln!(out, "...") доступен у String, только если подключён use std::fmt::Write; результат нужно unwrap() или ?.', '{"driver": "fn main() {\n    print!(\"{}\", render_table(&[(\"rice\", 40), (\"butter\", 95), (\"jam\", 310)]));\n    print!(\"{}\", render_table(&[]));\n}\n", "expected": ["rice    |   40", "butter  |   95", "jam     |  310", "total   |  445", "total   |    0"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-invariant-ctor', 6, 'rust', 'Инвариант в конструкторе: Kelvin', 'В модуле temp тип Kelvin(f64) с закрытым полем. new(k) → Result<Kelvin, String> («below absolute zero: K»), from_celsius(c) → Result, kelvin(), celsius(), add(&self, delta: f64) → Result<Kelvin, String> (сумма не должна выйти ниже нуля). Снаружи значения ниже нуля получить невозможно.', 'mod temp {
     pub struct Kelvin(f64);
 
     impl Kelvin {
         // new, from_celsius, kelvin, celsius, add
     }
 }
-', 'Все пути создания значения проходят через new: там проверка k >= 0.', '{"driver": "fn main() {\n    let t = temp::Kelvin::from_celsius(25.0).unwrap();\n    println!(\"{:.2} {:.2}\", t.kelvin(), t.celsius());\n    println!(\"{:?}\", temp::Kelvin::new(-1.0).err());\n    println!(\"{:?}\", temp::Kelvin::from_celsius(-300.0).err().map(|e| e.starts_with(\"ниже\")));\n    println!(\"{:?}\", t.add(-400.0).err());\n    println!(\"{:.1}\", t.add(10.0).unwrap().kelvin());\n}\n", "expected": ["298.15 25.00", "Some(\"ниже абсолютного нуля: -1\")", "Some(true)", "Some(\"ниже абсолютного нуля: -101.85000000000002\")", "308.1"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-builder', 7, 'rust', 'Строитель с проверкой в build()', 'Config { host, port, tls, timeout_ms }. ConfigBuilder::new(host) с умолчаниями (port 80, tls false, timeout 1000); методы port(self, p), tls(self, on), timeout_ms(self, t) возвращают Self; build(self) → Result<Config, String>: «пустой хост», «порт 0», «таймаут больше 60000»; при tls = true и порте 80 порт автоматически становится 443.', '#[derive(Debug, PartialEq)]
+', 'Все пути создания значения проходят через new: там проверка k >= 0.', '{"driver": "fn main() {\n    let t = temp::Kelvin::from_celsius(25.0).unwrap();\n    println!(\"{:.2} {:.2}\", t.kelvin(), t.celsius());\n    println!(\"{:?}\", temp::Kelvin::new(-1.0).err());\n    println!(\"{:?}\", temp::Kelvin::from_celsius(-300.0).err().map(|e| e.starts_with(\"below\")));\n    println!(\"{:?}\", t.add(-400.0).err());\n    println!(\"{:.1}\", t.add(10.0).unwrap().kelvin());\n}\n", "expected": ["298.15 25.00", "Some(\"below absolute zero: -1\")", "Some(true)", "Some(\"below absolute zero: -101.85000000000002\")", "308.1"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-builder', 7, 'rust', 'Строитель с проверкой в build()', 'Config { host, port, tls, timeout_ms }. ConfigBuilder::new(host) с умолчаниями (port 80, tls false, timeout 1000); методы port(self, p), tls(self, on), timeout_ms(self, t) возвращают Self; build(self) → Result<Config, String>: «empty host», «port 0», «timeout greater 60000»; при tls = true и порте 80 порт автоматически становится 443.', '#[derive(Debug, PartialEq)]
 struct Config {
     host: String,
     port: u16,
@@ -5762,7 +5762,7 @@ impl ConfigBuilder {
         todo!()
     }
 }
-', 'Методы-настройки возвращают self, а все проверки собраны в build.', '{"driver": "fn main() {\n    println!(\"{:?}\", ConfigBuilder::new(\"example.org\").build());\n    println!(\"{:?}\", ConfigBuilder::new(\"a.b\").tls(true).build());\n    println!(\"{:?}\", ConfigBuilder::new(\"a.b\").tls(true).port(8443).timeout_ms(250).build());\n    println!(\"{:?}\", ConfigBuilder::new(\" \").build());\n    println!(\"{:?}\", ConfigBuilder::new(\"x\").port(0).build());\n    println!(\"{:?}\", ConfigBuilder::new(\"x\").timeout_ms(70000).build());\n}\n", "expected": ["Ok(Config { host: \"example.org\", port: 80, tls: false, timeout_ms: 1000 })", "Ok(Config { host: \"a.b\", port: 443, tls: true, timeout_ms: 1000 })", "Ok(Config { host: \"a.b\", port: 8443, tls: true, timeout_ms: 250 })", "Err(\"пустой хост\")", "Err(\"порт 0\")", "Err(\"таймаут больше 60000\")"]}');
+', 'Методы-настройки возвращают self, а все проверки собраны в build.', '{"driver": "fn main() {\n    println!(\"{:?}\", ConfigBuilder::new(\"example.org\").build());\n    println!(\"{:?}\", ConfigBuilder::new(\"a.b\").tls(true).build());\n    println!(\"{:?}\", ConfigBuilder::new(\"a.b\").tls(true).port(8443).timeout_ms(250).build());\n    println!(\"{:?}\", ConfigBuilder::new(\" \").build());\n    println!(\"{:?}\", ConfigBuilder::new(\"x\").port(0).build());\n    println!(\"{:?}\", ConfigBuilder::new(\"x\").timeout_ms(70000).build());\n}\n", "expected": ["Ok(Config { host: \"example.org\", port: 80, tls: false, timeout_ms: 1000 })", "Ok(Config { host: \"a.b\", port: 443, tls: true, timeout_ms: 1000 })", "Ok(Config { host: \"a.b\", port: 8443, tls: true, timeout_ms: 250 })", "Err(\"empty host\")", "Err(\"port 0\")", "Err(\"timeout greater 60000\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-default-config', 8, 'rust', 'Default и обновление структуры', 'Config { name, retries, verbose, ratio, tags }. Реализуйте Default вручную: name «app», retries 3, verbose false, ratio 0.5, tags пусто. overridden(base, retries: Option<u32>, verbose: Option<bool>) → Config — подставить заданные значения поверх base (None — оставить как было).', '#[derive(Debug, Clone, PartialEq)]
 struct Config {
     name: String,
@@ -5778,7 +5778,7 @@ fn overridden(base: Config, retries: Option<u32>, verbose: Option<bool>) -> Conf
     todo!()
 }
 ', 'Config { retries: …, verbose: …, ..base } — остальные поля берутся из base (в том числе строка и вектор — они переезжают).', '{"driver": "fn main() {\n    let d = Config::default();\n    println!(\"{:?}\", d);\n    println!(\"{:?}\", overridden(d.clone(), Some(10), None));\n    println!(\"{:?}\", overridden(d.clone(), None, Some(true)).verbose);\n    let custom = Config { name: \"svc\".into(), tags: vec![\"x\".into()], ..Default::default() };\n    println!(\"{:?}\", custom);\n    println!(\"{}\", overridden(custom.clone(), None, None) == custom);\n}\n", "expected": ["Config { name: \"app\", retries: 3, verbose: false, ratio: 0.5, tags: [] }", "Config { name: \"app\", retries: 10, verbose: false, ratio: 0.5, tags: [] }", "true", "Config { name: \"svc\", retries: 3, verbose: false, ratio: 0.5, tags: [\"x\"] }", "true"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fromstr-version', 9, 'rust', 'Version: разбор, порядок, вывод', 'Version { major, minor, patch } (u32). Реализуйте FromStr для «1.2.3» (ровно три числа, иначе Err со словом «формат»; нечисло → Err «число: <часть>»), Display «1.2.3» и порядок (derive Ord по полям major, minor, patch). Тогда sort() и max() работают.', 'use std::fmt;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-fromstr-version', 9, 'rust', 'Version: разбор, порядок, вывод', 'Version { major, minor, patch } (u32). Реализуйте FromStr для «1.2.3» (ровно три числа, иначе Err со словом «format»; нечисло → Err «number: <part>»), Display «1.2.3» и порядок (derive Ord по полям major, minor, patch). Тогда sort() и max() работают.', 'use std::fmt;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -5789,7 +5789,7 @@ struct Version {
 }
 
 // impl FromStr и Display
-', 'split(''.'') и проверка длины; числа разбирайте замыканием с map_err и оператором ?.', '{"driver": "fn main() {\n    let mut v: Vec<Version> = [\"1.10.0\", \"1.2.9\", \"0.9.9\", \"1.2.10\"].iter().map(|s| s.parse().unwrap()).collect();\n    v.sort();\n    println!(\"{}\", v.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(\" < \"));\n    println!(\"{}\", v.iter().max().unwrap());\n    println!(\"{:?}\", \"1.2\".parse::<Version>());\n    println!(\"{:?}\", \"1.x.3\".parse::<Version>());\n    println!(\"{:?}\", \"1.2.3.4\".parse::<Version>().is_err());\n}\n", "expected": ["0.9.9 < 1.2.9 < 1.2.10 < 1.10.0", "1.10.0", "Err(\"формат: ожидалось X.Y.Z, получено \\\"1.2\\\"\")", "Err(\"число: x\")", "true"]}');
+', 'split(''.'') и проверка длины; числа разбирайте замыканием с map_err и оператором ?.', '{"driver": "fn main() {\n    let mut v: Vec<Version> = [\"1.10.0\", \"1.2.9\", \"0.9.9\", \"1.2.10\"].iter().map(|s| s.parse().unwrap()).collect();\n    v.sort();\n    println!(\"{}\", v.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(\" < \"));\n    println!(\"{}\", v.iter().max().unwrap());\n    println!(\"{:?}\", \"1.2\".parse::<Version>());\n    println!(\"{:?}\", \"1.x.3\".parse::<Version>());\n    println!(\"{:?}\", \"1.2.3.4\".parse::<Version>().is_err());\n}\n", "expected": ["0.9.9 < 1.2.9 < 1.2.10 < 1.10.0", "1.10.0", "Err(\"format: expected X.Y.Z, received \\\"1.2\\\"\")", "Err(\"number: x\")", "true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-semver-req', 10, 'rust', 'Требования версий: ^, ~, =, >=', 'Req::parse(s) → Option<Req> и matches(&self, v: &Version) → bool. «^1.2.3»: ≥1.2.3 и <2.0.0 (для 0.x: «^0.2.3» — <0.3.0, «^0.0.3» — только 0.0.3); «~1.2.3»: ≥1.2.3 и <1.3.0; «=1.2.3» — точно; «>=1.2.3»; «*» — любая. Version и разбор версии уже готовы.', '#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct Version {
     major: u32,
@@ -5842,7 +5842,7 @@ fn sort_desc(mut v: Vec<Version>) -> Vec<Version> {
     todo!()
 }
 ', 'Структурное обновление Version { patch: …, ..v } меняет только указанные поля.', '{"driver": "fn main() {\n    let v = |a, b, c| Version { major: a, minor: b, patch: c };\n    println!(\"{:?}\", bump(v(1, 2, 3), \"major\"));\n    println!(\"{:?}\", bump(v(1, 2, 3), \"minor\"));\n    println!(\"{:?}\", bump(v(1, 2, 3), \"patch\"));\n    println!(\"{:?}\", bump(v(1, 2, 3), \"huge\"));\n    println!(\"{} {} {}\", breaking(v(1, 5, 0), v(2, 0, 0)), breaking(v(0, 2, 0), v(0, 3, 0)), breaking(v(1, 2, 0), v(1, 9, 9)));\n    println!(\"{:?}\", sort_desc(vec![v(1, 0, 0), v(0, 9, 9), v(1, 0, 1)]));\n}\n", "expected": ["Some(Version { major: 2, minor: 0, patch: 0 })", "Some(Version { major: 1, minor: 3, patch: 0 })", "Some(Version { major: 1, minor: 2, patch: 4 })", "None", "true true false", "[Version { major: 1, minor: 0, patch: 1 }, Version { major: 1, minor: 0, patch: 0 }, Version { major: 0, minor: 9, patch: 9 }]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-cargo-toml-parse', 12, 'rust', 'Разбор Cargo.toml', 'parse_manifest(text) → Result<Manifest, String>. Manifest { name, version, deps: BTreeMap<String, String> }. Секции [package] (name, version — в кавычках) и [dependencies] («имя = "версия"» или «имя = { version = "версия", … }»). Комментарии «#» и пустые строки пропускать; другие секции игнорировать. Нет name или version → Err("нет name") / Err("нет version").', 'use std::collections::BTreeMap;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-cargo-toml-parse', 12, 'rust', 'Разбор Cargo.toml', 'parse_manifest(text) → Result<Manifest, String>. Manifest { name, version, deps: BTreeMap<String, String> }. Секции [package] (name, version — в кавычках) и [dependencies] («name = "version"» или «name = { version = "version", … }»). Комментарии «#» и пустые строки пропускать; другие секции игнорировать. Нет name или version → Err("no name") / Err("no version").', 'use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq)]
 struct Manifest {
@@ -5854,15 +5854,15 @@ struct Manifest {
 fn parse_manifest(text: &str) -> Result<Manifest, String> {
     todo!()
 }
-', 'Запоминайте текущую секцию в переменной; значение в кавычках — через strip_prefix(''"'') и strip_suffix(''"'').', '{"driver": "fn main() {\n    let t = \"# мой проект\\n[package]\\nname = \\\"hello\\\"\\nversion = \\\"0.3.1\\\"\\nedition = \\\"2021\\\"\\n\\n[dependencies]\\nserde = \\\"1.0\\\"\\nrand = { version = \\\"0.8\\\", features = [\\\"small_rng\\\"] }\\n\\n[dev-dependencies]\\ntempfile = \\\"3\\\"\\n\";\n    println!(\"{:?}\", parse_manifest(t));\n    println!(\"{:?}\", parse_manifest(\"[package]\\nversion = \\\"1.0.0\\\"\\n\"));\n    println!(\"{:?}\", parse_manifest(\"[package]\\nname = \\\"x\\\"\\n\"));\n    println!(\"{:?}\", parse_manifest(\"[package]\\nname = \\\"x\\\"\\nversion = \\\"0.1.0\\\"\\n\").map(|m| m.deps.len()));\n}\n", "expected": ["Ok(Manifest { name: \"hello\", version: \"0.3.1\", deps: {\"rand\": \"0.8\", \"serde\": \"1.0\"} })", "Err(\"нет name\")", "Err(\"нет version\")", "Ok(0)"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-dep-graph', 13, 'rust', 'Порядок сборки крейтов', 'build_order(deps: &[(&str, &[&str])]) → Result<Vec<String>, String>: каждая пара — крейт и его зависимости. Сначала собираются зависимости; из готовых к сборке крейтов берите по алфавиту. Зависимость, которой нет в списке, считается внешней и игнорируется. Цикл → Err("цикл: a b c") с оставшимися крейтами по алфавиту.', 'fn build_order(deps: &[(&str, &[&str])]) -> Result<Vec<String>, String> {
+', 'Запоминайте текущую секцию в переменной; значение в кавычках — через strip_prefix(''"'') и strip_suffix(''"'').', '{"driver": "fn main() {\n    let t = \"# my project\\n[package]\\nname = \\\"hello\\\"\\nversion = \\\"0.3.1\\\"\\nedition = \\\"2021\\\"\\n\\n[dependencies]\\nserde = \\\"1.0\\\"\\nrand = { version = \\\"0.8\\\", features = [\\\"small_rng\\\"] }\\n\\n[dev-dependencies]\\ntempfile = \\\"3\\\"\\n\";\n    println!(\"{:?}\", parse_manifest(t));\n    println!(\"{:?}\", parse_manifest(\"[package]\\nversion = \\\"1.0.0\\\"\\n\"));\n    println!(\"{:?}\", parse_manifest(\"[package]\\nname = \\\"x\\\"\\n\"));\n    println!(\"{:?}\", parse_manifest(\"[package]\\nname = \\\"x\\\"\\nversion = \\\"0.1.0\\\"\\n\").map(|m| m.deps.len()));\n}\n", "expected": ["Ok(Manifest { name: \"hello\", version: \"0.3.1\", deps: {\"rand\": \"0.8\", \"serde\": \"1.0\"} })", "Err(\"no name\")", "Err(\"no version\")", "Ok(0)"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-dep-graph', 13, 'rust', 'Порядок сборки крейтов', 'build_order(deps: &[(&str, &[&str])]) → Result<Vec<String>, String>: каждая пара — крейт и его зависимости. Сначала собираются зависимости; из готовых к сборке крейтов берите по алфавиту. Зависимость, которой нет в списке, считается внешней и игнорируется. Цикл → Err("loop: a b c") с оставшимися крейтами по алфавиту.', 'fn build_order(deps: &[(&str, &[&str])]) -> Result<Vec<String>, String> {
     todo!()
 }
-', 'Ключи BTreeMap идут по алфавиту — первый крейт без оставшихся зависимостей и есть следующий.', '{"driver": "fn main() {\n    println!(\"{:?}\", build_order(&[(\"app\", &[\"net\", \"log\"]), (\"net\", &[\"log\", \"libc\"]), (\"log\", &[]), (\"tools\", &[\"log\"])]));\n    println!(\"{:?}\", build_order(&[(\"a\", &[\"b\"]), (\"b\", &[\"c\"]), (\"c\", &[\"a\"]), (\"d\", &[])]));\n    println!(\"{:?}\", build_order(&[]));\n    println!(\"{:?}\", build_order(&[(\"z\", &[]), (\"a\", &[])]));\n}\n", "expected": ["Ok([\"log\", \"net\", \"app\", \"tools\"])", "Err(\"цикл: a b c\")", "Ok([])", "Ok([\"a\", \"z\"])"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-features-closure', 14, 'rust', 'Features: замыкание включённых', 'resolve(features: &[(&str, &[&str])], requested: &[&str]) → Result<Vec<String>, String>. Каждый feature включает другие. Результат — все включённые features по алфавиту (включая вложенные); «default» включается всегда, если он описан. Неизвестное имя в requested или в зависимости → Err("нет feature X").', 'fn resolve(features: &[(&str, &[&str])], requested: &[&str]) -> Result<Vec<String>, String> {
+', 'Ключи BTreeMap идут по алфавиту — первый крейт без оставшихся зависимостей и есть следующий.', '{"driver": "fn main() {\n    println!(\"{:?}\", build_order(&[(\"app\", &[\"net\", \"log\"]), (\"net\", &[\"log\", \"libc\"]), (\"log\", &[]), (\"tools\", &[\"log\"])]));\n    println!(\"{:?}\", build_order(&[(\"a\", &[\"b\"]), (\"b\", &[\"c\"]), (\"c\", &[\"a\"]), (\"d\", &[])]));\n    println!(\"{:?}\", build_order(&[]));\n    println!(\"{:?}\", build_order(&[(\"z\", &[]), (\"a\", &[])]));\n}\n", "expected": ["Ok([\"log\", \"net\", \"app\", \"tools\"])", "Err(\"loop: a b c\")", "Ok([])", "Ok([\"a\", \"z\"])"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-features-closure', 14, 'rust', 'Features: замыкание включённых', 'resolve(features: &[(&str, &[&str])], requested: &[&str]) → Result<Vec<String>, String>. Каждый feature включает другие. Результат — все включённые features по алфавиту (включая вложенные); «default» включается всегда, если он описан. Неизвестное имя в requested или в зависимости → Err("no feature X").', 'fn resolve(features: &[(&str, &[&str])], requested: &[&str]) -> Result<Vec<String>, String> {
     todo!()
 }
-', 'Обход со стеком и множеством уже включённых; на неизвестное имя возвращайте ошибку сразу.', '{"driver": "fn main() {\n    let f: [(&str, &[&str]); 5] = [(\"default\", &[\"json\"]), (\"json\", &[\"alloc\"]), (\"alloc\", &[]), (\"tls\", &[\"alloc\", \"net\"]), (\"net\", &[])];\n    println!(\"{:?}\", resolve(&f, &[]));\n    println!(\"{:?}\", resolve(&f, &[\"tls\"]));\n    println!(\"{:?}\", resolve(&f, &[\"ghost\"]));\n    println!(\"{:?}\", resolve(&[(\"a\", &[\"zzz\"])], &[\"a\"]));\n    println!(\"{:?}\", resolve(&[], &[]));\n}\n", "expected": ["Ok([\"alloc\", \"default\", \"json\"])", "Ok([\"alloc\", \"default\", \"json\", \"net\", \"tls\"])", "Err(\"нет feature ghost\")", "Err(\"нет feature zzz\")", "Ok([])"]}');
+', 'Обход со стеком и множеством уже включённых; на неизвестное имя возвращайте ошибку сразу.', '{"driver": "fn main() {\n    let f: [(&str, &[&str]); 5] = [(\"default\", &[\"json\"]), (\"json\", &[\"alloc\"]), (\"alloc\", &[]), (\"tls\", &[\"alloc\", \"net\"]), (\"net\", &[])];\n    println!(\"{:?}\", resolve(&f, &[]));\n    println!(\"{:?}\", resolve(&f, &[\"tls\"]));\n    println!(\"{:?}\", resolve(&f, &[\"ghost\"]));\n    println!(\"{:?}\", resolve(&[(\"a\", &[\"zzz\"])], &[\"a\"]));\n    println!(\"{:?}\", resolve(&[], &[]));\n}\n", "expected": ["Ok([\"alloc\", \"default\", \"json\"])", "Ok([\"alloc\", \"default\", \"json\", \"net\", \"tls\"])", "Err(\"no feature ghost\")", "Err(\"no feature zzz\")", "Ok([])"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-lockfile-diff', 15, 'rust', 'Сравнение Cargo.lock', 'diff(old, new: &[(&str, &str)]) → Vec<String> — пары (крейт, версия). По алфавиту крейтов: «+ имя версия» — появился; «- имя версия» — исчез; «~ имя старая -> новая» — версия изменилась. Неизменившиеся не выводить.', 'fn diff(old: &[(&str, &str)], new: &[(&str, &str)]) -> Vec<String> {
     todo!()
 }
@@ -5896,7 +5896,7 @@ fn init_name(s: &str) -> bool {
 fn name() -> Option<&''static str> {
     todo!()
 }
-', 'fetch_add возвращает прежнее значение; OnceLock::set возвращает Err, если значение уже задано.', '{"driver": "fn main() {\n    println!(\"{} {} {}\", next_id(), next_id(), next_id());\n    println!(\"{}\", peek_id());\n    reset_ids();\n    println!(\"{} {}\", next_id(), peek_id());\n    println!(\"{:?}\", name());\n    println!(\"{} {}\", init_name(\"первое\"), init_name(\"второе\"));\n    println!(\"{:?}\", name());\n}\n", "expected": ["1 2 3", "4", "1 2", "None", "true false", "Some(\"первое\")"]}');
+', 'fetch_add возвращает прежнее значение; OnceLock::set возвращает Err, если значение уже задано.', '{"driver": "fn main() {\n    println!(\"{} {} {}\", next_id(), next_id(), next_id());\n    println!(\"{}\", peek_id());\n    reset_ids();\n    println!(\"{} {}\", next_id(), peek_id());\n    println!(\"{:?}\", name());\n    println!(\"{} {}\", init_name(\"first\"), init_name(\"second\"));\n    println!(\"{:?}\", name());\n}\n", "expected": ["1 2 3", "4", "1 2", "None", "true false", "Some(\"first\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-const-fn', 18, 'rust', 'const fn: таблицы при сборке', 'const fn fact(n: u32) → u64 (цикл while внутри const fn разрешён). const FACTS: [u64; 11] — факториалы 0..=10, заполненные при сборке через const-блок. const fn gcd(a, b) → u64 (Евклид). const fn is_pow2(x: u32) → bool. Таблица и функции вычисляются компилятором.', 'const fn fact(n: u32) -> u64 {
     todo!()
 }
@@ -5914,14 +5914,14 @@ const fn is_pow2(x: u32) -> bool {
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-doc-extractor', 19, 'rust', 'Мини-rustdoc: извлечь документацию', 'extract_docs(src: &str) → Vec<(String, String)>: для каждой функции (fn имя(… или pub fn имя(…) собрать текст идущих перед ней строк «///» (без «///» и пробела после, склеенных через пробел). Функции без документации пропускать. Порядок — как в исходнике.', 'fn extract_docs(src: &str) -> Vec<(String, String)> {
     todo!()
 }
-', 'Копите строки /// в вектор; на строке с fn — сохраните и очистите; атрибут #[...] между документацией и функцией её не сбрасывает.', '{"driver": "fn main() {\n    let src = \"/// Складывает.\\n/// Два числа.\\npub fn add(a: i32, b: i32) -> i32 { a + b }\\n\\nfn hidden() {}\\n\\n/// Печатает.\\n#[inline]\\nfn show() {}\\n\\n/// Висит в воздухе\\nstruct S;\\nfn after() {}\\n\";\n    for (n, d) in extract_docs(src) {\n        println!(\"{n}: {d}\");\n    }\n    println!(\"{}\", extract_docs(\"fn a() {}\").len());\n}\n", "expected": ["add: Складывает. Два числа.", "show: Печатает.", "0"]}');
+', 'Копите строки /// в вектор; на строке с fn — сохраните и очистите; атрибут #[...] между документацией и функцией её не сбрасывает.', '{"driver": "fn main() {\n    let src = \"/// Adds.\\n/// Two numbers.\\npub fn add(a: i32, b: i32) -> i32 { a + b }\\n\\nfn hidden() {}\\n\\n/// Prints.\\n#[inline]\\nfn show() {}\\n\\n/// Hangs in the air\\nstruct S;\\nfn after() {}\\n\";\n    for (n, d) in extract_docs(src) {\n        println!(\"{n}: {d}\");\n    }\n    println!(\"{}\", extract_docs(\"fn a() {}\").len());\n}\n", "expected": ["add: Adds. Two numbers.", "show: Prints.", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-mini-test-runner', 20, 'rust', 'Мини-раннер тестов', 'type TestFn = fn() → Result<(), String>. run_tests(tests: &[(&str, TestFn)]) → (usize, usize, Vec<String>): число прошедших, число упавших и строки отчёта «test <имя> ... ok» / «test <имя> ... FAILED: <сообщение>». Паника внутри теста — тоже провал: «FAILED: panicked» (ловите через std::panic::catch_unwind). Раннер не должен падать сам.', 'type TestFn = fn() -> Result<(), String>;
 
 fn run_tests(tests: &[(&str, TestFn)]) -> (usize, usize, Vec<String>) {
     todo!()
 }
 ', 'catch_unwind(*t) возвращает Result<Result<(), String>, Box<dyn Any + Send>>: три случая — ok, Err и паника.', '{"driver": "fn good() -> Result<(), String> {\n    Ok(())\n}\nfn bad() -> Result<(), String> {\n    Err(\"1 != 2\".to_string())\n}\nfn boom() -> Result<(), String> {\n    let v: Vec<i32> = vec![];\n    let _ = v[3];\n    Ok(())\n}\n\nfn main() {\n    std::panic::set_hook(Box::new(|_| {}));\n    let (p, f, rep) = run_tests(&[(\"good\", good), (\"bad\", bad), (\"boom\", boom), (\"good2\", good)]);\n    for l in &rep {\n        println!(\"{l}\");\n    }\n    println!(\"{p} passed, {f} failed\");\n    println!(\"{:?}\", run_tests(&[]));\n}\n", "expected": ["test good ... ok", "test bad ... FAILED: 1 != 2", "test boom ... FAILED: panicked", "test good2 ... ok", "2 passed, 2 failed", "(0, 0, [])"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-assert-helpers', 21, 'rust', 'Свои проверки, возвращающие Result', 'check_eq<T: PartialEq + Debug>(left, right) → Result<(), String> «left: <l:?>, right: <r:?>» при неравенстве. check_close(a, b, eps) → Result<(), String> «|a-b| = <d> > <eps>». check_sorted<T: PartialOrd + Debug>(v) → Result<(), String> «не отсортировано на позиции <i>: <a:?> > <b:?>» (индекс первого нарушения пары). Все проверки — функции, не паникуют.', 'use std::fmt::Debug;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-assert-helpers', 21, 'rust', 'Свои проверки, возвращающие Result', 'check_eq<T: PartialEq + Debug>(left, right) → Result<(), String> «left: <l:?>, right: <r:?>» при неравенстве. check_close(a, b, eps) → Result<(), String> «|a-b| = <d> > <eps>». check_sorted<T: PartialOrd + Debug>(v) → Result<(), String> «not sorted at position <i>: <a:?> > <b:?>» (индекс первого нарушения пары). Все проверки — функции, не паникуют.', 'use std::fmt::Debug;
 
 fn check_eq<T: PartialEq + Debug>(left: T, right: T) -> Result<(), String> {
     todo!()
@@ -5934,7 +5934,7 @@ fn check_close(a: f64, b: f64, eps: f64) -> Result<(), String> {
 fn check_sorted<T: PartialOrd + Debug>(v: &[T]) -> Result<(), String> {
     todo!()
 }
-', 'Сообщение собирайте format!-ом с {:?}; пара окон windows(2) даёт индекс первого нарушения.', '{"driver": "fn main() {\n    println!(\"{:?}\", check_eq(2 + 2, 4));\n    println!(\"{:?}\", check_eq(\"a\", \"b\"));\n    println!(\"{:?}\", check_eq(vec![1, 2], vec![1, 3]));\n    println!(\"{:?} {:?}\", check_close(0.1 + 0.2, 0.3, 1e-9), check_close(1.0, 1.5, 0.1));\n    println!(\"{:?} {:?}\", check_sorted(&[1, 2, 2, 5]), check_sorted(&[1, 3, 2, 4]));\n    println!(\"{:?}\", check_sorted::<i32>(&[]));\n}\n", "expected": ["Ok(())", "Err(\"left: \\\"a\\\", right: \\\"b\\\"\")", "Err(\"left: [1, 2], right: [1, 3]\")", "Ok(()) Err(\"|a-b| = 0.5 > 0.1\")", "Ok(()) Err(\"не отсортировано на позиции 1: 3 > 2\")", "Ok(())"]}');
+', 'Сообщение собирайте format!-ом с {:?}; пара окон windows(2) даёт индекс первого нарушения.', '{"driver": "fn main() {\n    println!(\"{:?}\", check_eq(2 + 2, 4));\n    println!(\"{:?}\", check_eq(\"a\", \"b\"));\n    println!(\"{:?}\", check_eq(vec![1, 2], vec![1, 3]));\n    println!(\"{:?} {:?}\", check_close(0.1 + 0.2, 0.3, 1e-9), check_close(1.0, 1.5, 0.1));\n    println!(\"{:?} {:?}\", check_sorted(&[1, 2, 2, 5]), check_sorted(&[1, 3, 2, 4]));\n    println!(\"{:?}\", check_sorted::<i32>(&[]));\n}\n", "expected": ["Ok(())", "Err(\"left: \\\"a\\\", right: \\\"b\\\"\")", "Err(\"left: [1, 2], right: [1, 3]\")", "Ok(()) Err(\"|a-b| = 0.5 > 0.1\")", "Ok(()) Err(\"not sorted at position 1: 3 > 2\")", "Ok(())"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-write-tests-abs', 22, 'rust', 'Напишите тесты: abs и её мутанты', 'Вам нужно написать failures_abs(f: &dyn Fn(i32) → i32) → usize — набор проверок для функции абсолютного значения: вернуть число не прошедших проверок. Драйвер запускает ваш набор на верной реализации (должно быть 0 провалов) и на пяти сломанных — каждая обязана быть поймана хотя бы одним провалом.', 'fn failures_abs(f: &dyn Fn(i32) -> i32) -> usize {
     let mut fails = 0;
     // добавляйте проверки: if f(вход) != ожидаемое { fails += 1; }
@@ -5971,7 +5971,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'Копите цифры в строке; встретили букву — переводите накопленное число в секунды и проверяйте порядок единиц.', '{"driver": "fn main() {\n    let cases = [\"1h30m15s\", \"90s\", \"2h\", \"45m\", \"0s\", \"\", \"15\", \"h\", \"1x\", \"1m1h\", \"1h1h\", \"12m3\", \"5s5s\", \"003m\"];\n    for c in cases {\n        println!(\"{:>10} -> {:?}\", format!(\"{:?}\", c), parse_duration(c));\n    }\n}\n", "expected": ["\"1h30m15s\" -> Some(5415)", "     \"90s\" -> Some(90)", "      \"2h\" -> Some(7200)", "     \"45m\" -> Some(2700)", "      \"0s\" -> Some(0)", "        \"\" -> None", "      \"15\" -> None", "       \"h\" -> None", "      \"1x\" -> None", "    \"1m1h\" -> None", "    \"1h1h\" -> None", "    \"12m3\" -> None", "    \"5s5s\" -> None", "    \"003m\" -> Some(180)"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-error-api', 27, 'rust', 'Ошибки библиотеки: enum, Display, Error, From', 'ConfigError: Missing(String) — нет ключа, BadNumber { key: String, source: ParseIntError }. Реализуйте Display («нет ключа X» / «ключ X: неверное число»), std::error::Error с методом source (для BadNumber — причина, для Missing — None). load(text) → Result<Settings, ConfigError>: строки «ключ=значение»; обязательны port и workers (числа u16 и u8).', 'use std::error::Error;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-error-api', 27, 'rust', 'Ошибки библиотеки: enum, Display, Error, From', 'ConfigError: Missing(String) — нет ключа, BadNumber { key: String, source: ParseIntError }. Реализуйте Display («no key X» / «key X: invalid number»), std::error::Error с методом source (для BadNumber — причина, для Missing — None). load(text) → Result<Settings, ConfigError>: строки «key=value»; обязательны port и workers (числа u16 и u8).', 'use std::error::Error;
 use std::fmt;
 use std::num::ParseIntError;
 
@@ -5992,7 +5992,7 @@ struct Settings {
 fn load(text: &str) -> Result<Settings, ConfigError> {
     todo!()
 }
-', 'source() возвращает Some(source) как &dyn Error; для u16 и u8 число 70000 и 256 — это уже ошибка разбора.', '{"driver": "fn main() {\n    println!(\"{:?}\", load(\"port = 8080\\nworkers=4\"));\n    for t in [\"workers=4\", \"port=80\", \"port=70000\\nworkers=1\", \"port=1\\nworkers=abc\"] {\n        match load(t) {\n            Ok(s) => println!(\"ok {:?}\", s),\n            Err(e) => println!(\"{} | причина: {:?}\", e, e.source().map(|s| s.to_string())),\n        }\n    }\n}\n", "expected": ["Ok(Settings { port: 8080, workers: 4 })", "нет ключа port | причина: None", "нет ключа workers | причина: None", "ключ port: неверное число | причина: Some(\"number too large to fit in target type\")", "ключ workers: неверное число | причина: Some(\"invalid digit found in string\")"]}');
+', 'source() возвращает Some(source) как &dyn Error; для u16 и u8 число 70000 и 256 — это уже ошибка разбора.', '{"driver": "fn main() {\n    println!(\"{:?}\", load(\"port = 8080\\nworkers=4\"));\n    for t in [\"workers=4\", \"port=80\", \"port=70000\\nworkers=1\", \"port=1\\nworkers=abc\"] {\n        match load(t) {\n            Ok(s) => println!(\"ok {:?}\", s),\n            Err(e) => println!(\"{} | reason: {:?}\", e, e.source().map(|s| s.to_string())),\n        }\n    }\n}\n", "expected": ["Ok(Settings { port: 8080, workers: 4 })", "no key port | reason: None", "no key workers | reason: None", "key port: invalid number | reason: Some(\"number too large to fit in target type\")", "key workers: invalid number | reason: Some(\"invalid digit found in string\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 22, 'r22-module-tree', 28, 'rust', 'Дерево модулей из путей', 'render_tree(paths: &[&str]) → String: пути вида «net::tcp::connect» собираются в дерево; каждый уровень — на отдельной строке с отступом в два пробела на глубину, дети по алфавиту, повторы объединяются. Пустой список — пустая строка.', 'fn render_tree(paths: &[&str]) -> String {
     todo!()
 }
@@ -6028,7 +6028,7 @@ fn squares_in_threads(n: u64) -> Vec<u64> {
 fn word_lengths(words: Vec<String>) -> Vec<usize> {
     todo!()
 }
-', 'Сначала запустите ВСЕ потоки (collect в вектор хэндлов), только потом join: иначе потоки пойдут по очереди.', '{"driver": "fn main() {\n    println!(\"{:?}\", squares_in_threads(8));\n    println!(\"{:?}\", squares_in_threads(0));\n    println!(\"{:?}\", word_lengths(vec![\"привет\".into(), \"мир\".into(), \"\".into(), \"rust\".into()]));\n}\n", "expected": ["[1, 4, 9, 16, 25, 36, 49, 64]", "[]", "[6, 3, 0, 4]"]}');
+', 'Сначала запустите ВСЕ потоки (collect в вектор хэндлов), только потом join: иначе потоки пойдут по очереди.', '{"driver": "fn main() {\n    println!(\"{:?}\", squares_in_threads(8));\n    println!(\"{:?}\", squares_in_threads(0));\n    println!(\"{:?}\", word_lengths(vec![\"planet\".into(), \"sun\".into(), \"\".into(), \"rust\".into()]));\n}\n", "expected": ["[1, 4, 9, 16, 25, 36, 49, 64]", "[]", "[6, 3, 0, 4]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 23, 'r23-fix-move', 2, 'rust', 'Исправьте: замыкание заимствует локальное', 'sum_in_thread запускает поток, который суммирует вектор, но замыкание берёт v по ссылке, а поток может пережить функцию (E0373). Исправьте одним словом.', 'use std::thread;
 
 fn sum_in_thread(v: Vec<i32>) -> i32 {
@@ -6046,7 +6046,7 @@ fn len_in_thread(s: &str) -> usize {
     let n = h.join().unwrap();
     n + Rc::strong_count(&shared) - 1
 }
-', 'Arc имеет те же методы new, clone и strong_count — подставьте его вместо Rc и подключите std::sync::Arc.', '{"driver": "fn main() {\n    println!(\"{}\", len_in_thread(\"привет\"));\n    println!(\"{}\", len_in_thread(\"\"));\n}\n", "expected": ["12", "0"]}');
+', 'Arc имеет те же методы new, clone и strong_count — подставьте его вместо Rc и подключите std::sync::Arc.', '{"driver": "fn main() {\n    println!(\"{}\", len_in_thread(\"hello, world\"));\n    println!(\"{}\", len_in_thread(\"\"));\n}\n", "expected": ["12", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 23, 'r23-counter-mutex', 4, 'rust', 'Общий счётчик: Arc<Mutex<u64>>', 'count_parallel(threads: usize, per_thread: u64) → u64: запустите threads потоков, каждый увеличивает общий счётчик (Arc<Mutex<u64>>) per_thread раз по единице; верните итог. contended(threads, per_thread) → u64 — то же, но каждый поток сначала считает локально и один раз прибавляет к общему.', 'use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -6091,7 +6091,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn word_count_par(text: &str, parts: usize) -> BTreeMap<String, usize> {
     todo!()
 }
-', 'Каждый поток возвращает свой HashMap; общий результат собирается уже в главном потоке — без блокировок.', '{"driver": "fn main() {\n    let text = \"the quick brown fox\\njumps over the lazy dog\\nThe DOG barks, the fox runs\\n\\nfox fox\";\n    let a = word_count_par(text, 1);\n    let b = word_count_par(text, 3);\n    let c = word_count_par(text, 10);\n    println!(\"{:?}\", a);\n    println!(\"{}\", a == b && b == c);\n    println!(\"{:?}\", word_count_par(\"\", 4));\n    println!(\"{:?}\", word_count_par(\"Привет, привет! мир\", 2));\n}\n", "expected": ["{\"barks\": 1, \"brown\": 1, \"dog\": 2, \"fox\": 4, \"jumps\": 1, \"lazy\": 1, \"over\": 1, \"quick\": 1, \"runs\": 1, \"the\": 4}", "true", "{}", "{\"мир\": 1, \"привет\": 2}"]}');
+', 'Каждый поток возвращает свой HashMap; общий результат собирается уже в главном потоке — без блокировок.', '{"driver": "fn main() {\n    let text = \"the quick brown fox\\njumps over the lazy dog\\nThe DOG barks, the fox runs\\n\\nfox fox\";\n    let a = word_count_par(text, 1);\n    let b = word_count_par(text, 3);\n    let c = word_count_par(text, 10);\n    println!(\"{:?}\", a);\n    println!(\"{}\", a == b && b == c);\n    println!(\"{:?}\", word_count_par(\"\", 4));\n    println!(\"{:?}\", word_count_par(\"Hello, hello! earth\", 2));\n}\n", "expected": ["{\"barks\": 1, \"brown\": 1, \"dog\": 2, \"fox\": 4, \"jumps\": 1, \"lazy\": 1, \"over\": 1, \"quick\": 1, \"runs\": 1, \"the\": 4}", "true", "{}", "{\"earth\": 1, \"hello\": 2}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 23, 'r23-par-map', 8, 'rust', 'par_map: параллельное преобразование', 'par_map<T, U, F>(v: &[T], parts: usize, f: F) → Vec<U> where T: Sync, U: Send, F: Fn(&T) → U + Sync: применить f ко всем элементам, разбив срез на parts кусков по потокам; результат в исходном порядке.', 'use std::thread;
 
 fn par_map<T, U, F>(v: &[T], parts: usize, f: F) -> Vec<U>
@@ -6102,7 +6102,7 @@ where
 {
     todo!()
 }
-', 'Замыкание f вызывается из нескольких потоков по общей ссылке: поэтому F: Sync; берите &f и копируйте ссылку в потоки.', '{"driver": "fn main() {\n    let v: Vec<u64> = (1..=20).collect();\n    println!(\"{:?}\", par_map(&v, 3, |x| x * x));\n    println!(\"{:?}\", par_map(&[\"a\", \"bb\", \"ccc\"], 2, |s| s.len()));\n    println!(\"{:?}\", par_map(&[] as &[i32], 4, |x| x + 1));\n    let words = vec![String::from(\"раз\"), String::from(\"два\"), String::from(\"три\")];\n    println!(\"{:?}\", par_map(&words, 3, |w| w.to_uppercase()));\n    let k = 10;\n    println!(\"{:?}\", par_map(&[1, 2, 3], 2, |x| x * k));\n}\n", "expected": ["[1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400]", "[1, 2, 3]", "[]", "[\"РАЗ\", \"ДВА\", \"ТРИ\"]", "[10, 20, 30]"]}');
+', 'Замыкание f вызывается из нескольких потоков по общей ссылке: поэтому F: Sync; берите &f и копируйте ссылку в потоки.', '{"driver": "fn main() {\n    let v: Vec<u64> = (1..=20).collect();\n    println!(\"{:?}\", par_map(&v, 3, |x| x * x));\n    println!(\"{:?}\", par_map(&[\"a\", \"bb\", \"ccc\"], 2, |s| s.len()));\n    println!(\"{:?}\", par_map(&[] as &[i32], 4, |x| x + 1));\n    let words = vec![String::from(\"one\"), String::from(\"two\"), String::from(\"three\")];\n    println!(\"{:?}\", par_map(&words, 3, |w| w.to_uppercase()));\n    let k = 10;\n    println!(\"{:?}\", par_map(&[1, 2, 3], 2, |x| x * k));\n}\n", "expected": ["[1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400]", "[1, 2, 3]", "[]", "[\"ONE\", \"TWO\", \"THREE\"]", "[10, 20, 30]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 23, 'r23-pipeline-channels', 9, 'rust', 'Конвейер из потоков и каналов', 'pipeline(n: u64) → Vec<u64>: три стадии в трёх потоках, соединённые каналами mpsc: (1) генератор шлёт числа 1..=n; (2) возводит в квадрат; (3) фильтр оставляет квадраты, делящиеся на 3. Главный поток собирает результат (порядок сохраняется).', 'use std::sync::mpsc;
 use std::thread;
 
@@ -6287,7 +6287,7 @@ fn run_in_thread<R, F>(f: F) -> R {
 fn run_all<R, F>(jobs: Vec<F>) -> Vec<R> {
     todo!()
 }
-', 'thread::spawn требует Send + ''static от замыкания и Send + ''static от результата — повторите эти границы в where.', '{"driver": "fn main() {\n    println!(\"{}\", run_in_thread(|| 6 * 7));\n    let s = String::from(\"владение\");\n    println!(\"{}\", run_in_thread(move || s.to_uppercase()));\n    println!(\"{:?}\", run_all((1..=5).map(|i| move || i * i).collect()));\n    let v = vec![1, 2, 3];\n    println!(\"{:?}\", run_all(vec![move || v.iter().sum::<i32>()]));\n    println!(\"{:?}\", run_all(Vec::<fn() -> u8>::new()));\n}\n", "expected": ["42", "ВЛАДЕНИЕ", "[1, 4, 9, 16, 25]", "[6]", "[]"]}');
+', 'thread::spawn требует Send + ''static from the closure and Send + ''static от результата — повторите эти границы в where.', '{"driver": "fn main() {\n    println!(\"{}\", run_in_thread(|| 6 * 7));\n    let s = String::from(\"ownership\");\n    println!(\"{}\", run_in_thread(move || s.to_uppercase()));\n    println!(\"{:?}\", run_all((1..=5).map(|i| move || i * i).collect()));\n    let v = vec![1, 2, 3];\n    println!(\"{:?}\", run_all(vec![move || v.iter().sum::<i32>()]));\n    println!(\"{:?}\", run_all(Vec::<fn() -> u8>::new()));\n}\n", "expected": ["42", "OWNERSHIP", "[1, 4, 9, 16, 25]", "[6]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 23, 'r23-named-threads', 28, 'rust', 'Именованные потоки и thread_local', 'named_work(n: usize) → Vec<(String, u32)>: запустите n потоков через thread::Builder с именами «worker-0», «worker-1», …; в каждом thread_local-счётчик (Cell<u32>) увеличивается (i+1) раз; поток возвращает (своё имя через thread::current().name(), значение локального счётчика). Результаты — по порядку запуска.', 'use std::cell::Cell;
 use std::thread;
 
@@ -6318,14 +6318,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'x.filter(|v| *v > 0)', '{"driver": "fn main() {\n    println!(\"{:?} {:?} {:?} {:?}\", positive(Some(5)), positive(Some(-1)), positive(Some(0)), positive(None));\n}\n", "expected": ["Some(5) None None None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-opt-or', 3, 'rust', 'unwrap_or_else', 'Напишите name_or_default(n: Option<&str>) -> String: имя, либо «аноним#» + длина слова «аноним» (так вычисляется лениво) — без match и if.', 'fn name_or_default(n: Option<&str>) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-opt-or', 3, 'rust', 'unwrap_or_else', 'Напишите name_or_default(n: Option<&str>) -> String: имя, либо «nobody#» + длина слова «nobody» (так вычисляется лениво) — без match и if.', 'fn name_or_default(n: Option<&str>) -> String {
     todo!()
 }
-', 'map + unwrap_or_else(|| …)', '{"driver": "fn main() {\n    println!(\"{}\", name_or_default(Some(\"Аня\")));\n    println!(\"{}\", name_or_default(None));\n}\n", "expected": ["Аня", "аноним#6"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-opt-ok-or', 4, 'rust', 'ok_or', 'Напишите first_or_err(v: &[i32]) -> Result<i32, String>: первый элемент или Err("пусто") (first, copied, ok_or).', 'fn first_or_err(v: &[i32]) -> Result<i32, String> {
+', 'map + unwrap_or_else(|| …)', '{"driver": "fn main() {\n    println!(\"{}\", name_or_default(Some(\"Anya\")));\n    println!(\"{}\", name_or_default(None));\n}\n", "expected": ["Anya", "nobody#6"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-opt-ok-or', 4, 'rust', 'ok_or', 'Напишите first_or_err(v: &[i32]) -> Result<i32, String>: первый элемент или Err("empty") (first, copied, ok_or).', 'fn first_or_err(v: &[i32]) -> Result<i32, String> {
     todo!()
 }
-', 'v.first().copied().ok_or(…)', '{"driver": "fn main() {\n    println!(\"{:?} {:?}\", first_or_err(&[7, 8]), first_or_err(&[]));\n}\n", "expected": ["Ok(7) Err(\"пусто\")"]}');
+', 'v.first().copied().ok_or(…)', '{"driver": "fn main() {\n    println!(\"{:?} {:?}\", first_or_err(&[7, 8]), first_or_err(&[]));\n}\n", "expected": ["Ok(7) Err(\"empty\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-opt-zip', 5, 'rust', 'Option::zip', 'Напишите both(a: Option<i32>, b: Option<i32>) -> Option<(i32, i32)>: пара, если оба Some, иначе None (метод zip).', 'fn both(a: Option<i32>, b: Option<i32>) -> Option<(i32, i32)> {
     todo!()
 }
@@ -6334,14 +6334,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'take() оставляет None.', '{"driver": "fn main() {\n    let mut s = Some(String::from(\"a\"));\n    println!(\"{:?}\", pop_front(&mut s));\n    println!(\"{:?}\", s);\n    println!(\"{:?}\", pop_front(&mut s));\n}\n", "expected": ["Some(\"a\")", "None", "None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-res-map-err', 7, 'rust', 'map_err', 'Напишите parse_pos(s: &str) -> Result<u32, String>: разобрать неотрицательное число, при ошибке — Err с текстом «плохое число: <s>» (map_err).', 'fn parse_pos(s: &str) -> Result<u32, String> {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-res-map-err', 7, 'rust', 'map_err', 'Напишите parse_pos(s: &str) -> Result<u32, String>: разобрать неотрицательное число, при ошибке — Err с текстом «bad number: <s>» (map_err).', 'fn parse_pos(s: &str) -> Result<u32, String> {
     todo!()
 }
-', 'map_err превращает тип ошибки.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_pos(\"42\"));\n    println!(\"{:?}\", parse_pos(\"-3\"));\n    println!(\"{:?}\", parse_pos(\"x\"));\n}\n", "expected": ["Ok(42)", "Err(\"плохое число: -3\")", "Err(\"плохое число: x\")"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-res-and-then', 8, 'rust', 'Result::and_then', 'Напишите parse_and_sqrt(s: &str) -> Result<f64, String>: разобрать f64 (ошибка «не число») и взять корень (ошибка «отрицательное» при < 0). Цепочка and_then.', 'fn parse_and_sqrt(s: &str) -> Result<f64, String> {
+', 'map_err превращает тип ошибки.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_pos(\"42\"));\n    println!(\"{:?}\", parse_pos(\"-3\"));\n    println!(\"{:?}\", parse_pos(\"x\"));\n}\n", "expected": ["Ok(42)", "Err(\"bad number: -3\")", "Err(\"bad number: x\")"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-res-and-then', 8, 'rust', 'Result::and_then', 'Напишите parse_and_sqrt(s: &str) -> Result<f64, String>: разобрать f64 (ошибка «not a number») и взять корень (ошибка «negative» при < 0). Цепочка and_then.', 'fn parse_and_sqrt(s: &str) -> Result<f64, String> {
     todo!()
 }
-', 'map_err, затем and_then.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_and_sqrt(\"16\"));\n    println!(\"{:?}\", parse_and_sqrt(\"-4\"));\n    println!(\"{:?}\", parse_and_sqrt(\"abc\"));\n}\n", "expected": ["Ok(4.0)", "Err(\"отрицательное\")", "Err(\"не число\")"]}');
+', 'map_err, затем and_then.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_and_sqrt(\"16\"));\n    println!(\"{:?}\", parse_and_sqrt(\"-4\"));\n    println!(\"{:?}\", parse_and_sqrt(\"abc\"));\n}\n", "expected": ["Ok(4.0)", "Err(\"negative\")", "Err(\"not a number\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-res-ok', 9, 'rust', 'Result → Option', 'Напишите numbers(items: &[&str]) -> Vec<i32>: разберите все строки в i32 и оставьте только удавшиеся (filter_map с ok()).', 'fn numbers(items: &[&str]) -> Vec<i32> {
     todo!()
 }
@@ -6365,7 +6365,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-mem-replace', 14, 'rust', 'mem::replace', 'Напишите set_name(name: &mut String, new: &str) -> String: заменить значение и вернуть старое (mem::replace).', 'fn set_name(name: &mut String, new: &str) -> String {
     todo!()
 }
-', 'std::mem::replace(name, new.to_string())', '{"driver": "fn main() {\n    let mut n = String::from(\"Аня\");\n    let old = set_name(&mut n, \"Боря\");\n    println!(\"{} {}\", old, n);\n}\n", "expected": ["Аня Боря"]}');
+', 'std::mem::replace(name, new.to_string())', '{"driver": "fn main() {\n    let mut n = String::from(\"Anya\");\n    let old = set_name(&mut n, \"Borya\");\n    println!(\"{} {}\", old, n);\n}\n", "expected": ["Anya Borya"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-mem-take', 15, 'rust', 'mem::take', 'Напишите drain_all(v: &mut Vec<String>) -> Vec<String>: вернуть все элементы и оставить вектор пустым (mem::take).', 'fn drain_all(v: &mut Vec<String>) -> Vec<String> {
     todo!()
 }
@@ -6373,7 +6373,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-cmp-then', 16, 'rust', 'Сравнение по нескольким полям', 'Напишите sort_people(v: &mut Vec<(String, u32)>): отсортировать пары (имя, возраст) по возрасту по убыванию, при равных — по имени по возрастанию (cmp и then).', 'fn sort_people(v: &mut Vec<(String, u32)>) {
     todo!()
 }
-', 'b.1.cmp(&a.1).then(a.0.cmp(&b.0))', '{"driver": "fn main() {\n    let mut v = vec![(String::from(\"Боря\"), 30), (String::from(\"Аня\"), 30), (String::from(\"Вера\"), 25)];\n    sort_people(&mut v);\n    println!(\"{:?}\", v);\n}\n", "expected": ["[(\"Аня\", 30), (\"Боря\", 30), (\"Вера\", 25)]"]}');
+', 'b.1.cmp(&a.1).then(a.0.cmp(&b.0))', '{"driver": "fn main() {\n    let mut v = vec![(String::from(\"Borya\"), 30), (String::from(\"Anya\"), 30), (String::from(\"Vera\"), 25)];\n    sort_people(&mut v);\n    println!(\"{:?}\", v);\n}\n", "expected": ["[(\"Anya\", 30), (\"Borya\", 30), (\"Vera\", 25)]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-cmp-reverse', 17, 'rust', 'Reverse', 'Напишите top_three(v: &[i32]) -> Vec<i32>: три наибольших по убыванию (sort_by_key с Reverse; если элементов меньше трёх — все).', 'fn top_three(v: &[i32]) -> Vec<i32> {
     todo!()
 }
@@ -6414,11 +6414,11 @@ impl FromStr for Point {
         todo!()
     }
 }
-', 'split_once('','') и parse; ? для ошибок.', '{"driver": "fn main() {\n    println!(\"{:?}\", \"3,-4\".parse::<Point>());\n    println!(\"{:?}\", \" 1 , 2 \".parse::<Point>());\n    println!(\"{:?}\", \"1;2\".parse::<Point>());\n    println!(\"{:?}\", \"a,2\".parse::<Point>());\n}\n", "expected": ["Ok(Point { x: 3, y: -4 })", "Ok(Point { x: 1, y: 2 })", "Err(\"нет запятой\")", "Err(\"плохой x\")"]}');
+', 'split_once('','') и parse; ? для ошибок.', '{"driver": "fn main() {\n    println!(\"{:?}\", \"3,-4\".parse::<Point>());\n    println!(\"{:?}\", \" 1 , 2 \".parse::<Point>());\n    println!(\"{:?}\", \"1;2\".parse::<Point>());\n    println!(\"{:?}\", \"a,2\".parse::<Point>());\n}\n", "expected": ["Ok(Point { x: 3, y: -4 })", "Ok(Point { x: 1, y: 2 })", "Err(\"no comma\")", "Err(\"bad x\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-conv-asref', 22, 'rust', 'AsRef<str>', 'Напишите shout(s: impl AsRef<str>) -> String: строка в верхнем регистре с «!» на конце. Функция должна принимать и &str, и String.', 'fn shout(s: impl AsRef<str>) -> String {
     todo!()
 }
-', 's.as_ref() — получить &str из любой формы.', '{"driver": "fn main() {\n    println!(\"{}\", shout(\"привет\"));\n    println!(\"{}\", shout(String::from(\"rust\")));\n}\n", "expected": ["ПРИВЕТ!", "RUST!"]}');
+', 's.as_ref() — получить &str из любой формы.', '{"driver": "fn main() {\n    println!(\"{}\", shout(\"hello\"));\n    println!(\"{}\", shout(String::from(\"rust\")));\n}\n", "expected": ["HELLO!", "RUST!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 24, 'r24-conv-tryfrom', 23, 'rust', 'TryFrom', 'Напишите to_byte(n: i32) -> Option<u8>: n как u8, если помещается (0..=255), иначе None. Используйте u8::try_from(n).ok().', 'fn to_byte(n: i32) -> Option<u8> {
     todo!()
 }
@@ -6480,7 +6480,7 @@ use std::cmp::Reverse;
 fn last_standing(names: &[&str], k: usize) -> String {
     todo!()
 }
-', 'q.rotate_left(k - 1), затем pop_front.', '{"driver": "fn main() {\n    println!(\"{}\", last_standing(&[\"А\", \"Б\", \"В\", \"Г\", \"Д\"], 2));\n    println!(\"{}\", last_standing(&[\"Один\"], 7));\n    println!(\"{}\", last_standing(&[\"А\", \"Б\", \"В\"], 3));\n}\n", "expected": ["В", "Один", "Б"]}');
+', 'q.rotate_left(k - 1), затем pop_front.', '{"driver": "fn main() {\n    println!(\"{}\", last_standing(&[\"A\", \"B\", \"C\", \"D\", \"E\"], 2));\n    println!(\"{}\", last_standing(&[\"One\"], 7));\n    println!(\"{}\", last_standing(&[\"A\", \"B\", \"C\"], 3));\n}\n", "expected": ["C", "One", "B"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 25, 'r25-round-robin', 7, 'rust', 'Круговой планировщик', 'Напишите round_robin(tasks: &[(&str, u32)], quantum: u32) -> Vec<String>: каждой задаче по очереди выделяют quantum единиц; порядок завершения (имена) вернуть списком. VecDeque.', 'use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque};
 use std::cmp::Reverse;
 
@@ -6564,7 +6564,7 @@ use std::cmp::Reverse;
 fn is_pal(s: &str) -> bool {
     todo!()
 }
-', 'pop_front и pop_back сравниваем парами.', '{"driver": "fn main() {\n    println!(\"{}\", is_pal(\"А роза упала на лапу Азора\"));\n    println!(\"{}\", is_pal(\"Rust\"));\n    println!(\"{}\", is_pal(\"\"));\n    println!(\"{}\", is_pal(\"A man, a plan, a canal: Panama\"));\n}\n", "expected": ["true", "false", "true", "true"]}');
+', 'pop_front и pop_back сравниваем парами.', '{"driver": "fn main() {\n    println!(\"{}\", is_pal(\"Was it a car or a cat I saw\"));\n    println!(\"{}\", is_pal(\"Rust\"));\n    println!(\"{}\", is_pal(\"\"));\n    println!(\"{}\", is_pal(\"A man, a plan, a canal: Panama\"));\n}\n", "expected": ["true", "false", "true", "true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 25, 'r25-lru', 19, 'rust', 'Мини-LRU', 'Структура Lru { cap: usize, order: VecDeque<String>, map: HashMap<String, i32> }. Реализуйте new(cap), get(&mut self, k: &str) -> Option<i32> (обращение делает ключ самым свежим) и put(&mut self, k: &str, v: i32) (обновление ключа тоже делает его свежим; при переполнении удаляется самый старый).', 'use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque};
 use std::cmp::Reverse;
 
@@ -6602,7 +6602,7 @@ use std::cmp::Reverse;
 fn group_by_first(words: &[&str]) -> BTreeMap<char, Vec<String>> {
     todo!()
 }
-', 'entry(буква).or_default().push(…); потом sort.', '{"driver": "fn main() {\n    println!(\"{:?}\", group_by_first(&[\"яблоко\", \"Арбуз\", \"ананас\", \"\", \"Ёж\", \"ежевика\"]));\n}\n", "expected": ["{''а'': [\"Арбуз\", \"ананас\"], ''е'': [\"ежевика\"], ''я'': [\"яблоко\"], ''ё'': [\"Ёж\"]}"]}');
+', 'entry(буква).or_default().push(…); потом sort.', '{"driver": "fn main() {\n    println!(\"{:?}\", group_by_first(&[\"zucchini\", \"Avocado\", \"apricot\", \"\", \"Éclair\", \"elderberry\"]));\n}\n", "expected": ["{''a'': [\"Avocado\", \"apricot\"], ''e'': [\"elderberry\"], ''z'': [\"zucchini\"], ''é'': [\"Éclair\"]}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 25, 'r25-histogram-top', 22, 'rust', 'Самые частые', 'Напишите most_common(v: &[i32]) -> Option<i32>: самое частое значение; при равенстве — наименьшее. Для пустого — None. HashMap и один проход по карте.', 'use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque};
 use std::cmp::Reverse;
 
@@ -6621,7 +6621,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 25, 'r25-binary-search-by', 25, 'rust', 'binary_search_by', 'Напишите find_user(users: &[(u32, &str)], id: u32) -> Option<&str>: users отсортирован по id; найти имя бинарным поиском (binary_search_by_key).', 'fn find_user<''a>(users: &[(u32, &''a str)], id: u32) -> Option<&''a str> {
     todo!()
 }
-', 'binary_search_by_key(&id, |&(i, _)| i)', '{"driver": "fn main() {\n    let u = [(1, \"аня\"), (4, \"боря\"), (9, \"вера\")];\n    println!(\"{:?} {:?} {:?}\", find_user(&u, 4), find_user(&u, 5), find_user(&[], 1));\n}\n", "expected": ["Some(\"боря\") None None"]}');
+', 'binary_search_by_key(&id, |&(i, _)| i)', '{"driver": "fn main() {\n    let u = [(1, \"anya\"), (4, \"borya\"), (9, \"vera\")];\n    println!(\"{:?} {:?} {:?}\", find_user(&u, 4), find_user(&u, 5), find_user(&[], 1));\n}\n", "expected": ["Some(\"borya\") None None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 25, 'r25-vec-of-vec-sort', 26, 'rust', 'Сортировка строк матрицы', 'Напишите sort_rows(m: &mut Vec<Vec<i32>>): отсортировать каждую строку по возрастанию, а затем строки между собой лексикографически.', 'fn sort_rows(m: &mut Vec<Vec<i32>>) {
     todo!()
 }
@@ -6647,7 +6647,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-char-class', 0, 'rust', 'Классы символов', 'Напишите classify(s: &str) -> (usize, usize, usize, usize): число букв, цифр, пробельных и прочих символов (по правилам Unicode: is_alphabetic, is_numeric, is_whitespace).', 'fn classify(s: &str) -> (usize, usize, usize, usize) {
     todo!()
 }
-', 'Четыре счётчика и цепочка if / else if.', '{"driver": "fn main() {\n    println!(\"{:?}\", classify(\"Привет, мир 2026!\"));\n    println!(\"{:?}\", classify(\"\"));\n    println!(\"{:?}\", classify(\"a1 ٣\"));\n}\n", "expected": ["(9, 4, 2, 2)", "(0, 0, 0, 0)", "(1, 2, 1, 0)"]}');
+', 'Четыре счётчика и цепочка if / else if.', '{"driver": "fn main() {\n    println!(\"{:?}\", classify(\"Hello, test 2026!\"));\n    println!(\"{:?}\", classify(\"\"));\n    println!(\"{:?}\", classify(\"a1 ٣\"));\n}\n", "expected": ["(9, 4, 2, 2)", "(0, 0, 0, 0)", "(1, 2, 1, 0)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-hex-digits', 1, 'rust', 'Цифры в разных системах', 'Напишите hex_sum(s: &str) -> u32: сумма значений шестнадцатеричных цифр строки (to_digit(16)); не-hex-символы пропускаются.', 'fn hex_sum(s: &str) -> u32 {
     todo!()
 }
@@ -6664,22 +6664,22 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'splitn(2, '' '') не делит остаток.', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_cmd(\"echo hello  world\"));\n    println!(\"{:?}\", parse_cmd(\"quit\"));\n    println!(\"{:?}\", parse_cmd(\"\"));\n}\n", "expected": ["(\"echo\", \"hello  world\")", "(\"quit\", \"\")", "(\"\", \"\")"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-strip-prefix', 5, 'rust', 'strip_prefix', 'Напишите command(line: &str) -> String: «ECHO <текст>» → текст; «UP <текст>» → текст в верхнем регистре; иначе «неизвестная команда». Используйте strip_prefix.', 'fn command(line: &str) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-strip-prefix', 5, 'rust', 'strip_prefix', 'Напишите command(line: &str) -> String: «ECHO <text>» → текст; «UP <text>» → текст в верхнем регистре; иначе «unknown command». Используйте strip_prefix.', 'fn command(line: &str) -> String {
     todo!()
 }
-', 'strip_prefix возвращает Option<&str>.', '{"driver": "fn main() {\n    println!(\"{}\", command(\"ECHO привет\"));\n    println!(\"{}\", command(\"UP привет\"));\n    println!(\"{}\", command(\"DOWN x\"));\n    println!(\"[{}]\", command(\"ECHO \"));\n}\n", "expected": ["привет", "ПРИВЕТ", "неизвестная команда", "[]"]}');
+', 'strip_prefix возвращает Option<&str>.', '{"driver": "fn main() {\n    println!(\"{}\", command(\"ECHO hello\"));\n    println!(\"{}\", command(\"UP hello\"));\n    println!(\"{}\", command(\"DOWN x\"));\n    println!(\"[{}]\", command(\"ECHO \"));\n}\n", "expected": ["hello", "HELLO", "unknown command", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-split-inclusive', 6, 'rust', 'Предложения', 'Напишите sentences(s: &str) -> Vec<String>: разбейте текст на предложения, оставляя знак конца (. ! ?) в конце каждого, и уберите пробелы по краям. split_inclusive с замыканием.', 'fn sentences(s: &str) -> Vec<String> {
     todo!()
 }
-', 'split_inclusive оставляет разделитель в куске.', '{"driver": "fn main() {\n    println!(\"{:?}\", sentences(\"Привет. Как дела? Отлично!\"));\n    println!(\"{:?}\", sentences(\"без точки\"));\n    println!(\"{:?}\", sentences(\"\"));\n}\n", "expected": ["[\"Привет.\", \"Как дела?\", \"Отлично!\"]", "[\"без точки\"]", "[]"]}');
+', 'split_inclusive оставляет разделитель в куске.', '{"driver": "fn main() {\n    println!(\"{:?}\", sentences(\"Hello. How are you? Excellent!\"));\n    println!(\"{:?}\", sentences(\"no dot\"));\n    println!(\"{:?}\", sentences(\"\"));\n}\n", "expected": ["[\"Hello.\", \"How are you?\", \"Excellent!\"]", "[\"no dot\"]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-trim-matches', 7, 'rust', 'Убрать обрамление', 'Напишите unquote(s: &str) -> String: убрать с обоих концов любые кавычки «"» и «''» и пробелы (trim_matches с замыканием).', 'fn unquote(s: &str) -> String {
     todo!()
 }
-', 'trim_matches(|c| …) режет с обоих концов.', '{"driver": "fn main() {\n    println!(\"[{}]\", unquote(\"  \\\"привет\\\"  \"));\n    println!(\"[{}]\", unquote(\"''a b''\"));\n    println!(\"[{}]\", unquote(\"\\\"\\\"\"));\n}\n", "expected": ["[привет]", "[a b]", "[]"]}');
+', 'trim_matches(|c| …) режет с обоих концов.', '{"driver": "fn main() {\n    println!(\"[{}]\", unquote(\"  \\\"hello\\\"  \"));\n    println!(\"[{}]\", unquote(\"''a b''\"));\n    println!(\"[{}]\", unquote(\"\\\"\\\"\"));\n}\n", "expected": ["[hello]", "[a b]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-match-indices', 8, 'rust', 'Позиции вхождений', 'Напишите positions(text: &str, pat: &str) -> Vec<usize>: байтовые позиции всех (непересекающихся) вхождений pat (match_indices); pat не пуст.', 'fn positions(text: &str, pat: &str) -> Vec<usize> {
     todo!()
 }
-', 'match_indices возвращает (позиция, совпадение).', '{"driver": "fn main() {\n    println!(\"{:?}\", positions(\"abcabcab\", \"ab\"));\n    println!(\"{:?}\", positions(\"привет привет\", \"ив\"));\n    println!(\"{:?}\", positions(\"aaaa\", \"aa\"));\n}\n", "expected": ["[0, 3, 6]", "[4, 17]", "[0, 2]"]}');
+', 'match_indices возвращает (позиция, совпадение).', '{"driver": "fn main() {\n    println!(\"{:?}\", positions(\"abcabcab\", \"ab\"));\n    println!(\"{:?}\", positions(\"ééllééé ééllééé\", \"ll\"));\n    println!(\"{:?}\", positions(\"aaaa\", \"aa\"));\n}\n", "expected": ["[0, 3, 6]", "[4, 17]", "[0, 2]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-rfind-ext', 9, 'rust', 'Расширение файла', 'Напишите extension(name: &str) -> Option<&str>: расширение после последней точки; None, если точки нет, точка в начале (скрытый файл «.bashrc») или в конце.', 'fn extension(name: &str) -> Option<&str> {
     todo!()
 }
@@ -6687,19 +6687,19 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-string-edit', 10, 'rust', 'Правки на месте', 'Напишите censor(s: &mut String, bad: &str): заменить первое вхождение bad звёздочками той же длины в символах (replace_range) — если bad нет, ничего не менять.', 'fn censor(s: &mut String, bad: &str) {
     todo!()
 }
-', 'find даёт байтовый индекс; диапазон — i..i + bad.len().', '{"driver": "fn main() {\n    let mut s = String::from(\"это плохое слово\");\n    censor(&mut s, \"плохое\");\n    println!(\"{}\", s);\n    censor(&mut s, \"нет\");\n    println!(\"{}\", s);\n}\n", "expected": ["это ****** слово", "это ****** слово"]}');
+', 'find даёт байтовый индекс; диапазон — i..i + bad.len().', '{"driver": "fn main() {\n    let mut s = String::from(\"this horrid word\");\n    censor(&mut s, \"horrid\");\n    println!(\"{}\", s);\n    censor(&mut s, \"nope\");\n    println!(\"{}\", s);\n}\n", "expected": ["this ****** word", "this ****** word"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-retain-clean', 11, 'rust', 'Оставить только буквы', 'Напишите letters_only(s: &mut String): оставьте в строке только буквы (retain + is_alphabetic).', 'fn letters_only(s: &mut String) {
     todo!()
 }
-', 's.retain(|c| c.is_alphabetic())', '{"driver": "fn main() {\n    let mut s = String::from(\"a1б2 в!3\");\n    letters_only(&mut s);\n    println!(\"{}\", s);\n}\n", "expected": ["aбв"]}');
+', 's.retain(|c| c.is_alphabetic())', '{"driver": "fn main() {\n    let mut s = String::from(\"a1b2 c!3\");\n    letters_only(&mut s);\n    println!(\"{}\", s);\n}\n", "expected": ["abc"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-truncate-char', 12, 'rust', 'Обрезать по символам', 'Напишите truncate_chars(s: &str, n: usize) -> String: первые n символов; если строка длиннее, в конце «…». (не байтов; не резать посреди символа).', 'fn truncate_chars(s: &str, n: usize) -> String {
     todo!()
 }
-', 'chars().take(n).collect::<String>()', '{"driver": "fn main() {\n    println!(\"{}\", truncate_chars(\"привет, мир\", 6));\n    println!(\"{}\", truncate_chars(\"мир\", 6));\n    println!(\"{}\", truncate_chars(\"😀😀😀😀\", 2));\n    println!(\"[{}]\", truncate_chars(\"\", 3));\n}\n", "expected": ["привет…", "мир", "😀😀…", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-fmt-table', 13, 'rust', 'Таблица', 'Напишите table(rows: &[(&str, f64)]) -> Vec<String>: строки «<имя, ширина по самому длинному> | <число вправо в поле 8 с двумя знаками>»; имя — по левому краю.', 'fn table(rows: &[(&str, f64)]) -> Vec<String> {
+', 'chars().take(n).collect::<String>()', '{"driver": "fn main() {\n    println!(\"{}\", truncate_chars(\"yellow, sun\", 6));\n    println!(\"{}\", truncate_chars(\"sun\", 6));\n    println!(\"{}\", truncate_chars(\"😀😀😀😀\", 2));\n    println!(\"[{}]\", truncate_chars(\"\", 3));\n}\n", "expected": ["yellow…", "sun", "😀😀…", "[]"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-fmt-table', 13, 'rust', 'Таблица', 'Напишите table(rows: &[(&str, f64)]) -> Vec<String>: строки «<name, width of the longest> | <number right-aligned in a field of 8 with two decimals>»; имя — по левому краю.', 'fn table(rows: &[(&str, f64)]) -> Vec<String> {
     todo!()
 }
-', '{:<w$} и {:>8.2}', '{"driver": "fn main() {\n    for l in table(&[(\"яблоко\", 3.5), (\"груша\", 12.349), (\"слива\", 100.0)]) {\n        println!(\"{}\", l);\n    }\n}\n", "expected": ["яблоко |     3.50", "груша  |    12.35", "слива  |   100.00"]}');
+', '{:<w$} и {:>8.2}', '{"driver": "fn main() {\n    for l in table(&[(\"banana\", 3.5), (\"mango\", 12.349), (\"lemon\", 100.0)]) {\n        println!(\"{}\", l);\n    }\n}\n", "expected": ["banana |     3.50", "mango  |    12.35", "lemon  |   100.00"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-fmt-radix', 14, 'rust', 'Системы счисления форматом', 'Напишите formats(n: u32) -> Vec<String>: n в десятичной, шестнадцатеричной (с префиксом 0x, 4 цифры с нулями), двоичной (8 цифр с нулями) и восьмеричной системах: для 255 → ["255", "0x00ff", "11111111", "377"].', 'fn formats(n: u32) -> Vec<String> {
     todo!()
 }
@@ -6711,7 +6711,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-fmt-dynamic', 16, 'rust', 'Ширина из аргумента', 'Напишите pad_left(s: &str, width: usize, fill: char) -> String: выровняйте s вправо до ширины width в символах, добавляя слева символ fill (формат не принимает заполнитель из переменной — добавьте его вручную). Если s не короче width — вернуть как есть.', 'fn pad_left(s: &str, width: usize, fill: char) -> String {
     todo!()
 }
-', 'Количество заполнителей — width - n.', '{"driver": "fn main() {\n    println!(\"{}\", pad_left(\"42\", 5, ''0''));\n    println!(\"{}\", pad_left(\"привет\", 3, ''-''));\n    println!(\"{}\", pad_left(\"\", 3, ''*''));\n}\n", "expected": ["00042", "привет", "***"]}');
+', 'Количество заполнителей — width - n.', '{"driver": "fn main() {\n    println!(\"{}\", pad_left(\"42\", 5, ''0''));\n    println!(\"{}\", pad_left(\"hello\", 3, ''-''));\n    println!(\"{}\", pad_left(\"\", 3, ''*''));\n}\n", "expected": ["00042", "hello", "***"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-display-money', 17, 'rust', 'Display для денег', 'Структура Money(i64) хранит копейки. Реализуйте Display: «123.05 ₽» для 12305, «-0.99 ₽» для −99, «0.00 ₽» для 0.', 'use std::fmt;
 
 struct Money(i64);
@@ -6722,7 +6722,7 @@ impl fmt::Display for Money {
     }
 }
 ', 'Знак отдельно, рубли a / 100, копейки {:02}.', '{"driver": "fn main() {\n    println!(\"{}\", Money(12305));\n    println!(\"{}\", Money(-99));\n    println!(\"{}\", Money(0));\n    println!(\"{}\", Money(5));\n}\n", "expected": ["123.05 ₽", "-0.99 ₽", "0.00 ₽", "0.05 ₽"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-display-pad', 18, 'rust', 'Display, уважающий ширину', 'Структура Name(String) реализует Display через f.pad(&self.0), чтобы работали ширина и выравнивание: «[{:>8}]» для Name("Аня") даёт «[     Аня]».', 'use std::fmt;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-display-pad', 18, 'rust', 'Display, уважающий ширину', 'Структура Name(String) реализует Display через f.pad(&self.0), чтобы работали ширина и выравнивание: «[{:>8}]» для Name("Ann") даёт «[     Ann]».', 'use std::fmt;
 
 struct Name(String);
 
@@ -6731,8 +6731,8 @@ impl fmt::Display for Name {
         todo!()
     }
 }
-', 'f.pad учитывает ширину, выравнивание и точность (обрезку).', '{"driver": "fn main() {\n    let n = Name(String::from(\"Аня\"));\n    println!(\"[{:>8}]\", n);\n    println!(\"[{:<8}]\", n);\n    println!(\"[{:^8}]\", n);\n    println!(\"[{:.2}]\", n);\n}\n", "expected": ["[     Аня]", "[Аня     ]", "[  Аня   ]", "[Ан]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-debug-manual', 19, 'rust', 'Debug вручную', 'Структура User { name: String, age: u32, secret: String } — реализуйте Debug вручную через debug_struct так, чтобы поле secret не печаталось (вывод «User { name: "Аня", age: 30 }»).', 'use std::fmt;
+', 'f.pad учитывает ширину, выравнивание и точность (обрезку).', '{"driver": "fn main() {\n    let n = Name(String::from(\"Ann\"));\n    println!(\"[{:>8}]\", n);\n    println!(\"[{:<8}]\", n);\n    println!(\"[{:^8}]\", n);\n    println!(\"[{:.2}]\", n);\n}\n", "expected": ["[     Ann]", "[Ann     ]", "[  Ann   ]", "[An]"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-debug-manual', 19, 'rust', 'Debug вручную', 'Структура User { name: String, age: u32, secret: String } — реализуйте Debug вручную через debug_struct так, чтобы поле secret не печаталось (вывод «User { name: "Anya", age: 30 }»).', 'use std::fmt;
 
 struct User {
     name: String,
@@ -6745,7 +6745,7 @@ impl fmt::Debug for User {
         todo!()
     }
 }
-', 'debug_struct("User").field(…).finish()', '{"driver": "fn main() {\n    let u = User { name: String::from(\"Аня\"), age: 30, secret: String::from(\"пароль\") };\n    println!(\"{:?}\", u);\n    println!(\"{:#?}\", u);\n    let _ = &u.secret;\n}\n", "expected": ["User { name: \"Аня\", age: 30 }", "User {", "    name: \"Аня\",", "    age: 30,", "}"]}');
+', 'debug_struct("User").field(…).finish()', '{"driver": "fn main() {\n    let u = User { name: String::from(\"Anya\"), age: 30, secret: String::from(\"password\") };\n    println!(\"{:?}\", u);\n    println!(\"{:#?}\", u);\n    let _ = &u.secret;\n}\n", "expected": ["User { name: \"Anya\", age: 30 }", "User {", "    name: \"Anya\",", "    age: 30,", "}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-display-matrix', 20, 'rust', 'Display матрицы', 'Структура Matrix(Vec<Vec<i32>>) реализует Display: строки через перевод строки (без пустой строки в конце), числа в строке через пробел, каждое в поле шириной 3 вправо: «  1  2», «  3  4».', 'use std::fmt;
 
 struct Matrix(Vec<Vec<i32>>);
@@ -6756,54 +6756,54 @@ impl fmt::Display for Matrix {
     }
 }
 ', 'writeln!(f)? между строками, write!(f, "{:>3}", x)? для чисел.', '{"driver": "fn main() {\n    let m = Matrix(vec![vec![1, 2], vec![30, -4]]);\n    println!(\"{}\", m);\n    println!(\"[{}]\", Matrix(vec![]));\n}\n", "expected": ["  1  2", " 30 -4", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-parse-kv', 21, 'rust', 'Разбор «ключ=значение»', 'Напишите parse_kv(line: &str) -> Option<(String, i32)>: «name = 42» → ("name", 42); None, если нет «=», ключ пуст или значение не целое.', 'fn parse_kv(line: &str) -> Option<(String, i32)> {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-parse-kv', 21, 'rust', 'Разбор «key=value»', 'Напишите parse_kv(line: &str) -> Option<(String, i32)>: «name = 42» → ("name", 42); None, если нет «=», ключ пуст или значение не целое.', 'fn parse_kv(line: &str) -> Option<(String, i32)> {
     todo!()
 }
-', 'split_once, trim, parse().ok()?', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_kv(\"name = 42\"));\n    println!(\"{:?}\", parse_kv(\"x=-7\"));\n    println!(\"{:?}\", parse_kv(\"= 5\"));\n    println!(\"{:?}\", parse_kv(\"a = b\"));\n    println!(\"{:?}\", parse_kv(\"нет\"));\n}\n", "expected": ["Some((\"name\", 42))", "Some((\"x\", -7))", "None", "None", "None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-parse-csv', 22, 'rust', 'CSV-строка в числа', 'Напишите parse_row(s: &str) -> Result<Vec<f64>, String>: числа через запятую (с пробелами вокруг); при ошибке — Err(«плохое поле: <поле>»).', 'fn parse_row(s: &str) -> Result<Vec<f64>, String> {
+', 'split_once, trim, parse().ok()?', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_kv(\"name = 42\"));\n    println!(\"{:?}\", parse_kv(\"x=-7\"));\n    println!(\"{:?}\", parse_kv(\"= 5\"));\n    println!(\"{:?}\", parse_kv(\"a = b\"));\n    println!(\"{:?}\", parse_kv(\"no\"));\n}\n", "expected": ["Some((\"name\", 42))", "Some((\"x\", -7))", "None", "None", "None"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-parse-csv', 22, 'rust', 'CSV-строка в числа', 'Напишите parse_row(s: &str) -> Result<Vec<f64>, String>: числа через запятую (с пробелами вокруг); при ошибке — Err(«bad field: <field>»).', 'fn parse_row(s: &str) -> Result<Vec<f64>, String> {
     todo!()
 }
-', 'collect::<Result<Vec<_>, _>>()', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_row(\"1.5, 2, -3e2\"));\n    println!(\"{:?}\", parse_row(\"1, x, 3\"));\n    println!(\"{:?}\", parse_row(\"\"));\n}\n", "expected": ["Ok([1.5, 2.0, -300.0])", "Err(\"плохое поле: x\")", "Err(\"плохое поле: \")"]}');
+', 'collect::<Result<Vec<_>, _>>()', '{"driver": "fn main() {\n    println!(\"{:?}\", parse_row(\"1.5, 2, -3e2\"));\n    println!(\"{:?}\", parse_row(\"1, x, 3\"));\n    println!(\"{:?}\", parse_row(\"\"));\n}\n", "expected": ["Ok([1.5, 2.0, -300.0])", "Err(\"bad field: x\")", "Err(\"bad field: \")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-parse-radix', 23, 'rust', 'Число с префиксом', 'Напишите parse_num(s: &str) -> Option<i64>: десятичное, с префиксом 0x (hex), 0b (двоичное) или 0o (восьмеричное); знак «-» допустим перед префиксом. Подчёркивания игнорируются.', 'fn parse_num(s: &str) -> Option<i64> {
     todo!()
 }
 ', 'Сначала снимите знак и подчёркивания, затем проверьте префиксы.', '{"driver": "fn main() {\n    for s in [\"42\", \"0xff\", \"-0b101\", \"0o17\", \"1_000\", \"0xZZ\", \"\", \"-\"] {\n        println!(\"{:?}\", parse_num(s));\n    }\n}\n", "expected": ["Some(42)", "Some(255)", "Some(-5)", "Some(15)", "Some(1000)", "None", "None", "None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-word-freq-fmt', 24, 'rust', 'Отчёт о частотах', 'Напишите report(text: &str) -> Vec<String>: слова в нижнем регистре и их частоты; строки «слово: N», по убыванию N, при равных — по алфавиту.', 'fn report(text: &str) -> Vec<String> {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-word-freq-fmt', 24, 'rust', 'Отчёт о частотах', 'Напишите report(text: &str) -> Vec<String>: слова в нижнем регистре и их частоты; строки «word: N», по убыванию N, при равных — по алфавиту.', 'fn report(text: &str) -> Vec<String> {
     todo!()
 }
-', 'Счётчики в Vec пар, затем sort_by.', '{"driver": "fn main() {\n    for l in report(\"Да нет да НЕТ да может\") {\n        println!(\"{}\", l);\n    }\n}\n", "expected": ["да: 3", "нет: 2", "может: 1"]}');
+', 'Счётчики в Vec пар, затем sort_by.', '{"driver": "fn main() {\n    for l in report(\"Yes no yes NO yes maybe\") {\n        println!(\"{}\", l);\n    }\n}\n", "expected": ["yes: 3", "no: 2", "maybe: 1"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-wrap-text', 25, 'rust', 'Выравнивание по ширине', 'Напишите center_lines(text: &str, width: usize) -> Vec<String>: каждую строку текста (lines) выровнять по центру в поле width (форматом {:^w$}); строки длиннее width не менять.', 'fn center_lines(text: &str, width: usize) -> Vec<String> {
     todo!()
 }
-', 'format!("{:^w$}", l, w = width)', '{"driver": "fn main() {\n    for l in center_lines(\"а\\nбвг\\nдежзи\", 6) {\n        println!(\"[{}]\", l);\n    }\n    println!(\"{}\", center_lines(\"\", 5).len());\n}\n", "expected": ["[  а   ]", "[ бвг  ]", "[дежзи ]", "0"]}');
+', 'format!("{:^w$}", l, w = width)', '{"driver": "fn main() {\n    for l in center_lines(\"a\\nbcd\\nefghi\", 6) {\n        println!(\"[{}]\", l);\n    }\n    println!(\"{}\", center_lines(\"\", 5).len());\n}\n", "expected": ["[  a   ]", "[ bcd  ]", "[efghi ]", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-case-convert', 26, 'rust', 'snake_case в CamelCase', 'Напишите to_camel(s: &str) -> String: «my_var_name» → «MyVarName» (разделитель «_»; пустые куски пропускаются).', 'fn to_camel(s: &str) -> String {
     todo!()
 }
-', 'Первая буква каждого куска — в верхний регистр.', '{"driver": "fn main() {\n    println!(\"{}\", to_camel(\"my_var_name\"));\n    println!(\"{}\", to_camel(\"__a__b_\"));\n    println!(\"[{}]\", to_camel(\"\"));\n    println!(\"{}\", to_camel(\"привет_мир\"));\n}\n", "expected": ["MyVarName", "AB", "[]", "ПриветМир"]}');
+', 'Первая буква каждого куска — в верхний регистр.', '{"driver": "fn main() {\n    println!(\"{}\", to_camel(\"my_var_name\"));\n    println!(\"{}\", to_camel(\"__a__b_\"));\n    println!(\"[{}]\", to_camel(\"\"));\n    println!(\"{}\", to_camel(\"hello_world\"));\n}\n", "expected": ["MyVarName", "AB", "[]", "HelloWorld"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-camel-to-snake', 27, 'rust', 'CamelCase в snake_case', 'Напишите to_snake(s: &str) -> String: «MyVarName» → «my_var_name» (перед каждой заглавной, кроме первой буквы, ставится «_»).', 'fn to_snake(s: &str) -> String {
     todo!()
 }
-', 'out.extend(c.to_lowercase()) — to_lowercase возвращает итератор.', '{"driver": "fn main() {\n    println!(\"{}\", to_snake(\"MyVarName\"));\n    println!(\"{}\", to_snake(\"x\"));\n    println!(\"{}\", to_snake(\"ПриветМир\"));\n    println!(\"[{}]\", to_snake(\"\"));\n}\n", "expected": ["my_var_name", "x", "привет_мир", "[]"]}');
+', 'out.extend(c.to_lowercase()) — to_lowercase возвращает итератор.', '{"driver": "fn main() {\n    println!(\"{}\", to_snake(\"MyVarName\"));\n    println!(\"{}\", to_snake(\"x\"));\n    println!(\"{}\", to_snake(\"HelloWorld\"));\n    println!(\"[{}]\", to_snake(\"\"));\n}\n", "expected": ["my_var_name", "x", "hello_world", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-caesar-unicode', 28, 'rust', 'Шифр Виженера', 'Напишите vigenere(text: &str, key: &str) -> String: шифр Виженера для латинских строчных букв (a–z); ключ — строчные буквы, не пуст; ключ продвигается только на буквах текста; остальные символы без изменений.', 'fn vigenere(text: &str, key: &str) -> String {
     todo!()
 }
-', 'Позиция в ключе j увеличивается только на латинской букве.', '{"driver": "fn main() {\n    println!(\"{}\", vigenere(\"attack at dawn\", \"lemon\"));\n    println!(\"{}\", vigenere(\"abc\", \"a\"));\n    println!(\"{}\", vigenere(\"привет\", \"b\"));\n}\n", "expected": ["lxfopv ef rnhr", "abc", "привет"]}');
+', 'Позиция в ключе j увеличивается только на латинской букве.', '{"driver": "fn main() {\n    println!(\"{}\", vigenere(\"attack at dawn\", \"lemon\"));\n    println!(\"{}\", vigenere(\"abc\", \"a\"));\n    println!(\"{}\", vigenere(\"12-34\", \"b\"));\n}\n", "expected": ["lxfopv ef rnhr", "abc", "12-34"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 26, 'r26-utf8-len', 29, 'rust', 'Байты символов', 'Напишите byte_lens(s: &str) -> Vec<(char, usize)>: каждый символ и сколько байт он занимает в UTF-8 (len_utf8).', 'fn byte_lens(s: &str) -> Vec<(char, usize)> {
     todo!()
 }
-', 'c.len_utf8() — 1…4.', '{"driver": "fn main() {\n    println!(\"{:?}\", byte_lens(\"aя世😀\"));\n    println!(\"{:?}\", byte_lens(\"\"));\n}\n", "expected": ["[(''a'', 1), (''я'', 2), (''世'', 3), (''😀'', 4)]", "[]"]}');
+', 'c.len_utf8() — 1…4.', '{"driver": "fn main() {\n    println!(\"{:?}\", byte_lens(\"aé世😀\"));\n    println!(\"{:?}\", byte_lens(\"\"));\n}\n", "expected": ["[(''a'', 1), (''é'', 2), (''世'', 3), (''😀'', 4)]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-read-all', 0, 'rust', 'Прочитать всё', 'Напишите slurp<R: Read>(mut r: R) -> io::Result<String>: прочитать источник целиком в строку.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn slurp<R: Read>(mut r: R) -> io::Result<String> {
     todo!()
 }
-', '&[u8] и Cursor реализуют Read; ошибка UTF-8 приходит как io::Error.', '{"driver": "fn main() {\n    println!(\"{:?}\", slurp(\"привет\".as_bytes()).unwrap());\n    println!(\"{:?}\", slurp(Cursor::new(Vec::<u8>::new())).unwrap());\n    println!(\"{}\", slurp(Cursor::new(vec![0xff, 0xfe])).is_err());\n}\n", "expected": ["\"привет\"", "\"\"", "true"]}');
+', '&[u8] и Cursor реализуют Read; ошибка UTF-8 приходит как io::Error.', '{"driver": "fn main() {\n    println!(\"{:?}\", slurp(\"hello\".as_bytes()).unwrap());\n    println!(\"{:?}\", slurp(Cursor::new(Vec::<u8>::new())).unwrap());\n    println!(\"{}\", slurp(Cursor::new(vec![0xff, 0xfe])).is_err());\n}\n", "expected": ["\"hello\"", "\"\"", "true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-count-lines', 1, 'rust', 'Строки и слова', 'Напишите wc<R: BufRead>(r: R) -> io::Result<(usize, usize, usize)>: число строк, слов (split_whitespace) и байтов (с символами конца строки) в потоке.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn wc<R: BufRead>(mut r: R) -> io::Result<(usize, usize, usize)> {
     todo!()
 }
-', 'read_line возвращает число прочитанных байтов; 0 — конец.', '{"driver": "fn main() {\n    println!(\"{:?}\", wc(Cursor::new(\"раз два\\nтри\\n\\nчетыре пять шесть\")).unwrap());\n    println!(\"{:?}\", wc(Cursor::new(\"\")).unwrap());\n}\n", "expected": ["(4, 6, 54)", "(0, 0, 0)"]}');
+', 'read_line возвращает число прочитанных байтов; 0 — конец.', '{"driver": "fn main() {\n    println!(\"{:?}\", wc(Cursor::new(\"one two\\nthree\\n\\nfour five six\")).unwrap());\n    println!(\"{:?}\", wc(Cursor::new(\"\")).unwrap());\n}\n", "expected": ["(4, 6, 28)", "(0, 0, 0)"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-sum-input', 2, 'rust', 'Сумма чисел из ввода', 'Напишите sum_input<R: BufRead>(r: R) -> io::Result<i64>: сумма целых по одному на строке; пустые строки пропускать, некорректные — ошибка InvalidData.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn sum_input<R: BufRead>(r: R) -> io::Result<i64> {
@@ -6815,7 +6815,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn shout<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()> {
     todo!()
 }
-', 'writeln!(w, …) пишет в любой Write.', '{"driver": "fn main() {\n    let mut out: Vec<u8> = Vec::new();\n    shout(Cursor::new(\"привет\\nrust\\n\"), &mut out).unwrap();\n    print!(\"{}\", String::from_utf8(out).unwrap());\n}\n", "expected": ["ПРИВЕТ!", "RUST!"]}');
+', 'writeln!(w, …) пишет в любой Write.', '{"driver": "fn main() {\n    let mut out: Vec<u8> = Vec::new();\n    shout(Cursor::new(\"hello\\nrust\\n\"), &mut out).unwrap();\n    print!(\"{}\", String::from_utf8(out).unwrap());\n}\n", "expected": ["HELLO!", "RUST!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-tee', 4, 'rust', 'Двойная запись', 'Напишите tee<R: Read, A: Write, B: Write>(mut r: R, a: &mut A, b: &mut B) -> io::Result<usize>: читать из r блоками по 4 байта и каждый блок писать и в a, и в b; вернуть число байтов.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn tee<R: Read, A: Write, B: Write>(mut r: R, a: &mut A, b: &mut B) -> io::Result<usize> {
@@ -6833,7 +6833,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn joined(a: &str, b: &str) -> String {
     todo!()
 }
-', 'Read::chain склеивает два источника.', '{"driver": "fn main() {\n    println!(\"{}\", joined(\"раз, \", \"два\"));\n    println!(\"[{}]\", joined(\"\", \"\"));\n}\n", "expected": ["раз, два", "[]"]}');
+', 'Read::chain склеивает два источника.', '{"driver": "fn main() {\n    println!(\"{}\", joined(\"one, \", \"two\"));\n    println!(\"[{}]\", joined(\"\", \"\"));\n}\n", "expected": ["one, two", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-read-exact', 7, 'rust', 'Заголовок фиксированной длины', 'Напишите read_header<R: Read>(mut r: R) -> io::Result<(u16, u32)>: прочитать 6 байт — два байта u16 и четыре байта u32 в порядке little-endian; при коротких данных вернуть ошибку UnexpectedEof (read_exact).', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn read_header<R: Read>(mut r: R) -> io::Result<(u16, u32)> {
@@ -6876,10 +6876,10 @@ fn read_grid<R: BufRead>(r: R) -> io::Result<Vec<Vec<i32>>> {
     todo!()
 }
 ', 'Определите замыкание bad() для создания ошибки.', '{"driver": "fn main() {\n    println!(\"{:?}\", read_grid(Cursor::new(\"2 3\\n1 2 3\\n4 5 6\\n\")).unwrap());\n    println!(\"{}\", read_grid(Cursor::new(\"2 2\\n1 2\\n\")).is_err());\n    println!(\"{}\", read_grid(Cursor::new(\"1 2\\n1 x\\n\")).is_err());\n    println!(\"{}\", read_grid(Cursor::new(\"\")).is_err());\n}\n", "expected": ["[[1, 2, 3], [4, 5, 6]]", "true", "true", "true"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-path-parts', 14, 'rust', 'Части пути', 'Напишите describe(p: &str) -> String: «каталог=…, имя=…, расширение=…» (parent, file_stem, extension; отсутствующее — «-»).', 'fn describe(p: &str) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-path-parts', 14, 'rust', 'Части пути', 'Напишите describe(p: &str) -> String: строка вида «directory=…, name=…, extension=…» (parent, file_stem, extension; отсутствующее — «-»), слова directory, name и extension пишутся по-английски.', 'fn describe(p: &str) -> String {
     todo!()
 }
-', 'Path::new(p).parent(), file_stem(), extension() — все возвращают Option.', '{"driver": "fn main() {\n    println!(\"{}\", describe(\"/home/user/report.final.pdf\"));\n    println!(\"{}\", describe(\"notes.txt\"));\n    println!(\"{}\", describe(\"/etc/hosts\"));\n    println!(\"{}\", describe(\"dir/.hidden\"));\n}\n", "expected": ["каталог=/home/user, имя=report.final, расширение=pdf", "каталог=-, имя=notes, расширение=txt", "каталог=/etc, имя=hosts, расширение=-", "каталог=dir, имя=.hidden, расширение=-"]}');
+', 'Path::new(p).parent(), file_stem(), extension() — все возвращают Option.', '{"driver": "fn main() {\n    println!(\"{}\", describe(\"/home/user/report.final.pdf\"));\n    println!(\"{}\", describe(\"notes.txt\"));\n    println!(\"{}\", describe(\"/etc/hosts\"));\n    println!(\"{}\", describe(\"dir/.hidden\"));\n}\n", "expected": ["directory=/home/user, name=report.final, extension=pdf", "directory=-, name=notes, extension=txt", "directory=/etc, name=hosts, extension=-", "directory=dir, name=.hidden, extension=-"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-path-join', 15, 'rust', 'Склейка путей', 'Напишите build_path(parts: &[&str]) -> String: склейте части в путь через PathBuf::push (абсолютная часть заменяет всё предыдущее); результат — строка. Для ["/a", "b", "c.txt"] это «/a/b/c.txt».', 'fn build_path(parts: &[&str]) -> String {
     todo!()
 }
@@ -6893,7 +6893,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn roundtrip(text: &str) -> io::Result<String> {
     todo!()
 }
-', 'fs::write, fs::read_to_string, fs::remove_file.', '{"driver": "fn main() {\n    println!(\"{:?}\", roundtrip(\"привет\\nмир\").unwrap());\n    println!(\"{:?}\", roundtrip(\"\").unwrap());\n}\n", "expected": ["\"привет\\nмир\"", "\"\""]}');
+', 'fs::write, fs::read_to_string, fs::remove_file.', '{"driver": "fn main() {\n    println!(\"{:?}\", roundtrip(\"hello\\nworld\").unwrap());\n    println!(\"{:?}\", roundtrip(\"\").unwrap());\n}\n", "expected": ["\"hello\\nworld\"", "\"\""]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-file-append', 18, 'rust', 'Дозапись в файл', 'Напишите append_lines(lines: &[&str]) -> io::Result<usize>: во временный файл (std::env::temp_dir(), имя с номером процесса) дозаписать строки по одной (OpenOptions append) двумя разными открытиями; вернуть число строк в файле; файл удалить.', 'use std::io::{self, Write};
 
 fn append_lines(lines: &[&str]) -> io::Result<usize> {
@@ -6906,12 +6906,12 @@ fn make_and_list() -> io::Result<Vec<String>> {
     todo!()
 }
 ', 'read_dir возвращает итератор io::Result<DirEntry>; порядок не определён — сортируйте.', '{"driver": "fn main() {\n    println!(\"{:?}\", make_and_list().unwrap());\n}\n", "expected": ["[\"a.txt\", \"b.log\", \"c.txt\"]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-error-kind', 20, 'rust', 'Вид ошибки', 'Напишите open_kind(path: &str) -> String: попытайтесь открыть файл; верните «ok» при успехе, «нет файла» для NotFound, «нет доступа» для PermissionDenied и «ошибка» для остальных.', 'use std::io;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-error-kind', 20, 'rust', 'Вид ошибки', 'Напишите open_kind(path: &str) -> String: попытайтесь открыть файл; верните "ok" при успехе, "no file" для NotFound, "no access" для PermissionDenied и "error" для остальных.', 'use std::io;
 
 fn open_kind(path: &str) -> String {
     todo!()
 }
-', 'e.kind() возвращает ErrorKind. Каталог можно открыть для чтения, а вот читать его нельзя.', '{"driver": "fn main() {\n    println!(\"{}\", open_kind(\"/этого/файла/нет\"));\n    println!(\"{}\", open_kind(\"/\"));\n}\n", "expected": ["нет файла", "ok"]}');
+', 'e.kind() возвращает ErrorKind. Каталог можно открыть для чтения, а вот читать его нельзя.', '{"driver": "fn main() {\n    println!(\"{}\", open_kind(\"/this/file/no\"));\n    println!(\"{}\", open_kind(\"/\"));\n}\n", "expected": ["no file", "ok"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-custom-error', 21, 'rust', 'Свой тип ошибки', 'Объявите enum AppError { Io(io::Error), Parse(std::num::ParseIntError) } с derive(Debug) и реализуйте From для обоих вариантов. Тогда функция read_num(r: impl Read) -> Result<i32, AppError> читает строку и разбирает число одним ? на каждом шаге.', 'use std::io::{self, Read};
 
 fn read_num(mut r: impl Read) -> Result<i32, AppError> {
@@ -6932,12 +6932,12 @@ fn grep<R: BufRead>(r: R, pat: &str, ignore_case: bool) -> io::Result<Vec<(usize
     todo!()
 }
 ', 'Приводите и шаблон, и строку к нижнему регистру.', '{"driver": "fn main() {\n    let t = \"Rust is fast\\nrust is safe\\nGo is simple\\n\";\n    println!(\"{:?}\", grep(Cursor::new(t), \"Rust\", false).unwrap());\n    println!(\"{:?}\", grep(Cursor::new(t), \"rust\", true).unwrap());\n    println!(\"{:?}\", grep(Cursor::new(t), \"java\", true).unwrap());\n}\n", "expected": ["[(1, \"Rust is fast\")]", "[(1, \"Rust is fast\"), (2, \"rust is safe\")]", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-csv-sum', 24, 'rust', 'Колонка CSV', 'Напишите column_sum<R: BufRead>(r: R, col: usize) -> io::Result<f64>: сумма чисел в столбце col (с 0) строк вида «a,1.5,b»; первая строка — заголовок и пропускается; пустые поля считаются нулём; нечисловое — ошибка InvalidData.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-csv-sum', 24, 'rust', 'Колонка CSV', 'Напишите column_sum<R: BufRead>(r: R, col: usize) -> io::Result<f64>: сумма чисел в столбце col (с 0) строк вида "a,1.5,b"; первая строка — заголовок и пропускается; пустые поля считаются нулём; нечисловое — ошибка InvalidData.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn column_sum<R: BufRead>(r: R, col: usize) -> io::Result<f64> {
     todo!()
 }
-', 'split('','').nth(col) — нужное поле.', '{"driver": "fn main() {\n    let t = \"имя,цена,кол\\nхлеб,50.5,2\\nмолоко,,1\\nсыр,300,3\\n\";\n    println!(\"{:?}\", column_sum(Cursor::new(t), 1).unwrap());\n    println!(\"{:?}\", column_sum(Cursor::new(t), 2).unwrap());\n    println!(\"{}\", column_sum(Cursor::new(\"a,b\\nx,y\\n\"), 1).is_err());\n}\n", "expected": ["350.5", "6.0", "true"]}');
+', 'split('','').nth(col) — нужное поле.', '{"driver": "fn main() {\n    let t = \"name,price,qty\\nbread,50.5,2\\nmilk,,1\\ncheese,300,3\\n\";\n    println!(\"{:?}\", column_sum(Cursor::new(t), 1).unwrap());\n    println!(\"{:?}\", column_sum(Cursor::new(t), 2).unwrap());\n    println!(\"{}\", column_sum(Cursor::new(\"a,b\\nx,y\\n\"), 1).is_err());\n}\n", "expected": ["350.5", "6.0", "true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-hexdump', 25, 'rust', 'Hex-дамп', 'Напишите hexdump(data: &[u8]) -> Vec<String>: строки по 8 байт «смещение(4 цифры hex): байты через пробел» (последняя строка может быть короче): «0000: 48 65 6c …».', 'fn hexdump(data: &[u8]) -> Vec<String> {
     todo!()
 }
@@ -6945,19 +6945,19 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-run-command', 26, 'rust', 'Запуск программы', 'Напишите echo_via_shell(word: &str) -> String: запустите команду «echo» с аргументом word через std::process::Command и верните её вывод без завершающего перевода строки. (В песочнице есть /bin/echo.)', 'fn echo_via_shell(word: &str) -> String {
     todo!()
 }
-', 'Command::new("echo").arg(word).output()', '{"driver": "fn main() {\n    println!(\"{}\", echo_via_shell(\"привет\"));\n    println!(\"[{}]\", echo_via_shell(\"\"));\n}\n", "expected": ["привет", "[]"]}');
+', 'Command::new("echo").arg(word).output()', '{"driver": "fn main() {\n    println!(\"{}\", echo_via_shell(\"hello\"));\n    println!(\"[{}]\", echo_via_shell(\"\"));\n}\n", "expected": ["hello", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-stdout-bytes', 27, 'rust', 'Сколько байтов напечатано', 'Напишите counted(f: impl Fn(&mut dyn Write)) -> usize: вызовите f, передав ему в качестве Write вектор байтов, и верните число записанных байтов.', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn counted(f: impl Fn(&mut dyn Write)) -> usize {
     todo!()
 }
-', '&mut Vec<u8> приводится к &mut dyn Write.', '{"driver": "fn main() {\n    println!(\"{}\", counted(|w| { write!(w, \"привет\").unwrap(); }));\n    println!(\"{}\", counted(|w| { writeln!(w, \"a\").unwrap(); writeln!(w, \"b\").unwrap(); }));\n    println!(\"{}\", counted(|_| {}));\n}\n", "expected": ["12", "4", "0"]}');
+', '&mut Vec<u8> приводится к &mut dyn Write.', '{"driver": "fn main() {\n    println!(\"{}\", counted(|w| { write!(w, \"hello\").unwrap(); }));\n    println!(\"{}\", counted(|w| { writeln!(w, \"a\").unwrap(); writeln!(w, \"b\").unwrap(); }));\n    println!(\"{}\", counted(|_| {}));\n}\n", "expected": ["5", "4", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-reverse-lines', 28, 'rust', 'Строки в обратном порядке', 'Напишите reverse_lines<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()>: записать строки входа в обратном порядке (по одной на строку).', 'use std::io::{self, BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
 
 fn reverse_lines<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()> {
     todo!()
 }
-', 'lines().collect::<Result<Vec<_>, _>>()?', '{"driver": "fn main() {\n    let mut out = Vec::new();\n    reverse_lines(Cursor::new(\"раз\\nдва\\nтри\\n\"), &mut out).unwrap();\n    print!(\"{}\", String::from_utf8(out).unwrap());\n}\n", "expected": ["три", "два", "раз"]}');
+', 'lines().collect::<Result<Vec<_>, _>>()?', '{"driver": "fn main() {\n    let mut out = Vec::new();\n    reverse_lines(Cursor::new(\"one\\ntwo\\nthree\\n\"), &mut out).unwrap();\n    print!(\"{}\", String::from_utf8(out).unwrap());\n}\n", "expected": ["three", "two", "one"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 27, 'r27-parse-args', 29, 'rust', 'Разбор аргументов', 'Напишите parse_args(args: &[&str]) -> (bool, Option<String>, Vec<String>): флаг «-v» (verbose), опция «-o <файл>» (выход) и остальные слова как позиционные аргументы; как у простых консольных утилит.', 'fn parse_args(args: &[&str]) -> (bool, Option<String>, Vec<String>) {
     todo!()
 }
@@ -7099,7 +7099,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'x.to_bits() — u32 с теми же битами.', '{"driver": "fn main() {\n    println!(\"{:?}\", float_parts(1.0));\n    println!(\"{:?}\", float_parts(-2.5));\n    println!(\"{:?}\", float_parts(0.0));\n    println!(\"{:?}\", float_parts(f32::INFINITY));\n}\n", "expected": ["(0, 127, 0)", "(1, 128, 2097152)", "(0, 0, 0)", "(0, 255, 0)"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 28, 'r28-mem-take-state', 26, 'rust', 'Автомат и mem::replace', 'Объявлен enum State { Idle, Running(u32), Done(String) }. Напишите finish(s: &mut State) -> Option<u32>: если Running(n) — заменить на Done(«готово за n»), вернуть Some(n); иначе ничего не менять и вернуть None. Используйте mem::replace.', 'enum State {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 28, 'r28-mem-take-state', 26, 'rust', 'Автомат и mem::replace', 'Объявлен enum State { Idle, Running(u32), Done(String) }. Напишите finish(s: &mut State) -> Option<u32>: если Running(n) — заменить на Done("done in n") (n — число, например "done in 5"), вернуть Some(n); иначе ничего не менять и вернуть None. Используйте mem::replace.', 'enum State {
     Idle,
     Running(u32),
     Done(String),
@@ -7108,7 +7108,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 fn finish(s: &mut State) -> Option<u32> {
     todo!()
 }
-', 'Заберите значение через replace, затем запишите нужное состояние.', '{"driver": "fn main() {\n    let mut a = State::Running(5);\n    println!(\"{:?}\", finish(&mut a));\n    if let State::Done(t) = &a { println!(\"{}\", t); }\n    let mut b = State::Idle;\n    println!(\"{:?}\", finish(&mut b));\n    println!(\"{}\", matches!(b, State::Idle));\n}\n", "expected": ["Some(5)", "готово за 5", "None", "true"]}');
+', 'Заберите значение через replace, затем запишите нужное состояние.', '{"driver": "fn main() {\n    let mut a = State::Running(5);\n    println!(\"{:?}\", finish(&mut a));\n    if let State::Done(t) = &a { println!(\"{}\", t); }\n    let mut b = State::Idle;\n    println!(\"{:?}\", finish(&mut b));\n    println!(\"{}\", matches!(b, State::Idle));\n}\n", "expected": ["Some(5)", "done in 5", "None", "true"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 28, 'r28-leap-days', 27, 'rust', 'Дни между датами', 'Напишите days_between(y1: i64, m1: u32, d1: u32, y2: i64, m2: u32, d2: u32) -> i64: сколько дней от первой даты до второй по григорианскому календарю (отрицательное, если вторая раньше). Подсказка: переведите каждую дату в «номер дня» алгоритмом days_from_civil.', 'fn days_between(y1: i64, m1: u32, d1: u32, y2: i64, m2: u32, d2: u32) -> i64 {
     todo!()
 }
@@ -7133,13 +7133,13 @@ impl Clone for Doc {
         todo!()
     }
 }
-', 'Поля клонируем по отдельности, у version прибавляем единицу.', '{"driver": "fn main() {\n    let a = Doc { title: String::from(\"план\"), version: 1 };\n    let b = a.clone();\n    let c = b.clone();\n    println!(\"{} {} {}\", a.version, b.version, c.version);\n    println!(\"{}\", b.title);\n}\n", "expected": ["1 2 3", "план"]}');
+', 'Поля клонируем по отдельности, у version прибавляем единицу.', '{"driver": "fn main() {\n    let a = Doc { title: String::from(\"plan\"), version: 1 };\n    let b = a.clone();\n    let c = b.clone();\n    println!(\"{} {} {}\", a.version, b.version, c.version);\n    println!(\"{}\", b.title);\n}\n", "expected": ["1 2 3", "plan"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-copy-derive', 1, 'rust', 'Copy и Clone', 'Структура Point { x: i32, y: i32 }: добавьте derive так, чтобы значения копировались при присваивании (Copy, Clone) и печатались (Debug).', 'struct Point {
     x: i32,
     y: i32,
 }
 ', '#[derive(Debug, Clone, Copy)]', '{"driver": "fn main() {\n    let a = Point { x: 1, y: 2 };\n    let b = a;\n    println!(\"{:?} {:?}\", a, b);\n}\n", "expected": ["Point { x: 1, y: 2 } Point { x: 1, y: 2 }"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-default-manual', 2, 'rust', 'Default вручную', 'Структура Settings { volume: u8, name: String, ratio: f64 }. Реализуйте Default вручную: громкость 50, имя «по умолчанию», коэффициент 1.5.', 'struct Settings {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-default-manual', 2, 'rust', 'Default вручную', 'Структура Settings { volume: u8, name: String, ratio: f64 }. Реализуйте Default вручную: громкость 50, имя "by default", коэффициент 1.5.', 'struct Settings {
     volume: u8,
     name: String,
     ratio: f64,
@@ -7150,7 +7150,7 @@ impl Default for Settings {
         todo!()
     }
 }
-', 'impl Default for Settings — функция default().', '{"driver": "fn main() {\n    let s = Settings::default();\n    println!(\"{} {} {}\", s.volume, s.name, s.ratio);\n    let t = Settings { volume: 10, ..Default::default() };\n    println!(\"{} {}\", t.volume, t.name);\n}\n", "expected": ["50 по умолчанию 1.5", "10 по умолчанию"]}');
+', 'impl Default for Settings — функция default().', '{"driver": "fn main() {\n    let s = Settings::default();\n    println!(\"{} {} {}\", s.volume, s.name, s.ratio);\n    let t = Settings { volume: 10, ..Default::default() };\n    println!(\"{} {}\", t.volume, t.name);\n}\n", "expected": ["50 by default 1.5", "10 by default"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-partial-eq-cross', 3, 'rust', 'Равенство разных типов', 'Структуры Meters(f64) и Feet(f64). Реализуйте PartialEq<Feet> for Meters: равны, если значения совпадают с точностью до 0.001 (1 м = 3.28084 фута).', 'struct Meters(f64);
 struct Feet(f64);
 
@@ -7214,7 +7214,7 @@ impl From<Rgb> for u32 {
     }
 }
 ', 'Сдвиги << 16 и << 8.', '{"driver": "fn main() {\n    let a: Rgb = (255, 128, 0).into();\n    let b = Rgb::from([1, 2, 3]);\n    let n: u32 = a.into();\n    println!(\"{:#08x}\", n);\n    println!(\"{}\", u32::from(b));\n}\n", "expected": ["0xff8000", "66051"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-try-from', 7, 'rust', 'TryFrom', 'Структура Percent(u8). Реализуйте TryFrom<i32> for Percent: Ok для 0..=100, иначе Err(String) «вне диапазона: <n>».', '#[derive(Debug, PartialEq)]
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-try-from', 7, 'rust', 'TryFrom', 'Структура Percent(u8). Реализуйте TryFrom<i32> for Percent: Ok для 0..=100, иначе Err(String) с текстом "out of range: <n>".', '#[derive(Debug, PartialEq)]
 struct Percent(u8);
 
 impl TryFrom<i32> for Percent {
@@ -7223,7 +7223,7 @@ impl TryFrom<i32> for Percent {
         todo!()
     }
 }
-', '(0..=100).contains(&n)', '{"driver": "fn main() {\n    println!(\"{:?}\", Percent::try_from(55));\n    println!(\"{:?}\", Percent::try_from(101));\n    let r: Result<Percent, _> = (-5).try_into();\n    println!(\"{:?}\", r);\n}\n", "expected": ["Ok(Percent(55))", "Err(\"вне диапазона: 101\")", "Err(\"вне диапазона: -5\")"]}');
+', '(0..=100).contains(&n)', '{"driver": "fn main() {\n    println!(\"{:?}\", Percent::try_from(55));\n    println!(\"{:?}\", Percent::try_from(101));\n    let r: Result<Percent, _> = (-5).try_into();\n    println!(\"{:?}\", r);\n}\n", "expected": ["Ok(Percent(55))", "Err(\"out of range: 101\")", "Err(\"out of range: -5\")"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-as-ref', 8, 'rust', 'AsRef для обёртки', 'Структура Name(String). Реализуйте AsRef<str> for Name и напишите функцию shout(x: impl AsRef<str>) -> String (в верхнем регистре), которая принимает и &str, и String, и Name.', 'struct Name(String);
 
 impl AsRef<str> for Name {
@@ -7235,7 +7235,7 @@ impl AsRef<str> for Name {
 fn shout(x: impl AsRef<str>) -> String {
     todo!()
 }
-', '&self.0 — String приводится к &str.', '{"driver": "fn main() {\n    println!(\"{}\", shout(\"привет\"));\n    println!(\"{}\", shout(String::from(\"rust\")));\n    println!(\"{}\", shout(Name(String::from(\"аня\"))));\n}\n", "expected": ["ПРИВЕТ", "RUST", "АНЯ"]}');
+', '&self.0 — String приводится к &str.', '{"driver": "fn main() {\n    println!(\"{}\", shout(\"hello\"));\n    println!(\"{}\", shout(String::from(\"rust\")));\n    println!(\"{}\", shout(Name(String::from(\"anya\"))));\n}\n", "expected": ["HELLO", "RUST", "ANYA"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-deref', 9, 'rust', 'Deref для обёртки', 'Структура Stack(Vec<i32>). Реализуйте Deref<Target = Vec<i32>> и DerefMut, чтобы у Stack работали методы вектора len(), last(), push() напрямую.', 'struct Stack(Vec<i32>);
 
 impl std::ops::Deref for Stack {
@@ -7308,7 +7308,7 @@ impl<''a> FromIterator<&''a str> for Bag {
         todo!()
     }
 }
-', 'Соберите вектор String из итератора &str.', '{"driver": "fn main() {\n    let b: Bag = \"раз два три\".split('' '').collect();\n    println!(\"{:?}\", b.items);\n    let e: Bag = std::iter::empty().collect();\n    println!(\"{}\", e.items.len());\n}\n", "expected": ["[\"раз\", \"два\", \"три\"]", "0"]}');
+', 'Соберите вектор String из итератора &str.', '{"driver": "fn main() {\n    let b: Bag = \"one two three\".split('' '').collect();\n    println!(\"{:?}\", b.items);\n    let e: Bag = std::iter::empty().collect();\n    println!(\"{}\", e.items.len());\n}\n", "expected": ["[\"one\", \"two\", \"three\"]", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-extend-sum', 14, 'rust', 'Extend и Sum', 'Структура Money(i64). Реализуйте std::iter::Sum for Money (сумма значений Money) и Extend<Money>… для упрощения — только Sum и Add (Money + Money).', 'use std::ops::Add;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -7337,12 +7337,12 @@ fn call_mut(mut f: impl FnMut()) {
 fn call_once(f: impl FnOnce() -> String) -> String {
     todo!()
 }
-', 'FnOnce можно вызвать только один раз: f() без повторов.', '{"driver": "fn main() {\n    let k = 5;\n    println!(\"{}\", call_twice(|| k * 2));\n    let mut count = 0;\n    call_mut(|| count += 1);\n    println!(\"{}\", count);\n    let s = String::from(\"перемещено\");\n    println!(\"{}\", call_once(move || s));\n}\n", "expected": ["20", "3", "перемещено"]}');
+', 'FnOnce можно вызвать только один раз: f() без повторов.', '{"driver": "fn main() {\n    let k = 5;\n    println!(\"{}\", call_twice(|| k * 2));\n    let mut count = 0;\n    call_mut(|| count += 1);\n    println!(\"{}\", count);\n    let s = String::from(\"moved\");\n    println!(\"{}\", call_once(move || s));\n}\n", "expected": ["20", "3", "moved"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-boxed-fns', 16, 'rust', 'Список замыканий', 'Напишите compose_all(fs: Vec<Box<dyn Fn(i32) -> i32>>) -> Box<dyn Fn(i32) -> i32>: функция, применяющая все по порядку.', 'fn compose_all(fs: Vec<Box<dyn Fn(i32) -> i32>>) -> Box<dyn Fn(i32) -> i32> {
     todo!()
 }
 ', 'Box::new(move |x| fs.iter().fold(x, |acc, f| f(acc)))', '{"driver": "fn main() {\n    let f = compose_all(vec![Box::new(|x| x + 1), Box::new(|x| x * 10), Box::new(|x| x - 3)]);\n    println!(\"{}\", f(4));\n    println!(\"{}\", f(0));\n    let id = compose_all(vec![]);\n    println!(\"{}\", id(7));\n}\n", "expected": ["47", "7", "7"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-error-source', 17, 'rust', 'Ошибка с причиной', 'Объявлены ConfigError { path: String, cause: std::num::ParseIntError }. Реализуйте Display («ошибка в <path>»), Error и source() (возвращает Some(&self.cause)).', 'use std::fmt;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-error-source', 17, 'rust', 'Ошибка с причиной', 'Объявлены ConfigError { path: String, cause: std::num::ParseIntError }. Реализуйте Display ("error in <path>"), Error и source() (возвращает Some(&self.cause)).', 'use std::fmt;
 use std::error::Error;
 
 #[derive(Debug)]
@@ -7362,8 +7362,8 @@ impl Error for ConfigError {
         todo!()
     }
 }
-', 'source() возвращает Option<&dyn Error>.', '{"driver": "fn main() {\n    let cause = \"x\".parse::<i32>().unwrap_err();\n    let e = ConfigError { path: String::from(\"app.toml\"), cause };\n    println!(\"{}\", e);\n    println!(\"{}\", e.source().is_some());\n    println!(\"{}\", e.source().unwrap());\n    let b: Box<dyn Error> = Box::new(e);\n    println!(\"{}\", b);\n}\n", "expected": ["ошибка в app.toml", "true", "invalid digit found in string", "ошибка в app.toml"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-error-from', 18, 'rust', 'Объединение ошибок', 'Объявите enum AppError { Parse(std::num::ParseIntError), Neg(i64) } с From<ParseIntError>, Display и Error. Функция positive(s: &str) -> Result<i64, AppError> парсит число и возвращает Err(Neg(n)) для отрицательных.', 'use std::fmt;
+', 'source() возвращает Option<&dyn Error>.', '{"driver": "fn main() {\n    let cause = \"x\".parse::<i32>().unwrap_err();\n    let e = ConfigError { path: String::from(\"app.toml\"), cause };\n    println!(\"{}\", e);\n    println!(\"{}\", e.source().is_some());\n    println!(\"{}\", e.source().unwrap());\n    let b: Box<dyn Error> = Box::new(e);\n    println!(\"{}\", b);\n}\n", "expected": ["error in app.toml", "true", "invalid digit found in string", "error in app.toml"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-error-from', 18, 'rust', 'Объединение ошибок', 'Объявите enum AppError { Parse(std::num::ParseIntError), Neg(i64) } с From<ParseIntError>, Display и Error. Display печатает "parsing: <ошибка>" для Parse и "negative: <n>" для Neg. Функция positive(s: &str) -> Result<i64, AppError> парсит число и возвращает Err(Neg(n)) для отрицательных.', 'use std::fmt;
 
 #[derive(Debug)]
 enum AppError {
@@ -7386,7 +7386,7 @@ impl From<std::num::ParseIntError> for AppError {
 fn positive(s: &str) -> Result<i64, AppError> {
     todo!()
 }
-', '? превращает ParseIntError в AppError через From.', '{"driver": "fn main() {\n    println!(\"{}\", positive(\"42\").unwrap());\n    println!(\"{}\", positive(\"-7\").unwrap_err());\n    println!(\"{}\", positive(\"abc\").unwrap_err());\n}\n", "expected": ["42", "отрицательное: -7", "разбор: invalid digit found in string"]}');
+', '? превращает ParseIntError в AppError через From.', '{"driver": "fn main() {\n    println!(\"{}\", positive(\"42\").unwrap());\n    println!(\"{}\", positive(\"-7\").unwrap_err());\n    println!(\"{}\", positive(\"abc\").unwrap_err());\n}\n", "expected": ["42", "negative: -7", "parsing: invalid digit found in string"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-send-sync', 19, 'rust', 'Send и Sync', 'Напишите функции assert_send<T: Send>() и assert_sync<T: Sync>() (пустые, проверка при компиляции), а в main (driver) проверяется, что String и Vec<i32> — Send, а Arc<Mutex<i32>> — Send и Sync. Ваше решение — только объявления функций.', 'fn assert_send<T: Send>() {
     todo!()
 }
@@ -7395,10 +7395,10 @@ fn assert_sync<T: Sync>() {
     todo!()
 }
 ', 'Пустое тело: проверка происходит при подстановке типа.', '{"driver": "fn main() {\n    assert_send::<String>();\n    assert_send::<Vec<i32>>();\n    assert_send::<std::sync::Arc<std::sync::Mutex<i32>>>();\n    assert_sync::<std::sync::Arc<std::sync::Mutex<i32>>>();\n    assert_sync::<i32>();\n    println!(\"ok\");\n}\n", "expected": ["ok"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-any-downcast', 20, 'rust', 'Динамический тип', 'Напишите describe(v: &dyn std::any::Any) -> String: «целое N» для i32, «строка S» для String, «дробное X» для f64, иначе «неизвестно» (downcast_ref).', 'fn describe(v: &dyn std::any::Any) -> String {
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-any-downcast', 20, 'rust', 'Динамический тип', 'Напишите describe(v: &dyn std::any::Any) -> String: "integer N" для i32, "string S" для String, "fractional X" для f64, иначе "unknown" (downcast_ref).', 'fn describe(v: &dyn std::any::Any) -> String {
     todo!()
 }
-', 'downcast_ref::<T>() возвращает Option<&T>.', '{"driver": "fn main() {\n    println!(\"{}\", describe(&5i32));\n    println!(\"{}\", describe(&String::from(\"привет\")));\n    println!(\"{}\", describe(&2.5f64));\n    println!(\"{}\", describe(&''c''));\n    println!(\"{}\", describe(&\"str\"));\n}\n", "expected": ["целое 5", "строка привет", "дробное 2.5", "неизвестно", "неизвестно"]}');
+', 'downcast_ref::<T>() возвращает Option<&T>.', '{"driver": "fn main() {\n    println!(\"{}\", describe(&5i32));\n    println!(\"{}\", describe(&String::from(\"hello\")));\n    println!(\"{}\", describe(&2.5f64));\n    println!(\"{}\", describe(&''c''));\n    println!(\"{}\", describe(&\"str\"));\n}\n", "expected": ["integer 5", "string hello", "fractional 2.5", "unknown", "unknown"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-cow', 21, 'rust', 'Cow', 'Напишите normalize(s: &str) -> std::borrow::Cow<str>: если в строке есть табуляции, вернуть Owned с табуляциями, заменёнными пробелами, иначе — Borrowed без копирования. Driver проверяет вариант.', 'fn normalize(s: &str) -> std::borrow::Cow<str> {
     todo!()
 }
@@ -7438,7 +7438,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     todo!()
 }
 ', 'm.get(key) принимает &str, потому что String: Borrow<str>.', '{"driver": "fn main() {\n    let mut m = std::collections::HashMap::new();\n    m.insert(String::from(\"a\"), 5);\n    println!(\"{} {}\", find_len(&m, \"a\"), find_len(&m, \"b\"));\n}\n", "expected": ["5 0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-display-debug', 24, 'rust', 'Display и Debug вместе', 'Структура Ver(u32, u32, u32). Реализуйте Display «1.2.3» и derive(Debug); функция show(v: &impl std::fmt::Display) -> String возвращает «версия <v>».', 'use std::fmt;
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-display-debug', 24, 'rust', 'Display и Debug вместе', 'Структура Ver(u32, u32, u32). Реализуйте Display "1.2.3" и derive(Debug); функция show(v: &impl std::fmt::Display) -> String возвращает "version <v>".', 'use std::fmt;
 
 #[derive(Debug)]
 struct Ver(u32, u32, u32);
@@ -7452,7 +7452,7 @@ impl fmt::Display for Ver {
 fn show(v: &impl fmt::Display) -> String {
     todo!()
 }
-', 'Display даёт to_string() бесплатно.', '{"driver": "fn main() {\n    let v = Ver(1, 2, 3);\n    println!(\"{}\", show(&v));\n    println!(\"{:?}\", v);\n    println!(\"{}\", v.to_string());\n    println!(\"{}\", show(&42));\n}\n", "expected": ["версия 1.2.3", "Ver(1, 2, 3)", "1.2.3", "версия 42"]}');
+', 'Display даёт to_string() бесплатно.', '{"driver": "fn main() {\n    let v = Ver(1, 2, 3);\n    println!(\"{}\", show(&v));\n    println!(\"{:?}\", v);\n    println!(\"{}\", v.to_string());\n    println!(\"{}\", show(&42));\n}\n", "expected": ["version 1.2.3", "Ver(1, 2, 3)", "1.2.3", "version 42"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-generic-bound', 25, 'rust', 'Ограничения трейтов', 'Напишите largest_by_key<T, K: Ord>(items: &[T], key: impl Fn(&T) -> K) -> Option<&T>: элемент с наибольшим ключом (при равенстве — первый).', 'fn largest_by_key<T, K: Ord>(items: &[T], key: impl Fn(&T) -> K) -> Option<&T> {
     todo!()
 }
@@ -7499,7 +7499,7 @@ impl Entity for Item {
         todo!()
     }
 }
-', 'Супертрейт гарантирует, что Display доступен внутри метода по умолчанию.', '{"driver": "fn main() {\n    let i = Item { id: 7, name: String::from(\"болт\") };\n    println!(\"{}\", i.label());\n    println!(\"{}\", i);\n}\n", "expected": ["#7 болт", "болт"]}');
+', 'Супертрейт гарантирует, что Display доступен внутри метода по умолчанию.', '{"driver": "fn main() {\n    let i = Item { id: 7, name: String::from(\"bolt\") };\n    println!(\"{}\", i.label());\n    println!(\"{}\", i);\n}\n", "expected": ["#7 bolt", "bolt"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-blanket', 28, 'rust', 'Общая реализация', 'Трейт Shout { fn shout(&self) -> String; }. Реализуйте его сразу для всех типов, у которых есть Display (impl<T: Display> Shout for T): текст в верхнем регистре с «!».', 'use std::fmt::Display;
 
 trait Shout {
@@ -7511,11 +7511,11 @@ impl<T: Display> Shout for T {
         todo!()
     }
 }
-', 'Общая реализация (blanket impl) действует для любого T: Display.', '{"driver": "fn main() {\n    println!(\"{}\", \"привет\".shout());\n    println!(\"{}\", 42.shout());\n    println!(\"{}\", 2.5.shout());\n    println!(\"{}\", String::from(\"ok\").shout());\n}\n", "expected": ["ПРИВЕТ!", "42!", "2.5!", "OK!"]}');
+', 'Общая реализация (blanket impl) действует для любого T: Display.', '{"driver": "fn main() {\n    println!(\"{}\", \"hello\".shout());\n    println!(\"{}\", 42.shout());\n    println!(\"{}\", 2.5.shout());\n    println!(\"{}\", String::from(\"ok\").shout());\n}\n", "expected": ["HELLO!", "42!", "2.5!", "OK!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 29, 'r29-unsized', 29, 'rust', '?Sized', 'Напишите byte_len<T: ?Sized + AsRef<[u8]>>(x: &T) -> usize: длина в байтах для str, срезов и векторов (ослабление Sized позволяет принимать str и [u8] напрямую).', 'fn byte_len<T: ?Sized + AsRef<[u8]>>(x: &T) -> usize {
     todo!()
 }
-', 'x.as_ref().len(); T: ?Sized разрешает str и [u8].', '{"driver": "fn main() {\n    println!(\"{}\", byte_len(\"привет\"));\n    println!(\"{}\", byte_len(&b\"ab\"[..]));\n    println!(\"{}\", byte_len(&vec![1u8, 2, 3]));\n    println!(\"{}\", byte_len(&String::from(\"яя\")));\n}\n", "expected": ["12", "2", "3", "4"]}');
+', 'x.as_ref().len(); T: ?Sized разрешает str и [u8].', '{"driver": "fn main() {\n    println!(\"{}\", byte_len(\"hello\"));\n    println!(\"{}\", byte_len(&b\"ab\"[..]));\n    println!(\"{}\", byte_len(&vec![1u8, 2, 3]));\n    println!(\"{}\", byte_len(&String::from(\"abcd\")));\n}\n", "expected": ["5", "2", "3", "4"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (10, 30, 'r30-first-async', 0, 'rust', 'Первая async-функция', 'Напишите async fn greet(name: &str) -> String, возвращающую «Привет, <имя>!», и вызовите её с .await в main с атрибутом #[tokio::main]. Напечатайте результат для «Аня».
 
 Ожидаемый вывод:

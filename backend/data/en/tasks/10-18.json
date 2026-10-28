@@ -59,7 +59,7 @@
   {
    "id": "r18-caesar",
    "title": "String: Caesar cipher",
-   "statement": "caesar(s: &str, k: u8) returns String: shift every Latin letter forward by k in a cycle (0 ≤ k ≤ 25), preserve the case; leave all other characters (including Cyrillic) as they are.",
+   "statement": "caesar(s: &str, k: u8) returns String: shift every Latin letter forward by k in a cycle (0 ≤ k ≤ 25), preserve the case; leave all other characters (digits, punctuation, spaces) as they are.",
    "hint": "c as u8 - b'a' + k gives the position in the alphabet; % 26 wraps around; collect() from an iterator of char into a String."
   },
   {
@@ -71,15 +71,15 @@
   {
    "id": "r18-title-case",
    "title": "Capitalize the first letter",
-   "statement": "title_case(s) returns String: each word with a capital first letter and the other letters lowercase (works with Cyrillic too); in the result the words are separated by exactly one space.",
+   "statement": "title_case(s) returns String: each word with a capital first letter and the other letters lowercase; in the result the words are separated by exactly one space.",
    "hint": "chars() gives the first letter, and the remainder is cs.as_str(); to_uppercase() returns an iterator, collect it into a String."
   },
   {
    "id": "r18-fix-string-add",
    "title": "Fix: + took the string",
-   "statement": "join3 joins three strings and appends «(из a b c)». The + operator takes its left operand, and a cannot be used after it. Fix it so that the function returns, for example, «xyz (из x y z)».",
+   "statement": "join3 joins three strings and appends «(of a b c)». The + operator takes its left operand, and a cannot be used after it. Fix it so that the function returns, for example, «xyz (of x y z)».",
    "hint": "format! does not take its arguments, so the strings remain available after it.",
-   "starter": "fn join3(a: String, b: String, c: String) -> String {\n    let ab = a + &b;\n    let abc = ab + &c;\n    format!(\"{abc} (из {a} {b} {c})\")\n}\n"
+   "starter": "fn join3(a: String, b: String, c: String) -> String {\n    let ab = a + &b;\n    let abc = ab + &c;\n    format!(\"{abc} (of {a} {b} {c})\")\n}\n"
   },
   {
    "id": "r18-word-count",
@@ -120,7 +120,7 @@
   {
    "id": "r18-parse-age",
    "title": "Result<u8, String> and kinds of parse errors",
-   "statement": "parse_age(s) returns Result<u8, String>: parse the string as u8 and return a clear message: an empty string gives \"пусто\"; not a number (including a negative one) gives \"не число\"; greater than 255 gives \"слишком велико\"; a number greater than 150 gives \"нереальный возраст\". The kind of error is found with e.kind() and IntErrorKind.",
+   "statement": "parse_age(s) returns Result<u8, String>: parse the string as u8 and return a clear message: an empty string gives \"empty\"; not a number (including a negative one) gives \"not a number\"; greater than 255 gives \"too large\"; a number greater than 150 gives \"unrealistic age\". The kind of error is found with e.kind() and IntErrorKind.",
    "hint": "A guard in match: Ok(n) if n > 150 => …; for errors, match e.kind() { IntErrorKind::Empty => …, … }."
   },
   {
@@ -132,13 +132,13 @@
   {
    "id": "r18-custom-error",
    "title": "A custom error: enum, Display, From",
-   "statement": "AppError is Empty, Parse(ParseIntError), Negative(i32). Implement Display («пустая строка» / «не число: <причина>» / «отрицательное: N», where the reason is the text of the parse error and N is the number), std::error::Error and From<ParseIntError>, then parse_positive(s) returns Result<u32, AppError>: the string with spaces trimmed; empty gives Empty; not a number gives Parse (via ?); less than zero gives Negative.",
+   "statement": "AppError is Empty, Parse(ParseIntError), Negative(i32). Implement Display («empty string» / «not a number: <reason>» / «negative: N», where the reason is the text of the parse error and N is the number), std::error::Error and From<ParseIntError>, then parse_positive(s) returns Result<u32, AppError>: the string with spaces trimmed; empty gives Empty; not a number gives Parse (via ?); less than zero gives Negative.",
    "hint": "impl From<ParseIntError> for AppError { fn from(e) -> AppError { AppError::Parse(e) } } — then ? converts the error itself."
   },
   {
    "id": "r18-box-dyn-error",
    "title": "Box<dyn Error>: any error",
-   "statement": "run(a, b) returns Result<i32, Box<dyn Error>>: parse both arguments as i32 (the parse error is passed up with ?) and divide a by b; when b == 0 return your own error «деление на ноль» (a string can be turned into a Box<dyn Error> with .into()).",
+   "statement": "run(a, b) returns Result<i32, Box<dyn Error>>: parse both arguments as i32 (the parse error is passed up with ?) and divide a by b; when b == 0 return your own error «division by zero» (a string can be turned into a Box<dyn Error> with .into()).",
    "hint": "Err(\"text\".into()) builds a Box<dyn Error> from a string; ? packs ParseIntError by itself."
   },
   {
@@ -156,7 +156,7 @@
   {
    "id": "r18-ok-or",
    "title": "ok_or: from Option to Result",
-   "statement": "lookup(m: &HashMap<&str, i32>, key) returns Result<i32, String>: the value by key or the error «нет ключа <key>» (ok_or_else). first_digit(s) returns Result<u32, String>: the value of the first digit in the string or the error «нет цифр» (use chars, find and to_digit).",
+   "statement": "lookup(m: &HashMap<&str, i32>, key) returns Result<i32, String>: the value by key or the error «no key <key>» (ok_or_else). first_digit(s) returns Result<u32, String>: the value of the first digit in the string or the error «no digits» (use chars, find and to_digit).",
    "hint": "get returns Option<&i32>; copied() gives Option<i32>; ok_or_else(|| …) turns None into Err."
   },
   {
@@ -175,13 +175,13 @@
   {
    "id": "r18-retry",
    "title": "Retries: an FnMut closure",
-   "statement": "retry(n, f) returns Result<i32, String>: call f(attempt) for attempts 1, 2, …, n until you get Ok; return the first Ok or the last error (n = 0 gives «нет попыток»). f is a closure FnMut(u32) -> Result<i32, String>, which may modify captured variables.",
+   "statement": "retry(n, f) returns Result<i32, String>: call f(attempt) for attempts 1, 2, …, n until you get Ok; return the first Ok or the last error (n = 0 gives «no attempts»). f is a closure FnMut(u32) -> Result<i32, String>, which may modify captured variables.",
    "hint": "Keep the last error in a variable and return it after the loop; return Ok at once with return."
   },
   {
    "id": "r18-config-parser",
    "title": "Parsing a config with line numbers",
-   "statement": "parse_config(text) returns Result<BTreeMap<String, String>, String>: lines of the form «key = value»; empty lines and lines starting with «#» are skipped; spaces around the key and the value are trimmed. The first error stops parsing and is one of: «line N: нет '='», «line N: пустой ключ» or «line N: дубликат ключа K» (N is the line number counted from one, K is the key).",
+   "statement": "parse_config(text) returns Result<BTreeMap<String, String>, String>: lines of the form «key = value»; empty lines and lines starting with «#» are skipped; spaces around the key and the value are trimmed. The first error stops parsing and is one of: «line N: no '='», «line N: empty key» or «line N: duplicate key K» (N is the line number counted from one, K is the key).",
    "hint": "lines().enumerate() gives an index from zero, so add 1; split_once('=') splits at the first equals sign."
   }
  ]

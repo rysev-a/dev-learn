@@ -23,13 +23,13 @@
   {
    "id": "r24-opt-or",
    "title": "unwrap_or_else",
-   "statement": "Write name_or_default(n: Option<&str>) -> String: the name, or «аноним#» + the length of the word «аноним» (this is how it is computed lazily) — without match and if.",
+   "statement": "Write name_or_default(n: Option<&str>) -> String: the name, or «nobody#» + the length of the word «nobody» (this is how it is computed lazily) — without match and if.",
    "hint": "map + unwrap_or_else(|| …)"
   },
   {
    "id": "r24-opt-ok-or",
    "title": "ok_or",
-   "statement": "Write first_or_err(v: &[i32]) -> Result<i32, String>: the first element or Err(\"пусто\") (first, copied, ok_or).",
+   "statement": "Write first_or_err(v: &[i32]) -> Result<i32, String>: the first element or Err(\"empty\") (first, copied, ok_or).",
    "hint": "v.first().copied().ok_or(…)"
   },
   {
@@ -47,13 +47,13 @@
   {
    "id": "r24-res-map-err",
    "title": "map_err",
-   "statement": "Write parse_pos(s: &str) -> Result<u32, String>: parse a non-negative number; on an error — Err with the text «плохое число: <s>» (map_err).",
+   "statement": "Write parse_pos(s: &str) -> Result<u32, String>: parse a non-negative number; on an error — Err with the text «bad number: <s>» (map_err).",
    "hint": "map_err changes the error type."
   },
   {
    "id": "r24-res-and-then",
    "title": "Result::and_then",
-   "statement": "Write parse_and_sqrt(s: &str) -> Result<f64, String>: parse an f64 (error «не число») and take the square root (error «отрицательное» when < 0). A chain of and_then.",
+   "statement": "Write parse_and_sqrt(s: &str) -> Result<f64, String>: parse an f64 (error «not a number») and take the square root (error «negative» when < 0). A chain of and_then.",
    "hint": "map_err, then and_then."
   },
   {

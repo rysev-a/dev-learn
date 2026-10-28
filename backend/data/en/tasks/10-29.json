@@ -17,7 +17,7 @@
   {
    "id": "r29-default-manual",
    "title": "Default by hand",
-   "statement": "A struct Settings { volume: u8, name: String, ratio: f64 }. Implement Default by hand: volume 50, name «по умолчанию», ratio 1.5.",
+   "statement": "A struct Settings { volume: u8, name: String, ratio: f64 }. Implement Default by hand: volume 50, name \"by default\", ratio 1.5.",
    "hint": "impl Default for Settings: the function default()."
   },
   {
@@ -47,7 +47,7 @@
   {
    "id": "r29-try-from",
    "title": "TryFrom",
-   "statement": "A struct Percent(u8). Implement TryFrom<i32> for Percent: Ok for 0..=100, otherwise Err(String) with the text «вне диапазона: <n>».",
+   "statement": "A struct Percent(u8). Implement TryFrom<i32> for Percent: Ok for 0..=100, otherwise Err(String) with the text \"out of range: <n>\".",
    "hint": "(0..=100).contains(&n)"
   },
   {
@@ -107,13 +107,13 @@
   {
    "id": "r29-error-source",
    "title": "An error with a cause",
-   "statement": "Declared: ConfigError { path: String, cause: std::num::ParseIntError }. Implement Display (\"ошибка в <path>\"), Error, and source() (returns Some(&self.cause)).",
+   "statement": "Declared: ConfigError { path: String, cause: std::num::ParseIntError }. Implement Display (\"error in <path>\"), Error, and source() (returns Some(&self.cause)).",
    "hint": "source() returns Option<&dyn Error>."
   },
   {
    "id": "r29-error-from",
    "title": "Combining errors",
-   "statement": "Declare an enum AppError { Parse(std::num::ParseIntError), Neg(i64) } with From<ParseIntError>, Display and Error. The function positive(s: &str) -> Result<i64, AppError> parses a number and returns Err(Neg(n)) for negative ones.",
+   "statement": "Declare an enum AppError { Parse(std::num::ParseIntError), Neg(i64) } with From<ParseIntError>, Display and Error. Display prints \"parsing: <error>\" for Parse and \"negative: <n>\" for Neg. The function positive(s: &str) -> Result<i64, AppError> parses a number and returns Err(Neg(n)) for negative ones.",
    "hint": "? turns ParseIntError into AppError via From."
   },
   {
@@ -125,7 +125,7 @@
   {
    "id": "r29-any-downcast",
    "title": "A dynamic type",
-   "statement": "Write describe(v: &dyn std::any::Any) -> String: \"целое N\" for i32, \"строка S\" for String, \"дробное X\" for f64, otherwise \"неизвестно\" (downcast_ref).",
+   "statement": "Write describe(v: &dyn std::any::Any) -> String: \"integer N\" for i32, \"string S\" for String, \"fractional X\" for f64, otherwise \"unknown\" (downcast_ref).",
    "hint": "downcast_ref::<T>() returns Option<&T>."
   },
   {
@@ -149,7 +149,7 @@
   {
    "id": "r29-display-debug",
    "title": "Display and Debug together",
-   "statement": "A struct Ver(u32, u32, u32). Implement Display as \"1.2.3\" and derive(Debug); the function show(v: &impl std::fmt::Display) -> String returns \"версия <v>\".",
+   "statement": "A struct Ver(u32, u32, u32). Implement Display as \"1.2.3\" and derive(Debug); the function show(v: &impl std::fmt::Display) -> String returns \"version <v>\".",
    "hint": "Display gives you to_string() for free."
   },
   {

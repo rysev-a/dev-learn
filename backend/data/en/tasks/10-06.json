@@ -12,28 +12,28 @@
   {
    "id": "r6-string-new",
    "title": "Building a String",
-   "statement": "Create an empty mutable String, append push_str(\"Rust\"), push(' '), push_str(\"любит\"), push(' '), push_str(\"тебя\") and print «Rust любит тебя».\n\nExpected output:\n«Rust любит тебя»",
+   "statement": "Create an empty mutable String, append push_str(\"Rust\"), push(' '), push_str(\"loves\"), push(' '), push_str(\"you\") and print «Rust loves you».\n\nExpected output:\n«Rust loves you»",
    "hint": "push takes a character in single quotes, push_str takes a string.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r6-concat-plus",
    "title": "Concatenating with plus",
-   "statement": "Join the String a = «раз» and the &str «два» with the + operator, then add «три» and print «раздватри». The left operand of plus is a String.\n\nExpected output:\n«раздватри»",
+   "statement": "Join the String a = «one» and the &str «two» with the + operator, then add «three» and print «onetwothree». The left operand of plus is a String.\n\nExpected output:\n«onetwothree»",
    "hint": "String on the left, &str on the right.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r6-format",
    "title": "format!",
-   "statement": "name = \"Аня\", age = 30. Using format!, build in a variable the string «Аня, 30 лет» and print it.\n\nExpected output:\n«Аня, 30 лет»",
-   "hint": "format!(\"{}, {} лет\", name, age)",
+   "statement": "name = \"Anya\", age = 30. Using format!, build in a variable the string «Anya, 30 years» and print it.\n\nExpected output:\n«Anya, 30 years»",
+   "hint": "format!(\"{}, {} years\", name, age)",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r6-join",
    "title": "join",
-   "statement": "Join the words [\"сыр\", \"хлеб\", \"молоко\"] with the join method and the separator \", \" and print «сыр, хлеб, молоко».\n\nExpected output:\n«сыр, хлеб, молоко»",
+   "statement": "Join the words [\"cheese\", \"bread\", \"milk\"] with the join method and the separator \", \" and print «cheese, bread, milk».\n\nExpected output:\n«cheese, bread, milk»",
    "hint": "words.join(\", \")",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -47,14 +47,14 @@
   {
    "id": "r6-upper-lower",
    "title": "Letter case",
-   "statement": "s = \"Привет, Мир\". Print s.to_uppercase() and s.to_lowercase() — two lines: «ПРИВЕТ, МИР» and «привет, мир».\n\nExpected output:\n«ПРИВЕТ, МИР\nпривет, мир»",
+   "statement": "s = \"Hello, World\". Print s.to_uppercase() and s.to_lowercase() — two lines: «HELLO, WORLD» and «hello, world».\n\nExpected output:\n«HELLO, WORLD\nhello, world»",
    "hint": "The methods return a new string.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r6-trim-replace",
    "title": "trim and replace",
-   "statement": "s = \"   много   пробелов   \". Print the trimmed string, and then replace(\"много\", \"мало\") on the trimmed string: «много   пробелов» and «мало   пробелов».\n\nExpected output:\n«много   пробелов\nмало   пробелов»",
+   "statement": "s = \"   many   spaces   \". Print the trimmed string, and then replace(\"many\", \"few\") on the trimmed string: «many   spaces» and «few   spaces».\n\nExpected output:\n«many   spaces\nfew   spaces»",
    "hint": "trim removes spaces only at the edges.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -75,8 +75,8 @@
   {
    "id": "r6-chars-loop",
    "title": "Looping over characters",
-   "statement": "For the string \"раст\" print each character on its own line with a for loop over chars().\n\nExpected output:\n«р\nа\nс\nт»",
-   "hint": "for c in \"раст\".chars() { … }",
+   "statement": "For the string \"rust\" print each character on its own line with a for loop over chars().\n\nExpected output:\n«r\na\ns\nt»",
+   "hint": "for c in \"rust\".chars() { … }",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
@@ -89,7 +89,7 @@
   {
    "id": "r6-reverse",
    "title": "Reversing a string",
-   "statement": "Reverse the string \"привет\" with chars().rev().collect::<String>() and print «тевирп».\n\nExpected output:\n«тевирп»",
+   "statement": "Reverse the string \"hello\" with chars().rev().collect::<String>() and print «olleh».\n\nExpected output:\n«olleh»",
    "hint": "chars().rev() and collect into a String.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -117,7 +117,7 @@
   {
    "id": "r6-lines",
    "title": "Lines of text",
-   "statement": "text = \"раз\\nдва\\nтри\". Print each line with its number in the format «1: раз», «2: два», «3: три» (lines and enumerate).\n\nExpected output:\n«1: раз\n2: два\n3: три»",
+   "statement": "text = \"one\\ntwo\\nthree\". Print each line with its number in the format «1: one», «2: two», «3: three» (lines and enumerate).\n\nExpected output:\n«1: one\n2: two\n3: three»",
    "hint": "enumerate gives (index, value) pairs; the index starts from zero.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -131,7 +131,7 @@
   {
    "id": "r6-nth-char",
    "title": "The n-th character",
-   "statement": "s = \"привет\". Print the third character (index 2, via chars().nth(2)) and the last one (chars().last()). The expected output is «и» and «т». Both are Options, use unwrap.\n\nExpected output:\n«и\nт»",
+   "statement": "s = \"hello\". Print the third character (index 2, via chars().nth(2)) and the last one (chars().last()). The expected output is «l» and «o». Both are Options, use unwrap.\n\nExpected output:\n```\nl\no\n```",
    "hint": "nth(n) returns Option<char>.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -166,7 +166,7 @@
   {
    "id": "r6-debug-format",
    "title": "Debug format",
-   "statement": "Print the string \"привет\\n\" through {:?} (in quotes and with escaping: «\"привет\\n\"») and the tuple (1, \"a\", 2.5) through {:?}: «(1, \"a\", 2.5)».\n\nExpected output:\n«\"привет\\n\"»\n(1, \"a\", 2.5)",
+   "statement": "Print the string \"hello\\n\" through {:?} (in quotes and with escaping: «\"hello\\n\"») and the tuple (1, \"a\", 2.5) through {:?}: «(1, \"a\", 2.5)».\n\nExpected output:\n«\"hello\\n\"»\n(1, \"a\", 2.5)",
    "hint": "{:?} is the debug representation.",
    "starter": "fn main() {\n    // your code\n}\n"
   },

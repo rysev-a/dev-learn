@@ -121,7 +121,7 @@
    "title": "Fix: the value moved into match",
    "statement": "describe first takes msg apart with match, and then prints the same msg with {:?}. match moves the string out of the variant, and msg is unavailable after it. Fix it with a minimal change (the function needs both the text and msg itself).",
    "hint": "match &msg takes a reference apart: the binding s is a &String, and msg stays whole.",
-   "starter": "fn describe(msg: Option<String>) -> String {\n    let text = match msg {\n        Some(s) => s,\n        None => String::from(\"пусто\"),\n    };\n    format!(\"{text} ({:?})\", msg)\n}\n"
+   "starter": "fn describe(msg: Option<String>) -> String {\n    let text = match msg {\n        Some(s) => s,\n        None => String::from(\"empty\"),\n    };\n    format!(\"{text} ({:?})\", msg)\n}\n"
   },
   {
    "id": "r17-expr-eval",
