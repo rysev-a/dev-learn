@@ -5,41 +5,41 @@
   {
    "id": "s08-01",
    "title": "Add a customer",
-   "statement": "Add a customer: id 13, `'Олег Жуков'`, city `'Омск'`, email `'oleg@mail.ru'`, registration date `'2024-07-15'`, vip 0 (INSERT INTO customers VALUES …).",
+   "statement": "Add a customer: id 13, `'Oleg Zhukov'`, city `'Omsk'`, email `'oleg@mail.ru'`, registration date `'2024-07-15'`, vip 0 (INSERT INTO customers VALUES …).",
    "hint": "Values go in the order of the table's columns."
   },
   {
    "id": "s08-02",
    "title": "Column list",
-   "statement": "Add a customer, listing the columns: name, city, registered (the id will be assigned automatically, vip defaults to 0, email is NULL). Values: `'Олег Жуков'`, `'Омск'`, `'2024-07-15'`.",
+   "statement": "Add a customer, listing the columns: name, city, registered (the id will be assigned automatically, vip defaults to 0, email is NULL). Values: `'Oleg Zhukov'`, `'Omsk'`, `'2024-07-15'`.",
    "hint": "INSERT INTO customers (name, city, registered) VALUES (...)",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-03",
    "title": "Default value",
-   "statement": "Add the customer `'Пётр Яковлев'` (city `'Тверь'`, registered `'2024-07-20'`) without specifying vip — DEFAULT 0 will apply.",
+   "statement": "Add the customer `'Petr Yakovlev'` (city `'Tver'`, registered `'2024-07-20'`) without specifying vip — DEFAULT 0 will apply.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-04",
    "title": "NULL on insert",
-   "statement": "Add the customer `'Рита Ким'` with the date `'2024-07-21'`; do not specify the city and email (NULL).",
+   "statement": "Add the customer `'Rita Kim'` with the date `'2024-07-21'`; do not specify the city and email (NULL).",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-05",
    "title": "Several rows",
-   "statement": "Add two customers with one command: `'Сергей Тихонов'` (`'Казань'`, `'2024-07-22'`) and `'Таисия Громова'` (`'Москва'`, `'2024-07-23'`). Columns: name, city, registered.",
+   "statement": "Add two customers with one command: `'Sergey Tikhonov'` (`'Kazan'`, `'2024-07-22'`) and `'Taisia Gromova'` (`'Moscow'`, `'2024-07-23'`). Columns: name, city, registered.",
    "hint": "After VALUES, several parenthesized groups separated by commas.",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-06",
    "title": "New product",
-   "statement": "Add a product: id 14, `'Веб-камера'`, category `'Аксессуары'`, price 2800, stock 15, brand `'Sonic'`.",
+   "statement": "Add a product: id 14, `'Webcam'`, category `'Accessories'`, price 2800, stock 15, brand `'Sonic'`.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -74,41 +74,41 @@
   {
    "id": "s08-11",
    "title": "OR IGNORE",
-   "statement": "Inserting a customer with an existing id ends with an error. INSERT OR IGNORE silently skips such a row. Add with OR IGNORE: `(1, 'Дубликат', ...)` and `(14, 'Новый', ...)`. Columns id, name, registered.",
+   "statement": "Inserting a customer with an existing id ends with an error. INSERT OR IGNORE silently skips such a row. Add with OR IGNORE: `(1, 'Duplicate', ...)` and `(14, 'New', ...)`. Columns id, name, registered.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-12",
    "title": "OR REPLACE",
-   "statement": "INSERT OR REPLACE replaces the row on a key match. Replace the customer with id 3 by `('Вера Смирнова-Ким', 'Москва', 'vera@mail.ru', '2024-02-20', 1)`; specify all the columns.",
+   "statement": "INSERT OR REPLACE replaces the row on a key match. Replace the customer with id 3 by `('Vera Smirnova-Kim', 'Moscow', 'vera@mail.ru', '2024-02-20', 1)`; specify all the columns.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-13",
    "title": "UPSERT",
-   "statement": "Table notes. Add the note id 2 with the text `'позвонить Анне и Борису'`; if the id already exists, update body (INSERT … ON CONFLICT (id) DO UPDATE SET body = excluded.body).",
+   "statement": "Table notes. Add the note id 2 with the text `'call Anna and Boris'`; if the id already exists, update body (INSERT … ON CONFLICT (id) DO UPDATE SET body = excluded.body).",
    "hint": "excluded — the values from the failed insert.",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-14",
    "title": "A single UPDATE",
-   "statement": "Change the city of the customer with id 2 to `'Санкт-Петербург'`.",
+   "statement": "Change the city of the customer with id 2 to `'Saint Petersburg'`.",
    "hint": "Without WHERE all rows will change!"
   },
   {
    "id": "s08-15",
    "title": "Two columns",
-   "statement": "For customer 9, set the city `'Новосибирск'` and the email `'ksenia@mail.ru'`.",
+   "statement": "For customer 9, set the city `'Novosibirsk'` and the email `'ksenia@mail.ru'`.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s08-16",
    "title": "Many rows",
-   "statement": "Raise the prices of books (category = `'Книги'`) by 10%: price = price * 11 / 10.",
+   "statement": "Raise the prices of books (category = `'Books'`) by 10%: price = price * 11 / 10.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -143,7 +143,7 @@
   {
    "id": "s08-21",
    "title": "UPDATE with CASE",
-   "statement": "Raise the price of `'Электроника'` products by 5%, `'Книги'` by 10%, and leave the rest unchanged — with one UPDATE using CASE: price = CASE category WHEN … THEN … ELSE price END.",
+   "statement": "Raise the price of `'Tech'` products by 5%, `'Books'` by 10%, and leave the rest unchanged — with one UPDATE using CASE: price = CASE category WHEN … THEN … ELSE price END.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -226,7 +226,7 @@
   {
    "id": "s08-33",
    "title": "INSERT RETURNING",
-   "statement": "Add a customer (`'Олег Жуков'`, `'Омск'`, registered `'2024-07-15'`) and return the assigned id and name: INSERT … RETURNING id, name.",
+   "statement": "Add a customer (`'Oleg Zhukov'`, `'Omsk'`, registered `'2024-07-15'`) and return the assigned id and name: INSERT … RETURNING id, name.",
    "hint": "RETURNING outputs the rows the command changed.",
    "starter": "-- Write a query\n"
   },
@@ -268,7 +268,7 @@
   {
    "id": "s08-39",
    "title": "Insert without duplicates",
-   "statement": "Add two customers: `'Анна Петрова'` (city `'Москва'`, registered `'2024-01-15'`) and `'Роман Ким'` (city `'Омск'`, registered `'2024-08-03'`) — each only if no customer with that name exists yet (INSERT … SELECT … WHERE NOT EXISTS). Anna already exists, so only Roman will be added.",
+   "statement": "Add two customers: `'Anna Petrova'` (city `'Moscow'`, registered `'2024-01-15'`) and `'Roman Kim'` (city `'Omsk'`, registered `'2024-08-03'`) — each only if no customer with that name exists yet (INSERT … SELECT … WHERE NOT EXISTS). Anna already exists, so only Roman will be added.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -289,7 +289,7 @@
   {
    "id": "s08-42",
    "title": "HR: transfer to a department",
-   "statement": "HR database. Transfer employee 14 (`Тимур Рахимов`) to department 1 and make him a subordinate of employee 1.",
+   "statement": "HR database. Transfer employee 14 (`Timur Rahimov`) to department 1 and make him a subordinate of employee 1.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -303,7 +303,7 @@
   {
    "id": "s08-44",
    "title": "HR: new department",
-   "statement": "HR database. Add department id 6 `'Аналитика'` (city `'Москва'`) and employee id 16 `'Дарья Ким'` (department 6, no manager, salary 140000, hired `'2024-08-01'`, email `'daria@corp.ru'`, no phone, grade `'middle'`).",
+   "statement": "HR database. Add department id 6 `'Analytics'` (city `'Moscow'`) and employee id 16 `'Daria Kim'` (department 6, no manager, salary 140000, hired `'2024-08-01'`, email `'daria@corp.ru'`, no phone, grade `'middle'`).",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -324,7 +324,7 @@
   {
    "id": "s08-47",
    "title": "Movies: rating",
-   "statement": "Movies database. Set the rating 6.5 and the budget 10 for the movie `'Неизвестный фильм'`.",
+   "statement": "Movies database. Set the rating 6.5 and the budget 10 for the movie `'Unknown film'`.",
    "hint": "",
    "starter": "-- Write a query\n"
   }

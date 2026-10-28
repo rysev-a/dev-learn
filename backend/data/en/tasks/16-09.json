@@ -93,12 +93,6 @@
    "hint": "Encoding: the leading byte 110xxxxx / 1110xxxx / 11110xxx and continuation bytes 10xxxxxx with 6 bits each. When decoding, check the length, the continuation bytes and the minimum value for that length (otherwise it is an overlong form)."
   },
   {
-   "id": "c9-utf8-string",
-   "title": "UTF-8 strings: length, validation, reversal",
-   "statement": "utf8_len(s) → the number of code points (count the bytes that are not continuations 10xxxxxx; the string is assumed valid); utf8_valid(s) → 1 if the whole string is valid UTF-8 (by the rules: no overlong forms, surrogates or values > 0x10FFFF); utf8_offset(s, k) → the byte offset of the k-th code point (k = utf8_len → the length in bytes; beyond that, −1); utf8_reverse(s) reverses the string by code points in place (for a valid string).",
-   "hint": "Reversal: first reverse the bytes of the whole string, then reverse each multi-byte sequence back (it ended up backwards)."
-  },
-  {
    "id": "c9-varint",
    "title": "Variable-length integers (varint) and zigzag",
    "statement": "varint_encode(v, out) → the number of bytes (1…10): 7 bits per byte, low groups first, the high bit 0x80 means \"more follows\". varint_decode(in, n, *v) → the number of bytes read, or 0 if the data is truncated or the number is longer than 10 bytes or does not fit in 64 bits. zigzag_encode(int64_t) → uint64_t (0, −1, 1, −2, … → 0, 1, 2, 3, …), zigzag_decode. encoded_size(v) → how many bytes v takes.",

@@ -19,9 +19,9 @@
   {
    "id": "d1-between-like",
    "title": "Range and pattern",
-   "statement": "Output the titles of products whose price is from 500 to 5000 inclusive and whose title contains the lowercase Cyrillic letter «о». Column title, ordered by ascending id.",
-   "hint": "BETWEEN includes both bounds; `LIKE '%о%'` — the letter «о» anywhere. Note: in SQLite LIKE is case-insensitive only for Latin letters.",
-   "starter": "-- price from 500 to 5000 and the letter «о» in the title\nSELECT\n"
+   "statement": "Output the titles of products whose price is from 500 to 5000 inclusive and whose title contains the letter «f». Column title, ordered by ascending id.",
+   "hint": "BETWEEN includes both bounds; `LIKE '%f%'` — the letter «f» anywhere. Note: in SQLite LIKE is case-insensitive only for Latin letters.",
+   "starter": "-- price from 500 to 5000 and the letter «f» in the title\nSELECT\n"
   },
   {
    "id": "d1-distinct",
@@ -173,7 +173,7 @@
   {
    "id": "d1-case-when",
    "title": "CASE: price tiers",
-   "statement": "For each product output the title and a price tier: `дорого` for a price of 5000 or more, `средне` from 1000 to 4999, otherwise `дёшево`. Columns: title, tier; ordered by id.",
+   "statement": "For each product output the title and a price tier: `expensive` for a price of 5000 or more, `average` from 1000 to 4999, otherwise `cheap`. Columns: title, tier; ordered by id.",
    "hint": "CASE WHEN … THEN … WHEN … THEN … ELSE … END; the branches are checked from top to bottom.",
    "starter": "-- title and price tier\nSELECT\n"
   }

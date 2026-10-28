@@ -17,7 +17,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -46,7 +46,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -93,7 +93,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -125,7 +125,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Главная</h1>"
+                    "body": "<h1>Home</h1>"
                   }
                 ]
               }
@@ -149,7 +149,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "GET /about возвращает 200",
+            "text": "GET /about returns 200",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/about",
@@ -159,7 +159,7 @@
           },
           {
             "id": "g2",
-            "text": "Главная по-прежнему доступна",
+            "text": "The home page is still available",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/",
@@ -190,7 +190,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -219,7 +219,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -266,7 +266,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -298,12 +298,12 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Главная</h1>"
+                    "body": "<h1>Home</h1>"
                   },
                   {
                     "path": "/new-page",
                     "status": 200,
-                    "body": "<h1>Новая страница</h1>"
+                    "body": "<h1>New page</h1>"
                   }
                 ]
               }
@@ -327,7 +327,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Старый адрес даёт 301 с Location: /new-page",
+            "text": "The old address gives 301 with Location: /new-page",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/old-page",
@@ -339,7 +339,7 @@
           },
           {
             "id": "g2",
-            "text": "curl -L доходит до /new-page с кодом 200 за два запроса",
+            "text": "curl -L reaches /new-page with code 200 in two requests",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/old-page",
@@ -373,7 +373,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -402,7 +402,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -449,7 +449,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -481,7 +481,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Главная</h1>"
+                    "body": "<h1>Home</h1>"
                   },
                   {
                     "path": "/logo.png",
@@ -492,7 +492,7 @@
                   {
                     "path": "/account",
                     "status": 200,
-                    "body": "<h1>Личный кабинет</h1>"
+                    "body": "<h1>Account</h1>"
                   }
                 ]
               }
@@ -516,7 +516,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "/logo.png: Cache-Control с max-age=31536000",
+            "text": "/logo.png: Cache-Control with max-age=31536000",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/logo.png",
@@ -567,7 +567,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -596,7 +596,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -643,7 +643,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -675,12 +675,12 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Главная</h1>"
+                    "body": "<h1>Home</h1>"
                   },
                   {
                     "path": "/login",
                     "status": 200,
-                    "body": "<h1>Вход выполнен</h1>",
+                    "body": "<h1>Logged in</h1>",
                     "headers": {
                       "set-cookie": "sid=9f3a"
                     }
@@ -707,7 +707,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Set-Cookie содержит HttpOnly",
+            "text": "Set-Cookie contains HttpOnly",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/login",
@@ -719,7 +719,7 @@
           },
           {
             "id": "g2",
-            "text": "Set-Cookie содержит Secure",
+            "text": "Set-Cookie contains Secure",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/login",
@@ -731,7 +731,7 @@
           },
           {
             "id": "g3",
-            "text": "Set-Cookie содержит SameSite=Lax",
+            "text": "Set-Cookie contains SameSite=Lax",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/login",
@@ -765,7 +765,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -794,7 +794,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -841,7 +841,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -873,12 +873,12 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Главная</h1>"
+                    "body": "<h1>Home</h1>"
                   },
                   {
                     "path": "/data",
                     "status": 200,
-                    "body": "{...большой справочник...}",
+                    "body": "{...big reference...}",
                     "type": "application/json"
                   }
                 ]
@@ -903,7 +903,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Ответ содержит заголовок ETag",
+            "text": "The response contains an ETag header",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/data",
@@ -915,7 +915,7 @@
           },
           {
             "id": "g2",
-            "text": "Повторный запрос с If-None-Match получает 304",
+            "text": "A repeated request with If-None-Match gets 304",
             "http": {
               "from": "pc",
               "url": "http://www.example.org/data",

@@ -144,7 +144,7 @@
   {
    "id": "r18-map-err",
    "title": "map_err: a clear message",
-   "statement": "read_port(s) returns Result<u16, String>: a port from a string. A parse error becomes «bad port '<s>': <причина>» (where the last part is the text of the parse error) through map_err, and the value 0 becomes «port 0 reserved». Valid values are 1..=65535.",
+   "statement": "read_port(s) returns Result<u16, String>: a port from a string. A parse error becomes «bad port '<s>': <reason>» (where the last part is the text of the parse error) through map_err, and the value 0 becomes «port 0 reserved». Valid values are 1..=65535.",
    "hint": "map_err(|e| format!(…)) changes only the error; after it, ? passes up an already-String error."
   },
   {

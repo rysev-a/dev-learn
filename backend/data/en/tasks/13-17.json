@@ -17,7 +17,7 @@
   {
    "id": "json-roundtrip",
    "title": "Save and load JSON",
-   "statement": "Write functions save_json(path, data) and load_json(path): save a dictionary to a file (utf-8, Russian letters without escape codes) and read it back.",
+   "statement": "Write functions save_json(path, data) and load_json(path): save a dictionary to a file (utf-8, non-ASCII letters such as «é» and «ü» written as they are, without \\uXXXX escape codes) and read it back.",
    "hint": "json.dump(data, f, ensure_ascii=False) and json.load(f) inside with open(..., encoding='utf-8')."
   },
   {

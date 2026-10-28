@@ -47,14 +47,14 @@
   {
    "id": "d11-tree-path",
    "title": "Subtree by path",
-   "statement": "Output all descendants of the category «Напитки» (id 2), but not the category itself: columns `id`, `name`; by id. Use the column `path`.",
+   "statement": "Output all descendants of the category «Hot drinks» (id 2), but not the category itself: columns `id`, `name`; by id. Use the column `path`.",
    "hint": "path LIKE '/1/2/%' and exclude the row itself.",
    "starter": "-- subtree\nSELECT\n"
   },
   {
    "id": "d11-adjacency-recursive",
    "title": "Ancestors via an adjacency list",
-   "statement": "Output all ancestors of the category «Чай» (id 3), from the nearest to the root: columns `id`, `name`, `depth` (1 — the parent). Order by depth.",
+   "statement": "Output all ancestors of the category «Tea» (id 3), from the nearest to the root: columns `id`, `name`, `depth` (1 — the parent). Order by depth.",
    "hint": "WITH RECURSIVE: start with the parent of node 3, then climb via parent_id, increasing depth.",
    "starter": "-- recursive climb\nWITH RECURSIVE\n"
   },
@@ -82,14 +82,14 @@
   {
    "id": "d11-fk-cascade",
    "title": "Cascade delete",
-   "statement": "Delete the client «Анна» (id 1). Thanks to the foreign key with ON DELETE CASCADE her orders must disappear by themselves. The result is checked by the table orders.",
+   "statement": "Delete the client «Anna» (id 1). Thanks to the foreign key with ON DELETE CASCADE her orders must disappear by themselves. The result is checked by the table orders.",
    "hint": "SQLite enables foreign keys with PRAGMA foreign_keys = ON; after that a DELETE of the client is enough.",
    "starter": "-- delete the client\nDELETE FROM\n"
   },
   {
    "id": "d11-snapshot-price",
    "title": "Price at the time of purchase",
-   "statement": "Add a column price_at_purchase to order_items, fill it with the current product price (UPDATE), and then raise the price of tea («чай») to 150. The result is checked by a query: the sum of price_at_purchase * qty per order (order_id, total) — it must not change because of the new price.",
+   "statement": "Add a column price_at_purchase to order_items, fill it with the current product price (UPDATE), and then raise the price of tea («tea») to 150. The result is checked by a query: the sum of price_at_purchase * qty per order (order_id, total) — it must not change because of the new price.",
    "hint": "ADD COLUMN, then UPDATE with a price subquery, and only then change the price in products.",
    "starter": "-- price copy in the line item\nALTER TABLE order_items\n"
   },

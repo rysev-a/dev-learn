@@ -24,8 +24,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = D0·nS ИЛИ D1·S",
-        "success": "Выбор канала — это два «ключа» (элемента И), из которых ИЛИ собирает один сигнал. Парные сигналы S и nS в железе называют парафазными: так не тратят время и вентиль на инверсию в каждой точке.",
+        "formula": "Y = D0·nS OR D1·S",
+        "success": "Channel selection is two “keys” (AND gates) whose outputs an OR merges into one signal. Paired signals S and nS are called dual-rail in hardware: this saves the time and the gate that an inversion would cost at every point.",
         "solution": {
           "gates": [
             {
@@ -150,8 +150,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ(НЕ-S·D0 ИЛИ S·D1)",
-        "success": "ИЛИ + НЕ слились в один ИЛИ-НЕ: так схемы экономят вентили. В реальных чипах инвертирующие элементы проще и быстрее неинвертирующих — их «чистая» форма и есть базовая.",
+        "formula": "Y = NOT(NOT-S·D0 OR S·D1)",
+        "success": "OR + NOT merged into one NOR: this is how circuits save gates. In real chips inverting gates are simpler and faster than non-inverting ones; the “pure” inverting form is the basic one.",
         "solution": {
           "gates": [
             {
@@ -293,8 +293,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = E · (НЕ-S·D0 ИЛИ S·D1)",
-        "success": "Вход разрешения (enable, chip select) есть почти у каждого блока в процессоре: он «отключает» блок от шины. Приём тот же, что вы уже знаете, — ключ на элементе И.",
+        "formula": "Y = E · (NOT-S·D0 OR S·D1)",
+        "success": "Almost every block in a processor has an enable (chip select) input: it “disconnects” the block from the bus. The trick is the one you already know, a key built on an AND gate.",
         "solution": {
           "gates": [
             {
@@ -464,8 +464,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ-S·B ИЛИ S·НЕ-B",
-        "success": "Загляните в таблицу: это же XOR! «Управляемый инвертор» — основа вычитания в АЛУ: чтобы вычесть число, его биты инвертируют (S = 1), а затем складывают.",
+        "formula": "Y = NOT-S·B OR S·NOT-B",
+        "success": "Look at the table: this is XOR! The “controlled inverter” is the basis of subtraction in the ALU: to subtract a number, its bits are inverted (S = 1) and then added.",
         "solution": {
           "gates": [
             {
@@ -624,8 +624,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y0 = D·НЕ-S; Y1 = D·S",
-        "success": "Демультиплексор — «распределитель»: один сигнал направляется в выбранный канал. Так процессор рассылает данные по шинам: адрес на входах выбора — и данные текут в нужный регистр.",
+        "formula": "Y0 = D·NOT-S; Y1 = D·S",
+        "success": "A demultiplexer is a “distributor”: one signal is routed into the selected channel. This is how a processor sends data over buses: put an address on the select inputs and the data flows into the right register.",
         "solution": {
           "gates": [
             {
@@ -750,8 +750,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y0 = НЕ-S1·НЕ-S0; Y1 = НЕ-S1·S0; Y2 = S1·НЕ-S0; Y3 = S1·S0",
-        "success": "Дешифратор превращает число в «один из N»: из двоичного кода получается позиционный. Так процессор по номеру регистра в команде выбирает нужный регистр.",
+        "formula": "Y0 = NOT-S1·NOT-S0; Y1 = NOT-S1·S0; Y2 = S1·NOT-S0; Y3 = S1·S0",
+        "success": "A decoder turns a number into “one of N”: a binary code becomes a positional one. This is how a processor uses the register number in an instruction to select the right register.",
         "solution": {
           "gates": [
             {
@@ -980,8 +980,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Yk = D · (двоичный код k на S1 S0)",
-        "success": "Это уже «дешифратор с данными» — половина адресной логики. Именно так выбирается одна ячейка памяти из четырёх: адрес на входах — и данные записываются только в неё.",
+        "formula": "Yk = D · (binary code of k on S1 S0)",
+        "success": "This is already a “decoder with data”, half of the address logic. It is exactly how one memory cell out of four is chosen: put the address on the inputs and the data is written only into that cell.",
         "solution": {
           "gates": [
             {
@@ -1266,8 +1266,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Yk = (код k на S2 S1 S0)",
-        "success": "Двухступенчатый дешифратор — так строят и большие: 8 → 16 → 256. Тот же приём (предварительная дешифрация) применяют в адресных шинах памяти.",
+        "formula": "Yk = (code of k on S2 S1 S0)",
+        "success": "A two-stage decoder is how big ones are built too: 8 → 16 → 256. The same trick (predecoding) is used in memory address buses.",
         "solution": {
           "gates": [
             {
@@ -1789,8 +1789,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y1 = I2+I3; Y0 = I3 + I1·НЕ-I2; V = I0+I1+I2+I3",
-        "success": "Приоритетные шифраторы решают «кто первым»: какое из прерываний обслужить, какое устройство получит шину. Сигнал V нужен, чтобы отличить «номер 0» от «ничего не горит».",
+        "formula": "Y1 = I2+I3; Y0 = I3 + I1·NOT-I2; V = I0+I1+I2+I3",
+        "success": "Priority encoders settle “who goes first”: which interrupt to serve, which device gets the bus. Signal V is needed to tell “number 0” from “nothing is lit”.",
         "solution": {
           "gates": [
             {
@@ -2043,8 +2043,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y1 = НЕ-S·A1 ИЛИ S·B1; Y0 = НЕ-S·A0 ИЛИ S·B0",
-        "success": "Так процессор выбирает, откуда взять число — из регистра или из константы в команде. Ширина шины растёт копированием: 8 или 64 бита — это те же мультиплексоры, поставленные в ряд, с общим S.",
+        "formula": "Y1 = NOT-S·A1 OR S·B1; Y0 = NOT-S·A0 OR S·B0",
+        "success": "This is how a processor chooses where a number comes from: a register or a constant in the instruction. Bus width grows by copying: 8 or 64 bits are the same multiplexers placed in a row with a common S.",
         "solution": {
           "gates": [
             {
@@ -2347,7 +2347,7 @@
         "clock": null,
         "ticks": false,
         "formula": "Y = D[S1 S0]",
-        "success": "Дерево мультиплексоров: каждый уровень удваивает число каналов. Мультиплексор 64→1 — это 63 мультиплексора 2→1. Через такую логику в процессоре читаются регистры.",
+        "success": "A tree of multiplexers: each level doubles the number of channels. A 64→1 multiplexer is 63 2→1 multiplexers. Registers are read through logic like this in a processor.",
         "solution": {
           "gates": [
             {
@@ -2674,8 +2674,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = D0·НЕ-S ИЛИ D1·S, только из ИЛИ-НЕ",
-        "success": "ИЛИ-НЕ универсален: из него одного собирается любая схема — в том числе весь процессор (так и было в бортовом компьютере Apollo). Это доказывает: дело не в наборе элементов, а в том, как они соединены.",
+        "formula": "Y = D0·NOT-S OR D1·S, using NOR only",
+        "success": "NOR is universal: any circuit can be built from it alone, including a whole processor (the Apollo guidance computer did exactly that). It shows that what matters is not the set of gates but how they are connected.",
         "solution": {
           "gates": [
             {

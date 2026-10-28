@@ -5,8 +5,8 @@
   {
    "id": "s02-01",
    "title": "One condition",
-   "statement": "Output all customers from Moscow: WHERE city = `'Москва'`. All columns of customers.",
-   "hint": "WHERE city = `'Москва'`"
+   "statement": "Output all customers from Moscow: WHERE city = `'Moscow'`. All columns of customers.",
+   "hint": "WHERE city = `'Moscow'`"
   },
   {
    "id": "s02-02",
@@ -67,49 +67,49 @@
   {
    "id": "s02-10",
    "title": "AND",
-   "statement": "Output customers from Moscow who have VIP status (vip = 1): columns name, city. The city is `'Москва'`.",
+   "statement": "Output customers from Moscow who have VIP status (vip = 1): columns name, city. The city is `'Moscow'`.",
    "hint": "AND: both conditions must hold.",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-11",
    "title": "OR",
-   "statement": "Output name and city of customers from Kazan or Tver (`'Казань'` or `'Тверь'`).",
+   "statement": "Output name and city of customers from Kazan or Tver (`'Kazan'` or `'Tver'`).",
    "hint": "OR: one condition is enough.",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-12",
    "title": "NOT",
-   "statement": "Output title of products that do not belong to the category `'Продукты'` (NOT).",
+   "statement": "Output title of products that do not belong to the category `'Groceries'` (NOT).",
    "hint": "NOT turns the condition into its opposite.",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-13",
    "title": "AND over OR precedence",
-   "statement": "Output title, category, price of products from `'Книги'` or `'Канцелярия'` that are cheaper than 1300. Without parentheses AND is stronger than OR, so place parentheses so that the price condition applies to both categories.",
+   "statement": "Output title, category, price of products from `'Books'` or `'Art supplies'` that are cheaper than 1300. Without parentheses AND is stronger than OR, so place parentheses so that the price condition applies to both categories.",
    "hint": "(category = ... OR category = ...) AND price < 1300",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-14",
    "title": "Precedence trap",
-   "statement": "Output title of products: category `'Электроника'` AND price greater than 40000, OR category `'Книги'`. The condition reads as (category = `'Электроника'` AND price > 40000) OR category = `'Книги'`.",
+   "statement": "Output title of products: category `'Tech'` AND price greater than 40000, OR category `'Books'`. The condition reads as (category = `'Tech'` AND price > 40000) OR category = `'Books'`.",
    "hint": "",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-15",
    "title": "IN: a list",
-   "statement": "Using IN, output name of customers from the cities `'Москва'`, `'Омск'` and `'Тверь'`.",
-   "hint": "city IN (`'Москва'`, `'Омск'`, `'Тверь'`)",
+   "statement": "Using IN, output name of customers from the cities `'Moscow'`, `'Omsk'` and `'Tver'`.",
+   "hint": "city IN (`'Moscow'`, `'Omsk'`, `'Tver'`)",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-16",
    "title": "NOT IN",
-   "statement": "Output title of products whose category is not in the list (`'Продукты'`, `'Книги'`).",
+   "statement": "Output title of products whose category is not in the list (`'Groceries'`, `'Books'`).",
    "hint": "",
    "starter": "-- Write the query\n"
   },
@@ -151,7 +151,7 @@
   {
    "id": "s02-22",
    "title": "LIKE: the start",
-   "statement": "Output title of products that start with the word «Книга» (LIKE `'Книга%'`).",
+   "statement": "Output title of products that start with the word «Book» (LIKE `'Book%'`).",
    "hint": "% is any sequence of characters.",
    "starter": "-- Write the query\n"
   },
@@ -165,28 +165,28 @@
   {
    "id": "s02-24",
    "title": "LIKE: inside",
-   "statement": "Output title of products whose name contains the letter «ы» (LIKE `'%ы%'`).",
+   "statement": "Output title of products whose name contains the letter «y» (LIKE `'%y%'`).",
    "hint": "",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-25",
    "title": "LIKE: one character",
-   "statement": "The _ sign stands for exactly one arbitrary character. Output title of products that have exactly three characters after the word «Книга » (with a space): LIKE `'Книга ___'`.",
-   "hint": "Three underscores after «Книга ».",
+   "statement": "The _ sign stands for exactly one arbitrary character. Output title of products that have exactly three characters after the word «Book » (with a space): LIKE `'Book ___'`.",
+   "hint": "Three underscores after «Book ».",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-26",
    "title": "NOT LIKE",
-   "statement": "Output title of products whose names do not contain the word «Книга».",
+   "statement": "Output title of products whose names do not contain the word «Book».",
    "hint": "",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s02-27",
    "title": "Several conditions",
-   "statement": "Output title, price of products in the category `'Электроника'` that are cheaper than 50000 and have more than 10 units in stock.",
+   "statement": "Output title, price of products in the category `'Tech'` that are cheaper than 50000 and have more than 10 units in stock.",
    "hint": "",
    "starter": "-- Write the query\n"
   },
@@ -305,7 +305,7 @@
   {
    "id": "s02-44",
    "title": "Genre and year",
-   "statement": "Films database. Output title of films of the genre `'фантастика'` released after 2012.",
+   "statement": "Films database. Output title of films of the genre `'sci-fi'` released after 2012.",
    "hint": "",
    "starter": "-- Write the query\n"
   }

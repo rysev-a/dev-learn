@@ -41,7 +41,7 @@
   {
    "id": "pj-cli-main",
    "title": "The project's command line",
-   "statement": "Write main(argv=None): argparse with a required --name, an optional --times (an integer, 1 by default) and a --shout flag. It prints the greeting \"Здравствуйте, <name>!\" the required number of times (with --shout, in upper case) and returns 0. An argument error is the normal argparse behavior (SystemExit with code 2).",
+   "statement": "Write main(argv=None): argparse with a required --name, an optional --times (an integer, 1 by default) and a --shout flag. It prints the greeting \"Greetings, <name>!\" the required number of times (with --shout, in upper case) and returns 0. An argument error is the normal argparse behavior (SystemExit with code 2).",
    "hint": "parser = argparse.ArgumentParser(); parser.add_argument(\"--name\", required=True); --times type=int default=1; --shout action=\"store_true\"."
   },
   {

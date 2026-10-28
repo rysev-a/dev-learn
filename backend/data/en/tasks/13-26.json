@@ -29,8 +29,8 @@
   {
    "id": "logged-deco",
    "title": "A decorator with a log",
-   "statement": "Write a decorator logged: before each call it prints «вызов <имя функции>» (that is, the Russian word «вызов», a space and the function's name), then calls the function and returns its result. The function's name and docstring must be preserved (functools.wraps).",
-   "hint": "@wraps(func) above wrapper(*args, **kwargs); `print(f'вызов {func.__name__}')`; return func(*args, **kwargs)."
+   "statement": "Write a decorator logged: before each call it prints call <function name> (the word call, a space and the function's name), then calls the function and returns its result. The function's name and docstring must be preserved (functools.wraps).",
+   "hint": "@wraps(func) above wrapper(*args, **kwargs); `print(f'call {func.__name__}')`; return func(*args, **kwargs)."
   },
   {
    "id": "repeat-deco",

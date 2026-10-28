@@ -984,7 +984,7 @@ class LRUCache:
         self.head.next = self.tail
         self.tail.prev = self.head
 
-    # get, put (и вспомогательные методы работы со списком)
+    # get, put (and helper methods for working with the list)
 ', 'get: найти узел в таблице, вырезать из списка, вставить после head. put: если ключ есть — обновить и освежить; иначе при переполнении удалить tail.prev (и из списка, и из таблицы), затем вставить новый узел.', '{"driver": "import ast as _ast\ntry:\n    _src = open(\"/sandbox/solution.py\", encoding=\"utf-8\").read()\nexcept OSError:\n    _src = \"\"\n_bad = set()\nfor _top in _ast.parse(_src).body:\n    if isinstance(_top, _ast.ClassDef) and _top.name == \"HashMap\":\n        continue\n    for _n in _ast.walk(_top):\n        if isinstance(_n, (_ast.Dict, _ast.Set, _ast.DictComp, _ast.SetComp)):\n            _bad.add(\"dict or set literal\")\n        elif isinstance(_n, _ast.Call) and isinstance(_n.func, _ast.Name) and _n.func.id in (\"dict\", \"set\", \"frozenset\"):\n            _bad.add(_n.func.id + \"()\")\n        elif isinstance(_n, (_ast.Import, _ast.ImportFrom)):\n            _bad.add(\"import\")\nprint(\"dicts and sets not used\" if not _bad else \"FORBIDDEN: \" + \", \".join(sorted(_bad)))\nc = LRUCache(2)\nc.put(1, 1)\nc.put(2, 2)\nprint(c.get(1))\nc.put(3, 3)\nprint(c.get(2))\nc.put(4, 4)\nprint(c.get(1), c.get(3), c.get(4))\nc.put(4, 40)\nprint(c.get(4), len(c.table))\nbig = LRUCache(1000)\nx = 11\ntotal = 0\nfor i in range(200000):\n    x = (x * 1103515245 + 12345) % 2147483648\n    k = x % 1500\n    if x % 2:\n        big.put(k, i)\n    else:\n        total += big.get(k)\nprint(total, len(big.table))\n", "expected": ["dicts and sets not used", "1", "-1", "-1 3 4", "40 2", "-100000 750"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (7, 5, 'top-k-own-map', 18, 'stdout', 'k самых частых', 'Напишите функцию top_k(nums, k): k самых частых значений массива в порядке убывания частоты, при равенстве частот — по возрастанию значения. Гарантируется, что k не больше числа различных значений. Считайте частоты в таблице. Проверка подаёт 300 000 чисел. Готовая таблица HashMap лежит в заготовке — используйте только её put / get / remove / in / len / keys / items. Литералы словарей и множеств, dict(), set() и импорты запрещены.', 'class HashMap:
     """Hash table with chaining: put / get / remove / in / len / keys / items."""
@@ -1216,7 +1216,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     def __init__(self, a):
         self.n = len(a)
         self.t = [0] * (2 * self.n)
-        # построить дерево
+        # build the tree
 
     def update(self, i, v):
         pass

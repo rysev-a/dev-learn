@@ -29,7 +29,7 @@
   {
    "id": "j10-any",
    "title": "Your own Promise.any",
-   "statement": "Write a function firstFulfilled(list): returns a promise fulfilled with the value of the first successful item of list (values and promises); if all are rejected (or the array is empty), it rejects with an AggregateError with the array of reasons in the original order and the message «Все отклонены». You may not use Promise.any.",
+   "statement": "Write a function firstFulfilled(list): returns a promise fulfilled with the value of the first successful item of list (values and promises); if all are rejected (or the array is empty), it rejects with an AggregateError with the array of reasons in the original order and the message «All rejected». You may not use Promise.any.",
    "hint": "A wrapper promise: resolve for the first success, while failures accumulate by index."
   },
   {
@@ -41,7 +41,7 @@
   {
    "id": "j10-poll",
    "title": "Polling until ready",
-   "statement": "Write a function pollUntil(check, { interval, maxAttempts }): check() is an async function returning a value; repeat the call every interval ms until the result becomes truthy, then return it; after maxAttempts failed checks, reject with Error(\"не дождались после N попыток\"). Wait interval ms between checks (no pause after the last one).",
+   "statement": "Write a function pollUntil(check, { interval, maxAttempts }): check(n) is an async function (it receives the attempt number starting from 1) returning a value; repeat the call every interval ms until the result becomes truthy, then return it; after maxAttempts failed checks, reject with Error(\"gave up after N attempts\"). Wait interval ms between checks (no pause after the last one).",
    "hint": "A loop over attempts: await check(), on failure pause, except after the last attempt."
   },
   {
@@ -107,7 +107,7 @@
   {
    "id": "j10-order",
    "title": "Predict the order: microtasks and timers",
-   "statement": "Write a function run(log): using log(string), print the sequence «1 синхронно», «2 промис», «3 вложенный промис», «4 таймер», using setTimeout(…, 0), Promise.resolve().then (including a nested then inside a handler) and a synchronous call. The required output order comes out only with the right arrangement.",
+   "statement": "Write a function run(log): using log(string), print the sequence «1 sync», «2 promise», «3 nested promise», «4 timer», using setTimeout(…, 0), Promise.resolve().then (including a nested then inside a handler) and a synchronous call. The required output order comes out only with the right arrangement.",
    "hint": "Microtasks added inside a microtask run before the next timer."
   },
   {
@@ -173,9 +173,9 @@
   {
    "id": "j10-fix-try-return",
    "title": "Fix: the error slips past catch",
-   "statement": "The function safeLoad(load) must return the fallback value «нет данных» if load() rejects. Right now it returns a promise without await inside try, so the rejection passes by the catch. Fix it, keeping the try/catch.",
+   "statement": "The function safeLoad(load) must return the fallback value «no data» if load() rejects. Right now it returns a promise without await inside try, so the rejection passes by the catch. Fix it, keeping the try/catch.",
    "hint": "return await load() inside try.",
-   "starter": "async function safeLoad(load) {\n  try {\n    return load();\n  } catch (e) {\n    return \"нет данных\";\n  }\n}\n"
+   "starter": "async function safeLoad(load) {\n  try {\n    return load();\n  } catch (e) {\n    return \"no data\";\n  }\n}\n"
   },
   {
    "id": "j10-unhandled",

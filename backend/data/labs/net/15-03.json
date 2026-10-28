@@ -17,7 +17,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1",
+              "name": "PC 1",
               "x": 90,
               "y": 90,
               "ifaces": [
@@ -43,7 +43,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2",
+              "name": "PC 2",
               "x": 90,
               "y": 270,
               "ifaces": [
@@ -69,7 +69,7 @@
             {
               "id": "pc3",
               "kind": "host",
-              "name": "ПК 3",
+              "name": "PC 3",
               "x": 330,
               "y": 330,
               "ifaces": [
@@ -95,7 +95,7 @@
             {
               "id": "hub",
               "kind": "hub",
-              "name": "Хаб",
+              "name": "Hub",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -156,7 +156,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 500,
               "y": 180,
               "ifaces": [
@@ -253,7 +253,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует ПК 2",
+            "text": "PC 1 pings PC 2",
             "ping": {
               "from": "pc1",
               "to": "@pc2"
@@ -261,7 +261,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК 3 тоже в сети: пингует ПК 1",
+            "text": "PC 3 is on the network too: it pings PC 1",
             "ping": {
               "from": "pc3",
               "to": "@pc1"
@@ -269,7 +269,7 @@
           },
           {
             "id": "g3",
-            "text": "Кадры ПК 1 ↔ ПК 2 не доходят до ПК 3",
+            "text": "Frames between PC 1 and PC 2 do not reach PC 3",
             "ping": {
               "from": "pc1",
               "to": "@pc2",
@@ -315,7 +315,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1",
+              "name": "PC 1",
               "x": 80,
               "y": 280,
               "ifaces": [
@@ -341,7 +341,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2",
+              "name": "PC 2",
               "x": 560,
               "y": 280,
               "ifaces": [
@@ -542,7 +542,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует ПК 2",
+            "text": "PC 1 pings PC 2",
             "ping": {
               "from": "pc1",
               "to": "@pc2"
@@ -550,7 +550,7 @@
           },
           {
             "id": "g2",
-            "text": "В сети нет петли (кадры не ходят по кругу)",
+            "text": "The network has no loop (frames do not go in circles)",
             "ping": {
               "from": "pc1",
               "to": "@pc2",
@@ -579,7 +579,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1 (бухг.)",
+              "name": "PC 1 (accounting)",
               "x": 100,
               "y": 80,
               "ifaces": [
@@ -605,7 +605,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2 (бухг.)",
+              "name": "PC 2 (accounting)",
               "x": 100,
               "y": 280,
               "ifaces": [
@@ -631,7 +631,7 @@
             {
               "id": "pc3",
               "kind": "host",
-              "name": "ПК 3 (разр.)",
+              "name": "PC 3 (dev)",
               "x": 540,
               "y": 80,
               "ifaces": [
@@ -657,7 +657,7 @@
             {
               "id": "pc4",
               "kind": "host",
-              "name": "ПК 4 (разр.)",
+              "name": "PC 4 (dev)",
               "x": 540,
               "y": 280,
               "ifaces": [
@@ -683,7 +683,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -786,7 +786,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует ПК 2 (бухгалтерия)",
+            "text": "PC 1 pings PC 2 (accounting)",
             "ping": {
               "from": "pc1",
               "to": "@pc2"
@@ -794,7 +794,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК 3 пингует ПК 4 (разработка)",
+            "text": "PC 3 pings PC 4 (development)",
             "ping": {
               "from": "pc3",
               "to": "@pc4"
@@ -802,7 +802,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК 1 не достаёт до ПК 3",
+            "text": "PC 1 does not reach PC 3",
             "ping": {
               "from": "pc1",
               "to": "@pc3",
@@ -811,7 +811,7 @@
           },
           {
             "id": "g4",
-            "text": "ПК 2 не достаёт до ПК 4",
+            "text": "PC 2 does not reach PC 4",
             "ping": {
               "from": "pc2",
               "to": "@pc4",
@@ -855,7 +855,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1 (бухг.)",
+              "name": "PC 1 (accounting)",
               "x": 90,
               "y": 90,
               "ifaces": [
@@ -881,7 +881,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2 (разр.)",
+              "name": "PC 2 (dev)",
               "x": 90,
               "y": 270,
               "ifaces": [
@@ -907,7 +907,7 @@
             {
               "id": "pc3",
               "kind": "host",
-              "name": "ПК 3 (бухг.)",
+              "name": "PC 3 (accounting)",
               "x": 550,
               "y": 90,
               "ifaces": [
@@ -933,7 +933,7 @@
             {
               "id": "pc4",
               "kind": "host",
-              "name": "ПК 4 (разр.)",
+              "name": "PC 4 (dev)",
               "x": 550,
               "y": 270,
               "ifaces": [
@@ -959,7 +959,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор 1 эт.",
+              "name": "Switch, floor 1",
               "x": 230,
               "y": 180,
               "ifaces": [
@@ -1034,7 +1034,7 @@
             {
               "id": "sw2",
               "kind": "switch",
-              "name": "Коммутатор 2 эт.",
+              "name": "Switch, floor 2",
               "x": 410,
               "y": 180,
               "ifaces": [
@@ -1143,7 +1143,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует ПК 3 (бухгалтерия через этажи)",
+            "text": "PC 1 pings PC 3 (accounting across floors)",
             "ping": {
               "from": "pc1",
               "to": "@pc3"
@@ -1151,7 +1151,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК 2 пингует ПК 4 (разработка через этажи)",
+            "text": "PC 2 pings PC 4 (development across floors)",
             "ping": {
               "from": "pc2",
               "to": "@pc4"
@@ -1159,7 +1159,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК 1 не достаёт до ПК 2",
+            "text": "PC 1 does not reach PC 2",
             "ping": {
               "from": "pc1",
               "to": "@pc2",
@@ -1168,7 +1168,7 @@
           },
           {
             "id": "g4",
-            "text": "ПК 1 не достаёт до ПК 4",
+            "text": "PC 1 does not reach PC 4",
             "ping": {
               "from": "pc1",
               "to": "@pc4",

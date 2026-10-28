@@ -10,8 +10,8 @@
       "hint": "Адрес UART — 0x10000000, пусть он лежит в t0. Для каждого символа: li t1, 'H' и sb t1, 0(t0). Перевод строки — число 10. Последней командой — ebreak.",
       "spec": {
         "profile": "board",
-        "starter": "# Выведите «Hi!» и перевод строки в UART (адрес 0x10000000)\n\n  ebreak\n",
-        "reference": "  li   t0, 0x10000000   # адрес UART\n  li   t1, 'H'\n  sb   t1, 0(t0)\n  li   t1, 'i'\n  sb   t1, 0(t0)\n  li   t1, '!'\n  sb   t1, 0(t0)\n  li   t1, 10           # перевод строки\n  sb   t1, 0(t0)\n  ebreak\n",
+        "starter": "# Print “Hi!” and a newline to the UART (address 0x10000000)\n\n  ebreak\n",
+        "reference": "  li   t0, 0x10000000   # UART address\n  li   t1, 'H'\n  sb   t1, 0(t0)\n  li   t1, 'i'\n  sb   t1, 0(t0)\n  li   t1, '!'\n  sb   t1, 0(t0)\n  li   t1, 10           # newline\n  sb   t1, 0(t0)\n  ebreak\n",
         "data": "",
         "max_steps": 200000,
         "tests": [
@@ -20,7 +20,7 @@
             "check": {
               "kind": "uart",
               "expected": "Hi!\n",
-              "ok": "В консоли «Hi!» — всё верно."
+              "ok": "The console shows “Hi!”, all correct."
             }
           }
         ]
@@ -33,8 +33,8 @@
       "hint": "Указатель на строку в t1 (la t1, msg). В цикле: lbu t2, 0(t1); если t2 равен нулю (beqz) — конец; иначе sb t2, 0(t0); addi t1, t1, 1; j цикл.",
       "spec": {
         "profile": "board",
-        "starter": "# Выведите строку msg в UART (адрес 0x10000000)\n\n  ebreak\n",
-        "reference": "  li   t0, 0x10000000   # UART\n  la   t1, msg          # указатель на строку\nцикл:\n  lbu  t2, 0(t1)\n  beqz t2, конец        # нулевой байт — конец строки\n  sb   t2, 0(t0)\n  addi t1, t1, 1\n  j    цикл\nконец:\n  ebreak\n",
+        "starter": "# Print the string msg to the UART (address 0x10000000)\n\n  ebreak\n",
+        "reference": "  li   t0, 0x10000000   # UART\n  la   t1, msg          # pointer to the string\nloop:\n  lbu  t2, 0(t1)\n  beqz t2, end        # zero byte - end of string\n  sb   t2, 0(t0)\n  addi t1, t1, 1\n  j    loop\nend:\n  ebreak\n",
         "data": "msg:\n  .asciz \"Hello, RISC-V!\\n\"\n",
         "max_steps": 200000,
         "tests": [
@@ -43,7 +43,7 @@
             "check": {
               "kind": "uart",
               "expected": "Hello, RISC-V!\n",
-              "ok": "Вся строка выведена, нулевой байт — нет."
+              "ok": "The whole string is printed, the zero byte is not."
             }
           }
         ]
@@ -56,8 +56,8 @@
       "hint": "li t0, 0x10001000 — адрес светодиодов; li t1, 0xA5 — узор; sw t1, 0(t0).",
       "spec": {
         "profile": "board",
-        "starter": "# Зажгите узор 1010 0101 на светодиодах (адрес 0x10001000)\n\n  ebreak\n",
-        "reference": "  li   t0, 0x10001000   # светодиоды\n  li   t1, 0xA5         # 1010 0101\n  sw   t1, 0(t0)\n  ebreak\n",
+        "starter": "# Light the pattern 1010 0101 on the LEDs (address 0x10001000)\n\n  ebreak\n",
+        "reference": "  li   t0, 0x10001000   # LEDs\n  li   t1, 0xA5         # 1010 0101\n  sw   t1, 0(t0)\n  ebreak\n",
         "data": "",
         "max_steps": 200000,
         "tests": [
@@ -66,7 +66,7 @@
             "check": {
               "kind": "leds",
               "expected": 165,
-              "ok": "Светодиоды горят по узору 1010 0101."
+              "ok": "The LEDs show the pattern 1010 0101."
             }
           }
         ]
@@ -79,8 +79,8 @@
       "hint": "lw читает переключатели; not (то есть xori с −1) переворачивает все 32 бита, а светодиодам нужны только младшие 8: добавьте andi t2, t2, 0xff (или просто пишите — устройство и так берёт 8 бит).",
       "spec": {
         "profile": "board",
-        "starter": "# Прочитайте переключатели (0x10001004) и зажгите инверсию на светодиодах (0x10001000)\n\n  ebreak\n",
-        "reference": "  li   t0, 0x10001004   # переключатели\n  li   t1, 0x10001000   # светодиоды\n  lw   t2, 0(t0)\n  not  t2, t2\n  andi t2, t2, 0xff\n  sw   t2, 0(t1)\n  ebreak\n",
+        "starter": "# Read the switches (0x10001004) and light the inverse pattern on the LEDs (0x10001000)\n\n  ebreak\n",
+        "reference": "  li   t0, 0x10001004   # switches\n  li   t1, 0x10001000   # LEDs\n  lw   t2, 0(t0)\n  not  t2, t2\n  andi t2, t2, 0xff\n  sw   t2, 0(t1)\n  ebreak\n",
         "data": "",
         "max_steps": 200000,
         "tests": [
@@ -89,8 +89,8 @@
             "check": {
               "kind": "leds",
               "expected": 77,
-              "ok": "Светодиоды показывают инверсию переключателей.",
-              "bad_suffix": " — инверсия 1011 0010"
+              "ok": "The LEDs show the inverse of the switches",
+              "bad_suffix": " — the inverse of 1011 0010"
             }
           }
         ]
@@ -103,8 +103,8 @@
       "hint": "Два регистра: сумма (сначала 0) и счётчик (сначала 1). В цикле: добавить счётчик к сумме, увеличить счётчик, повторять, пока он не превысит 100 (blt счётчик, 101, цикл — предел загрузите в регистр).",
       "spec": {
         "profile": "board",
-        "starter": "# Сумма 1 + 2 + … + 100 — в регистр a0\n\n  ebreak\n",
-        "reference": "  li   t0, 0            # сумма\n  li   t1, 1            # счётчик\n  li   t2, 101          # предел\nцикл:\n  add  t0, t0, t1\n  addi t1, t1, 1\n  blt  t1, t2, цикл\n  mv   a0, t0\n  ebreak\n",
+        "starter": "# The sum 1 + 2 + … + 100 goes to register a0\n\n  ebreak\n",
+        "reference": "  li   t0, 0            # sum\n  li   t1, 1            # counter\n  li   t2, 101          # limit\nloop:\n  add  t0, t0, t1\n  addi t1, t1, 1\n  blt  t1, t2, loop\n  mv   a0, t0\n  ebreak\n",
         "data": "",
         "max_steps": 200000,
         "tests": [
@@ -114,7 +114,7 @@
               "kind": "reg",
               "reg": 10,
               "expected": 5050,
-              "ok": "a0 = 5050 — сумма верна."
+              "ok": "a0 = 5050, the sum is correct."
             }
           }
         ]
@@ -127,8 +127,8 @@
       "hint": "Идите указателем: lbu читает, sb записывает. Буква строчная, если 'a' ≤ код ≤ 'z' — пропускайте всё, что меньше 'a' (bltu) или больше 'z' (bltu с переставленными регистрами). Иначе вычтите 32 и запишите обратно.",
       "spec": {
         "profile": "board",
-        "starter": "# Сделайте буквы строки text заглавными (строка в памяти, нулевой байт в конце)\n\n  ebreak\n",
-        "reference": "  la   t0, text\n  li   t2, 'a'\n  li   t3, 'z'\nцикл:\n  lbu  t1, 0(t0)\n  beqz t1, конец\n  bltu t1, t2, дальше   # меньше 'a'\n  bltu t3, t1, дальше   # больше 'z'\n  addi t1, t1, -32\n  sb   t1, 0(t0)\nдальше:\n  addi t0, t0, 1\n  j    цикл\nконец:\n  ebreak\n",
+        "starter": "# Make the letters of the string text uppercase (the string is in memory, with a zero byte at the end)\n\n  ebreak\n",
+        "reference": "  la   t0, text\n  li   t2, 'a'\n  li   t3, 'z'\nloop:\n  lbu  t1, 0(t0)\n  beqz t1, end\n  bltu t1, t2, next   # below 'a'\n  bltu t3, t1, next   # above 'z'\n  addi t1, t1, -32\n  sb   t1, 0(t0)\nnext:\n  addi t0, t0, 1\n  j    loop\nend:\n  ebreak\n",
         "data": "text:\n  .asciz \"risc-v is fun!\"\n",
         "max_steps": 200000,
         "tests": [
@@ -138,7 +138,7 @@
               "kind": "mem_cstr",
               "symbol": "text",
               "expected": "RISC-V IS FUN!",
-              "ok": "Строка в памяти: «RISC-V IS FUN!»."
+              "ok": "String in memory: “RISC-V IS FUN!”."
             }
           }
         ]
@@ -151,8 +151,8 @@
       "hint": "Начало функции: addi sp, sp, -16; sw ra, 12(sp); sw s0, 8(sp); mv s0, a0 (n сохраняем в s0 — этот регистр «неприкосновенный»). Если n < 2 — вернуть 1. Иначе: a0 = n − 1; call fact; mul a0, a0, s0. Конец: lw s0, 8(sp); lw ra, 12(sp); addi sp, sp, 16; ret.",
       "spec": {
         "profile": "board",
-        "starter": "# Вызовите fact(6) и остановитесь. Результат — в a0.\n  li   a0, 6\n  call fact\n  ebreak\n\nfact:\n  # ваш код\n  ret\n",
-        "reference": "  li   a0, 6\n  call fact\n  ebreak\n\nfact:\n  addi sp, sp, -16\n  sw   ra, 12(sp)       # адрес возврата — на стек\n  sw   s0, 8(sp)\n  mv   s0, a0           # n запоминаем в s0\n  li   t0, 2\n  blt  s0, t0, база     # n < 2 — вернуть 1\n  addi a0, s0, -1\n  call fact             # fact(n-1)\n  mul  a0, a0, s0       # n * fact(n-1)\n  j    выход\nбаза:\n  li   a0, 1\nвыход:\n  lw   s0, 8(sp)\n  lw   ra, 12(sp)\n  addi sp, sp, 16\n  ret\n",
+        "starter": "# Call fact(6) and stop. The result is in a0.\n  li   a0, 6\n  call fact\n  ebreak\n\nfact:\n  # your code\n  ret\n",
+        "reference": "  li   a0, 6\n  call fact\n  ebreak\n\nfact:\n  addi sp, sp, -16\n  sw   ra, 12(sp)       # return address - onto the stack\n  sw   s0, 8(sp)\n  mv   s0, a0           # keep n in s0\n  li   t0, 2\n  blt  s0, t0, base     # n < 2 - return 1\n  addi a0, s0, -1\n  call fact             # fact(n-1)\n  mul  a0, a0, s0       # n * fact(n-1)\n  j    leave\nbase:\n  li   a0, 1\nleave:\n  lw   s0, 8(sp)\n  lw   ra, 12(sp)\n  addi sp, sp, 16\n  ret\n",
         "data": "",
         "max_steps": 200000,
         "tests": [
@@ -171,7 +171,7 @@
                   "kind": "stack_returned"
                 }
               ],
-              "ok": "fact(6) = 720, и стек вернулся на место."
+              "ok": "fact(6) = 720, and the stack is back in place."
             }
           }
         ]
@@ -184,8 +184,8 @@
       "hint": "Пузырёк, как в Мини-8, но шаг — четыре байта: lw t3, 0(t2) и lw t4, 4(t2) читают соседей, sw возвращает их в обратном порядке. Номер элемента умножайте на 4 через slli.",
       "spec": {
         "profile": "board",
-        "starter": "# n — количество, arr — массив 32-битных слов со знаком. Отсортируйте по возрастанию.\n\n  ebreak\n",
-        "reference": "  la   s0, arr\n  la   t0, n\n  lw   s1, 0(t0)\nвнешний:\n  addi s1, s1, -1\n  blez s1, готово\n  li   t1, 0            # i\nвнутренний:\n  bge  t1, s1, внешний\n  slli t2, t1, 2\n  add  t2, t2, s0       # адрес arr[i]\n  lw   t3, 0(t2)\n  lw   t4, 4(t2)\n  ble  t3, t4, дальше   # уже по порядку\n  sw   t4, 0(t2)\n  sw   t3, 4(t2)\nдальше:\n  addi t1, t1, 1\n  j    внутренний\nготово:\n  ebreak\n",
+        "starter": "# n is the count, arr is an array of signed 32-bit words. Sort in ascending order.\n\n  ebreak\n",
+        "reference": "  la   s0, arr\n  la   t0, n\n  lw   s1, 0(t0)\nouter:\n  addi s1, s1, -1\n  blez s1, done\n  li   t1, 0            # i\ninner:\n  bge  t1, s1, outer\n  slli t2, t1, 2\n  add  t2, t2, s0       # address of arr[i]\n  lw   t3, 0(t2)\n  lw   t4, 4(t2)\n  ble  t3, t4, next   # already in order\n  sw   t4, 0(t2)\n  sw   t3, 4(t2)\nnext:\n  addi t1, t1, 1\n  j    inner\ndone:\n  ebreak\n",
         "data": "n:\n  .word 8\narr:\n  .word 5, -3, 99, 0, -100, 42, 7, -1\n",
         "max_steps": 200000,
         "tests": [
@@ -204,7 +204,7 @@
                 42,
                 99
               ],
-              "ok": "Массив отсортирован: −100, −3, −1, 0, 5, 7, 42, 99."
+              "ok": "The array is sorted: −100, −3, −1, 0, 5, 7, 42, 99."
             }
           }
         ]
@@ -217,8 +217,8 @@
       "hint": "Цикл из восьми проходов: запишите в светодиоды 1 или 0 (t3 переворачивайте xori t3, t3, 1); запомните время lw t4, 0(t1); прибавьте 200; в цикле ожидания читайте таймер и сравнивайте с пределом (bltu).",
       "spec": {
         "profile": "board",
-        "starter": "# LED0 — 0x10001000, таймер — 0x10002000. 8 переключений, каждое держится ≥ 200 тактов.\n\n  ebreak\n",
-        "reference": "  li   t0, 0x10001000   # светодиоды\n  li   t1, 0x10002000   # таймер\n  li   t2, 8            # сколько переключений\n  li   t3, 1            # что показывать сейчас\nцикл:\n  sw   t3, 0(t0)\n  lw   t4, 0(t1)        # время начала\n  addi t4, t4, 200      # когда можно дальше\nждём:\n  lw   t5, 0(t1)\n  bltu t5, t4, ждём\n  xori t3, t3, 1\n  addi t2, t2, -1\n  bnez t2, цикл\n  ebreak\n",
+        "starter": "# LED0 is at 0x10001000, the timer at 0x10002000. 8 toggles, each held for ≥ 200 cycles.\n\n  ebreak\n",
+        "reference": "  li   t0, 0x10001000   # LEDs\n  li   t1, 0x10002000   # timer\n  li   t2, 8            # how many toggles\n  li   t3, 1            # what to show now\nloop:\n  sw   t3, 0(t0)\n  lw   t4, 0(t1)        # start time\n  addi t4, t4, 200      # when we may go on\nwait:\n  lw   t5, 0(t1)\n  bltu t5, t4, wait\n  xori t3, t3, 1\n  addi t2, t2, -1\n  bnez t2, loop\n  ebreak\n",
         "data": "",
         "max_steps": 200000,
         "tests": [
@@ -228,7 +228,7 @@
               "kind": "blink",
               "toggles": 8,
               "min_gap": 200,
-              "ok": "LED мигает: 8 переключений, каждое — не меньше 200 тактов."
+              "ok": "The LED blinks: 8 toggles, each at least 200 cycles."
             }
           }
         ]

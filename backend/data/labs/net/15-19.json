@@ -15,7 +15,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК жертвы",
+              "name": "Victim PC",
               "x": 70,
               "y": 80,
               "ifaces": [
@@ -47,7 +47,7 @@
             {
               "id": "evil",
               "kind": "host",
-              "name": "ПК злоумышленника",
+              "name": "Attacker PC",
               "x": 70,
               "y": 290,
               "ifaces": [
@@ -131,7 +131,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -176,7 +176,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 450,
               "y": 180,
               "ifaces": [
@@ -209,7 +209,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 580,
               "y": 180,
               "ifaces": [
@@ -280,7 +280,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК пингует сайт",
+            "text": "PC pings the site",
             "ping": {
               "from": "pc",
               "to": "@web"
@@ -288,7 +288,7 @@
           },
           {
             "id": "g2",
-            "text": "Трафик ПК не проходит через ПК злоумышленника",
+            "text": "PC traffic does not pass through the attacker's PC",
             "ping": {
               "from": "pc",
               "to": "@web",
@@ -320,7 +320,7 @@
             {
               "id": "client",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -352,7 +352,7 @@
             {
               "id": "bot",
               "kind": "host",
-              "name": "Атакующий",
+              "name": "Attacker",
               "x": 60,
               "y": 290,
               "ifaces": [
@@ -389,7 +389,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 190,
               "y": 180,
               "ifaces": [
@@ -436,7 +436,7 @@
             {
               "id": "fw",
               "kind": "router",
-              "name": "Файрвол",
+              "name": "Firewall",
               "x": 330,
               "y": 180,
               "ifaces": [
@@ -469,7 +469,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 500,
               "y": 180,
               "ifaces": [
@@ -534,7 +534,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Клиент подключается к порту 80 во время атаки",
+            "text": "The client connects to port 80 during the attack",
             "tcp": {
               "from": "client",
               "to": "@web",
@@ -565,7 +565,7 @@
             {
               "id": "user",
               "kind": "host",
-              "name": "Пользователь",
+              "name": "User",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -597,7 +597,7 @@
             {
               "id": "scanner",
               "kind": "host",
-              "name": "Сканер",
+              "name": "Scanner",
               "x": 60,
               "y": 290,
               "ifaces": [
@@ -642,7 +642,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 190,
               "y": 180,
               "ifaces": [
@@ -689,7 +689,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 330,
               "y": 180,
               "ifaces": [
@@ -722,7 +722,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 500,
               "y": 180,
               "ifaces": [
@@ -799,7 +799,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Сканер не достаёт до SSH (порт 22)",
+            "text": "The scanner cannot reach SSH (port 22)",
             "tcp": {
               "from": "scanner",
               "to": "@srv",
@@ -809,7 +809,7 @@
           },
           {
             "id": "g2",
-            "text": "Telnet (23) закрыт для пользователя",
+            "text": "Telnet (23) is closed for the user",
             "tcp": {
               "from": "user",
               "to": "@srv",
@@ -819,7 +819,7 @@
           },
           {
             "id": "g3",
-            "text": "База (3306) закрыта снаружи",
+            "text": "The database (3306) is closed from outside",
             "tcp": {
               "from": "user",
               "to": "@srv",
@@ -829,7 +829,7 @@
           },
           {
             "id": "g4",
-            "text": "Пользователь по-прежнему работает по SSH",
+            "text": "The user can still use SSH",
             "tcp": {
               "from": "user",
               "to": "@srv",
@@ -838,7 +838,7 @@
           },
           {
             "id": "g5",
-            "text": "…и открывает сайт (80)",
+            "text": "…and opens the website (80)",
             "tcp": {
               "from": "user",
               "to": "@srv",
@@ -879,7 +879,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Гость из интернета",
+              "name": "Guest from the internet",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -911,7 +911,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Файрвол",
+              "name": "Firewall",
               "x": 230,
               "y": 180,
               "ifaces": [
@@ -998,7 +998,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб",
+              "name": "Web",
               "x": 520,
               "y": 60,
               "ifaces": [
@@ -1035,7 +1035,7 @@
             {
               "id": "app",
               "kind": "server",
-              "name": "Приложение",
+              "name": "Application",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -1072,7 +1072,7 @@
             {
               "id": "db",
               "kind": "server",
-              "name": "База данных",
+              "name": "Database",
               "x": 520,
               "y": 300,
               "ifaces": [
@@ -1143,7 +1143,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Гость открывает веб (443)",
+            "text": "Guest opens web (443)",
             "tcp": {
               "from": "guest",
               "to": "@web",
@@ -1152,7 +1152,7 @@
           },
           {
             "id": "g2",
-            "text": "Гость не достаёт до базы (3306)",
+            "text": "Guest cannot reach the database (3306)",
             "tcp": {
               "from": "guest",
               "to": "@db",
@@ -1162,7 +1162,7 @@
           },
           {
             "id": "g3",
-            "text": "Сервер приложений достаёт до базы",
+            "text": "The application server reaches the database",
             "tcp": {
               "from": "app",
               "to": "@db",

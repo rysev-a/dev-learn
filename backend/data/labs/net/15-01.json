@@ -17,7 +17,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1",
+              "name": "PC 1",
               "x": 160,
               "y": 180,
               "ifaces": [
@@ -43,7 +43,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2",
+              "name": "PC 2",
               "x": 480,
               "y": 180,
               "ifaces": [
@@ -72,7 +72,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует ПК 2",
+            "text": "PC 1 pings PC 2",
             "ping": {
               "from": "pc1",
               "to": "@pc2"
@@ -102,7 +102,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1",
+              "name": "PC 1",
               "x": 100,
               "y": 80,
               "ifaces": [
@@ -128,7 +128,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2",
+              "name": "PC 2",
               "x": 100,
               "y": 280,
               "ifaces": [
@@ -154,7 +154,7 @@
             {
               "id": "pc3",
               "kind": "host",
-              "name": "ПК 3",
+              "name": "PC 3",
               "x": 540,
               "y": 80,
               "ifaces": [
@@ -180,7 +180,7 @@
             {
               "id": "pc4",
               "kind": "host",
-              "name": "ПК 4",
+              "name": "PC 4",
               "x": 540,
               "y": 280,
               "ifaces": [
@@ -206,7 +206,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -284,7 +284,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 достаёт до ПК 2",
+            "text": "PC 1 reaches PC 2",
             "ping": {
               "from": "pc1",
               "to": "@pc2"
@@ -292,7 +292,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК 3 достаёт до ПК 4",
+            "text": "PC 3 reaches PC 4",
             "ping": {
               "from": "pc3",
               "to": "@pc4"
@@ -300,7 +300,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК 1 достаёт до ПК 4",
+            "text": "PC 1 reaches PC 4",
             "ping": {
               "from": "pc1",
               "to": "@pc4"
@@ -343,7 +343,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 90,
               "y": 180,
               "ifaces": [
@@ -382,7 +382,7 @@
             {
               "id": "r_fast",
               "kind": "router",
-              "name": "Быстрый",
+              "name": "Fast",
               "x": 320,
               "y": 80,
               "ifaces": [
@@ -415,7 +415,7 @@
             {
               "id": "r_slow",
               "kind": "router",
-              "name": "Медленный",
+              "name": "Slow",
               "x": 320,
               "y": 290,
               "ifaces": [
@@ -454,7 +454,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 550,
               "y": 180,
               "ifaces": [
@@ -526,7 +526,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Сервер отвечает быстрее 5 мс",
+            "text": "The server responds in under 5 ms",
             "ping": {
               "from": "pc1",
               "to": "@srv",
@@ -535,7 +535,7 @@
           },
           {
             "id": "g2",
-            "text": "Пакет идёт через «Быстрый»",
+            "text": "The packet goes through “Fast”",
             "ping": {
               "from": "pc1",
               "to": "@srv",
@@ -571,7 +571,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1",
+              "name": "PC 1",
               "x": 100,
               "y": 90,
               "ifaces": [
@@ -597,7 +597,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2",
+              "name": "PC 2",
               "x": 100,
               "y": 270,
               "ifaces": [
@@ -623,7 +623,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -698,7 +698,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 540,
               "y": 180,
               "ifaces": [
@@ -745,7 +745,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует ПК 2",
+            "text": "PC 1 pings PC 2",
             "ping": {
               "from": "pc1",
               "to": "@pc2"
@@ -753,7 +753,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК 1 пингует сервер",
+            "text": "PC 1 pings the server",
             "ping": {
               "from": "pc1",
               "to": "@srv"
@@ -761,7 +761,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК 2 открывает порт 80 сервера",
+            "text": "PC 2 opens port 80 on the server",
             "tcp": {
               "from": "pc2",
               "to": "@srv",
@@ -795,7 +795,7 @@
             {
               "id": "pa",
               "kind": "host",
-              "name": "ПК А",
+              "name": "PC A",
               "x": 100,
               "y": 180,
               "ifaces": [
@@ -821,7 +821,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -854,7 +854,7 @@
             {
               "id": "pb",
               "kind": "host",
-              "name": "ПК Б",
+              "name": "PC B",
               "x": 540,
               "y": 180,
               "ifaces": [
@@ -896,7 +896,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК А достаёт до ПК Б",
+            "text": "PC A reaches PC B",
             "ping": {
               "from": "pa",
               "to": "@pb"
@@ -904,7 +904,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК Б достаёт до ПК А",
+            "text": "PC B reaches PC A",
             "ping": {
               "from": "pb",
               "to": "@pa"

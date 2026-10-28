@@ -35,8 +35,8 @@
   {
    "id": "count-args",
    "title": "How many arguments",
-   "statement": "Write a function describe(*args, **kwargs): it returns a string like «2 позиционных, 1 именованных» (2 positional, 1 keyword): how many positional and how many keyword arguments were received. Return exactly the Russian words, in this format.",
-   "hint": "return f\"{len(args)} позиционных, {len(kwargs)} именованных\"."
+   "statement": "Write a function describe(*args, **kwargs): it returns a string like \"2 positional, 1 named\": how many positional and how many keyword arguments were received.",
+   "hint": "return f\"{len(args)} positional, {len(kwargs)} named\"."
   },
   {
    "id": "pure-append",

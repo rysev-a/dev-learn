@@ -61,7 +61,7 @@
   {
    "id": "s11-09",
    "title": "Initials",
-   "statement": "Output initials in the form «А.П.» (the first letter of the first name, a dot, the first letter of the last name, a dot) as `initials`; order by id.",
+   "statement": "Output initials in the form «A.P.» (the first letter of the first name, a dot, the first letter of the last name, a dot) as `initials`; order by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -111,13 +111,6 @@
    "id": "s11-16",
    "title": "Character code",
    "statement": "Output `unicode('A')` as `code` and `char(66, 67)` as `letters`.",
-   "hint": "",
-   "starter": "-- Write a query\n"
-  },
-  {
-   "id": "s11-17",
-   "title": "Characters and bytes",
-   "statement": "A Cyrillic character takes 2 bytes. Output `length('Анна')` as `chars` and `octet_length('Анна')` as `bytes`.",
    "hint": "",
    "starter": "-- Write a query\n"
   },

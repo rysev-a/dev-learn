@@ -5,25 +5,25 @@
   {
    "id": "w13-skeleton",
    "title": "A minimal document",
-   "statement": "Write a page skeleton from scratch: a doctype, an html element with language ru, and in the head the utf-8 encoding, a viewport (width=device-width) and the page title “Кофейня” (Coffee Shop). In the body, put a level-one heading.",
+   "statement": "Write a page skeleton from scratch: a doctype, an html element with language ru, and in the head the utf-8 encoding, a viewport (width=device-width) and the page title “Coffee Shop”. In the body, put a level-one heading.",
    "hint": "Order: <!doctype html>, then html lang=\"ru\" with two children, head and body. The head holds meta charset, meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" and title."
   },
   {
    "id": "w13-head",
    "title": "The page head",
-   "statement": "Complete the document head: the page must have the title “Рецепты” (Recipes), the utf-8 encoding, a viewport with width=device-width, the style.css stylesheet and the app.js script loaded with defer.",
+   "statement": "Complete the document head: the page must have the title “Recipes”, the utf-8 encoding, a viewport with width=device-width, the style.css stylesheet and the app.js script loaded with defer.",
    "hint": "Stylesheets are attached with link rel=\"stylesheet\" and href. The script needs the defer attribute, not async."
   },
   {
    "id": "w13-headings",
    "title": "Headings without gaps",
-   "statement": "The heading levels on the page are mixed up: an h3 comes right after the h1. Fix them: the sections “Сорта” (Varieties) and “Заварка” (Brewing) are level-two headings, while “Арабика” (Arabica) and “Робуста” (Robusta) are level-three. There must be no level-four headings.",
+   "statement": "The heading levels on the page are mixed up: an h3 comes right after the h1. Fix them: the sections “Varieties” and “Brewing” are level-two headings, while “Arabica” and “Robusta” are level-three. There must be no level-four headings.",
    "hint": "Pick the level by position in the structure: h1 is the title, h2 are sections, h3 are parts of sections. Do not skip levels."
   },
   {
    "id": "w13-nav",
    "title": "Navigation as a list of links",
-   "statement": "Build the site menu: a nav element containing a bulleted list of three items with the links “Главная” (Home), “Меню” (Menu) and “Контакты” (Contacts). Each link must have an href.",
+   "statement": "Build the site menu: a nav element containing a bulleted list of three items with the links “Home”, “Menu” and “Contacts”. Each link must have an href.",
    "hint": "A menu is a list of links: nav > ul > li > a. Each li contains one link."
   },
   {
@@ -35,7 +35,7 @@
   {
    "id": "w13-article",
    "title": "An article with a date",
-   "statement": "Mark up a blog post. The page title “Блог” (Blog) is an h1. The post itself is an article element containing a level-two heading, the date in a time element with a datetime attribute, and a paragraph of text.",
+   "statement": "Mark up a blog post. The page title “Blog” is an h1. The post itself is an article element containing a level-two heading, the date in a time element with a datetime attribute, and a paragraph of text.",
    "hint": "Write time like this: <time datetime=\"2026-05-06\">6 May 2026</time>. The post heading is an h2, because the h1 is already taken by the blog title."
   },
   {
@@ -47,7 +47,7 @@
   {
    "id": "w13-anchor",
    "title": "An anchor link",
-   "statement": "Turn the “К ценам” (To prices) link into an anchor: it must lead to the “Цены” (Prices) heading on the same page. To do that, give the heading the id prices, and give the link an address made of a hash sign and that id.",
+   "statement": "Turn the “To prices” link into an anchor: it must lead to the “Prices” heading on the same page. To do that, give the heading the id prices, and give the link an address made of a hash sign and that id.",
    "hint": "An identifier is set with the id attribute, and a link to it starts with a hash sign: href=\"#prices\"."
   },
   {
@@ -83,25 +83,25 @@
   {
    "id": "w13-inline",
    "title": "Small semantic elements",
-   "statement": "The paragraph contains an abbreviation, a date and an important remark. Mark them up: HTML with an abbr element whose expansion is in title, the date with a time element with datetime=\"2026-05-06\", the words “очень важно” (very important) with a strong element, and the word “разметки” (markup) with a mark element.",
+   "statement": "The paragraph contains an abbreviation, a date and an important remark. Mark them up: HTML with an abbr element whose expansion is in title, the date with a time element with datetime=\"2026-05-06\", the words “very important” with a strong element, and the word “markup” with a mark element.",
    "hint": "abbr gets its expansion in title, time gets the machine-readable date in datetime, strong marks importance, mark highlights for search. You do not need to change the paragraph text."
   },
   {
    "id": "w13-legacy",
    "title": "No obsolete tags",
-   "statement": "The fragment is written the 1990s way: centering and color are done with center and font. Rewrite it: the heading “Распродажа” (Sale) is an h1, the text is a p paragraph. There must be no center or font tags and no style, color or align attributes.",
+   "statement": "The fragment is written the 1990s way: centering and color are done with center and font. Rewrite it: the heading “Sale” is an h1, the text is a p paragraph. There must be no center or font tags and no style, color or align attributes.",
    "hint": "Presentation is a job for styles, not markup. The markup keeps only the meaning: a heading and a paragraph."
   },
   {
    "id": "w13-parse",
    "title": "A document with no parse errors",
-   "statement": "The browser silently repairs markup, but the errors remain: an unclosed heading, tags closed in the wrong order, a stray closing tag. Fix the document so that it parses with no complaints. Keep the heading “Покупки” (Shopping) and the two list items.",
+   "statement": "The browser silently repairs markup, but the errors remain: an unclosed heading, tags closed in the wrong order, a stray closing tag. Fix the document so that it parses with no complaints. Keep the heading “Shopping” and the two list items.",
    "hint": "Every opened tag is closed, in reverse order: <b><i>…</i></b>. Just delete the stray closing tag."
   },
   {
    "id": "w13-a11y",
    "title": "An accessible page",
-   "statement": "The subscription page is not accessible to a screen reader. Fix it: add the document language, a level-one heading instead of the div “Подписка на рассылку” (Newsletter subscription), a description for the logo in alt, a label for the email field, and wrap the content in main.",
+   "statement": "The subscription page is not accessible to a screen reader. Fix it: add the document language, a level-one heading instead of the div “Newsletter subscription”, a description for the logo in alt, a label for the email field, and wrap the content in main.",
    "hint": "Link the field to its label with for and id: <label for=\"email\">…</label><input id=\"email\">. The logo needs a non-empty alt."
   },
   {

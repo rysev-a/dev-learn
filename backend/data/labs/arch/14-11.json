@@ -24,8 +24,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ-Op·(A·B) + Op·(A+B)",
-        "success": "Вот главная идея АЛУ: все операции вычисляются одновременно, а код операции лишь выбирает, чей результат пойдёт дальше. Лишние вычисления «бесплатны» — они идут параллельно.",
+        "formula": "Y = ¬Op·(A·B) + Op·(A+B)",
+        "success": "This is the main idea of the ALU: all operations are computed at the same time, and the operation code merely selects whose result goes on. The extra computations are “free”: they run in parallel.",
         "solution": {
           "gates": [
             {
@@ -223,8 +223,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = [A·B, A+B, A⊕B, НЕ-A][Op1 Op0]",
-        "success": "Это уже настоящий «логический блок» АЛУ. Чем больше операций, тем шире мультиплексор на выходе — но принцип тот же. В реальных процессорах код операции приходит из самой команды.",
+        "formula": "Y = [A·B, A+B, A⊕B, ¬A][Op1 Op0]",
+        "success": "This is already a real “logic unit” of an ALU. The more operations there are, the wider the output multiplexer, but the principle is the same. In real processors the operation code comes from the instruction itself.",
         "solution": {
           "gates": [
             {
@@ -661,13 +661,13 @@
         ],
         "block": {
           "id": "flags",
-          "title": "Флаги результата"
+          "title": "Result flags"
         },
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Z = НЕ(R1+R0); N = R1; Pe = R1⊙R0",
-        "success": "Флаги — «шпаргалка» о результате, которую читают следующие команды. Проверку «равно нулю» (Z) мы используем для условных переходов — об этом в конце раздела.",
+        "formula": "Z = ¬(R1+R0); N = R1; Pe = R1⊙R0",
+        "success": "Flags are a “cheat sheet” about the result that the following instructions read. We will use the “is zero” check (Z) for conditional jumps at the end of this section.",
         "solution": {
           "gates": [
             {
@@ -786,8 +786,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R0 = НЕ-A0; R1 = A1⊕A0⊕Dec",
-        "success": "Инкремент и декремент нужны для счётчиков и адресов: «следующая ячейка» и «предыдущая». Заметьте, как мало схемы потребовалось — один XOR на разряд.",
+        "formula": "R0 = ¬A0; R1 = A1⊕A0⊕Dec",
+        "success": "Increment and decrement are needed for counters and addresses: “next cell” and “previous cell”. Notice how little circuitry this took: one XOR per bit.",
         "solution": {
           "gates": [
             {
@@ -913,7 +913,7 @@
         "clock": null,
         "ticks": false,
         "formula": "V = (A1⊙B1)·(A1⊕S1)",
-        "success": "Положительное плюс положительное не может дать отрицательное — если дало, произошло переполнение. Флаг V предупреждает программу, что результат неверный; без него числа молча «заворачивались» бы через границу.",
+        "success": "A positive plus a positive cannot give a negative; if it does, an overflow occurred. Flag V warns the program that the result is wrong; without it, numbers would silently wrap around the boundary.",
         "solution": {
           "gates": [
             {
@@ -1131,8 +1131,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R1 = НЕ-Dir·A0; R0 = Dir·A1; Co = НЕ-Dir·A1 + Dir·A0",
-        "success": "Сдвиг влево на один бит — это умножение на 2, вправо — деление на 2 с отбрасыванием остатка (его забирает Co). Сдвигатель — это просто мультиплексоры: каждый выходной бит выбирает соседа слева или справа.",
+        "formula": "R1 = ¬Dir·A0; R0 = Dir·A1; Co = ¬Dir·A1 + Dir·A0",
+        "success": "A one-bit shift left is multiplication by 2; a shift right is division by 2 with the remainder discarded (Co takes it). A shifter is just multiplexers: each output bit picks its left or right neighbor.",
         "solution": {
           "gates": [
             {
@@ -1385,8 +1385,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R = НЕ-Op1·(A + (B⊕Op0) + Cin) + Op1·(Op0 ? A+B : A·B)",
-        "success": "Это «кирпичик» АЛУ: n таких разрядов, соединённых цепочкой переносов (Co одного → Cin следующего), дают n-битное АЛУ. Код операции управляет всеми разрядами одновременно — в этом и есть «арифметико-логическое устройство».",
+        "formula": "R = ¬Op1·(A + (B⊕Op0) + Cin) + Op1·(Op0 ? A+B : A·B)",
+        "success": "This is the ALU “building brick”: n such slices linked by a carry chain (Co of one → Cin of the next) make an n-bit ALU. The operation code drives all the slices at once, which is what makes it an “arithmetic logic unit”.",
         "solution": {
           "gates": [
             {
@@ -1925,8 +1925,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R = A + (B⊕M) + M; Co — перенос из старшего",
-        "success": "Один сумматор и по инвертору на разряд — и вычитание получено «даром». Именно так вычитают в настоящих процессорах: никакого отдельного вычитателя нет.",
+        "formula": "R = A + (B⊕M) + M; Co is the carry out of the top bit",
+        "success": "One adder and one inverter per bit, and subtraction comes “for free”. This is how real processors subtract: there is no separate subtractor.",
         "solution": {
           "gates": [
             {
@@ -2358,8 +2358,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Ri = НЕ-Op·(Ai·Bi) + Op·(Ai+Bi)",
-        "success": "Поразрядные операции разряды не связывают: каждый бит считается сам по себе. Это в отличие от арифметики, где перенос тянется от младшего к старшему. Поэтому логический блок «широкий» и быстрый.",
+        "formula": "Ri = ¬Op·(Ai·Bi) + Op·(Ai+Bi)",
+        "success": "Bitwise operations do not link the bits: each bit is computed on its own. Arithmetic is different: the carry runs from the low bit to the high one. That is why the logic block is “wide” and fast.",
         "solution": {
           "gates": [
             {
@@ -2774,7 +2774,7 @@
         "clock": null,
         "ticks": false,
         "formula": "R = Op1 ? (Op0 ? A|B : A&B) : (Op0 ? A−B : A+B)",
-        "success": "Это АЛУ: вся арифметика и логика процессора в одной схеме — меняя два бита кода операции, вы выбираете, какую операцию он выполнит. Всё остальное в процессоре — это регистры, которые подают ему числа, и логика, которая решает, какой код подать.",
+        "success": "This is the ALU: all of the processor's arithmetic and logic in one circuit. By changing two bits of the operation code you choose which operation it performs. Everything else in the processor is registers that feed it numbers and logic that decides which code to supply.",
         "solution": {
           "gates": [
             {
@@ -3577,8 +3577,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Lt = НЕ-Co; Eq = (R = 0); Gt = Co·НЕ-Eq",
-        "success": "Вот почему у процессора обычно нет отдельной команды «сравнить»: она вычитает, выбрасывает результат и оставляет только флаги. Флаг переноса и флаг нуля — вот и весь ответ на «больше, меньше или равно».",
+        "formula": "Lt = ¬Co; Eq = (R = 0); Gt = Co·¬Eq",
+        "success": "This is why a processor usually has no separate “compare” instruction: it subtracts, throws the result away and keeps only the flags. The carry flag and the zero flag are the whole answer to “greater, less or equal”.",
         "solution": {
           "gates": [
             {
@@ -3994,8 +3994,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "T = [Z, НЕ-Z, N⊕V, Z+N⊕V][C1 C0]",
-        "success": "Знак результата вычитания «меньше» — это N⊕V, а не просто N: при переполнении знаковый бит врёт, и V его исправляет. Сигнал T — это решение «прыгать» — он пойдёт на счётчик команд. Дальше — собственно процессор: такт за тактом выборка, декодирование, исполнение.",
+        "formula": "T = [Z, ¬Z, N⊕V, Z+N⊕V][C1 C0]",
+        "success": "The sign of a subtraction result that means “less” is N⊕V, not just N: on overflow the sign bit lies, and V corrects it. Signal T is the decision to “jump”, and it goes to the program counter. Next comes the processor proper: fetch, decode and execute, clock by clock.",
         "solution": {
           "gates": [
             {

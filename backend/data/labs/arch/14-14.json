@@ -30,7 +30,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Запись слова 10: D1 = 1, D0 = 0, LD = 1 и такт.",
+            "text": "Write word 10: D1 = 1, D0 = 0, LD = 1 and a clock tick.",
             "pulses": null
           },
           {
@@ -44,7 +44,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Данные 01, но LD = 0: после такта регистр хранит прежнее 10.",
+            "text": "Data 01, but LD = 0: after the tick the register keeps its previous 10.",
             "pulses": null
           },
           {
@@ -58,7 +58,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "LD = 1: запись слова 01.",
+            "text": "LD = 1: write word 01.",
             "pulses": null
           },
           {
@@ -72,7 +72,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "Данные 11, LD = 0: регистр по-прежнему хранит 01.",
+            "text": "Data 11, LD = 0: the register still holds 01.",
             "pulses": null
           },
           {
@@ -86,7 +86,7 @@
               "Q0": 1,
               "Q1": 1
             },
-            "text": "LD = 1: запись слова 11.",
+            "text": "LD = 1: write word 11.",
             "pulses": null
           }
         ],
@@ -114,13 +114,13 @@
         ],
         "block": {
           "id": "reg2",
-          "title": "Регистр на 2 бита"
+          "title": "2-bit register"
         },
         "blocks": [],
         "clock": "D",
         "ticks": true,
-        "formula": "Qi ← LD ? Di : Qi на фронте CLK",
-        "success": "Это регистр с записью — универсальная деталь процессора. Сохранено как блок «Регистр на 2 бита»: у него порты d, load, clk (вход) и q (выход, слово). Он понадобится дважды: для аккумулятора и для счётчика команд.",
+        "formula": "Qi ← LD ? Di : Qi on the CLK edge",
+        "success": "This is a register with write, a universal part of a processor. It is saved as the block “2-bit register”: it has ports d, load, clk (inputs) and q (output, a word). You will need it twice: for the accumulator and for the program counter.",
         "solution": {
           "gates": [
             {
@@ -451,8 +451,8 @@
         "blocks": ["rom", "decoder"],
         "clock": null,
         "ticks": false,
-        "formula": "addr → ПЗУ → instr.op → декодер → ctl",
-        "success": "Четыре провода вместо пары десятков: интерфейсы сгруппировали биты в шины, а типы не дали перепутать Addr2 с Word2. Кнопка 🔍 на блоке открывает схему, которую вы собирали в упражнениях «ПЗУ с программой» и «Полный декодер».",
+        "formula": "addr → ROM → instr.op → decoder → ctl",
+        "success": "Four wires instead of a couple of dozen: the interfaces group bits into buses, and the types did not let you mix up Addr2 with Word2. The 🔍 button on a block opens the circuit you built in the exercises “ROM with a program” and “Full decoder”.",
         "solution": {
           "instances": [
             {
@@ -570,7 +570,7 @@
               "W2": 1,
               "W3": 0
             },
-            "text": "Load = 1, Take = 0, такт: счётчик 0 → 1. ПЗУ выдаёт команду 1 — 0101 (ADD 1).",
+            "text": "Load = 1, Take = 0, tick: the counter goes 0 → 1. The ROM outputs instruction 1, 0101 (ADD 1).",
             "pulses": null
           },
           {
@@ -589,7 +589,7 @@
               "W2": 0,
               "W3": 1
             },
-            "text": "Ещё такт: 1 → 2. Команда 2 — 1001 (JNZ 1).",
+            "text": "Another tick: 1 → 2. Instruction 2 is 1001 (JNZ 1).",
             "pulses": null
           },
           {
@@ -608,7 +608,7 @@
               "W2": 1,
               "W3": 0
             },
-            "text": "Прыжок: Take = 1, K = 01, такт. Счётчик не 3, а 1 — взят адрес из K. Команда снова 0101.",
+            "text": "Jump: Take = 1, K = 01, tick. The counter is not 3 but 1: the address was taken from K. The instruction is 0101 again.",
             "pulses": null
           },
           {
@@ -627,7 +627,7 @@
               "W2": 0,
               "W3": 1
             },
-            "text": "Take = 0, такт: обычный шаг +1 (1 → 2).",
+            "text": "Take = 0, tick: an ordinary +1 step (1 → 2).",
             "pulses": null
           },
           {
@@ -646,7 +646,7 @@
               "W2": 0,
               "W3": 1
             },
-            "text": "Load = 0, такт: запись в счётчик запрещена — адрес 2 остаётся.",
+            "text": "Load = 0, tick: writing to the counter is forbidden, and address 2 stays.",
             "pulses": null
           },
           {
@@ -665,7 +665,7 @@
               "W2": 1,
               "W3": 1
             },
-            "text": "Load = 1, такт: 2 → 3. Команда 3 — 1100 (HLT).",
+            "text": "Load = 1, tick: 2 → 3. Instruction 3 is 1100 (HLT).",
             "pulses": null
           }
         ],
@@ -703,13 +703,13 @@
         ],
         "block": {
           "id": "fetch",
-          "title": "Выборка команд"
+          "title": "Instruction fetch"
         },
         "blocks": ["reg2", "next-pc", "rom", "adapter-w2a", "adapter-a2w"],
         "clock": "E",
         "ticks": true,
-        "formula": "PC ← (Take ? K : PC + 1) по такту при Load; instr = ПЗУ[PC]",
-        "success": "Блок выборки готов: внутри счётчик команд, «следующий адрес» и ПЗУ — те самые детали, что вы собрали раньше. Замкнутая петля «счётчик → ПЗУ» и «счётчик → следующий адрес → счётчик» идёт через триггеры, поэтому она не убегает в генерацию.",
+        "formula": "PC ← (Take ? K : PC + 1) on the clock when Load; instr = ROM[PC]",
+        "success": "The fetch block is ready: inside are the program counter, “next address” and the ROM, the very parts you built earlier. The closed loops “counter → ROM” and “counter → next address → counter” go through flip-flops, so they do not run away into oscillation.",
         "solution": {
           "instances": [
             {
@@ -920,7 +920,7 @@
               "Acc1": 1,
               "Z": 0
             },
-            "text": "Загрузка: K = 10, UseAdd = 0, AccLoad = 1, такт. Аккумулятор = 10, флаг Z = 0.",
+            "text": "Load: K = 10, UseAdd = 0, AccLoad = 1, tick. Accumulator = 10, flag Z = 0.",
             "pulses": null
           },
           {
@@ -936,7 +936,7 @@
               "Acc1": 1,
               "Z": 0
             },
-            "text": "Сложение: K = 01, UseAdd = 1, такт. 2 + 1 = 3 → 11.",
+            "text": "Addition: K = 01, UseAdd = 1, tick. 2 + 1 = 3 → 11.",
             "pulses": null
           },
           {
@@ -952,7 +952,7 @@
               "Acc1": 1,
               "Z": 0
             },
-            "text": "AccLoad = 0, такт: запись запрещена — аккумулятор остаётся 11.",
+            "text": "AccLoad = 0, tick: writing is forbidden, and the accumulator stays 11.",
             "pulses": null
           },
           {
@@ -968,7 +968,7 @@
               "Acc1": 0,
               "Z": 1
             },
-            "text": "AccLoad = 1, такт: 3 + 1 = 4 — переполнение, остаётся 00. Флаг Z = 1.",
+            "text": "AccLoad = 1, tick: 3 + 1 = 4 is an overflow, leaving 00. Flag Z = 1.",
             "pulses": null
           }
         ],
@@ -1006,13 +1006,13 @@
         ],
         "block": {
           "id": "exec",
-          "title": "Исполнение"
+          "title": "Execute"
         },
         "blocks": ["reg2", "operand", "flags"],
         "clock": "E",
         "ticks": true,
-        "formula": "ACC ← (UseAdd ? ACC : 0) + K по такту при AccLoad; Z = (ACC = 0)",
-        "success": "Это тот же цикл «сумматор + регистр» из аккумулятора в разделе про регистры, только из готовых деталей. Заметьте, как знакомо выглядят порты: те же имена, что у упражнений «Операнд для аккумулятора» и «Флаги результата».",
+        "formula": "ACC ← (UseAdd ? ACC : 0) + K on the clock when AccLoad; Z = (ACC = 0)",
+        "success": "This is the same “adder + register” loop as the accumulator in the section on registers, only built from ready-made parts. Notice how familiar the ports look: the same names as in the exercises “Accumulator operand” and “Result flags”.",
         "solution": {
           "instances": [
             {
@@ -1186,7 +1186,7 @@
               "P1": 0,
               "Wb": 0
             },
-            "text": "Подайте четыре такта. LDI 2 выполнена: аккумулятор = 10, счётчик команд = 1, снова фаза выборки.",
+            "text": "Apply four ticks. LDI 2 has run: accumulator = 10, program counter = 1, and it is the fetch phase again.",
             "pulses": 4
           },
           {
@@ -1203,7 +1203,7 @@
               "P1": 1,
               "Wb": 0
             },
-            "text": "Ещё четыре такта. ADD 1: 2 + 1 = 3 → аккумулятор 11, счётчик = 2.",
+            "text": "Another four ticks. ADD 1: 2 + 1 = 3 → accumulator 11, counter = 2.",
             "pulses": 4
           },
           {
@@ -1220,7 +1220,7 @@
               "P1": 0,
               "Wb": 0
             },
-            "text": "JNZ 1: аккумулятор не ноль — прыжок назад. Аккумулятор прежний 11, счётчик команд = 1 (а не 3).",
+            "text": "JNZ 1: the accumulator is not zero, so it jumps back. The accumulator is still 11, and the program counter = 1 (not 3).",
             "pulses": 4
           },
           {
@@ -1237,7 +1237,7 @@
               "P1": 1,
               "Wb": 0
             },
-            "text": "Снова ADD 1: 3 + 1 = 4 — не помещается в два бита, остаётся 00. Счётчик = 2.",
+            "text": "ADD 1 again: 3 + 1 = 4 does not fit in two bits, leaving 00. Counter = 2.",
             "pulses": 4
           },
           {
@@ -1254,7 +1254,7 @@
               "P1": 1,
               "Wb": 0
             },
-            "text": "JNZ 1: аккумулятор ноль — прыжка нет, идём дальше. Счётчик команд = 3.",
+            "text": "JNZ 1: the accumulator is zero, so there is no jump and execution goes on. Program counter = 3.",
             "pulses": 4
           },
           {
@@ -1271,7 +1271,7 @@
               "P1": 1,
               "Wb": 0
             },
-            "text": "Команда 3 — HLT. Подайте два такта: фаза исполнения.",
+            "text": "Instruction 3 is HLT. Apply two ticks: the execute phase.",
             "pulses": 2
           },
           {
@@ -1288,7 +1288,7 @@
               "P1": 1,
               "Wb": 0
             },
-            "text": "Ещё два такта: цикл HLT закончился, но счётчик команд не сдвинулся и аккумулятор тоже. Процессор остановился.",
+            "text": "Two more ticks: the HLT cycle is over, but neither the program counter nor the accumulator has moved. The processor has stopped.",
             "pulses": 2
           }
         ],
@@ -1318,8 +1318,8 @@
         "blocks": ["sequencer", "fetch", "decoder", "exec", "adapter-w2a"],
         "clock": "A",
         "ticks": true,
-        "formula": "Выборка → декодирование → исполнение → запись, 4 такта на команду",
-        "success": "Это процессор! Каждый блок внутри — ваши собственные схемы из вентилей: загляните через 🔍 в любой блок, затем ещё глубже. Программа в ПЗУ — три команды и стоп; чтобы процессор делал другое, достаточно переписать ПЗУ. Всё, что здесь работает, началось с одного элемента «И».",
+        "formula": "Fetch → decode → execute → write back, 4 ticks per instruction",
+        "success": "This is a processor! Every block inside is made of your own gate circuits: look inside any block with 🔍, then deeper still. The program in the ROM is three instructions and a stop; to make the processor do something else, just rewrite the ROM. Everything that works here began with a single AND gate.",
         "solution": {
           "instances": [
             {

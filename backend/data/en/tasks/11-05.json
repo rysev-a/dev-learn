@@ -59,7 +59,7 @@
   {
    "id": "j5-parse-price",
    "title": "Price with a comma",
-   "statement": "Write a function parsePrice(s): for a string like «3,50 ₽» or «1299.9 руб» return a number (3.5 and 1299.9). The decimal separator may be a comma. If there is no number, return NaN.",
+   "statement": "Write a function parsePrice(s): for a string like «3,50 ₽» or «1299.9 rub» return a number (3.5 and 1299.9). The decimal separator may be a comma. If there is no number, return NaN.",
    "hint": "parseFloat(s.replace(\",\", \".\"))"
   },
   {
@@ -88,9 +88,9 @@
   },
   {
    "id": "j5-sort-ru",
-   "title": "Sorting by the Russian alphabet",
-   "statement": "Write a function sortWords(words) that returns a new array of strings sorted by Russian language rules («ё» sorts next to «е»), using localeCompare and the locale \"ru\". Do not change the original array.",
-   "hint": "a.localeCompare(b, \"ru\")"
+   "title": "Locale-aware sorting",
+   "statement": "Write a function sortWords(words) that returns a new array of strings sorted by language rules (é sorts next to e; case matters only when the letters are equal), using localeCompare and the locale \"fr\". Do not change the original array.",
+   "hint": "a.localeCompare(b, \"fr\")"
   },
   {
    "id": "j5-approx",
@@ -113,7 +113,7 @@
   {
    "id": "j5-fill-defaults",
    "title": "Default values with ??=",
-   "statement": "Write a function fillDefaults(opts) that writes default values into the object if a field is missing (null or undefined): size = 10, name = «аноним», debug = false. Existing values, including 0, an empty string and false, stay. Return the same object. You may not use the || operator.",
+   "statement": "Write a function fillDefaults(opts) that writes default values into the object if a field is missing (null or undefined): size = 10, name = «anon», debug = false. Existing values, including 0, an empty string and false, stay. Return the same object. You may not use the || operator.",
    "hint": "opts.size ??= 10;"
   },
   {

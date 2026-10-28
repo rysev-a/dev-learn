@@ -13,11 +13,11 @@
         "palette": ["lb", "app", "cache", "db", "blob", "search"],
         "start": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 313, "params": {"tier": "hot"}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 5, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 157, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 313, "params": {"tier": "hot"}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}]
         },
@@ -30,13 +30,13 @@
         ],
         "solution": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}]
         }
@@ -52,13 +52,13 @@
         "palette": ["lb", "app", "cache", "db", "blob", "search", "auth", "pay"],
         "start": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 6, "pricing": "ondemand", "retries": 0, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 235, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}]
         },
@@ -74,15 +74,15 @@
         ],
         "solution": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 235, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 353, "params": {"instances": 2}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 235, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 353, "params": {"instances": 2}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}]
         },
@@ -99,15 +99,15 @@
         "palette": ["lb", "app", "cache", "db", "blob", "search", "auth", "pay", "geo", "ml"],
         "start": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 235, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 353, "params": {"instances": 2}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 118, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 235, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 353, "params": {"instances": 2}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}]
         },
@@ -123,17 +123,17 @@
         ],
         "solution": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 78, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 157, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 235, "params": {"instances": 2}},
-            {"id": "geo", "kind": "geo", "name": "Геосервис", "x": 820, "y": 313, "params": {"instances": 5}},
-            {"id": "ml", "kind": "ml", "name": "Сервис ранжирования", "x": 820, "y": 392, "params": {"instances": 3}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 78, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 157, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 235, "params": {"instances": 2}},
+            {"id": "geo", "kind": "geo", "name": "Geo service", "x": 820, "y": 313, "params": {"instances": 5}},
+            {"id": "ml", "kind": "ml", "name": "Ranking service", "x": 820, "y": 392, "params": {"instances": 3}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}, {"from": "app", "to": "geo"}, {"from": "app", "to": "ml"}]
         }
@@ -149,17 +149,17 @@
         "palette": ["lb", "app", "cache", "db", "blob", "search", "auth", "pay", "geo", "ml", "ws", "stream", "notify", "analytics"],
         "start": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 78, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 157, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 235, "params": {"instances": 2}},
-            {"id": "geo", "kind": "geo", "name": "Геосервис", "x": 820, "y": 313, "params": {"instances": 5}},
-            {"id": "ml", "kind": "ml", "name": "Сервис ранжирования", "x": 820, "y": 392, "params": {"instances": 3}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 235, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 6, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 78, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 157, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 235, "params": {"instances": 2}},
+            {"id": "geo", "kind": "geo", "name": "Geo service", "x": 820, "y": 313, "params": {"instances": 5}},
+            {"id": "ml", "kind": "ml", "name": "Ranking service", "x": 820, "y": 392, "params": {"instances": 3}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}, {"from": "app", "to": "geo"}, {"from": "app", "to": "ml"}]
         },
@@ -175,21 +175,21 @@
         ],
         "solution": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 13, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 134, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 201, "params": {"instances": 2}},
-            {"id": "geo", "kind": "geo", "name": "Геосервис", "x": 820, "y": 269, "params": {"instances": 5}},
-            {"id": "ml", "kind": "ml", "name": "Сервис ранжирования", "x": 820, "y": 336, "params": {"instances": 3}},
-            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 11}},
-            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 403, "params": {"partitions": 3}},
-            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 157, "params": {"instances": 4}},
-            {"id": "an", "kind": "analytics", "name": "Аналитика", "x": 970, "y": 313, "params": {"instances": 1}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 13, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 134, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 201, "params": {"instances": 2}},
+            {"id": "geo", "kind": "geo", "name": "Geo service", "x": 820, "y": 269, "params": {"instances": 5}},
+            {"id": "ml", "kind": "ml", "name": "Ranking service", "x": 820, "y": 336, "params": {"instances": 3}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket gateway", "x": 520, "y": 313, "params": {"instances": 11}},
+            {"id": "stream", "kind": "stream", "name": "Event stream", "x": 820, "y": 403, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Notifications", "x": 970, "y": 157, "params": {"instances": 4}},
+            {"id": "an", "kind": "analytics", "name": "Analytics", "x": 970, "y": 313, "params": {"instances": 1}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}, {"from": "app", "to": "geo"}, {"from": "app", "to": "ml"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "stream", "to": "an"}]
         },
@@ -206,21 +206,21 @@
         "palette": ["lb", "app", "cache", "db", "blob", "search", "auth", "pay", "geo", "ml", "ws", "stream", "notify", "analytics", "cdn", "limiter", "monitor"],
         "start": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 13, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 134, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 201, "params": {"instances": 2}},
-            {"id": "geo", "kind": "geo", "name": "Геосервис", "x": 820, "y": 269, "params": {"instances": 5}},
-            {"id": "ml", "kind": "ml", "name": "Сервис ранжирования", "x": 820, "y": 336, "params": {"instances": 3}},
-            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 11}},
-            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 403, "params": {"partitions": 3}},
-            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 157, "params": {"instances": 4}},
-            {"id": "an", "kind": "analytics", "name": "Аналитика", "x": 970, "y": 313, "params": {"instances": 1}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 157, "params": {"instances": 1, "layer": "L4"}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "all", "feed": "pull", "idempotency": true, "instances": 13, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "single"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "M", "sync": "async", "zone": "single"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 134, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 201, "params": {"instances": 2}},
+            {"id": "geo", "kind": "geo", "name": "Geo service", "x": 820, "y": 269, "params": {"instances": 5}},
+            {"id": "ml", "kind": "ml", "name": "Ranking service", "x": 820, "y": 336, "params": {"instances": 3}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket gateway", "x": 520, "y": 313, "params": {"instances": 11}},
+            {"id": "stream", "kind": "stream", "name": "Event stream", "x": 820, "y": 403, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Notifications", "x": 970, "y": 157, "params": {"instances": 4}},
+            {"id": "an", "kind": "analytics", "name": "Analytics", "x": 970, "y": 313, "params": {"instances": 1}}
           ],
           "edges": [{"from": "users", "to": "lb"}, {"from": "lb", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}, {"from": "app", "to": "geo"}, {"from": "app", "to": "ml"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "stream", "to": "an"}]
         },
@@ -241,24 +241,24 @@
         ],
         "solution": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
             {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 3600}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
-            {"id": "limiter", "kind": "limiter", "name": "Ограничитель", "x": 370, "y": 235, "params": {"limit": 20000}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "rolling", "feed": "pull", "idempotency": true, "instances": 18, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "multi"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "multi"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 134, "params": {"instances": 2}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 201, "params": {"instances": 2}},
-            {"id": "geo", "kind": "geo", "name": "Геосервис", "x": 820, "y": 269, "params": {"instances": 5}},
-            {"id": "ml", "kind": "ml", "name": "Сервис ранжирования", "x": 820, "y": 336, "params": {"instances": 3}},
-            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 11}},
-            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 403, "params": {"partitions": 3}},
-            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 118, "params": {"instances": 4}},
-            {"id": "an", "kind": "analytics", "name": "Аналитика", "x": 970, "y": 235, "params": {"instances": 1}},
-            {"id": "mon", "kind": "monitor", "name": "Мониторинг", "x": 970, "y": 353, "params": {}}
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "limiter", "kind": "limiter", "name": "Rate limiter", "x": 370, "y": 235, "params": {"limit": 20000}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "rolling", "feed": "pull", "idempotency": true, "instances": 18, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "multi"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 3, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 134, "params": {"instances": 2}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 201, "params": {"instances": 2}},
+            {"id": "geo", "kind": "geo", "name": "Geo service", "x": 820, "y": 269, "params": {"instances": 5}},
+            {"id": "ml", "kind": "ml", "name": "Ranking service", "x": 820, "y": 336, "params": {"instances": 3}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket gateway", "x": 520, "y": 313, "params": {"instances": 11}},
+            {"id": "stream", "kind": "stream", "name": "Event stream", "x": 820, "y": 403, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Notifications", "x": 970, "y": 118, "params": {"instances": 4}},
+            {"id": "an", "kind": "analytics", "name": "Analytics", "x": 970, "y": 235, "params": {"instances": 1}},
+            {"id": "mon", "kind": "monitor", "name": "Monitoring", "x": 970, "y": 353, "params": {}}
           ],
           "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "limiter"}, {"from": "limiter", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}, {"from": "app", "to": "geo"}, {"from": "app", "to": "ml"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "stream", "to": "an"}]
         },
@@ -276,9 +276,9 @@
         "palette": ["lb", "app", "cache", "db", "blob", "search", "auth", "pay", "geo", "ml", "ws", "stream", "notify", "analytics", "cdn", "limiter", "monitor"],
         "start": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": false, "deploy": "all", "feed": "pull", "idempotency": false, "instances": 1, "pricing": "ondemand", "retries": 0, "sessions": "local", "size": "S", "weight": 1, "zone": "single"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 235, "params": {"engine": "sql", "failover": false, "replicas": 0, "shard_key": "hash", "shards": 1, "size": "S", "sync": "async", "zone": "single"}}
           ],
           "edges": [{"from": "users", "to": "app"}, {"from": "app", "to": "db"}]
         },
@@ -314,24 +314,24 @@
         ],
         "solution": {
           "nodes": [
-            {"id": "users", "kind": "clients", "name": "Пользователи", "x": 70, "y": 235, "params": {}},
+            {"id": "users", "kind": "clients", "name": "Users", "x": 70, "y": 235, "params": {}},
             {"id": "cdn", "kind": "cdn", "name": "CDN", "x": 220, "y": 235, "params": {"ttl": 3600}},
-            {"id": "lb", "kind": "lb", "name": "Балансировщик", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
-            {"id": "limiter", "kind": "limiter", "name": "Ограничитель", "x": 370, "y": 235, "params": {"limit": 20000}},
-            {"id": "app", "kind": "app", "name": "Сервер приложения", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "rolling", "feed": "pull", "idempotency": true, "instances": 35, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
-            {"id": "cache", "kind": "cache", "name": "Кэш", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "multi"}},
-            {"id": "db", "kind": "db", "name": "База данных", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "multi"}},
-            {"id": "blob", "kind": "blob", "name": "Объектное хранилище", "x": 1120, "y": 235, "params": {"tier": "hot"}},
-            {"id": "search", "kind": "search", "name": "Поиск", "x": 1120, "y": 353, "params": {"replicas": 5, "shards": 1}},
-            {"id": "auth", "kind": "auth", "name": "Сервис входа", "x": 820, "y": 134, "params": {"instances": 4}},
-            {"id": "pay", "kind": "pay", "name": "Платёжный шлюз", "x": 820, "y": 201, "params": {"instances": 2}},
-            {"id": "geo", "kind": "geo", "name": "Геосервис", "x": 820, "y": 269, "params": {"instances": 10}},
-            {"id": "ml", "kind": "ml", "name": "Сервис ранжирования", "x": 820, "y": 336, "params": {"instances": 5}},
-            {"id": "ws", "kind": "ws", "name": "WebSocket-шлюз", "x": 520, "y": 313, "params": {"instances": 18}},
-            {"id": "stream", "kind": "stream", "name": "Поток событий", "x": 820, "y": 403, "params": {"partitions": 3}},
-            {"id": "notify", "kind": "notify", "name": "Уведомления", "x": 970, "y": 118, "params": {"instances": 7}},
-            {"id": "an", "kind": "analytics", "name": "Аналитика", "x": 970, "y": 235, "params": {"instances": 2}},
-            {"id": "mon", "kind": "monitor", "name": "Мониторинг", "x": 970, "y": 353, "params": {}}
+            {"id": "lb", "kind": "lb", "name": "Load balancer", "x": 520, "y": 157, "params": {"instances": 2, "layer": "L4"}},
+            {"id": "limiter", "kind": "limiter", "name": "Rate limiter", "x": 370, "y": 235, "params": {"limit": 20000}},
+            {"id": "app", "kind": "app", "name": "App server", "x": 670, "y": 235, "params": {"breaker": true, "deploy": "rolling", "feed": "pull", "idempotency": true, "instances": 35, "pricing": "ondemand", "retries": 2, "sessions": "external", "size": "M", "weight": 1, "zone": "multi"}},
+            {"id": "cache", "kind": "cache", "name": "Cache", "x": 820, "y": 67, "params": {"policy": "aside", "replicas": 1, "size_gb": 3, "ttl": 3600, "zone": "multi"}},
+            {"id": "db", "kind": "db", "name": "Database", "x": 1120, "y": 118, "params": {"engine": "sql", "failover": true, "replicas": 1, "shard_key": "hash", "shards": 1, "size": "L", "sync": "async", "zone": "multi"}},
+            {"id": "blob", "kind": "blob", "name": "Object storage", "x": 1120, "y": 235, "params": {"tier": "hot"}},
+            {"id": "search", "kind": "search", "name": "Search", "x": 1120, "y": 353, "params": {"replicas": 5, "shards": 1}},
+            {"id": "auth", "kind": "auth", "name": "Auth service", "x": 820, "y": 134, "params": {"instances": 4}},
+            {"id": "pay", "kind": "pay", "name": "Payment gateway", "x": 820, "y": 201, "params": {"instances": 2}},
+            {"id": "geo", "kind": "geo", "name": "Geo service", "x": 820, "y": 269, "params": {"instances": 10}},
+            {"id": "ml", "kind": "ml", "name": "Ranking service", "x": 820, "y": 336, "params": {"instances": 5}},
+            {"id": "ws", "kind": "ws", "name": "WebSocket gateway", "x": 520, "y": 313, "params": {"instances": 18}},
+            {"id": "stream", "kind": "stream", "name": "Event stream", "x": 820, "y": 403, "params": {"partitions": 3}},
+            {"id": "notify", "kind": "notify", "name": "Notifications", "x": 970, "y": 118, "params": {"instances": 7}},
+            {"id": "an", "kind": "analytics", "name": "Analytics", "x": 970, "y": 235, "params": {"instances": 2}},
+            {"id": "mon", "kind": "monitor", "name": "Monitoring", "x": 970, "y": 353, "params": {}}
           ],
           "edges": [{"from": "users", "to": "cdn"}, {"from": "cdn", "to": "lb"}, {"from": "lb", "to": "limiter"}, {"from": "limiter", "to": "app"}, {"from": "app", "to": "db"}, {"from": "app", "to": "blob"}, {"from": "cdn", "to": "blob"}, {"from": "app", "to": "cache"}, {"from": "app", "to": "search"}, {"from": "app", "to": "auth"}, {"from": "app", "to": "pay"}, {"from": "app", "to": "geo"}, {"from": "app", "to": "ml"}, {"from": "users", "to": "ws"}, {"from": "ws", "to": "app"}, {"from": "app", "to": "stream"}, {"from": "stream", "to": "notify"}, {"from": "stream", "to": "an"}]
         },

@@ -1,73 +1,37 @@
 {
- "book": 15,
- "chapter": 5,
- "lab": "net",
- "tasks": [
-  {
-   "id": "n5-static",
-   "title": "Two routers: static routes",
-   "statement": "PC A lives in the network 10.1.0.0/24, PC B in 10.2.0.0/24, with two routers between them linked by the network 10.0.12.0/24. The computers know their gateways, but the routers know only their directly connected networks. On each of them add a route to the “remote” network through the neighbor so that the PCs can ping each other.",
-   "hint": "On R1: `ip route add 10.2.0.0/24 via 10.0.12.2`. On R2: `ip route add 10.1.0.0/24 via 10.0.12.1`. Or use the “+ route” form in the router's routing table.",
-   "spec_text": {
-    "/goals/0/text": "PC A reaches PC B",
-    "/goals/1/text": "PC B reaches PC A",
-    "/start/devices/0/name": "PC A",
-    "/start/devices/3/name": "PC B"
-   }
-  },
-  {
-   "id": "n5-default",
-   "title": "Default route to the ISP",
-   "statement": "The office router is connected to the ISP, and the internet is hundreds of thousands of networks: listing them in a table is impossible. On the office router add a single default route through the ISP address 203.0.113.1, and the PC will open the website 198.51.100.10. (The ISP already knows the way to your network 192.0.2.0/24 and cannot be configured.)",
-   "hint": "On the router: `ip route add default via 203.0.113.1`. Then click ▶ on the goal and see at which step the packet turns toward the ISP.",
-   "spec_text": {
-    "/goals/0/text": "The PC pings the website",
-    "/goals/1/text": "The PC opens port 80 on the website",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Office router",
-    "/start/devices/2/name": "ISP",
-    "/start/devices/3/name": "Website"
-   }
-  },
-  {
-   "id": "n5-loop",
-   "title": "Routing loop and TTL",
-   "statement": "The PC pings the website and gets back “time to live exceeded”. Run traceroute to 198.51.100.10 in the PC terminal: the addresses of R1 and R2 repeat over and over. The routers pass the packet back and forth, and only the TTL stops it. Find whose default route points the wrong way and fix it so that R2 sends the packet to the ISP (203.0.113.1).",
-   "hint": "On R2 look at `ip route`: default points to R1 (10.9.0.1), the wrong direction. Delete it and add a new one: `ip route del default`, `ip route add default via 203.0.113.1`.",
-   "spec_text": {
-    "/goals/0/text": "The PC pings the website",
-    "/start/devices/0/name": "PC",
-    "/start/devices/3/name": "ISP",
-    "/start/devices/4/name": "Website"
-   }
-  },
-  {
-   "id": "n5-lpm",
-   "title": "Longest prefix",
-   "statement": "The central router has a single route for all of 10.0.0.0/8, through a slow link to “Far” (1500 km). But server 1 with the address 10.1.2.10 is actually located nearby, behind “Near” (10 km), and is currently unreachable. Add a more specific route 10.1.2.0/24 through “Near”: it will win over /8. You must not delete the /8 route, because server 2 (10.9.9.10) lives behind “Far”.",
-   "hint": "On the central router: `ip route add 10.1.2.0/24 via 172.16.1.2`, which is the address of “Near” on the center side. The longer prefix /24 beats /8.",
-   "spec_text": {
-    "/goals/0/text": "The PC pings server 1 in under 3 ms",
-    "/goals/1/text": "The path to server 1 goes through “Near”",
-    "/goals/2/text": "Server 2 is still reachable through “Far”",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Center",
-    "/start/devices/2/name": "Near",
-    "/start/devices/3/name": "Far",
-    "/start/devices/4/name": "Server 1",
-    "/start/devices/5/name": "Server 2"
-   }
-  },
-  {
-   "id": "n5-return",
-   "title": "The request arrived, the reply was lost",
-   "statement": "The PC gets no reply from the server. Run traceroute: two hops respond, and on the third (the server) there are asterisks. Yet the request does reach the server! Look at the ▶ log: the server's reply reaches R2 and vanishes there. Find what is missing from the R2 routing table and fix it.",
-   "hint": "R2 has no path to the PC network 10.1.0.0/24. Add it: `ip route add 10.1.0.0/24 via 10.0.12.1`. The route is needed in both directions.",
-   "spec_text": {
-    "/goals/0/text": "The PC pings the server",
-    "/start/devices/0/name": "PC",
-    "/start/devices/3/name": "Server"
-   }
-  }
- ]
+  "book": 15,
+  "chapter": 5,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n5-static",
+      "title": "Two routers: static routes",
+      "statement": "PC A lives in the network 10.1.0.0/24, PC B in 10.2.0.0/24, with two routers between them linked by the network 10.0.12.0/24. The computers know their gateways, but the routers know only their directly connected networks. On each of them add a route to the “remote” network through the neighbor so that the PCs can ping each other.",
+      "hint": "On R1: `ip route add 10.2.0.0/24 via 10.0.12.2`. On R2: `ip route add 10.1.0.0/24 via 10.0.12.1`. Or use the “+ route” form in the router's routing table."
+    },
+    {
+      "id": "n5-default",
+      "title": "Default route to the ISP",
+      "statement": "The office router is connected to the ISP, and the internet is hundreds of thousands of networks: listing them in a table is impossible. On the office router add a single default route through the ISP address 203.0.113.1, and the PC will open the website 198.51.100.10. (The ISP already knows the way to your network 192.0.2.0/24 and cannot be configured.)",
+      "hint": "On the router: `ip route add default via 203.0.113.1`. Then click ▶ on the goal and see at which step the packet turns toward the ISP."
+    },
+    {
+      "id": "n5-loop",
+      "title": "Routing loop and TTL",
+      "statement": "The PC pings the website and gets back “time to live exceeded”. Run traceroute to 198.51.100.10 in the PC terminal: the addresses of R1 and R2 repeat over and over. The routers pass the packet back and forth, and only the TTL stops it. Find whose default route points the wrong way and fix it so that R2 sends the packet to the ISP (203.0.113.1).",
+      "hint": "On R2 look at `ip route`: default points to R1 (10.9.0.1), the wrong direction. Delete it and add a new one: `ip route del default`, `ip route add default via 203.0.113.1`."
+    },
+    {
+      "id": "n5-lpm",
+      "title": "Longest prefix",
+      "statement": "The central router has a single route for all of 10.0.0.0/8, through a slow link to “Far” (1500 km). But server 1 with the address 10.1.2.10 is actually located nearby, behind “Near” (10 km), and is currently unreachable. Add a more specific route 10.1.2.0/24 through “Near”: it will win over /8. You must not delete the /8 route, because server 2 (10.9.9.10) lives behind “Far”.",
+      "hint": "On the central router: `ip route add 10.1.2.0/24 via 172.16.1.2`, which is the address of “Near” on the center side. The longer prefix /24 beats /8."
+    },
+    {
+      "id": "n5-return",
+      "title": "The request arrived, the reply was lost",
+      "statement": "The PC gets no reply from the server. Run traceroute: two hops respond, and on the third (the server) there are asterisks. Yet the request does reach the server! Look at the ▶ log: the server's reply reaches R2 and vanishes there. Find what is missing from the R2 routing table and fix it.",
+      "hint": "R2 has no path to the PC network 10.1.0.0/24. Add it: `ip route add 10.1.0.0/24 via 10.0.12.1`. The route is needed in both directions."
+    }
+  ]
 }

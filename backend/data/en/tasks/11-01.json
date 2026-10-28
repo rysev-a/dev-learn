@@ -113,7 +113,7 @@
   {
    "id": "j1-script-order",
    "title": "Script inclusion order",
-   "statement": "Scripts depend on each other: [{ name: \"app.js\", needs: [\"plugin.js\", \"jquery.js\"] }, …]. Write a function scriptOrder(scripts): it returns an array of names in an order where every script comes after its dependencies (when choosing among ready ones, keep the original list order); on a dependency cycle it throws Error(\"цикл\"), and on a dependency on an unknown script, Error(\"нет скрипта: <имя>\"). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "statement": "Scripts depend on each other: [{ name: \"app.js\", needs: [\"plugin.js\", \"jquery.js\"] }, …]. Write a function scriptOrder(scripts): it returns an array of names in an order where every script comes after its dependencies (when choosing among ready ones, keep the original list order); on a dependency cycle it throws Error(\"cycle\"), and on a dependency on an unknown script, Error(\"no script: <name>\"). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
    "hint": "Depth-first traversal with three node states: not visited, in progress, done."
   },
   {
@@ -143,13 +143,13 @@
   {
    "id": "j1-ecma-info",
    "title": "ECMAScript editions",
-   "statement": "Write a function ecmaInfo(name): it accepts “ES3”, “ES5”, “ES6”, “ES2015”, “ES2020”, … and returns an object { edition, year }. Rules: ES1 — 1997, ES2 — 1998, ES3 — 1999, ES5 — 2009 (ES4 was cancelled — for it throw Error(\"ES4 не вышел\")); starting with ES6, edition n came out in 2009 + n (ES6 = ES2015, ES7 = ES2016, …); “ES<year>” (year ≥ 2015) gives edition = year - 2009. Invalid names — Error(\"неизвестная редакция\"). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "statement": "Write a function ecmaInfo(name): it accepts “ES3”, “ES5”, “ES6”, “ES2015”, “ES2020”, … and returns an object { edition, year }. Rules: ES1 — 1997, ES2 — 1998, ES3 — 1999, ES5 — 2009 (ES4 was cancelled — for it throw Error(\"ES4 not released\")); starting with ES6, edition n came out in 2009 + n (ES6 = ES2015, ES7 = ES2016, …); “ES<year>” (year ≥ 2015) gives edition = year - 2009. Invalid names — Error(\"unknown edition\"). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
    "hint": "The regular expression /^ES(\\d+)$/ and a table of early editions {1: 1997, 2: 1998, 3: 1999, 5: 2009}."
   },
   {
    "id": "j1-xml-json",
    "title": "XML versus JSON",
-   "statement": "Write a function toXml(name, obj): a flat object turns into XML: toXml(\"user\", {id: 1, name: \"Ада\"}) → «<user><id>1</id><name>Ада</name></user>». Escape the characters &, <, > in values as &amp; &lt; &gt;. And a function compareSize(obj) → { json, xml } — the lengths of the two representations (JSON.stringify and toXml(\"o\", obj)). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
+   "statement": "Write a function toXml(name, obj): a flat object turns into XML: toXml(\"user\", {id: 1, name: \"Ada\"}) → «<user><id>1</id><name>Ada</name></user>». Escape the characters &, <, > in values as &amp; &lt; &gt;. And a function compareSize(obj) → { json, xml } — the lengths of the two representations (JSON.stringify and toXml(\"o\", obj)). Write in ES3 style: only var and function — no arrow functions, let/const, classes, template strings or spread.",
    "hint": "Order of replacements: & first (otherwise you will escape your own ampersands), then < and >."
   },
   {

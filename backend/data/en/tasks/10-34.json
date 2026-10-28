@@ -5,28 +5,28 @@
   {
    "id": "r34-sleep-elapsed",
    "title": "sleep and elapsed",
-   "statement": "Remember Instant::now(), sleep for 100 ms with tokio::time::sleep and print «прошло не меньше 100 мс: true» (compare elapsed() with Duration::from_millis(100)).\n\nExpected output:\n«прошло не меньше 100 мс: true»",
+   "statement": "Remember Instant::now(), sleep for 100 ms with tokio::time::sleep and print \"at least 100 ms passed: true\" (compare elapsed() with Duration::from_millis(100)).\n\nExpected output:\n`at least 100 ms passed: true`",
    "hint": "start.elapsed() >= Duration::from_millis(100).",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-fix-thread-sleep",
    "title": "Fix it: blocking sleep",
-   "statement": "Three tasks sleep with the blocking std::thread::sleep on a single-threaded runtime, so they run one after another. Fix the program so that they sleep at the same time: the output must be «быстро: true».\n\nExpected output:\n«быстро: true»",
+   "statement": "Three tasks sleep with the blocking std::thread::sleep on a single-threaded runtime, so they run one after another. Fix the program so that they sleep at the same time: the output must be \"fast: true\".\n\nExpected output:\n`fast: true`",
    "hint": "Replace std::thread::sleep(..) with tokio::time::sleep(..).await — the task will give up the thread.",
-   "starter": "use std::time::{Duration, Instant};\n\n#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    let start = Instant::now();\n    let mut hs = Vec::new();\n    for _ in 0..3 {\n        hs.push(tokio::spawn(async {\n            std::thread::sleep(Duration::from_millis(100));\n        }));\n    }\n    for h in hs {\n        h.await.unwrap();\n    }\n    println!(\"быстро: {}\", start.elapsed() < Duration::from_millis(250));\n}\n"
+   "starter": "use std::time::{Duration, Instant};\n\n#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    let start = Instant::now();\n    let mut hs = Vec::new();\n    for _ in 0..3 {\n        hs.push(tokio::spawn(async {\n            std::thread::sleep(Duration::from_millis(100));\n        }));\n    }\n    for h in hs {\n        h.await.unwrap();\n    }\n    println!(\"fast: {}\", start.elapsed() < Duration::from_millis(250));\n}\n"
   },
   {
    "id": "r34-join-sleeps",
    "title": "Three sleeps at once",
-   "statement": "Use tokio::join! to run three 100 ms sleeps at the same time and print «параллельно: true» if everything took less than 200 ms.\n\nExpected output:\n«параллельно: true»",
+   "statement": "Use tokio::join! to run three 100 ms sleeps at the same time and print \"in parallel: true\" if everything took less than 200 ms.\n\nExpected output:\n`in parallel: true`",
    "hint": "join!(sleep(d), sleep(d), sleep(d)).await is enough: join! already returns a future, and you await it with .await.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-sleep-until",
    "title": "sleep_until",
-   "statement": "Compute a deadline: Instant::now() + 120 ms, wait for it with sleep_until and print «дедлайн достигнут: true» (Instant::now() >= deadline).\n\nExpected output:\n«дедлайн достигнут: true»",
+   "statement": "Compute a deadline: Instant::now() + 120 ms, wait for it with sleep_until and print \"deadline reached: true\" (Instant::now() >= deadline).\n\nExpected output:\n`deadline reached: true`",
    "hint": "time::sleep_until(deadline).await.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -54,70 +54,70 @@
   {
    "id": "r34-timeout-map-err",
    "title": "Elapsed into your own error",
-   "statement": "Write async fn fetch() -> Result<u32, String>: it waits for a 200 ms sleep through a 30 ms timeout and turns Elapsed into the string «таймаут» with map_err. Print the result with {:?}.\n\nExpected output:\nErr(\"таймаут\")",
-   "hint": "time::timeout(..).await.map_err(|_| \"таймаут\".to_string()) — you get a Result<(), String>.",
+   "statement": "Write async fn fetch() -> Result<u32, String>: it waits for a 200 ms sleep through a 30 ms timeout and turns Elapsed into the string \"timeout\" with map_err. Print the result with {:?}.\n\nExpected output:\n`Err(\"timeout\")`",
+   "hint": "time::timeout(..).await.map_err(|_| \"timeout\".to_string()) — you get a Result<(), String>.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-timeout-at",
    "title": "Shared deadline",
-   "statement": "Set a deadline of «now + 100 ms». Perform two steps in a row, each a 60 ms sleep, and limit both with timeout_at(deadline, ..). For each one print «шаг N: ok» or «шаг N: просрочен».\n\nExpected output:\n«шаг 1: ok\nшаг 2: просрочен»",
+   "statement": "Set a deadline of \"now + 100 ms\". Perform two steps in a row, each a 60 ms sleep, and limit both with timeout_at(deadline, ..). For each one print \"step N: ok\" or \"step N: expired\".\n\nExpected output:\n`step 1: ok`\n`step 2: expired`",
    "hint": "There is one deadline for both steps: the second step no longer makes it.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-first-tick",
    "title": "The first tick is immediate",
-   "statement": "Create an interval of 100 ms, wait for the first tick() and print «первый тик сразу: true» if less than 30 ms passed.\n\nExpected output:\n«первый тик сразу: true»",
+   "statement": "Create an interval of 100 ms, wait for the first tick() and print \"first tick immediately: true\" if less than 30 ms passed.\n\nExpected output:\n`first tick immediately: true`",
    "hint": "time::interval(Duration) — the first tick() returns immediately.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-four-ticks",
    "title": "Four ticks",
-   "statement": "An interval of 50 ms: wait for 4 ticks (the first is immediate). Print «4 тика за 140–220 мс: true» if the total time falls in that range.\n\nExpected output:\n«4 тика за 140–220 мс: true»",
+   "statement": "An interval of 50 ms: wait for 4 ticks (the first is immediate). Print \"4 ticks in 140–220 ms: true\" if the total time falls in that range.\n\nExpected output:\n`4 ticks in 140–220 ms: true`",
    "hint": "Ticks at 0, 50, 100 and 150 ms — about 150 ms in total.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-no-drift",
    "title": "An interval without drift",
-   "statement": "Repeat 5 times: tick() of a 50 ms interval, then \"work\" (a 20 ms sleep). Print «без дрейфа: true» if everything took less than 300 ms. (With sleep(50) instead of an interval it would take about 350 ms.)\n\nExpected output:\n«без дрейфа: true»",
+   "statement": "Repeat 5 times: tick() of a 50 ms interval, then \"work\" (a 20 ms sleep). Print \"no drift: true\" if everything took less than 300 ms. (With sleep(50) instead of an interval it would take about 350 ms.)\n\nExpected output:\n`no drift: true`",
    "hint": "The interval's period is counted from the start, not from the end of the work.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-missed-delay",
    "title": "MissedTickBehavior::Delay",
-   "statement": "An interval of 50 ms with MissedTickBehavior::Delay. Take the first tick, sleep for 120 ms (the ticks are late), take the second tick (it fires immediately), then measure the time until the third. Print «пауза после опоздания: true» if it is at least 45 ms.\n\nExpected output:\n«пауза после опоздания: true»",
+   "statement": "An interval of 50 ms with MissedTickBehavior::Delay. Take the first tick, sleep for 120 ms (the ticks are late), take the second tick (it fires immediately), then measure the time until the third. Print \"pause after being late: true\" if it is at least 45 ms.\n\nExpected output:\n`pause after being late: true`",
    "hint": "iv.set_missed_tick_behavior(time::MissedTickBehavior::Delay).",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-missed-burst",
    "title": "MissedTickBehavior::Burst",
-   "statement": "The same scenario with the default behavior (Burst): the first tick, a 120 ms sleep, then two ticks in a row. Print «Burst подряд: true» if the second came less than 20 ms after the first of them.\n\nExpected output:\n«Burst подряд: true»",
+   "statement": "The same scenario with the default behavior (Burst): the first tick, a 120 ms sleep, then two ticks in a row. Print \"Burst in a row: true\" if the second came less than 20 ms after the first of them.\n\nExpected output:\n`Burst in a row: true`",
    "hint": "Burst hands out the missed ticks without pauses to catch up with the schedule.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-missed-skip",
    "title": "MissedTickBehavior::Skip",
-   "statement": "An interval of 50 ms with MissedTickBehavior::Skip. The first tick, a 120 ms sleep (the ticks at 50 and 100 are missed), then one tick() (it is late and fires immediately) and a measurement of the wait for the next tick(). Print «Skip ждёт сетку: true» if it is between 10 and 50 ms (until the tick at 150 ms).\n\nExpected output:\n«Skip ждёт сетку: true»",
+   "statement": "An interval of 50 ms with MissedTickBehavior::Skip. The first tick, a 120 ms sleep (the ticks at 50 and 100 are missed), then one tick() (it is late and fires immediately) and a measurement of the wait for the next tick(). Print \"Skip waits for grid: true\" if it is between 10 and 50 ms (until the tick at 150 ms).\n\nExpected output:\n`Skip waits for grid: true`",
    "hint": "Skip drops the missed ticks and waits for the nearest tick of the original grid.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-interval-reset",
    "title": "reset of an interval",
-   "statement": "An interval of 100 ms: the first tick is immediate, sleep for 30 ms, call reset(), measure the next tick(). Print «после reset ждали ≥ 90 мс: true».\n\nExpected output:\n«после reset ждали ≥ 90 мс: true»",
+   "statement": "An interval of 100 ms: the first tick is immediate, sleep for 30 ms, call reset(), measure the next tick(). Print \"after reset waited ≥ 90 ms: true\".\n\nExpected output:\n`after reset waited ≥ 90 ms: true`",
    "hint": "reset() moves the next tick a full period from the current moment.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-interval-at",
    "title": "interval_at",
-   "statement": "Create interval_at(Instant::now() + 100 ms, 50 ms) and measure the first tick(). Print «первый тик позже: true» if at least 95 ms passed.\n\nExpected output:\n«первый тик позже: true»",
+   "statement": "Create interval_at(Instant::now() + 100 ms, 50 ms) and measure the first tick(). Print \"first tick later: true\" if at least 95 ms passed.\n\nExpected output:\n`first tick later: true`",
    "hint": "interval_at(start, period): the first tick is at the moment start.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -131,8 +131,8 @@
   {
    "id": "r34-select-timeout",
    "title": "select! as a timeout",
-   "statement": "In select! wait for a slow operation (an async block: sleep 200 ms, then return «готово») and a 50 ms sleep. If the operation won, print its value; otherwise print «тайм-аут».\n\nExpected output:\n«тайм-аут»",
-   "hint": "v = async { .. } => println!(\"{v}\"), _ = sleep(..) => println!(\"тайм-аут\")",
+   "statement": "In select! wait for a slow operation (an async block: sleep 200 ms, then return \"done\") and a 50 ms sleep. If the operation won, print its value; otherwise print \"time-out\".\n\nExpected output:\n`time-out`",
+   "hint": "v = async { .. } => println!(\"{v}\"), _ = sleep(..) => println!(\"time-out\")",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
@@ -152,63 +152,63 @@
   {
    "id": "r34-select-biased",
    "title": "biased",
-   "statement": "In a loop of 100 iterations call select! with biased; and two branches that are ready at once (std::future::ready(())). Count how many times the first one won. Print «первая ветка: 100».\n\nExpected output:\n«первая ветка: 100»",
+   "statement": "In a loop of 100 iterations call select! with biased; and two branches that are ready at once (std::future::ready(())). Count how many times the first one won. Print \"first branch: 100\".\n\nExpected output:\n`first branch: 100`",
    "hint": "tokio::select! { biased; _ = ready(()) => first += 1, _ = ready(()) => {} }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-select-fair",
    "title": "A fair choice",
-   "statement": "Without biased;, in a loop of 1000 iterations call select! with two ready branches and count the wins of each. Print «обе выигрывали: true» if both have more than zero wins.\n\nExpected output:\n«обе выигрывали: true»",
+   "statement": "Without biased;, in a loop of 1000 iterations call select! with two ready branches and count the wins of each. Print \"both won: true\" if both have more than zero wins.\n\nExpected output:\n`both won: true`",
    "hint": "By default the polling order is random, so both branches win.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-select-drop",
    "title": "The loser is dropped",
-   "statement": "Define a struct Guard(&'static str) with a Drop that prints «drop <name>». In select! the first branch is an async block: it creates Guard(\"медленный\") and sleeps for 200 ms; the second is a 10 ms sleep. After select! print «после select». Look at the order in which the lines appeared: the losing future (and the Guard with it) is dropped before that.\n\nExpected output:\n«drop медленный\nпосле select»",
+   "statement": "Define a struct Guard(&'static str) with a Drop that prints \"drop <name>\". In select! the first branch is an async block: it creates Guard(\"slow\") and sleeps for 200 ms; the second is a 10 ms sleep. After select! print \"after select\". Look at the order in which the lines appeared: the losing future (and the Guard with it) is dropped before that.\n\nExpected output:\n`drop slow`\n`after select`",
    "hint": "The Guard lives inside the async block: it is released when the block is dropped.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-fix-pin-loop",
    "title": "Fix it: a sleep in a select! loop",
-   "statement": "A sender sends messages every 50 ms. The loop must stop 125 ms after the start, but the sleep is created anew on every iteration and never fires. Fix it: create the sleep before the loop, pin it (tokio::pin!) and pass it to select! by &mut. Expected «сообщений: 2».\n\nExpected output:\n«сообщений: 2»",
+   "statement": "A sender sends messages every 50 ms. The loop must stop 125 ms after the start, but the sleep is created anew on every iteration and never fires. Fix it: create the sleep before the loop, pin it (tokio::pin!) and pass it to select! by &mut. Expected \"messages: 2\".\n\nExpected output:\n`messages: 2`",
    "hint": "let deadline = sleep(..); tokio::pin!(deadline); and in select! — _ = &mut deadline => break.",
-   "starter": "use std::time::Duration;\nuse tokio::sync::mpsc;\nuse tokio::time::sleep;\n\n#[tokio::main]\nasync fn main() {\n    let (tx, mut rx) = mpsc::channel::<u32>(8);\n    tokio::spawn(async move {\n        for i in 0..6 {\n            sleep(Duration::from_millis(50)).await;\n            if tx.send(i).await.is_err() {\n                break;\n            }\n        }\n    });\n    let mut got = 0;\n    loop {\n        tokio::select! {\n            _ = sleep(Duration::from_millis(125)) => break,\n            m = rx.recv() => {\n                if m.is_none() {\n                    break;\n                }\n                got += 1;\n            }\n        }\n    }\n    println!(\"сообщений: {got}\");\n}\n"
+   "starter": "use std::time::Duration;\nuse tokio::sync::mpsc;\nuse tokio::time::sleep;\n\n#[tokio::main]\nasync fn main() {\n    let (tx, mut rx) = mpsc::channel::<u32>(8);\n    tokio::spawn(async move {\n        for i in 0..6 {\n            sleep(Duration::from_millis(50)).await;\n            if tx.send(i).await.is_err() {\n                break;\n            }\n        }\n    });\n    let mut got = 0;\n    loop {\n        tokio::select! {\n            _ = sleep(Duration::from_millis(125)) => break,\n            m = rx.recv() => {\n                if m.is_none() {\n                    break;\n                }\n                got += 1;\n            }\n        }\n    }\n    println!(\"messages: {got}\");\n}\n"
   },
   {
    "id": "r34-recv-cancel-safe",
    "title": "recv is cancel safe",
-   "statement": "A sender sends the numbers 1, 2, 3 with a 40 ms pause and closes the channel. The receiver loops: select! between rx.recv() and a 15 ms sleep (the sleep only counts \"empty\" waits and drops recv). All messages must arrive. Print «получено: 3».\n\nExpected output:\n«получено: 3»",
+   "statement": "A sender sends the numbers 1, 2, 3 with a 40 ms pause and closes the channel. The receiver loops: select! between rx.recv() and a 15 ms sleep (the sleep only counts \"empty\" waits and drops recv). All messages must arrive. Print \"received: 3\".\n\nExpected output:\n`received: 3`",
    "hint": "recv() can be dropped safely: the message stays in the channel.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-retry-backoff",
    "title": "Retry with a growing pause",
-   "statement": "Write a retry: the operation fails on the first two attempts (Err(\"fail\")) and succeeds on the third. After failures wait 20 ms, then 40 ms (doubling). For each attempt print «попытка N: fail» or «попытка N: ok», and at the end «ждали не меньше 60 мс: true».\n\nExpected output:\n«попытка 1: fail\nпопытка 2: fail\nпопытка 3: ok\nждали не меньше 60 мс: true»",
+   "statement": "Write a retry: the operation fails on the first two attempts (Err(\"fail\")) and succeeds on the third. After failures wait 20 ms, then 40 ms (doubling). For each attempt print \"attempt N: fail\" or \"attempt N: ok\", and at the end \"waited at least 60 ms: true\".\n\nExpected output:\n`attempt 1: fail`\n`attempt 2: fail`\n`attempt 3: ok`\n`waited at least 60 ms: true`",
    "hint": "A loop over the attempts; after a failure sleep(delay).await and delay *= 2.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-attempt-timeout",
    "title": "A timeout on each attempt",
-   "statement": "An operation attempt(n): the first two attempts sleep for 200 ms, the third returns 42 at once. Limit each attempt with a 50 ms timeout. Print «попытка N: таймаут» or «попытка N: 42».\n\nExpected output:\n«попытка 1: таймаут\nпопытка 2: таймаут\nпопытка 3: 42»",
+   "statement": "An operation attempt(n): the first two attempts sleep for 200 ms, the third returns 42 at once. Limit each attempt with a 50 ms timeout. Print \"attempt N: timeout\" or \"attempt N: 42\".\n\nExpected output:\n`attempt 1: timeout`\n`attempt 2: timeout`\n`attempt 3: 42`",
    "hint": "for n in 1..=3 { match timeout(.., attempt(n)).await { Ok(v) => .., Err(_) => .. } }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-nested-timeout",
    "title": "Nested timeouts",
-   "statement": "An inner 30 ms timeout wraps an 80 ms sleep, an outer 200 ms timeout wraps the inner one. Print «внутренний: просрочен, внешний: ok».\n\nExpected output:\n«внутренний: просрочен, внешний: ok»",
+   "statement": "An inner 30 ms timeout wraps an 80 ms sleep, an outer 200 ms timeout wraps the inner one. Print \"inner: expired, outer: ok\".\n\nExpected output:\n`inner: expired, outer: ok`",
    "hint": "The outer one returns Ok(Err(Elapsed)): it made it in time itself, the inner one did not.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r34-heartbeat",
    "title": "Heartbeat",
-   "statement": "In a select! loop combine a 100 ms interval (count the ticks) and a shared 250 ms deadline (a sleep pinned before the loop). When the deadline fires, exit and print «сердцебиений: 3» (ticks at 0, 100 and 200 ms).\n\nExpected output:\n«сердцебиений: 3»",
+   "statement": "In a select! loop combine a 100 ms interval (count the ticks) and a shared 250 ms deadline (a sleep pinned before the loop). When the deadline fires, exit and print \"heartbeats: 3\" (ticks at 0, 100 and 200 ms).\n\nExpected output:\n`heartbeats: 3`",
    "hint": "tokio::pin! for the deadline; in select! — _ = &mut deadline => break and _ = iv.tick() => n += 1.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   }

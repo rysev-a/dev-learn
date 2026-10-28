@@ -17,8 +17,8 @@
   {
    "id": "mem-finalize",
    "title": "finalize instead of __del__",
-   "statement": "Write track(name, log): it creates and returns a Handle object, and via weakref.finalize registers the record «закрыт <name>» to be appended to the list log when the object dies. The Handle class has no __del__.",
-   "hint": "h = Handle(); weakref.finalize(h, log.append, f\"закрыт {name}\"); return h."
+   "statement": "Write track(name, log): it creates and returns a Handle object, and via weakref.finalize registers the record \"closed <name>\" to be appended to the list log when the object dies. The Handle class has no __del__.",
+   "hint": "h = Handle(); weakref.finalize(h, log.append, f\"closed {name}\"); return h."
   },
   {
    "id": "mem-cycle-gc",

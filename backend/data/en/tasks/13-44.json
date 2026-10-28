@@ -11,14 +11,14 @@
   {
    "id": "async-fetch-all",
    "title": "All at once",
-   "statement": "Write a coroutine fetch_all(delays): for each delay in the list it starts a coroutine that waits that many seconds and returns the string «готово <i>» (i is the index from zero). All the waits must run simultaneously (gather); the results are in list order.",
-   "hint": "Define a nested async def one(i, d): await asyncio.sleep(d); return `f'готово {i}'`, and return await asyncio.gather(*(one(i, d) for i, d in enumerate(delays)))."
+   "statement": "Write a coroutine fetch_all(delays): for each delay in the list it starts a coroutine that waits that many seconds and returns the string \"done <i>\" (i is the index from zero). All the waits must run simultaneously (gather); the results are in list order.",
+   "hint": "Define a nested async def one(i, d): await asyncio.sleep(d); return `f'done {i}'`, and return await asyncio.gather(*(one(i, d) for i, d in enumerate(delays)))."
   },
   {
    "id": "async-with-timeout",
    "title": "A time limit",
-   "statement": "Write a coroutine with_timeout(coro, seconds): it waits for the result of coro for no longer than seconds seconds; if it does not finish in time, it returns the string «таймаут».",
-   "hint": "try: return await asyncio.wait_for(coro, seconds) / except TimeoutError: return `'таймаут'`."
+   "statement": "Write a coroutine with_timeout(coro, seconds): it waits for the result of coro for no longer than seconds seconds; if it does not finish in time, it returns the string \"timeout\".",
+   "hint": "try: return await asyncio.wait_for(coro, seconds) / except TimeoutError: return `'timeout'`."
   },
   {
    "id": "async-safe-all",

@@ -7,76 +7,31 @@
    "id": "reg2-load",
    "title": "Two-bit register with write",
    "statement": "From two DFF flip-flops build a register for a two-bit word. On the CLK edge, if LD = 1, the register takes word D1 D0; with LD = 0 it keeps its previous value. The accumulator and the program counter will later be built from such registers. The ready-made flip-flops start at zero on power-up.",
-   "hint": "Two identical bit slices sharing LD and CLK: at each flip-flop's input a “self or new” multiplexer D' = LD·D + ¬LD·Q (from the exercise “Register with write enable”). You need only one LD inverter for both bits. About 10 gates.",
-   "spec_text": {
-    "/steps/0/text": "Write word 10: D1 = 1, D0 = 0, LD = 1 and a clock tick.",
-    "/steps/1/text": "Data 01, but LD = 0: after the tick the register keeps its previous 10.",
-    "/steps/2/text": "LD = 1: write word 01.",
-    "/steps/3/text": "Data 11, LD = 0: the register still holds 01.",
-    "/steps/4/text": "LD = 1: write word 11.",
-    "/block/title": "2-bit register",
-    "/formula": "Qi ← LD ? Di : Qi on the CLK edge",
-    "/success": "This is a register with write, a universal part of a processor. It is saved as the block “2-bit register”: it has ports d, load, clk (inputs) and q (output, a word). You will need it twice: for the accumulator and for the program counter."
-   }
+   "hint": "Two identical bit slices sharing LD and CLK: at each flip-flop's input a “self or new” multiplexer D' = LD·D + ¬LD·Q (from the exercise “Register with write enable”). You need only one LD inverter for both bits. About 10 gates."
   },
   {
    "id": "decode-bus",
    "title": "Bus: read and decode",
    "statement": "The first exercise with blocks. You have a ROM with a program (port addr is the address, instr is the instruction) and an instruction decoder (ports op, z, wb → ctl). Connect them with buses: the ROM fetches an instruction by address, and the decoder turns its opcode into control signals. To get the opcode, expand port instr (the ▸ button) and drag a wire from the op field.",
-   "hint": "Four wires. Address (addr at the top) → the ROM's addr input. Field op of output instr → the decoder's op input. Inputs z and wb at the top → the decoder's z and wb inputs. The decoder's ctl output → the ctl output on the right. A wire between ports of the same type is dragged whole; an incompatible type is highlighted in gray.",
-   "spec_text": {
-    "/formula": "addr → ROM → instr.op → decoder → ctl",
-    "/success": "Four wires instead of a couple of dozen: the interfaces group bits into buses, and the types did not let you mix up Addr2 with Word2. The 🔍 button on a block opens the circuit you built in the exercises “ROM with a program” and “Full decoder”."
-   }
+   "hint": "Four wires. Address (addr at the top) → the ROM's addr input. Field op of output instr → the decoder's op input. Inputs z and wb at the top → the decoder's z and wb inputs. The decoder's ctl output → the ctl output on the right. A wire between ports of the same type is dragged whole; an incompatible type is highlighted in gray."
   },
   {
    "id": "fetch",
    "title": "Instruction fetch",
    "statement": "Build the fetch block: a program counter (a 2-bit register), a “next address” circuit and a ROM with a program. On a clock tick with load = 1 the counter takes the next address (+1, or the jump address k if take = 1), while the ROM always outputs the instruction at the current address. The register holds a word (Word2), but the address is Addr2: you will need adapters between them.",
-   "hint": "Register reg2 is the program counter. Its output q (Word2) goes through the “word → address” adapter and provides the address for the ROM, for next-pc (input pc) and for output pc. The next-pc output (Addr2) goes through the “address → word” adapter to the register's d input. The rest: take, k → next-pc; load, clk → the register; the ROM's instr → output instr.",
-   "spec_text": {
-    "/steps/0/text": "Load = 1, Take = 0, tick: the counter goes 0 → 1. The ROM outputs instruction 1, 0101 (ADD 1).",
-    "/steps/1/text": "Another tick: 1 → 2. Instruction 2 is 1001 (JNZ 1).",
-    "/steps/2/text": "Jump: Take = 1, K = 01, tick. The counter is not 3 but 1: the address was taken from K. The instruction is 0101 again.",
-    "/steps/3/text": "Take = 0, tick: an ordinary +1 step (1 → 2).",
-    "/steps/4/text": "Load = 0, tick: writing to the counter is forbidden, and address 2 stays.",
-    "/steps/5/text": "Load = 1, tick: 2 → 3. Instruction 3 is 1100 (HLT).",
-    "/block/title": "Instruction fetch",
-    "/formula": "PC ← (Take ? K : PC + 1) on the clock when Load; instr = ROM[PC]",
-    "/success": "The fetch block is ready: inside are the program counter, “next address” and the ROM, the very parts you built earlier. The closed loops “counter → ROM” and “counter → next address → counter” go through flip-flops, so they do not run away into oscillation."
-   }
+   "hint": "Register reg2 is the program counter. Its output q (Word2) goes through the “word → address” adapter and provides the address for the ROM, for next-pc (input pc) and for output pc. The next-pc output (Addr2) goes through the “address → word” adapter to the register's d input. The rest: take, k → next-pc; load, clk → the register; the ROM's instr → output instr."
   },
   {
    "id": "exec",
    "title": "Execute",
    "statement": "Build the execute block: an accumulator (a 2-bit register), the “accumulator operand” (what to write) and flags from the accumulator's value. On a clock tick with acc_load = 1 the accumulator receives either k (use_add = 0) or ACC + k (use_add = 1). Outputs: acc is the current value and flags are the flags (Z = 1 when zero).",
-   "hint": "The accumulator is reg2. Its output q goes to three places: the acc input of the “operand” block, the r input of the “flags” block and the acc output. The “operand” block gets k and use_add from outside (input add), and its output r goes to the register's d input. acc_load → the register's load, clk → the register's clk. The flags go to the flags output.",
-   "spec_text": {
-    "/steps/0/text": "Load: K = 10, UseAdd = 0, AccLoad = 1, tick. Accumulator = 10, flag Z = 0.",
-    "/steps/1/text": "Addition: K = 01, UseAdd = 1, tick. 2 + 1 = 3 → 11.",
-    "/steps/2/text": "AccLoad = 0, tick: writing is forbidden, and the accumulator stays 11.",
-    "/steps/3/text": "AccLoad = 1, tick: 3 + 1 = 4 is an overflow, leaving 00. Flag Z = 1.",
-    "/block/title": "Execute",
-    "/formula": "ACC ← (UseAdd ? ACC : 0) + K on the clock when AccLoad; Z = (ACC = 0)",
-    "/success": "This is the same “adder + register” loop as the accumulator in the section on registers, only built from ready-made parts. Notice how familiar the ports look: the same names as in the exercises “Accumulator operand” and “Result flags”."
-   }
+   "hint": "The accumulator is reg2. Its output q goes to three places: the acc input of the “operand” block, the r input of the “flags” block and the acc output. The “operand” block gets k and use_add from outside (input add), and its output r goes to the register's d input. acc_load → the register's load, clk → the register's clk. The flags go to the flags output."
   },
   {
    "id": "cpu",
    "title": "Processor",
    "statement": "The finale: build a processor from four blocks: the phase sequencer, instruction fetch, the decoder and execute. The only input is the clock CLK. The ROM inside the fetch block holds the program LDI 2, ADD 1, JNZ 1, HLT, and the processor will run it by itself. Each instruction takes four clock ticks: fetch, decode, execute, write back. Outputs: acc is the accumulator, pc is the program counter, ph is the current phase.",
-   "hint": "Clock clk → clk of the sequencer, fetch and execute. Sequencer: ph.Wb → the decoder's wb. Fetch: instr.op → the decoder's op; instr.k → execute's k; instr.k through the “word → address” adapter → fetch's k. Execute: flags.Z → the decoder's z. Decoder: ctl.UseAdd → execute's use_add, ctl.AccLoad → execute's acc_load, ctl.Take → fetch's take, ctl.PcLoad → fetch's load. Outputs: acc, pc and ph.",
-   "spec_text": {
-    "/steps/0/text": "Apply four ticks. LDI 2 has run: accumulator = 10, program counter = 1, and it is the fetch phase again.",
-    "/steps/1/text": "Another four ticks. ADD 1: 2 + 1 = 3 → accumulator 11, counter = 2.",
-    "/steps/2/text": "JNZ 1: the accumulator is not zero, so it jumps back. The accumulator is still 11, and the program counter = 1 (not 3).",
-    "/steps/3/text": "ADD 1 again: 3 + 1 = 4 does not fit in two bits, leaving 00. Counter = 2.",
-    "/steps/4/text": "JNZ 1: the accumulator is zero, so there is no jump and execution goes on. Program counter = 3.",
-    "/steps/5/text": "Instruction 3 is HLT. Apply two ticks: the execute phase.",
-    "/steps/6/text": "Two more ticks: the HLT cycle is over, but neither the program counter nor the accumulator has moved. The processor has stopped.",
-    "/formula": "Fetch → decode → execute → write back, 4 ticks per instruction",
-    "/success": "This is a processor! Every block inside is made of your own gate circuits: look inside any block with 🔍, then deeper still. The program in the ROM is three instructions and a stop; to make the processor do something else, just rewrite the ROM. Everything that works here began with a single AND gate."
-   }
+   "hint": "Clock clk → clk of the sequencer, fetch and execute. Sequencer: ph.Wb → the decoder's wb. Fetch: instr.op → the decoder's op; instr.k → execute's k; instr.k through the “word → address” adapter → fetch's k. Execute: flags.Z → the decoder's z. Decoder: ctl.UseAdd → execute's use_add, ctl.AccLoad → execute's acc_load, ctl.Take → fetch's take, ctl.PcLoad → fetch's load. Outputs: acc, pc and ph."
   }
  ]
 }

@@ -178,16 +178,6 @@ import hashlib
 def ws_accept(key):
     pass
 ', 'base64.b64encode(hashlib.sha1((key + GUID).encode()).digest()).decode().', '{"driver": "print(ws_accept(''dGhlIHNhbXBsZSBub25jZQ==''))\nprint(ws_accept(''x3JJHMbDL1EzLkh9GBhXDw==''))\n", "expected": ["s3pPLMBiTxaQ9kYGzzhZRbK+xOo=", "HSmrc0sMlYUkAGmm5OPpG2HaGWk="]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (15, 14, 'net14-ws-frame', 9, 'stdout', 'WebSocket: кадры', 'Напишите encode_text(text) — серверный (немаскированный) текстовый кадр: байт 0x81, затем длина (для длины < 126 — один байт; для 126…65535 — байт 126 и 2 байта длины big-endian), затем UTF-8. И decode_frame(data) -> (opcode, payload_bytes) для кадра клиента: если установлен бит маски (второй байт & 0x80), после длины идут 4 байта ключа маски, и каждый байт данных нужно обработать XOR с ключом[i % 4]. Опкод — младшие 4 бита первого байта.', 'import struct
-
-
-def encode_text(text):
-    pass
-
-
-def decode_frame(data):
-    pass
-', 'Длина < 126 — в одном байте; иначе 126 + struct.pack(''>H'', n). Маска: payload[i] ^ key[i % 4].', '{"driver": "print(encode_text(''hi''))\nprint(len(encode_text(''x'' * 300)), encode_text(''x'' * 300)[:4])\nprint(decode_frame(encode_text(''привет'')))\nkey = bytes([1, 2, 3, 4])\nmsg = b''Hello''\nframe = bytes([0x81, 0x80 | len(msg)]) + key + bytes(b ^ key[i % 4] for i, b in enumerate(msg))\nprint(decode_frame(frame))\n", "expected": ["b''\\x81\\x02hi''", "304 b''\\x81~\\x01,''", "(1, b''\\xd0\\xbf\\xd1\\x80\\xd0\\xb8\\xd0\\xb2\\xd0\\xb5\\xd1\\x82'')", "(1, b''Hello'')"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (15, 14, 'net14-sse', 10, 'stdout', 'Server-Sent Events: формат', 'Напишите sse_encode(events) и sse_decode(text). События — список словарей с ключами data (строка, может быть многострочной), необязательными event и id. Кодирование: для каждого события строки ''id: …'', ''event: …'' (если есть), затем для каждой строки data — ''data: …'', и пустая строка в конце. Декодирование — обратно: блоки разделены пустой строкой; многострочные data склеиваются через \n. Верните список словарей только с теми ключами, что были в блоке.', 'def sse_encode(events):
     pass
 

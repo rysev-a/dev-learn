@@ -5,8 +5,8 @@
   {
    "id": "hello-twice",
    "title": "Your own function",
-   "statement": "Define a function hello(name) that prints «Привет, <name>!» (the Russian greeting, with the name in place of <name>), and call it twice: for «Аня» and for «Борис».",
-   "hint": "def hello(name): print(f\"Привет, {name}!\") — and below it hello(\"Аня\") and hello(\"Борис\").",
+   "statement": "Define a function hello(name) that prints «Hello, <name>!», and call it twice: for «Ann» and for «Boris».",
+   "hint": "def hello(name): print(f\"Hello, {name}!\") — and below it hello(\"Ann\") and hello(\"Boris\").",
    "starter": "# def hello(name): ...\n# two calls\n"
   },
   {
@@ -42,7 +42,7 @@
   {
    "id": "triangle-kind",
    "title": "Kind of triangle",
-   "statement": "Write a function triangle_kind(a, b, c): return «равносторонний» (equilateral) if all three sides are equal, «равнобедренный» (isosceles) if exactly two are equal, otherwise «разносторонний» (scalene).",
+   "statement": "Write a function triangle_kind(a, b, c): return «equilateral» if all three sides are equal, «isosceles» if exactly two are equal, otherwise «scalene».",
    "hint": "First check a == b == c, then “at least one pair is equal”: a == b or b == c or a == c."
   },
   {

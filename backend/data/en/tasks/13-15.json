@@ -23,8 +23,8 @@
   {
    "id": "custom-error",
    "title": "A custom exception",
-   "statement": "Define an exception NotEnoughMoney (a subclass of Exception) and a function withdraw(balance, amount): if amount is greater than balance, raise NotEnoughMoney with the message «не хватает <how much>», otherwise return the remainder.",
-   "hint": "raise NotEnoughMoney(f\"не хватает {amount - balance}\")."
+   "statement": "Define an exception NotEnoughMoney (a subclass of Exception) and a function withdraw(balance, amount): if amount is greater than balance, raise NotEnoughMoney with the message «short by <how much>», otherwise return the remainder.",
+   "hint": "raise NotEnoughMoney(f\"short by {amount - balance}\")."
   },
   {
    "id": "first-int",
@@ -41,8 +41,8 @@
   {
    "id": "raise-from",
    "title": "A clear error",
-   "statement": "Write a function get_port(config): it returns config[\"port\"], and if the key is missing, raises RuntimeError(\"нет порта\") FROM the original error (raise ... from e).",
-   "hint": "try: return config[\"port\"] / except KeyError as e: raise RuntimeError(\"нет порта\") from e."
+   "statement": "Write a function get_port(config): it returns config[\"port\"], and if the key is missing, raises RuntimeError(\"no port\") FROM the original error (raise ... from e).",
+   "hint": "try: return config[\"port\"] / except KeyError as e: raise RuntimeError(\"no port\") from e."
   },
   {
    "id": "eafp-get",

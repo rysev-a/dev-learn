@@ -10,7 +10,7 @@
    "hint": "padding задаёт отступ внутри рамки; border — рамку (нужен стиль, например solid); max-width ограничивает ширину; margin: 0 auto центрирует блок с ограниченной шириной.",
    "spec": {
     "kind": "css",
-    "html": "<article class=\"card\"><h2>Кофе в зёрнах</h2><p>Арабика, средняя обжарка.</p></article>",
+    "html": "<article class=\"card\"><h2>Coffee beans</h2><p>Arabica, medium roast.</p></article>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -82,7 +82,7 @@
    "hint": "Значение border-box у свойства box-sizing. Чтобы охватить всё сразу, правило пишут для селектора из звёздочки и двух её псевдоэлементов: *, *::before, *::after.",
    "spec": {
     "kind": "css",
-    "html": "<style>.col { width: 300px; padding: 20px; border: 2px solid #999; }</style><div class=\"col\"><h2>Колонка</h2><p>Текст</p></div>",
+    "html": "<style>.col { width: 300px; padding: 20px; border: 2px solid #999; }</style><div class=\"col\"><h2>Column</h2><p>Text</p></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -137,7 +137,7 @@
    "hint": "max-width ограничивает рост, min-height — снизу; aspect-ratio записывается как 16 / 9, для квадрата достаточно 1.",
    "spec": {
     "kind": "css",
-    "html": "<style>.thumb { width: 120px; }</style><div class=\"video\">Видео</div><div class=\"thumb\">Превью</div>",
+    "html": "<style>.thumb { width: 120px; }</style><div class=\"video\">Video</div><div class=\"thumb\">Preview</div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -185,7 +185,7 @@
    "hint": "max-height задаёт потолок высоты, overflow-y: auto показывает полосу только при необходимости, overflow-x: hidden обрезает лишнее по горизонтали.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"log\">Запуск…<br>Чтение настроек…<br>Подключение к базе…<br>Миграции…<br>Прогрев кэша…<br>Готово.</div>",
+    "html": "<div class=\"log\">Starting…<br>Reading settings…<br>Connecting to the database…<br>Migrations…<br>Warming the cache…<br>Done.</div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -224,7 +224,7 @@
    "hint": "border-radius принимает и проценты: 50% на квадрате даёт круг. Тень задаёт box-shadow: смещение по x и y, размытие, цвет.",
    "spec": {
     "kind": "css",
-    "html": "<style>.avatar { width: 64px; height: 64px; background: #8b5a2b; }</style><div class=\"card\"><div class=\"avatar\"></div><p>Анна, бариста</p></div>",
+    "html": "<style>.avatar { width: 64px; height: 64px; background: #8b5a2b; }</style><div class=\"card\"><div class=\"avatar\"></div><p>Anna, barista</p></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -257,7 +257,7 @@
      {
       "t": "uses",
       "prop": "box-shadow",
-      "msg": "У карточки есть box-shadow"
+      "msg": "The card has a box-shadow"
      }
     ],
     "reference": {
@@ -272,7 +272,7 @@
    "hint": "Не нужно возвращать outline всегда: достаточно правила .btn:focus-visible с outline (толщина, стиль solid, цвет) и outline-offset.",
    "spec": {
     "kind": "css",
-    "html": "<button class=\"btn\" type=\"button\">Купить</button>",
+    "html": "<button class=\"btn\" type=\"button\">Buy</button>",
     "starter_css": ".btn:focus { outline: none; }",
     "viewport": 1024,
     "checks": [
@@ -310,14 +310,14 @@
    "hint": "Градиент — это фоновая картинка, поэтому он идёт в background-image. Дальше background-size, background-position (center), background-repeat (no-repeat) и color.",
    "spec": {
     "kind": "css",
-    "html": "<header class=\"hero\"><h1>Кофейня на углу</h1></header>",
+    "html": "<header class=\"hero\"><h1>Coffee shop on the corner</h1></header>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
      {
       "t": "uses",
       "prop": "background-image",
-      "msg": "Фоновая картинка задана свойством background-image"
+      "msg": "The background image is set with background-image"
      },
      {
       "t": "style",
@@ -360,7 +360,7 @@
    "hint": "font-family перечисляют через запятую, заканчивая общим семейством; line-height удобно задавать числом без единиц; letter-spacing — в px или em.",
    "spec": {
     "kind": "css",
-    "html": "<article class=\"post\"><h1>Как варить кофе</h1><p>Возьмите свежие зёрна и мягкую воду. Не торопитесь: от температуры воды зависит вкус.</p></article>",
+    "html": "<article class=\"post\"><h1>How to brew coffee</h1><p>Take fresh beans and soft water. Do not hurry: the taste depends on the water temperature.</p></article>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -372,7 +372,7 @@
        "verdana, arial, sans-serif",
        "verdana,arial,sans-serif"
       ],
-      "msg": "Стек шрифтов абзацев: Verdana, Arial, sans-serif"
+      "msg": "Paragraph font stack: Verdana, Arial, sans-serif"
      },
      {
       "t": "style",
@@ -420,7 +420,7 @@
        "3.3",
        "3.35"
       ],
-      "msg": "Межстрочный интервал абзацев — число не меньше 1.4"
+      "msg": "Paragraph line height is a number of at least 1.4"
      },
      {
       "t": "style",
@@ -447,7 +447,7 @@
    "hint": "text-decoration: none снимает подчёркивание; для наведения нужно правило с :hover. Регистр меняет text-transform.",
    "spec": {
     "kind": "css",
-    "html": "<nav><a class=\"link\" href=\"#\">Меню</a> <a class=\"link\" href=\"#\">О нас</a></nav><span class=\"tag\">новинка</span>",
+    "html": "<nav><a class=\"link\" href=\"#\">Menu</a> <a class=\"link\" href=\"#\">About us</a></nav><span class=\"tag\">new</span>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -483,7 +483,7 @@
    "hint": "Нужна связка из трёх свойств: white-space: nowrap, overflow: hidden и text-overflow: ellipsis. Без любого из них многоточия не будет.",
    "spec": {
     "kind": "css",
-    "html": "<style>.title { width: 200px; }</style><p class=\"title\">Эфиопия Иргачифф, натуральная обработка, свежая обжарка</p>",
+    "html": "<style>.title { width: 200px; }</style><p class=\"title\">Ethiopia Yirgacheffe, natural process, fresh roast</p>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -518,7 +518,7 @@
    "hint": "list-style: none (или list-style-type: none) убирает маркеры; padding-left: 0 — отступ списка. Свойство list-style-type наследуется, так что достаточно правила для .menu.",
    "spec": {
     "kind": "css",
-    "html": "<ul class=\"menu\"><li><a href=\"#\">Главная</a></li><li><a href=\"#\">Каталог</a></li><li><a href=\"#\">Контакты</a></li></ul>",
+    "html": "<ul class=\"menu\"><li><a href=\"#\">Home</a></li><li><a href=\"#\">Catalog</a></li><li><a href=\"#\">Contacts</a></li></ul>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -547,7 +547,7 @@
    "hint": "list-style-type выбирает вид маркера. Цвет маркера меняет псевдоэлемент ::marker у li.",
    "spec": {
     "kind": "css",
-    "html": "<ul class=\"todo\"><li>Купить кофе</li><li>Помыть кофемолку</li><li>Настроить рецепт</li></ul>",
+    "html": "<ul class=\"todo\"><li>Buy coffee</li><li>Wash the grinder</li><li>Tune the recipe</li></ul>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -577,7 +577,7 @@
    "hint": "У родителя position: relative — он становится содержащим блоком. У значков position: absolute и отступы через top, right, bottom, left.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"card\">Товар<span class=\"badge\">new</span><span class=\"sale\">-20%</span></div>",
+    "html": "<div class=\"card\">Item<span class=\"badge\">new</span><span class=\"sale\">-20%</span></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -636,7 +636,7 @@
    "hint": "position: sticky работает вместе с top: 0; чтобы шапка была над содержимым, нужен z-index; фон задаёт background-color.",
    "spec": {
     "kind": "css",
-    "html": "<header class=\"top\">Кофейня</header><main><p>Длинный текст…</p><p>Ещё абзац…</p></main>",
+    "html": "<header class=\"top\">Coffee Shop</header><main><p>Long text…</p><p>Another paragraph…</p></main>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -1658,7 +1658,7 @@
        "999",
        "1000"
       ],
-      "msg": "У .top z-index больше нуля"
+      "msg": "The .top has z-index greater than zero"
      },
      {
       "t": "style",
@@ -1679,7 +1679,7 @@
    "hint": "Нужно position: relative у .menu-wrap, position: absolute у .dropdown и z-index больше двух. z-index работает только у позиционированных элементов.",
    "spec": {
     "kind": "css",
-    "html": "<style>.content { position: relative; z-index: 2; }</style><div class=\"menu-wrap\"><button>Меню</button><ul class=\"dropdown\"><li>Кофе</li><li>Чай</li></ul></div><div class=\"content\">Содержимое страницы</div>",
+    "html": "<style>.content { position: relative; z-index: 2; }</style><div class=\"menu-wrap\"><button>Menu</button><ul class=\"dropdown\"><li>Coffee</li><li>Tea</li></ul></div><div class=\"content\">Page content</div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -2699,7 +2699,7 @@
        "999",
        "1000"
       ],
-      "msg": "У .dropdown z-index больше двух"
+      "msg": "The .dropdown has z-index greater than two"
      }
     ],
     "reference": {
@@ -2714,7 +2714,7 @@
    "hint": "Псевдоэлемент ::before появляется только при заданном content. Текст в content пишется в кавычках: content: \"★\".",
    "spec": {
     "kind": "css",
-    "html": "<h2 class=\"news\">Новый сорт</h2><h2 class=\"news\">Скидка на зёрна</h2>",
+    "html": "<h2 class=\"news\">New variety</h2><h2 class=\"news\">Discount on beans</h2>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -2745,7 +2745,7 @@
    "hint": "display: none убирает элемент из потока вовсе, visibility: hidden прячет, но место сохраняется.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"promo\">Реклама</div><div class=\"ghost\">Пустое место</div><p>Основной текст</p>",
+    "html": "<div class=\"promo\">Advert</div><div class=\"ghost\">Empty space</div><p>Main text</p>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -2785,7 +2785,7 @@
    "hint": "Новый контекст форматирования у родителя запрещает схлопывание: display: flow-root. Подойдут и flex- или grid-контейнер.",
    "spec": {
     "kind": "css",
-    "html": "<style>.title { margin-top: 40px; }</style><section class=\"wrap\"><h2 class=\"title\">Раздел</h2><p>Текст раздела</p></section>",
+    "html": "<style>.title { margin-top: 40px; }</style><section class=\"wrap\"><h2 class=\"title\">Section</h2><p>Section text</p></section>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -2824,7 +2824,7 @@
    "hint": "position: fixed привязывает элемент к окну; координаты задают right и bottom; для слоя нужен z-index.",
    "spec": {
     "kind": "css",
-    "html": "<main><p>Длинная страница…</p></main><button class=\"to-top\" type=\"button\">Наверх</button>",
+    "html": "<main><p>Long page…</p></main><button class=\"to-top\" type=\"button\">To top</button>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -3854,7 +3854,7 @@
        "999",
        "1000"
       ],
-      "msg": "У .to-top z-index больше нуля"
+      "msg": "The .to-top has z-index greater than zero"
      }
     ],
     "reference": {
@@ -3869,7 +3869,7 @@
    "hint": "Правило .clearfix::after { content: \"\"; display: block; clear: both } — пустой блок в конце, который обязан стоять ниже всех плавающих элементов. Сегодня то же решает display: flow-root.",
    "spec": {
     "kind": "css",
-    "html": "<style>.pic { float: left; width: 80px; height: 80px; background: #c58b4a; }</style><div class=\"clearfix\"><div class=\"pic\"></div><p>Текст рядом с картинкой</p></div>",
+    "html": "<style>.pic { float: left; width: 80px; height: 80px; background: #c58b4a; }</style><div class=\"clearfix\"><div class=\"pic\"></div><p>Text next to the picture</p></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [

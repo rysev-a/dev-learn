@@ -24,8 +24,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "D1 = НЕ-A0; D0 = A1⊕A0",
-        "success": "Любая комбинационная схема — это ПЗУ: адрес на входах, ответ на выходах. И наоборот: ПЗУ можно записать как логические формулы. Так в железе «зашивается» программа или таблица символов.",
+        "formula": "D1 = ¬A0; D0 = A1⊕A0",
+        "success": "Any combinational circuit is a ROM: an address on the inputs, the answer on the outputs. Conversely, a ROM can be written as logic formulas. This is how a program or a character table is “hard-wired” in hardware.",
         "solution": {
           "gates": [
             {
@@ -131,13 +131,13 @@
         ],
         "block": {
           "id": "rom",
-          "title": "ПЗУ с программой"
+          "title": "ROM with a program"
         },
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Wj = ИЛИ адресов, в чьих словах бит j равен 1",
-        "success": "Дешифратор + матрица ИЛИ — классическое устройство ПЗУ. А расшифруем программу так: 0 — LDI 2 (положить 2), 1 — ADD 1 (прибавить 1), 2 — JNZ 1 (если не ноль, вернуться на 1), 3 — HLT (стоп). Код операции — два старших бита, операнд — два младших.",
+        "formula": "Wj = OR of the addresses whose words have bit j equal to 1",
+        "success": "A decoder plus an OR matrix is the classic ROM structure. Now let us decode the program: 0 is LDI 2 (load 2), 1 is ADD 1 (add 1), 2 is JNZ 1 (if not zero, go back to 1), 3 is HLT (stop). The opcode is the two high bits, the operand is the two low bits.",
         "solution": {
           "gates": [
             {
@@ -450,8 +450,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Rom = НЕ-A2; Io = A2·A1·A0; Ram = A2·НЕ(A1·A0)",
-        "success": "Это «карта памяти»: адресные биты не хранят данные, а лишь выбирают, к какой микросхеме обратиться. Чем «круглее» границы областей (кратные степени двойки), тем проще логика выбора.",
+        "formula": "Rom = ¬A2; Io = A2·A1·A0; Ram = A2·¬(A1·A0)",
+        "success": "This is a “memory map”: address bits do not store data, they only select which chip to access. The “rounder” the region boundaries are (multiples of powers of two), the simpler the select logic.",
         "solution": {
           "gates": [
             {
@@ -632,8 +632,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "We = CS·Wr; Oe = CS·Rd·НЕ-Wr",
-        "success": "Приоритет записи — защита от «драки» на шине: два устройства не должны одновременно выдавать данные. Сигналы We и Oe — те самые «разрешения», которые вы собирали для защёлок; теперь они приходят снаружи.",
+        "formula": "We = CS·Wr; Oe = CS·Rd·¬Wr",
+        "success": "Write priority protects against a “fight” on the bus: two devices must not drive data at the same time. Signals We and Oe are the same “enables” you built for the latches; now they arrive from outside.",
         "solution": {
           "gates": [
             {
@@ -792,7 +792,7 @@
               "Out": 0,
               "Q": 1
             },
-            "text": "Запись: D = 1, W = 1, защиты нет. Q = 1; шина молчит (RD = 0).",
+            "text": "Write: D = 1, W = 1, no protection. Q = 1; the bus is silent (RD = 0).",
             "pulses": null
           },
           {
@@ -806,7 +806,7 @@
               "Out": 0,
               "Q": 1
             },
-            "text": "Закройте запись: W = 0. Ячейка хранит 1.",
+            "text": "Close the write: W = 0. The cell holds 1.",
             "pulses": null
           },
           {
@@ -820,7 +820,7 @@
               "Out": 1,
               "Q": 1
             },
-            "text": "Чтение: RD = 1. На шине единица.",
+            "text": "Read: RD = 1. The bus shows a one.",
             "pulses": null
           },
           {
@@ -834,7 +834,7 @@
               "Out": 1,
               "Q": 1
             },
-            "text": "Включите защиту записи: WP = 1.",
+            "text": "Turn on write protection: WP = 1.",
             "pulses": null
           },
           {
@@ -848,7 +848,7 @@
               "Out": 1,
               "Q": 1
             },
-            "text": "Попробуйте записать ноль: D = 0, W = 1. Защита не пускает — Q по-прежнему 1.",
+            "text": "Try to write a zero: D = 0, W = 1. The protection blocks it, and Q is still 1.",
             "pulses": null
           },
           {
@@ -862,7 +862,7 @@
               "Out": 0,
               "Q": 0
             },
-            "text": "Снимите защиту (WP = 0), W всё ещё 1: запись прошла — Q = 0.",
+            "text": "Remove the protection (WP = 0) with W still 1: the write goes through and Q = 0.",
             "pulses": null
           },
           {
@@ -876,7 +876,7 @@
               "Out": 0,
               "Q": 0
             },
-            "text": "Закройте запись: ячейка хранит 0.",
+            "text": "Close the write: the cell holds 0.",
             "pulses": null
           }
         ],
@@ -885,8 +885,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "we = W·НЕ-WP; Q — защёлка с E = we; Out = Q·RD",
-        "success": "Защита записи — один лишний элемент И. Так в процессорах защищают код от случайной перезаписи: участок памяти «только для чтения» отличается от обычного ровно этим.",
+        "formula": "we = W·¬WP; Q is a latch with E = we; Out = Q·RD",
+        "success": "Write protection is one extra AND gate. This is how processors protect code from accidental overwriting: a “read-only” region of memory differs from an ordinary one in exactly this.",
         "solution": {
           "gates": [
             {
@@ -1144,7 +1144,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Адрес 0, запись единицы: D = 1, W = 1. Q = 1.",
+            "text": "Address 0, write a one: D = 1, W = 1. Q = 1.",
             "pulses": null
           },
           {
@@ -1156,7 +1156,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Закройте запись: W = 0.",
+            "text": "Close the write: W = 0.",
             "pulses": null
           },
           {
@@ -1168,7 +1168,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Смените D на 0 при закрытой записи — ячейка 0 хранит 1.",
+            "text": "Change D to 0 with the write closed: cell 0 still holds 1.",
             "pulses": null
           },
           {
@@ -1178,7 +1178,7 @@
               "C": 1
             },
             "expect": {},
-            "text": "Переключитесь на адрес 1 и прочитайте: ячейка 1 ещё пуста, выход «?». Этот шаг значение не проверяет.",
+            "text": "Switch to address 1 and read: cell 1 is still empty, so the output is “?”. This step does not check the value.",
             "pulses": null
           },
           {
@@ -1190,7 +1190,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Запишите ноль в ячейку 1: A = 1, D = 0, W = 1. Q = 0.",
+            "text": "Write a zero to cell 1: A = 1, D = 0, W = 1. Q = 0.",
             "pulses": null
           },
           {
@@ -1202,7 +1202,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Закройте запись.",
+            "text": "Close the write.",
             "pulses": null
           },
           {
@@ -1214,7 +1214,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Вернитесь на адрес 0: ячейка 0 всё ещё хранит 1 — записи в ячейку 1 её не тронули.",
+            "text": "Go back to address 0: cell 0 still holds 1, since writes to cell 1 did not touch it.",
             "pulses": null
           },
           {
@@ -1226,7 +1226,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Снова адрес 1, и D = 1 «стучится» при закрытой записи: ячейка 1 хранит 0.",
+            "text": "Address 1 again, and D = 1 “knocks” while the write is closed: cell 1 holds 0.",
             "pulses": null
           }
         ],
@@ -1235,8 +1235,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "wk = W·(A = k); Q = содержимое ячейки A",
-        "success": "Это уже настоящая память: адрес выбирает ячейку и на запись, и на чтение. Подумайте, сколько элементов нужно на тысячу ячеек — и почему настоящая память упакована в плотные массивы транзисторов. Главная идея та же.",
+        "formula": "wk = W·(A = k); Q = contents of cell A",
+        "success": "This is already real memory: the address selects the cell for both writing and reading. Think about how many gates a thousand cells would need, and why real memory is packed into dense transistor arrays. The main idea is the same.",
         "solution": {
           "gates": [
             {
@@ -1681,7 +1681,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Адрес 0, запись слова 10: D1 = 1, D0 = 0, W = 1.",
+            "text": "Address 0, write word 10: D1 = 1, D0 = 0, W = 1.",
             "pulses": null
           },
           {
@@ -1695,7 +1695,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Закройте запись.",
+            "text": "Close the write.",
             "pulses": null
           },
           {
@@ -1709,7 +1709,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Смените данные на 01 при закрытой записи: слово 0 хранит 10.",
+            "text": "Change the data to 01 with the write closed: word 0 still holds 10.",
             "pulses": null
           },
           {
@@ -1720,7 +1720,7 @@
               "D": 1
             },
             "expect": {},
-            "text": "Адрес 1: слово там ещё не записано — выходы «?».",
+            "text": "Address 1: nothing has been written there yet, so the outputs are “?”.",
             "pulses": null
           },
           {
@@ -1734,7 +1734,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "Запишите 01 в слово 1: W = 1.",
+            "text": "Write 01 to word 1: W = 1.",
             "pulses": null
           },
           {
@@ -1748,7 +1748,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "Закройте запись.",
+            "text": "Close the write.",
             "pulses": null
           },
           {
@@ -1762,7 +1762,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Вернитесь на адрес 0: слово 10 на месте, запись в слово 1 его не затронула.",
+            "text": "Go back to address 0: word 10 is in place, and the write to word 1 did not affect it.",
             "pulses": null
           }
         ],
@@ -1771,8 +1771,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Qj = (слово A)[j]; запись: W·(A = k) → слово k",
-        "success": "Ширина слова растёт копированием: ячейки одного слова просто делят сигнал разрешения записи. Именно так устроен байт или 64-битное слово — «ряд» защёлок под общим адресом.",
+        "formula": "Qj = (word A)[j]; write: W·(A = k) → word k",
+        "success": "Word width grows by copying: the cells of one word simply share the write enable signal. This is how a byte or a 64-bit word is built: a “row” of latches under one address.",
         "solution": {
           "gates": [
             {
@@ -2552,7 +2552,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Адрес 0, D = 1, W = 1 и такт: ячейка 0 = 1, Q = 1.",
+            "text": "Address 0, D = 1, W = 1 and a clock tick: cell 0 = 1, Q = 1.",
             "pulses": null
           },
           {
@@ -2565,7 +2565,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Адрес 1, D = 1, W = 1 и такт: ячейка 1 = 1.",
+            "text": "Address 1, D = 1, W = 1 and a clock tick: cell 1 = 1.",
             "pulses": null
           },
           {
@@ -2578,7 +2578,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Адрес 1, D = 0, W = 1 и такт: ячейка 1 переписана нулём.",
+            "text": "Address 1, D = 0, W = 1 and a clock tick: cell 1 is overwritten with zero.",
             "pulses": null
           },
           {
@@ -2591,7 +2591,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Запись выключена (W = 0), адрес 0, такт: читаем ячейку 0 — единица на месте.",
+            "text": "Write off (W = 0), address 0, clock tick: we read cell 0, and the one is still there.",
             "pulses": null
           },
           {
@@ -2604,7 +2604,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Адрес 1, такт без записи: ячейка 1 хранит 0, а D = 0 тут ни при чём.",
+            "text": "Address 1, a tick without a write: cell 1 holds 0, and D = 0 has nothing to do with it.",
             "pulses": null
           }
         ],
@@ -2613,8 +2613,8 @@
         "blocks": [],
         "clock": "D",
         "ticks": true,
-        "formula": "DFFk: D' = wk ? D : Qk; Q = ячейка A",
-        "success": "Так устроена синхронная память (SRAM): запись и обновление — только по фронту, остальное время все ячейки молча хранят. Такт синхронизирует память с остальным процессором: данные меняются в известный момент.",
+        "formula": "DFFk: D' = wk ? D : Qk; Q = cell A",
+        "success": "This is how synchronous memory (SRAM) works: writing and updating happen only on the edge, and the rest of the time all the cells quietly hold their values. The clock synchronizes the memory with the rest of the processor: data changes at a known moment.",
         "solution": {
           "gates": [
             {

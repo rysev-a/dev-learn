@@ -3,12 +3,6 @@
  "chapter": 8,
  "tasks": [
   {
-   "id": "c8-fmt-row",
-   "title": "Fixed-width table",
-   "statement": "print_row(out, name, qty, price) prints a row in the format \"%-10s|%5d|%8.2f\" and a newline; a name longer than 10 characters is cut to 10 (without breaking the table). print_total(out, n, sum) prints \"ИТОГО: n позиций на S\" (S with two decimals), where the word \"позиций\" takes the Russian grammatical form \"1 позиция\", \"2 позиции\", \"5 позиций\" (singular for 1, 21…; 2–4; the rest; 11–14 take \"позиций\").",
-   "hint": "\"%-10.10s\" both left-aligns and truncates the string to 10 characters. For the word endings, look at n % 100 and n % 10."
-  },
-  {
    "id": "c8-hex-dump",
    "title": "Hexadecimal memory dump",
    "statement": "hex_dump(out, p, n) prints bytes 16 per line in the format \"0000: 48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21 0a 00 ff  |Hello, World!...|\": the offset as four hex digits, a colon, a space, 16 bytes as \"%02x\" separated by spaces (in an incomplete last line the missing positions are filled with spaces so that the ASCII column does not shift), two spaces, \"|\", the characters (non-printable ones as a dot), \"|\".",

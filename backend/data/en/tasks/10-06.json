@@ -3,13 +3,6 @@
  "chapter": 6,
  "tasks": [
   {
-   "id": "r6-literal",
-   "title": "Literal and length",
-   "statement": "Declare s = \"Привет, мир!\" and print two lines: the string itself, then «bytes=…» and «chars=…» on one line: «bytes=21 chars=12».\n\nExpected output:\n«Привет, мир!\nbytes=21 chars=12»",
-   "hint": "len() is bytes, chars().count() is characters.",
-   "starter": "fn main() {\n    // your code\n}\n"
-  },
-  {
    "id": "r6-string-new",
    "title": "Building a String",
    "statement": "Create an empty mutable String, append push_str(\"Rust\"), push(' '), push_str(\"loves\"), push(' '), push_str(\"you\") and print «Rust loves you».\n\nExpected output:\n«Rust loves you»",
@@ -61,7 +54,7 @@
   {
    "id": "r6-contains",
    "title": "Searching for a substring",
-   "statement": "text = \"Rust — язык системного программирования\". Print three lines: contains(\"язык\"), starts_with(\"Rust\"), ends_with(\"Go\") → true, true, false.\n\nExpected output:\ntrue\ntrue\nfalse",
+   "statement": "text = \"Rust is a systems programming language\". Print three lines: contains(\"systems\"), starts_with(\"Rust\"), ends_with(\"Go\") → true, true, false.\n\nExpected output:\ntrue\ntrue\nfalse",
    "hint": "The result of each method is a bool.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -82,7 +75,7 @@
   {
    "id": "r6-count-vowels",
    "title": "Vowels",
-   "statement": "In the string \"Программирование на Rust\" count the Russian vowels «аеёиоуыэюя» (case does not matter: convert to lowercase first). Print «8».\n\nExpected output:\n8",
+   "statement": "In the string \"Rust is a fun language\" count the vowels «aeiou» (case does not matter: convert to lowercase first). Print «8».\n\nExpected output:\n8",
    "hint": "\"…\".contains(c) can search for a character.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -96,14 +89,14 @@
   {
    "id": "r6-palindrome",
    "title": "Palindrome",
-   "statement": "Check whether «А роза упала на лапу Азора» is a palindrome, ignoring spaces and case. Print «true».\n\nExpected output:\ntrue",
+   "statement": "Check whether «A man a plan a canal Panama» is a palindrome, ignoring spaces and case. Print «true».\n\nExpected output:\ntrue",
    "hint": "Remove the spaces, convert to lowercase, compare with the reversed string.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r6-words-count",
    "title": "Word count",
-   "statement": "Count the words in the string \"  раз  два   три четыре \" with split_whitespace().count(): «4».\n\nExpected output:\n4",
+   "statement": "Count the words in the string \"  one  two   three four \" with split_whitespace().count(): «4».\n\nExpected output:\n4",
    "hint": "split_whitespace ignores extra spaces.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -133,13 +126,6 @@
    "title": "The n-th character",
    "statement": "s = \"hello\". Print the third character (index 2, via chars().nth(2)) and the last one (chars().last()). The expected output is «l» and «o». Both are Options, use unwrap.\n\nExpected output:\n```\nl\no\n```",
    "hint": "nth(n) returns Option<char>.",
-   "starter": "fn main() {\n    // your code\n}\n"
-  },
-  {
-   "id": "r6-char-indices",
-   "title": "Character positions",
-   "statement": "For the string \"аб\" print «position character» pairs with char_indices: «0 а» and «2 б» (a Russian letter is 2 bytes).\n\nExpected output:\n«0 а\n2 б»",
-   "hint": "char_indices gives the offset in bytes.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {

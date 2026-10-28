@@ -7,93 +7,49 @@
    "id": "control-word",
    "title": "Control word",
    "statement": "The processor's instruction set: 00 is LDI k (load), 01 is ADD k (add), 10 is JNZ k (jump if not zero), 11 is HLT (stop). From the opcode I3 I2 produce four control signals: Ld, “write the result to the accumulator” (LDI and ADD); Add, “add to the current value” (ADD only); Jmp, “this is a jump” (JNZ); Hlt, “stop” (HLT).",
-   "hint": "Ld = ¬I3 (instructions 00 and 01 are those with I3 = 0). Add = ¬I3·I2, Jmp = I3·¬I2, Hlt = I3·I2; each one “recognizes” its own code, like an output of a decoder.",
-   "spec_text": {
-    "/formula": "Ld = ¬I3; Add = ¬I3·I2; Jmp = I3·¬I2; Hlt = I3·I2",
-    "/success": "The instruction decoder is a simple combinational circuit: the opcode on the input, control signals on the output. It does not “think”; it just switches on the right parts of the processor. The richer the instruction set, the more signals and the more complex this circuit."
-   }
+   "hint": "Ld = ¬I3 (instructions 00 and 01 are those with I3 = 0). Add = ¬I3·I2, Jmp = I3·¬I2, Hlt = I3·I2; each one “recognizes” its own code, like an output of a decoder."
   },
   {
    "id": "jnz-take",
    "title": "Conditional jump",
    "statement": "The JNZ instruction jumps only if the accumulator is NOT zero. Flag Z = 1 means “the accumulator equals zero” (from the section on the ALU). To the four signals of the previous exercise add the decision to jump: Take = 1 if the instruction is JNZ and Z = 0. The outputs are now Ld, Add, Take, Hlt.",
-   "hint": "Ld, Add and Hlt are the same as in the previous exercise. Take = Jmp·¬Z, where Jmp = I3·¬I2: first “this is JNZ”, then “and the accumulator is not zero”.",
-   "spec_text": {
-    "/formula": "Take = I3·¬I2·¬Z",
-    "/success": "This is how a program gets branches: a value from the past (flag Z) affects which instruction runs next. Without a conditional jump a processor would be a calculator; with it, it can do loops and make decisions."
-   }
+   "hint": "Ld, Add and Hlt are the same as in the previous exercise. Take = Jmp·¬Z, where Jmp = I3·¬I2: first “this is JNZ”, then “and the accumulator is not zero”."
   },
   {
    "id": "acc-operand",
    "title": "Accumulator operand",
    "statement": "What should be written to the accumulator? For LDI, just the operand k; for ADD, the sum ACC + k. Signal Add (from the decoder) decides whether to add the accumulator. Inputs: ACC (A1 A0), operand k (K1 K0), Add. Output R1 R0 = K + (Add ? ACC : 0), modulo 4.",
-   "hint": "First a “gate”: g1 = A1·Add, g0 = A0·Add; with Add = 0 zeros replace the accumulator. Then a two-bit adder K + g: R0 = K0⊕g0, c = K0·g0, R1 = K1⊕g1⊕c.",
-   "spec_text": {
-    "/block/title": "Accumulator operand",
-    "/success": "The same addition circuit serves both instructions: “load” is “add to zero”. A gate of AND elements turns the accumulator into zero when it is not needed. The saving: one adder instead of two."
-   }
+   "hint": "First a “gate”: g1 = A1·Add, g0 = A0·Add; with Add = 0 zeros replace the accumulator. Then a two-bit adder K + g: R0 = K0⊕g0, c = K0·g0, R1 = K1⊕g1⊕c."
   },
   {
    "id": "next-pc",
    "title": "Next address",
    "statement": "The program counter (PC) holds the address of the current instruction. The next address is either “address + 1” or the jump address k if a jump is decided (Take = 1). Inputs: Take, K1 K0 (where to jump), P1 P0 (current address). Output N1 N0 is the next address (modulo 4).",
-   "hint": "Two paths, chosen by Take. The “+1” path is an incrementer: i0 = ¬P0, i1 = P1⊕P0. Then a multiplexer on each bit: Ni = Take ? Ki : ii.",
-   "spec_text": {
-    "/block/title": "Next address",
-    "/success": "This circuit sits at the input of the program counter: without jumps it counts “+1”, with a jump it takes the address from the instruction. The whole behavior of a program, its loops and branches, is built from this choice of the “next address”."
-   }
+   "hint": "Two paths, chosen by Take. The “+1” path is an incrementer: i0 = ¬P0, i1 = P1⊕P0. Then a multiplexer on each bit: Ni = Take ? Ki : ii."
   },
   {
    "id": "phase-seq",
    "title": "Clock phases",
    "statement": "An instruction is not executed in one clock cycle: first fetch (Fe, get the instruction from memory), then decode (De), execute (Ex) and write back the result (Wb). Build a “sequencer”: a two-bit counter that moves to the next phase on every clock tick, and four outputs meaning “this phase is active now”. Right after power-up the phase is Fe.",
-   "hint": "The Johnson counter from the section on registers: D0 = ¬Q1, D1 = Q0, states 00 → 01 → 11 → 10. Decode: Fe is 00 (NOR of Q1, Q0), De is 01, Ex is 11, Wb is 10. De and Wb need NOT of Q0 and Q1.",
-   "spec_text": {
-    "/steps/0/text": "First tick: fetch is over, and the phase is decode, De.",
-    "/steps/1/text": "Second tick: execute, Ex.",
-    "/steps/2/text": "Third tick: write back, Wb.",
-    "/steps/3/text": "Fourth tick: the circle closes, and it is fetch, Fe, again.",
-    "/steps/4/text": "Fifth tick: De again. The phases go round and round as long as the clock runs.",
-    "/block/title": "Phase sequencer",
-    "/formula": "Fe=00, De=01, Ex=11, Wb=10 (Johnson counter)",
-    "/success": "The phase signals are the processor's “conductor”: in phase Fe memory is read, in Wb results are written, and in the other phases the circuit is quiet. So that the system does not “trip”, exactly one part works in each phase. This is the “fetch, decode, execute” cycle."
-   }
+   "hint": "The Johnson counter from the section on registers: D0 = ¬Q1, D1 = Q0, states 00 → 01 → 11 → 10. Decode: Fe is 00 (NOR of Q1, Q0), De is 01, Ex is 11, Wb is 10. De and Wb need NOT of Q0 and Q1."
   },
   {
    "id": "phase-gate",
    "title": "Control signals by phase",
    "statement": "Control signals are not applied all the time but in “their own” phase. From phases Fe and Wb and opcode I3 I2 produce: IrLoad, load the instruction register (in phase Fe); AccLoad, write the accumulator (in phase Wb, and only for LDI and ADD, i.e. when I3 = 0); PcLoad, update the program counter (in phase Wb, but NOT for HLT, so that the processor does not move on after stopping).",
-   "hint": "IrLoad is just a wire from Fe. AccLoad = Wb·¬I3. For PcLoad first “this is HLT” = I3·I2, then Wb·NOT(HLT).",
-   "spec_text": {
-    "/formula": "IrLoad = Fe; AccLoad = Wb·¬I3; PcLoad = Wb·¬(I3·I2)",
-    "/success": "This is how write enables are matched to phases: the instruction register is updated at the start of the cycle, the accumulator and the counter at the end. These are exactly the LD inputs you made on the registers."
-   }
+   "hint": "IrLoad is just a wire from Fe. AccLoad = Wb·¬I3. For PcLoad first “this is HLT” = I3·I2, then Wb·NOT(HLT)."
   },
   {
    "id": "hlt-latch",
    "title": "Halting the processor",
    "statement": "When the processor meets HLT, it must stop for good, not just for as long as the instruction is on the bus. Build a “Run” latch: Rst = 1 starts it (Run = 1), signal Hlt = 1 stops it (Run = 0), and after that Run stays 0 even when Hlt is gone. Only a new Rst starts the processor again.",
-   "hint": "This is an SR latch of two NORs: Q = NOR(Rst, nQ), nQ = NOR(Hlt, Q). Q remembers “halted”, and the Run output is nQ (the opposite of Q).",
-   "spec_text": {
-    "/steps/0/text": "Reset: Rst = 1. The processor is running, Run = 1.",
-    "/steps/1/text": "Release Rst: Run holds 1.",
-    "/steps/2/text": "An HLT instruction arrives: Hlt = 1. Run = 0, and the processor has stopped.",
-    "/steps/3/text": "The HLT instruction is gone, and the processor stays stopped: the latch remembers!",
-    "/steps/4/text": "A new reset: Rst = 1, and the processor runs again.",
-    "/formula": "Q = “halted” (SR latch); Run = ¬Q",
-    "/success": "The only place in the decoder that needs memory: “halted or not”. Everything else is combinational circuits. One bit of state, “Run”, forbids the clock from moving the processor on."
-   }
+   "hint": "This is an SR latch of two NORs: Q = NOR(Rst, nQ), nQ = NOR(Hlt, Q). Q remembers “halted”, and the Run output is nQ (the opposite of Q)."
   },
   {
    "id": "decode-all",
    "title": "Full decoder",
    "statement": "Build the whole decoder. Inputs: I3 I2 (opcode), Z (the accumulator is zero), Wb (the write-back phase). Outputs: AccLoad, write the accumulator (in Wb, for LDI and ADD); UseAdd, add the accumulator (for ADD); Take, jump (JNZ and Z = 0); PcLoad, update the program counter (in Wb, except HLT); Stop, the HLT instruction.",
-   "hint": "These are pieces you have already built: Stop = I3·I2; UseAdd = ¬I3·I2; Take = I3·¬I2·¬Z; AccLoad = Wb·¬I3; PcLoad = Wb·¬Stop. All that is left is to carefully reuse the shared inverters and Stop.",
-   "spec_text": {
-    "/block/title": "Instruction decoder",
-    "/formula": "Stop = I3·I2; UseAdd = ¬I3·I2; Take = I3·¬I2·¬Z; AccLoad = Wb·¬I3; PcLoad = Wb·¬Stop",
-    "/success": "The decoder is ready: it knows what to do with any of the four instructions in any clock phase. With it, and the ROM with the program, the registers, the ALU and the program counter, all that remains is to put it all together. That is the next stage: blocks you can open and look inside."
-   }
+   "hint": "These are pieces you have already built: Stop = I3·I2; UseAdd = ¬I3·I2; Take = I3·¬I2·¬Z; AccLoad = Wb·¬I3; PcLoad = Wb·¬Stop. All that is left is to carefully reuse the shared inverters and Stop."
   }
  ]
 }

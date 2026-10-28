@@ -28,7 +28,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Установка: подайте S = 1 (R = 0). Защёлка должна выдать Q = 1.",
+            "text": "Set: apply S = 1 (R = 0). The latch must output Q = 1.",
             "pulses": null
           },
           {
@@ -40,7 +40,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Уберите сигналы: S = 0, R = 0. Q остался 1 — защёлка ЗАПОМНИЛА бит. Это и есть память!",
+            "text": "Remove the signals: S = 0, R = 0. Q stayed 1: the latch REMEMBERED the bit. That is memory!",
             "pulses": null
           },
           {
@@ -52,7 +52,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Сброс: подайте R = 1. Q должен вернуться в 0, а nQ — подняться в 1.",
+            "text": "Reset: apply R = 1. Q must return to 0, and nQ must rise to 1.",
             "pulses": null
           },
           {
@@ -64,7 +64,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Снова S = 0, R = 0 — защёлка держит 0, пока не придёт новая команда.",
+            "text": "S = 0, R = 0 again: the latch holds 0 until a new command arrives.",
             "pulses": null
           }
         ],
@@ -73,8 +73,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q хранит последний установленный бит",
-        "success": "Вы собрали SR-защёлку — простейшую ячейку памяти! Обратная связь (выход, возвращающийся на вход) — то, чем последовательностные схемы отличаются от всех предыдущих: они помнят историю. Из таких ячеек состоят регистры процессора.",
+        "formula": "Q holds the last bit that was set",
+        "success": "You built an SR latch, the simplest memory cell! Feedback (an output returning to an input) is what sets sequential circuits apart from all the previous ones: they remember history. Processor registers are made of such cells.",
         "solution": {
           "gates": [
             {
@@ -186,7 +186,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Установка: nS = 0 (nR = 1). Q = 1.",
+            "text": "Set: nS = 0 (nR = 1). Q = 1.",
             "pulses": null
           },
           {
@@ -198,7 +198,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Покой: nS = nR = 1. Защёлка держит единицу.",
+            "text": "Idle: nS = nR = 1. The latch holds one.",
             "pulses": null
           },
           {
@@ -210,7 +210,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Сброс: nR = 0 (nS = 1). Q = 0, nQ = 1.",
+            "text": "Reset: nR = 0 (nS = 1). Q = 0, nQ = 1.",
             "pulses": null
           },
           {
@@ -222,7 +222,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Снова покой: защёлка держит ноль.",
+            "text": "Idle again: the latch holds zero.",
             "pulses": null
           }
         ],
@@ -231,8 +231,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q = И-НЕ(nS, nQ); nQ = И-НЕ(nR, Q)",
-        "success": "Защёлка на И-НЕ — классика: её строят чаще, чем на ИЛИ-НЕ. Активный ноль привычен в железе: выводы чипов «подтянуты» к единице, а команда — это замыкание на землю (отсюда буква n — negative).",
+        "formula": "Q = NAND(nS, nQ); nQ = NAND(nR, Q)",
+        "success": "The NAND latch is the classic: it is built more often than the NOR one. Active low is natural in hardware: chip pins are pulled up to one, and a command is a connection to ground (hence the letter n for negative).",
         "solution": {
           "gates": [
             {
@@ -343,7 +343,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Установка: S = 1, R = 0. Q = 1.",
+            "text": "Set: S = 1, R = 0. Q = 1.",
             "pulses": null
           },
           {
@@ -354,7 +354,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Покой: Q держит единицу.",
+            "text": "Idle: Q holds one.",
             "pulses": null
           },
           {
@@ -365,7 +365,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Сброс: R = 1 при S = 0. Q = 0.",
+            "text": "Reset: R = 1 with S = 0. Q = 0.",
             "pulses": null
           },
           {
@@ -376,7 +376,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Оба сразу: S = R = 1. Побеждает установка — Q = 1!",
+            "text": "Both at once: S = R = 1. Set wins: Q = 1!",
             "pulses": null
           },
           {
@@ -387,7 +387,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Уберите S: остался один R — Q = 0.",
+            "text": "Remove S: only R is left, so Q = 0.",
             "pulses": null
           },
           {
@@ -398,7 +398,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Покой: Q держит ноль.",
+            "text": "Idle: Q holds zero.",
             "pulses": null
           }
         ],
@@ -407,8 +407,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q = S + НЕ-R·Q",
-        "success": "Удержание — «Q И НЕ-R» (держимся, пока нет сброса), установка — через ИЛИ (S побеждает, потому что подаётся позже всех). Порядок элементов в цепочке решает, кто главнее: S или R.",
+        "formula": "Q = S + NOT-R·Q",
+        "success": "Holding is “Q AND NOT-R” (hold while there is no reset), setting goes through OR (S wins because it is applied last). The order of gates in the chain decides which is stronger, S or R.",
         "solution": {
           "gates": [
             {
@@ -525,7 +525,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Установка: S = 1, R = 0. Q = 1.",
+            "text": "Set: S = 1, R = 0. Q = 1.",
             "pulses": null
           },
           {
@@ -536,7 +536,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Оба сразу: S = R = 1. Побеждает сброс — Q = 0!",
+            "text": "Both at once: S = R = 1. Reset wins: Q = 0!",
             "pulses": null
           },
           {
@@ -547,7 +547,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Уберите R: S = 1 устанавливает Q = 1.",
+            "text": "Remove R: S = 1 sets Q = 1.",
             "pulses": null
           },
           {
@@ -558,7 +558,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Покой: Q держит единицу.",
+            "text": "Idle: Q holds one.",
             "pulses": null
           },
           {
@@ -569,7 +569,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Сброс: R = 1. Q = 0.",
+            "text": "Reset: R = 1. Q = 0.",
             "pulses": null
           },
           {
@@ -580,7 +580,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Покой: Q держит ноль.",
+            "text": "Idle: Q holds zero.",
             "pulses": null
           }
         ],
@@ -589,8 +589,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q = НЕ-R · (S + Q)",
-        "success": "Сравните с прошлым упражнением: те же три элемента, но в другом порядке — и приоритет поменялся. Выбирать, что главнее, должен проектировщик: «запретного» состояния в железе обычно стараются избегать.",
+        "formula": "Q = NOT-R · (S + Q)",
+        "success": "Compare with the previous exercise: the same three gates in a different order, and the priority flipped. The designer has to decide which is stronger; in hardware, “forbidden” states are usually avoided.",
         "solution": {
           "gates": [
             {
@@ -709,7 +709,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Установка при открытом E: S = 1, R = 0, E = 1. Q = 1.",
+            "text": "Set with E open: S = 1, R = 0, E = 1. Q = 1.",
             "pulses": null
           },
           {
@@ -722,7 +722,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Заприте: E = 0. Значение хранится.",
+            "text": "Lock it: E = 0. The value is stored.",
             "pulses": null
           },
           {
@@ -735,7 +735,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "При запертом E подайте R = 1 — защёлка не реагирует, Q = 1.",
+            "text": "With E locked, apply R = 1: the latch does not react, Q = 1.",
             "pulses": null
           },
           {
@@ -748,7 +748,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Уберите S: R = 1, но E = 0. Q по-прежнему 1.",
+            "text": "Remove S: R = 1, but E = 0. Q is still 1.",
             "pulses": null
           },
           {
@@ -761,7 +761,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Откройте E: теперь R = 1 доходит до защёлки. Q = 0.",
+            "text": "Open E: now R = 1 reaches the latch. Q = 0.",
             "pulses": null
           },
           {
@@ -774,7 +774,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Снова заприте E: ноль сохранён.",
+            "text": "Lock E again: the zero is kept.",
             "pulses": null
           }
         ],
@@ -783,8 +783,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "S' = S·E; R' = R·E; затем SR-защёлка",
-        "success": "Это стробируемая SR-защёлка: «строб» E решает, когда команды допустимы. Приём — ключ на элементе И перед входом — вы уже встречали; на нём держится вся синхронная логика.",
+        "formula": "S' = S·E; R' = R·E; then an SR latch",
+        "success": "This is a gated SR latch: the strobe E decides when commands are allowed. The trick, a key on an AND gate before the input, is one you have met already; all synchronous logic rests on it.",
         "solution": {
           "gates": [
             {
@@ -952,7 +952,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Начальный сброс: Rst = 1. Тревога выключена.",
+            "text": "Initial reset: Rst = 1. The alarm is off.",
             "pulses": null
           },
           {
@@ -964,7 +964,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Поставьте на охрану: Arm = 1, Rst = 0. Датчик молчит — тихо.",
+            "text": "Arm the system: Arm = 1, Rst = 0. The sensor is quiet, so all is silent.",
             "pulses": null
           },
           {
@@ -976,7 +976,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Датчик сработал: Sen = 1 при Arm = 1. Тревога!",
+            "text": "The sensor fires: Sen = 1 with Arm = 1. Alarm!",
             "pulses": null
           },
           {
@@ -988,7 +988,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Датчик замолчал, но тревога ПОМНИТ срабатывание — Q = 1.",
+            "text": "The sensor goes quiet, but the alarm REMEMBERS the trigger: Q = 1.",
             "pulses": null
           },
           {
@@ -1000,7 +1000,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Сброс: Rst = 1. Тревога выключена.",
+            "text": "Reset: Rst = 1. The alarm is off.",
             "pulses": null
           },
           {
@@ -1012,7 +1012,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Снимите с охраны и отпустите сброс: Arm = 0, Rst = 0. Тихо.",
+            "text": "Disarm and release reset: Arm = 0, Rst = 0. All quiet.",
             "pulses": null
           },
           {
@@ -1024,7 +1024,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Датчик сработал, но охраны нет (Arm = 0). Тревоги нет!",
+            "text": "The sensor fires, but the system is not armed (Arm = 0). No alarm!",
             "pulses": null
           }
         ],
@@ -1033,8 +1033,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "S' = Sen·Arm; R = Rst; Q — SR-защёлка",
-        "success": "Типичная схема «флага»: событие взводит бит, а бит живёт, пока его не сбросят. Так в процессорах устроены флаги прерываний и статуса — «было ли переполнение», «пришло ли сообщение».",
+        "formula": "S' = Sen·Arm; R = Rst; Q is an SR latch",
+        "success": "A typical “flag” circuit: an event sets a bit, and the bit lives until it is cleared. This is how interrupt and status flags work in processors: “did an overflow occur”, “has a message arrived”.",
         "solution": {
           "gates": [
             {
@@ -1163,7 +1163,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Открыта: E = 1, D = 1 — защёлка «прозрачна», Q повторяет D.",
+            "text": "Open: E = 1, D = 1. The latch is “transparent”, Q follows D.",
             "pulses": null
           },
           {
@@ -1175,7 +1175,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Заприте: E = 0 (D всё ещё 1). Q = 1 — значение записано.",
+            "text": "Lock it: E = 0 (D is still 1). Q = 1: the value is stored.",
             "pulses": null
           },
           {
@@ -1187,7 +1187,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Смените D на 0 при запертой защёлке: Q остался 1. Записанное значение сохраняется!",
+            "text": "Change D to 0 while the latch is locked: Q stays 1. The stored value is kept!",
             "pulses": null
           },
           {
@@ -1199,7 +1199,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Снова откройте E: теперь защёлка записывает D = 0. Q = 0.",
+            "text": "Open E again: now the latch stores D = 0. Q = 0.",
             "pulses": null
           },
           {
@@ -1211,7 +1211,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Заприте: E = 0. Q держит 0.",
+            "text": "Lock it: E = 0. Q holds 0.",
             "pulses": null
           },
           {
@@ -1223,7 +1223,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "D = 1 «стучится» в запертую защёлку, но Q по-прежнему 0.",
+            "text": "D = 1 “knocks” on the locked latch, but Q is still 0.",
             "pulses": null
           }
         ],
@@ -1232,8 +1232,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "E = 1: Q = D; E = 0: Q хранит значение",
-        "success": "D-защёлка — «стробируемая» память: пока сигнал разрешения открыт, данные свободно проходят, а в момент запирания фиксируются. Остаётся один шаг до настоящего триггера — сделать запись по ФРОНТУ тактового сигнала.",
+        "formula": "E = 1: Q = D; E = 0: Q holds the value",
+        "success": "A D latch is a “gated” memory: while the enable is open, data passes freely, and at the moment of locking it is captured. One step remains to a real flip-flop: make the write happen on the clock EDGE.",
         "solution": {
           "gates": [
             {
@@ -1418,7 +1418,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Откройте E при D = 0: Q повторяет D — Q = 0.",
+            "text": "Open E with D = 0: Q follows D, so Q = 0.",
             "pulses": null
           },
           {
@@ -1430,7 +1430,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Пока E = 1, смените D на 1: Q «прозрачно» следует за ним.",
+            "text": "While E = 1, change D to 1: Q follows it “transparently”.",
             "pulses": null
           },
           {
@@ -1442,7 +1442,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Заприте: E = 0. Q держит 1.",
+            "text": "Lock it: E = 0. Q holds 1.",
             "pulses": null
           },
           {
@@ -1454,7 +1454,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Смените D на 0 при запертой E: Q не реагирует.",
+            "text": "Change D to 0 while E is locked: Q does not react.",
             "pulses": null
           },
           {
@@ -1466,7 +1466,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Откройте E снова: теперь Q берёт D = 0.",
+            "text": "Open E again: now Q takes D = 0.",
             "pulses": null
           }
         ],
@@ -1475,8 +1475,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "s = И-НЕ(D,E); r = И-НЕ(НЕ-D,E); Q = И-НЕ(s,nQ); nQ = И-НЕ(r,Q)",
-        "success": "Четыре И-НЕ и инвертор — это настоящая D-защёлка из учебников и из старых серий микросхем. Вся «магия» памяти — два вентиля крест-накрест и ключи на входе.",
+        "formula": "s = NAND(D,E); r = NAND(NOT-D,E); Q = NAND(s,nQ); nQ = NAND(r,Q)",
+        "success": "Four NANDs and an inverter make the real D latch from textbooks and old chip series. All the “magic” of memory is two gates cross-coupled plus keys at the input.",
         "solution": {
           "gates": [
             {
@@ -1662,7 +1662,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Запись: D = 1, E = 1, CLR = 0. Q = 1.",
+            "text": "Write: D = 1, E = 1, CLR = 0. Q = 1.",
             "pulses": null
           },
           {
@@ -1675,7 +1675,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Заприте E. Q хранит 1.",
+            "text": "Lock E. Q holds 1.",
             "pulses": null
           },
           {
@@ -1688,7 +1688,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Очистка: CLR = 1 — даже при запертой E защёлка сбрасывается. Q = 0.",
+            "text": "Clear: CLR = 1; even with E locked, the latch is reset. Q = 0.",
             "pulses": null
           },
           {
@@ -1701,7 +1701,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Отпустите CLR: Q остаётся 0 (E ещё заперта).",
+            "text": "Release CLR: Q stays 0 (E is still locked).",
             "pulses": null
           },
           {
@@ -1714,7 +1714,7 @@
               "Q": 1,
               "nQ": 0
             },
-            "text": "Откройте E: защёлка снова пишет D = 1. Q = 1.",
+            "text": "Open E: the latch writes D = 1 again. Q = 1.",
             "pulses": null
           },
           {
@@ -1727,7 +1727,7 @@
               "Q": 0,
               "nQ": 1
             },
-            "text": "Включите CLR при открытой E и D = 1: очистка сильнее данных. Q = 0.",
+            "text": "Turn on CLR with E open and D = 1: clear beats data. Q = 0.",
             "pulses": null
           }
         ],
@@ -1736,8 +1736,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R' = НЕ-D·E + CLR; S' = D·E·НЕ-CLR",
-        "success": "Вход очистки (reset, clear) есть у каждого регистра: при включении питания процессор обнуляет всю память состояния одним сигналом. «Асинхронный» он потому, что действует сразу — без ожидания разрешения E.",
+        "formula": "R' = NOT-D·E + CLR; S' = D·E·NOT-CLR",
+        "success": "Every register has a clear (reset) input: at power-on a processor zeroes all its state memory with a single signal. It is called “asynchronous” because it acts immediately, without waiting for the enable E.",
         "solution": {
           "gates": [
             {
@@ -1996,7 +1996,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Запишите число 10: D1 = 1, D0 = 0, E = 1.",
+            "text": "Write the number 10: D1 = 1, D0 = 0, E = 1.",
             "pulses": null
           },
           {
@@ -2009,7 +2009,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Заприте E. Регистр хранит 10.",
+            "text": "Lock E. The register holds 10.",
             "pulses": null
           },
           {
@@ -2022,7 +2022,7 @@
               "Q0": 0,
               "Q1": 1
             },
-            "text": "Смените данные на 01 — E заперта, и регистр по-прежнему хранит 10.",
+            "text": "Change the data to 01; E is locked, so the register still holds 10.",
             "pulses": null
           },
           {
@@ -2035,7 +2035,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "Откройте E: регистр записал 01.",
+            "text": "Open E: the register has stored 01.",
             "pulses": null
           },
           {
@@ -2048,7 +2048,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "Заприте E: хранится 01.",
+            "text": "Lock E: 01 is held.",
             "pulses": null
           },
           {
@@ -2061,7 +2061,7 @@
               "Q0": 1,
               "Q1": 0
             },
-            "text": "Данные 11 снова «стучатся» в запертый регистр. Он их не слушает.",
+            "text": "Data 11 “knocks” on the locked register again. It ignores it.",
             "pulses": null
           },
           {
@@ -2074,7 +2074,7 @@
               "Q0": 1,
               "Q1": 1
             },
-            "text": "Откройте E: запись 11.",
+            "text": "Open E: 11 is written.",
             "pulses": null
           }
         ],
@@ -2083,8 +2083,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q1 ← D1 и Q0 ← D0 одновременно, когда E = 1",
-        "success": "Это уже регистр! Ширина слова в процессоре — те же защёлки в ряд с общим сигналом записи: 8, 32 или 64 штуки. Один провод E «защёлкивает» сразу всё число.",
+        "formula": "Q1 ← D1 and Q0 ← D0 simultaneously when E = 1",
+        "success": "This is a register already! A processor's word width is just the same latches in a row with a shared write signal: 8, 32 or 64 of them. A single E wire “latches” the whole number at once.",
         "solution": {
           "gates": [
             {
@@ -2399,7 +2399,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "S = 0 выбирает D0. Откройте E при D0 = 1: Q = 1.",
+            "text": "S = 0 selects D0. Open E with D0 = 1: Q = 1.",
             "pulses": null
           },
           {
@@ -2412,7 +2412,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Заприте E. Q хранит 1.",
+            "text": "Lock E. Q holds 1.",
             "pulses": null
           },
           {
@@ -2425,7 +2425,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Переключите S на D1 = 0. Защёлка заперта и ничего не заметила: Q = 1.",
+            "text": "Switch S to D1 = 0. The latch is locked and notices nothing: Q = 1.",
             "pulses": null
           },
           {
@@ -2438,7 +2438,7 @@
             "expect": {
               "Q": 0
             },
-            "text": "Откройте E: теперь пишется D1 = 0. Q = 0.",
+            "text": "Open E: now D1 = 0 is written. Q = 0.",
             "pulses": null
           },
           {
@@ -2451,7 +2451,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Пока E открыта, включите D1 = 1: Q «прозрачно» следует за выбранным источником.",
+            "text": "While E is open, set D1 = 1: Q follows the selected source “transparently”.",
             "pulses": null
           },
           {
@@ -2464,7 +2464,7 @@
             "expect": {
               "Q": 1
             },
-            "text": "Заприте E: Q хранит 1.",
+            "text": "Lock E: Q holds 1.",
             "pulses": null
           }
         ],
@@ -2473,8 +2473,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "D = S ? D1 : D0; защёлка: E = 1 → Q = D",
-        "success": "Перед входом памяти почти всегда стоит мультиплексор: он выбирает, ЧТО записывать (результат АЛУ, число с шины, константу). Блоки соединяются так же, как слова в предложении.",
+        "formula": "D = S ? D1 : D0; latch: E = 1 → Q = D",
+        "success": "There is almost always a multiplexer before a memory input: it chooses WHAT to write (an ALU result, a number from the bus, a constant). Blocks connect the way words connect in a sentence.",
         "solution": {
           "gates": [
             {
@@ -2750,7 +2750,7 @@
               "Out": 0,
               "Q": 1
             },
-            "text": "Запись единицы: D = 1, W = 1, R = 0. Q = 1, а шина молчит (Out = 0).",
+            "text": "Write a one: D = 1, W = 1, R = 0. Q = 1, and the bus is silent (Out = 0).",
             "pulses": null
           },
           {
@@ -2763,7 +2763,7 @@
               "Out": 0,
               "Q": 1
             },
-            "text": "Закройте запись: W = 0. Ячейка хранит 1.",
+            "text": "Close the write: W = 0. The cell holds 1.",
             "pulses": null
           },
           {
@@ -2776,7 +2776,7 @@
               "Out": 1,
               "Q": 1
             },
-            "text": "Чтение: R = 1. На шину выдана единица — Out = 1.",
+            "text": "Read: R = 1. A one is placed on the bus: Out = 1.",
             "pulses": null
           },
           {
@@ -2789,7 +2789,7 @@
               "Out": 1,
               "Q": 1
             },
-            "text": "Смените D на 0 — но W = 0. Содержимое не меняется, шина по-прежнему видит 1.",
+            "text": "Change D to 0, but W = 0. The contents do not change, and the bus still sees 1.",
             "pulses": null
           },
           {
@@ -2802,7 +2802,7 @@
               "Out": 0,
               "Q": 0
             },
-            "text": "Запись нуля при открытом чтении: W = 1, D = 0. Ячейка и шина показывают 0.",
+            "text": "Write a zero with read open: W = 1, D = 0. Both the cell and the bus show 0.",
             "pulses": null
           },
           {
@@ -2815,7 +2815,7 @@
               "Out": 0,
               "Q": 0
             },
-            "text": "Закройте запись: ячейка хранит 0, на шине 0.",
+            "text": "Close the write: the cell holds 0, the bus shows 0.",
             "pulses": null
           }
         ],
@@ -2824,8 +2824,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q: защёлка (W = 1 → Q = D); Out = Q·R",
-        "success": "Это ячейка SRAM в миниатюре: хранилище, вход записи и затвор чтения. Из миллионов таких ячеек состоит оперативная память, а дешифратор адреса из прошлого раздела выбирает, какая ячейка откроет свой W или R.",
+        "formula": "Q: latch (W = 1 → Q = D); Out = Q·R",
+        "success": "This is an SRAM cell in miniature: storage, a write input and a read gate. RAM is made of millions of such cells, and the address decoder from the previous section selects which cell opens its W or R.",
         "solution": {
           "gates": [
             {

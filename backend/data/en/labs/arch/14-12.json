@@ -7,109 +7,49 @@
    "id": "rom4x2",
    "title": "ROM: four words",
    "statement": "A ROM (read-only memory) is memory whose contents are “hard-wired” into the circuit. Given address A1 A0 it outputs word D1 D0: address 0 gives 10, address 1 gives 01, address 2 gives 11, address 3 gives 00.",
-   "hint": "This is an ordinary truth table: the address is the inputs, the word is the outputs. Column D1 = [1, 0, 1, 0] is ¬A0. Column D0 = [0, 1, 1, 0] is the XOR of the address bits.",
-   "spec_text": {
-    "/formula": "D1 = ¬A0; D0 = A1⊕A0",
-    "/success": "Any combinational circuit is a ROM: an address on the inputs, the answer on the outputs. Conversely, a ROM can be written as logic formulas. This is how a program or a character table is “hard-wired” in hardware."
-   }
+   "hint": "This is an ordinary truth table: the address is the inputs, the word is the outputs. Column D1 = [1, 0, 1, 0] is ¬A0. Column D0 = [0, 1, 1, 0] is the XOR of the address bits."
   },
   {
    "id": "rom4x4",
    "title": "ROM with a program",
    "statement": "Store a program of four instructions (4 bits each, outputs W3…W0) in a ROM: address 0 holds 0010, address 1 holds 0101, address 2 holds 1001, address 3 holds 1100. Later the processor will read them in turn and execute them.",
-   "hint": "A 2→4 address decoder (Y0…Y3 mean “address k is selected”), and each bit of the word is the OR of the addresses where it equals 1. W3 = Y2 OR Y3, W2 = Y1 OR Y3, W0 = Y1 OR Y2, and W1 = Y0 (a one only in word 0).",
-   "spec_text": {
-    "/block/title": "ROM with a program",
-    "/formula": "Wj = OR of the addresses whose words have bit j equal to 1",
-    "/success": "A decoder plus an OR matrix is the classic ROM structure. Now let us decode the program: 0 is LDI 2 (load 2), 1 is ADD 1 (add 1), 2 is JNZ 1 (if not zero, go back to 1), 3 is HLT (stop). The opcode is the two high bits, the operand is the two low bits."
-   }
+   "hint": "A 2→4 address decoder (Y0…Y3 mean “address k is selected”), and each bit of the word is the OR of the addresses where it equals 1. W3 = Y2 OR Y3, W2 = Y1 OR Y3, W0 = Y1 OR Y2, and W1 = Y0 (a one only in word 0)."
   },
   {
    "id": "memory-map",
    "title": "Memory map",
    "statement": "In a computer several devices share one address space. Three address bits A2 A1 A0 (addresses 0…7) select one of them: ROM at addresses 0…3, RAM at 4…6, I/O ports at address 7. Produce select signals Rom, Ram and Io, with exactly one active.",
-   "hint": "The ROM is simply ¬A2 (the whole lower half of the addresses). The ports are address 111: A2·A1·A0. The RAM is the upper half except 111: A2 AND NOT(A1·A0).",
-   "spec_text": {
-    "/formula": "Rom = ¬A2; Io = A2·A1·A0; Ram = A2·¬(A1·A0)",
-    "/success": "This is a “memory map”: address bits do not store data, they only select which chip to access. The “rounder” the region boundaries are (multiples of powers of two), the simpler the select logic."
-   }
+   "hint": "The ROM is simply ¬A2 (the whole lower half of the addresses). The ports are address 111: A2·A1·A0. The RAM is the upper half except 111: A2 AND NOT(A1·A0)."
   },
   {
    "id": "bus-control",
    "title": "Memory bus control",
    "statement": "Three signals arrive at the memory: CS (whether the chip is selected), Rd (read) and Wr (write). Produce We, the write enable (CS and Wr), and Oe, the permission to put data on the bus (CS and Rd). Reading and writing at the same time is not allowed: if both signals arrive, the write wins and Oe = 0.",
-   "hint": "We is a single AND gate: CS·Wr. Oe = CS·Rd·¬Wr: first CS AND Rd, then that result AND NOT Wr.",
-   "spec_text": {
-    "/formula": "We = CS·Wr; Oe = CS·Rd·¬Wr",
-    "/success": "Write priority protects against a “fight” on the bus: two devices must not drive data at the same time. Signals We and Oe are the same “enables” you built for the latches; now they arrive from outside."
-   }
+   "hint": "We is a single AND gate: CS·Wr. Oe = CS·Rd·¬Wr: first CS AND Rd, then that result AND NOT Wr."
   },
   {
    "id": "protected-cell",
    "title": "Write-protected cell",
    "statement": "A one-bit cell built from a latch with three control signals. W is write (with W = 1 the cell accepts D), WP is write protect: with WP = 1 writing is forbidden, whatever arrives on W. RD is read: with RD = 1 the cell's value goes out on bus Out, otherwise Out = 0. Q is the stored content itself.",
-   "hint": "The write enable for the latch: we = W·¬WP. Then an ordinary D latch with this enable (NOT on D, two ANDs, two NORs), and Out = Q·RD, a read gate, as in the cell from the section on latches.",
-   "spec_text": {
-    "/steps/0/text": "Write: D = 1, W = 1, no protection. Q = 1; the bus is silent (RD = 0).",
-    "/steps/1/text": "Close the write: W = 0. The cell holds 1.",
-    "/steps/2/text": "Read: RD = 1. The bus shows a one.",
-    "/steps/3/text": "Turn on write protection: WP = 1.",
-    "/steps/4/text": "Try to write a zero: D = 0, W = 1. The protection blocks it, and Q is still 1.",
-    "/steps/5/text": "Remove the protection (WP = 0) with W still 1: the write goes through and Q = 0.",
-    "/steps/6/text": "Close the write: the cell holds 0.",
-    "/formula": "we = W·¬WP; Q is a latch with E = we; Out = Q·RD",
-    "/success": "Write protection is one extra AND gate. This is how processors protect code from accidental overwriting: a “read-only” region of memory differs from an ordinary one in exactly this."
-   }
+   "hint": "The write enable for the latch: we = W·¬WP. Then an ordinary D latch with this enable (NOT on D, two ANDs, two NORs), and Out = Q·RD, a read gate, as in the cell from the section on latches."
   },
   {
    "id": "cell-select",
    "title": "Two-cell memory",
    "statement": "Combine two cells made of D latches into a memory. Input A is the cell address (0 or 1), W is write, D is data. A write goes only to the addressed cell; output Q always shows the contents of the addressed cell. A fresh cell is empty, and its output is “?”.",
-   "hint": "The address enables a write to only one cell: w0 = W·¬A, w1 = W·A. Each cell is a D latch with enable w0 or w1 (NOT on D, two ANDs, two NORs). Reading is a multiplexer driven by A between the cells' Q outputs. About 16 gates in all.",
-   "spec_text": {
-    "/steps/0/text": "Address 0, write a one: D = 1, W = 1. Q = 1.",
-    "/steps/1/text": "Close the write: W = 0.",
-    "/steps/2/text": "Change D to 0 with the write closed: cell 0 still holds 1.",
-    "/steps/3/text": "Switch to address 1 and read: cell 1 is still empty, so the output is “?”. This step does not check the value.",
-    "/steps/4/text": "Write a zero to cell 1: A = 1, D = 0, W = 1. Q = 0.",
-    "/steps/5/text": "Close the write.",
-    "/steps/6/text": "Go back to address 0: cell 0 still holds 1, since writes to cell 1 did not touch it.",
-    "/steps/7/text": "Address 1 again, and D = 1 “knocks” while the write is closed: cell 1 holds 0.",
-    "/formula": "wk = W·(A = k); Q = contents of cell A",
-    "/success": "This is already real memory: the address selects the cell for both writing and reading. Think about how many gates a thousand cells would need, and why real memory is packed into dense transistor arrays. The main idea is the same."
-   }
+   "hint": "The address enables a write to only one cell: w0 = W·¬A, w1 = W·A. Each cell is a D latch with enable w0 or w1 (NOT on D, two ANDs, two NORs). Reading is a multiplexer driven by A between the cells' Q outputs. About 16 gates in all."
   },
   {
    "id": "ram2x2",
    "title": "RAM: two two-bit words",
    "statement": "Extend the memory to two-bit words. Data D1 D0, word address A (0 or 1), write W; output Q1 Q0 is the word at the address. A write updates both bits of the addressed word at once. An unwritten word reads “?”.",
-   "hint": "Four cells (two per word). The write enable for word 0 is W·¬A, for word 1 it is W·A, shared by both bits of the word. Data D1 and D0 each go to their own pair of cells (one NOT per bit, shared by both cells). Reading uses one multiplexer per bit. About 27 gates, so build it layer by layer.",
-   "spec_text": {
-    "/steps/0/text": "Address 0, write word 10: D1 = 1, D0 = 0, W = 1.",
-    "/steps/1/text": "Close the write.",
-    "/steps/2/text": "Change the data to 01 with the write closed: word 0 still holds 10.",
-    "/steps/3/text": "Address 1: nothing has been written there yet, so the outputs are “?”.",
-    "/steps/4/text": "Write 01 to word 1: W = 1.",
-    "/steps/5/text": "Close the write.",
-    "/steps/6/text": "Go back to address 0: word 10 is in place, and the write to word 1 did not affect it.",
-    "/formula": "Qj = (word A)[j]; write: W·(A = k) → word k",
-    "/success": "Word width grows by copying: the cells of one word simply share the write enable signal. This is how a byte or a 64-bit word is built: a “row” of latches under one address."
-   }
+   "hint": "Four cells (two per word). The write enable for word 0 is W·¬A, for word 1 it is W·A, shared by both bits of the word. Data D1 and D0 each go to their own pair of cells (one NOT per bit, shared by both cells). Reading uses one multiplexer per bit. About 27 gates, so build it layer by layer."
   },
   {
    "id": "sync-cell",
    "title": "Synchronous memory",
    "statement": "In real processors memory is written on the clock. Build a two-cell memory from DFF flip-flops: data D is written to the cell at address A only on the CLK edge and only when W = 1. Output Q is the contents of the addressed cell. The ready-made flip-flops start at zero on power-up.",
-   "hint": "Each cell is a DFF with a “hold” at its input: D' = w ? D : Q, where w = W·(A = k). This is the “self or new” multiplexer from the register-with-write exercise. A multiplexer driven by A reads the memory. About 16 gates.",
-   "spec_text": {
-    "/steps/0/text": "Address 0, D = 1, W = 1 and a clock tick: cell 0 = 1, Q = 1.",
-    "/steps/1/text": "Address 1, D = 1, W = 1 and a clock tick: cell 1 = 1.",
-    "/steps/2/text": "Address 1, D = 0, W = 1 and a clock tick: cell 1 is overwritten with zero.",
-    "/steps/3/text": "Write off (W = 0), address 0, clock tick: we read cell 0, and the one is still there.",
-    "/steps/4/text": "Address 1, a tick without a write: cell 1 holds 0, and D = 0 has nothing to do with it.",
-    "/formula": "DFFk: D' = wk ? D : Qk; Q = cell A",
-    "/success": "This is how synchronous memory (SRAM) works: writing and updating happen only on the edge, and the rest of the time all the cells quietly hold their values. The clock synchronizes the memory with the rest of the processor: data changes at a known moment."
-   }
+   "hint": "Each cell is a DFF with a “hold” at its input: D' = w ? D : Q, where w = W·(A = k). This is the “self or new” multiplexer from the register-with-write exercise. A multiplexer driven by A reads the memory. About 16 gates."
   }
  ]
 }

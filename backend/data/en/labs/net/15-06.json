@@ -1,61 +1,31 @@
 {
- "book": 15,
- "chapter": 6,
- "lab": "net",
- "tasks": [
-  {
-   "id": "n6-listen",
-   "title": "The server is not listening on a UDP port",
-   "statement": "The client sends datagrams to port 5000 of the server but receives nothing. In the client terminal run `nc -u 192.168.0.20 5000` and look at the response: an ICMP “port unreachable” comes back. Start listening on UDP port 5000 on the server and try again.",
-   "hint": "In the server terminal: `nc -u -l 5000`. Or in the server card, “Listening ports”: protocol udp, port 5000. A TCP port with the same number is a different socket and will not help.",
-   "spec_text": {
-    "/goals/0/text": "The client gets a response on UDP port 5000",
-    "/goals/1/text": "TCP port 5000 stays open",
-    "/start/devices/0/name": "Client",
-    "/start/devices/1/name": "Server"
-   }
-  },
-  {
-   "id": "n6-two",
-   "title": "TCP and UDP on one server",
-   "statement": "The server must answer web requests (TCP, port 80) and name queries (UDP, port 53). Right now it listens on nothing. Open both ports and check each one: TCP port 53 must stay closed, because different protocols use different sockets.",
-   "hint": "In the server card, “Listening ports” section: choose protocol tcp, port 80; then udp, port 53. Terminal: `nc -l 80` and `nc -u -l 53`.",
-   "spec_text": {
-    "/goals/0/text": "Web (tcp/80) responds",
-    "/goals/1/text": "DNS (udp/53) responds",
-    "/goals/2/text": "TCP port 53 is closed",
-    "/start/devices/0/name": "Client",
-    "/start/devices/1/name": "Server"
-   }
-  },
-  {
-   "id": "n6-fw",
-   "title": "Firewall: DNS and web only",
-   "statement": "The home gateway denies everything by default (policy DROP on FORWARD). NAT is already configured. Open for the network's clients what they need: DNS queries (udp/53) and web (tcp/80), and also allow replies to connections that are already established. SSH (tcp/22) must stay closed.",
-   "hint": "FORWARD rules in order: 1) `-m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT` (replies), 2) `-p udp --dport 53 -j ACCEPT`, 3) `-p tcp --dport 80 -j ACCEPT`. In the firewall form choose the state “already established” for the first rule.",
-   "spec_text": {
-    "/goals/0/text": "A DNS query (udp/53) gets a response",
-    "/goals/1/text": "Web (tcp/80) opens",
-    "/goals/2/text": "SSH (tcp/22) is closed",
-    "/start/devices/0/name": "Client",
-    "/start/devices/1/name": "Gateway",
-    "/start/devices/2/name": "ISP",
-    "/start/devices/3/name": "Server"
-   }
-  },
-  {
-   "id": "n6-diagnose",
-   "title": "Refusal or silence",
-   "statement": "Two servers must answer over UDP on port 5000. The client tries both. With the first, a reply comes immediately as an ICMP “port unreachable” (a refusal); with the second there is silence (packets vanish). These are two different causes: on the first the port is simply not listening, while on the second something drops packets along the way. Fix both.",
-   "hint": "First: open UDP port 5000 on server 1 (`nc -u -l 5000`). Second: on the router, find “firewall: DROP” in the log and delete the rule that blocks UDP to port 5000.",
-   "spec_text": {
-    "/goals/0/text": "Server 1 responds on UDP/5000",
-    "/goals/1/text": "Server 2 responds on UDP/5000",
-    "/start/devices/0/name": "Client",
-    "/start/devices/1/name": "Router",
-    "/start/devices/2/name": "Server 1",
-    "/start/devices/3/name": "Server 2"
-   }
-  }
- ]
+  "book": 15,
+  "chapter": 6,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n6-listen",
+      "title": "The server is not listening on a UDP port",
+      "statement": "The client sends datagrams to port 5000 of the server but receives nothing. In the client terminal run `nc -u 192.168.0.20 5000` and look at the response: an ICMP “port unreachable” comes back. Start listening on UDP port 5000 on the server and try again.",
+      "hint": "In the server terminal: `nc -u -l 5000`. Or in the server card, “Listening ports”: protocol udp, port 5000. A TCP port with the same number is a different socket and will not help."
+    },
+    {
+      "id": "n6-two",
+      "title": "TCP and UDP on one server",
+      "statement": "The server must answer web requests (TCP, port 80) and name queries (UDP, port 53). Right now it listens on nothing. Open both ports and check each one: TCP port 53 must stay closed, because different protocols use different sockets.",
+      "hint": "In the server card, “Listening ports” section: choose protocol tcp, port 80; then udp, port 53. Terminal: `nc -l 80` and `nc -u -l 53`."
+    },
+    {
+      "id": "n6-fw",
+      "title": "Firewall: DNS and web only",
+      "statement": "The home gateway denies everything by default (policy DROP on FORWARD). NAT is already configured. Open for the network's clients what they need: DNS queries (udp/53) and web (tcp/80), and also allow replies to connections that are already established. SSH (tcp/22) must stay closed.",
+      "hint": "FORWARD rules in order: 1) `-m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT` (replies), 2) `-p udp --dport 53 -j ACCEPT`, 3) `-p tcp --dport 80 -j ACCEPT`. In the firewall form choose the state “already established” for the first rule."
+    },
+    {
+      "id": "n6-diagnose",
+      "title": "Refusal or silence",
+      "statement": "Two servers must answer over UDP on port 5000. The client tries both. With the first, a reply comes immediately as an ICMP “port unreachable” (a refusal); with the second there is silence (packets vanish). These are two different causes: on the first the port is simply not listening, while on the second something drops packets along the way. Fix both.",
+      "hint": "First: open UDP port 5000 on server 1 (`nc -u -l 5000`). Second: on the router, find “firewall: DROP” in the log and delete the rule that blocks UDP to port 5000."
+    }
+  ]
 }

@@ -42,7 +42,7 @@
   {
    "id": "r32-pin-select-loop",
    "title": "pin! and a repeated select!",
-   "statement": "Pin a long future with the tokio::pin! macro (sleeps 100 ms, returns «готово») and in a select! loop wait for either it (&mut fut) or a tick of interval(30 ms). Count the ticks until «готово» arrives. Print «готово» and «тиков>=2: true».\n\nExpected output:\n«готово»\n«тиков>=2: true»",
+   "statement": "Pin a long future with the tokio::pin! macro (sleeps 100 ms, returns \"done\") and in a select! loop wait for either it (&mut fut) or a tick of interval(30 ms). Count the ticks until \"done\" arrives. Print \"done\" and \"ticks>=2: true\".\n\nExpected output:\n`done`\n`ticks>=2: true`",
    "hint": "&mut fut in select! does not cancel the future on repeated iterations.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -55,20 +55,20 @@
   {
    "id": "r32-poll-fn",
    "title": "poll_fn",
-   "statement": "Write fn countdown(mut n: u32) -> impl Future<Output = &'static str> using std::future::poll_fn: while n > 0, decrement, wake_by_ref and Pending; then Ready(\"пуск\"). The driver counts the number of polls.",
+   "statement": "Write fn countdown(mut n: u32) -> impl Future<Output = &'static str> using std::future::poll_fn: while n > 0, decrement, wake_by_ref and Pending; then Ready(\"launch\"). The driver counts the number of polls.",
    "hint": "poll_fn turns a closure into a Future."
   },
   {
    "id": "r32-pending-timeout",
    "title": "ready and pending",
-   "statement": "Show that tokio::time::timeout(50 ms) over std::future::pending::<u8>() gives Err: print «таймаут»; over std::future::ready(7) it gives Ok(7): print «7».\n\nExpected output:\n«таймаут»\n«7»",
+   "statement": "Show that tokio::time::timeout(50 ms) over std::future::pending::<u8>() gives Err: print \"timeout\"; over std::future::ready(7) it gives Ok(7): print \"7\".\n\nExpected output:\n`timeout`\n`7`",
    "hint": "pending never completes; ready completes immediately.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r32-into-future",
    "title": "IntoFuture",
-   "statement": "A struct Request { url: String } implements std::future::IntoFuture so that Request::new(\"x\").await returns «ответ от x» (Output = String; IntoFuture = Pin<Box<dyn Future<Output = String>>>; inside, a 5 ms sleep).",
+   "statement": "A struct Request { url: String } implements std::future::IntoFuture so that Request::new(\"x\").await returns \"reply from x\" (Output = String; IntoFuture = Pin<Box<dyn Future<Output = String>>>; inside, a 5 ms sleep).",
    "hint": "await calls into_future for a type that implements IntoFuture."
   },
   {
@@ -93,28 +93,28 @@
   {
    "id": "r32-fix-static",
    "title": "Fix: 'static in spawn",
-   "statement": "The program does not compile: the spawn task uses a reference to a local variable. Fix it so that it prints «длина 6».\n\nExpected output:\n«длина 6»",
+   "statement": "The program does not compile: the spawn task uses a reference to a local variable. Fix it so that it prints \"length 6\".\n\nExpected output:\n`length 6`",
    "hint": "Add move and give the string to the task.",
-   "starter": "#[tokio::main]\nasync fn main() {\n    let s = String::from(\"привет\");\n    let h = tokio::spawn(async {\n        println!(\"длина {}\", s.chars().count());\n    });\n    h.await.unwrap();\n}\n"
+   "starter": "#[tokio::main]\nasync fn main() {\n    let s = String::from(\"planet\");\n    let h = tokio::spawn(async {\n        println!(\"length {}\", s.chars().count());\n    });\n    h.await.unwrap();\n}\n"
   },
   {
    "id": "r32-fix-send-guard",
    "title": "Fix: guard across .await",
-   "statement": "The program does not compile: a std::sync::MutexGuard is held across .await, and the future stops being Send. Fix it (release the guard before .await) so that it prints «счётчик 3».\n\nExpected output:\n«счётчик 3»",
+   "statement": "The program does not compile: a std::sync::MutexGuard is held across .await, and the future stops being Send. Fix it (release the guard before .await) so that it prints \"counter 3\".\n\nExpected output:\n`counter 3`",
    "hint": "Put lock() in a separate block { … } before the .await.",
-   "starter": "use std::sync::{Arc, Mutex};\n\n#[tokio::main]\nasync fn main() {\n    let c = Arc::new(Mutex::new(0));\n    let c2 = c.clone();\n    tokio::spawn(async move {\n        for _ in 0..3 {\n            let mut g = c2.lock().unwrap();\n            *g += 1;\n            tokio::time::sleep(std::time::Duration::from_millis(5)).await;\n        }\n    })\n    .await\n    .unwrap();\n    println!(\"счётчик {}\", c.lock().unwrap());\n}\n"
+   "starter": "use std::sync::{Arc, Mutex};\n\n#[tokio::main]\nasync fn main() {\n    let c = Arc::new(Mutex::new(0));\n    let c2 = c.clone();\n    tokio::spawn(async move {\n        for _ in 0..3 {\n            let mut g = c2.lock().unwrap();\n            *g += 1;\n            tokio::time::sleep(std::time::Duration::from_millis(5)).await;\n        }\n    })\n    .await\n    .unwrap();\n    println!(\"counter {}\", c.lock().unwrap());\n}\n"
   },
   {
    "id": "r32-fix-rc",
    "title": "Fix: Rc in a task",
-   "statement": "Rc is not Send, so spawn does not accept such a task. Replace Rc with Arc so that it prints «сумма 6».\n\nExpected output:\n«сумма 6»",
+   "statement": "Rc is not Send, so spawn does not accept such a task. Replace Rc with Arc so that it prints \"sum 6\".\n\nExpected output:\n`sum 6`",
    "hint": "Arc instead of Rc: the reference count is atomic.",
-   "starter": "use std::rc::Rc;\n\n#[tokio::main]\nasync fn main() {\n    let data = Rc::new(vec![1, 2, 3]);\n    let d = data.clone();\n    let s = tokio::spawn(async move { d.iter().sum::<i32>() }).await.unwrap();\n    println!(\"сумма {}\", s);\n}\n"
+   "starter": "use std::rc::Rc;\n\n#[tokio::main]\nasync fn main() {\n    let data = Rc::new(vec![1, 2, 3]);\n    let d = data.clone();\n    let s = tokio::spawn(async move { d.iter().sum::<i32>() }).await.unwrap();\n    println!(\"sum {}\", s);\n}\n"
   },
   {
    "id": "r32-async-trait-static",
    "title": "async fn in a trait",
-   "statement": "A trait Store { async fn get(&self, k: &str) -> Option<String>; }. Implement it for MemStore(HashMap<String, String>): after yield_now return the value (a clone) or None. The function lookup(s: &impl Store, k: &str) -> String returns the value or «нет».",
+   "statement": "A trait Store { async fn get(&self, k: &str) -> Option<String>; }. Implement it for MemStore(HashMap<String, String>): after yield_now return the value (a clone) or None. The function lookup(s: &impl Store, k: &str) -> String returns the value or \"no\".",
    "hint": "async fn in a trait means static dispatch, called through impl Store."
   },
   {
@@ -146,7 +146,7 @@
   {
    "id": "r32-abort-cleanup",
    "title": "Cleanup on abort",
-   "statement": "A task holds a Guard that prints «очистка» in Drop. Start the task (it sleeps 1 s), call abort() after 20 ms and wait for the result. Expected: «старт», «очистка», «отменена: true».\n\nExpected output:\n«старт»\n«очистка»\n«отменена: true»",
+   "statement": "A task holds a Guard that prints \"cleanup\" in Drop. Start the task (it sleeps 1 s), call abort() after 20 ms and wait for the result. Expected: \"start\", \"cleanup\", \"cancelled: true\".\n\nExpected output:\n`start`\n`cleanup`\n`cancelled: true`",
    "hint": "abort destroys the future: Drop runs.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -160,35 +160,35 @@
   {
    "id": "r32-future-ext",
    "title": "A FutureExt chain",
-   "statement": "Using futures::FutureExt, build a chain: ready(3).map(|x| x + 1).then(|x| async move { x * 10 }).boxed(); print the result, 40. Then a lazy future (futures::future::lazy) returns «лениво»: print it.\n\nExpected output:\n«40»\n«лениво»",
+   "statement": "Using futures::FutureExt, build a chain: ready(3).map(|x| x + 1).then(|x| async move { x * 10 }).boxed(); print the result, 40. Then a lazy future (futures::future::lazy) returns \"lazily\": print it.\n\nExpected output:\n`40`\n`lazily`",
    "hint": "FutureExt: map, then, boxed.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r32-shared",
    "title": "Shared",
-   "statement": "Create a future that increments a global AtomicUsize counter and returns «результат»; turn it into a Shared (FutureExt::shared) and await it with two clones at once via join!. Print both results and the counter: the counter must be 1.\n\nExpected output:\n«результат результат»\n«1»",
+   "statement": "Create a future that increments a global AtomicUsize counter and returns \"result\"; turn it into a Shared (FutureExt::shared) and await it with two clones at once via join!. Print both results and the counter: the counter must be 1.\n\nExpected output:\n`result result`\n`1`",
    "hint": "Shared runs the inner future once and hands the result to the clones.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r32-select-future",
    "title": "futures::future::select",
-   "statement": "Using futures::future::select (the function, not the macro), find out which of two futures (sleeping 50 and 10 ms) finished first. Print «второй»; then wait for the remaining one too and print «оба готовы».\n\nExpected output:\n«второй»\n«оба готовы»",
+   "statement": "Using futures::future::select (the function, not the macro), find out which of two futures (sleeping 50 and 10 ms) finished first. Print \"second\"; then wait for the remaining one too and print \"both ready\".\n\nExpected output:\n`second`\n`both ready`",
    "hint": "select returns Either and the \"remainder\", the unfinished future.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r32-try-join-all",
    "title": "try_join_all",
-   "statement": "futures::future::try_join_all: three futures with Result<u32, String>: Ok(1), Ok(2), Ok(3) give «Ok([1, 2, 3])»; then replace the middle one with Err(\"сбой\") and get «Err(\"сбой\")».\n\nExpected output:\n«Ok([1, 2, 3])»\n«Err(\"сбой\")»",
+   "statement": "futures::future::try_join_all: three futures with Result<u32, String>: Ok(1), Ok(2), Ok(3) give \"Ok([1, 2, 3])\"; then replace the middle one with Err(\"failure\") and get `Err(\"failure\")`.\n\nExpected output:\n`Ok([1, 2, 3])`\n`Err(\"failure\")`",
    "hint": "try_join_all collects the Ok values into a vector or returns the first error.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r32-buffered",
    "title": "Bounded concurrency",
-   "statement": "stream::iter(0..8).map(|i| work(i)).buffered(3): work increments an \"in progress\" counter, sleeps 10 ms, decrements it and records the maximum. Print the results in order, «[0, 1, 4, 9, 16, 25, 36, 49]», and «макс одновременных<=3: true».\n\nExpected output:\n«[0, 1, 4, 9, 16, 25, 36, 49]»\n«макс одновременных<=3: true»",
+   "statement": "stream::iter(0..8).map(|i| work(i)).buffered(3): work increments an \"in progress\" counter, sleeps 10 ms, decrements it and records the maximum. Print the results in order, \"[0, 1, 4, 9, 16, 25, 36, 49]\", and \"max concurrent<=3: true\".\n\nExpected output:\n`[0, 1, 4, 9, 16, 25, 36, 49]`\n`max concurrent<=3: true`",
    "hint": "buffered(n) keeps the order; buffer_unordered(n) goes by readiness.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },

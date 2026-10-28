@@ -5,14 +5,14 @@
   {
    "id": "r33-builder-threads",
    "title": "Runtime via Builder",
-   "statement": "In a plain fn main build a multi-threaded runtime: Builder::new_multi_thread() with 2 worker threads, the thread name «воркер» (thread_name(\"worker\")) and enable_all(). Use block_on to run a spawn task that prints «имя начинается с worker: true» (checking std::thread::current().name()).\n\nExpected output:\n«имя начинается с worker: true»",
+   "statement": "In a plain fn main build a multi-threaded runtime: Builder::new_multi_thread() with 2 worker threads, the thread name \"worker\" (thread_name(\"worker\")) and enable_all(). Use block_on to run a spawn task that prints \"name starts with worker: true\" (checking std::thread::current().name()).\n\nExpected output:\n`name starts with worker: true`",
    "hint": "Builder::new_multi_thread().worker_threads(2).thread_name(\"worker\").enable_all().build().",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-current-thread",
    "title": "Single-threaded runtime",
-   "statement": "Use #[tokio::main(flavor = \"current_thread\")]. Start 5 spawn tasks, each returning the thread id (std::thread::current().id()) as a string; check that there is only one thread and that it is the same as the main thread: «потоков: 1».\n\nExpected output:\n«потоков: 1»",
+   "statement": "Use #[tokio::main(flavor = \"current_thread\")]. Start 5 spawn tasks, each returning the thread id (std::thread::current().id()) as a string; check that there is only one thread and that it is the same as the main thread: \"threads: 1\".\n\nExpected output:\n`threads: 1`",
    "hint": "current_thread: everything runs on one thread.",
    "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -47,7 +47,7 @@
   {
    "id": "r33-panic-payload",
    "title": "A panic and its message",
-   "statement": "Start a task that panics with panic!(\"бум\"). Extract the message: JoinError::into_panic() gives a Box<dyn Any + Send>; cast it to &str (downcast_ref::<&str>()). Print «паника: бум».\n\nExpected output:\n«паника: бум»",
+   "statement": "Start a task that panics with panic!(\"boom\"). Extract the message: JoinError::into_panic() gives a Box<dyn Any + Send>; cast it to &str (downcast_ref::<&str>()). Print \"panic: boom\".\n\nExpected output:\n`panic: boom`",
    "hint": "into_panic() returns the panic payload.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -61,21 +61,21 @@
   {
    "id": "r33-joinset-abort-all",
    "title": "abort_all",
-   "statement": "Start 4 endless tasks (sleep 1 s) in a JoinSet, call abort_all() and wait for all of them with join_next: count the is_cancelled errors. Print «отменено: 4».\n\nExpected output:\n«отменено: 4»",
+   "statement": "Start 4 endless tasks (sleep 1 s) in a JoinSet, call abort_all() and wait for all of them with join_next: count the is_cancelled errors. Print \"cancelled: 4\".\n\nExpected output:\n`cancelled: 4`",
    "hint": "After abort_all, join_next returns Err(cancelled) for each task.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-joinset-drop",
    "title": "Dropping the set cancels tasks",
-   "statement": "A task holds a Guard that increments a shared AtomicUsize in Drop. Start 3 such tasks (sleep 1 s) in a JoinSet, let them start (sleep 10 ms), drop the set and give time for cleanup (sleep 20 ms). Print «очищено: 3».\n\nExpected output:\n«очищено: 3»",
+   "statement": "A task holds a Guard that increments a shared AtomicUsize in Drop. Start 3 such tasks (sleep 1 s) in a JoinSet, let them start (sleep 10 ms), drop the set and give time for cleanup (sleep 20 ms). Print \"cleared: 3\".\n\nExpected output:\n`cleared: 3`",
    "hint": "Drop for JoinSet calls abort_all.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-blocking-parallel",
    "title": "Blocking tasks run in parallel",
-   "statement": "Start 4 spawn_blocking tasks, each sleeping (std::thread::sleep) for 100 ms. Wait for all of them and check that the total time is under 300 ms: «параллельно: true».\n\nExpected output:\n«параллельно: true»",
+   "statement": "Start 4 spawn_blocking tasks, each sleeping (std::thread::sleep) for 100 ms. Wait for all of them and check that the total time is under 300 ms: \"in parallel: true\".\n\nExpected output:\n`in parallel: true`",
    "hint": "The blocking thread pool runs the tasks at the same time.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -96,28 +96,28 @@
   {
    "id": "r33-task-local",
    "title": "task_local!",
-   "statement": "Declare tokio::task_local! { static REQ_ID: u32; }. Start two tasks: one with REQ_ID.scope(1, …), the other with scope(2, …); each calls a shared async fn log() -> String that returns «запрос <id>» from REQ_ID.get(). Print both results: «запрос 1», «запрос 2».\n\nExpected output:\n«запрос 1\nзапрос 2»",
+   "statement": "Declare tokio::task_local! { static REQ_ID: u32; }. Start two tasks: one with REQ_ID.scope(1, …), the other with scope(2, …); each calls a shared async fn log() -> String that returns \"request <id>\" from REQ_ID.get(). Print both results: \"request 1\", \"request 2\".\n\nExpected output:\n`request 1`\n`request 2`",
    "hint": "REQ_ID.scope(value, future) provides the value while the future runs.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-task-id",
    "title": "Task ids",
-   "statement": "Start 5 tasks, each returning tokio::task::id(). Check that all the ids are different (main is not a task, so it has no id to compare with): print «уникальных: 5».\n\nExpected output:\n«уникальных: 5»",
+   "statement": "Start 5 tasks, each returning tokio::task::id(). Check that all the ids are different (main is not a task, so it has no id to compare with): print \"unique: 5\".\n\nExpected output:\n`unique: 5`",
    "hint": "tokio::task::id() returns an Id that implements Hash.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-yield-fairness",
    "title": "Fairness",
-   "statement": "On current_thread start a \"busy\" task: while !flag { yield_now().await }, and a second one that raises the flag (AtomicBool) right away. Wait for both and print «флаг поднят». (Without yield_now the task would hang.)\n\nExpected output:\n«флаг поднят»",
+   "statement": "On current_thread start a \"busy\" task: while !flag { yield_now().await }, and a second one that raises the flag (AtomicBool) right away. Wait for both and print \"flag raised\". (Without yield_now the task would hang.)\n\nExpected output:\n`flag raised`",
    "hint": "yield_now hands control to other tasks on the same thread.",
    "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-detach",
    "title": "Detaching",
-   "statement": "Drop the JoinHandle right after spawn and make sure the task keeps running: after 10 ms it sends «жива» through a oneshot. Print «жива».\n\nExpected output:\n«жива»",
+   "statement": "Drop the JoinHandle right after spawn and make sure the task keeps running: after 10 ms it sends \"alive\" through a oneshot. Print \"alive\".\n\nExpected output:\n`alive`",
    "hint": "Dropping a JoinHandle does not cancel the task.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -131,14 +131,14 @@
   {
    "id": "r33-shutdown-timeout",
    "title": "shutdown_timeout",
-   "statement": "Start a 50 ms spawn_blocking in the runtime (std sleep) and call rt.shutdown_timeout(Duration::from_secs(2)); print «рантайм остановлен» and «быстрее 2 с: true».\n\nExpected output:\n«рантайм остановлен\nбыстрее 2 с: true»",
+   "statement": "Start a 50 ms spawn_blocking in the runtime (std sleep) and call rt.shutdown_timeout(Duration::from_secs(2)); print \"runtime stopped\" and \"faster than 2 s: true\".\n\nExpected output:\n`runtime stopped`\n`faster than 2 s: true`",
    "hint": "shutdown_timeout waits for blocking tasks no longer than the limit.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-handle-try-current",
    "title": "Handle::try_current",
-   "statement": "Show that Handle::try_current() outside a runtime returns Err (print «вне: false») and inside it returns Ok («внутри: true»). First call it in a plain main before creating the runtime, then inside block_on.\n\nExpected output:\n«вне: false\nвнутри: true»",
+   "statement": "Show that Handle::try_current() outside a runtime returns Err (print \"outside: false\") and inside it returns Ok (\"inside: true\"). First call it in a plain main before creating the runtime, then inside block_on.\n\nExpected output:\n`outside: false`\n`inside: true`",
    "hint": "try_current does not panic: it returns a Result.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -166,7 +166,7 @@
   {
    "id": "r33-retry",
    "title": "Retry with cancellation",
-   "statement": "Write async fn retry<F, Fut>(n: u32, mut f: F) -> Result<u32, String>, where F: FnMut(u32) -> Fut, Fut: Future<Output = Result<u32, String>>: it tries f(attempt) for attempt = 1…n and returns the first Ok or the last error. For an f that succeeds only on the third attempt print «Ok(3)»; for a hopeless one print «Err(\"сбой 3\")».\n\nExpected output:\n«Ok(3)\nErr(\"сбой 3\")»",
+   "statement": "Write async fn retry<F, Fut>(n: u32, mut f: F) -> Result<u32, String>, where F: FnMut(u32) -> Fut, Fut: Future<Output = Result<u32, String>>: it tries f(attempt) for attempt = 1…n and returns the first Ok or the last error. For an f that succeeds only on the third attempt print \"Ok(3)\"; for a hopeless one print `Err(\"failure 3\")`.\n\nExpected output:\n`Ok(3)`\n`Err(\"failure 3\")`",
    "hint": "A loop over the attempts; return early on Ok.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -180,7 +180,7 @@
   {
    "id": "r33-blocking-abort",
    "title": "abort on a blocking task",
-   "statement": "Show that abort() does not stop a spawn_blocking task that has already started: the task sets started, sleeps 60 ms and sets done (AtomicBool). Main waits for started (polling with a 1 ms sleep), calls abort(), waits 100 ms and prints «флаг: true».\n\nExpected output:\n«флаг: true»",
+   "statement": "Show that abort() does not stop a spawn_blocking task that has already started: the task sets started, sleeps 60 ms and sets done (AtomicBool). Main waits for started (polling with a 1 ms sleep), calls abort(), waits 100 ms and prints \"flag: true\".\n\nExpected output:\n`flag: true`",
    "hint": "The blocking thread runs to the end: cancellation applies only to tasks that have not started yet.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -194,23 +194,23 @@
   {
    "id": "r33-timeout-spawn",
    "title": "timeout over a JoinHandle",
-   "statement": "Wrap a task's JoinHandle (sleep 200 ms) in tokio::time::timeout(30 ms): print «таймаут»; the task keeps running meanwhile — check through a oneshot that it did finish after 250 ms: «задача дожила».\n\nExpected output:\n«таймаут\nзадача дожила»",
+   "statement": "Wrap a task's JoinHandle (sleep 200 ms) in tokio::time::timeout(30 ms): print \"timeout\"; the task keeps running meanwhile — check through a oneshot that it did finish after 250 ms: \"task survived\".\n\nExpected output:\n`timeout`\n`task survived`",
    "hint": "timeout drops the wait on the handle, not the task itself.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-multi-thread-count",
    "title": "How many threads",
-   "statement": "Build a multi-threaded runtime with worker_threads(3) and start 50 spawn tasks, each returning the name of its thread (after a short 1 ms sleep). Print: «потоков не больше 3: true».\n\nExpected output:\n«потоков не больше 3: true»",
+   "statement": "Build a multi-threaded runtime with worker_threads(3) and start 50 spawn tasks, each returning the name of its thread (after a short 1 ms sleep). Print: \"threads at most 3: true\".\n\nExpected output:\n`threads at most 3: true`",
    "hint": "All tasks run on the pool's worker threads.",
    "starter": "#[tokio::main(flavor = \"multi_thread\", worker_threads = 3)]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r33-spawn-borrowed-fix",
    "title": "Fix it: spawn and a reference",
-   "statement": "The program does not compile: the task borrows a local vector. Fix it with Arc so that it prints «сумма 10».\n\nExpected output:\n«сумма 10\n4»",
+   "statement": "The program does not compile: the task borrows a local vector. Fix it with Arc so that it prints \"sum 10\".\n\nExpected output:\n`sum 10`\n`4`",
    "hint": "Arc::clone and move.",
-   "starter": "#[tokio::main]\nasync fn main() {\n    let v = vec![1, 2, 3, 4];\n    let h = tokio::spawn(async { v.iter().sum::<i32>() });\n    println!(\"сумма {}\", h.await.unwrap());\n    println!(\"{}\", v.len());\n}\n"
+   "starter": "#[tokio::main]\nasync fn main() {\n    let v = vec![1, 2, 3, 4];\n    let h = tokio::spawn(async { v.iter().sum::<i32>() });\n    println!(\"sum {}\", h.await.unwrap());\n    println!(\"{}\", v.len());\n}\n"
   }
  ]
 }

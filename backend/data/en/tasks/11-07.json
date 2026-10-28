@@ -65,8 +65,8 @@
   {
    "id": "j7-describe-user",
    "title": "Destructuring a nested object",
-   "statement": "Write a function describeUser(user): using destructuring in the parameter, take name, address.city (default «неизвестно») and tags (default []); return «<name> из <city>, тегов: <n>». The text of the result stays in Russian exactly as written.",
-   "hint": "function describeUser({ name, address: { city = \"неизвестно\" } = {}, tags = [] })"
+   "statement": "Write a function describeUser(user): using destructuring in the parameter, take name, address.city (default «unknown») and tags (default []); return «<name> from <city>, tags: <n>».",
+   "hint": "function describeUser({ name, address: { city = \"unknown\" } = {}, tags = [] })"
   },
   {
    "id": "j7-chunk",
@@ -113,14 +113,14 @@
   {
    "id": "j7-sort-by",
    "title": "Sort objects by key",
-   "statement": "Write a function sortBy(arr, key) that returns a new array of objects sorted by the key field in ascending order (numbers as numbers, strings by Russian alphabet rules, localeCompare with the locale «ru»); the sort is stable, the original array does not change.",
+   "statement": "Write a function sortBy(arr, key) that returns a new array of objects sorted by the key field in ascending order (numbers as numbers, strings with localeCompare); the sort is stable, the original array does not change.",
    "hint": "Compare strings with localeCompare and numbers by subtraction; sort a copy."
   },
   {
    "id": "j7-sort-multi",
    "title": "Sort by several fields",
-   "statement": "Write a function sortUsers(users) that returns a new array sorted by age in descending order, and for equal ages by name in ascending order (localeCompare with the locale «ru»).",
-   "hint": "b.age - a.age || a.name.localeCompare(b.name, \"ru\")"
+   "statement": "Write a function sortUsers(users) that returns a new array sorted by age in descending order, and for equal ages by name in ascending order (localeCompare).",
+   "hint": "b.age - a.age || a.name.localeCompare(b.name)"
   },
   {
    "id": "j7-matrix",

@@ -1,730 +1,730 @@
 {
-  "book": 11,
-  "chapter": 17,
-  "lab": "web",
-  "tasks": [
-    {
-      "id": "w17-color-size",
-      "title": "Цвет и размер шрифта",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заголовок .title должен быть цвета #c0392b, а абзац .lead — не меньше 18 и не больше 24 пикселей.",
-      "hint": "color задаёт цвет текста, font-size — размер шрифта. Размер можно писать и в пикселях, и в ремах: браузер приведёт всё к пикселям.",
-      "spec": {
-        "kind": "css",
-        "html": "<h1 class=\"title\">Привет</h1><p class=\"lead\">Вводный текст</p>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".title",
-            "prop": "color",
-            "equals": "#c0392b"
-          },
-          {
-            "t": "style",
-            "sel": ".lead",
-            "prop": "font-size",
-            "min": 18,
-            "max": 24
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": ".title { color: #c0392b; } .lead { font-size: 20px; }"
-        }
-      }
-    },
-    {
-      "id": "w17-specificity",
-      "title": "Победить по специфичности",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В документе уже есть правило #card .text { color: red }. Сделайте текст синим без !important: ваше правило должно оказаться специфичнее.",
-      "hint": "Селектор #card .text весит (1, 1, 0). Добавьте ещё один класс или тег, не трогая ничего другого. Порядок записи здесь не поможет: решает вес.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>#card .text { color: red; }</style><div id=\"card\"><p class=\"text\" id=\"t\">Текст в карточке</p></div>",
-        "starter_css": ".text { color: blue; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#t",
-            "prop": "color",
-            "equals": "blue"
-          },
-          {
-            "t": "no_important"
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": "#card .text.text { color: blue; }"
-        }
-      }
-    },
-    {
-      "id": "w17-order",
-      "title": "Победить порядком",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Элементу с классами a b подходят два правила одинаковой специфичности: .a { color: red } и .b { color: green }, побеждает последнее. Сделайте текст красным, не усиливая селектор и не трогая !important.",
-      "hint": "При равной специфичности выигрывает правило, которое записано ниже. Ваш CSS идёт после того, что уже есть.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>.a { color: red; } .b { color: green; }</style><p class=\"a b\" id=\"t\">Какого я цвета?</p>",
-        "starter_css": "p { color: red; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#t",
-            "prop": "color",
-            "equals": "red"
-          },
-          {
-            "t": "no_important"
-          },
-          {
-            "t": "no_ids"
-          }
-        ],
-        "reference": {
-          "css": ".a { color: red; }"
-        }
-      }
-    },
-    {
-      "id": "w17-important-inline",
-      "title": "Когда без важности не обойтись",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Разметка красит текст прямо в атрибуте style, и убрать его нельзя. Сделайте текст синим: это один из немногих случаев, когда пометка важности оправдана.",
-      "hint": "Атрибут style сильнее любого селектора. Перебить его может только объявление с пометкой !important.",
-      "spec": {
-        "kind": "css",
-        "html": "<p id=\"t\" style=\"color: red\">Цвет задан в атрибуте</p>",
-        "starter_css": "#t { color: blue; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#t",
-            "prop": "color",
-            "equals": "blue"
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": "#t { color: blue !important; }"
-        }
-      }
-    },
-    {
-      "id": "w17-no-important",
-      "title": "Без !important",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В меню все ссылки .menu a серые. Пункт с классом active должен быть красным, остальные — серыми. Заготовка работает, но использует !important, а это плохая привычка: перепишите так, чтобы пометки важности не было.",
-      "hint": "Вместо важности повысьте специфичность: .menu a.active весит больше, чем .menu a.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>.menu a { color: gray; }</style><nav class=\"menu\"><a href=\"#\" id=\"x\">Главная</a> <a href=\"#\" class=\"active\" id=\"y\">Меню</a> <a href=\"#\" id=\"z\">Контакты</a></nav>",
-        "starter_css": "a { color: red !important; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#y",
-            "prop": "color",
-            "equals": "red"
-          },
-          {
-            "t": "style",
-            "sel": "#x",
-            "prop": "color",
-            "equals": "gray"
-          },
-          {
-            "t": "style",
-            "sel": "#z",
-            "prop": "color",
-            "equals": "gray"
-          },
-          {
-            "t": "no_important"
-          }
-        ],
-        "reference": {
-          "css": ".menu a.active { color: red; }"
-        }
-      }
-    },
-    {
-      "id": "w17-inherit-parent",
-      "title": "Наследование цвета",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Одним правилом на .post задайте цвет #444444 так, чтобы заголовок и оба абзаца стали такого цвета сами. Для .note дополнительно задайте размер шрифта 14px.",
-      "hint": "color наследуется: достаточно задать его родителю. font-size для .note — отдельное правило.",
-      "spec": {
-        "kind": "css",
-        "html": "<article class=\"post\"><h2>Заметка</h2><p>Первый абзац</p><p class=\"note\">Примечание</p></article>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "h2",
-            "prop": "color",
-            "equals": "#444444"
-          },
-          {
-            "t": "style",
-            "sel": "p",
-            "prop": "color",
-            "equals": "#444444"
-          },
-          {
-            "t": "style",
-            "sel": ".note",
-            "prop": "font-size",
-            "equals": "14px"
-          }
-        ],
-        "reference": {
-          "css": ".post { color: #444444; } .note { font-size: 14px; }"
-        }
-      }
-    },
-    {
-      "id": "w17-inherit-keyword",
-      "title": "Ключевое слово inherit",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Ссылка в карточке покрашена браузерным синим, а карточка .card — зелёного цвета #00aa77. Сделайте так, чтобы ссылка брала цвет у родителя, не повторяя сам цвет.",
-      "hint": "Значение inherit велит взять свойство у родителя: color: inherit.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>.card { color: #00aa77; } a { color: blue; }</style><div class=\"card\">Текст и <a href=\"#\" id=\"l\">ссылка</a></div>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#l",
-            "prop": "color",
-            "equals": "#00aa77"
-          },
-          {
-            "t": "uses",
-            "prop": "color",
-            "value": "inherit"
-          }
-        ],
-        "reference": {
-          "css": "a { color: inherit; }"
-        }
-      }
-    },
-    {
-      "id": "w17-reset-keywords",
-      "title": "initial и unset",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У блока .note задан красный цвет, внешние отступы и курсив. Верните цвет в «родительский» ключевым словом unset (цвет наследуется, поэтому станет цветом родителя #336699), а отступ и начертание сбросьте к начальным значениям ключевым словом initial.",
-      "hint": "color: unset; margin: initial; font-style: initial. У наследуемого свойства unset действует как inherit.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>body { color: #336699; } .note { color: red; margin: 20px; font-style: italic; }</style><p class=\"note\" id=\"n\">Примечание</p>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#n",
-            "prop": "color",
-            "equals": "#336699"
-          },
-          {
-            "t": "style",
-            "sel": "#n",
-            "prop": "margin",
-            "equals": "0px"
-          },
-          {
-            "t": "style",
-            "sel": "#n",
-            "prop": "font-style",
-            "equals": "normal"
-          },
-          {
-            "t": "uses",
-            "prop": "color",
-            "value": "unset"
-          },
-          {
-            "t": "uses",
-            "prop": "margin",
-            "value": "initial"
-          },
-          {
-            "t": "uses",
-            "prop": "font-style",
-            "value": "initial"
-          }
-        ],
-        "reference": {
-          "css": ".note { color: unset; margin: initial; font-style: initial; }"
-        }
-      }
-    },
-    {
-      "id": "w17-em",
-      "title": "Единицы em",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У .box размер шрифта 20px, а внутренние отступы равны 1.5em. Сколько это в пикселях, браузер посчитает сам.",
-      "hint": "em считается от размера шрифта самого элемента: 1.5em при шрифте 20px даёт 30px.",
-      "spec": {
-        "kind": "css",
-        "html": "<div class=\"box\"><p>Содержимое</p></div>",
-        "starter_css": ".box { padding: 1.5em; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".box",
-            "prop": "font-size",
-            "equals": "20px"
-          },
-          {
-            "t": "style",
-            "sel": ".box",
-            "prop": "padding",
-            "equals": "30px"
-          },
-          {
-            "t": "uses",
-            "prop": "padding",
-            "value": "1.5em"
-          }
-        ],
-        "reference": {
-          "css": ".box { font-size: 20px; padding: 1.5em; }"
-        }
-      }
-    },
-    {
-      "id": "w17-em-nested",
-      "title": "Вложенные em перемножаются",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У .a размер шрифта 20px. Сделайте так, чтобы у блока .b шрифт был в полтора раза больше родительского, а у абзаца #t внутри него — ещё в полтора раза больше, и запишите оба размера в em.",
-      "hint": "em считается от шрифта родителя: 20 × 1.5 = 30px у .b, затем 30 × 1.5 = 45px у абзаца.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>.a { font-size: 20px; }</style><div class=\"a\"><div class=\"b\"><p id=\"t\">Вложенный текст</p></div></div>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".b",
-            "prop": "font-size",
-            "equals": "30px"
-          },
-          {
-            "t": "style",
-            "sel": "#t",
-            "prop": "font-size",
-            "equals": "45px"
-          },
-          {
-            "t": "uses",
-            "prop": "font-size",
-            "value": "1.5em"
-          }
-        ],
-        "reference": {
-          "css": ".b { font-size: 1.5em; } #t { font-size: 1.5em; }"
-        }
-      }
-    },
-    {
-      "id": "w17-rem",
-      "title": "Единицы rem",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Блок .wrap увеличил шрифт до 30px. Абзац #t внутри должен иметь размер ровно 2 корневых единицы (32px) независимо от родителя. Запишите размер в rem.",
-      "hint": "rem считается от размера шрифта корневого элемента (по умолчанию 16px), поэтому 2rem — всегда 32px.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>.wrap { font-size: 30px; }</style><div class=\"wrap\"><p id=\"t\">Текст в обёртке</p></div>",
-        "starter_css": "p { font-size: 2em; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#t",
-            "prop": "font-size",
-            "equals": "32px"
-          },
-          {
-            "t": "uses",
-            "prop": "font-size",
-            "value": "2rem"
-          }
-        ],
-        "reference": {
-          "css": "p { font-size: 2rem; }"
-        }
-      }
-    },
-    {
-      "id": "w17-calc",
-      "title": "calc(): окно минус отступ",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Блок .panel должен занимать ширину окна за вычетом 40 пикселей: при окне 1000px — 960px, при окне 400px — 360px. Используйте calc() и единицы окна.",
-      "hint": "Ширина окна — это 100vw. Складывать и вычитать разные единицы умеет calc(100vw - 40px).",
-      "spec": {
-        "kind": "css",
-        "html": "<div class=\"panel\">Панель</div>",
-        "starter_css": ".panel { width: 100vw; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".panel",
-            "prop": "width",
-            "equals": "960px",
-            "viewport": 1000
-          },
-          {
-            "t": "style",
-            "sel": ".panel",
-            "prop": "width",
-            "equals": "360px",
-            "viewport": 400
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": ".panel { width: calc(100vw - 40px); }"
-        }
-      }
-    },
-    {
-      "id": "w17-clamp",
-      "title": "clamp(): резиновый заголовок",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Размер шрифта .title должен расти вместе с окном как 4vw, но быть не меньше 16px и не больше 40px: при окне 320px — 16px, при 600px — 24px, при 1200px — 40px.",
-      "hint": "clamp(минимум, желаемое, максимум): clamp(16px, 4vw, 40px).",
-      "spec": {
-        "kind": "css",
-        "html": "<h1 class=\"title\">Резиновый заголовок</h1>",
-        "starter_css": ".title { font-size: 24px; }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".title",
-            "prop": "font-size",
-            "equals": "16px",
-            "viewport": 320
-          },
-          {
-            "t": "style",
-            "sel": ".title",
-            "prop": "font-size",
-            "equals": "24px",
-            "viewport": 600
-          },
-          {
-            "t": "style",
-            "sel": ".title",
-            "prop": "font-size",
-            "equals": "40px",
-            "viewport": 1200
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": ".title { font-size: clamp(16px, 4vw, 40px); }"
-        }
-      }
-    },
-    {
-      "id": "w17-vars-root",
-      "title": "Переменные CSS",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заведите переменную --brand со значением #2563eb на :root и используйте её для цвета текста .t и для цвета рамки .box (рамка 2px solid).",
-      "hint": "Объявление --brand: ...; на :root, использование — var(--brand).",
-      "spec": {
-        "kind": "css",
-        "html": "<div class=\"box\"><p class=\"t\">Фирменный цвет</p></div>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "uses",
-            "prop": "--brand"
-          },
-          {
-            "t": "style",
-            "sel": ".t",
-            "prop": "color",
-            "equals": "#2563eb"
-          },
-          {
-            "t": "style",
-            "sel": ".box",
-            "prop": "border-top-color",
-            "equals": "#2563eb"
-          },
-          {
-            "t": "style",
-            "sel": ".box",
-            "prop": "border-top-width",
-            "equals": "2px"
-          }
-        ],
-        "reference": {
-          "css": ":root { --brand: #2563eb; } .t { color: var(--brand); } .box { border: 2px solid var(--brand); }"
-        }
-      }
-    },
-    {
-      "id": "w17-vars-scope",
-      "title": "Переопределение в области",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Панели .panel берут фон из --bg, а цвет текста из --fg; на :root заданы светлые значения. Для панели с классом dark переопределите переменные: фон #111111, текст #eeeeee. Правило .panel менять не нужно.",
-      "hint": "Достаточно одного правила: .dark { --bg: #111111; --fg: #eeeeee; }. Переменные наследуются, поэтому .panel внутри .dark увидит новые значения.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>:root { --bg: #ffffff; --fg: #222222; } .panel { background: var(--bg); color: var(--fg); }</style><div class=\"panel\" id=\"day\">Светлая</div><div class=\"panel dark\" id=\"night\">Тёмная</div>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#day",
-            "prop": "background-color",
-            "equals": "#ffffff"
-          },
-          {
-            "t": "style",
-            "sel": "#day",
-            "prop": "color",
-            "equals": "#222222"
-          },
-          {
-            "t": "style",
-            "sel": "#night",
-            "prop": "background-color",
-            "equals": "#111111"
-          },
-          {
-            "t": "style",
-            "sel": "#night",
-            "prop": "color",
-            "equals": "#eeeeee"
-          },
-          {
-            "t": "uses",
-            "prop": "--bg"
-          }
-        ],
-        "reference": {
-          "css": ".dark { --bg: #111111; --fg: #eeeeee; }"
-        }
-      }
-    },
-    {
-      "id": "w17-vars-fallback",
-      "title": "Запасное значение var()",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заголовок h1 берёт цвет из переменной --accent, а если её нет — используется #c0392b. Блок .themed задаёт --accent: #2563eb, поэтому заголовок внутри него должен быть синим, а снаружи — красным.",
-      "hint": "var(--accent, #c0392b): второй аргумент — запасное значение. Переменную задайте на .themed.",
-      "spec": {
-        "kind": "css",
-        "html": "<h1 id=\"a\">Снаружи</h1><div class=\"themed\"><h1 id=\"b\">Внутри</h1></div>",
-        "starter_css": "h1 { color: var(--accent); }",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#a",
-            "prop": "color",
-            "equals": "#c0392b"
-          },
-          {
-            "t": "style",
-            "sel": "#b",
-            "prop": "color",
-            "equals": "#2563eb"
-          },
-          {
-            "t": "uses",
-            "prop": "--accent"
-          }
-        ],
-        "reference": {
-          "css": "h1 { color: var(--accent, #c0392b); } .themed { --accent: #2563eb; }"
-        }
-      }
-    },
-    {
-      "id": "w17-dark-media",
-      "title": "Тёмная тема по системной схеме",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заведите на :root переменные --bg (#ffffff) и --fg (#222222), примените их к body (фон и цвет текста), а в @media (prefers-color-scheme: dark) переопределите их на #111111 и #eeeeee.",
-      "hint": "Сначала объявите переменные на :root и используйте в body, потом добавьте @media (prefers-color-scheme: dark) { :root { --bg: ...; --fg: ...; } }.",
-      "spec": {
-        "kind": "css",
-        "html": "<h1>Заголовок</h1><p>Текст страницы</p>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "body",
-            "prop": "background-color",
-            "equals": "#ffffff"
-          },
-          {
-            "t": "style",
-            "sel": "body",
-            "prop": "color",
-            "equals": "#222222"
-          },
-          {
-            "t": "uses",
-            "prop": "--bg"
-          },
-          {
-            "t": "uses",
-            "prop": "--fg"
-          },
-          {
-            "t": "media",
-            "contains": "prefers-color-scheme: dark"
-          },
-          {
-            "t": "css_valid"
-          },
-          {
-            "t": "style",
-            "sel": "body",
-            "prop": "background-color",
-            "equals": "#111111",
-            "env": {
-              "prefers-color-scheme": "dark"
-            },
-            "msg": "В тёмной схеме фон body — #111111"
-          },
-          {
-            "t": "style",
-            "sel": "body",
-            "prop": "color",
-            "equals": "#eeeeee",
-            "env": {
-              "prefers-color-scheme": "dark"
-            },
-            "msg": "В тёмной схеме цвет текста — #eeeeee"
-          }
-        ],
-        "reference": {
-          "css": ":root { --bg: #ffffff; --fg: #222222; } body { background: var(--bg); color: var(--fg); } @media (prefers-color-scheme: dark) { :root { --bg: #111111; --fg: #eeeeee; } }"
-        }
-      }
-    },
-    {
-      "id": "w17-currentcolor",
-      "title": "Рамка в тон тексту",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Метки .tag покрашены в разные цвета текста (красный и синий). Одним правилом для .tag нарисуйте рамку 2px solid так, чтобы цвет рамки у каждой метки совпадал с цветом её текста, не называя цвет.",
-      "hint": "Ключевое слово currentcolor означает «цвет текста этого элемента»: border: 2px solid currentcolor. По умолчанию рамка и так берёт цвет текста, но явно написать полезно.",
-      "spec": {
-        "kind": "css",
-        "html": "<style>.a { color: #c0392b; } .b { color: #2563eb; }</style><span class=\"tag a\" id=\"a\">Срочно</span> <span class=\"tag b\" id=\"b\">Новости</span>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": "#a",
-            "prop": "border-top-color",
-            "equals": "#c0392b"
-          },
-          {
-            "t": "style",
-            "sel": "#b",
-            "prop": "border-top-color",
-            "equals": "#2563eb"
-          },
-          {
-            "t": "style",
-            "sel": ".tag",
-            "prop": "border-top-style",
-            "equals": "solid"
-          },
-          {
-            "t": "style",
-            "sel": ".tag",
-            "prop": "border-top-width",
-            "equals": "2px"
-          }
-        ],
-        "reference": {
-          "css": ".tag { border: 2px solid currentcolor; }"
-        }
-      }
-    },
-    {
-      "id": "w17-ch",
-      "title": "Длина строки в символах",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Абзац .text растянулся на весь экран и плохо читается. Ограничьте его ширину ровно шестьюдесятью символами с помощью единицы ch и задайте высоту строки свойством line-height безразмерным числом (например, полтора).",
-      "hint": "max-width: 60ch; line-height задаётся числом без единицы: 1.5.",
-      "spec": {
-        "kind": "css",
-        "html": "<p class=\"text\">Длинный абзац текста, который лучше читать узкой колонкой.</p>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".text",
-            "prop": "max-width",
-            "equals": "60ch"
-          },
-          {
-            "t": "uses",
-            "prop": "line-height"
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": ".text { max-width: 60ch; line-height: 1.5; }"
-        }
-      }
-    },
-    {
-      "id": "w17-rgba",
-      "title": "Полупрозрачный фон",
-      "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Подпись .caption лежит на картинке. Сделайте ей чёрный фон с прозрачностью 50% и белый цвет текста.",
-      "hint": "rgb(0 0 0 / 50%) или rgba(0, 0, 0, 0.5). Цвет текста — white или #ffffff.",
-      "spec": {
-        "kind": "css",
-        "html": "<div class=\"photo\"><p class=\"caption\">Подпись к фото</p></div>",
-        "starter_css": "",
-        "viewport": 1024,
-        "checks": [
-          {
-            "t": "style",
-            "sel": ".caption",
-            "prop": "background-color",
-            "equals": "rgba(0, 0, 0, 0.5)"
-          },
-          {
-            "t": "style",
-            "sel": ".caption",
-            "prop": "color",
-            "equals": "#ffffff"
-          },
-          {
-            "t": "css_valid"
-          }
-        ],
-        "reference": {
-          "css": ".caption { background: rgb(0 0 0 / 50%); color: white; }"
-        }
-      }
+ "book": 11,
+ "chapter": 17,
+ "lab": "web",
+ "tasks": [
+  {
+   "id": "w17-color-size",
+   "title": "Цвет и размер шрифта",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заголовок .title должен быть цвета #c0392b, а абзац .lead — не меньше 18 и не больше 24 пикселей.",
+   "hint": "color задаёт цвет текста, font-size — размер шрифта. Размер можно писать и в пикселях, и в ремах: браузер приведёт всё к пикселям.",
+   "spec": {
+    "kind": "css",
+    "html": "<h1 class=\"title\">Hello</h1><p class=\"lead\">Intro text</p>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "color",
+      "equals": "#c0392b"
+     },
+     {
+      "t": "style",
+      "sel": ".lead",
+      "prop": "font-size",
+      "min": 18,
+      "max": 24
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".title { color: #c0392b; } .lead { font-size: 20px; }"
     }
-  ]
+   }
+  },
+  {
+   "id": "w17-specificity",
+   "title": "Победить по специфичности",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В документе уже есть правило #card .text { color: red }. Сделайте текст синим без !important: ваше правило должно оказаться специфичнее.",
+   "hint": "Селектор #card .text весит (1, 1, 0). Добавьте ещё один класс или тег, не трогая ничего другого. Порядок записи здесь не поможет: решает вес.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>#card .text { color: red; }</style><div id=\"card\"><p class=\"text\" id=\"t\">Card text</p></div>",
+    "starter_css": ".text { color: blue; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "blue"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "#card .text.text { color: blue; }"
+    }
+   }
+  },
+  {
+   "id": "w17-order",
+   "title": "Победить порядком",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Элементу с классами a b подходят два правила одинаковой специфичности: .a { color: red } и .b { color: green }, побеждает последнее. Сделайте текст красным, не усиливая селектор и не трогая !important.",
+   "hint": "При равной специфичности выигрывает правило, которое записано ниже. Ваш CSS идёт после того, что уже есть.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.a { color: red; } .b { color: green; }</style><p class=\"a b\" id=\"t\">What colour am I?</p>",
+    "starter_css": "p { color: red; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "red"
+     },
+     {
+      "t": "no_important"
+     },
+     {
+      "t": "no_ids"
+     }
+    ],
+    "reference": {
+     "css": ".a { color: red; }"
+    }
+   }
+  },
+  {
+   "id": "w17-important-inline",
+   "title": "Когда без важности не обойтись",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Разметка красит текст прямо в атрибуте style, и убрать его нельзя. Сделайте текст синим: это один из немногих случаев, когда пометка важности оправдана.",
+   "hint": "Атрибут style сильнее любого селектора. Перебить его может только объявление с пометкой !important.",
+   "spec": {
+    "kind": "css",
+    "html": "<p id=\"t\" style=\"color: red\">Colour set in an attribute</p>",
+    "starter_css": "#t { color: blue; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "color",
+      "equals": "blue"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": "#t { color: blue !important; }"
+    }
+   }
+  },
+  {
+   "id": "w17-no-important",
+   "title": "Без !important",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. В меню все ссылки .menu a серые. Пункт с классом active должен быть красным, остальные — серыми. Заготовка работает, но использует !important, а это плохая привычка: перепишите так, чтобы пометки важности не было.",
+   "hint": "Вместо важности повысьте специфичность: .menu a.active весит больше, чем .menu a.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.menu a { color: gray; }</style><nav class=\"menu\"><a href=\"#\" id=\"x\">Home</a> <a href=\"#\" class=\"active\" id=\"y\">Menu</a> <a href=\"#\" id=\"z\">Contacts</a></nav>",
+    "starter_css": "a { color: red !important; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#y",
+      "prop": "color",
+      "equals": "red"
+     },
+     {
+      "t": "style",
+      "sel": "#x",
+      "prop": "color",
+      "equals": "gray"
+     },
+     {
+      "t": "style",
+      "sel": "#z",
+      "prop": "color",
+      "equals": "gray"
+     },
+     {
+      "t": "no_important"
+     }
+    ],
+    "reference": {
+     "css": ".menu a.active { color: red; }"
+    }
+   }
+  },
+  {
+   "id": "w17-inherit-parent",
+   "title": "Наследование цвета",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Одним правилом на .post задайте цвет #444444 так, чтобы заголовок и оба абзаца стали такого цвета сами. Для .note дополнительно задайте размер шрифта 14px.",
+   "hint": "color наследуется: достаточно задать его родителю. font-size для .note — отдельное правило.",
+   "spec": {
+    "kind": "css",
+    "html": "<article class=\"post\"><h2>Note</h2><p>First paragraph</p><p class=\"note\">Remark</p></article>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "h2",
+      "prop": "color",
+      "equals": "#444444"
+     },
+     {
+      "t": "style",
+      "sel": "p",
+      "prop": "color",
+      "equals": "#444444"
+     },
+     {
+      "t": "style",
+      "sel": ".note",
+      "prop": "font-size",
+      "equals": "14px"
+     }
+    ],
+    "reference": {
+     "css": ".post { color: #444444; } .note { font-size: 14px; }"
+    }
+   }
+  },
+  {
+   "id": "w17-inherit-keyword",
+   "title": "Ключевое слово inherit",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Ссылка в карточке покрашена браузерным синим, а карточка .card — зелёного цвета #00aa77. Сделайте так, чтобы ссылка брала цвет у родителя, не повторяя сам цвет.",
+   "hint": "Значение inherit велит взять свойство у родителя: color: inherit.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.card { color: #00aa77; } a { color: blue; }</style><div class=\"card\">Text and <a href=\"#\" id=\"l\">link</a></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#l",
+      "prop": "color",
+      "equals": "#00aa77"
+     },
+     {
+      "t": "uses",
+      "prop": "color",
+      "value": "inherit"
+     }
+    ],
+    "reference": {
+     "css": "a { color: inherit; }"
+    }
+   }
+  },
+  {
+   "id": "w17-reset-keywords",
+   "title": "initial и unset",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У блока .note задан красный цвет, внешние отступы и курсив. Верните цвет в «родительский» ключевым словом unset (цвет наследуется, поэтому станет цветом родителя #336699), а отступ и начертание сбросьте к начальным значениям ключевым словом initial.",
+   "hint": "color: unset; margin: initial; font-style: initial. У наследуемого свойства unset действует как inherit.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>body { color: #336699; } .note { color: red; margin: 20px; font-style: italic; }</style><p class=\"note\" id=\"n\">Remark</p>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#n",
+      "prop": "color",
+      "equals": "#336699"
+     },
+     {
+      "t": "style",
+      "sel": "#n",
+      "prop": "margin",
+      "equals": "0px"
+     },
+     {
+      "t": "style",
+      "sel": "#n",
+      "prop": "font-style",
+      "equals": "normal"
+     },
+     {
+      "t": "uses",
+      "prop": "color",
+      "value": "unset"
+     },
+     {
+      "t": "uses",
+      "prop": "margin",
+      "value": "initial"
+     },
+     {
+      "t": "uses",
+      "prop": "font-style",
+      "value": "initial"
+     }
+    ],
+    "reference": {
+     "css": ".note { color: unset; margin: initial; font-style: initial; }"
+    }
+   }
+  },
+  {
+   "id": "w17-em",
+   "title": "Единицы em",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У .box размер шрифта 20px, а внутренние отступы равны 1.5em. Сколько это в пикселях, браузер посчитает сам.",
+   "hint": "em считается от размера шрифта самого элемента: 1.5em при шрифте 20px даёт 30px.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"box\"><p>Content</p></div>",
+    "starter_css": ".box { padding: 1.5em; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "font-size",
+      "equals": "20px"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "padding",
+      "equals": "30px"
+     },
+     {
+      "t": "uses",
+      "prop": "padding",
+      "value": "1.5em"
+     }
+    ],
+    "reference": {
+     "css": ".box { font-size: 20px; padding: 1.5em; }"
+    }
+   }
+  },
+  {
+   "id": "w17-em-nested",
+   "title": "Вложенные em перемножаются",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. У .a размер шрифта 20px. Сделайте так, чтобы у блока .b шрифт был в полтора раза больше родительского, а у абзаца #t внутри него — ещё в полтора раза больше, и запишите оба размера в em.",
+   "hint": "em считается от шрифта родителя: 20 × 1.5 = 30px у .b, затем 30 × 1.5 = 45px у абзаца.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.a { font-size: 20px; }</style><div class=\"a\"><div class=\"b\"><p id=\"t\">Nested text</p></div></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".b",
+      "prop": "font-size",
+      "equals": "30px"
+     },
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "font-size",
+      "equals": "45px"
+     },
+     {
+      "t": "uses",
+      "prop": "font-size",
+      "value": "1.5em"
+     }
+    ],
+    "reference": {
+     "css": ".b { font-size: 1.5em; } #t { font-size: 1.5em; }"
+    }
+   }
+  },
+  {
+   "id": "w17-rem",
+   "title": "Единицы rem",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Блок .wrap увеличил шрифт до 30px. Абзац #t внутри должен иметь размер ровно 2 корневых единицы (32px) независимо от родителя. Запишите размер в rem.",
+   "hint": "rem считается от размера шрифта корневого элемента (по умолчанию 16px), поэтому 2rem — всегда 32px.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.wrap { font-size: 30px; }</style><div class=\"wrap\"><p id=\"t\">Wrapped text</p></div>",
+    "starter_css": "p { font-size: 2em; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#t",
+      "prop": "font-size",
+      "equals": "32px"
+     },
+     {
+      "t": "uses",
+      "prop": "font-size",
+      "value": "2rem"
+     }
+    ],
+    "reference": {
+     "css": "p { font-size: 2rem; }"
+    }
+   }
+  },
+  {
+   "id": "w17-calc",
+   "title": "calc(): окно минус отступ",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Блок .panel должен занимать ширину окна за вычетом 40 пикселей: при окне 1000px — 960px, при окне 400px — 360px. Используйте calc() и единицы окна.",
+   "hint": "Ширина окна — это 100vw. Складывать и вычитать разные единицы умеет calc(100vw - 40px).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"panel\">Panel</div>",
+    "starter_css": ".panel { width: 100vw; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".panel",
+      "prop": "width",
+      "equals": "960px",
+      "viewport": 1000
+     },
+     {
+      "t": "style",
+      "sel": ".panel",
+      "prop": "width",
+      "equals": "360px",
+      "viewport": 400
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".panel { width: calc(100vw - 40px); }"
+    }
+   }
+  },
+  {
+   "id": "w17-clamp",
+   "title": "clamp(): резиновый заголовок",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Размер шрифта .title должен расти вместе с окном как 4vw, но быть не меньше 16px и не больше 40px: при окне 320px — 16px, при 600px — 24px, при 1200px — 40px.",
+   "hint": "clamp(минимум, желаемое, максимум): clamp(16px, 4vw, 40px).",
+   "spec": {
+    "kind": "css",
+    "html": "<h1 class=\"title\">Fluid heading</h1>",
+    "starter_css": ".title { font-size: 24px; }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "font-size",
+      "equals": "16px",
+      "viewport": 320
+     },
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "font-size",
+      "equals": "24px",
+      "viewport": 600
+     },
+     {
+      "t": "style",
+      "sel": ".title",
+      "prop": "font-size",
+      "equals": "40px",
+      "viewport": 1200
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".title { font-size: clamp(16px, 4vw, 40px); }"
+    }
+   }
+  },
+  {
+   "id": "w17-vars-root",
+   "title": "Переменные CSS",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заведите переменную --brand со значением #2563eb на :root и используйте её для цвета текста .t и для цвета рамки .box (рамка 2px solid).",
+   "hint": "Объявление --brand: ...; на :root, использование — var(--brand).",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"box\"><p class=\"t\">Brand colour</p></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "uses",
+      "prop": "--brand"
+     },
+     {
+      "t": "style",
+      "sel": ".t",
+      "prop": "color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "border-top-color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "style",
+      "sel": ".box",
+      "prop": "border-top-width",
+      "equals": "2px"
+     }
+    ],
+    "reference": {
+     "css": ":root { --brand: #2563eb; } .t { color: var(--brand); } .box { border: 2px solid var(--brand); }"
+    }
+   }
+  },
+  {
+   "id": "w17-vars-scope",
+   "title": "Переопределение в области",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Панели .panel берут фон из --bg, а цвет текста из --fg; на :root заданы светлые значения. Для панели с классом dark переопределите переменные: фон #111111, текст #eeeeee. Правило .panel менять не нужно.",
+   "hint": "Достаточно одного правила: .dark { --bg: #111111; --fg: #eeeeee; }. Переменные наследуются, поэтому .panel внутри .dark увидит новые значения.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>:root { --bg: #ffffff; --fg: #222222; } .panel { background: var(--bg); color: var(--fg); }</style><div class=\"panel\" id=\"day\">Light</div><div class=\"panel dark\" id=\"night\">Dark</div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#day",
+      "prop": "background-color",
+      "equals": "#ffffff"
+     },
+     {
+      "t": "style",
+      "sel": "#day",
+      "prop": "color",
+      "equals": "#222222"
+     },
+     {
+      "t": "style",
+      "sel": "#night",
+      "prop": "background-color",
+      "equals": "#111111"
+     },
+     {
+      "t": "style",
+      "sel": "#night",
+      "prop": "color",
+      "equals": "#eeeeee"
+     },
+     {
+      "t": "uses",
+      "prop": "--bg"
+     }
+    ],
+    "reference": {
+     "css": ".dark { --bg: #111111; --fg: #eeeeee; }"
+    }
+   }
+  },
+  {
+   "id": "w17-vars-fallback",
+   "title": "Запасное значение var()",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заголовок h1 берёт цвет из переменной --accent, а если её нет — используется #c0392b. Блок .themed задаёт --accent: #2563eb, поэтому заголовок внутри него должен быть синим, а снаружи — красным.",
+   "hint": "var(--accent, #c0392b): второй аргумент — запасное значение. Переменную задайте на .themed.",
+   "spec": {
+    "kind": "css",
+    "html": "<h1 id=\"a\">Outside</h1><div class=\"themed\"><h1 id=\"b\">Inside</h1></div>",
+    "starter_css": "h1 { color: var(--accent); }",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#a",
+      "prop": "color",
+      "equals": "#c0392b"
+     },
+     {
+      "t": "style",
+      "sel": "#b",
+      "prop": "color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "uses",
+      "prop": "--accent"
+     }
+    ],
+    "reference": {
+     "css": "h1 { color: var(--accent, #c0392b); } .themed { --accent: #2563eb; }"
+    }
+   }
+  },
+  {
+   "id": "w17-dark-media",
+   "title": "Тёмная тема по системной схеме",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Заведите на :root переменные --bg (#ffffff) и --fg (#222222), примените их к body (фон и цвет текста), а в @media (prefers-color-scheme: dark) переопределите их на #111111 и #eeeeee.",
+   "hint": "Сначала объявите переменные на :root и используйте в body, потом добавьте @media (prefers-color-scheme: dark) { :root { --bg: ...; --fg: ...; } }.",
+   "spec": {
+    "kind": "css",
+    "html": "<h1>Heading</h1><p>Page text</p>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "body",
+      "prop": "background-color",
+      "equals": "#ffffff"
+     },
+     {
+      "t": "style",
+      "sel": "body",
+      "prop": "color",
+      "equals": "#222222"
+     },
+     {
+      "t": "uses",
+      "prop": "--bg"
+     },
+     {
+      "t": "uses",
+      "prop": "--fg"
+     },
+     {
+      "t": "media",
+      "contains": "prefers-color-scheme: dark"
+     },
+     {
+      "t": "css_valid"
+     },
+     {
+      "t": "style",
+      "sel": "body",
+      "prop": "background-color",
+      "equals": "#111111",
+      "env": {
+       "prefers-color-scheme": "dark"
+      },
+      "msg": "In the dark scheme body background is #111111"
+     },
+     {
+      "t": "style",
+      "sel": "body",
+      "prop": "color",
+      "equals": "#eeeeee",
+      "env": {
+       "prefers-color-scheme": "dark"
+      },
+      "msg": "In the dark scheme text color is #eeeeee"
+     }
+    ],
+    "reference": {
+     "css": ":root { --bg: #ffffff; --fg: #222222; } body { background: var(--bg); color: var(--fg); } @media (prefers-color-scheme: dark) { :root { --bg: #111111; --fg: #eeeeee; } }"
+    }
+   }
+  },
+  {
+   "id": "w17-currentcolor",
+   "title": "Рамка в тон тексту",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Метки .tag покрашены в разные цвета текста (красный и синий). Одним правилом для .tag нарисуйте рамку 2px solid так, чтобы цвет рамки у каждой метки совпадал с цветом её текста, не называя цвет.",
+   "hint": "Ключевое слово currentcolor означает «цвет текста этого элемента»: border: 2px solid currentcolor. По умолчанию рамка и так берёт цвет текста, но явно написать полезно.",
+   "spec": {
+    "kind": "css",
+    "html": "<style>.a { color: #c0392b; } .b { color: #2563eb; }</style><span class=\"tag a\" id=\"a\">Urgent</span> <span class=\"tag b\" id=\"b\">News</span>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": "#a",
+      "prop": "border-top-color",
+      "equals": "#c0392b"
+     },
+     {
+      "t": "style",
+      "sel": "#b",
+      "prop": "border-top-color",
+      "equals": "#2563eb"
+     },
+     {
+      "t": "style",
+      "sel": ".tag",
+      "prop": "border-top-style",
+      "equals": "solid"
+     },
+     {
+      "t": "style",
+      "sel": ".tag",
+      "prop": "border-top-width",
+      "equals": "2px"
+     }
+    ],
+    "reference": {
+     "css": ".tag { border: 2px solid currentcolor; }"
+    }
+   }
+  },
+  {
+   "id": "w17-ch",
+   "title": "Длина строки в символах",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Абзац .text растянулся на весь экран и плохо читается. Ограничьте его ширину ровно шестьюдесятью символами с помощью единицы ch и задайте высоту строки свойством line-height безразмерным числом (например, полтора).",
+   "hint": "max-width: 60ch; line-height задаётся числом без единицы: 1.5.",
+   "spec": {
+    "kind": "css",
+    "html": "<p class=\"text\">A long paragraph of text that is better read in a narrow column.</p>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".text",
+      "prop": "max-width",
+      "equals": "60ch"
+     },
+     {
+      "t": "uses",
+      "prop": "line-height"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".text { max-width: 60ch; line-height: 1.5; }"
+    }
+   }
+  },
+  {
+   "id": "w17-rgba",
+   "title": "Полупрозрачный фон",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Подпись .caption лежит на картинке. Сделайте ей чёрный фон с прозрачностью 50% и белый цвет текста.",
+   "hint": "rgb(0 0 0 / 50%) или rgba(0, 0, 0, 0.5). Цвет текста — white или #ffffff.",
+   "spec": {
+    "kind": "css",
+    "html": "<div class=\"photo\"><p class=\"caption\">Photo caption</p></div>",
+    "starter_css": "",
+    "viewport": 1024,
+    "checks": [
+     {
+      "t": "style",
+      "sel": ".caption",
+      "prop": "background-color",
+      "equals": "rgba(0, 0, 0, 0.5)"
+     },
+     {
+      "t": "style",
+      "sel": ".caption",
+      "prop": "color",
+      "equals": "#ffffff"
+     },
+     {
+      "t": "css_valid"
+     }
+    ],
+    "reference": {
+     "css": ".caption { background: rgb(0 0 0 / 50%); color: white; }"
+    }
+   }
+  }
+ ]
 }

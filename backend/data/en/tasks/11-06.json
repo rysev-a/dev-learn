@@ -53,8 +53,8 @@
   {
    "id": "j6-defaults",
    "title": "Default parameters",
-   "statement": "Write a function greet(name = \"гость\", greeting = \"Привет\") that returns «<greeting>, <name>!». Defaults are not applied for null.",
-   "hint": "function greet(name = \"гость\", greeting = \"Привет\")"
+   "statement": "Write a function greet(name = \"guest\", greeting = \"Hello\") that returns «<greeting>, <name>!». Defaults are not applied for null.",
+   "hint": "function greet(name = \"guest\", greeting = \"Hello\")"
   },
   {
    "id": "j6-box-options",

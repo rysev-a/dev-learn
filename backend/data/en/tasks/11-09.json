@@ -5,7 +5,7 @@
   {
    "id": "j9-resolve-relative",
    "title": "Resolving relative module paths",
-   "statement": "Write a function resolveRelative(from, spec): from is the importer's file path («src/app/main.js»), spec is a relative path («./util.js», «../lib/x.js», «./a/./b/../c.js»); return the normalized path without «.» and «..» (for example, «src/app/util.js»). If spec does not start with «./» or «../», throw TypeError(\"голое имя\"). If the path climbs above the root («../../../x.js» from «a/b.js»), throw Error(\"выше корня\").",
+   "statement": "Write a function resolveRelative(from, spec): from is the importer's file path («src/app/main.js»), spec is a relative path («./util.js», «../lib/x.js», «./a/./b/../c.js»); return the normalized path without «.» and «..» (for example, «src/app/util.js»). If spec does not start with «./» or «../», throw TypeError(\"bare name\"). If the path climbs above the root («../../../x.js» from «a/b.js»), throw Error(\"above root\").",
    "hint": "Split the importer's path into folders and walk through the segments of spec: «..» removes a folder, «.» is skipped."
   },
   {
@@ -35,13 +35,13 @@
   {
    "id": "j9-esm-order",
    "title": "ES module execution order",
-   "statement": "Modules are given as { name: { imports: [names] } }. Write a function executionOrder(modules, entry): the execution order as in ES modules is a depth-first traversal: first the imports in order, then the module itself (post-order); each module once; on cycles do not enter again. For an unknown module throw Error(\"нет модуля: <name>\").",
+   "statement": "Modules are given as { name: { imports: [names] } }. Write a function executionOrder(modules, entry): the execution order as in ES modules is a depth-first traversal: first the imports in order, then the module itself (post-order); each module once; on cycles do not enter again. For an unknown module throw Error(\"no module: <name>\").",
    "hint": "Mark a module as visited before recursing; add it to the result after traversing its imports."
   },
   {
    "id": "j9-dynamic-import",
    "title": "Dynamic import cache",
-   "statement": "Write a function createImporter(loaders): loaders is an object of «name → function returning a module promise». It returns a function load(name): for one name, both concurrent and repeated calls return the same promise (loading happens once); if loading fails, the entry is removed from the cache and the next call tries again; an unknown name gives a rejected promise with Error(\"нет модуля\").",
+   "statement": "Write a function createImporter(loaders): loaders is an object of «name → function returning a module promise». It returns a function load(name): for one name, both concurrent and repeated calls return the same promise (loading happens once); if loading fails, the entry is removed from the cache and the next call tries again; an unknown name gives a rejected promise with Error(\"no module\").",
    "hint": "A Map from name to promise; on rejection remove the entry in p.catch."
   },
   {
@@ -65,7 +65,7 @@
   {
    "id": "j9-app-error",
    "title": "The AppError hierarchy",
-   "statement": "Write a class AppError extends Error: constructor (message, { code = \"E_APP\", status = 500, details } = {}); fields name (from the class name, this.constructor.name), code, status, details; a method toJSON() → { name, code, message, status, details } (details only if given). And subclasses NotFoundError (code E_NOT_FOUND, status 404, default message «Не найдено») and ValidationError (E_VALIDATION, 422, details is an array of field errors).",
+   "statement": "Write a class AppError extends Error: constructor (message, { code = \"E_APP\", status = 500, details } = {}); fields name (from the class name, this.constructor.name), code, status, details; a method toJSON() → { name, code, message, status, details } (details only if given). And subclasses NotFoundError (code E_NOT_FOUND, status 404, default message «Not found») and ValidationError (constructor (details, message), E_VALIDATION, 422, details is an array of field errors, default message «Invalid data»).",
    "hint": "The class name is this.constructor.name; toJSON defines how the error ends up in JSON.stringify."
   },
   {
@@ -77,7 +77,7 @@
   {
    "id": "j9-aggregate",
    "title": "Collect all the errors",
-   "statement": "Write a function runAll(tasks): tasks is an array of synchronous functions. It runs all of them (not stopping at the first error); if all succeed, it returns an array of results; otherwise it throws an AggregateError with an errors array (in task order) and the message «упало N из M».",
+   "statement": "Write a function runAll(tasks): tasks is an array of synchronous functions. It runs all of them (not stopping at the first error); if all succeed, it returns an array of results; otherwise it throws an AggregateError with an errors array (in task order) and the message «failed N of M» (N is how many failed, M is the total).",
    "hint": "Collect errors in an array and throw new AggregateError(errors, message) at the end."
   },
   {
@@ -95,7 +95,7 @@
   {
    "id": "j9-parse-config",
    "title": "Parsing settings while accumulating errors",
-   "statement": "Write a function parseConfig(text): text is a JSON string. It returns { ok: true, value: { port, host, debug } } or { ok: false, errors: [...] } (all errors found, in order). Rules: invalid JSON gives a single error «Неверный JSON»; port is an integer 1–65535 («port: нужно целое 1–65535»); host is a non-empty string, «localhost» by default; debug is a boolean, false by default («debug: нужно true или false»). Unknown fields are an error «Неизвестное поле: <name>».",
+   "statement": "Write a function parseConfig(text): text is a JSON string. It returns { ok: true, value: { port, host, debug } } or { ok: false, errors: [...] } (all errors found, in the order port, host, debug, unknown fields). Rules: invalid JSON (or JSON that is not an object) gives a single error «Invalid JSON»; port is an integer 1–65535 («port: must be integer 1–65535»); host is a non-empty string, «localhost» by default («host: must be non-empty string»); debug is a boolean, false by default («debug: must be true or false»). Unknown fields are an error «Unknown field: <name>».",
    "hint": "First parse the JSON, then run independent field checks; all messages accumulate in an array."
   },
   {
@@ -113,13 +113,13 @@
   {
    "id": "j9-timeout",
    "title": "A timeout for a promise",
-   "statement": "Write a class TimeoutError extends Error (name «TimeoutError») and a function withTimeout(promise, ms): returns a promise that resolves with the value of promise if it finishes within ms milliseconds, and otherwise rejects with TimeoutError(\"Превышено время ожидания: <ms> мс\"). The timer must be cleared after completion (otherwise the process will not exit in time).",
+   "statement": "Write a class TimeoutError extends Error (name «TimeoutError») and a function withTimeout(promise, ms): returns a promise that resolves with the value of promise if it finishes within ms milliseconds, and otherwise rejects with TimeoutError(\"Timeout exceeded: <ms> ms\"). The timer must be cleared after completion (otherwise the process will not exit in time).",
    "hint": "Promise.race between the original promise and a timer promise; clearTimeout in finally."
   },
   {
    "id": "j9-assert",
    "title": "Custom assertions",
-   "statement": "Write a class AssertionError extends Error (name «AssertionError», fields actual, expected) and functions assert(cond, message), assertEqual(actual, expected, message) (strict equality; the default message is «Ожидалось <expected>, получено <actual>» with the values passed through JSON.stringify), assertThrows(fn, ErrorClass?) (throws AssertionError «Ожидалось исключение» if fn did not throw; if a class is given and the error is not its instance, «Ожидалось исключение <ClassName>, получено <name>»; returns the caught error).",
+   "statement": "Write a class AssertionError extends Error (name «AssertionError», fields actual, expected) and the functions assert(cond, message) (default message «Assertion failed»), assertEqual(actual, expected, message) (strict equality; default message «Expected <expected>, received <actual>» using JSON.stringify of the values), assertThrows(fn, ErrorClass?) (throws an AssertionError «Expected exception» if fn did not throw; if a class is given and the error is not its instance — «Expected exception <ClassName>, received <name>»; returns the caught error).",
    "hint": "Build the default message with a template and JSON.stringify; catch the error from fn in try/catch."
   },
   {
@@ -149,7 +149,7 @@
   {
    "id": "j9-validate-all",
    "title": "Validation with all errors",
-   "statement": "A schema: { field: { type: \"string\"|\"number\"|\"boolean\", required?: true, min?, max? } } (min/max apply to the value for a number and to the length for a string). Write a function validate(schema, obj): returns an array of error strings «field: reason» in schema field order, all at once: «обязательное поле», «ожидался тип <type>», «меньше минимума <min>», «больше максимума <max>». An optional missing field is skipped. An empty array means everything is valid.",
+   "statement": "A schema: { field: { type: \"string\"|\"number\"|\"boolean\", required?: true, min?, max? } } (min/max apply to the value for a number and to the length for a string). Write a function validate(schema, obj): returns an array of error strings «field: reason» in schema field order, all at once: «required field», «expected type <type>», «below minimum <min>», «above maximum <max>». An optional missing field is skipped. An empty array means everything is valid.",
    "hint": "For each schema field run several independent checks; errors accumulate in an array."
   },
   {
@@ -161,7 +161,7 @@
   {
    "id": "j9-ensure-error",
    "title": "Turning a thrown value into an Error",
-   "statement": "In JavaScript you can throw anything. Write a function ensureError(x): if x is an Error, return it; if it is a string, new Error(x); if it is an object with a message field (a string), an Error with that message and cause = x; otherwise an Error(«Брошено не-значение ошибки: <JSON or String(x)>») with cause = x. For null and undefined the message is «Брошено не-значение ошибки: null/undefined».",
+   "statement": "In JavaScript you can throw anything. Write a function ensureError(x): if x is an Error, return it; if it is a string, new Error(x); if it is an object with a message field (a string), an Error with that message and cause = x; otherwise an Error(«Thrown non-error value: <JSON or String(x)>») with cause = x. For null and undefined the message is «Thrown non-error value: null/undefined».",
    "hint": "Check the types in order; JSON.stringify may throw on a circular reference, so wrap it in a try."
   },
   {
@@ -173,16 +173,16 @@
   {
    "id": "j9-fix-throw-string",
    "title": "Fix: strings are being thrown",
-   "statement": "The function divideStrict(a, b) throws a string on division by zero, so the \"error\" has no stack and cannot be told apart by class. Fix it so that a RangeError with the message «Деление на ноль» is thrown; for non-numeric arguments, a TypeError «Нужны числа».",
+   "statement": "The function divideStrict(a, b) throws a string on division by zero, so the \"error\" has no stack and cannot be told apart by class. Fix it so that a RangeError with the message «Division by zero» is thrown; for non-numeric arguments, a TypeError «Numbers required».",
    "hint": "throw new RangeError(...) and throw new TypeError(...)",
-   "starter": "function divideStrict(a, b) {\n  if (typeof a !== \"number\" || typeof b !== \"number\") throw \"Нужны числа\";\n  if (b === 0) throw \"Деление на ноль\";\n  return a / b;\n}\n"
+   "starter": "function divideStrict(a, b) {\n  if (typeof a !== \"number\" || typeof b !== \"number\") throw \"Numbers required\";\n  if (b === 0) throw \"Division by zero\";\n  return a / b;\n}\n"
   },
   {
    "id": "j9-fix-finally-return",
    "title": "Fix: return in finally swallows the exception",
-   "statement": "The function loadAll(loaders) must call all the loaders in turn, count how many were completed (the done field), and must write the total to the log with log.push(\"итог: N\") — but the exception of the first failed loader must bubble out. Right now the return inside finally swallows the exception. Fix it without removing the log entry.",
+   "statement": "The function loadAll(loaders) must call all the loaders in turn, count how many were completed (the done field), and must write the total to the log with log.push(\"total: N\") — but the exception of the first failed loader must bubble out. Right now the return inside finally swallows the exception. Fix it without removing the log entry.",
    "hint": "Remove the return from the finally block: then the exception keeps bubbling up.",
-   "starter": "function loadAll(loaders, log) {\n  let done = 0;\n  try {\n    for (const l of loaders) {\n      l();\n      done++;\n    }\n    return done;\n  } finally {\n    log.push(\"итог: \" + done);\n    return done;\n  }\n}\n"
+   "starter": "function loadAll(loaders, log) {\n  let done = 0;\n  try {\n    for (const l of loaders) {\n      l();\n      done++;\n    }\n    return done;\n  } finally {\n    log.push(\"total: \" + done);\n    return done;\n  }\n}\n"
   }
  ]
 }

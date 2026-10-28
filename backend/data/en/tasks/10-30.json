@@ -5,21 +5,21 @@
   {
    "id": "r30-first-async",
    "title": "Your first async function",
-   "statement": "Write async fn greet(name: &str) -> String that returns «Привет, <имя>!», and call it with .await in a main with the #[tokio::main] attribute. Print the result for «Аня».\n\nExpected output:\n`Привет, Аня!`",
+   "statement": "Write async fn greet(name: &str) -> String that returns \"Hello, <name>!\", and call it with .await in a main with the #[tokio::main] attribute. Print the result for \"Anya\".\n\nExpected output:\n`Hello, Anya!`",
    "hint": "async fn returns a Future; .await inside an async main.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-lazy",
    "title": "A Future is lazy",
-   "statement": "Create a future f = work() (async fn work prints «работа»), print «до», then .await, then print «после». Expected: «до», «работа», «после»: calling an async fn prints nothing by itself.\n\nExpected output:\n`до`\n`работа`\n`после`",
+   "statement": "Create a future f = work() (async fn work prints \"work\"), print \"before\", then .await, then print \"after\". Expected: \"before\", \"work\", \"after\": calling an async fn prints nothing by itself.\n\nExpected output:\n`before`\n`work`\n`after`",
    "hint": "The body runs only on .await.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-order-await",
    "title": "Order of execution",
-   "statement": "Two async fns a() and b() print «a» and «b». Call them one after another with .await: a, then b, then print «конец».\n\nExpected output:\n`a`\n`b`\n`конец`",
+   "statement": "Two async fns a() and b() print \"a\" and \"b\". Call them one after another with .await: a, then b, then print \"end\".\n\nExpected output:\n`a`\n`b`\n`end`",
    "hint": "Sequential .await calls run one after another.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -40,14 +40,14 @@
   {
    "id": "r30-sleep-order",
    "title": "Concurrently: join!",
-   "statement": "Two tasks: the «медленная» one sleeps 60 ms and prints «медленная», the «быстрая» one sleeps 10 ms and prints «быстрая». Run both at once with tokio::join! and print «готово» afterwards. Expected: «быстрая», «медленная», «готово».\n\nExpected output:\n`быстрая`\n`медленная`\n`готово`",
+   "statement": "Two tasks: the \"slow\" one sleeps 60 ms and prints \"slow\", the \"fast\" one sleeps 10 ms and prints \"fast\". Run both at once with tokio::join! and print \"done\" afterwards. Expected: \"fast\", \"slow\", \"done\".\n\nExpected output:\n`fast`\n`slow`\n`done`",
    "hint": "join! runs the futures together; the output order is set by the sleep times.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-join-results",
    "title": "join! and results",
-   "statement": "async fn fetch(id: u32, ms: u64) -> String: waits ms milliseconds and returns «данные <id>». Run fetch(1, 30), fetch(2, 10), fetch(3, 20) through join! and print the results in argument order (not completion order): «данные 1 / данные 2 / данные 3».\n\nExpected output:\n`данные 1`\n`данные 2`\n`данные 3`",
+   "statement": "async fn fetch(id: u32, ms: u64) -> String: waits ms milliseconds and returns \"data <id>\". Run fetch(1, 30), fetch(2, 10), fetch(3, 20) through join! and print the results in argument order (not completion order): \"data 1 / data 2 / data 3\".\n\nExpected output:\n`data 1`\n`data 2`\n`data 3`",
    "hint": "join! returns a tuple of results in argument order.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -61,14 +61,14 @@
   {
    "id": "r30-try-join",
    "title": "try_join! stops at an error",
-   "statement": "Two async fns: ok_task() -> Result<u32, String> (returns Ok(1) after 10 ms) and bad_task() -> Result<u32, String> (Err(\"сбой\") after 20 ms). Run them with tokio::try_join! and print the result: «Err(\"сбой\")».\n\nExpected output:\n`Err(\"сбой\")`",
+   "statement": "Two async fns: ok_task() -> Result<u32, String> (returns Ok(1) after 10 ms) and bad_task() -> Result<u32, String> (Err(\"failure\") after 20 ms). Run them with tokio::try_join! and print the result: `Err(\"failure\")`.\n\nExpected output:\n`Err(\"failure\")`",
    "hint": "try_join! returns Err at the first error.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-spawn",
    "title": "spawn instead of create_task",
-   "statement": "Use tokio::spawn to launch a task that sleeps 20 ms and returns 42. Meanwhile main prints «жду»; then get the result with .await on the handle (it is a Result): «жду», «42».\n\nExpected output:\n`жду`\n`42`",
+   "statement": "Use tokio::spawn to launch a task that sleeps 20 ms and returns 42. Meanwhile main prints \"waiting\"; then get the result with .await on the handle (it is a Result): \"waiting\", \"42\".\n\nExpected output:\n`waiting`\n`42`",
    "hint": "JoinHandle<T>.await returns Result<T, JoinError>.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -82,14 +82,14 @@
   {
    "id": "r30-timeout",
    "title": "wait_for → timeout",
-   "statement": "Python: asyncio.wait_for(f(), 0.05). Run a task that sleeps 200 ms under tokio::time::timeout of 50 ms and print «таймаут»; then a quick one (10 ms) with the same limit: «успех».\n\nExpected output:\n`таймаут`\n`успех`",
+   "statement": "Python: asyncio.wait_for(f(), 0.05). Run a task that sleeps 200 ms under tokio::time::timeout of 50 ms and print \"timeout\"; then a quick one (10 ms) with the same limit: \"success\".\n\nExpected output:\n`timeout`\n`success`",
    "hint": "timeout returns Err(Elapsed) if time ran out.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-select-first",
    "title": "Who is first",
-   "statement": "Two tasks sleep 30 and 70 ms. Use tokio::select! to print the name of the one that finishes first: «быстрая».\n\nExpected output:\n`быстрая`",
+   "statement": "Two tasks sleep 30 and 70 ms. Use tokio::select! to print the name of the one that finishes first: \"fast\".\n\nExpected output:\n`fast`",
    "hint": "select! picks the first ready branch and cancels the others.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -103,7 +103,7 @@
   {
    "id": "r30-block-on-bridge",
    "title": "A bridge from plain code",
-   "statement": "In an ordinary fn main (without #[tokio::main]) create a runtime with tokio::runtime::Runtime::new() and run rt.block_on(async { … }), in which you wait 10 ms and return «из async». Print the result.\n\nExpected output:\n`из async`",
+   "statement": "In an ordinary fn main (without #[tokio::main]) create a runtime with tokio::runtime::Runtime::new() and run rt.block_on(async { … }), in which you wait 10 ms and return \"from async\". Print the result.\n\nExpected output:\n`from async`",
    "hint": "Runtime::new().unwrap().block_on(…).",
    "starter": "fn main() {\n    // your code\n}\n"
   },
@@ -152,14 +152,14 @@
   {
    "id": "r30-panic-isolated",
    "title": "A panic in a task",
-   "statement": "With spawn, launch a task that panics (panic!(\"бум\")) and a second one that returns 7. Print whether the first one has an error (JoinError, is_panic): «true», and the value of the second: «7». The panic message on stderr is not checked.\n\nExpected output:\n`true`\n`7`",
+   "statement": "With spawn, launch a task that panics (panic!(\"boom\")) and a second one that returns 7. Print whether the first one has an error (JoinError, is_panic): \"true\", and the value of the second: \"7\". The panic message on stderr is not checked.\n\nExpected output:\n`true`\n`7`",
    "hint": "A panic is isolated in the task and arrives as a JoinError.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-abort",
    "title": "Cancelling a task",
-   "statement": "Launch a task that loops forever, sleeping 5 ms and incrementing a shared AtomicUsize. In main wait until the counter is at least 2 (poll with a 5 ms sleep), cancel the task with abort(), and print: «отменено», then the is_cancelled of the await error: «true».\n\nExpected output:\n`отменено`\n`true`",
+   "statement": "Launch a task that loops forever, sleeping 5 ms and incrementing a shared AtomicUsize. In main wait until the counter is at least 2 (poll with a 5 ms sleep), cancel the task with abort(), and print: \"cancelled\", then the is_cancelled of the await error: \"true\".\n\nExpected output:\n`cancelled`\n`true`",
    "hint": "abort() interrupts the task at the nearest .await.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -173,21 +173,21 @@
   {
    "id": "r30-async-block-move",
    "title": "async move and ownership",
-   "statement": "Create a String s = «привет», move it into an async move block that returns s.len(), run it and print 12. After the block s is unavailable (do not use it).\n\nExpected output:\n`12`",
+   "statement": "Create a String s = \"planet\", move it into an async move block that returns s.len(), run it and print 6. After the block s is unavailable (do not use it).\n\nExpected output:\n`6`",
    "hint": "async move takes ownership of the captured values.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-yield-now",
    "title": "Yielding control",
-   "statement": "On a single-threaded runtime (#[tokio::main(flavor = \"current_thread\")]) launch a task that loops \"while the done flag is not set — yield_now().await\", counts iterations and then prints «задача завершилась». Main lets it work with one yield_now, raises the flag (AtomicBool), waits for the task and prints «итераций>=1: true».\n\nExpected output:\n`задача завершилась`\n`итераций>=1: true`",
+   "statement": "On a single-threaded runtime (#[tokio::main(flavor = \"current_thread\")]) launch a task that loops \"while the done flag is not set — yield_now().await\", counts iterations and then prints \"task finished\". Main lets it work with one yield_now, raises the flag (AtomicBool), waits for the task and prints \"iterations>=1: true\".\n\nExpected output:\n`task finished`\n`iterations>=1: true`",
    "hint": "On a single thread the task cannot advance until main yields control.",
    "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r30-interval",
    "title": "Periodic events",
-   "statement": "Python: while True: await asyncio.sleep(…). Create tokio::time::interval(20 ms) and wait for four ticks, measuring the total time: print «4 тика» and «время >= 60 мс: true» (the first tick fires immediately).\n\nExpected output:\n`4 тика`\n`время >= 60 мс: true`",
+   "statement": "Python: while True: await asyncio.sleep(…). Create tokio::time::interval(20 ms) and wait for four ticks, measuring the total time: print \"4 ticks\" and \"time >= 60 ms: true\" (the first tick fires immediately).\n\nExpected output:\n`4 ticks`\n`time >= 60 ms: true`",
    "hint": "The first tick() fires immediately, the rest after the period.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -208,7 +208,7 @@
   {
    "id": "r30-oneshot",
    "title": "One reply",
-   "statement": "Create a oneshot channel; a task sends «ответ» after 10 ms; main waits on rx.await and prints «получено: ответ».\n\nExpected output:\n`получено: ответ`",
+   "statement": "Create a oneshot channel; a task sends \"answer\" after 10 ms; main waits on rx.await and prints \"received: answer\".\n\nExpected output:\n`received: answer`",
    "hint": "oneshot::channel(): one sender, one receiver, one value.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   }

@@ -5,15 +5,15 @@
   {
    "id": "letters",
    "title": "Letters one by one",
-   "statement": "Print each letter of the word «привет» on a separate line. Use a for loop over the string.",
+   "statement": "Print each letter of the word «python» on a separate line. Use a for loop over the string.",
    "hint": "for ch in word: print(ch) — on each pass, ch is the next letter.",
-   "starter": "word = \"привет\"\n# for ... in ...:\n"
+   "starter": "word = \"python\"\n# for ... in ...:\n"
   },
   {
    "id": "countdown",
    "title": "Countdown",
-   "statement": "Print the numbers from 5 down to 1, each on its own line, and at the end the line «Старт!». Use a while loop and do not forget to decrease the counter.",
-   "hint": "while n > 0: print n, then n -= 1. «Старт!» comes after the loop, without indentation."
+   "statement": "Print the numbers from 5 down to 1, each on its own line, and at the end the line «Start!». Use a while loop and do not forget to decrease the counter.",
+   "hint": "while n > 0: print n, then n -= 1. «Start!» comes after the loop, without indentation."
   },
   {
    "id": "squares",
@@ -51,7 +51,7 @@
   {
    "id": "reverse-word",
    "title": "Word backwards",
-   "statement": "Write a function reverse_word(s) that returns the string s written backwards: «привет» becomes «тевирп». Build the result with a loop, attaching each next letter to the BEGINNING of the accumulator. You may not use the ready-made slice [::-1].",
+   "statement": "Write a function reverse_word(s) that returns the string s written backwards: «hello» becomes «olleh». Build the result with a loop, attaching each next letter to the BEGINNING of the accumulator. You may not use the ready-made slice [::-1].",
    "hint": "result = ch + result — the new letter goes in front of everything accumulated."
   },
   {

@@ -23,9 +23,9 @@
   {
    "id": "weekday-name",
    "title": "Day of the week",
-   "statement": "Write a function weekday_name(day): the name of the day of the week in Russian («понедельник», «вторник», ...) for a date «YYYY-MM-DD».",
+   "statement": "Write a function weekday_name(day): the English name of the day of the week (monday, tuesday, ...) for a date in the form YYYY-MM-DD.",
    "hint": "NAMES[date.fromisoformat(day).weekday()].",
-   "starter": "from datetime import date\n\nNAMES = [\"понедельник\", \"вторник\", \"среда\", \"четверг\", \"пятница\", \"суббота\", \"воскресенье\"]\n\n\ndef weekday_name(day):\n    pass\n"
+   "starter": "from datetime import date\n\nNAMES = [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\", \"saturday\", \"sunday\"]\n\n\ndef weekday_name(day):\n    pass\n"
   },
   {
    "id": "age-years",
@@ -54,7 +54,7 @@
   {
    "id": "parse-log-line",
    "title": "A log line",
-   "statement": "Write a function parse_log(line): a log line like «2024-03-05 09:07:03 ERROR сбой диска». Return a tuple (the time in ISO format with the letter T, the level).",
+   "statement": "Write a function parse_log(line): a log line like «2024-03-05 09:07:03 ERROR disk failure». Return a tuple (the time in ISO format with the letter T, the level).",
    "hint": "date_part, time_part, level, *_ = line.split(); datetime.fromisoformat(date_part + ' ' + time_part).isoformat()."
   }
  ]

@@ -13,11 +13,11 @@
         "scenarios": [
           {
             "id": "calm",
-            "title": "Спокойный гость",
+            "title": "A calm guest",
             "dirty": 300.0,
             "bw": 1250.0,
-            "goal": "Pre-copy сошёлся, простой не больше 100 мс",
-            "hint": "Допустимый простой — это порог остановки: чем он меньше, тем больше кругов, но тем короче пауза.",
+            "goal": "Pre-copy converged, downtime at most 100 ms",
+            "hint": "The allowed downtime is the stop threshold: the smaller it is, the more rounds, but the shorter the pause.",
             "check": {
               "outcome": "precopy",
               "max_downtime": 100
@@ -25,11 +25,11 @@
           },
           {
             "id": "busy",
-            "title": "Активный гость",
+            "title": "An active guest",
             "dirty": 2000.0,
             "bw": 1250.0,
-            "goal": "Без post-copy: миграция сошлась, простой не больше 600 мс",
-            "hint": "Гость пишет быстрее, чем уходит по сети, — остаток не уменьшается. Нужно притормозить vCPU.",
+            "goal": "No post-copy: migration converged, downtime at most 600 ms",
+            "hint": "The guest writes faster than the network can carry — the remainder does not shrink. You need to throttle the vCPU.",
             "check": {
               "outcome": "precopy",
               "max_downtime": 600
@@ -37,11 +37,11 @@
           },
           {
             "id": "wild",
-            "title": "Очень активный гость",
+            "title": "A very active guest",
             "dirty": 6000.0,
             "bw": 1250.0,
-            "goal": "Гибрид: простой не больше 100 мс, общее время не больше 60 с",
-            "hint": "Переключайтесь на post-copy раньше: каждый круг pre-copy здесь стоит около 13 секунд.",
+            "goal": "Hybrid: downtime at most 100 ms, total time at most 60 s",
+            "hint": "Switch to post-copy earlier: each pre-copy round here costs about 13 seconds.",
             "check": {
               "outcome": "postcopy",
               "max_downtime": 100,

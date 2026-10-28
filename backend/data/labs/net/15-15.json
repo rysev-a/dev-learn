@@ -17,7 +17,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 40,
               "y": 180,
               "ifaces": [
@@ -177,7 +177,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 570,
               "y": 180,
               "ifaces": [
@@ -242,7 +242,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ping до сервера проходит",
+            "text": "ping to the server succeeds",
             "ping": {
               "from": "pc",
               "to": "@srv"
@@ -250,7 +250,7 @@
           },
           {
             "id": "g2",
-            "text": "Порт 8080 сервера открывается",
+            "text": "Server port 8080 opens",
             "tcp": {
               "from": "pc",
               "to": "@srv",
@@ -279,7 +279,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -311,7 +311,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "R1 (ICMP заблокирован)",
+              "name": "R1 (ICMP blocked)",
               "x": 230,
               "y": 180,
               "ifaces": [
@@ -390,7 +390,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -445,7 +445,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Пакет размера MTU клиента с запретом фрагментации проходит",
+            "text": "A packet of the client's MTU size with don't-fragment passes",
             "ping": {
               "from": "pc",
               "to": "@srv",
@@ -454,7 +454,7 @@
           },
           {
             "id": "g2",
-            "text": "MTU клиента не меньше 1300 и не больше 1400",
+            "text": "Client MTU is at least 1300 and at most 1400",
             "mtu": {
               "dev": "pc",
               "iface": "eth0",
@@ -484,7 +484,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 100,
               "y": 180,
               "ifaces": [
@@ -557,7 +557,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -605,7 +605,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Клиент открывает порт 80 сервера",
+            "text": "The client opens server port 80",
             "tcp": {
               "from": "pc",
               "to": "@srv",
@@ -614,7 +614,7 @@
           },
           {
             "id": "g2",
-            "text": "Сервер по-прежнему слушает порт 80",
+            "text": "The server still listens on port 80",
             "ping": {
               "from": "pc",
               "to": "@srv"
@@ -645,7 +645,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -733,7 +733,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "DNS-резолвер",
+              "name": "DNS resolver",
               "x": 430,
               "y": 70,
               "ifaces": [
@@ -775,7 +775,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 290,
               "ifaces": [
@@ -808,7 +808,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Защищённая главная</h1>"
+                    "body": "<h1>Secure home</h1>"
                   }
                 ]
               },
@@ -874,7 +874,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Имя www.example.org разрешается",
+            "text": "The name www.example.org resolves",
             "dns": {
               "from": "pc",
               "name": "www.example.org",
@@ -883,12 +883,12 @@
           },
           {
             "id": "g2",
-            "text": "https://www.example.org/ возвращает 200",
+            "text": "https://www.example.org/ returns 200",
             "http": {
               "from": "pc",
               "url": "https://www.example.org/",
               "status": 200,
-              "body_includes": "Защищённая"
+              "body_includes": "Secure"
             }
           }
         ],

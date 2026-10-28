@@ -51,18 +51,6 @@
    "hint": "let mut out = [0; 5]; — an array of five zeros; out[4 - i] = a[i]."
   },
   {
-   "id": "r9-text-stats",
-   "title": "Characters and bytes",
-   "statement": "Write fn text_stats(s: &str) -> (usize, usize): (length in bytes, number of characters). In Python len(s) counts characters; in Rust len() counts bytes, and characters are counted with chars().count().",
-   "hint": "s.len() is bytes, s.chars().count() is characters."
-  },
-  {
-   "id": "r9-utf8-hex",
-   "title": "UTF-8 bytes in hexadecimal",
-   "statement": "Write fn hex_bytes(s: &str) -> String: the bytes of the string in UTF-8, each as two hexadecimal digits, separated by spaces. Check against the chapter on characters: «Ж» is d0 96.",
-   "hint": "s.bytes() gives u8; format!(\"{b:02x}\") — two hex digits; join(\" \") glues them together."
-  },
-  {
    "id": "r9-endianness",
    "title": "Byte order in a number",
    "statement": "Write fn byte_orders(n: u32) -> (String, String): the bytes of the number n in little-endian and big-endian order, in hex separated by spaces. Use the methods u32::to_le_bytes and to_be_bytes.",
@@ -160,13 +148,6 @@
    "title": "Struct size",
    "statement": "Declare two structs with the attribute #[repr(C)]: A { a: u8, b: u32, c: u8 } and B { b: u32, a: u8, c: u8 }. Print size_of::<A>() and size_of::<B>(): «12» and «8» — because of the padding between fields.\n\nExpected output:\n12\n8",
    "hint": "#[repr(C)] fixes the field order; the order affects the size.",
-   "starter": "fn main() {\n    // your code\n}\n"
-  },
-  {
-   "id": "r9-strings-len",
-   "title": "len in bytes and in characters",
-   "statement": "For the words «привет», «hello», «日本語», «😀» print one line each: the word, the number of bytes and the number of characters, separated by spaces: «привет 12 6», «hello 5 5», «日本語 9 3», «😀 4 1».\n\nExpected output (each line is shown in «», the quotes themselves are not printed):\n«привет 12 6»\n«hello 5 5»\n«日本語 9 3»\n«😀 4 1»",
-   "hint": "len() is bytes, chars().count() is characters.",
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {

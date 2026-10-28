@@ -5,9 +5,9 @@
   {
    "id": "s13-01",
    "title": "Query plan: viewing",
-   "statement": "EXPLAIN QUERY PLAN shows how the database will run a query. Show the plan for `SELECT * FROM customers WHERE city = 'Москва'`. There is no index on city, so it will be a SCAN, a full pass.",
+   "statement": "EXPLAIN QUERY PLAN shows how the database will run a query. Show the plan for `SELECT * FROM customers WHERE city = 'Moscow'`. There is no index on city, so it will be a SCAN, a full pass.",
    "hint": "Put EXPLAIN QUERY PLAN in front of the ordinary query.",
-   "starter": "-- add EXPLAIN QUERY PLAN\nSELECT * FROM customers WHERE city = 'Москва';\n"
+   "starter": "-- add EXPLAIN QUERY PLAN\nSELECT * FROM customers WHERE city = 'Moscow';\n"
   },
   {
    "id": "s13-02",
@@ -33,7 +33,7 @@
   {
    "id": "s13-05",
    "title": "The first index",
-   "statement": "The query `SELECT * FROM customers WHERE city = 'Москва'` scans the table. Create an index on city so that the plan becomes a SEARCH.",
+   "statement": "The query `SELECT * FROM customers WHERE city = 'Moscow'` scans the table. Create an index on city so that the plan becomes a SEARCH.",
    "hint": "CREATE INDEX name ON table (column);"
   },
   {
@@ -74,7 +74,7 @@
   {
    "id": "s13-11",
    "title": "Filter and sort",
-   "statement": "The query: WHERE category = `'Электроника'` ORDER BY price. Create an index on (category, price) so that there is neither a scan nor a sort.",
+   "statement": "The query: WHERE category = `'Tech'` ORDER BY price. Create an index on (category, price) so that there is neither a scan nor a sort.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -88,7 +88,7 @@
   {
    "id": "s13-13",
    "title": "Index for a JOIN",
-   "statement": "The query: SELECT * FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.category = `'Книги'`. Create an index so that order_items is read by a SEARCH on product_id.",
+   "statement": "The query: SELECT * FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.category = `'Books'`. Create an index so that order_items is read by a SEARCH on product_id.",
    "hint": "Index the join column in the table that is searched.",
    "starter": "-- Write your query\n"
   },
@@ -116,7 +116,7 @@
   {
    "id": "s13-17",
    "title": "Prefix search",
-   "statement": "The query: title GLOB `'Книга*'` (the start of a string). Create an index on title. A GLOB with a constant beginning uses the index as a range.",
+   "statement": "The query: title GLOB `'Book*'` (the start of a string). Create an index on title. A GLOB with a constant beginning uses the index as a range.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -165,7 +165,7 @@
   {
    "id": "s13-24",
    "title": "Leading LIKE pattern",
-   "statement": "A pattern with % at the start (`LIKE '%книга'`) does not use an index: show the plan for `SELECT * FROM products WHERE title LIKE '%Книга'` with an index on title. The result will be a SCAN.",
+   "statement": "A pattern with % at the start (`LIKE '%book'`) does not use an index: show the plan for `SELECT * FROM products WHERE title LIKE '%Book'` with an index on title. The result will be a SCAN.",
    "hint": "",
    "starter": "-- Write your query\n"
   },

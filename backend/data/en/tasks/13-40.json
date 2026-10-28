@@ -17,7 +17,7 @@
   {
    "id": "abc-template",
    "title": "Report template method",
-   "statement": "Write an abstract Report with a ready-made method render(): it builds a string from header(), body() and footer(). header and footer are implemented (they return «== отчёт ==» and «== конец ==»), and body is an abstract step. The parts are joined with a newline.",
+   "statement": "Write an abstract Report with a ready-made method render(): it builds a string from header(), body() and footer(). header and footer are implemented (they return \"== report ==\" and \"== end ==\"), and body is an abstract step. The parts are joined with a newline.",
    "hint": "def render(self): return \"\\n\".join([self.header(), self.body(), self.footer()])."
   },
   {
@@ -37,7 +37,7 @@
    "title": "Virtual subclass",
    "statement": "The class Duck already exists and inherits from nothing. Write an abstract Quacker and register Duck as its virtual subclass, so that isinstance(Duck(), Quacker) is true, while for Dog it is not.",
    "hint": "class Quacker(ABC): pass; Quacker.register(Duck).",
-   "starter": "from abc import ABC\n\n\nclass Duck:\n    def quack(self):\n        return \"кря\"\n\n\nclass Dog:\n    pass\n"
+   "starter": "from abc import ABC\n\n\nclass Duck:\n    def quack(self):\n        return \"quack\"\n\n\nclass Dog:\n    pass\n"
   },
   {
    "id": "abc-sequence",
@@ -54,7 +54,7 @@
   {
    "id": "abc-describe",
    "title": "Kind of a value via abstract classes",
-   "statement": "Write describe(x): return «строка» for str; «отображение» for Mapping; «последовательность» for Sequence; «итерируемое» for other Iterable; «число» for numbers.Number; otherwise «прочее». The order of checks matters: a string is also a sequence.",
+   "statement": "Write describe(x): return \"string\" for str; \"mapping\" for Mapping; \"sequence\" for Sequence; \"iterable\" for other Iterable; \"number\" for numbers.Number; otherwise \"other\". The order of checks matters: a string is also a sequence.",
    "hint": "Check in turn: str, Mapping, Sequence, Iterable, numbers.Number."
   }
  ]

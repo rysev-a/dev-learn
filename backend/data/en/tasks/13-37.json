@@ -11,7 +11,7 @@
   {
    "id": "sum-cli-main",
    "title": "A summing utility",
-   "statement": "Write a function main(argv): the arguments in argv are numbers (argparse, nargs='*', type=int). If there are no numbers, print «нет чисел» to stderr and return 1; otherwise print the sum and return 0.",
+   "statement": "Write a function main(argv): the arguments in argv are numbers (argparse, nargs='*', type=int). If there are no numbers, print \"no numbers\" to stderr and return 1; otherwise print the sum and return 0.",
    "hint": "p = argparse.ArgumentParser(); p.add_argument('nums', nargs='*', type=int); args = p.parse_args(argv)."
   },
   {
@@ -35,8 +35,8 @@
   {
    "id": "run-with-timeout",
    "title": "A process with a timeout",
-   "statement": "Write a function run_limited(code, seconds): it runs the code in a child interpreter; if it does not finish within seconds seconds, return the string «таймаут», otherwise return its output stripped at the edges.",
-   "hint": "try: subprocess.run(..., timeout=seconds) / except subprocess.TimeoutExpired: return \"таймаут\"."
+   "statement": "Write a function run_limited(code, seconds): it runs the code in a child interpreter; if it does not finish within seconds seconds, return the string \"timeout\", otherwise return its output stripped at the edges.",
+   "hint": "try: subprocess.run(..., timeout=seconds) / except subprocess.TimeoutExpired: return \"timeout\"."
   },
   {
    "id": "count-nonempty-stream",

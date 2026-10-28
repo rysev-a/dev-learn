@@ -17,7 +17,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -49,7 +49,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "Резолвер",
+              "name": "Resolver",
               "x": 60,
               "y": 280,
               "ifaces": [
@@ -138,7 +138,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -177,7 +177,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -238,7 +238,7 @@
             {
               "id": "root",
               "kind": "server",
-              "name": "Корень (.)",
+              "name": "Root (.)",
               "x": 560,
               "y": 50,
               "ifaces": [
@@ -284,7 +284,7 @@
             {
               "id": "tld",
               "kind": "server",
-              "name": "Сервер .org",
+              "name": ".org server",
               "x": 590,
               "y": 130,
               "ifaces": [
@@ -330,7 +330,7 @@
             {
               "id": "auth",
               "kind": "server",
-              "name": "Авторит. example.org",
+              "name": "Authoritative example.org",
               "x": 590,
               "y": 230,
               "ifaces": [
@@ -378,7 +378,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 560,
               "y": 310,
               "ifaces": [
@@ -467,7 +467,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "www.example.org разрешается в 198.51.100.40",
+            "text": "www.example.org resolves to 198.51.100.40",
             "dns": {
               "from": "pc",
               "name": "www.example.org",
@@ -476,7 +476,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК пингует сайт по имени",
+            "text": "PC pings the site by name",
             "ping": {
               "from": "pc",
               "to": "www.example.org"
@@ -484,7 +484,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК открывает порт 80 по имени",
+            "text": "PC opens port 80 by name",
             "tcp": {
               "from": "pc",
               "to": "www.example.org",
@@ -515,7 +515,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -548,7 +548,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "Резолвер",
+              "name": "Resolver",
               "x": 60,
               "y": 280,
               "ifaces": [
@@ -637,7 +637,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -676,7 +676,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -737,7 +737,7 @@
             {
               "id": "root",
               "kind": "server",
-              "name": "Корень (.)",
+              "name": "Root (.)",
               "x": 560,
               "y": 50,
               "ifaces": [
@@ -783,7 +783,7 @@
             {
               "id": "tld",
               "kind": "server",
-              "name": "Сервер .org",
+              "name": ".org server",
               "x": 590,
               "y": 130,
               "ifaces": [
@@ -829,7 +829,7 @@
             {
               "id": "auth",
               "kind": "server",
-              "name": "Авторит. example.org",
+              "name": "Authoritative example.org",
               "x": 590,
               "y": 230,
               "ifaces": [
@@ -877,7 +877,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 560,
               "y": 310,
               "ifaces": [
@@ -975,7 +975,7 @@
           },
           {
             "id": "g2",
-            "text": "Сайт открывается по имени (tcp/80)",
+            "text": "The site opens by name (tcp/80)",
             "tcp": {
               "from": "pc",
               "to": "www.example.org",
@@ -1011,7 +1011,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -1044,7 +1044,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "Резолвер",
+              "name": "Resolver",
               "x": 60,
               "y": 280,
               "ifaces": [
@@ -1133,7 +1133,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -1172,7 +1172,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -1233,7 +1233,7 @@
             {
               "id": "root",
               "kind": "server",
-              "name": "Корень (.)",
+              "name": "Root (.)",
               "x": 560,
               "y": 50,
               "ifaces": [
@@ -1279,7 +1279,7 @@
             {
               "id": "tld",
               "kind": "server",
-              "name": "Сервер .org",
+              "name": ".org server",
               "x": 590,
               "y": 130,
               "ifaces": [
@@ -1325,7 +1325,7 @@
             {
               "id": "auth",
               "kind": "server",
-              "name": "Авторит. example.org",
+              "name": "Authoritative example.org",
               "x": 590,
               "y": 230,
               "ifaces": [
@@ -1373,7 +1373,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 560,
               "y": 310,
               "ifaces": [
@@ -1471,7 +1471,7 @@
           },
           {
             "id": "g2",
-            "text": "Сайт открывается по имени shop.example.org",
+            "text": "The site opens by the name shop.example.org",
             "tcp": {
               "from": "pc",
               "to": "shop.example.org",
@@ -1502,7 +1502,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -1535,7 +1535,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "Резолвер",
+              "name": "Resolver",
               "x": 60,
               "y": 280,
               "ifaces": [
@@ -1624,7 +1624,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -1663,7 +1663,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -1724,7 +1724,7 @@
             {
               "id": "root",
               "kind": "server",
-              "name": "Корень (.)",
+              "name": "Root (.)",
               "x": 560,
               "y": 50,
               "ifaces": [
@@ -1770,7 +1770,7 @@
             {
               "id": "tld",
               "kind": "server",
-              "name": "Сервер .org",
+              "name": ".org server",
               "x": 590,
               "y": 130,
               "ifaces": [
@@ -1811,7 +1811,7 @@
             {
               "id": "auth",
               "kind": "server",
-              "name": "Авторит. example.org",
+              "name": "Authoritative example.org",
               "x": 590,
               "y": 230,
               "ifaces": [
@@ -1859,7 +1859,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 560,
               "y": 310,
               "ifaces": [
@@ -1948,7 +1948,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "www.example.org разрешается",
+            "text": "www.example.org resolves",
             "dns": {
               "from": "pc",
               "name": "www.example.org",
@@ -1957,7 +1957,7 @@
           },
           {
             "id": "g2",
-            "text": "Сайт открывается по имени",
+            "text": "The site opens by name",
             "tcp": {
               "from": "pc",
               "to": "www.example.org",
@@ -1988,7 +1988,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -2021,7 +2021,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "Резолвер",
+              "name": "Resolver",
               "x": 60,
               "y": 280,
               "ifaces": [
@@ -2110,7 +2110,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -2149,7 +2149,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -2210,7 +2210,7 @@
             {
               "id": "root",
               "kind": "server",
-              "name": "Корень (.)",
+              "name": "Root (.)",
               "x": 560,
               "y": 50,
               "ifaces": [
@@ -2256,7 +2256,7 @@
             {
               "id": "tld",
               "kind": "server",
-              "name": "Сервер .org",
+              "name": ".org server",
               "x": 590,
               "y": 130,
               "ifaces": [
@@ -2302,7 +2302,7 @@
             {
               "id": "auth",
               "kind": "server",
-              "name": "Авторит. example.org",
+              "name": "Authoritative example.org",
               "x": 590,
               "y": 230,
               "ifaces": [
@@ -2350,7 +2350,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 560,
               "y": 310,
               "ifaces": [
@@ -2439,7 +2439,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Имя разрешается через резолвер",
+            "text": "The name resolves through the resolver",
             "dns": {
               "from": "pc",
               "name": "www.example.org",
@@ -2448,7 +2448,7 @@
           },
           {
             "id": "g2",
-            "text": "Сайт открывается по имени",
+            "text": "The site opens by name",
             "tcp": {
               "from": "pc",
               "to": "www.example.org",
@@ -2479,7 +2479,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -2512,7 +2512,7 @@
             {
               "id": "res",
               "kind": "server",
-              "name": "Резолвер",
+              "name": "Resolver",
               "x": 60,
               "y": 280,
               "ifaces": [
@@ -2601,7 +2601,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -2640,7 +2640,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -2701,7 +2701,7 @@
             {
               "id": "root",
               "kind": "server",
-              "name": "Корень (.)",
+              "name": "Root (.)",
               "x": 560,
               "y": 50,
               "ifaces": [
@@ -2747,7 +2747,7 @@
             {
               "id": "tld",
               "kind": "server",
-              "name": "Сервер .org",
+              "name": ".org server",
               "x": 590,
               "y": 130,
               "ifaces": [
@@ -2793,7 +2793,7 @@
             {
               "id": "auth",
               "kind": "server",
-              "name": "Авторит. example.org",
+              "name": "Authoritative example.org",
               "x": 590,
               "y": 230,
               "ifaces": [
@@ -2841,7 +2841,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 560,
               "y": 310,
               "ifaces": [
@@ -2930,7 +2930,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "В DNS имени по-прежнему нет",
+            "text": "DNS still has no such name",
             "dns": {
               "from": "res",
               "name": "staging.example.org",
@@ -2939,7 +2939,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК пингует staging.example.org",
+            "text": "PC pings staging.example.org",
             "ping": {
               "from": "pc",
               "to": "staging.example.org"
@@ -2947,7 +2947,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК открывает порт 80 по этому имени",
+            "text": "PC opens port 80 by this name",
             "tcp": {
               "from": "pc",
               "to": "staging.example.org",

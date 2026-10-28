@@ -11,15 +11,15 @@
   {
    "id": "qa-table-cases",
    "title": "Table-driven tests",
-   "statement": "Write run_cases(func, cases): cases is a list of pairs (arguments, expected), where arguments is a tuple. Return a list of failure descriptions in the order of the cases: \"func(args): ожидали X, получили Y\" (literally \"expected X, got Y\", with the real argument tuple, expected and actual values); if the function raised an exception, \"func(args): исключение TypeName\". Skip the cases that pass.",
+   "statement": "Write run_cases(func, cases): cases is a list of pairs (arguments, expected), where arguments is a tuple. Return a list of failure descriptions in the order of the cases, in the form \"func(args): expected X, got Y\" (with the real argument tuple, expected value and actual value); if the function raised an exception, use \"func(args): exception TypeName\". Skip the cases that pass.",
    "hint": "for args, want in cases: try: got = func(*args) except Exception as e: ...; if got != want: ..."
   },
   {
    "id": "qa-mock",
    "title": "A test with Mock",
-   "statement": "The function greet(user_id, fetch) returns \"Привет, <name>\", where the name is obtained by calling fetch(user_id). Write check_greet(): create a Mock (unittest.mock) with return_value=\"Аня\", call greet(7, mock), check the result and that the mock was called exactly once with the argument 7; return True if everything is correct and False otherwise.",
-   "hint": "fetch = Mock(return_value=\"Аня\"); text = greet(7, fetch); fetch.assert_called_once_with(7) inside try/except AssertionError.",
-   "starter": "from unittest.mock import Mock\n\n\ndef greet(user_id, fetch):\n    return f\"Привет, {fetch(user_id)}\"\n\n\ndef check_greet():\n    pass\n"
+   "statement": "The function greet(user_id, fetch) returns \"Hello, <name>\", where the name is obtained by calling fetch(user_id). Write check_greet(): create a Mock (unittest.mock) with return_value=\"Ann\", call greet(7, mock), check the result and that the mock was called exactly once with the argument 7; return True if everything is correct and False otherwise.",
+   "hint": "fetch = Mock(return_value=\"Ann\"); text = greet(7, fetch); fetch.assert_called_once_with(7) inside try/except AssertionError.",
+   "starter": "from unittest.mock import Mock\n\n\ndef greet(user_id, fetch):\n    return f\"Hello, {fetch(user_id)}\"\n\n\ndef check_greet():\n    pass\n"
   },
   {
    "id": "qa-logging",
@@ -30,8 +30,8 @@
   {
    "id": "qa-exceptions",
    "title": "An application exception hierarchy",
-   "statement": "Create the exceptions AppError(Exception), NotFound(AppError) and ValidationError(AppError). NotFound takes an entity name and a key and builds the message \"<entity> не найден: <key>\"; ValidationError stores the field (attribute field) and a message. Write find_user(users, user_id): it returns the user from the dict or raises NotFound(\"user\", user_id).",
-   "hint": "NotFound.__init__(self, entity, key): super().__init__(f\"{entity} не найден: {key}\"); for ValidationError the message is f\"{field}: {message}\" and also store self.field."
+   "statement": "Create the exceptions AppError(Exception), NotFound(AppError) and ValidationError(AppError). NotFound takes an entity name and a key and builds the message \"<entity> not found: <key>\"; ValidationError stores the field (attribute field) and a message. Write find_user(users, user_id): it returns the user from the dict or raises NotFound(\"user\", user_id).",
+   "hint": "NotFound.__init__(self, entity, key): super().__init__(f\"{entity} not found: {key}\"); for ValidationError the message is f\"{field}: {message}\" and also store self.field."
   },
   {
    "id": "qa-strategy",

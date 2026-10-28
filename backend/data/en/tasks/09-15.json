@@ -179,7 +179,7 @@
   {
    "id": "s15-26",
    "title": "Named window",
-   "statement": "A named window: SELECT … WINDOW w AS (PARTITION BY category ORDER BY price). Output title, category and RANK() OVER w as rk; order by category, rk, title.",
+   "statement": "A named window: SELECT … WINDOW w AS (PARTITION BY category ORDER BY price DESC). Output title, category and RANK() OVER w as rk (the most expensive product of a category comes first); order by category, rk, title.",
    "hint": "",
    "starter": "-- Write your query\n"
   },

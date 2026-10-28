@@ -7,63 +7,31 @@
    "id": "sd16-rolling",
    "title": "A rolling deployment",
    "statement": "Right now a new version is deployed to all servers at once: the service is unavailable during the deployment. Switch the strategy to “one at a time (rolling)” and choose the number of servers so that during an update (minus one server) the remaining ones can handle 1300 requests per second. The design must survive a deployment. The budget is $700 per month. The “Deployment” parameter is shown in this exercise.",
-   "hint": "Three M servers: during an update two remain — 1400 requests. Two servers are too few: one would remain (700).",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Three M servers: during an update two remain — 1400 requests. Two servers are too few: one would remain (700)."
   },
   {
    "id": "sd16-bluegreen",
    "title": "When there is no headroom",
    "statement": "The fleet is small — two M servers (1400 requests), and the load is 1300. A one-at-a-time deployment would leave one server, which is not enough, and the budget does not allow buying a third. Choose blue/green: capacity does not drop during the deployment. At most two servers, load at most 95%, and cost of at most $700 per month (blue/green doubles the server spend).",
-   "hint": "The server’s “Deployment” parameter is blue/green. Server spend is then ×2: 2 × 240 = 480.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "The server’s “Deployment” parameter is blue/green. Server spend is then ×2: 2 × 240 = 480."
   },
   {
    "id": "sd16-cost",
    "title": "Which is cheaper: rolling or blue/green",
    "statement": "The load has grown to 6000 requests per second, and blue/green is currently in use: server spend doubles. Compare the prices: with a large fleet, rolling is noticeably cheaper. Switch the deployment to “one at a time” and choose the number of servers: the design survives a deployment, load is at most 90%, and the budget is $2200 per month.",
-   "hint": "Ten M servers: during a deployment nine remain — 6300 requests. Blue/green with nine servers would cost 2160 for servers alone — too expensive.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Cache",
-    "/start/nodes/4/name": "Database"
-   }
+   "hint": "Ten M servers: during a deployment nine remain — 6300 requests. Blue/green with nine servers would cost 2160 for servers alone — too expensive."
   },
   {
    "id": "sd16-zero-downtime",
    "title": "A deployment and a zone failure",
    "statement": "The servers must survive both a deployment (minus one server) and a zone failure (minus a third). The load is 2000 requests per second. Place the servers across three zones, enable rolling, and choose the number of servers: the design survives a deployment, a zone failure and a server failure.",
-   "hint": "Four M servers: after losing a zone two remain — 1400, too few. Five: after losing a zone three remain — 2100, and during a deployment four — 2800.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Four M servers: after losing a zone two remain — 1400, too few. Five: after losing a zone three remain — 2100, and during a deployment four — 2800."
   },
   {
    "id": "sd16-final",
    "title": "Safe delivery",
    "statement": "The chapter's final exercise. A shop: 2500 requests per second, with a cache and a database. Build a design that survives a deployment (rolling), a zone failure, and failure of the database and the cache, with monitoring: load at most 80%, budget $3000 per month.",
-   "hint": "Seven M servers (after losing a zone five remain — 3500); a cache with a replica in three zones; an M database with a replica and automatic failover in three zones; monitoring.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Cache",
-    "/start/nodes/4/name": "Database"
-   }
+   "hint": "Seven M servers (after losing a zone five remain — 3500); a cache with a replica in three zones; an M database with a replica and automatic failover in three zones; monitoring."
   }
  ]
 }

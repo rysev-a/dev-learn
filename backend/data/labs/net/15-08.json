@@ -17,7 +17,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -49,7 +49,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -82,7 +82,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -131,7 +131,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Скачивание на скорости не ниже 150 Мбит/с",
+            "text": "Download at a speed of at least 150 Mbit/s",
             "xfer": {
               "from": "srv",
               "to": "@pc",
@@ -163,7 +163,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -196,7 +196,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -229,7 +229,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -279,7 +279,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Скорость не ниже 60 Мбит/с",
+            "text": "Speed of at least 60 Mbit/s",
             "xfer": {
               "from": "srv",
               "to": "@pc",
@@ -311,7 +311,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -343,7 +343,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Домашний маршрутизатор",
+              "name": "Home router",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -376,7 +376,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -425,7 +425,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "RTT под нагрузкой ≤ 80 мс, скорость ≥ 17 Мбит/с",
+            "text": "RTT under load ≤ 80 ms, speed ≥ 17 Mbit/s",
             "xfer": {
               "from": "srv",
               "to": "@pc",

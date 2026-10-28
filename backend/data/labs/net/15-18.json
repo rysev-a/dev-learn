@@ -17,7 +17,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК админа",
+              "name": "Admin PC",
               "x": 100,
               "y": 180,
               "ifaces": [
@@ -90,7 +90,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -147,7 +147,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Вход alice по ключу работает",
+            "text": "alice's key login works",
             "ssh": {
               "from": "pc",
               "to": "@srv",
@@ -157,7 +157,7 @@
           },
           {
             "id": "g2",
-            "text": "Вход по паролю закрыт",
+            "text": "Password login is closed",
             "ssh": {
               "from": "pc",
               "to": "@srv",
@@ -201,7 +201,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК админа",
+              "name": "Admin PC",
               "x": 100,
               "y": 180,
               "ifaces": [
@@ -278,7 +278,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер (новый)",
+              "name": "Server (new)",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -336,7 +336,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Вход alice по ключу выполняется",
+            "text": "alice's key login succeeds",
             "ssh": {
               "from": "pc",
               "to": "@srv",
@@ -369,7 +369,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК админа",
+              "name": "Admin PC",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -402,7 +402,7 @@
             {
               "id": "r",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 280,
               "y": 180,
               "ifaces": [
@@ -456,7 +456,7 @@
             {
               "id": "bast",
               "kind": "server",
-              "name": "Бастион",
+              "name": "Bastion",
               "x": 520,
               "y": 60,
               "ifaces": [
@@ -502,7 +502,7 @@
             {
               "id": "int",
               "kind": "server",
-              "name": "Внутренний сервер",
+              "name": "Internal server",
               "x": 520,
               "y": 300,
               "ifaces": [
@@ -570,7 +570,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Вход на внутренний сервер через бастион",
+            "text": "Login to the internal server through the bastion",
             "ssh": {
               "from": "pc",
               "to": "@int",
@@ -581,7 +581,7 @@
           },
           {
             "id": "g2",
-            "text": "Напрямую с ПК внутренний сервер закрыт",
+            "text": "The internal server is closed directly from the PC",
             "ssh": {
               "from": "pc",
               "to": "@int",
@@ -618,7 +618,7 @@
             {
               "id": "pa",
               "kind": "host",
-              "name": "ПК офиса А",
+              "name": "Office A PC",
               "x": 60,
               "y": 80,
               "ifaces": [
@@ -650,7 +650,7 @@
             {
               "id": "ga",
               "kind": "router",
-              "name": "Шлюз А",
+              "name": "Gateway A",
               "x": 190,
               "y": 180,
               "ifaces": [
@@ -689,7 +689,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -722,7 +722,7 @@
             {
               "id": "gb",
               "kind": "router",
-              "name": "Шлюз Б",
+              "name": "Gateway B",
               "x": 450,
               "y": 180,
               "ifaces": [
@@ -761,7 +761,7 @@
             {
               "id": "pb",
               "kind": "host",
-              "name": "ПК офиса Б",
+              "name": "Office B PC",
               "x": 580,
               "y": 80,
               "ifaces": [
@@ -821,7 +821,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК А достаёт до ПК Б (частные адреса через интернет)",
+            "text": "PC A reaches PC B (private addresses across the internet)",
             "ping": {
               "from": "pa",
               "to": "@pb"
@@ -829,7 +829,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК Б достаёт до ПК А",
+            "text": "PC B reaches PC A",
             "ping": {
               "from": "pb",
               "to": "@pa"
@@ -837,7 +837,7 @@
           },
           {
             "id": "g3",
-            "text": "Трафик между офисами идёт через шлюзы по туннелю",
+            "text": "Traffic between the offices goes through the gateways via the tunnel",
             "ping": {
               "from": "pa",
               "to": "@pb",
@@ -883,7 +883,7 @@
             {
               "id": "lap",
               "kind": "host",
-              "name": "Ноутбук дома",
+              "name": "Home laptop",
               "x": 50,
               "y": 180,
               "ifaces": [
@@ -927,7 +927,7 @@
             {
               "id": "hgw",
               "kind": "router",
-              "name": "Домашний роутер",
+              "name": "Home router",
               "x": 190,
               "y": 180,
               "ifaces": [
@@ -972,7 +972,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -1026,7 +1026,7 @@
             {
               "id": "cgw",
               "kind": "router",
-              "name": "Корп. шлюз",
+              "name": "Corp. gateway",
               "x": 440,
               "y": 80,
               "ifaces": [
@@ -1077,7 +1077,7 @@
             {
               "id": "corp",
               "kind": "server",
-              "name": "Корп. сервер",
+              "name": "Corp. server",
               "x": 580,
               "y": 80,
               "ifaces": [
@@ -1109,7 +1109,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 440,
               "y": 250,
               "ifaces": [
@@ -1142,7 +1142,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Публичный сайт",
+              "name": "Public website",
               "x": 580,
               "y": 250,
               "ifaces": [
@@ -1214,7 +1214,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Корпоративный сервер 10.0.0.5 доступен через туннель",
+            "text": "Corporate server 10.0.0.5 is reachable through the tunnel",
             "ping": {
               "from": "lap",
               "to": "@corp",
@@ -1223,7 +1223,7 @@
           },
           {
             "id": "g2",
-            "text": "Публичный сайт идёт напрямую, мимо корпоративного шлюза",
+            "text": "The public website goes directly, bypassing the corporate gateway",
             "ping": {
               "from": "lap",
               "to": "@web",

@@ -24,8 +24,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Ld = НЕ-I3; Add = НЕ-I3·I2; Jmp = I3·НЕ-I2; Hlt = I3·I2",
-        "success": "Декодер команд — простая комбинационная схема: код операции на входе, управляющие сигналы на выходе. Он не «думает» — он лишь включает нужные части процессора. Чем богаче набор команд, тем больше сигналов и тем сложнее эта схема.",
+        "formula": "Ld = ¬I3; Add = ¬I3·I2; Jmp = I3·¬I2; Hlt = I3·I2",
+        "success": "The instruction decoder is a simple combinational circuit: the opcode on the input, control signals on the output. It does not “think”; it just switches on the right parts of the processor. The richer the instruction set, the more signals and the more complex this circuit.",
         "solution": {
           "gates": [
             {
@@ -226,8 +226,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Take = I3·НЕ-I2·НЕ-Z",
-        "success": "Так программа получает ветвления: значение из прошлого (флаг Z) влияет на то, какая команда выполнится дальше. Без условного перехода процессор был бы калькулятором, а с ним — способен к циклам и решениям.",
+        "formula": "Take = I3·¬I2·¬Z",
+        "success": "This is how a program gets branches: a value from the past (flag Z) affects which instruction runs next. Without a conditional jump a processor would be a calculator; with it, it can do loops and make decisions.",
         "solution": {
           "gates": [
             {
@@ -516,13 +516,13 @@
         ],
         "block": {
           "id": "operand",
-          "title": "Операнд аккумулятора"
+          "title": "Accumulator operand"
         },
         "blocks": [],
         "clock": null,
         "ticks": false,
         "formula": "g = ACC·Add; R = K + g (mod 4)",
-        "success": "Одна и та же схема сложения служит обеим командам: «загрузить» — это «прибавить к нулю». Затвор на элементах И превращает аккумулятор в ноль, когда он не нужен. Экономия: один сумматор вместо двух.",
+        "success": "The same addition circuit serves both instructions: “load” is “add to zero”. A gate of AND elements turns the accumulator into zero when it is not needed. The saving: one adder instead of two.",
         "solution": {
           "gates": [
             {
@@ -794,13 +794,13 @@
         ],
         "block": {
           "id": "next-pc",
-          "title": "Следующий адрес"
+          "title": "Next address"
         },
         "blocks": [],
         "clock": null,
         "ticks": false,
         "formula": "N = Take ? K : P + 1",
-        "success": "Эта схема стоит на входе счётчика команд: без прыжков он считает «+1», с прыжком — берёт адрес из команды. Всё поведение программы — циклы, ветвления — складывается из такого выбора «следующего адреса».",
+        "success": "This circuit sits at the input of the program counter: without jumps it counts “+1”, with a jump it takes the address from the instruction. The whole behavior of a program, its loops and branches, is built from this choice of the “next address”.",
         "solution": {
           "gates": [
             {
@@ -1087,7 +1087,7 @@
               "Fe": 0,
               "Wb": 0
             },
-            "text": "Первый такт: выборка закончилась — фаза декодирования De.",
+            "text": "First tick: fetch is over, and the phase is decode, De.",
             "pulses": null
           },
           {
@@ -1100,7 +1100,7 @@
               "Fe": 0,
               "Wb": 0
             },
-            "text": "Второй такт: исполнение Ex.",
+            "text": "Second tick: execute, Ex.",
             "pulses": null
           },
           {
@@ -1113,7 +1113,7 @@
               "Fe": 0,
               "Wb": 1
             },
-            "text": "Третий такт: запись результата Wb.",
+            "text": "Third tick: write back, Wb.",
             "pulses": null
           },
           {
@@ -1126,7 +1126,7 @@
               "Fe": 1,
               "Wb": 0
             },
-            "text": "Четвёртый такт: круг замкнулся — снова выборка Fe.",
+            "text": "Fourth tick: the circle closes, and it is fetch, Fe, again.",
             "pulses": null
           },
           {
@@ -1139,7 +1139,7 @@
               "Fe": 0,
               "Wb": 0
             },
-            "text": "Пятый такт: опять De. Фазы идут по кругу, пока работает такт.",
+            "text": "Fifth tick: De again. The phases go round and round as long as the clock runs.",
             "pulses": null
           }
         ],
@@ -1157,13 +1157,13 @@
         ],
         "block": {
           "id": "sequencer",
-          "title": "Секвенсор фаз"
+          "title": "Phase sequencer"
         },
         "blocks": [],
         "clock": "A",
         "ticks": true,
-        "formula": "Fe=00, De=01, Ex=11, Wb=10 (счётчик Джонсона)",
-        "success": "Сигналы фаз — «дирижёр» процессора: в фазе Fe читается память, в Wb записываются результаты, а в остальные фазы схема молчит. Чтобы система не «спотыкалась», в каждой фазе работает ровно одна часть. Это и есть «выборка — декодирование — исполнение».",
+        "formula": "Fe=00, De=01, Ex=11, Wb=10 (Johnson counter)",
+        "success": "The phase signals are the processor's “conductor”: in phase Fe memory is read, in Wb results are written, and in the other phases the circuit is quiet. So that the system does not “trip”, exactly one part works in each phase. This is the “fetch, decode, execute” cycle.",
         "solution": {
           "gates": [
             {
@@ -1456,8 +1456,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "IrLoad = Fe; AccLoad = Wb·НЕ-I3; PcLoad = Wb·НЕ(I3·I2)",
-        "success": "Так «разрешения записи» сопоставляются с фазами: регистр команд обновляется в начале цикла, аккумулятор и счётчик — в конце. Это ровно те входы LD, которые вы делали у регистров.",
+        "formula": "IrLoad = Fe; AccLoad = Wb·¬I3; PcLoad = Wb·¬(I3·I2)",
+        "success": "This is how write enables are matched to phases: the instruction register is updated at the start of the cycle, the accumulator and the counter at the end. These are exactly the LD inputs you made on the registers.",
         "solution": {
           "gates": [
             {
@@ -1641,7 +1641,7 @@
             "expect": {
               "Run": 1
             },
-            "text": "Сброс: Rst = 1. Процессор запущен — Run = 1.",
+            "text": "Reset: Rst = 1. The processor is running, Run = 1.",
             "pulses": null
           },
           {
@@ -1652,7 +1652,7 @@
             "expect": {
               "Run": 1
             },
-            "text": "Отпустите Rst: Run держит 1.",
+            "text": "Release Rst: Run holds 1.",
             "pulses": null
           },
           {
@@ -1663,7 +1663,7 @@
             "expect": {
               "Run": 0
             },
-            "text": "Пришла команда HLT: Hlt = 1. Run = 0 — процессор остановился.",
+            "text": "An HLT instruction arrives: Hlt = 1. Run = 0, and the processor has stopped.",
             "pulses": null
           },
           {
@@ -1674,7 +1674,7 @@
             "expect": {
               "Run": 0
             },
-            "text": "Команда HLT пропала, а процессор остаётся остановленным — защёлка помнит!",
+            "text": "The HLT instruction is gone, and the processor stays stopped: the latch remembers!",
             "pulses": null
           },
           {
@@ -1685,7 +1685,7 @@
             "expect": {
               "Run": 1
             },
-            "text": "Новый сброс: Rst = 1 — процессор снова запущен.",
+            "text": "A new reset: Rst = 1, and the processor runs again.",
             "pulses": null
           }
         ],
@@ -1694,8 +1694,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q = «остановлен» (SR-защёлка); Run = НЕ-Q",
-        "success": "Единственное место, где в декодере нужна память: «остановлен или нет». Всё остальное — комбинационные схемы. Один бит состояния «Run» запрещает такту двигать процессор дальше.",
+        "formula": "Q = “halted” (SR latch); Run = ¬Q",
+        "success": "The only place in the decoder that needs memory: “halted or not”. Everything else is combinational circuits. One bit of state, “Run”, forbids the clock from moving the processor on.",
         "solution": {
           "gates": [
             {
@@ -1828,13 +1828,13 @@
         ],
         "block": {
           "id": "decoder",
-          "title": "Декодер команд"
+          "title": "Instruction decoder"
         },
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Stop = I3·I2; UseAdd = НЕ-I3·I2; Take = I3·НЕ-I2·НЕ-Z; AccLoad = Wb·НЕ-I3; PcLoad = Wb·НЕ-Stop",
-        "success": "Декодер готов: он знает, что делать с любой из четырёх команд, в любую фазу такта. С ним и ПЗУ с программой, регистрами, АЛУ и счётчиком команд осталось собрать всё вместе — это следующий этап: блоки, которые можно открыть и заглянуть внутрь.",
+        "formula": "Stop = I3·I2; UseAdd = ¬I3·I2; Take = I3·¬I2·¬Z; AccLoad = Wb·¬I3; PcLoad = Wb·¬Stop",
+        "success": "The decoder is ready: it knows what to do with any of the four instructions in any clock phase. With it, and the ROM with the program, the registers, the ALU and the program counter, all that remains is to put it all together. That is the next stage: blocks you can open and look inside.",
         "solution": {
           "gates": [
             {

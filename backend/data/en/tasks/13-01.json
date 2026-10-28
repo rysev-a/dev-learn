@@ -5,14 +5,14 @@
   {
    "id": "hello",
    "title": "The first line",
-   "statement": "Write a program that prints exactly one line: «Привет, Python!» (without the guillemets).",
+   "statement": "Write a program that prints exactly one line: «Hello, Python!» (without the guillemets).",
    "hint": "One print command, with the text in quotes inside the parentheses.",
    "starter": "# Your first program\n"
   },
   {
    "id": "two-lines",
    "title": "Two lines",
-   "statement": "Print two lines one after another: first «Меня зовут Python», then «Мне 34 года» (without the guillemets).",
+   "statement": "Print two lines one after another: first «My name is Python», then «I am 34 years old» (without the guillemets).",
    "hint": "Each line is its own print command; they run from top to bottom.",
    "starter": "# Two print commands\n"
   },
@@ -26,8 +26,8 @@
   {
    "id": "repeat",
    "title": "Repeating a string",
-   "statement": "Print «ляляля», but get this string by multiplying the string «ля» by three, rather than typing the ready word.",
-   "hint": "The asterisk repeats a string: «ля» * 3.",
+   "statement": "Print «lalala», but get this string by multiplying the string «la» by three, rather than typing the ready word.",
+   "hint": "The asterisk repeats a string: «la» * 3.",
    "starter": "# String multiplication\n"
   },
   {

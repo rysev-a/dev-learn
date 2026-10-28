@@ -18,7 +18,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб (LAN)",
+              "name": "Web (LAN)",
               "x": 80,
               "y": 90,
               "ifaces": [
@@ -139,7 +139,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 280,
               "y": 180,
               "ifaces": [
@@ -193,7 +193,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 440,
               "y": 180,
               "ifaces": [
@@ -226,7 +226,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Гость",
+              "name": "Guest",
               "x": 590,
               "y": 180,
               "ifaces": [
@@ -292,7 +292,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Гость открывает 203.0.113.2:8080 (веб)",
+            "text": "Guest opens 203.0.113.2:8080 (web)",
             "tcp": {
               "from": "guest",
               "to": "@gw.eth1",
@@ -301,7 +301,7 @@
           },
           {
             "id": "g2",
-            "text": "Гость открывает 203.0.113.2:2222 (SSH)",
+            "text": "Guest opens 203.0.113.2:2222 (SSH)",
             "tcp": {
               "from": "guest",
               "to": "@gw.eth1",
@@ -310,7 +310,7 @@
           },
           {
             "id": "g3",
-            "text": "Прямой порт 80 шлюза снаружи закрыт",
+            "text": "Direct gateway port 80 is closed from outside",
             "tcp": {
               "from": "guest",
               "to": "@gw.eth1",
@@ -320,7 +320,7 @@
           },
           {
             "id": "g4",
-            "text": "Веб-сервер LAN сам выходит в интернет",
+            "text": "LAN web server itself reaches the internet",
             "ping": {
               "from": "web",
               "to": "@guest"
@@ -365,7 +365,7 @@
             {
               "id": "lan",
               "kind": "host",
-              "name": "ПК (LAN)",
+              "name": "PC (LAN)",
               "x": 60,
               "y": 70,
               "ifaces": [
@@ -397,7 +397,7 @@
             {
               "id": "lansrv",
               "kind": "server",
-              "name": "Сервер (LAN)",
+              "name": "Server (LAN)",
               "x": 60,
               "y": 290,
               "ifaces": [
@@ -481,7 +481,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Файрвол",
+              "name": "Firewall",
               "x": 300,
               "y": 180,
               "ifaces": [
@@ -521,7 +521,7 @@
             {
               "id": "dmz",
               "kind": "server",
-              "name": "Веб (DMZ)",
+              "name": "Web (DMZ)",
               "x": 440,
               "y": 60,
               "ifaces": [
@@ -562,7 +562,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Гость",
+              "name": "Guest",
               "x": 590,
               "y": 290,
               "ifaces": [
@@ -628,7 +628,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "LAN → интернет (ping гостя)",
+            "text": "LAN → internet (ping the guest)",
             "ping": {
               "from": "lan",
               "to": "@guest"
@@ -636,7 +636,7 @@
           },
           {
             "id": "g2",
-            "text": "LAN → веб в DMZ (tcp/443)",
+            "text": "LAN → web in the DMZ (tcp/443)",
             "tcp": {
               "from": "lan",
               "to": "@dmz",
@@ -645,7 +645,7 @@
           },
           {
             "id": "g3",
-            "text": "Гость → веб в DMZ (tcp/443)",
+            "text": "Guest → web in the DMZ (tcp/443)",
             "tcp": {
               "from": "guest",
               "to": "@dmz",
@@ -654,7 +654,7 @@
           },
           {
             "id": "g4",
-            "text": "Гость → DMZ по SSH закрыто",
+            "text": "Guest → DMZ over SSH is closed",
             "tcp": {
               "from": "guest",
               "to": "@dmz",
@@ -664,7 +664,7 @@
           },
           {
             "id": "g5",
-            "text": "Гость → LAN закрыто",
+            "text": "Guest → LAN is closed",
             "tcp": {
               "from": "guest",
               "to": "@lansrv",
@@ -674,7 +674,7 @@
           },
           {
             "id": "g6",
-            "text": "DMZ → LAN закрыто",
+            "text": "DMZ → LAN is closed",
             "tcp": {
               "from": "dmz",
               "to": "@lansrv",
@@ -716,7 +716,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент (LAN)",
+              "name": "Client (LAN)",
               "x": 70,
               "y": 80,
               "ifaces": [
@@ -748,7 +748,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер (LAN)",
+              "name": "Server (LAN)",
               "x": 70,
               "y": 280,
               "ifaces": [
@@ -832,7 +832,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 280,
               "y": 180,
               "ifaces": [
@@ -885,7 +885,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 440,
               "y": 180,
               "ifaces": [
@@ -918,7 +918,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Гость",
+              "name": "Guest",
               "x": 590,
               "y": 180,
               "ifaces": [
@@ -984,7 +984,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Гость открывает 203.0.113.2:8080",
+            "text": "Guest opens 203.0.113.2:8080",
             "tcp": {
               "from": "guest",
               "to": "@gw.eth1",
@@ -993,7 +993,7 @@
           },
           {
             "id": "g2",
-            "text": "Внутренний клиент открывает 203.0.113.2:8080",
+            "text": "Internal client opens 203.0.113.2:8080",
             "tcp": {
               "from": "pc",
               "to": "@gw.eth1",
@@ -1025,7 +1025,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Рабочая станция",
+              "name": "Workstation",
               "x": 60,
               "y": 60,
               "ifaces": [
@@ -1057,7 +1057,7 @@
             {
               "id": "px",
               "kind": "server",
-              "name": "Прокси",
+              "name": "Proxy",
               "x": 60,
               "y": 300,
               "ifaces": [
@@ -1149,7 +1149,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 280,
               "y": 180,
               "ifaces": [
@@ -1193,7 +1193,7 @@
             {
               "id": "ix",
               "kind": "switch",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 430,
               "y": 180,
               "ifaces": [
@@ -1278,7 +1278,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Новости</h1>"
+                    "body": "<h1>News</h1>"
                   }
                 ]
               }
@@ -1324,7 +1324,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Соцсеть</h1>"
+                    "body": "<h1>Social</h1>"
                   }
                 ]
               }
@@ -1372,18 +1372,18 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Через прокси: news.example → 200",
+            "text": "Via the proxy: news.example → 200",
             "http": {
               "from": "pc",
               "url": "http://news.example/",
               "proxy": "192.168.0.5:3128",
               "status": 200,
-              "body_includes": "Новости"
+              "body_includes": "News"
             }
           },
           {
             "id": "g2",
-            "text": "Через прокси: social.example → 403",
+            "text": "Via the proxy: social.example → 403",
             "http": {
               "from": "pc",
               "url": "http://social.example/",
@@ -1393,7 +1393,7 @@
           },
           {
             "id": "g3",
-            "text": "Минуя прокси станция в интернет не выходит",
+            "text": "Bypassing the proxy, the workstation cannot reach the internet",
             "ping": {
               "from": "pc",
               "to": "198.51.100.10",

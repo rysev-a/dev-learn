@@ -5,7 +5,7 @@
   {
    "id": "j14-tree-ops",
    "title": "Mini-DOM: appendChild, insertBefore, removeChild",
-   "statement": "Nodes are objects { type, tag?, children?, parent }. Write the functions appendChild(parent, child) (if child already had a parent, it is first removed from there; returns child), insertBefore(parent, child, ref) (ref === null means append at the end; if ref is not a child of parent, throw Error(\"ref не потомок\")), removeChild(parent, child) (if child is not a child of parent, throw Error(\"не потомок\"); returns child and sets its parent to null), and replaceChild(parent, newChild, oldChild). Invariant: child.parent always equals the real parent.",
+   "statement": "Nodes are objects { type, tag?, children?, parent }. Write the functions appendChild(parent, child) (if child already had a parent, it is first removed from there; returns child), insertBefore(parent, child, ref) (ref === null means append at the end; if ref is not a child of parent, throw Error(\"ref not a descendant\")), removeChild(parent, child) (if child is not a child of parent, throw Error(\"not a descendant\"); returns child and sets its parent to null), and replaceChild(parent, newChild, oldChild). Invariant: child.parent always equals the real parent.",
    "hint": "A general detach(n) removes a node from its old parent; then insert by index."
   },
   {
@@ -107,7 +107,7 @@
   {
    "id": "j14-insert-adjacent",
    "title": "insertAdjacentHTML",
-   "statement": "You are given a function parse(html) → an array of nodes (defined in the test environment, it parses markup). Write insertAdjacent(el, position, html): position is \"beforebegin\" (before el in its parent), \"afterbegin\" (as the first children of el), \"beforeend\" (as the last ones), \"afterend\" (after el in its parent). For beforebegin/afterend without a parent, throw Error(\"нет родителя\"); an unknown position is a SyntaxError. All parent links must be correct.",
+   "statement": "You are given a function parse(html) → an array of nodes (defined in the test environment, it parses markup). Write insertAdjacent(el, position, html): position is \"beforebegin\" (before el in its parent), \"afterbegin\" (as the first children of el), \"beforeend\" (as the last ones), \"afterend\" (after el in its parent). For beforebegin/afterend without a parent, throw Error(\"no parent\"); an unknown position is a SyntaxError. All parent links must be correct.",
    "hint": "Parse the html, then insert the nodes in the right place and set parent."
   },
   {
@@ -149,7 +149,7 @@
   {
    "id": "j14-custom-elements",
    "title": "A Custom Elements registry",
-   "statement": "Write the class CustomElementRegistry: define(name, ctor) (the name is lowercase letters, digits and hyphens, must contain a hyphen and not start with a digit; a duplicate name or constructor — an Error \"уже определён\"; an invalid name — a SyntaxError), get(name), and upgrade(root): it walks the tree (elements { tag, attrs, children, parent }), and for each element with a registered tag creates an instance new ctor(el) (field el) and, on connection, calls instance.connectedCallback(); for each name in ctor.observedAttributes that is present in attrs it calls instance.attributeChangedCallback(name, null, value) — before connectedCallback. Each element is upgraded once (el.__upgraded). The method setAttribute(el, name, value) calls attributeChangedCallback(name, old, value) only for observed attributes of an already upgraded element; remove(el) calls disconnectedCallback.",
+   "statement": "Write the class CustomElementRegistry: define(name, ctor) (the name is lowercase letters, digits and hyphens, must contain a hyphen and not start with a digit; a duplicate name or constructor — an Error \"already defined\"; an invalid name — a SyntaxError), get(name), and upgrade(root): it walks the tree (elements { tag, attrs, children, parent }), and for each element with a registered tag creates an instance new ctor(el) (field el) and, on connection, calls instance.connectedCallback(); for each name in ctor.observedAttributes that is present in attrs it calls instance.attributeChangedCallback(name, null, value) — before connectedCallback. Each element is upgraded once (el.__upgraded). The method setAttribute(el, name, value) calls attributeChangedCallback(name, old, value) only for observed attributes of an already upgraded element; remove(el) calls disconnectedCallback.",
    "hint": "Check the name with a regular expression; upgrade is a tree walk; observed attributes come from static observedAttributes."
   },
   {
@@ -179,7 +179,7 @@
   {
    "id": "j14-testing-queries",
    "title": "Queries as in Testing Library",
-   "statement": "Write functions that find elements the way a user sees them: getByText(root, matcher, { exact = true } = {}) — elements whose own text (the concatenation of direct text children, trimmed, whitespace normalized) matches: matcher is a string (with exact=false, a case-insensitive substring) or a RegExp; getByRole(root, role, { name } = {}) — elements with the role (explicit role or implicit: button→button, a[href]→link, h1–h6→heading, input[type=checkbox]→checkbox, input without type→textbox, ul→list, li→listitem), optionally with a name (the text content or aria-label; a string means an exact match, a RegExp a test); getByLabelText(root, text) — an element by its associated label (<label for=id>); queryOne(list, what) — the only element in the list or null; if there is more than one element, throw Error(\"найдено несколько: N\"), if there are none, Error(\"не найдено: <what>\").",
+   "statement": "Write functions that find elements the way a user sees them: getByText(root, matcher, { exact = true } = {}) — elements whose own text (the concatenation of direct text children, trimmed, whitespace normalized) matches: matcher is a string (with exact=false, a case-insensitive substring) or a RegExp; getByRole(root, role, { name } = {}) — elements with the role (explicit role or implicit: button→button, a[href]→link, h1–h6→heading, input[type=checkbox]→checkbox, input without type→textbox, ul→list, li→listitem), optionally with a name (the text content or aria-label; a string means an exact match, a RegExp a test); getByLabelText(root, text) — an element by its associated label (<label for=id>); queryOne(list, what) — the only element in the list or null; if there is more than one element, throw Error(\"several found: N\"), if there are none, Error(\"not found: <what>\").",
    "hint": "Own text is only the direct text children; the role is explicit or by tag."
   }
  ]

@@ -47,7 +47,7 @@
   {
    "id": "tp-typeddict-validate",
    "title": "Validating a dict against a TypedDict",
-   "statement": "Write validate(data, schema): using the TypedDict hints (typing.get_type_hints(schema)), return a sorted list of errors: «нет ключа K» (missing key), «лишний ключ K» (extra key), and «K: ожидался T» (expected T, the type name) if the value has the wrong type.",
+   "statement": "Write validate(data, schema): using the TypedDict hints (typing.get_type_hints(schema)), return a sorted list of errors: \"missing key K\" (missing key), \"extra key K\" (extra key), and \"K: expected T\" (expected T, the type name) if the value has the wrong type.",
    "hint": "hints = typing.get_type_hints(schema); walk over the keys of hints and over the keys of data."
   },
   {

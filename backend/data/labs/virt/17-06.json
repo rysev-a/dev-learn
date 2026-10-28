@@ -14,19 +14,19 @@
         "goals": [
           {
             "id": "batch",
-            "text": "Отправьте 6 буферов и более не больше чем двумя оповещениями (без подавления)",
+            "text": "Send 6 or more buffers with at most two notifications (without suppression)",
             "suppress": false,
             "min_posted": 6,
             "max_notifies": 2
           },
           {
             "id": "overflow",
-            "text": "Доведите очередь до переполнения: попробуйте положить буфер, когда свободных дескрипторов нет",
+            "text": "Drive the queue to overflow: try to add a buffer when there are no free descriptors",
             "overflow": true
           },
           {
             "id": "suppress",
-            "text": "Включите подавление оповещений и отправьте 10 буферов и более не больше чем двумя оповещениями",
+            "text": "Enable notification suppression and send 10 or more buffers with at most two notifications",
             "suppress": true,
             "min_posted": 10,
             "max_notifies": 2

@@ -41,7 +41,7 @@
   {
    "id": "dc-async-aware",
    "title": "A decorator for sync and async",
-   "statement": "Write a decorator traced: it prints «вызов <имя>» before running and «готово <имя>» after (with the function's name in place of the placeholder), for both ordinary functions and async def (for those, the wrapper must be asynchronous and await the result). Print the Russian words exactly as written.",
+   "statement": "Write a decorator traced: it prints call <name> before running and done <name> after (with the function's name in place of <name>), for both ordinary functions and async def (for those, the wrapper must be asynchronous and await the result).",
    "hint": "if inspect.iscoroutinefunction(func): async def wrapper(...): ... result = await func(...); otherwise an ordinary wrapper."
   },
   {

@@ -23,7 +23,7 @@
         "scenarios": [
           {
             "id": "small",
-            "title": "Четыре небольшие машины",
+            "title": "Four small machines",
             "vms": [
               {
                 "name": "A",
@@ -46,12 +46,12 @@
                 "mem": 12
               }
             ],
-            "goal": "Всё помещается, и удалённых обращений нет совсем (0%)",
+            "goal": "Everything fits, and there are no remote accesses at all (0%)",
             "max": 0.0
           },
           {
             "id": "wide",
-            "title": "Большая машина",
+            "title": "A large machine",
             "vms": [
               {
                 "name": "E",
@@ -69,7 +69,7 @@
                 "mem": 8
               }
             ],
-            "goal": "Всё помещается, а средняя доля удалённых обращений (по vCPU) не больше 20%",
+            "goal": "Everything fits, and the average share of remote accesses (per vCPU) is at most 20%",
             "max": 0.2
           }
         ]

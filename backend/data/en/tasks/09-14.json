@@ -164,7 +164,7 @@
   {
    "id": "s14-24",
    "title": "HR: path in the hierarchy",
-   "statement": "The HR database. For every subordinate of Olga (id 1) at all levels, show the path of the form «Ольга Громова > Игорь Беляев > Пётр Зуев»: path; ordered by path.",
+   "statement": "The HR database. For every subordinate of Olga (id 1) at all levels, show the path of the form «Olga Gromova > Igor Belyaev > Petr Zuev»: path; ordered by path.",
    "hint": "",
    "starter": "-- Write your query\n"
   },

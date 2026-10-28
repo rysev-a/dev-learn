@@ -5,8 +5,8 @@
   {
    "id": "j4-greet",
    "title": "Template string: a greeting",
-   "statement": "Write a function greet(name) that returns the string «Привет, <name>!» (for example, «Привет, мир!»). Use a template string in backticks.",
-   "hint": "return `Привет, ${name}!`;"
+   "statement": "Write a function greet(name) that returns the string «Hello, <name>!» (for example, «Hello, world!»). Use a template string in backticks.",
+   "hint": "return `Hello, ${name}!`;"
   },
   {
    "id": "j4-run-log",
@@ -35,8 +35,8 @@
   {
    "id": "j4-safe-name",
    "title": "A safe path: user?.profile?.name",
-   "statement": "Write a function userName(user) that returns user.profile.name, and if null or undefined is met along the way, the string «аноним». Do not use if statements or the ternary ? : — ?. and ?? are enough.",
-   "hint": "return user?.profile?.name ?? \"аноним\";"
+   "statement": "Write a function userName(user) that returns user.profile.name, and if null or undefined is met along the way, the string «anon». Do not use if statements or the ternary ? : — ?. and ?? are enough.",
+   "hint": "return user?.profile?.name ?? \"anon\";"
   },
   {
    "id": "j4-money",
@@ -77,7 +77,7 @@
   {
    "id": "j4-palindrome",
    "title": "A palindrome",
-   "statement": "Write a function isPalindrome(s) that returns true if the string reads the same in both directions, ignoring case, spaces and punctuation (for example, «А роза упала на лапу Азора»).",
+   "statement": "Write a function isPalindrome(s) that returns true if the string reads the same in both directions, ignoring case, spaces and punctuation (for example, «A man, a plan, a canal: Panama»).",
    "hint": "toLowerCase, then replace(/[^\\p{L}\\p{N}]/gu, \"\") and compare with the reversed string."
   },
   {
@@ -88,14 +88,14 @@
   },
   {
    "id": "j4-vowels",
-   "title": "Vowels in Russian text",
-   "statement": "Write a function countVowels(s) that counts the Russian vowel letters «а, е, ё, и, о, у, ы, э, ю, я» in any case.",
-   "hint": "\"аеёиоуыэюя\".includes(ch) for each character of the lowercased string."
+   "title": "Vowels in English text",
+   "statement": "Write a function countVowels(s) that counts the English vowel letters (a, e, i, o, u) in any case; the letter y does not count as a vowel.",
+   "hint": "\"aeiou\".includes(ch) for each character of the lowercased string."
   },
   {
    "id": "j4-template-user",
    "title": "Template: name and age",
-   "statement": "Write a function formatUser(name, age) that returns a string like «Ада (36)». You must not join with the + operator — use a template string.",
+   "statement": "Write a function formatUser(name, age) that returns a string like «Ada (36)». You must not join with the + operator — use a template string.",
    "hint": "return `${name} (${age})`;"
   },
   {
@@ -155,8 +155,8 @@
   {
    "id": "j4-divide",
    "title": "Your own exception: division by zero",
-   "statement": "Write a function divide(a, b) that returns a / b, and for b === 0 throws a RangeError with the message «Деление на ноль».",
-   "hint": "throw new RangeError(\"Деление на ноль\");"
+   "statement": "Write a function divide(a, b) that returns a / b, and for b === 0 throws a RangeError with the message «Division by zero».",
+   "hint": "throw new RangeError(\"Division by zero\");"
   },
   {
    "id": "j4-error-name",

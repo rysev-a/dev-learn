@@ -74,7 +74,7 @@
   {
    "id": "s16-11",
    "title": "CASE in a view",
-   "statement": "Create a view order_labels(id, total, size): size = `'крупный'` when total ≥ 40000, `'средний'` when ≥ 5000, otherwise `'мелкий'`.",
+   "statement": "Create a view order_labels(id, total, size): size = `'large'` when total ≥ 40000, `'medium'` when ≥ 5000, otherwise `'small'`.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -151,7 +151,7 @@
   {
    "id": "s16-22",
    "title": "A view as row protection",
-   "statement": "The manager of the city `'Москва'` should see only the customers from that city. Create a view moscow_customers (id, name, email) and check it with a select.",
+   "statement": "The manager of the city `'Moscow'` should see only the customers from that city. Create a view moscow_customers (id, name, email) and check it with a select.",
    "hint": "",
    "starter": "-- Write your query\n"
   },

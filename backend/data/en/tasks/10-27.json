@@ -137,7 +137,7 @@
   {
    "id": "r27-line-numbers",
    "title": "Line numbers",
-   "statement": "Write number_lines<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()>: write each line with a number (starting at 1) in the format «   1: текст» (number right-aligned in a field of width 4, then the line itself instead of «текст»).",
+   "statement": "Write number_lines<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()>: write each line with a number (starting at 1) in the format «   1: text» (number right-aligned in a field of width 4, then the line itself instead of «text»).",
    "hint": "enumerate() over lines()."
   },
   {

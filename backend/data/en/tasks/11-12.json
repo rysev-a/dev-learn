@@ -35,7 +35,7 @@
   {
    "id": "j12-lens-laws",
    "title": "Lens laws",
-   "statement": "Write a function checkLensLaws(l, whole, value): it returns { getSet, setGet, setSet }: getSet means set(l, view(l, whole), whole) is deeply equal to whole; setGet means view(l, set(l, value, whole)) equals value; setSet means writing a second value over the first gives the same as writing only the second (value1 = value, value2 = \"второе\" over value). A lens is an object { get, set(value, whole) }. Compare with JSON.stringify.",
+   "statement": "Write a function checkLensLaws(l, whole, value): it returns { getSet, setGet, setSet }: getSet means set(l, view(l, whole), whole) is deeply equal to whole; setGet means view(l, set(l, value, whole)) equals value; setSet means writing a second value over the first gives the same as writing only the second (value1 = value, value2 = \"second\" over value). A lens is an object { get, set(value, whole) }. Compare with JSON.stringify.",
    "hint": "Three equalities, compared through JSON.stringify."
   },
   {
@@ -143,7 +143,7 @@
   {
    "id": "j12-point-free",
    "title": "Refactoring into a pipeline",
-   "statement": "Rewrite the function normalizeUsers(users) as a pipeline of small pure functions assembled with pipe (define pipe yourself): keep the users with the status «active», turn the name into the form \"Last, F.\" from the string \"First Last\" (the names are Russian, and in lowercase \"ада лавлейс\" → \"Лавлейс, А.\"), remove duplicates by e-mail (case-insensitive; keep the first), and sort by last name by Russian language rules. The result is an array of { name, email } (the e-mail in lowercase). The original array is not changed.",
+   "statement": "Rewrite the function normalizeUsers(users) as a pipeline of small pure functions assembled with pipe (define pipe yourself): keep the users with the status «active», turn the name into the form \"Last, F.\" from the string \"First Last\" (in lowercase \"ada lovelace\" → \"Lovelace, A.\"), remove duplicates by e-mail (case-insensitive; keep the first), and sort by last name using locale-aware string comparison. The result is an array of { name, email } (the e-mail in lowercase). The original array is not changed.",
    "hint": "Each step is a small function; pipe glues them left to right."
   },
   {
@@ -155,7 +155,7 @@
   {
    "id": "j12-writer",
    "title": "Writer: computation with a log",
-   "statement": "Write Writer(value, log) (log is an array): methods map(f) (the log stays the same), chain(f) (f(value) returns a Writer; the logs are joined), Writer.of(v), and a function tell(msg) → Writer(undefined, [msg]). And the functions: factorialW(n) (the log «база: 1», then «умножаю на k» for k from 2 to n; the result is n!) and collatzW(n) (the value is the number of steps to 1; the log is «n → next» at each step).",
+   "statement": "Write Writer(value, log) (log is an array): methods map(f) (the log stays the same), chain(f) (f(value) returns a Writer; the logs are joined), Writer.of(v), and a function tell(msg) → Writer(undefined, [msg]). And the functions: factorialW(n) (the log «base: 1», then «multiplying by k» for k from 2 to n; the result is n!) and collatzW(n) (the value is the number of steps to 1; the log is «n → next» at each step).",
    "hint": "chain joins the logs: [...log, ...w.log]."
   },
   {

@@ -3,12 +3,6 @@
  "chapter": 16,
  "tasks": [
   {
-   "id": "r16-count-vowels",
-   "title": "Borrowing to read: &str",
-   "statement": "Write count_vowels(s: &str) -> usize: how many vowels are in the string. The vowels are the Russian `а е ё и о у ы э ю я` and the Latin `a e i o u`, case does not matter. The function only reads: after the call the string stays with its owner.",
-   "hint": "s.chars() iterates over characters; to_lowercase() on a char returns an iterator — take the first character with .next().unwrap()."
-  },
-  {
    "id": "r16-add-all",
    "title": "&mut Vec and a slice: writing through a reference",
    "statement": "Write add_all(dst: &mut Vec<i32>, extra: &[i32]): append to the end of dst all the elements of the slice extra (copying the numbers). The caller passes &mut v and &[..]: at the call you can immediately see which one is read and which is changed.",
@@ -122,12 +116,6 @@
    "title": "Fix it: changing a vector during traversal",
    "statement": "dup_evens appends to the end of the vector copies of all even numbers (order: the original elements, then the copies of the even ones in original order). The loop over &v holds a borrow while push changes the vector — it does not compile. Fix it: first collect the copies, then add them.",
    "hint": "Create a separate vector extra, fill it in the loop, and after the loop call v.extend(extra)."
-  },
-  {
-   "id": "r16-initial-char",
-   "title": "A slice on a character boundary",
-   "statement": "initial(s: &str) -> &str returns the first character of the string as a slice (empty string → empty slice). The starter takes one BYTE and fails on Cyrillic: slice boundaries must fall on a UTF-8 character boundary. Fix it.",
-   "hint": "char_indices() yields pairs (byte offset, character): the offset of the second character is the end of the first; if there is no second one, the whole string will do."
   },
   {
    "id": "r16-stack-addr",

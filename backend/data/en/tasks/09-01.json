@@ -50,8 +50,8 @@
   {
    "id": "s01-08",
    "title": "Alias with a space",
-   "statement": "Output city under the header `Город` (aliases with spaces or non-Latin letters are put in double quotes) for the customers table.",
-   "hint": "AS \"Город\": the name in double quotes.",
+   "statement": "Output city under the header `Home city` (aliases with spaces are put in double quotes) for the customers table.",
+   "hint": "AS \"Home city\": the name in double quotes.",
    "starter": "-- Write the query\n"
   },
   {
@@ -84,8 +84,8 @@
   {
    "id": "s01-13",
    "title": "String literal",
-   "statement": "Output the string `'привет'` (in single quotes) in a column greeting.",
-   "hint": "Strings in SQL go in single quotes: `'привет'`.",
+   "statement": "Output the string `'hello'` (in single quotes) in a column greeting.",
+   "hint": "Strings in SQL go in single quotes: `'hello'`.",
    "starter": "-- Write the query\n"
   },
   {
@@ -126,14 +126,14 @@
   {
    "id": "s01-19",
    "title": "Joining strings",
-   "statement": "Output one string per product of the form `Название (Категория)`, that is, title, a space, and the category in parentheses: use the || operator for concatenation; column label.",
+   "statement": "Output one string per product of the form `Title (Category)`, that is, title, a space, and the category in parentheses: use the || operator for concatenation; column label.",
    "hint": "title || ' (' || category || ')'",
    "starter": "-- Write the query\n"
   },
   {
    "id": "s01-20",
    "title": "A tag in every row",
-   "statement": "Output the customer's name and the constant `'клиент'` in a column kind.",
+   "statement": "Output the customer's name and the constant `'customer'` in a column kind.",
    "hint": "A constant can be output as a column.",
    "starter": "-- Write the query\n"
   },

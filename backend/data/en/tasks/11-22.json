@@ -5,7 +5,7 @@
   {
    "id": "j13-call-depth",
    "title": "Call stack depth",
-   "statement": "A program is described by a call tree: { name, calls: [...] } — the function name calls the nested ones in turn. Write a function maxDepth(tree) (the greatest stack depth; the root is 1) and trace(tree) that returns an array of strings «вход name»/«выход name» (the Russian words «вход» = enter, «выход» = exit are printed literally, followed by the function name) in execution order.",
+   "statement": "A program is described by a call tree: { name, calls: [...] } — the function name calls the nested ones in turn. Write a function maxDepth(tree) (the greatest stack depth; the root is 1) and trace(tree) that returns an array of strings «enter name»/«exit name» in execution order.",
    "hint": "Depth = 1 + the maximum depth of the nested calls."
   },
   {
@@ -107,13 +107,13 @@
   {
    "id": "j13-message-channel",
    "title": "Handing back control: queue order",
-   "statement": "Write a function order(): it returns a promise of an array of strings, in the order they would come out when run in Node.js: «sync», «микрозадача» (queueMicrotask; the Russian word «микрозадача» = microtask is printed literally), «nextTick» (process.nextTick — in ESM it goes after the microtasks), «MessageChannel» (a message through new MessageChannel(): port1.onmessage), «setTimeout» (0 ms). Your job is to assemble the code so that the order is: «sync», «микрозадача», «nextTick», «MessageChannel», «setTimeout».",
+   "statement": "Write a function order(): it returns a promise of an array of strings, in the order they would come out when run in Node.js: «sync», «microtask» (queueMicrotask), «nextTick» (process.nextTick — in ESM it goes after the microtasks), «MessageChannel» (a message through new MessageChannel(): port1.onmessage), «setTimeout» (0 ms). Your job is to assemble the code so that the order is: «sync», «microtask», «nextTick», «MessageChannel», «setTimeout».",
    "hint": "The queue itself decides the order: sync → microtasks → nextTick (in ESM) → messages → timer; give the timer some margin (for example, 20 ms)."
   },
   {
    "id": "j13-perf-marks",
    "title": "performance.mark and measure",
-   "statement": "Write a function createPerf(now): now() is a clock; it returns an object with mark(name) → an entry { name, startTime, entryType: \"mark\" }, measure(name, startMark, endMark?) → an entry { name, startTime, duration, entryType: \"measure\" } (if endMark is not given — up to the current moment; for an unknown mark — Error(\"Метка не найдена: \" followed by the mark's name; the Russian text «Метка не найдена» = \"Mark not found\" is kept literally), getEntries() (by start time), getEntriesByName(name), clear().",
+   "statement": "Write a function createPerf(now): now() is a clock; it returns an object with mark(name) → an entry { name, startTime, entryType: \"mark\" }, measure(name, startMark, endMark?) → an entry { name, startTime, duration, entryType: \"measure\" } (if endMark is not given — up to the current moment; for an unknown mark — Error(\"Mark not found: \" followed by the mark's name), getEntries() (by start time), getEntriesByName(name), clear().",
    "hint": "The last mark with the given name is the one to count from."
   },
   {

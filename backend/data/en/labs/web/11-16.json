@@ -7,141 +7,121 @@
    "id": "w16-sel-group",
    "title": "Selector list",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need the first- and second-level headings (in one rule, separated by a comma).",
-   "hint": "A comma combines selectors: h1, h2.",
-   "spec_text": {}
+   "hint": "A comma combines selectors: h1, h2."
   },
   {
    "id": "w16-sel-descendant",
    "title": "Descendant selector",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need the paragraphs inside the .article block, including those nested deeper.",
-   "hint": "A space between selectors means “at any depth inside”.",
-   "spec_text": {}
+   "hint": "A space between selectors means “at any depth inside”."
   },
   {
    "id": "w16-sel-child",
    "title": "Direct children",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need only the top-level items of the .menu menu; nested items are not wanted.",
-   "hint": "The > sign selects direct children only.",
-   "spec_text": {}
+   "hint": "The > sign selects direct children only."
   },
   {
    "id": "w16-sel-sibling",
    "title": "Adjacent element",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need only the paragraph that comes right after an h2 heading.",
-   "hint": "The + sign selects the nearest next sibling, the ~ sign selects all following siblings.",
-   "spec_text": {}
+   "hint": "The + sign selects the nearest next sibling, the ~ sign selects all following siblings."
   },
   {
    "id": "w16-sel-attr",
    "title": "Attribute and start of value",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need only external links: the address starts with https.",
-   "hint": "Attribute selector: [href^=\"https\"] — the value starts with “https”.",
-   "spec_text": {}
+   "hint": "Attribute selector: [href^=\"https\"] — the value starts with “https”."
   },
   {
    "id": "w16-sel-ext",
    "title": "Attribute and end of value",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need only links to PDF files: the address ends with .pdf.",
-   "hint": "The $ sign in an attribute selector: [href$=\".pdf\"] — the value ends with the substring.",
-   "spec_text": {}
+   "hint": "The $ sign in an attribute selector: [href$=\".pdf\"] — the value ends with the substring."
   },
   {
    "id": "w16-sel-nth",
    "title": "Every third",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need list items number 1, 4 and 7: every third one, starting from the first.",
-   "hint": ":nth-child accepts a formula: an + b, where n runs through 0, 1, 2…",
-   "spec_text": {}
+   "hint": ":nth-child accepts a formula: an + b, where n runs through 0, 1, 2…"
   },
   {
    "id": "w16-sel-first-last",
    "title": "First and last",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need the first and the last list items.",
-   "hint": ":first-child and :last-child, joined with a comma.",
-   "spec_text": {}
+   "hint": ":first-child and :last-child, joined with a comma."
   },
   {
    "id": "w16-sel-not",
    "title": "Everything except",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need the .btn buttons that are not disabled (disabled ones have the class disabled).",
-   "hint": "The :not(...) pseudo-class excludes whatever matches.",
-   "spec_text": {}
+   "hint": "The :not(...) pseudo-class excludes whatever matches."
   },
   {
    "id": "w16-sel-is",
    "title": "Shorthand for a list",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need the h2 headings and paragraphs inside the .article block, but not lists and not anything outside. The common part .article can be written once.",
-   "hint": ":is(h2, p) substitutes a list in place of a single selector: .article :is(…).",
-   "spec_text": {}
+   "hint": ":is(h2, p) substitutes a list in place of a single selector: .article :is(…)."
   },
   {
    "id": "w16-sel-has",
    "title": "Parent by its content",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need only the .card cards that contain an image.",
-   "hint": "The :has(...) pseudo-class selects an element by what is inside it.",
-   "spec_text": {}
+   "hint": "The :has(...) pseudo-class selects an element by what is inside it."
   },
   {
    "id": "w16-sel-low-spec",
    "title": "Low-specificity selector",
    "statement": "Write a single selector that selects exactly the elements highlighted in the task (red outline in the preview) and nothing else. You need all elements with the class note, but the selector's specificity must not exceed (0, 1, 0), and IDs are not allowed.",
-   "hint": "One class gives (0, 1, 0). Anything longer is already heavier.",
-   "spec_text": {}
+   "hint": "One class gives (0, 1, 0). Anything longer is already heavier."
   },
   {
    "id": "w16-css-hover",
    "title": "Hover style",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The .btn button already has a normal background of #2563eb. Make the background #1d4ed8 when the cursor is over it, and leave it unchanged in the normal state.",
-   "hint": "A rule with the :hover pseudo-class applies while the cursor is over the element: .btn:hover { … }.",
-   "spec_text": {}
+   "hint": "A rule with the :hover pseudo-class applies while the cursor is over the element: .btn:hover { … }."
   },
   {
    "id": "w16-css-focus",
    "title": "Visible keyboard focus",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The input field has a thin gray border. Without removing it, add a solid outline in #f59e0b, at least 2px thick, for keyboard focus (:focus-visible).",
-   "hint": "input:focus-visible { outline: 2px solid …; } — the outline is drawn outside the border and does not shift the layout.",
-   "spec_text": {}
+   "hint": "input:focus-visible { outline: 2px solid …; } — the outline is drawn outside the border and does not shift the layout."
   },
   {
    "id": "w16-css-checked",
    "title": "Checked checkbox",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The label next to the checkbox must turn green (#15803d) when it is checked; when unchecked, the label stays #444. Use :checked and the adjacent sibling combinator.",
-   "hint": "input:checked + label { … } — the label comes right after the checkbox.",
-   "spec_text": {}
+   "hint": "input:checked + label { … } — the label comes right after the checkbox."
   },
   {
    "id": "w16-css-invalid",
    "title": "Highlighting an invalid field",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The email field has a gray border (#94a3b8). When the value fails validation (the :invalid state), the border must become red (#dc2626); in the normal state the border stays gray. Do not add classes by hand: use the pseudo-class.",
-   "hint": "The :invalid pseudo-class matches a field whose value fails validation, for example type=\"email\" with text that has no at sign.",
-   "spec_text": {}
+   "hint": "The :invalid pseudo-class matches a field whose value fails validation, for example type=\"email\" with text that has no at sign."
   },
   {
    "id": "w16-css-after",
    "title": "Arrow via ::after",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. After the text of the .ext link an arrow “→” must appear, added from CSS, blue (#2563eb), with a left margin of at least 4px. The text in the markup itself cannot be changed.",
-   "hint": "The a::after pseudo-element with content: \"→\". Without content it will not appear.",
-   "spec_text": {}
+   "hint": "The a::after pseudo-element with content: \"→\". Without content it will not appear."
   },
   {
    "id": "w16-css-order",
    "title": "Winning by order",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. Two rules of equal specificity match an element with the classes a b: .a { color: red } and .b { color: green }, and the last one wins. Make the text red without raising the selector's specificity and without using !important.",
-   "hint": "With equal specificity the rule written lower wins. Your CSS comes after what is already there.",
-   "spec_text": {}
+   "hint": "With equal specificity the rule written lower wins. Your CSS comes after what is already there."
   },
   {
    "id": "w16-css-specificity",
    "title": "Winning by specificity",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The document already has the rule #card .text { color: red }. Make the text blue without !important: your rule must be more specific.",
-   "hint": "The selector #card .text weighs (1, 1, 0). Add one more class or type without touching anything else.",
-   "spec_text": {}
+   "hint": "The selector #card .text weighs (1, 1, 0). Add one more class or type without touching anything else."
   },
   {
    "id": "w16-css-no-important",
    "title": "No !important and no IDs",
    "statement": "Write CSS so that all the conditions are met. The markup is fixed and cannot be changed. The document already has the rule .list .item.active { color: gray }. Make the active item red without resorting to !important or IDs: rule order decides the contest.",
-   "hint": "Repeat the same weight — three classes — and write the rule lower: with equal specificity the last one wins.",
-   "spec_text": {}
+   "hint": "Repeat the same weight — three classes — and write the rule lower: with equal specificity the last one wins."
   }
  ]
 }

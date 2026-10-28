@@ -88,18 +88,6 @@
    "hint": "The producer owns tail, the consumer owns head. Write the data before store(tail, release); read tail (acquire) before reading the data. Full when tail − head == 64."
   },
   {
-   "id": "c14-utf32-utf16",
-   "title": "char32_t and char16_t: UTF-8 ↔ UTF-32 ↔ UTF-16",
-   "statement": "utf8_to_utf32(s, out, max) → the number of code points (char32_t) or −1 for invalid UTF-8 (truncated and overlong sequences, surrogates, > 0x10FFFF); if the result does not fit in max — −2. utf32_to_utf8(in, n, out, cap) → the number of bytes without the terminating zero (plus a zero at the end if there is room) or −1 (invalid code point), −2 (does not fit). utf32_to_utf16(in, n, out, max) → the number of char16_t (with surrogate pairs for code points ≥ 0x10000), utf16_to_utf32(in, n, out, max) → the number of code points (a lone or reversed surrogate — −1). utf16_len(s32, n) → how many char16_t are needed.",
-   "hint": "A surrogate pair: c − 0x10000 → the high 10 bits + 0xD800 and the low 10 bits + 0xDC00. Decoding is the reverse; lone and reversed surrogates are errors."
-  },
-  {
-   "id": "c14-cyrillic-case",
-   "title": "Letter case in UTF-8: ASCII and the Russian alphabet",
-   "statement": "Strings are UTF-8. utf8_upper(s, out, cap) and utf8_lower(s, out, cap) → the length of the result in bytes (or −1 if it does not fit with the zero; −2 for invalid UTF-8): Latin a–z ↔ A–Z, Russian lowercase letters (U+0430…U+044F) ↔ uppercase (U+0410…U+042F), the letter yo (U+0451) ↔ its capital (U+0401); other characters are unchanged. The length in bytes of these letters does not change. utf8_equal_fold(a, b) → 1 if the strings are equal ignoring case (under the same rules); utf8_title(s, out, cap) — the first letter of each word (words are separated by spaces) is uppercase, the rest lowercase; count_letters(s, *latin, *cyrillic) — the number of Latin and Russian letters (of either case).",
-   "hint": "Decode a character, convert the code point (shift by 32 for the lowercase/uppercase Russian ranges and for a–z/A–Z; the yo letters separately) and encode it back: the length in bytes of these letters is preserved."
-  },
-  {
    "id": "c14-c23-syntax",
    "title": "C23 syntax in practice",
    "statement": "Write in C23 (compiled with -std=c23): constexpr int MAX_ITEMS = 8; find_first_neg(a, n) → a pointer to the first negative element or nullptr (use nullptr, not NULL); parse_bits(s) → an integer from a string of '0'/'1' characters (up to 32 characters, otherwise −1) — use a binary literal 0b… for checking; big_numbers(out) → write the values 1'000, 0b1010'1010, 0xFF'FF into out[3] (the digit separators must be present in the program text); swap_any(a, b) — a macro via typeof (no GNU extensions); first_or(a, n, dflt) — via auto and bool; sum_limit(a, n) → the sum of the first MAX_ITEMS elements; fallthrough_demo(x) → x == 1: 'A' + 'B', x == 2: 'B', otherwise 0, with [[fallthrough]]. The source text must contain nullptr, constexpr, typeof, auto, bool, [[fallthrough]] and a digit separator.",

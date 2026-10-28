@@ -17,7 +17,7 @@
   {
    "id": "j3-template-to-concat",
    "title": "Mini-Babel: template → concatenation",
-   "statement": "Write a function templateToConcat(tpl) that takes the contents of a template string (without backticks) such as «Привет, ${name}! Тебе ${age + 1}.» and returns the concatenation code «\"Привет, \" + name + \"! Тебе \" + (age + 1) + \".\"». Expressions in ${…} are wrapped in parentheses if they contain a space; empty literal parts are skipped; for a string with no substitutions, a single literal. Escape quotes and backslashes in literals with JSON.stringify.",
+   "statement": "Write a function templateToConcat(tpl) that takes the contents of a template string (without backticks) such as «Hello, ${name}! You are ${age + 1}.» and returns the concatenation code «\"Hello, \" + name + \"! You are \" + (age + 1) + \".\"». Expressions in ${…} are wrapped in parentheses if they contain a space; empty literal parts are skipped; for a string with no substitutions, a single literal. Escape quotes and backslashes in literals with JSON.stringify.",
    "hint": "matchAll with /\\$\\{([^}]*)\\}/g; literals between substitutions via JSON.stringify."
   },
   {
@@ -89,7 +89,7 @@
   {
    "id": "j3-build-graph",
    "title": "A module graph for a bundle",
-   "statement": "Write a function buildOrder(files, entry): files is an object “path → source”, where dependencies are included via require('./x') (a path relative to the root without extension: «./a» → key «a.js»); return an array of paths in the order for concatenation: dependencies before their dependents, each module once, traversing from entry. Cycles are allowed (then a module that is already being processed is skipped). For a missing module throw Error(\"нет модуля: <путь>\").",
+   "statement": "Write a function buildOrder(files, entry): files is an object “path → source”, where dependencies are included via require('./x') (a path relative to the root without extension: «./a» → key «a.js»); return an array of paths in the order for concatenation: dependencies before their dependents, each module once, traversing from entry. Cycles are allowed (then a module that is already being processed is skipped). For a missing module throw Error(\"no module: <path>\").",
    "hint": "Depth-first search: first visit all the requires, then add the file itself; mark visited files in advance."
   },
   {
@@ -125,7 +125,7 @@
   {
    "id": "j3-task-runner",
    "title": "Mini-Grunt: running tasks with dependencies",
-   "statement": "Write a class Runner: task(name, deps, fn) registers a task (deps is an array of names, fn is a function without arguments); run(name) executes the task after its dependencies — each task at most once per run call, in the order the dependencies are listed; it returns an array of names in execution order. An unknown task throws Error(\"нет задачи: <имя>\"), a cycle throws Error(\"цикл: <a> → <b> …\") with the chain of names.",
+   "statement": "Write a class Runner: task(name, deps, fn) registers a task (deps is an array of names, fn is a function without arguments); run(name) executes the task after its dependencies — each task at most once per run call, in the order the dependencies are listed; it returns an array of names in execution order. An unknown task throws Error(\"no task: <name>\"), a cycle throws Error(\"cycle: <a> → <b> …\") with the chain of names.",
    "hint": "Depth-first traversal with a stack to detect a cycle and a set of tasks already done."
   },
   {

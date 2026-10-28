@@ -47,7 +47,7 @@
   {
    "id": "tag-manager",
    "title": "Your own context manager",
-   "statement": "Using the contextmanager decorator from contextlib, define a manager tag(name): on entry it prints «<name>», on exit (even on an error) it prints «</name>».",
+   "statement": "Using the contextmanager decorator from contextlib, define a manager tag(name): on entry it prints <name>, on exit (even on an error) it prints </name>.",
    "hint": "@contextmanager; print on entry; try: yield; finally: print on exit."
   }
  ]

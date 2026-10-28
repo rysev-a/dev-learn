@@ -17,7 +17,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 50,
               "y": 180,
               "ifaces": [
@@ -43,7 +43,7 @@
             {
               "id": "lb",
               "kind": "router",
-              "name": "Балансировщик",
+              "name": "Load balancer",
               "x": 240,
               "y": 180,
               "ifaces": [
@@ -141,7 +141,7 @@
             {
               "id": "s1",
               "kind": "server",
-              "name": "Сервер 1",
+              "name": "Server 1",
               "x": 560,
               "y": 70,
               "ifaces": [
@@ -178,7 +178,7 @@
             {
               "id": "s2",
               "kind": "server",
-              "name": "Сервер 2",
+              "name": "Server 2",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -215,7 +215,7 @@
             {
               "id": "s3",
               "kind": "server",
-              "name": "Сервер 3",
+              "name": "Server 3",
               "x": 560,
               "y": 290,
               "ifaces": [
@@ -286,7 +286,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "9 соединений делятся между тремя серверами",
+            "text": "9 connections are split between three servers",
             "lbspread": {
               "from": "pc",
               "to": "@lb",
@@ -324,7 +324,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 50,
               "y": 180,
               "ifaces": [
@@ -350,7 +350,7 @@
             {
               "id": "lb",
               "kind": "router",
-              "name": "Балансировщик",
+              "name": "Load balancer",
               "x": 240,
               "y": 180,
               "ifaces": [
@@ -456,7 +456,7 @@
             {
               "id": "s1",
               "kind": "server",
-              "name": "Сервер 1",
+              "name": "Server 1",
               "x": 560,
               "y": 70,
               "ifaces": [
@@ -493,7 +493,7 @@
             {
               "id": "s2",
               "kind": "server",
-              "name": "Сервер 2",
+              "name": "Server 2",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -525,7 +525,7 @@
             {
               "id": "s3",
               "kind": "server",
-              "name": "Сервер 3",
+              "name": "Server 3",
               "x": 560,
               "y": 290,
               "ifaces": [
@@ -596,7 +596,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "6 соединений: все успешны, второй сервер не задействован",
+            "text": "6 connections: all succeed, the second server is not used",
             "lbspread": {
               "from": "pc",
               "to": "@lb",
@@ -631,7 +631,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 50,
               "y": 180,
               "ifaces": [
@@ -657,7 +657,7 @@
             {
               "id": "lb",
               "kind": "router",
-              "name": "Балансировщик",
+              "name": "Load balancer",
               "x": 240,
               "y": 180,
               "ifaces": [
@@ -764,7 +764,7 @@
             {
               "id": "s1",
               "kind": "server",
-              "name": "Сервер 1",
+              "name": "Server 1",
               "x": 560,
               "y": 70,
               "ifaces": [
@@ -801,7 +801,7 @@
             {
               "id": "s2",
               "kind": "server",
-              "name": "Сервер 2",
+              "name": "Server 2",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -838,7 +838,7 @@
             {
               "id": "s3",
               "kind": "server",
-              "name": "Сервер 3",
+              "name": "Server 3",
               "x": 560,
               "y": 290,
               "ifaces": [
@@ -909,7 +909,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Все 6 запросов клиента попадают на один сервер",
+            "text": "All 6 client requests reach one server",
             "lbspread": {
               "from": "pc",
               "to": "@lb",
@@ -943,7 +943,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -969,7 +969,7 @@
             {
               "id": "rp",
               "kind": "server",
-              "name": "Обратный прокси",
+              "name": "Reverse proxy",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -1010,7 +1010,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб",
+              "name": "Web",
               "x": 520,
               "y": 80,
               "ifaces": [
@@ -1048,7 +1048,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Витрина</h1>"
+                    "body": "<h1>Storefront</h1>"
                   }
                 ]
               }
@@ -1178,17 +1178,17 @@
         "goals": [
           {
             "id": "g1",
-            "text": "GET / возвращает витрину",
+            "text": "GET / returns the storefront",
             "http": {
               "from": "pc",
               "url": "http://10.0.0.80/",
               "status": 200,
-              "body_includes": "Витрина"
+              "body_includes": "Storefront"
             }
           },
           {
             "id": "g2",
-            "text": "GET /api/items возвращает JSON от API",
+            "text": "GET /api/items returns JSON from the API",
             "http": {
               "from": "pc",
               "url": "http://10.0.0.80/api/items",
@@ -1225,7 +1225,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 70,
               "y": 180,
               "ifaces": [
@@ -1254,7 +1254,7 @@
             {
               "id": "edge",
               "kind": "server",
-              "name": "Узел CDN",
+              "name": "CDN node",
               "x": 300,
               "y": 180,
               "ifaces": [
@@ -1300,7 +1300,7 @@
             {
               "id": "origin",
               "kind": "server",
-              "name": "Исходный сервер",
+              "name": "Origin server",
               "x": 540,
               "y": 180,
               "ifaces": [
@@ -1363,7 +1363,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Второй запрос отдаётся из кэша (X-Cache: HIT)",
+            "text": "The second request is served from the cache (X-Cache: HIT)",
             "http": {
               "from": "pc",
               "url": "http://cdn.example/logo.png",
@@ -1376,7 +1376,7 @@
           },
           {
             "id": "g2",
-            "text": "Второй запрос быстрее 20 мс",
+            "text": "The second request is faster than 20 ms",
             "http": {
               "from": "pc",
               "url": "http://cdn.example/logo.png",

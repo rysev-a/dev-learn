@@ -47,7 +47,7 @@
   {
    "id": "j17-password-strength",
    "title": "Password strength",
-   "statement": "Write a function passwordStrength(pw) → { score (0–4), level: \"очень слабый\"|\"слабый\"|\"средний\"|\"хороший\"|\"отличный\", hints: [...] } (the level strings stay in Russian exactly as written; they mean very weak, weak, medium, good, excellent). Points: +1 for length ≥ 8, +1 for length ≥ 12, +1 for having at least three of four classes (lowercase, uppercase, digits, other characters), +1 for having no weak signs (no 3 identical characters in a row, not from the list of popular ones \"123456\", \"password\", \"qwerty\", \"111111\", \"пароль\", not consisting only of digits); cap the total at 4; an empty password — 0. hints are recommendations in this order: «Добавьте длину», «Смешайте регистры, цифры и символы», «Избегайте повторов и популярных паролей» (only for the criteria that are not met; the texts stay in Russian exactly as written).",
+   "statement": "Write a function passwordStrength(pw) → { score (0–4), level: \"very weak\"|\"weak\"|\"medium\"|\"good\"|\"excellent\", hints: [...] }. Points: +1 for length ≥ 8, +1 for length ≥ 12, +1 for having at least three of four classes (lowercase, uppercase, digits, other characters), +1 for having no weak signs (no 3 identical characters in a row, not from the list of popular ones \"123456\", \"password\", \"qwerty\", \"111111\", not consisting only of digits); cap the total at 4; an empty password — 0. hints are recommendations in this order: \"Add length\", \"Mix upper and lower case, digits and symbols\", \"Avoid repeats and popular passwords\" (only for the criteria that are not met).",
    "hint": "Four independent criteria; hints are for the ones not met."
   },
   {
@@ -77,7 +77,7 @@
   {
    "id": "j17-set-cookie",
    "title": "Parsing and building Set-Cookie",
-   "statement": "Write the functions parseSetCookie(header) → { name, value, path?, domain?, expires? (a string), maxAge? (a number), secure (boolean), httpOnly (boolean), sameSite? (lowercase: strict/lax/none) } (attribute names are case-insensitive; the cookie value may contain \"=\"; the value is decoded with decodeURIComponent if possible, otherwise left as is; the domain is without a leading dot, in lowercase) and serializeCookie(name, value, options) → a string: \"name=value\" (the value is encoded with encodeURIComponent) + attributes in the order Domain, Path, Expires, Max-Age, SameSite (Strict|Lax|None), Secure, HttpOnly; for SameSite=None without Secure throw Error(\"SameSite=None требует Secure\") (the message stays in Russian exactly as written).",
+   "statement": "Write the functions parseSetCookie(header) → { name, value, path?, domain?, expires? (a string), maxAge? (a number), secure (boolean), httpOnly (boolean), sameSite? (lowercase: strict/lax/none) } (attribute names are case-insensitive; the cookie value may contain \"=\"; the value is decoded with decodeURIComponent if possible, otherwise left as is; the domain is without a leading dot, in lowercase) and serializeCookie(name, value, options) → a string: \"name=value\" (the value is encoded with encodeURIComponent) + attributes in the order Domain, Path, Expires, Max-Age, SameSite (Strict|Lax|None), Secure, HttpOnly; for SameSite=None without Secure throw Error(\"SameSite=None requires Secure\").",
    "hint": "Split on \";\", the first part is name=value; the rest are attributes by name, case-insensitive."
   },
   {
@@ -131,7 +131,7 @@
   {
    "id": "j17-migrations",
    "title": "Schema migrations by version",
-   "statement": "Write a function runMigrations(db, migrations, targetVersion): db = { version, data } (version is the current one; data is an arbitrary object); migrations is an array of { version, up(data) → newData } (ascending by number). All migrations with version > db.version and ≤ targetVersion are applied in order; each gets a deep copy of the data; after success the version is updated to that migration's version; if a migration throws — the whole operation is rolled back (db stays at the original version with the original data), and the exception is rethrown with «миграция v<N>: …» added to the message (the prefix stays in Russian exactly as written). It returns { version, data, applied: [numbers] } — without modifying the db passed in. If targetVersion is less than db.version — Error(\"Понижение версии не поддерживается\") (the message stays in Russian exactly as written).",
+   "statement": "Write a function runMigrations(db, migrations, targetVersion): db = { version, data } (version is the current one; data is an arbitrary object); migrations is an array of { version, up(data) → newData } (ascending by number). All migrations with version > db.version and ≤ targetVersion are applied in order; each gets a deep copy of the data; after success the version is updated to that migration's version; if a migration throws — the whole operation is rolled back (db stays at the original version with the original data), and the exception is rethrown with \"migration v<N>: …\" added to the message. It returns { version, data, applied: [numbers] } — without modifying the db passed in. If targetVersion is less than db.version — Error(\"Downgrade is not supported\").",
    "hint": "Copy the data before each migration; apply only versions in the range (db.version, target]."
   },
   {

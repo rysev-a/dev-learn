@@ -7,73 +7,37 @@
    "id": "sd14-monitor",
    "title": "Monitoring and three nines",
    "statement": "The service runs without monitoring, and users report outages before you notice them. Add monitoring (metrics, logs, alerts) and bring the design up to an availability target of 99.9% with p99 of at most 120 ms. Right now there is a single database, and it drags availability down.",
-   "hint": "Put the “Monitoring” component on the diagram (no links needed). For 99.9% the database must have a replica and automatic failover.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Put the “Monitoring” component on the diagram (no links needed). For 99.9% the database must have a replica and automatic failover."
   },
   {
    "id": "sd14-slo-three",
    "title": "SLO 99.95%: cheaply",
    "statement": "The availability target is 99.95%. Build the cheapest design that meets it: monitoring is required, the design survives failure of the database and of an app server, and the budget is $700 per month.",
-   "hint": "A single load balancer caps availability at 99.95%, so you need two. An S database with a replica and automatic failover, two or three M servers.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "A single load balancer caps availability at 99.95%, so you need two. An S database with a replica and automatic failover, two or three M servers."
   },
   {
    "id": "sd14-slo-five",
    "title": "Five nines",
    "statement": "For a payment gateway the target is availability of at least 99.999%. Every component must be redundant: load balancers, app servers and the database. Build a design with monitoring and a budget of $1500 per month that reaches the target and survives the failure of any component.",
-   "hint": "Two load balancers, three servers, and a database with two replicas and automatic failover give about 99.9999%.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Two load balancers, three servers, and a database with two replicas and automatic failover give about 99.9999%."
   },
   {
    "id": "sd14-headroom",
    "title": "Capacity headroom",
    "statement": "The monitoring team set an alert at 60% load: anything higher is a reason to worry. The load is 1500 reads and 200 writes per second. Bring the design to a state where no component is loaded above 60%, with monitoring and a budget of $1300 per month.",
-   "hint": "Servers: 1700 requests — two L (3000, 57%). An M database at 1500 reads is at 83%: you need a replica or size L.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Servers: 1700 requests — two L (3000, 57%). An M database at 1500 reads is at 83%: you need a replica or size L."
   },
   {
    "id": "sd14-latency",
    "title": "The latency budget",
    "statement": "Latency SLO: p50 of at most 40 ms and p99 of at most 80 ms. There are 2700 reads per second, the M database is almost at its limit, and the app servers build up a queue under high load. Add a cache (≥80%) and reduce server load to meet the targets.",
-   "hint": "Latency grows as 1/(1 − load): keep the servers at about 50%. A 5 GB cache with TTL 3600 takes the reads off the database.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Latency grows as 1/(1 − load): keep the servers at about 50%. A 5 GB cache with TTL 3600 takes the reads off the database."
   },
   {
    "id": "sd14-final",
    "title": "A design with reliability targets",
    "statement": "The chapter's final exercise. A service with SLOs: availability ≥ 99.995%, p99 ≤ 100 ms, load at most 60%. It gets 3000 reads and 150 writes per second. Build a design with monitoring: two load balancers, a cache with a replica, a database with a replica and automatic failover, survival of failure of the database, the cache and an app server, and a budget of $2200 per month.",
-   "hint": "About nine M servers (load ~50%), a 6 GB cache with a replica and TTL 3600, an M database with a replica and automatic failover, and monitoring.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "About nine M servers (load ~50%), a 6 GB cache with a replica and TTL 3600, an M database with a replica and automatic failover, and monitoring."
   }
  ]
 }

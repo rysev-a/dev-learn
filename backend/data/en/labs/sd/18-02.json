@@ -7,82 +7,43 @@
    "id": "sd02-vertical",
    "title": "Vertical growth",
    "statement": "The service has grown to 900 reads and 100 writes per second, but the single S server handles only 300. You cannot introduce a load balancer and extra servers yet: the team is small. Scale vertically: keep one server, but pick a suitable size so that its load does not exceed 80%.",
-   "hint": "An L server has a capacity of 1500 requests per second. Check the database too: for 1000 requests, size M is enough.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "App server",
-    "/start/nodes/2/name": "Database"
-   }
+   "hint": "An L server has a capacity of 1500 requests per second. Check the database too: for 1000 requests, size M is enough."
   },
   {
    "id": "sd02-horizontal",
    "title": "Horizontal growth",
    "statement": "The same load (1000 requests per second), but now we scale horizontally: add a load balancer and several identical servers so that load does not exceed 80% and the cost stays at most $520 per month. Don't forget that the database must also hold up.",
-   "hint": "Two M servers give 1400 requests, a load of 71%. S servers are more expensive at this load: you would need five.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "App server",
-    "/start/nodes/2/name": "Database"
-   }
+   "hint": "Two M servers give 1400 requests, a load of 71%. S servers are more expensive at this load: you would need five."
   },
   {
    "id": "sd02-sessions",
    "title": "Sessions behind a load balancer",
    "statement": "Now that there are three servers, users complain that their login keeps \"dropping\" every other request. Sessions are kept in each server's memory, and the load balancer sends requests to any of them. Fix the design: move sessions to external storage (the server's “Sessions” parameter) so that any instance can serve any user.",
-   "hint": "Select the app server on the diagram and change “Sessions” to “in external storage”.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Select the app server on the diagram and change “Sessions” to “in external storage”."
   },
   {
    "id": "sd02-l7",
    "title": "Which balancing level",
    "statement": "The team needs to route requests by path (\"/api\" to some services, \"/img\" to others) and to retry failed requests. Change the load balancer so that it understands HTTP, while keeping p99 at most 120 ms.",
-   "hint": "L7 parses HTTP but adds one and a half milliseconds. It is better to keep server load below 60%, otherwise the queue grows.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "L7 parses HTTP but adds one and a half milliseconds. It is better to keep server load below 60%, otherwise the queue grows."
   },
   {
    "id": "sd02-nplus1",
    "title": "Spare capacity for one server",
    "statement": "The service receives 1000 requests per second. Right now two M servers give 1400, but when one of them goes down only 700 remains, so half of the requests are lost. Add \"N+1\" headroom: the design must survive the failure of any single app server and fit within $700 per month.",
-   "hint": "The servers left after losing one must still carry 1000. Three M servers: after losing one, two remain, which is 1400.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "The servers left after losing one must still carry 1000. Three M servers: after losing one, two remain, which is 1400."
   },
   {
    "id": "sd02-lbha",
    "title": "The load balancer breaks too",
    "statement": "The app servers are redundant, but there is a single load balancer. If it fails, the service is completely unavailable. Make the design survive the failure of the load balancer, with no single points of failure among the load balancers and app servers.",
-   "hint": "The load balancer's “Instances” parameter: two instances share a common address.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "The load balancer's “Instances” parameter: two instances share a common address."
   },
   {
    "id": "sd02-migrate",
    "title": "Moving to horizontal scaling",
    "statement": "The final exercise of the chapter. The service is one S server with in-memory sessions and 700 requests per second. Convert it to a horizontal design: a load balancer (with redundancy), stateless servers, headroom for the failure of one server, and load at most 80%. The budget is $900 per month.",
-   "hint": "You need: a pair of load balancers, sessions in external storage, three M servers (after losing one, two remain, 1400 requests), and an M database.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "App server",
-    "/start/nodes/2/name": "Database"
-   }
+   "hint": "You need: a pair of load balancers, sessions in external storage, three M servers (after losing one, two remain, 1400 requests), and an M database."
   }
  ]
 }

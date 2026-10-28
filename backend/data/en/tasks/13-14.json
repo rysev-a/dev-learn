@@ -5,7 +5,7 @@
   {
    "id": "animals-polymorphism",
    "title": "Animals",
-   "statement": "Define Animal(name) with a method speak() (returns «...») and a method describe() (returns «<name>: <sound>», where the sound comes from speak). The subclasses Dog and Cat override speak: «Гав!» and «Мяу!». describe() should not be overridden.",
+   "statement": "Define Animal(name) with a method speak() (returns «...») and a method describe() (returns «<name>: <sound>», where the sound comes from speak). The subclasses Dog and Cat override speak: «Woof!» and «Meow!». describe() should not be overridden.",
    "hint": "In Animal: describe returns f'{self.name}: {self.speak()}'; self.speak() will call the subclass version."
   },
   {
@@ -23,13 +23,13 @@
   {
    "id": "car-composition",
    "title": "Car and engine",
-   "statement": "Define Engine(power) with a method start() that returns «двигатель <power> л.с. запущен» (for power 150 that is «двигатель 150 л.с. запущен»), and Car(engine), whose method go() returns the result of engine.start() with «, поехали» appended. Car keeps the engine as an attribute (composition).",
-   "hint": "Car.go: return self.engine.start() + \", поехали\"."
+   "statement": "Define Engine(power) with a method start() that returns «engine <power> h.p. started» (for power 150 that is «engine 150 h.p. started»), and Car(engine), whose method go() returns the result of engine.start() with «, off we go» appended. Car keeps the engine as an attribute (composition).",
+   "hint": "Car.go: return self.engine.start() + \", off we go\"."
   },
   {
    "id": "greet-mixin",
    "title": "The greeting mixin",
-   "statement": "Define a mixin GreetMixin with a method greet() that returns «Привет, я <name>» (the name comes from self.name), and the classes Person(name) and Robot(name) that mix it in.",
+   "statement": "Define a mixin GreetMixin with a method greet() that returns «Hello, I'm <name>» (the name comes from self.name), and the classes Person(name) and Robot(name) that mix it in.",
    "hint": "greet lives in GreetMixin; Person and Robot only set self.name."
   },
   {

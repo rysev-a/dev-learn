@@ -99,18 +99,6 @@
    "hint": "chars().all(|c| c.is_ascii_digit()) and !s.is_empty()"
   },
   {
-   "id": "r11-ord-chr",
-   "title": "ord and chr",
-   "statement": "Python: chr(ord(c) + 1). Write next_char(c: char) -> Option<char>: the next character by code (None if there is no such code).",
-   "hint": "char::from_u32 returns None if the number is not a character."
-  },
-  {
-   "id": "r11-caesar-ru",
-   "title": "Caesar cipher for Russian",
-   "statement": "Write caesar_ru(s: &str, k: u32) -> String: shift the lowercase Russian letters «а»–«я» (33 letters, including «ё») forward by k positions, wrapping around; leave other characters unchanged. The alphabet: «абвгдеёжзийклмнопрстуфхцчшщъыьэюя».",
-   "hint": "Find the letter's position in the alphabet vector and shift it modulo its length."
-  },
-  {
    "id": "r11-reverse-words",
    "title": "Words in reverse order",
    "statement": "Python: ' '.join(s.split()[::-1]). Write reverse_words(s: &str) -> String.",
@@ -135,12 +123,6 @@
    "hint": "Accumulate the current line in cur and push it to the result when the word does not fit."
   },
   {
-   "id": "r11-vowels",
-   "title": "Vowels and consonants",
-   "statement": "Write count_vowels(s: &str) -> (usize, usize): the number of Russian vowels «аеёиоуыэюя» and the number of other letters (case does not matter; non-letters are not counted).",
-   "hint": "First check membership among the vowels, then is_alphabetic."
-  },
-  {
    "id": "r11-compress",
    "title": "Run-length compression",
    "statement": "Write rle(s: &str) -> String: each run of identical characters is replaced by the character and the run length («aaabcc» → «a3b1c2»).",
@@ -151,18 +133,6 @@
    "title": "Decompression",
    "statement": "The inverse task: unrle(s: &str) -> String unpacks the form «a3b1c2» (each letter is followed by the digits of its count) into «aaabcc». Letters are any non-digits.",
    "hint": "Accumulate the digits in num and reset it at a new letter."
-  },
-  {
-   "id": "r11-bytes-hex",
-   "title": "encode → hex",
-   "statement": "Python: s.encode().hex(). Write to_hex(s: &str) -> String: the UTF-8 bytes, each as two hexadecimal digits, with no spaces.",
-   "hint": "format!(\"{:02x}\", b) for each byte."
-  },
-  {
-   "id": "r11-from-bytes",
-   "title": "decode with an error",
-   "statement": "Python: b.decode() can raise UnicodeDecodeError. Write decode(b: &[u8]) -> Result<String, String>: Ok(string) or Err(\"плохой UTF-8\").",
-   "hint": "String::from_utf8(b.to_vec())"
   },
   {
    "id": "r11-lossy",

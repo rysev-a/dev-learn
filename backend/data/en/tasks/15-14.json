@@ -57,12 +57,6 @@
    "hint": "base64.b64encode(hashlib.sha1((key + GUID).encode()).digest()).decode()."
   },
   {
-   "id": "net14-ws-frame",
-   "title": "WebSocket: frames",
-   "statement": "Write encode_text(text), a server (unmasked) text frame: the byte 0x81, then the length (for a length < 126, one byte; for 126...65535, the byte 126 and 2 bytes of length in big-endian), then UTF-8. And decode_frame(data) -> (opcode, payload_bytes) for a client frame: if the mask bit is set (the second byte & 0x80), 4 bytes of the mask key follow the length, and every data byte must be XORed with key[i % 4]. The opcode is the low 4 bits of the first byte.",
-   "hint": "A length < 126 fits in one byte; otherwise 126 + struct.pack('>H', n). Mask: payload[i] ^ key[i % 4]."
-  },
-  {
    "id": "net14-sse",
    "title": "Server-Sent Events: the format",
    "statement": "Write sse_encode(events) and sse_decode(text). The events are a list of dictionaries with the key data (a string, possibly multi-line) and optional event and id. Encoding: for each event, the lines 'id: ...', 'event: ...' (if present), then for every line of data a 'data: ...' line, and an empty line at the end. Decoding is the reverse: blocks are separated by an empty line; multi-line data is joined with \\n. Return a list of dictionaries containing only the keys that were in the block.",

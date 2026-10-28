@@ -53,7 +53,7 @@
   {
    "id": "s07-08",
    "title": "The NOT IN trap with NULL",
-   "statement": "The brand for category `'Канцелярия'` is unknown (NULL), and NOT IN with such a list returns nothing. Select the title of products whose brand matches none of the known brands of category `'Канцелярия'` (add WHERE brand IS NOT NULL to the subquery); products with an unknown brand are not part of the answer. Order by title.",
+   "statement": "The brand for category `'Art supplies'` is unknown (NULL), and NOT IN with such a list returns nothing. Select the title of products whose brand matches none of the known brands of category `'Art supplies'` (add WHERE brand IS NOT NULL to the subquery); products with an unknown brand are not part of the answer. Order by title.",
    "hint": "If an IN/NOT IN list contains NULL, the result of NOT IN becomes undefined.",
    "starter": "-- Write a query\n"
   },
@@ -102,42 +102,42 @@
   {
    "id": "s07-15",
    "title": "More expensive than any grocery",
-   "statement": "Select the title of products that are more expensive than the most expensive product of category `'Продукты'` (price > MAX); order by title.",
+   "statement": "Select the title of products that are more expensive than the most expensive product of category `'Groceries'` (price > MAX); order by title.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s07-16",
    "title": "Cheaper than any book",
-   "statement": "Select the title of products that are cheaper than the cheapest book (category `'Книги'`); order by title.",
+   "statement": "Select the title of products that are cheaper than the cheapest book (category `'Books'`); order by title.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s07-17",
    "title": "Two levels of nesting",
-   "statement": "Select the id of orders that contain `'Ноутбук Air 13'`: order_id IN (SELECT order_id FROM order_items WHERE product_id = (SELECT id FROM products WHERE title = `'Ноутбук Air 13'`)); order by id.",
+   "statement": "Select the id of orders that contain `'Laptop Air 13'`: order_id IN (SELECT order_id FROM order_items WHERE product_id = (SELECT id FROM products WHERE title = `'Laptop Air 13'`)); order by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s07-18",
    "title": "Anna's fellow townspeople",
-   "statement": "Select the name of customers from the same city as `'Анна Петрова'`, except her; order by name.",
+   "statement": "Select the name of customers from the same city as `'Anna Petrova'`, except her; order by name.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s07-19",
    "title": "Later than Boris",
-   "statement": "Select the name of customers who registered later than `'Борис Иванов'`; order by registered.",
+   "statement": "Select the name of customers who registered later than `'Boris Ivanov'`; order by registered.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s07-20",
    "title": "Same-category neighbors",
-   "statement": "Select the title of products in the same category as `'Мышь Click'`, except itself; order by title.",
+   "statement": "Select the title of products in the same category as `'Mouse Click'`, except itself; order by title.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -172,7 +172,7 @@
   {
    "id": "s07-25",
    "title": "HR: employees of Moscow departments",
-   "statement": "HR database. Select the name of employees of departments located in Moscow (dept_id IN (SELECT id FROM departments WHERE city = `'Москва'`)); order by id.",
+   "statement": "HR database. Select the name of employees of departments located in Moscow (dept_id IN (SELECT id FROM departments WHERE city = `'Moscow'`)); order by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -221,7 +221,7 @@
   {
    "id": "s07-32",
    "title": "School: enrolled in math",
-   "statement": "School database. Select the name of students who have an enrollment in the course `'Математика'` (id IN a subquery with two levels); order by name.",
+   "statement": "School database. Select the name of students who have an enrollment in the course `'Math'` (id IN a subquery with two levels); order by name.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -256,7 +256,7 @@
   {
    "id": "s07-37",
    "title": "Nolan's colleagues",
-   "statement": "Movies database. Select the title of all movies by the director of the movie `'Начало'`, except `'Начало'` itself; order by title.",
+   "statement": "Movies database. Select the title of all movies by the director of the movie `'Inception'`, except `'Inception'` itself; order by title.",
    "hint": "",
    "starter": "-- Write a query\n"
   }

@@ -39,12 +39,6 @@
    "hint": "Collect the reasons in a list and sort it."
   },
   {
-   "id": "virt-measure",
-   "title": "Boot measurement chain",
-   "statement": "Write a function measure_chain(components): components is a list of strings (firmware, bootloader, kernel, ...). The measurement starts with a value of 32 zero bytes. For each string in order, the new value is the SHA-256 of the concatenation (the previous value, the SHA-256 of the string encoded as UTF-8), like extending a PCR register. Return the final value as a string of hexadecimal digits.",
-   "hint": "Use hashlib.sha256(...).digest() for the intermediate values and hexdigest() for the result."
-  },
-  {
    "id": "virt-triage",
    "title": "Triage of security findings",
    "statement": "Write a function triage(findings): findings is a list of text descriptions of findings. The category is chosen by the first matching rule (letter case does not matter): contains \"qemu\" or \"device\" is \"escape\"; contains \"cache\" or \"timing\" is \"side-channel\"; contains \"dma\" is \"dma\"; contains \"storm\" or \"hog\" is \"dos\"; otherwise \"other\". Return a dictionary \"category to number of findings\", only for categories where there are more than zero.",

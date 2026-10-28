@@ -13,7 +13,7 @@
         "programs": [
           {
             "id": "base",
-            "title": "Привилегированные команды",
+            "title": "Privileged instructions",
             "code": [
               "ADD 3",
               "CLI",
@@ -23,11 +23,11 @@
               "STI",
               "HLT"
             ],
-            "goal": "Пройдите программу: на каждой ловушке выберите верную имитацию"
+            "goal": "Run the program: at every trap choose the correct emulation"
           },
           {
             "id": "irq",
-            "title": "Прерывания",
+            "title": "Interrupts",
             "code": [
               "CLI",
               "IRQ 1",
@@ -35,18 +35,18 @@
               "STI",
               "HLT"
             ],
-            "goal": "Не потеряйте прерывания: они ждут в очереди, пока гость не разрешит"
+            "goal": "Do not lose interrupts: they wait in the queue until the guest enables them"
           },
           {
             "id": "popf",
-            "title": "Проблема POPF",
+            "title": "The POPF problem",
             "code": [
               "CLI",
               "POPF 1",
               "ADD 2",
               "HLT"
             ],
-            "goal": "Выполните программу так, чтобы POPF изменила виртуальный флаг IF"
+            "goal": "Run the program so that POPF changes the virtual IF flag"
           }
         ]
       }

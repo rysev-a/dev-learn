@@ -17,8 +17,8 @@
   {
    "id": "dog-str",
    "title": "A dog with a description",
-   "statement": "Define a class Dog(name, age) with a method __str__ that returns «Собака Рекс, 5 лет» (the name and age are substituted in), and a method birthday() that increases the age by 1.",
-   "hint": "def __str__(self): return f\"Собака {self.name}, {self.age} лет\"."
+   "statement": "Define a class Dog(name, age) with a method __str__ that returns «Dog Rex, 5 years» (the name and age are substituted in), and a method birthday() that increases the age by 1.",
+   "hint": "def __str__(self): return f\"Dog {self.name}, {self.age} years\"."
   },
   {
    "id": "bank-account",

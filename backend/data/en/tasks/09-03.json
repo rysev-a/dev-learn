@@ -165,7 +165,7 @@
   {
    "id": "s03-24",
    "title": "Three cheapest in a category",
-   "statement": "Output the title, price of the three cheapest products in the category `'Продукты'` (by ascending price).",
+   "statement": "Output the title, price of the three cheapest products in the category `'Groceries'` (by ascending price).",
    "hint": "",
    "starter": "-- Write your query\n"
   },

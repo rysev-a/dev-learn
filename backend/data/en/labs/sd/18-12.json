@@ -7,61 +7,31 @@
    "id": "sd12-pull-fix",
    "title": "Feed reads overload the database",
    "statement": "The feed is built when it is opened (pull): each author has 50 followers on average, and at 2000 reads per second the L database is overloaded by extra queries. Full fan-out on write (push) does not work either: 50 writes per second turn into 2500. Choose the app server's feed mode so that the database is loaded at no more than 80%. The “Feed” parameter is shown in this exercise.",
-   "hint": "Pull multiplies reads by 3.5, push multiplies writes by 50. Hybrid multiplies both by only 1.5.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Pull multiplies reads by 3.5, push multiplies writes by 50. Hybrid multiplies both by only 1.5."
   },
   {
    "id": "sd12-feed-cache",
    "title": "A cache for ready-made feeds",
    "statement": "There are more readers now: 4000 feed opens per second, with a working set of 8 GB out of 200. The M database cannot handle the reads. Keep the hybrid feed mode and add a cache: the cache serves at least 90%, and the database and servers are loaded at no more than 80%. The budget is $1600 per month.",
-   "hint": "A cache of about 8 GB with TTL 3600 gives about a 94% hit rate, so the database sees only 6% of reads. Eight M app servers are enough.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "A cache of about 8 GB with TTL 3600 gives about a 94% hit rate, so the database sees only 6% of reads. Eight M app servers are enough."
   },
   {
    "id": "sd12-push-queue",
    "title": "Post delivery through a queue",
    "statement": "The service has small audiences (10 followers per author), so push is chosen: each post is fanned out into feeds. At 400 posts per second that is 4000 feed writes, which the database cannot take all at once. Route the writes through a queue with workers: the L database is loaded at no more than 80%, and after a 10-second peak the queue drains in at most 45 seconds. The feed mode is push.",
-   "hint": "The workers set the pace of writes to the database: two M workers give 800 per second (53% of the L database). Lag: (4000 − 800) / 800 × 10 = 40 s.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "The workers set the pace of writes to the database: two M workers give 800 per second (53% of the L database). Lag: (4000 − 800) / 800 × 10 = 40 s."
   },
   {
    "id": "sd12-celebrity",
    "title": "Celebrities",
    "statement": "The service has celebrity authors: the average author audience is 300 followers. Full push would multiply writes by 300, and pure pull would multiply reads by 16. Choose hybrid and add a cache so that the M database is loaded at no more than 80% at 3000 reads and 40 writes per second.",
-   "hint": "Hybrid: reads ×4, writes ×4. A cache with a good hit rate reduces the extra reads almost to zero: 6 GB with TTL 3600.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Hybrid: reads ×4, writes ×4. A cache with a good hit rate reduces the extra reads almost to zero: 6 GB with TTL 3600."
   },
   {
    "id": "sd12-final",
    "title": "A social network",
    "statement": "The chapter's final exercise. The feed: 8000 opens and 100 posts per second, 100 followers per author on average, 300 GB of data (working set 12 GB). Build the design: a hybrid feed, a cache (≥90%), a database with a replica and automatic failover (survives failure of the database and the cache), app servers with headroom to lose one, everything at most 80%, and a budget of $3500 per month.",
-   "hint": "A 12 GB cache with a replica and TTL 3600; fifteen M app servers (load of 8100 requests, headroom for one failure); an M database with a replica and automatic failover.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "A 12 GB cache with a replica and TTL 3600; fifteen M app servers (load of 8100 requests, headroom for one failure); an M database with a replica and automatic failover."
   }
  ]
 }

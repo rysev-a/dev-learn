@@ -17,8 +17,8 @@
   {
    "id": "w14-img-link",
    "title": "An image link",
-   "statement": "The bag icon leads to the cart. Right now the image has no alternative, so a screen reader cannot tell where the link goes. Write an `alt` that describes the action, in Russian and containing the word “корзина” (cart).",
-   "hint": "For a link, `alt` says not “bag” but what happens on click: “Открыть корзину” (Open the cart)."
+   "statement": "The bag icon leads to the cart. Right now the image has no alternative, so a screen reader cannot tell where the link goes. Write an `alt` that describes the action, containing the word “cart”.",
+   "hint": "For a link, `alt` says not “bag” but what happens on click: “Open the cart”."
   },
   {
    "id": "w14-img-size",
@@ -29,7 +29,7 @@
   {
    "id": "w14-figure",
    "title": "An illustration with a caption",
-   "statement": "Wrap the picture `chart.png` in a self-contained block and add the caption “Рис. 1. Выручка по кварталам” (Fig. 1. Revenue by quarter). The caption must come after the picture.",
+   "statement": "Wrap the picture `chart.png` in a self-contained block and add the caption “Fig. 1. Revenue by quarter”. The caption must come after the picture.",
    "hint": "You need the pair `figure` and `figcaption`; `img` goes inside `figure`, and so does `figcaption`, after the picture."
   },
   {
@@ -53,7 +53,7 @@
   {
    "id": "w14-video",
    "title": "Video with subtitles",
-   "statement": "Build a player: controls, the poster `poster.jpg`, two files (`intro.webm` with type `video/webm` and `intro.mp4` with type `video/mp4`), Russian subtitles `ru.vtt`, and fallback text for browsers that do not support video, placed inside the tag. Write the fallback text in Russian, with the word “браузер” (browser) in it.",
+   "statement": "Build a player: controls, the poster `poster.jpg`, two files (`intro.webm` with type `video/webm` and `intro.mp4` with type `video/mp4`), Russian subtitles `ru.vtt`, and fallback text for browsers that do not support video, placed inside the tag. Write the fallback text with the word “browser” in it.",
    "hint": "Inside `video`: two `source` elements, one `track` with `kind=\"subtitles\"` and `srclang=\"ru\"`, and then plain text. `controls` is written without a value."
   },
   {
@@ -65,13 +65,13 @@
   {
    "id": "w14-iframe",
    "title": "A safe map",
-   "statement": "The map is embedded in a frame with no preparation. Give the frame a name for screen readers (“Карта офиса”, Office map), forbid it everything unnecessary through `sandbox` (the map's scripts may run, but top-window navigation must not be allowed), and defer loading until the frame is near the screen.",
+   "statement": "The map is embedded in a frame with no preparation. Give the frame a name for screen readers (“Office map”), forbid it everything unnecessary through `sandbox` (the map's scripts may run, but top-window navigation must not be allowed), and defer loading until the frame is near the screen.",
    "hint": "The attributes are `title`, `sandbox=\"allow-scripts\"`, `loading=\"lazy\"`. Values like `allow-top-navigation…` are not needed."
   },
   {
    "id": "w14-table-basic",
    "title": "A table with a header",
-   "statement": "The price list is written as bare rows. Give the table the caption “Прайс” (Price list) (`caption`), move the first row into the header (`thead`) and make its cells headings (`th`); the data rows go in `tbody`.",
+   "statement": "The price list is written as bare rows. Give the table the caption “Price list” (`caption`), move the first row into the header (`thead`) and make its cells headings (`th`); the data rows go in `tbody`.",
    "hint": "Order inside `table`: `caption`, `thead`, `tbody`. In the header the cells are `th`, in the data they are `td`."
   },
   {
@@ -83,8 +83,8 @@
   {
    "id": "w14-colspan",
    "title": "A two-level header",
-   "statement": "Make the header out of two rows: the cell “Город” (City) spans both rows (`rowspan`), and above “Январь” (January) and “Июль” (July) there is a shared cell “Температура” (Temperature) (`colspan`). The second header row keeps only “Январь” and “Июль”.",
-   "hint": "First row: `th rowspan=\"2\"` with “Город” and `th colspan=\"2\"` with “Температура”. Second row: two `th`. `scope=\"colgroup\"` suits the cell merged across columns."
+   "statement": "Make the header out of two rows: the cell “City” spans both rows (`rowspan`), and above “January” and “July” there is a shared cell “Temperature” (`colspan`). The second header row keeps only “January” and “July”.",
+   "hint": "First row: `th rowspan=\"2\"` with “City” and `th colspan=\"2\"` with “Temperature”. Second row: two `th`. `scope=\"colgroup\"` suits the cell merged across columns."
   },
   {
    "id": "w14-details",
@@ -95,7 +95,7 @@
   {
    "id": "w14-gallery",
    "title": "A gallery with captions",
-   "statement": "Three photos sit in one block with no captions. Build a gallery: a bulleted list of three items, each holding a `figure` with a picture and a caption (`figcaption`: “Озеро” (Lake), “Лес” (Forest), “Горы” (Mountains)).",
+   "statement": "Three photos sit in one block with no captions. Build a gallery: a bulleted list of three items, each holding a `figure` with a picture and a caption (`figcaption`: “Lake”, “Forest”, “Mountains”).",
    "hint": "`ul` > `li` > `figure` > `img` and `figcaption`. Do not forget to keep the `alt` on every picture."
   },
   {

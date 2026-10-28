@@ -5,13 +5,13 @@
   {
    "id": "s10-01",
    "title": "Simple CASE",
-   "statement": "Output the order id and the status in Russian: `'new'` — `'новый'`, `'paid'` — `'оплачен'`, `'shipped'` — `'отправлен'`, `'cancelled'` — `'отменён'`. Columns id, status_ru; ordered by id.",
+   "statement": "Output the order id and a status label: `'new'` — `'open'`, `'paid'` — `'settled'`, `'shipped'` — `'dispatched'`, `'cancelled'` — `'voided'`. Columns id, status_label; ordered by id.",
    "hint": "CASE expression WHEN value THEN result … END"
   },
   {
    "id": "s10-02",
    "title": "Conditions in CASE",
-   "statement": "Output title, price and the price class tier: under 1000 — `'дёшево'`, from 1000 to 9999 — `'средне'`, from 10000 — `'дорого'`. Ordered by id.",
+   "statement": "Output title, price and the price class tier: under 1000 — `'cheap'`, from 1000 to 9999 — `'average'`, from 10000 — `'expensive'`. Ordered by id.",
    "hint": "CASE WHEN condition THEN … ELSE … END; branches are checked top to bottom.",
    "starter": "-- Write a query\n"
   },
@@ -25,28 +25,28 @@
   {
    "id": "s10-04",
    "title": "Default city",
-   "statement": "Output name and the city; if there is no city — `'неизвестно'` (via CASE WHEN city IS NULL …). Columns name, city_label; ordered by id.",
+   "statement": "Output name and the city; if there is no city — `'unknown'` (via CASE WHEN city IS NULL …). Columns name, city_label; ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-05",
    "title": "VIP flag",
-   "statement": "Output name and vip_text: `'да'` if vip = 1, otherwise `'нет'`. Ordered by id.",
+   "statement": "Output name and vip_text: `'yes'` if vip = 1, otherwise `'no'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-06",
    "title": "Stock level",
-   "statement": "Output title and the stock status stock_status: 0 — `'нет в наличии'`, less than 20 — `'мало'`, otherwise `'достаточно'`. Ordered by id.",
+   "statement": "Output title and the stock status stock_status: 0 — `'out of stock'`, less than 20 — `'low'`, otherwise `'enough'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-07",
    "title": "Order size",
-   "statement": "Output id and the order size size: total ≥ 40000 — `'крупный'`, ≥ 5000 — `'средний'`, otherwise `'мелкий'`. Ordered by id.",
+   "statement": "Output id and the order size size: total ≥ 40000 — `'large'`, ≥ 5000 — `'medium'`, otherwise `'small'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -67,21 +67,21 @@
   {
    "id": "s10-10",
    "title": "IIF",
-   "statement": "IIF(condition, yes, no) is a short form of CASE. Output title and `IIF(stock = 0, 'нет', 'есть')` as available; ordered by id.",
+   "statement": "IIF(condition, yes, no) is a short form of CASE. Output title and `IIF(stock = 0, 'no', 'yes')` as available; ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-11",
    "title": "Nested CASE",
-   "statement": "Output title and group_label: for electronics — `'дорогая'` if price ≥ 40000, otherwise `'обычная'`; for the other categories — `'не электроника'`. Ordered by id.",
+   "statement": "Output title and group_label: for the category `'Tech'` — `'pricey'` if price ≥ 40000, otherwise `'regular'`; for the other categories — `'not tech'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-12",
    "title": "Comparing columns",
-   "statement": "Output title and note: `'запас дороже цены'` if stock > price, otherwise `'норма'`. Ordered by id.",
+   "statement": "Output title and note: `'stock above price'` if stock > price, otherwise `'normal'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -123,7 +123,7 @@
   {
    "id": "s10-18",
    "title": "Delivery cost",
-   "statement": "Output name and delivery: 0 for Moscow (`'Москва'`), 500 if the city is unknown (NULL), otherwise 300. Ordered by id.",
+   "statement": "Output name and delivery: 0 for Moscow (`'Moscow'`), 500 if the city is unknown (NULL), otherwise 300. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -137,21 +137,21 @@
   {
    "id": "s10-20",
    "title": "The CASE and NULL trap",
-   "statement": "CASE city WHEN NULL … never fires (NULL = NULL is unknown). Output the number of customers that got the label `'пусто'` from the expression `CASE city WHEN NULL THEN 'пусто' ELSE 'есть' END` (it will be 0) as n.",
+   "statement": "CASE city WHEN NULL … never fires (NULL = NULL is unknown). Output the number of customers that got the label `'empty'` from the expression `CASE city WHEN NULL THEN 'empty' ELSE 'yes' END` (it will be 0) as n.",
    "hint": "For NULL you need CASE WHEN city IS NULL.",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-21",
    "title": "CASE instead of COALESCE",
-   "statement": "Output name and contact: the email if there is one, otherwise the city, otherwise `'нет данных'` — using CASE. Ordered by id.",
+   "statement": "Output name and contact: the email if there is one, otherwise the city, otherwise `'no data'` — using CASE. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-22",
    "title": "HR: seniority",
-   "statement": "HR database. Output name and seniority: hired before 2020 — `'ветеран'`, 2020–2022 — `'опытный'`, later — `'новичок'`. Use hired < '2020-01-01' and the like. Ordered by id.",
+   "statement": "HR database. Output name and seniority: hired before 2020 — `'veteran'`, 2020–2022 — `'experienced'`, later — `'newcomer'`. Use hired < '2020-01-01' and the like. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -165,7 +165,7 @@
   {
    "id": "s10-24",
    "title": "HR: department or a note",
-   "statement": "HR database. Output name and dept: the department name from the departments table, and if there is no department — `'без отдела'`. LEFT JOIN and CASE. Ordered by id.",
+   "statement": "HR database. Output name and dept: the department name from the departments table, and if there is no department — `'no department'`. LEFT JOIN and CASE. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -186,7 +186,7 @@
   {
    "id": "s10-27",
    "title": "School: grade in words",
-   "statement": "School database. For the 2024 records, output student_id, course_id and text: 5 — `'отлично'`, 4 — `'хорошо'`, 3 — `'удовлетворительно'`, NULL — `'нет оценки'`. Ordered by student_id, course_id.",
+   "statement": "School database. For the 2024 records, output student_id, course_id and text: 5 — `'excellent'`, 4 — `'good'`, 3 — `'satisfactory'`, NULL — `'no rating'`. Ordered by student_id, course_id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -207,28 +207,28 @@
   {
    "id": "s10-30",
    "title": "School: level",
-   "statement": "School database. Output name and level: classes `9А`/`9Б` — `'основная школа'`, classes 10–11 — `'старшая'`. Ordered by id.",
+   "statement": "School database. Output name and level: classes `9A`/`9B` — `'middle school'`, classes 10–11 — `'high school'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-31",
    "title": "Movies: rating",
-   "statement": "Movies database. Output title and verdict: rating ≥ 8.5 — `'шедевр'`, ≥ 7.5 — `'хорошо'`, otherwise `'средне'`, NULL — `'нет оценки'`. Ordered by id.",
+   "statement": "Movies database. Output title and verdict: rating ≥ 8.5 — `'masterpiece'`, ≥ 7.5 — `'good'`, otherwise `'average'`, NULL — `'no rating'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-32",
    "title": "Movies: era",
-   "statement": "Movies database. Output title and era: year before 2005 — `'классика'`, 2005–2015 — `'недавнее'`, after 2015 — `'новое'`. Ordered by id.",
+   "statement": "Movies database. Output title and era: year before 2005 — `'classic'`, 2005–2015 — `'recent'`, after 2015 — `'new'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s10-33",
    "title": "Movies: budget size",
-   "statement": "Movies database. Output title and scale: budget ≥ 100 — `'блокбастер'`, otherwise `'небольшой'`, NULL — `'неизвестно'`. Ordered by id.",
+   "statement": "Movies database. Output title and scale: budget ≥ 100 — `'blockbuster'`, otherwise `'modest'`, NULL — `'unknown'`. Ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },

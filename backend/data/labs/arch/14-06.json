@@ -25,7 +25,7 @@
         "clock": null,
         "ticks": false,
         "formula": "Y = A",
-        "success": "Провод передаёт сигнал без изменений: что на входе, то и на выходе. Таблица всех входных комбинаций — это «паспорт» схемы, и по нему мы и сверяемся.",
+        "success": "The wire passes the signal unchanged: whatever goes in comes out. The table of all input combinations is the circuit's “passport”, and it is what we check against.",
         "solution": {
           "gates": [],
           "wires": [
@@ -65,8 +65,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ A",
-        "success": "Это инвертор. В процессорах инверсия встречается на каждом шагу — например, когда нужно проверить «не равно». Кстати, решение через NOR тоже засчитывается!",
+        "formula": "Y = NOT A",
+        "success": "This is an inverter. Processors use inversion at every step, for example to test “not equal”. By the way, the NOR-based solution is accepted too!",
         "solution": {
           "gates": [
             {
@@ -124,8 +124,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = A И B",
-        "success": "Вы собрали вентиль И (AND). Он работает как два последовательно соединённых выключателя: ток пройдёт, только если замкнуты оба.",
+        "formula": "Y = A AND B",
+        "success": "You built an AND gate. It works like two switches in series: current flows only if both are closed.",
         "solution": {
           "gates": [
             {
@@ -194,8 +194,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = A ИЛИ B",
-        "success": "Это ИЛИ (OR) — как два выключателя параллельно. Бонус для любопытных: ИЛИ можно собрать из И и двух НЕ, и такое решение тоже зачтётся.",
+        "formula": "Y = A OR B",
+        "success": "This is OR, like two switches in parallel. A bonus for the curious: OR can be built from an AND and NOT gates, and that solution counts too.",
         "solution": {
           "gates": [
             {
@@ -264,8 +264,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ(A ИЛИ B)",
-        "success": "Получился NOR. Забавный факт: из одних только элементов ИЛИ-НЕ (как и из И-НЕ) можно собрать любой процессор целиком.",
+        "formula": "Y = NOT(A OR B)",
+        "success": "That is a NOR. Fun fact: an entire processor can be built from NOR gates alone (or from NAND alone).",
         "solution": {
           "gates": [
             {
@@ -351,8 +351,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ(A И B)",
-        "success": "Это NAND — «универсальный» вентиль. На заводских чипах он один из самых дешёвых, поэтому раньше целые микросхемы строили только на нём.",
+        "formula": "Y = NOT(A AND B)",
+        "success": "This is NAND, the “universal” gate. It is one of the cheapest on a chip, which is why whole integrated circuits used to be built from it alone.",
         "solution": {
           "gates": [
             {
@@ -439,7 +439,7 @@
         "clock": null,
         "ticks": false,
         "formula": "Y = D·E",
-        "success": "Элемент И — это не только «обе стороны согласны», но и КЛЮЧ: разрешение пропускает данные. Так устроен вход разрешения в защёлке (упражнение «D-защёлка») — запомните этот приём.",
+        "success": "An AND gate is not just “both sides agree”, it is also a KEY: the enable lets data through. This is how the enable input of a latch works (see the “D latch” exercise), so remember the trick.",
         "solution": {
           "gates": [
             {
@@ -508,8 +508,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = A·НЕ-B",
-        "success": "Это «ингибитор»: один сигнал разрешает, другой запрещает. Схема R = НЕ-D·E во входе D-защёлки — ровно этот фрагмент. Комбинация И + НЕ встречается постоянно.",
+        "formula": "Y = A·NOT-B",
+        "success": "This is an “inhibitor”: one signal allows, the other forbids. The circuit R = NOT-D·E at the D-latch input is exactly this fragment. The AND + NOT combination shows up all the time.",
         "solution": {
           "gates": [
             {
@@ -595,8 +595,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ A",
-        "success": "B и C не влияют на выход — такие входы называют «не важными» (don't care). Инженеры упрощают таблицы именно так: вычёркивают всё лишнее.",
+        "formula": "Y = NOT A",
+        "success": "B and C do not affect the output; such inputs are called “don't care”. Engineers simplify tables exactly this way: they cross out everything that does not matter.",
         "solution": {
           "gates": [
             {
@@ -654,8 +654,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = (A ИЛИ B) И НЕ(A И B)",
-        "success": "Это XOR — «сложение по модулю 2». Ровно так выглядит одноразрядный сумматор внутри процессора: XOR складывает биты, а перенос даёт элемент И.",
+        "formula": "Y = (A OR B) AND NOT(A AND B)",
+        "success": "This is XOR, “addition modulo 2”. A one-bit adder inside a processor looks exactly like this: XOR adds the bits, and an AND gate produces the carry.",
         "solution": {
           "gates": [
             {
@@ -797,8 +797,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = A·B; nY = НЕ(A·B)",
-        "success": "Выходы-близнецы Y и nY называют «парой». В защёлках вы встретите пару Q и nQ, а в сумматорах — сумму и перенос: одна схема, несколько ответов.",
+        "formula": "Y = A·B; nY = NOT(A·B)",
+        "success": "Twin outputs Y and nY are called a “pair”. You will meet the pair Q and nQ in latches, and sum and carry in adders: one circuit, several answers.",
         "solution": {
           "gates": [
             {
@@ -895,8 +895,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Q = НЕ(A⊕B) = A⊙B",
-        "success": "Это XNOR — «исключающее ИЛИ-НЕ», элемент равенства. Сравнивать биты так будет АЛУ. Собрав это упражнение, вы открыли готовый XNOR в палитре — соберите XOR, если ещё не.",
+        "formula": "Q = NOT(A⊕B) = A⊙B",
+        "success": "This is XNOR, “exclusive NOR”, the equality gate. The ALU will compare bits this way. By finishing this exercise you unlocked a ready-made XNOR in the palette; build XOR too if you have not yet.",
         "solution": {
           "gates": [
             {
@@ -1055,8 +1055,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = AB ИЛИ AC ИЛИ BC",
-        "success": "Мажоритарная схема «голосует»: большинство входов решает. Так делают в системах надёжности — например, три датчика подтверждают показания.",
+        "formula": "Y = AB OR AC OR BC",
+        "success": "A majority circuit “votes”: most of the inputs decide. It is used in reliability systems, for example when three sensors confirm a reading.",
         "solution": {
           "gates": [
             {
@@ -1237,8 +1237,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Y = НЕ-A·B ИЛИ A·C",
-        "success": "Вы собрали мультиплексор 2→1 — схему выбора данных. Именно мультиплексоры решают, какие данные пойдут дальше по процессору. Это уже почти архитектура!",
+        "formula": "Y = NOT-A·B OR A·C",
+        "success": "You built a 2→1 multiplexer, a data-selection circuit. Multiplexers decide which data goes on through the processor. This is almost architecture already!",
         "solution": {
           "gates": [
             {

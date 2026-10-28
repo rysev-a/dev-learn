@@ -1,72 +1,37 @@
 {
- "book": 15,
- "chapter": 11,
- "lab": "net",
- "tasks": [
-  {
-   "id": "n11-404",
-   "title": "Page not found",
-   "statement": "The “About” link leads to /about, but the server answers 404 Not Found. Open the browser terminal (PC) and run `curl -v http://www.example.org/about`: the status line of the response shows the code. On the web server add a /about route with code 200 and a text containing the word “About”.",
-   "hint": "On the server: `web route /about 200 About us page` or the “+ route” form (path /about, code 200, text). Then run curl again.",
-   "spec_text": {
-    "/goals/0/text": "GET /about returns 200",
-    "/goals/1/text": "The home page is still available",
-    "/start/devices/0/name": "Browser (PC)",
-    "/start/devices/1/name": "Switch",
-    "/start/devices/2/name": "Web server"
-   }
-  },
-  {
-   "id": "n11-redirect",
-   "title": "Permanent redirect",
-   "statement": "The page /old-page has moved to /new-page, but the old address now gives 404 and search engines are losing links. Configure a permanent 301 redirect on the server from the old address to the new one. Check it two ways: `curl -I` shows 301 and the Location header, and `curl -L` reaches the final page.",
-   "hint": "`web redirect /old-page 301 /new-page` or the form with code 301 and the destination address in the last field.",
-   "spec_text": {
-    "/goals/0/text": "The old address gives 301 with Location: /new-page",
-    "/goals/1/text": "curl -L reaches /new-page with code 200 in two requests",
-    "/start/devices/0/name": "Browser (PC)",
-    "/start/devices/1/name": "Switch",
-    "/start/devices/2/name": "Web server"
-   }
-  },
-  {
-   "id": "n11-cache",
-   "title": "Cache: static for long, private never",
-   "statement": "The site serves the logo /logo.png and the account page /account without caching headers. The browser downloads the logo again every time, and the account page may be stored by a shared cache. Add headers: Cache-Control: max-age=31536000 (one year) for the logo and Cache-Control: no-store for the private page.",
-   "hint": "`web header /logo.png Cache-Control max-age=31536000` and `web header /account Cache-Control no-store`. Check: `curl -I http://www.example.org/logo.png`.",
-   "spec_text": {
-    "/goals/0/text": "/logo.png: Cache-Control with max-age=31536000",
-    "/start/devices/0/name": "Browser (PC)",
-    "/start/devices/1/name": "Switch",
-    "/start/devices/2/name": "Web server"
-   }
-  },
-  {
-   "id": "n11-cookie",
-   "title": "Secure session cookie",
-   "statement": "After login at /login the server issues the session cookie with the header Set-Cookie: sid=9f3a and no flags, so any script on the page can read it, and over plain HTTP it travels in clear text. Fix the header so that it contains HttpOnly, Secure and SameSite=Lax.",
-   "hint": "`web header /login Set-Cookie sid=9f3a; HttpOnly; Secure; SameSite=Lax` — the same header replaces the previous one.",
-   "spec_text": {
-    "/goals/0/text": "Set-Cookie contains HttpOnly",
-    "/goals/1/text": "Set-Cookie contains Secure",
-    "/goals/2/text": "Set-Cookie contains SameSite=Lax",
-    "/start/devices/0/name": "Browser (PC)",
-    "/start/devices/1/name": "Switch",
-    "/start/devices/2/name": "Web server"
-   }
-  },
-  {
-   "id": "n11-etag",
-   "title": "Conditional request and 304",
-   "statement": "The large reference /data rarely changes. A client that already has a copy should get a short 304 Not Modified response instead of downloading it again. Give the resource the ETag \"v42\" and check: `curl -H \"If-None-Match: \\\"v42\\\"\" -v http://www.example.org/data`.",
-   "hint": "`web etag /data \"v42\"` (the quotes are part of the value). A request with If-None-Match equal to the ETag gets 304 with no body.",
-   "spec_text": {
-    "/goals/0/text": "The response contains an ETag header",
-    "/goals/1/text": "A repeated request with If-None-Match gets 304",
-    "/start/devices/0/name": "Browser (PC)",
-    "/start/devices/1/name": "Switch",
-    "/start/devices/2/name": "Web server"
-   }
-  }
- ]
+  "book": 15,
+  "chapter": 11,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n11-404",
+      "title": "Page not found",
+      "statement": "The “About” link leads to /about, but the server answers 404 Not Found. Open the browser terminal (PC) and run `curl -v http://www.example.org/about`: the status line of the response shows the code. On the web server add a /about route with code 200 and a text containing the word “About”.",
+      "hint": "On the server: `web route /about 200 About us page` or the “+ route” form (path /about, code 200, text). Then run curl again."
+    },
+    {
+      "id": "n11-redirect",
+      "title": "Permanent redirect",
+      "statement": "The page /old-page has moved to /new-page, but the old address now gives 404 and search engines are losing links. Configure a permanent 301 redirect on the server from the old address to the new one. Check it two ways: `curl -I` shows 301 and the Location header, and `curl -L` reaches the final page.",
+      "hint": "`web redirect /old-page 301 /new-page` or the form with code 301 and the destination address in the last field."
+    },
+    {
+      "id": "n11-cache",
+      "title": "Cache: static for long, private never",
+      "statement": "The site serves the logo /logo.png and the account page /account without caching headers. The browser downloads the logo again every time, and the account page may be stored by a shared cache. Add headers: Cache-Control: max-age=31536000 (one year) for the logo and Cache-Control: no-store for the private page.",
+      "hint": "`web header /logo.png Cache-Control max-age=31536000` and `web header /account Cache-Control no-store`. Check: `curl -I http://www.example.org/logo.png`."
+    },
+    {
+      "id": "n11-cookie",
+      "title": "Secure session cookie",
+      "statement": "After login at /login the server issues the session cookie with the header Set-Cookie: sid=9f3a and no flags, so any script on the page can read it, and over plain HTTP it travels in clear text. Fix the header so that it contains HttpOnly, Secure and SameSite=Lax.",
+      "hint": "`web header /login Set-Cookie sid=9f3a; HttpOnly; Secure; SameSite=Lax` — the same header replaces the previous one."
+    },
+    {
+      "id": "n11-etag",
+      "title": "Conditional request and 304",
+      "statement": "The large reference /data rarely changes. A client that already has a copy should get a short 304 Not Modified response instead of downloading it again. Give the resource the ETag \"v42\" and check: `curl -H \"If-None-Match: \\\"v42\\\"\" -v http://www.example.org/data`.",
+      "hint": "`web etag /data \"v42\"` (the quotes are part of the value). A request with If-None-Match equal to the ETag gets 304 with no body."
+    }
+  ]
 }

@@ -12,15 +12,15 @@
   {
    "id": "intro-types",
    "title": "Value types",
-   "statement": "Print, one per line, the type names of the values 5, 2.5, \"привет\" and True (in that order): int, float, str, bool. Get them with the type function instead of typing the words by hand.",
+   "statement": "Print, one per line, the type names of the values 5, 2.5, \"hello\" and True (in that order): int, float, str, bool. Get them with the type function instead of typing the words by hand.",
    "hint": "print(type(5).__name__), and the same for each value.",
    "starter": "# type(value).__name__ gives the type name\n"
   },
   {
    "id": "intro-parity",
    "title": "Condition",
-   "statement": "Write a function parity(n) that returns the string «чётное» if n is divisible by 2 with no remainder, and «нечётное» otherwise.",
-   "hint": "if n % 2 == 0: return \"чётное\"; otherwise return «нечётное»."
+   "statement": "Write a function parity(n) that returns the string «even» if n is divisible by 2 with no remainder, and «odd» otherwise.",
+   "hint": "if n % 2 == 0: return \"even\"; otherwise return «odd»."
   },
   {
    "id": "intro-loop",
@@ -37,8 +37,8 @@
   {
    "id": "intro-class",
    "title": "Class",
-   "statement": "Define a class Dog: when you create Dog(\"Рекс\"), it stores the name, and the method speak() returns the string «Рекс: гав» (with the name substituted). Print nothing: the checker will call your class itself.",
-   "hint": "Store self.name in __init__; in speak return f\"{self.name}: гав\"."
+   "statement": "Define a class Dog: when you create Dog(\"Rex\"), it stores the name, and the method speak() returns the string «Rex: woof» (with the name substituted). Print nothing: the checker will call your class itself.",
+   "hint": "Store self.name in __init__; in speak return f\"{self.name}: woof\"."
   }
  ]
 }

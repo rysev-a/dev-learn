@@ -53,14 +53,14 @@
   {
    "id": "s04-08",
    "title": "Replacing a gap",
-   "statement": "Output the customer's name and city; if the city is not given, substitute `'не указан'` (COALESCE). Columns name, city.",
+   "statement": "Output the customer's name and city; if the city is not given, substitute 'not specified' (COALESCE). Columns name, city.",
    "hint": "COALESCE(a, b, ...) returns the first non-empty value.",
    "starter": "-- Write your query\n"
   },
   {
    "id": "s04-09",
    "title": "Replacing the email",
-   "statement": "Output name and email, substituting `'нет почты'` for NULL.",
+   "statement": "Output name and email, substituting `'no email'` for NULL.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -74,7 +74,7 @@
   {
    "id": "s04-11",
    "title": "First non-empty",
-   "statement": "Output name and the first non-empty of email, city, `'пусто'` (COALESCE with three arguments) as contact.",
+   "statement": "Output name and the first non-empty of email, city, `'empty'` (COALESCE with three arguments) as contact.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -88,7 +88,7 @@
   {
    "id": "s04-13",
    "title": "Concatenation with COALESCE",
-   "statement": "Output name || `', '` || COALESCE(city, `'город неизвестен'`) as label for all customers.",
+   "statement": "Output name || `', '` || COALESCE(city, `'city unknown'`) as label for all customers.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -130,14 +130,14 @@
   {
    "id": "s04-19",
    "title": "Not Moscow, and NULL too",
-   "statement": "The condition city <> `'Москва'` drops customers with no city. Output the name of everyone whose city is not `'Москва'`, including those whose city is unknown.",
+   "statement": "The condition city <> `'Moscow'` drops customers with no city. Output the name of everyone whose city is not `'Moscow'`, including those whose city is unknown.",
    "hint": "Add OR city IS NULL.",
    "starter": "-- Write your query\n"
   },
   {
    "id": "s04-20",
    "title": "IS NOT, a safe comparison",
-   "statement": "In SQLite, the IS NOT operator works as 'not equal' and takes NULL into account. Output the name of customers whose city IS NOT `'Москва'`.",
+   "statement": "In SQLite, the IS NOT operator works as 'not equal' and takes NULL into account. Output the name of customers whose city IS NOT `'Moscow'`.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -151,14 +151,14 @@
   {
    "id": "s04-22",
    "title": "Names starting with A",
-   "statement": "Output the name of customers that start with the letter «А» (`LIKE 'А%'`).",
+   "statement": "Output the name of customers that start with the letter «A» (`LIKE 'A%'`).",
    "hint": "",
    "starter": "-- Write your query\n"
   },
   {
    "id": "s04-23",
    "title": "Surnames ending in -ov",
-   "statement": "Output the name of customers whose surname ends in «ов» (`LIKE '%ов'`).",
+   "statement": "Output the name of customers whose surname ends in «ov» (`LIKE '%ov'`).",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -193,7 +193,7 @@
   {
    "id": "s04-28",
    "title": "Trimming spaces",
-   "statement": "Output trim(`'  привет  '`) as t, ltrim(`'  привет  '`) as l, rtrim(`'  привет  '`) as r.",
+   "statement": "Output trim(`'  hello  '`) as t, ltrim(`'  hello  '`) as l, rtrim(`'  hello  '`) as r.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -207,7 +207,7 @@
   {
    "id": "s04-30",
    "title": "Replacing text",
-   "statement": "Output the title of products, replacing the word «Книга» with «Учебник» (replace). Only the titles where the word occurs.",
+   "statement": "Output the title of products, replacing the word «Book» with «Textbook» (replace). Only the titles where the word occurs.",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -228,7 +228,7 @@
   {
    "id": "s04-33",
    "title": "Number to text",
-   "statement": "Output `'Заказ №'` || id as label for the first five orders (by id).",
+   "statement": "Output `'Order №'` || id as label for the first five orders (by id).",
    "hint": "",
    "starter": "-- Write your query\n"
   },
@@ -249,7 +249,7 @@
   {
    "id": "s04-36",
    "title": "GLOB",
-   "statement": "GLOB is like LIKE, but case matters and it uses * and ?. Output the name of customers whose city starts with `'М'` (`city GLOB 'М*'`).",
+   "statement": "GLOB is like LIKE, but case matters and it uses * and ?. Output the name of customers whose city starts with `'M'` (`city GLOB 'M*'`).",
    "hint": "",
    "starter": "-- Write your query\n"
   },

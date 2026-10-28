@@ -32,7 +32,7 @@
   {
    "id": "s09-05",
    "title": "DEFAULT in action",
-   "statement": "Create the table tasks (as in the previous exercise), add a row (title = `'написать отчёт'`) without status and priority, and make sure the default values were filled in.",
+   "statement": "Create the table tasks (as in the previous exercise), add a row (title = `'write report'`) without status and priority, and make sure the default values were filled in.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -74,7 +74,7 @@
   {
    "id": "s09-11",
    "title": "NOT NULL in action",
-   "statement": "Create a table people: id INTEGER PRIMARY KEY, name TEXT NOT NULL. INSERT OR IGNORE two rows: (`'Анна'`) and (NULL). One will remain.",
+   "statement": "Create a table people: id INTEGER PRIMARY KEY, name TEXT NOT NULL. INSERT OR IGNORE two rows: (`'Anna'`) and (NULL). One will remain.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -129,7 +129,7 @@
   {
    "id": "s09-19",
    "title": "New column and data",
-   "statement": "Add a column note TEXT to orders and fill it for order 1 with the value `'подарок'`.",
+   "statement": "Add a column note TEXT to orders and fill it for order 1 with the value `'gift'`.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -248,7 +248,7 @@
   {
    "id": "s09-36",
    "title": "School: a new table",
-   "statement": "School database. Create a table teachers(id INTEGER PRIMARY KEY, name TEXT NOT NULL, subject TEXT) and add two teachers: `'Н. Крылова'` (subject `'Математика'`) and `'А. Беляев'` (subject `'Физика'`).",
+   "statement": "School database. Create a table teachers(id INTEGER PRIMARY KEY, name TEXT NOT NULL, subject TEXT) and add two teachers: `'N. Krylova'` (subject `'Math'`) and `'A. Belyaev'` (subject `'Physics'`).",
    "hint": "",
    "starter": "-- Write a query\n"
   },

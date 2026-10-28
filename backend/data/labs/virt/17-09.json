@@ -32,7 +32,7 @@
         "goals": [
           {
             "id": "deep",
-            "text": "Прочитайте кластер из базы при цепочке в 4 слоя и больше: чтение стоит 4 обращения и больше",
+            "text": "Read a cluster from the base with a chain of 4 or more layers: the read costs 4 or more lookups",
             "rule": {
               "kind": "deep",
               "min_chain": 4,
@@ -41,7 +41,7 @@
           },
           {
             "id": "squash",
-            "text": "Слейте слои (commit), чтобы цепочка из 4 слоёв сократилась до двух",
+            "text": "Merge the layers (commit) so that the 4-layer chain shrinks to two",
             "rule": {
               "kind": "squash",
               "min_chain": 4,
@@ -50,7 +50,7 @@
           },
           {
             "id": "rollback",
-            "text": "Запишите кластер в верхний слой, откатите слой — и убедитесь, что старые данные вернулись",
+            "text": "Write a cluster to the top layer, roll the layer back — and make sure the old data is back",
             "rule": {
               "kind": "rollback"
             }

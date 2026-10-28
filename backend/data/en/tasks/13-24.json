@@ -23,8 +23,8 @@
   {
    "id": "gx-close-cleanup",
    "title": "Cleanup on close",
-   "statement": "Write a generator lines(items): on the first request it prints «открыто» (\"opened\"), then yields the items one by one, and on any ending, including an early one through close(), it prints «закрыто» (\"closed\"). Print exactly the Russian words in quotes.",
-   "hint": "print(\"открыто\"); try: for item in items: yield item; finally: print(\"закрыто\")."
+   "statement": "Write a generator lines(items): on the first request it prints open, then yields the items one by one, and on any ending, including an early one through close(), it prints closed.",
+   "hint": "print(\"open\"); try: for item in items: yield item; finally: print(\"closed\")."
   },
   {
    "id": "gx-return-value",

@@ -15,7 +15,7 @@
             {
               "id": "pa",
               "kind": "host",
-              "name": "ПК А",
+              "name": "PC A",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -113,7 +113,7 @@
             {
               "id": "pb",
               "kind": "host",
-              "name": "ПК Б",
+              "name": "PC B",
               "x": 570,
               "y": 180,
               "ifaces": [
@@ -167,7 +167,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК А достаёт до ПК Б",
+            "text": "PC A reaches PC B",
             "ping": {
               "from": "pa",
               "to": "@pb"
@@ -175,7 +175,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК Б достаёт до ПК А",
+            "text": "PC B reaches PC A",
             "ping": {
               "from": "pb",
               "to": "@pa"
@@ -208,7 +208,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 70,
               "y": 180,
               "ifaces": [
@@ -240,7 +240,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Офисный маршрутизатор",
+              "name": "Office router",
               "x": 230,
               "y": 180,
               "ifaces": [
@@ -273,7 +273,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -312,7 +312,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 570,
               "y": 180,
               "ifaces": [
@@ -371,7 +371,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК пингует сайт",
+            "text": "The PC pings the website",
             "ping": {
               "from": "pc1",
               "to": "@web"
@@ -379,7 +379,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК открывает порт 80 сайта",
+            "text": "The PC opens port 80 on the website",
             "tcp": {
               "from": "pc1",
               "to": "@web",
@@ -408,7 +408,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 50,
               "y": 180,
               "ifaces": [
@@ -523,7 +523,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 480,
               "y": 180,
               "ifaces": [
@@ -562,7 +562,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 595,
               "y": 180,
               "ifaces": [
@@ -622,7 +622,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК пингует сайт",
+            "text": "The PC pings the website",
             "ping": {
               "from": "pc1",
               "to": "@web"
@@ -655,7 +655,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 50,
               "y": 180,
               "ifaces": [
@@ -687,7 +687,7 @@
             {
               "id": "core",
               "kind": "router",
-              "name": "Центр",
+              "name": "Center",
               "x": 210,
               "y": 180,
               "ifaces": [
@@ -733,7 +733,7 @@
             {
               "id": "near",
               "kind": "router",
-              "name": "Ближний",
+              "name": "Near",
               "x": 400,
               "y": 80,
               "ifaces": [
@@ -772,7 +772,7 @@
             {
               "id": "far",
               "kind": "router",
-              "name": "Дальний",
+              "name": "Far",
               "x": 400,
               "y": 290,
               "ifaces": [
@@ -811,7 +811,7 @@
             {
               "id": "s1",
               "kind": "server",
-              "name": "Сервер 1",
+              "name": "Server 1",
               "x": 580,
               "y": 80,
               "ifaces": [
@@ -843,7 +843,7 @@
             {
               "id": "s2",
               "kind": "server",
-              "name": "Сервер 2",
+              "name": "Server 2",
               "x": 580,
               "y": 290,
               "ifaces": [
@@ -909,7 +909,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК пингует сервер 1 быстрее 3 мс",
+            "text": "The PC pings server 1 in under 3 ms",
             "ping": {
               "from": "pc1",
               "to": "@s1",
@@ -918,7 +918,7 @@
           },
           {
             "id": "g2",
-            "text": "Путь к серверу 1 идёт через «Ближний»",
+            "text": "The path to server 1 goes through “Near”",
             "ping": {
               "from": "pc1",
               "to": "@s1",
@@ -928,7 +928,7 @@
           },
           {
             "id": "g3",
-            "text": "Сервер 2 по-прежнему доступен через «Дальний»",
+            "text": "Server 2 is still reachable through “Far”",
             "ping": {
               "from": "pc1",
               "to": "@s2",
@@ -957,7 +957,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -1061,7 +1061,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 570,
               "y": 180,
               "ifaces": [
@@ -1115,7 +1115,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК пингует сервер",
+            "text": "The PC pings the server",
             "ping": {
               "from": "pc1",
               "to": "@srv"

@@ -5,98 +5,98 @@
   {
    "id": "r37-abort-inflight",
    "title": "abort in flight",
-   "statement": "Spawn a task that prints «start», sleeps 100 ms and prints «end». After 20 ms cancel it (abort), await the handle and print «отменена: true» (JoinError::is_cancelled).\n\nExpected output:\n«start\nотменена: true»",
+   "statement": "Spawn a task that prints \"start\", sleeps 100 ms and prints \"end\". After 20 ms cancel it (abort), await the handle and print \"cancelled: true\" (JoinError::is_cancelled).\n\nExpected output:\n`start`\n`cancelled: true`",
    "hint": "let e = h.await.unwrap_err(); e.is_cancelled()",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-drop-future",
    "title": "Drop of a cancelled future",
-   "statement": "Declare a struct Guard with a Drop that prints «drop guard». In select! the first branch is an async block that creates a Guard and sleeps 200 ms; the second sleeps 20 ms and prints «тайм-аут». See what is printed and in what order: the losing future is destroyed together with its local values.\n\nExpected output:\n«drop guard\nтайм-аут»",
+   "statement": "Declare a struct Guard with a Drop that prints \"drop guard\". In select! the first branch is an async block that creates a Guard and sleeps 200 ms; the second sleeps 20 ms and prints \"time-out\". See what is printed and in what order: the losing future is destroyed together with its local values.\n\nExpected output:\n`drop guard`\n`time-out`",
    "hint": "The Guard lives inside the async block and is destroyed when the block is dropped.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-is-finished",
    "title": "abort and is_finished",
-   "statement": "Spawn a task that sleeps 1 s, cancel it (abort), wait 10 ms and print «завершена: true» based on is_finished().\n\nExpected output:\n«завершена: true»",
+   "statement": "Spawn a task that sleeps 1 s, cancel it (abort), wait 10 ms and print \"finished: true\" based on is_finished().\n\nExpected output:\n`finished: true`",
    "hint": "After abort the task finishes at the nearest .await; is_finished() will show true.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-detached",
    "title": "A dropped handle does not cancel",
-   "statement": "Spawn a task: sleep 30 ms and print «работает». Immediately drop the JoinHandle and wait 100 ms in main. The task must manage to print its line.\n\nExpected output:\n«работает»",
+   "statement": "Spawn a task: sleep 30 ms and print \"running\". Immediately drop the JoinHandle and wait 100 ms in main. The task must manage to print its line.\n\nExpected output:\n`running`",
    "hint": "drop(handle) does not call abort: the task stays alive.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-token-loop",
    "title": "A loop with a token",
-   "statement": "A task in a select! loop waits for tokio_util::sync::CancellationToken::cancelled() or a 10 ms sleep (count them). After 50 ms main cancels the token. The task prints «остановлена», and main waits for it.\n\nExpected output:\n«остановлена»",
+   "statement": "A task in a select! loop waits for tokio_util::sync::CancellationToken::cancelled() or a 10 ms sleep (count them). After 50 ms main cancels the token. The task prints \"stopped\", and main waits for it.\n\nExpected output:\n`stopped`",
    "hint": "tokio::select! { _ = token.cancelled() => break, _ = sleep(..) => n += 1 }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-child-token",
    "title": "A tree of tokens",
-   "statement": "Create a parent token and a child one (child_token()). Cancel the parent and print «дочерний: true» (child.is_cancelled()). Then create a new pair, cancel the child and print «родитель: false».\n\nExpected output:\n«дочерний: true\nродитель: false»",
+   "statement": "Create a parent token and a child one (child_token()). Cancel the parent and print \"child: true\" (child.is_cancelled()). Then create a new pair, cancel the child and print \"parent: false\".\n\nExpected output:\n`child: true`\n`parent: false`",
    "hint": "Cancellation goes down the tree, but not up.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-cancelled-await",
    "title": "Waiting for the signal",
-   "statement": "The spawned task waits on token.cancelled().await and prints «сигнал получен». Main (after a 20 ms pause) prints «отменяем», cancels the token and waits for the task.\n\nExpected output:\n«отменяем\nсигнал получен»",
+   "statement": "The spawned task waits on token.cancelled().await and prints \"signal received\". Main (after a 20 ms pause) prints \"cancelling\", cancels the token and waits for the task.\n\nExpected output:\n`cancelling`\n`signal received`",
    "hint": "cancel() wakes everyone waiting on cancelled().",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-drop-guard",
    "title": "The token's DropGuard",
-   "statement": "Get drop_guard() from a clone of the token in a separate block; after leaving the block print «отменён: true» (token.is_cancelled()).\n\nExpected output:\n«отменён: true»",
+   "statement": "Get drop_guard() from a clone of the token in a separate block; after leaving the block print \"cancelled: true\" (token.is_cancelled()).\n\nExpected output:\n`cancelled: true`",
    "hint": "{ let _g = token.clone().drop_guard(); }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-broadcast-shutdown",
    "title": "Shutdown by broadcast",
-   "statement": "Spawn three worker tasks, each waiting for a stop message from a broadcast channel and returning its own number. After 20 ms main sends the signal, collects the numbers (JoinSet) and prints «остановлено: 3».\n\nExpected output:\n«остановлено: 3»",
+   "statement": "Spawn three worker tasks, each waiting for a stop message from a broadcast channel and returning its own number. After 20 ms main sends the signal, collects the numbers (JoinSet) and prints \"stopped: 3\".\n\nExpected output:\n`stopped: 3`",
    "hint": "let mut rx = tx.subscribe(); rx.recv().await; JoinSet::join_next().",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-task-tracker",
    "title": "TaskTracker",
-   "statement": "Spawn three tasks through a TaskTracker with sleeps of 10, 20 and 30 ms, close the tracker (close) and wait (wait). Print «все завершены».\n\nExpected output:\n«все завершены»",
+   "statement": "Spawn three tasks through a TaskTracker with sleeps of 10, 20 and 30 ms, close the tracker (close) and wait (wait). Print \"all finished\".\n\nExpected output:\n`all finished`",
    "hint": "use tokio_util::task::TaskTracker; tracker.spawn(..); tracker.close(); tracker.wait().await",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-joinset-sum",
    "title": "JoinSet: sum",
-   "statement": "Spawn three tasks in a JoinSet that return 1, 2 and 3. Add up the results as they become ready (join_next) and print «сумма: 6».\n\nExpected output:\n«сумма: 6»",
+   "statement": "Spawn three tasks in a JoinSet that return 1, 2 and 3. Add up the results as they become ready (join_next) and print \"sum: 6\".\n\nExpected output:\n`sum: 6`",
    "hint": "while let Some(r) = set.join_next().await { sum += r.unwrap(); }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-cleanup-abort",
    "title": "Cleanup on abort",
-   "statement": "A task creates a Guard with a Drop that prints «очистка» and sleeps for a second. After 20 ms cancel it, await the handle and print «отменена». The cleanup must happen first.\n\nExpected output:\n«очистка\nотменена»",
+   "statement": "A task creates a Guard with a Drop that prints \"cleanup\" and sleeps for a second. After 20 ms cancel it, await the handle and print \"cancelled\". The cleanup must happen first.\n\nExpected output:\n`cleanup`\n`cancelled`",
    "hint": "Drop runs when the future is dropped, before h.await returns.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-semaphore-peak",
    "title": "The concurrency limit",
-   "statement": "Process 10 jobs, limiting concurrency with a semaphore of 3 permits. In each job increment a counter of active jobs (AtomicUsize), update the maximum, sleep 30 ms and decrement. Print «пик: 3».\n\nExpected output:\n«пик: 3»",
+   "statement": "Process 10 jobs, limiting concurrency with a semaphore of 3 permits. In each job increment a counter of active jobs (AtomicUsize), update the maximum, sleep 30 ms and decrement. Print \"peak: 3\".\n\nExpected output:\n`peak: 3`",
    "hint": "fetch_max for the peak; keep the permit in a variable for the duration of the sleep.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-load-shed",
    "title": "Load shedding",
-   "statement": "A queue with 2 slots and no consumer. Send 5 jobs through try_send; count the accepted and the dropped (Full). Print «принято 2, отброшено 3».\n\nExpected output:\n«принято 2, отброшено 3»",
+   "statement": "A queue with 2 slots and no consumer. Send 5 jobs through try_send; count the accepted and the dropped (Full). Print \"accepted 2, dropped 3\".\n\nExpected output:\n`accepted 2, dropped 3`",
    "hint": "Err(TrySendError::Full(_)) => rejected += 1",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -110,56 +110,56 @@
   {
    "id": "r37-blocking-parallel",
    "title": "spawn_blocking does not interfere",
-   "statement": "On a single-threaded runtime (flavor = \"current_thread\") spawn a ticker task: every 10 ms it increments a counter. Meanwhile await a spawn_blocking with a blocking std::thread::sleep of 100 ms. Then stop the ticker and print «работал параллельно: true» if there were at least 5 ticks.\n\nExpected output:\n«работал параллельно: true»",
+   "statement": "On a single-threaded runtime (flavor = \"current_thread\") spawn a ticker task: every 10 ms it increments a counter. Meanwhile await a spawn_blocking with a blocking std::thread::sleep of 100 ms. Then stop the ticker and print \"ran in parallel: true\" if there were at least 5 ticks.\n\nExpected output:\n`ran in parallel: true`",
    "hint": "spawn_blocking(|| std::thread::sleep(..)).await: while we wait, the runtime thread is free for the ticker.",
    "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-fix-blocking",
    "title": "Fix: a blocking sleep in a task",
-   "statement": "The ticker on a single-threaded runtime gets no time: main does the \"heavy work\" (std::thread::sleep for 100 ms) right in the asynchronous function. Move it into spawn_blocking so the ticker manages to fire at least 5 times: the output must be «тиков не меньше 5: true».\n\nExpected output:\n«тиков не меньше 5: true»",
+   "statement": "The ticker on a single-threaded runtime gets no time: main does the \"heavy work\" (std::thread::sleep for 100 ms) right in the asynchronous function. Move it into spawn_blocking so the ticker manages to fire at least 5 times: the output must be \"ticks at least 5: true\".\n\nExpected output:\n`ticks at least 5: true`",
    "hint": "tokio::task::spawn_blocking(|| std::thread::sleep(..)).await.unwrap();",
-   "starter": "use std::sync::atomic::{AtomicUsize, Ordering};\nuse std::sync::Arc;\nuse std::time::Duration;\nuse tokio::time::sleep;\n\n#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    let ticks = Arc::new(AtomicUsize::new(0));\n    let t = ticks.clone();\n    let ticker = tokio::spawn(async move {\n        loop {\n            sleep(Duration::from_millis(10)).await;\n            t.fetch_add(1, Ordering::SeqCst);\n        }\n    });\n    std::thread::sleep(Duration::from_millis(100)); // heavy work\n    ticker.abort();\n    println!(\"тиков не меньше 5: {}\", ticks.load(Ordering::SeqCst) >= 5);\n}\n"
+   "starter": "use std::sync::atomic::{AtomicUsize, Ordering};\nuse std::sync::Arc;\nuse std::time::Duration;\nuse tokio::time::sleep;\n\n#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    let ticks = Arc::new(AtomicUsize::new(0));\n    let t = ticks.clone();\n    let ticker = tokio::spawn(async move {\n        loop {\n            sleep(Duration::from_millis(10)).await;\n            t.fetch_add(1, Ordering::SeqCst);\n        }\n    });\n    std::thread::sleep(Duration::from_millis(100)); // heavy work\n    ticker.abort();\n    println!(\"ticks at least 5: {}\", ticks.load(Ordering::SeqCst) >= 5);\n}\n"
   },
   {
    "id": "r37-join-panic",
    "title": "A panic in a task",
-   "statement": "Spawn a task that panics (panic!), await the handle and print «паника: true» based on JoinError::is_panic(). The program must not crash.\n\nExpected output:\n«паника: true»",
+   "statement": "Spawn a task that panics (panic!), await the handle and print \"panic: true\" based on JoinError::is_panic(). The program must not crash.\n\nExpected output:\n`panic: true`",
    "hint": "let e = h.await.unwrap_err(); e.is_panic()",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-supervisor",
    "title": "A supervisor",
-   "statement": "On its first two runs the task panics, on the third it finishes normally; each run prints «запуск N». Write a supervisor loop: while the handle returns an error, start the task again. After success print «готово».\n\nExpected output:\n«запуск 1\nзапуск 2\nзапуск 3\nготово»",
+   "statement": "On its first two runs the task panics, on the third it finishes normally; each run prints \"launch N\". Write a supervisor loop: while the handle returns an error, start the task again. After success print \"done\".\n\nExpected output:\n`launch 1`\n`launch 2`\n`launch 3`\n`done`",
    "hint": "An AtomicUsize counts the runs; if tokio::spawn(..).await.is_ok() { break }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-retry-limit",
    "title": "Retries with a limit",
-   "statement": "The operation always fails (Err(\"fail\")). Retry it at most 3 times with a 10 ms pause between attempts. Print «попыток: 3» and «итог: Err».\n\nExpected output:\n«попыток: 3\nитог: Err»",
+   "statement": "The operation always fails (Err(\"fail\")). Retry it at most 3 times with a 10 ms pause between attempts. Print \"attempts: 3\" and \"result: Err\".\n\nExpected output:\n`attempts: 3`\n`result: Err`",
    "hint": "An attempt counter, a pause after each failure, exit on the limit.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-interval-limit",
    "title": "Rate limiting with an interval",
-   "statement": "Process 5 events, before each one waiting for tick() of a 20 ms interval (the first tick is immediate). Print «ограничено: true» if everything took at least 70 ms.\n\nExpected output:\n«ограничено: true»",
+   "statement": "Process 5 events, before each one waiting for tick() of a 20 ms interval (the first tick is immediate). Print \"limited: true\" if everything took at least 70 ms.\n\nExpected output:\n`limited: true`",
    "hint": "Ticks at 0, 20, 40, 60, 80 ms: the last event is at 80 ms.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-refill",
    "title": "A token bucket",
-   "statement": "A semaphore with no permits and a background task: every 20 ms it adds one permit (add_permits(1)). Main takes three permits in a row (acquire().await.forget()). Print «пополнение работает: true» if this took at least 55 ms.\n\nExpected output:\n«пополнение работает: true»",
+   "statement": "A semaphore with no permits and a background task: every 20 ms it adds one permit (add_permits(1)). Main takes three permits in a row (acquire().await.forget()). Print \"refill works: true\" if this took at least 55 ms.\n\nExpected output:\n`refill works: true`",
    "hint": "sem.acquire().await.unwrap().forget(): the token is spent, not returned.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-bucket-burst",
    "title": "Burst and waiting",
-   "statement": "A bucket of 3 tokens, initially full, refilled one token every 50 ms. Take 3 tokens (it must take less than 20 ms) and print «всплеск: true», then take a fourth and print «четвёртый ждал: true» (at least 40 ms).\n\nExpected output:\n«всплеск: true\nчетвёртый ждал: true»",
+   "statement": "A bucket of 3 tokens, initially full, refilled one token every 50 ms. Take 3 tokens (it must take less than 20 ms) and print \"burst: true\", then take a fourth and print \"fourth waited: true\" (at least 40 ms).\n\nExpected output:\n`burst: true`\n`fourth waited: true`",
    "hint": "Measure Instant before and after acquire; refill in a background task.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -173,42 +173,42 @@
   {
    "id": "r37-yield",
    "title": "yield_now: give up the thread",
-   "statement": "On a single-threaded runtime spawn a task that raises a shared AtomicBool. In main wait for the flag to go up with a loop of tokio::task::yield_now().await (no sleep) and print «флаг поднят».\n\nExpected output:\n«флаг поднят»",
+   "statement": "On a single-threaded runtime spawn a task that raises a shared AtomicBool. In main wait for the flag to go up with a loop of tokio::task::yield_now().await (no sleep) and print \"flag raised\".\n\nExpected output:\n`flag raised`",
    "hint": "while !flag.load(Ordering::SeqCst) { tokio::task::yield_now().await; } — without yield_now the task would never get the thread.",
    "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-actor-timeout",
    "title": "The actor does not answer",
-   "statement": "An actor receives a request with a oneshot::Sender and \"hangs\" (sleeps 500 ms, no reply). The client waits for the reply with a 50 ms timeout and on expiry prints «актор не ответил».\n\nExpected output:\n«актор не ответил»",
+   "statement": "An actor receives a request with a oneshot::Sender and \"hangs\" (sleeps 500 ms, no reply). The client waits for the reply with a 50 ms timeout and on expiry prints \"actor did not reply\".\n\nExpected output:\n`actor did not reply`",
    "hint": "timeout(Duration::from_millis(50), reply_rx).await.is_err()",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-drain",
    "title": "Drain the queue",
-   "statement": "The producer sends 5 jobs and closes the channel. The consumer handles each one (sleep 5 ms) until the channel is closed and then prints «обработано: 5»: the queue is not lost on close.\n\nExpected output:\n«обработано: 5»",
+   "statement": "The producer sends 5 jobs and closes the channel. The consumer handles each one (sleep 5 ms) until the channel is closed and then prints \"processed: 5\": the queue is not lost on close.\n\nExpected output:\n`processed: 5`",
    "hint": "while let Some(_) = rx.recv().await exits only after all the messages have been read.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-biased-stop",
    "title": "Stop takes priority",
-   "statement": "The token is already cancelled and there are jobs in the queue. A select! loop with biased; checks cancelled() first, then recv(). Print «после остановки: 0», the number of jobs processed.\n\nExpected output:\n«после остановки: 0»",
+   "statement": "The token is already cancelled and there are jobs in the queue. A select! loop with biased; checks cancelled() first, then recv(). Print \"after stop: 0\", the number of jobs processed.\n\nExpected output:\n`after stop: 0`",
    "hint": "tokio::select! { biased; _ = token.cancelled() => break, job = rx.recv() => .. }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-watch-flag",
    "title": "A stop flag through watch",
-   "statement": "Three workers wait until a watch value becomes true (rx.wait_for(|v| *v).await). After 20 ms main sends true and waits for all of them (JoinSet). Print «остановлены: 3».\n\nExpected output:\n«остановлены: 3»",
+   "statement": "Three workers wait until a watch value becomes true (rx.wait_for(|v| *v).await). After 20 ms main sends true and waits for all of them (JoinSet). Print \"stopped: 3\".\n\nExpected output:\n`stopped: 3`",
    "hint": "let (tx, rx) = watch::channel(false); in the task let mut rx = rx.clone(); rx.wait_for(|v| *v).await",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r37-explicit-close",
    "title": "Explicit close instead of async Drop",
-   "statement": "A struct Conn { closed: bool } with a Drop: if closed == false, it prints «не закрыто!». Add async fn close(mut self): it sets closed = true and sleeps 10 ms (imitating a buffer flush). Call close and print «закрыто явно». There must be no warning from Drop.\n\nExpected output:\n«закрыто явно»",
+   "statement": "A struct Conn { closed: bool } with a Drop: if closed == false, it prints \"not closed!\". Add async fn close(mut self): it sets closed = true and sleeps 10 ms (imitating a buffer flush). Call close and print \"closed explicitly\". There must be no warning from Drop.\n\nExpected output:\n`closed explicitly`",
    "hint": "In close(mut self) set the flag before self is destroyed at the end of the function.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   }

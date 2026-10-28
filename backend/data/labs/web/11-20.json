@@ -52,7 +52,7 @@
    "hint": "Размеры дорожек пишутся через пробел: 200px 1fr 2fr. Единица fr делит место, которое осталось после фиксированных колонок.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"page\"><div>Меню</div><div>Статья</div><div>Реклама</div></div>",
+    "html": "<div class=\"page\"><div>Menu</div><div>Article</div><div>Advert</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -110,7 +110,7 @@
    "hint": "grid-template-rows работает так же, как grid-template-columns: 60px 1fr 40px.",
    "spec": {
     "kind": "css",
-    "html": "<style>.box { display: grid; height: 300px; }</style><div class=\"box\"><header>Шапка</header><main>Содержимое</main><footer>Подвал</footer></div>",
+    "html": "<style>.box { display: grid; height: 300px; }</style><div class=\"box\"><header>Header</header><main>Content</main><footer>Footer</footer></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -133,7 +133,7 @@
    "hint": "grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); не забудьте display: grid и gap: 16px. Измените ширину предпросмотра и посмотрите, как меняется число колонок.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"cards\"><div class=\"card\">Карточка 1</div><div class=\"card\">Карточка 2</div><div class=\"card\">Карточка 3</div><div class=\"card\">Карточка 4</div><div class=\"card\">Карточка 5</div><div class=\"card\">Карточка 6</div></div>",
+    "html": "<div class=\"cards\"><div class=\"card\">Card 1</div><div class=\"card\">Card 2</div><div class=\"card\">Card 3</div><div class=\"card\">Card 4</div><div class=\"card\">Card 5</div><div class=\"card\">Card 6</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -177,7 +177,7 @@
    "hint": "grid-column: span 2 — «займи две дорожки от своего места». Можно и по линиям: 1 / 3.",
    "spec": {
     "kind": "css",
-    "html": "<style>.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }</style><div class=\"grid\"><div class=\"wide\">Широкий</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }</style><div class=\"grid\"><div class=\"wide\">Wide</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -216,7 +216,7 @@
    "hint": "Отрицательные номера линий считаются с конца: grid-column: 1 / -1.",
    "spec": {
     "kind": "css",
-    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><h2 class=\"title\">Раздел</h2><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div></div>",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><h2 class=\"title\">Section</h2><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -242,7 +242,7 @@
    "hint": "На .page: display: grid; grid-template-columns: 200px 1fr; grid-template-areas: \"header header\" \"nav main\" \"footer footer\". На элементах: header { grid-area: header } и так далее.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"page\"><header>Шапка</header><nav>Меню</nav><main>Содержимое</main><footer>Подвал</footer></div>",
+    "html": "<div class=\"page\"><header>Header</header><nav>Menu</nav><main>Content</main><footer>Footer</footer></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -385,7 +385,7 @@
    "hint": "grid-auto-rows: minmax(80px, auto) — минимум 80px, максимум по содержимому.",
    "spec": {
     "kind": "css",
-    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><div>Короткий текст</div><div>Ещё один элемент</div><div>И третий</div><div>Длинный текст, который может не поместиться в строку высотой в восемьдесят пикселей и должен растянуть её</div><div>5</div><div>6</div></div>",
+    "html": "<style>.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }</style><div class=\"grid\"><div>Short text</div><div>Another item</div><div>And a third</div><div>Long text that may not fit in a row eighty pixels high and should stretch it</div><div>5</div><div>6</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -440,7 +440,7 @@
    "hint": "grid-template-columns: 240px 1fr; gap: 24px.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"layout\"><aside>Панель</aside><main>Содержимое</main></div>",
+    "html": "<div class=\"layout\"><aside>Panel</aside><main>Content</main></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -480,7 +480,7 @@
    "hint": "Сначала обычные правила для широкого экрана: display: grid и repeat(3, 1fr). Потом @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"cards\"><div class=\"card\">Карточка 1</div><div class=\"card\">Карточка 2</div><div class=\"card\">Карточка 3</div><div class=\"card\">Карточка 4</div><div class=\"card\">Карточка 5</div><div class=\"card\">Карточка 6</div></div>",
+    "html": "<div class=\"cards\"><div class=\"card\">Card 1</div><div class=\"card\">Card 2</div><div class=\"card\">Card 3</div><div class=\"card\">Card 4</div><div class=\"card\">Card 5</div><div class=\"card\">Card 6</div></div>",
     "starter_css": "",
     "viewport": 1000,
     "checks": [
@@ -541,7 +541,7 @@
    "hint": "Вложенная сетка — обычный контейнер: .inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px }.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"outer\"><div class=\"card\"><h3>Карточка 1</h3><div class=\"inner\"><span>1</span><span>2</span><span>3</span><span>4</span></div></div><div class=\"card\"><h3>Карточка 2</h3><div class=\"inner\"><span>1</span><span>2</span><span>3</span><span>4</span></div></div></div>",
+    "html": "<div class=\"outer\"><div class=\"card\"><h3>Card 1</h3><div class=\"inner\"><span>1</span><span>2</span><span>3</span><span>4</span></div></div><div class=\"card\"><h3>Card 2</h3><div class=\"inner\"><span>1</span><span>2</span><span>3</span><span>4</span></div></div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -606,7 +606,7 @@
    "hint": "Карточке нужны display: grid, grid-row: span 3 и grid-template-rows: subgrid.",
    "spec": {
     "kind": "css",
-    "html": "<style>.cards { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto 1fr auto; gap: 0 16px; }</style><div class=\"cards\"><article class=\"card\"><h3>Заголовок 1</h3><p>Текст карточки.</p><a href=\"#\">Подробнее</a></article><article class=\"card\"><h3>Заголовок 2</h3><p>Текст карточки.</p><a href=\"#\">Подробнее</a></article><article class=\"card\"><h3>Заголовок 3</h3><p>Текст карточки.</p><a href=\"#\">Подробнее</a></article></div>",
+    "html": "<style>.cards { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto 1fr auto; gap: 0 16px; }</style><div class=\"cards\"><article class=\"card\"><h3>Heading 1</h3><p>Card text.</p><a href=\"#\">More</a></article><article class=\"card\"><h3>Heading 2</h3><p>Card text.</p><a href=\"#\">More</a></article><article class=\"card\"><h3>Heading 3</h3><p>Card text.</p><a href=\"#\">More</a></article></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -649,7 +649,7 @@
    "hint": "На .page: display: grid; grid-template-columns: 200px 1fr; grid-template-rows: auto 1fr auto; min-height: 100vh. Шапке и подвалу: grid-column: 1 / -1.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"page\"><header>Шапка</header><nav>Меню</nav><main>Содержимое</main><footer>Подвал</footer></div>",
+    "html": "<div class=\"page\"><header>Header</header><nav>Menu</nav><main>Content</main><footer>Footer</footer></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -759,7 +759,7 @@
    "hint": "grid-row: span 2 — по аналогии с grid-column: span 2.",
    "spec": {
     "kind": "css",
-    "html": "<style>.gallery { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 60px; gap: 8px; }</style><div class=\"gallery\"><div class=\"tall\">Высокая</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
+    "html": "<style>.gallery { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 60px; gap: 8px; }</style><div class=\"gallery\"><div class=\"tall\">Tall</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [

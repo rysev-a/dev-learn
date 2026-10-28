@@ -10,7 +10,7 @@
    "hint": "display: flex включает флексбокс; justify-content раскладывает вдоль главной оси, align-items — поперёк, gap задаёт промежуток.",
    "spec": {
     "kind": "css",
-    "html": "<nav class=\"bar\"><a href=\"#\">Главная</a><a href=\"#\">Каталог</a><a href=\"#\">О нас</a></nav>",
+    "html": "<nav class=\"bar\"><a href=\"#\">Home</a><a href=\"#\">Catalog</a><a href=\"#\">About us</a></nav>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -51,7 +51,7 @@
    "hint": "Направление главной оси задаёт flex-direction. Значение column ведёт ось сверху вниз.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"stack\"><div class=\"item\">Профиль</div><div class=\"item\">Заказы</div><div class=\"item\">Выход</div></div>",
+    "html": "<div class=\"stack\"><div class=\"item\">Profile</div><div class=\"item\">Orders</div><div class=\"item\">Exit</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -86,7 +86,7 @@
    "hint": "justify-content: space-around даёт каждому элементу равные поля с обеих сторон, space-evenly делает одинаковыми все промежутки, включая крайние.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"toolbar\"><button>Назад</button><button>Далее</button><button>Отмена</button></div>",
+    "html": "<div class=\"toolbar\"><button>Back</button><button>Next</button><button>Cancel</button></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -118,7 +118,7 @@
    "hint": "align-items: baseline выравнивает элементы по базовой линии их первой строки текста.",
    "spec": {
     "kind": "css",
-    "html": "<style>.num { font-size: 40px; } .cur { font-size: 14px; }</style><div class=\"price\"><span class=\"num\">1990</span><span class=\"cur\">руб.</span></div>",
+    "html": "<style>.num { font-size: 40px; } .cur { font-size: 14px; }</style><div class=\"price\"><span class=\"num\">1990</span><span class=\"cur\">USD</span></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -150,7 +150,7 @@
    "hint": "gap принимает два значения: сначала между строками (row-gap), потом между столбцами (column-gap).",
    "spec": {
     "kind": "css",
-    "html": "<style>.board { display: flex; flex-wrap: wrap; width: 260px; } .chip { width: 110px; padding: 6px; background: #ddd; }</style><div class=\"board\"><div class=\"chip\">Один</div><div class=\"chip\">Два</div><div class=\"chip\">Три</div><div class=\"chip\">Четыре</div></div>",
+    "html": "<style>.board { display: flex; flex-wrap: wrap; width: 260px; } .chip { width: 110px; padding: 6px; background: #ddd; }</style><div class=\"board\"><div class=\"chip\">One</div><div class=\"chip\">Two</div><div class=\"chip\">Three</div><div class=\"chip\">Four</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -183,7 +183,7 @@
    "hint": "flex-wrap: wrap разрешает перенос. Промежуток по обеим осям — gap (или row-gap и column-gap).",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"tags\"><span class=\"tag\">html</span><span class=\"tag\">css</span><span class=\"tag\">javascript</span><span class=\"tag\">flexbox</span><span class=\"tag\">grid</span><span class=\"tag\">доступность</span><span class=\"tag\">адаптивность</span><span class=\"tag\">анимации</span></div>",
+    "html": "<div class=\"tags\"><span class=\"tag\">html</span><span class=\"tag\">css</span><span class=\"tag\">javascript</span><span class=\"tag\">flexbox</span><span class=\"tag\">grid</span><span class=\"tag\">accessibility</span><span class=\"tag\">responsive</span><span class=\"tag\">animations</span></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -265,7 +265,7 @@
    "hint": "flex: 0 0 240px — не расти, не сжиматься, база 240px. Для основной части достаточно flex: 1.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"layout\"><aside class=\"side\">Меню</aside><main class=\"main\">Основное содержимое страницы с длинным текстом, которому хочется занять всё место</main></div>",
+    "html": "<div class=\"layout\"><aside class=\"side\">Menu</aside><main class=\"main\">Main page content with a long text that wants to take all the space</main></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -299,7 +299,7 @@
        "5",
        "10"
       ],
-      "msg": "У `.main` flex-grow: 1 или больше"
+      "msg": "`.main` has flex-grow: 1 or more"
      }
     ],
     "reference": {
@@ -314,7 +314,7 @@
    "hint": "Нужны три свойства у контейнера: display: flex, justify-content: center (вдоль) и align-items: center (поперёк).",
    "spec": {
     "kind": "css",
-    "html": "<style>.hero { min-height: 240px; border: 1px dashed #888; }</style><div class=\"hero\"><div class=\"box\">Привет</div></div>",
+    "html": "<style>.hero { min-height: 240px; border: 1px dashed #888; }</style><div class=\"hero\"><div class=\"box\">Hello</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -345,11 +345,11 @@
   {
    "id": "w19-auto",
    "title": "margin-left: auto",
-   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте из .top флекс-контейнер: все ссылки идут слева, а «Войти» (.login) уезжает к правому краю. Значение justify-content у .top менять нельзя — используйте автоматическое поле.",
+   "statement": "Напишите CSS так, чтобы выполнялись все условия. Разметка задана, менять её нельзя. Сделайте из .top флекс-контейнер: все ссылки идут слева, а «Sign in» (.login) уезжает к правому краю. Значение justify-content у .top менять нельзя — используйте автоматическое поле.",
    "hint": "Левое поле auto забирает всё свободное место и сдвигает элемент вправо.",
    "spec": {
     "kind": "css",
-    "html": "<nav class=\"top\"><a class=\"logo\" href=\"#\">Лого</a><a href=\"#\">Каталог</a><a href=\"#\">О нас</a><a class=\"login\" href=\"#\">Войти</a></nav>",
+    "html": "<nav class=\"top\"><a class=\"logo\" href=\"#\">Logo</a><a href=\"#\">Catalog</a><a href=\"#\">About us</a><a class=\"login\" href=\"#\">Sign in</a></nav>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -429,7 +429,7 @@
    "hint": "order по умолчанию равен нулю; отрицательное число отправляет элемент вперёд всех остальных.",
    "spec": {
     "kind": "css",
-    "html": "<style>.list { display: flex; flex-direction: column; gap: 6px; }</style><div class=\"list\"><div class=\"item\">Запись 1</div><div class=\"item\">Запись 2</div><div class=\"item pin\">Закреплённая запись</div></div>",
+    "html": "<style>.list { display: flex; flex-direction: column; gap: 6px; }</style><div class=\"list\"><div class=\"item\">Entry 1</div><div class=\"item\">Entry 2</div><div class=\"item pin\">Pinned entry</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -445,7 +445,7 @@
        "-10",
        "-100"
       ],
-      "msg": "У `.pin` order: отрицательное число"
+      "msg": "`.pin` has order: a negative number"
      },
      {
       "t": "style",
@@ -466,7 +466,7 @@
    "hint": "flex-direction: row-reverse разворачивает главную ось справа налево; переставлять элементы через order не нужно.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"steps\"><div class=\"step\">Шаг 1</div><div class=\"step\">Шаг 2</div><div class=\"step\">Шаг 3</div></div>",
+    "html": "<div class=\"steps\"><div class=\"step\">Step 1</div><div class=\"step\">Step 2</div><div class=\"step\">Step 3</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -495,7 +495,7 @@
    "hint": "align-items: stretch — значение по умолчанию, его перебивает flex-start. Чтобы делить ряд поровну, у карточки нужен flex: 1.",
    "spec": {
     "kind": "css",
-    "html": "<style>.cards { display: flex; align-items: flex-start; gap: 12px; } .card { padding: 12px; border: 1px solid #888; }</style><div class=\"cards\"><div class=\"card\">Короткий текст</div><div class=\"card\">Текст в этой карточке заметно длиннее, и он занимает несколько строк, поэтому карточка выше соседей.</div><div class=\"card\">Средний по длине текст карточки</div></div>",
+    "html": "<style>.cards { display: flex; align-items: flex-start; gap: 12px; } .card { padding: 12px; border: 1px solid #888; }</style><div class=\"cards\"><div class=\"card\">Short text</div><div class=\"card\">The text in this card is much longer and spans several lines, so the card is taller than its neighbours.</div><div class=\"card\">Medium-length card text</div></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -530,7 +530,7 @@
        "5",
        "10"
       ],
-      "msg": "У `.card` flex-grow: 1 или больше"
+      "msg": "`.card` has flex-grow: 1 or more"
      }
     ],
     "reference": {
@@ -545,7 +545,7 @@
    "hint": "У контейнера: display: flex, flex-direction: column и min-height: 100vh. У main: flex: 1 (или flex-grow: 1).",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"page\"><header>Шапка</header><main>Мало текста</main><footer>Подвал</footer></div>",
+    "html": "<div class=\"page\"><header>Header</header><main>Little text</main><footer>Footer</footer></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -583,7 +583,7 @@
        "5",
        "10"
       ],
-      "msg": "У `main` flex-grow: 1 или больше"
+      "msg": "`main` has flex-grow: 1 or more"
      }
     ],
     "reference": {
@@ -598,7 +598,7 @@
    "hint": "Нужны четыре свойства у .title: min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap.",
    "spec": {
     "kind": "css",
-    "html": "<style>.row { display: flex; width: 240px; gap: 8px; } .badge { flex: none; }</style><div class=\"row\"><div class=\"title\">Очень_длинное_название_файла_без_пробелов.pdf</div><span class=\"badge\">PDF</span></div>",
+    "html": "<style>.row { display: flex; width: 240px; gap: 8px; } .badge { flex: none; }</style><div class=\"row\"><div class=\"title\">Very_long_file_name_without_spaces.pdf</div><span class=\"badge\">PDF</span></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -639,7 +639,7 @@
    "hint": "На узком окне перебейте направление: @media (max-width: 600px) { .cols { flex-direction: column; } }.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"cols\"><section class=\"col\">Основное</section><aside class=\"col\">Врезка</aside></div>",
+    "html": "<div class=\"cols\"><section class=\"col\">Main</section><aside class=\"col\">Sidebar</aside></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -661,7 +661,7 @@
       "prop": "flex-direction",
       "equals": "row",
       "viewport": 1024,
-      "msg": "На широком окне (1024px) колонки рядом: flex-direction: row"
+      "msg": "On a wide window (1024px) the columns are side by side: flex-direction: row"
      },
      {
       "t": "style",
@@ -669,7 +669,7 @@
       "prop": "flex-direction",
       "equals": "column",
       "viewport": 480,
-      "msg": "На узком окне (480px) колонки друг под другом: flex-direction: column"
+      "msg": "On a narrow window (480px) the columns are stacked: flex-direction: column"
      },
      {
       "t": "media",
@@ -688,7 +688,7 @@
    "hint": "Два вложенных флекс-контейнера: .page (колонка, min-height: 100vh) и .mid (ряд). У .mid и main — flex: 1; у боковых колонок — flex: 0 0 160px.",
    "spec": {
     "kind": "css",
-    "html": "<div class=\"page\"><header>Шапка</header><div class=\"mid\"><nav>Меню</nav><main>Основное содержимое</main><aside>Справа</aside></div><footer>Подвал</footer></div>",
+    "html": "<div class=\"page\"><header>Header</header><div class=\"mid\"><nav>Menu</nav><main>Main content</main><aside>Right</aside></div><footer>Footer</footer></div>",
     "starter_css": "",
     "viewport": 1024,
     "checks": [
@@ -732,7 +732,7 @@
        "5",
        "10"
       ],
-      "msg": "У `.mid` flex-grow: 1 или больше"
+      "msg": "`.mid` has flex-grow: 1 or more"
      },
      {
       "t": "style",
@@ -746,7 +746,7 @@
        "5",
        "10"
       ],
-      "msg": "У `main` flex-grow: 1 или больше"
+      "msg": "`main` has flex-grow: 1 or more"
      },
      {
       "t": "style",
@@ -785,7 +785,7 @@
    "hint": "Знак «>» между селекторами означает «непосредственный ребёнок». Пробел выбрал бы потомков на любой глубине.",
    "spec": {
     "kind": "selector",
-    "html": "<ul class=\"menu\"><li id=\"a\"><a href=\"#\">Главная</a></li><li id=\"b\"><a href=\"#\">Каталог</a><ul class=\"sub\"><li id=\"b1\">Ноутбуки</li><li id=\"b2\">Телефоны</li></ul></li><li id=\"c\"><a href=\"#\">Контакты</a></li></ul>",
+    "html": "<ul class=\"menu\"><li id=\"a\"><a href=\"#\">Home</a></li><li id=\"b\"><a href=\"#\">Catalog</a><ul class=\"sub\"><li id=\"b1\">Laptops</li><li id=\"b2\">Phones</li></ul></li><li id=\"c\"><a href=\"#\">Contacts</a></li></ul>",
     "starter_css": "",
     "want": [
      "a",

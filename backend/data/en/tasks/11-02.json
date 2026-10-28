@@ -59,13 +59,13 @@
   {
    "id": "j2-order-tick",
    "title": "Order: nextTick and a timer",
-   "statement": "Write a function run() that prints lines with console.log in this order: «1: синхронно», «2: nextTick», «3: таймер». Use process.nextTick and setTimeout (with zero delay); the code that prints the “synchronous” line must come at the end of the function.",
+   "statement": "Write a function run() that prints lines with console.log in this order: «1: sync», «2: nextTick», «3: timer». Use process.nextTick and setTimeout (with zero delay); the code that prints the “synchronous” line must come at the end of the function.",
    "hint": "nextTick runs after the current operation but before timers."
   },
   {
    "id": "j2-order-timers",
    "title": "Order of timers",
-   "statement": "Write a function run(): three setTimeout calls with delays of 30, 10 and 20 ms print «C», «A» and «B» respectively (so by time the order is A, B, C, but you will call them in the order C, A, B). After all three have printed, print «готово» — via a fourth timer that fires after the others.",
+   "statement": "Write a function run(): three setTimeout calls with delays of 30, 10 and 20 ms print «C», «A» and «B» respectively (so by time the order is A, B, C, but you will call them in the order C, A, B). After all three have printed, print «done» — via a fourth timer that fires after the others.",
    "hint": "The firing order is determined by the due time, not by the order of setTimeout calls."
   },
   {
@@ -89,7 +89,7 @@
   {
    "id": "j2-parse-request",
    "title": "Parsing an HTTP request",
-   "statement": "Write a function parseRequest(text): a raw request «GET /path?a=1&b=2 HTTP/1.1\\r\\nHost: x\\r\\nContent-Type: text/plain\\r\\n\\r\\nтело» → { method, path, query (an object of strings), headers (keys in lower case), body }. Headers go up to the first empty line; query may be absent.",
+   "statement": "Write a function parseRequest(text): a raw request «GET /path?a=1&b=2 HTTP/1.1\\r\\nHost: x\\r\\nContent-Type: text/plain\\r\\n\\r\\nbody» → { method, path, query (an object of strings), headers (keys in lower case), body }. Headers go up to the first empty line; query may be absent.",
    "hint": "Split on «\\r\\n\\r\\n» into head and body; then by lines, and headers by the first «:»."
   },
   {
@@ -101,13 +101,13 @@
   {
    "id": "j2-middleware",
    "title": "A middleware chain",
-   "statement": "Write a function createApp(): it returns an object with the methods use(fn) (fn(ctx, next)) and run(ctx) → calls the chain in order; next() starts the next handler (after the last one — nothing); calling next() twice from the same handler throws Error(\"next() вызван дважды\"). run returns ctx.",
+   "statement": "Write a function createApp(): it returns an object with the methods use(fn) (fn(ctx, next)) and run(ctx) → calls the chain in order; next() starts the next handler (after the last one — nothing); calling next() twice from the same handler throws Error(\"next() called twice\"). run returns ctx.",
    "hint": "dispatch(i) calls stack[i](ctx, () => dispatch(i + 1)); remember the index of the last call."
   },
   {
    "id": "j2-json-api",
    "title": "A mini API: a request handler",
-   "statement": "Write a function handle(req, db): req = { method, path, body }, db is an array of objects { id, text }. Routes: GET /items → 200 and the list; GET /items/<id> → 200 and the item or 404; POST /items (body is an object with text) → 201 and the created item { id: the next number, text } (add it to db; without text — 400); everything else — 404 «не найдено». Return { status, body }.",
+   "statement": "Write a function handle(req, db): req = { method, path, body }, db is an array of objects { id, text }. Routes: GET /items → 200 and the list; GET /items/<id> → 200 and the item or 404; POST /items (body is an object with text) → 201 and the created item { id: the next number, text } (add it to db; without text — 400); everything else — 404 «not found». Return { status, body }.",
    "hint": "A single route pattern /items(/id)? and then branching on the method."
   },
   {
@@ -167,7 +167,7 @@
   {
    "id": "j2-install-plan",
    "title": "What npm will install",
-   "statement": "The registry is given as { name: { version: { dependencies: { name: range } } } } (versions like “1.2.3”). Write a function installPlan(registry, deps): deps is { name: range }; for each dependency (recursively) the highest version matching the range is chosen (“1.2.3”, “^1.2.3”, “~1.2.3”, “*”). Return an object “name → version” (if one name is needed in two versions, take the version that matches all the ranges, and if that is impossible — Error(\"конфликт: <имя>\")); if there is no matching version — Error(\"нет версии: <имя>@<диапазон>\").",
+   "statement": "The registry is given as { name: { version: { dependencies: { name: range } } } } (versions like “1.2.3”). Write a function installPlan(registry, deps): deps is { name: range }; for each dependency (recursively) the highest version matching the range is chosen (“1.2.3”, “^1.2.3”, “~1.2.3”, “*”). Return an object “name → version” (if one name is needed in two versions, take the version that matches all the ranges, and if that is impossible — Error(\"conflict: <name>\")); if there is no matching version — Error(\"no version: <name>@<range>\").",
    "hint": "Collect ranges by name and pick the highest version matching all of them; then walk its dependencies."
   },
   {

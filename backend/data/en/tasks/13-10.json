@@ -48,8 +48,8 @@
   {
    "id": "grade-word",
    "title": "Grade as a word",
-   "statement": "Write a function grade_word(grade): 5 -> «отлично», 4 -> «хорошо», 3 -> «удовлетворительно», 2 -> «плохо», anything else -> «неизвестно». No if chain: use a lookup table in a dictionary. The returned words must be exactly the Russian ones given in the guillemets.",
-   "hint": "`return words.get(grade, 'неизвестно')`, where the dictionary words holds pairs like `5: 'отлично'` and so on."
+   "statement": "Write a function grade_word(grade): 5 -> «excellent», 4 -> «good», 3 -> «satisfactory», 2 -> «bad», anything else -> «unknown». No if chain: use a lookup table in a dictionary.",
+   "hint": "`return words.get(grade, 'unknown')`, where the dictionary words holds pairs like `5: 'excellent'` and so on."
   }
  ]
 }

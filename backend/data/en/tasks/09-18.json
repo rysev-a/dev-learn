@@ -32,7 +32,7 @@
   {
    "id": "d2-optimistic",
    "title": "Optimistic version check",
-   "statement": "Two editors read document 7 at ver = 1. The first saves the text `первый`, the second `второй`: both update with the condition ver = 1 and increment ver. Run both UPDATEs one after another: the second must change nothing. The result is checked against the table.",
+   "statement": "Two editors read document 7 at ver = 1. The first saves the text `first`, the second `second`: both update with the condition ver = 1 and increment ver. Run both UPDATEs one after another: the second must change nothing. The result is checked against the table.",
    "hint": "In WHERE: id = 7 AND ver = 1; after the first update ver = 2, so the second condition is false.",
    "starter": "-- two UPDATEs with a version check\n"
   },
@@ -46,7 +46,7 @@
   {
    "id": "d2-write-skew",
    "title": "Write skew: doctors on duty",
-   "statement": "The rule: there is always at least one doctor on duty. Take `Анна` off duty, and then `Борис` — each with an UPDATE whose condition checks that someone else will remain after the removal (the check and the change in one query). The second removal must not take effect.",
+   "statement": "The rule: there is always at least one doctor on duty. Take `Anna` off duty, and then `Boris` — each with an UPDATE whose condition checks that someone else will remain after the removal (the check and the change in one query). The second removal must not take effect.",
    "hint": "The condition (SELECT COUNT(*) … WHERE on_call = 1) > 1 inside the UPDATE itself: the check and the write are indivisible.",
    "starter": "-- take Anna off duty, then Boris, preserving the invariant\n"
   },

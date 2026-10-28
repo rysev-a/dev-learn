@@ -29,7 +29,7 @@
   {
    "id": "person-from-string",
    "title": "A person from a string",
-   "statement": "Define a class Person(name, age) and a class method from_string(s) that parses a string like «Аня,20» and returns a Person (the age is a number). The method __str__ returns «Аня (20)».",
+   "statement": "Define a class Person(name, age) and a class method from_string(s) that parses a string like «Ann,20» and returns a Person (the age is a number). The method __str__ returns «Ann (20)».",
    "hint": "@classmethod def from_string(cls, s): name, age = s.split(','); return cls(name, int(age))."
   },
   {

@@ -7,63 +7,31 @@
    "id": "sd11-ws-gateway",
    "title": "WebSocket gateways",
    "statement": "A chat has 90,000 concurrent connections, and ordinary requests (history) go through the load balancer. One WebSocket gateway holds 15,000 connections. Add gateways between the users and the app servers, connect them, and choose the number of instances so that the gateways are loaded at no more than 80%.",
-   "hint": "Users → WebSocket gateway → app server. For 90,000 connections you need eight instances (67–75%).",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Users → WebSocket gateway → app server. For 90,000 connections you need eight instances (67–75%)."
   },
   {
    "id": "sd11-ws-scale",
    "title": "Three hundred thousand connections",
    "statement": "The audience has grown: 300,000 concurrent connections. Choose the number of WebSocket gateways: load at most 80%, with headroom to lose one gateway without overloading the rest. The budget is $3500 per month.",
-   "hint": "300,000 / (15,000 × 0.8) = 25 gateways; losing one raises the load from 80% to 83%, so 26 is better.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "WebSocket gateway",
-    "/start/nodes/3/name": "App server",
-    "/start/nodes/4/name": "Database"
-   }
+   "hint": "300,000 / (15,000 × 0.8) = 25 gateways; losing one raises the load from 80% to 83%, so 26 is better."
   },
   {
    "id": "sd11-messages",
    "title": "The message stream",
    "statement": "90,000 connections at 0.03 messages per second give 2700 messages per second. Right now they are written straight to the database, and it is overloaded. Route messages through a queue and workers: connect the server to the queue, the queue to the workers, and the workers to the database. The database and servers must be at most 80%, and the queue must drain without lag (peak of 10 seconds, 5 s allowed).",
-   "hint": "You need a drain rate of at least 2700 per second: seven M workers give 2800. The application needs about six M servers.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "WebSocket gateway",
-    "/start/nodes/3/name": "App server",
-    "/start/nodes/4/name": "Database"
-   }
+   "hint": "You need a drain rate of at least 2700 per second: seven M workers give 2800. The application needs about six M servers."
   },
   {
    "id": "sd11-presence",
    "title": "Presence in a cache",
    "statement": "The friends list shows “online” — that is 3000 status requests per second against a small working set (about 2 GB). The S database cannot cope. Add a status cache with a long entry lifetime: the cache serves at least 90% of reads, and the database is loaded at no more than 80%.",
-   "hint": "A 2–3 GB cache with TTL 3600 gives about a 94% hit rate; TTL 300 gives slightly under 90%.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "A 2–3 GB cache with TTL 3600 gives about a 94% hit rate; TTL 300 gives slightly under 90%."
   },
   {
    "id": "sd11-final",
    "title": "The whole chat",
    "statement": "The chapter's final exercise. A messenger: 150,000 connections, 0.02 messages per second per connection (3000 messages per second), statuses and history — 2000 reads and 100 writes. Build the design: WebSocket gateways (at most 80%, with headroom to lose one), a queue with workers (no lag: peak of 10 s, 5 s allowed), a status cache (≥90%), a database at most 80%, and a budget of $5000 per month.",
-   "hint": "Gateways: 150,000 / 12,000 = 13–14. Workers: 3000 messages — eight M. A 3 GB cache with TTL 3600. The app servers accept both ordinary requests and 3000 messages per second: about ten M.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Database"
-   }
+   "hint": "Gateways: 150,000 / 12,000 = 13–14. Workers: 3000 messages — eight M. A 3 GB cache with TTL 3600. The app servers accept both ordinary requests and 3000 messages per second: about ten M."
   }
  ]
 }

@@ -5,7 +5,7 @@
   {
    "id": "sign",
    "title": "Sign of a number",
-   "statement": "Write a function sign(x) that returns the word «положительное» for x > 0, «отрицательное» for x < 0, and «ноль» for x = 0.",
+   "statement": "Write a function sign(x) that returns the word «positive» for x > 0, «negative» for x < 0, and «zero» for x = 0.",
    "hint": "Three branches: if x > 0: ... elif x < 0: ... else: ...",
    "starter": "def sign(x):\n    # if / elif / else — three roads\n    pass\n"
   },

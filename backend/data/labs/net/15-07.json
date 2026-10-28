@@ -17,7 +17,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 70,
               "y": 180,
               "ifaces": [
@@ -49,7 +49,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -103,7 +103,7 @@
             {
               "id": "s1",
               "kind": "server",
-              "name": "Сервер 1",
+              "name": "Server 1",
               "x": 480,
               "y": 60,
               "ifaces": [
@@ -135,7 +135,7 @@
             {
               "id": "s2",
               "kind": "server",
-              "name": "Сервер 2",
+              "name": "Server 2",
               "x": 480,
               "y": 180,
               "ifaces": [
@@ -172,7 +172,7 @@
             {
               "id": "s3",
               "kind": "server",
-              "name": "Сервер 3",
+              "name": "Server 3",
               "x": 480,
               "y": 300,
               "ifaces": [
@@ -237,7 +237,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Сервер 1: порт 80 открыт",
+            "text": "Server 1: port 80 is open",
             "tcp": {
               "from": "pc1",
               "to": "@s1",
@@ -246,7 +246,7 @@
           },
           {
             "id": "g2",
-            "text": "Сервер 2: порт 80 открыт",
+            "text": "Server 2: port 80 is open",
             "tcp": {
               "from": "pc1",
               "to": "@s2",
@@ -255,7 +255,7 @@
           },
           {
             "id": "g3",
-            "text": "Сервер 3: порт 80 открыт",
+            "text": "Server 3: port 80 is open",
             "tcp": {
               "from": "pc1",
               "to": "@s3",
@@ -291,7 +291,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -323,7 +323,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -362,7 +362,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 560,
               "y": 180,
               "ifaces": [
@@ -415,7 +415,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ping проходит",
+            "text": "ping succeeds",
             "ping": {
               "from": "pc1",
               "to": "@web"
@@ -423,7 +423,7 @@
           },
           {
             "id": "g2",
-            "text": "Клиент завершает рукопожатие с портом 80",
+            "text": "The client completes the handshake with port 80",
             "tcp": {
               "from": "pc1",
               "to": "@web",
@@ -454,7 +454,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 70,
               "y": 70,
               "ifaces": [
@@ -486,7 +486,7 @@
             {
               "id": "lan",
               "kind": "server",
-              "name": "Веб-сервер LAN",
+              "name": "LAN web server",
               "x": 70,
               "y": 290,
               "ifaces": [
@@ -523,7 +523,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 175,
               "y": 180,
               "ifaces": [
@@ -563,7 +563,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 300,
               "y": 180,
               "ifaces": [
@@ -602,7 +602,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 440,
               "y": 180,
               "ifaces": [
@@ -648,7 +648,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 580,
               "y": 90,
               "ifaces": [
@@ -685,7 +685,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Гость",
+              "name": "Guest",
               "x": 580,
               "y": 280,
               "ifaces": [
@@ -757,7 +757,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Клиент открывает внешний сайт (tcp/80)",
+            "text": "The client opens an external website (tcp/80)",
             "tcp": {
               "from": "pc1",
               "to": "@web",
@@ -766,7 +766,7 @@
           },
           {
             "id": "g2",
-            "text": "Гость не открывает веб-сервер локальной сети",
+            "text": "The guest cannot open the web server on the local network",
             "tcp": {
               "from": "guest",
               "to": "@lan",
@@ -776,7 +776,7 @@
           },
           {
             "id": "g3",
-            "text": "Клиент по-прежнему видит свой веб-сервер",
+            "text": "The client still sees its own web server",
             "tcp": {
               "from": "pc1",
               "to": "@lan",

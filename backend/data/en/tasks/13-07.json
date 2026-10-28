@@ -5,9 +5,9 @@
   {
    "id": "numbered",
    "title": "Numbered list",
-   "statement": "Print the names from the list with numbers starting at one, in the form «1. Аня». Use enumerate with the start parameter.",
+   "statement": "Print the names from the list with numbers starting at one, in the form «1. Ann». Use enumerate with the start parameter.",
    "hint": "for i, name in enumerate(names, start=1): print(f\"{i}. {name}\").",
-   "starter": "names = [\"Аня\", \"Борис\", \"Вера\"]\n# for ..., ... in enumerate(names, start=1):\n"
+   "starter": "names = [\"Ann\", \"Boris\", \"Vera\"]\n# for ..., ... in enumerate(names, start=1):\n"
   },
   {
    "id": "index-of-max",

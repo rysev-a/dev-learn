@@ -1,44 +1,44 @@
 -- Упражнения книги 13 «py — Python как первый язык». Файл строит export_tasks.py — руками не правьте.
 
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-variable', 0, 'stdout', 'Переменная', 'Создайте переменную year со значением 1991 (год, когда появился Python) и выведите её значение командой print.', '# Имя = значение
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-variable', 0, 'stdout', 'Переменная', 'Создайте переменную year со значением 1991 (год, когда появился Python) и выведите её значение командой print.', '# name = value
 ', 'year = 1991, затем print(year).', '{"expected": ["1991"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-types', 1, 'stdout', 'Типы значений', 'Выведите по одной строке названия типов значений 5, 2.5, "привет" и True (в таком порядке): int, float, str, bool. Получите их функцией type, а не вписывайте слова вручную.', '# type(значение).__name__ даёт имя типа
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-types', 1, 'stdout', 'Типы значений', 'Выведите по одной строке названия типов значений 5, 2.5, "hello" и True (в таком порядке): int, float, str, bool. Получите их функцией type, а не вписывайте слова вручную.', '# type(value).__name__ gives the type name
 ', 'print(type(5).__name__) — и так для каждого значения.', '{"expected": ["int", "float", "str", "bool"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-parity', 2, 'func', 'Условие', 'Напишите функцию parity(n), которая возвращает строку «чётное», если n делится на 2 без остатка, и «нечётное» в остальных случаях.', 'def parity(n):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-parity', 2, 'func', 'Условие', 'Напишите функцию parity(n), которая возвращает строку «even», если n делится на 2 без остатка, и «odd» в остальных случаях.', 'def parity(n):
     pass
-', 'if n % 2 == 0: return "чётное"; иначе — «нечётное».', '{"func": "parity", "tests": [{"args": [4], "expected": "чётное"}, {"args": [7], "expected": "нечётное"}, {"args": [0], "expected": "чётное"}, {"args": [-3], "expected": "нечётное"}]}');
+', 'if n % 2 == 0: return "even"; иначе — «odd».', '{"func": "parity", "tests": [{"args": [4], "expected": "even"}, {"args": [7], "expected": "odd"}, {"args": [0], "expected": "even"}, {"args": [-3], "expected": "odd"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-loop', 3, 'stdout', 'Цикл', 'Выведите числа от 1 до 5, каждое на своей строке, с помощью цикла for (пять строк print писать нельзя — результат должен получиться циклом).', '# for i in range(...):
 ', 'for i in range(1, 6): print(i).', '{"expected": ["1", "2", "3", "4", "5"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-function', 4, 'func', 'Функция', 'Напишите функцию circle_area(r), которая возвращает площадь круга радиуса r: 3.14 * r * r.', 'def circle_area(r):
     pass
 ', 'return 3.14 * r * r.', '{"func": "circle_area", "tests": [{"args": [1], "expected": 3.14}, {"args": [2], "expected": 12.56}, {"args": [0], "expected": 0.0}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-class', 5, 'stdout', 'Класс', 'Опишите класс Dog: при создании Dog("Рекс") сохраняется имя, а метод speak() возвращает строку «Рекс: гав» (имя подставляется). Ничего не печатайте — проверка вызовет ваш класс сама.', 'class Dog:
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 0, 'intro-class', 5, 'stdout', 'Класс', 'Опишите класс Dog: при создании Dog("Rex") сохраняется имя, а метод speak() возвращает строку «Rex: woof» (имя подставляется). Ничего не печатайте — проверка вызовет ваш класс сама.', 'class Dog:
     pass
-', 'В __init__ сохраните self.name; в speak верните f"{self.name}: гав".', '{"driver": "d = Dog(\"Рекс\")\nprint(d.speak())\nprint(Dog(\"Шарик\").speak())\n", "expected": ["Рекс: гав", "Шарик: гав"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'hello', 0, 'stdout', 'Первая строка', 'Напишите программу, которая печатает ровно одну строку: Привет, Python!', '# Ваша первая программа
-', 'Одна команда print, текст — в кавычках внутри скобок.', '{"expected": ["Привет, Python!"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'two-lines', 1, 'stdout', 'Две строки', 'Выведите две строки друг за другом: сначала «Меня зовут Python», потом «Мне 34 года».', '# Две команды print
-', 'Каждая строка — своя команда print; они выполняются сверху вниз.', '{"expected": ["Меня зовут Python", "Мне 34 года"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'calc', 2, 'stdout', 'Считает print', 'Печатайте результат умножения шести на семь — но посчитайте его прямо внутри print, а не готовым числом в кавычках.', '# Пусть Python посчитает сам
+', 'В __init__ сохраните self.name; в speak верните f"{self.name}: woof".', '{"driver": "d = Dog(\"Rex\")\nprint(d.speak())\nprint(Dog(\"Rover\").speak())\n", "expected": ["Rex: woof", "Rover: woof"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'hello', 0, 'stdout', 'Первая строка', 'Напишите программу, которая печатает ровно одну строку: Привет, Python!', '# Your first program
+', 'Одна команда print, текст — в кавычках внутри скобок.', '{"expected": ["Hello, Python!"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'two-lines', 1, 'stdout', 'Две строки', 'Выведите две строки друг за другом: сначала «My name is Python», потом «I am 34 years old».', '# Two print commands
+', 'Каждая строка — своя команда print; они выполняются сверху вниз.', '{"expected": ["My name is Python", "I am 34 years old"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'calc', 2, 'stdout', 'Считает print', 'Печатайте результат умножения шести на семь — но посчитайте его прямо внутри print, а не готовым числом в кавычках.', '# Let Python do the math
 ', 'Внутри скобок print можно написать арифметику: print(6 * 7).', '{"expected": ["42"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'repeat', 3, 'stdout', 'Повтор строки', 'Выведите «ляляля» — но получите эту строку умножением строки «ля» на три, а не вписыванием готового слова.', '# Умножение строки
-', 'Звёздочка повторяет строку: «ля» * 3.', '{"expected": ["ляляля"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'repeat-big', 4, 'stdout', 'Повтор всерьёз', 'Выведите строку i234_34$ ровно 344 раза подряд — одной строкой, без пробелов и переносов. Умножением строки на число: вручную такое не перепечатать.', '# Без копипасты: строка * число
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'repeat', 3, 'stdout', 'Повтор строки', 'Выведите «lalala» — но получите эту строку умножением строки «la» на три, а не вписыванием готового слова.', '# String multiplication
+', 'Звёздочка повторяет строку: «la» * 3.', '{"expected": ["lalala"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 1, 'repeat-big', 4, 'stdout', 'Повтор всерьёз', 'Выведите строку i234_34$ ровно 344 раза подряд — одной строкой, без пробелов и переносов. Умножением строки на число: вручную такое не перепечатать.', '# No copy-paste: string * number
 ', 'print(''i234_34$'' * 344) — звёздочка повторит строку нужное число раз.', '{"expected": ["i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$i234_34$"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 2, 'greet', 0, 'func', 'Приветствие', 'Напишите функцию greet(name), которая возвращает строку вида «Привет, Аня!» — то есть «Привет, » + имя + восклицательный знак. Используйте f-строку.', 'def greet(name):
-    # верните f-строку с именем внутри
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 2, 'greet', 0, 'func', 'Приветствие', 'Напишите функцию greet(name), которая возвращает строку вида «Hello, Ann!» — то есть «Hello, » + имя + восклицательный знак. Используйте f-строку.', 'def greet(name):
+    # return an f-string with the name inside
     pass
-', 'f"Привет, {name}!" — фигурные скобки подставят значение.', '{"func": "greet", "tests": [{"args": ["Аня"], "expected": "Привет, Аня!"}, {"args": ["Python"], "expected": "Привет, Python!"}, {"args": ["world"], "expected": "Привет, world!"}]}');
+', 'f"Hello, {name}!" — фигурные скобки подставят значение.', '{"func": "greet", "tests": [{"args": ["Ann"], "expected": "Hello, Ann!"}, {"args": ["Python"], "expected": "Hello, Python!"}, {"args": ["world"], "expected": "Hello, world!"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 2, 'area', 1, 'func', 'Площадь прямоугольника', 'Напишите функцию area(a, b), которая возвращает площадь прямоугольника со сторонами a и b.', 'def area(a, b):
     pass
 ', 'Площадь — произведение сторон: return a * b.', '{"func": "area", "tests": [{"args": [3, 4], "expected": 12}, {"args": [5, 5], "expected": 25}, {"args": [2, 10], "expected": 20}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 2, 'to-celsius', 2, 'func', 'Фаренгейты в цельсии', 'Напишите функцию to_celsius(f), которая переводит температуру из Фаренгейтов в Цельсии по формуле (f - 32) * 5 / 9 и возвращает результат.', 'def to_celsius(f):
     pass
 ', 'Формула уже в условии: return (f - 32) * 5 / 9. В Python скобки задают порядок.', '{"func": "to_celsius", "tests": [{"args": [32], "expected": 0.0}, {"args": [212], "expected": 100.0}, {"args": [50], "expected": 10.0}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 3, 'sign', 0, 'func', 'Знак числа', 'Напишите функцию sign(x), которая возвращает слово «положительное» для x > 0, «отрицательное» для x < 0 и «ноль» для x = 0.', 'def sign(x):
-    # if / elif / else — три дороги
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 3, 'sign', 0, 'func', 'Знак числа', 'Напишите функцию sign(x), которая возвращает слово «positive» для x > 0, «negative» для x < 0 и «zero» для x = 0.', 'def sign(x):
+    # if / elif / else — three roads
     pass
-', 'Три ветки: if x > 0: ... elif x < 0: ... else: ...', '{"func": "sign", "tests": [{"args": [5], "expected": "положительное"}, {"args": [-3], "expected": "отрицательное"}, {"args": [0], "expected": "ноль"}, {"args": [100], "expected": "положительное"}]}');
+', 'Три ветки: if x > 0: ... elif x < 0: ... else: ...', '{"func": "sign", "tests": [{"args": [5], "expected": "positive"}, {"args": [-3], "expected": "negative"}, {"args": [0], "expected": "zero"}, {"args": [100], "expected": "positive"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 3, 'is-even', 1, 'func', 'Чётное ли число', 'Напишите функцию is_even(n), которая возвращает True, если n чётное, и False — если нечётное. Подсказка: остаток от деления — оператор %.', 'def is_even(n):
     pass
 ', 'Сравнение само даёт bool: return n % 2 == 0.', '{"func": "is_even", "tests": [{"args": [4], "expected": true}, {"args": [7], "expected": false}, {"args": [0], "expected": true}, {"args": [13], "expected": false}]}');
@@ -46,12 +46,12 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     pass
 ', 'if a > b: вернуть a, иначе — вернуть b. Равные числа: подойдёт любая ветка else.', '{"func": "max2", "tests": [{"args": [3, 7], "expected": 7}, {"args": [10, 2], "expected": 10}, {"args": [5, 5], "expected": 5}, {"args": [-1, -9], "expected": -1}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 3, 'ticket-price', 3, 'func', 'Цена билета', 'Кинотеатр ставит цену по возрасту: до 7 лет включительно — 0, от 8 до 17 включительно — 200, от 18 и старше — 400. Напишите функцию ticket_price(age), возвращающую цену.', 'def ticket_price(age):
-    # цепочка if / elif / else
+    # an if / elif / else chain
     pass
 ', 'Проверяйте сверху вниз от младших: if age <= 7 ... elif age <= 17 ... else ...', '{"func": "ticket_price", "tests": [{"args": [3], "expected": 0}, {"args": [7], "expected": 0}, {"args": [8], "expected": 200}, {"args": [17], "expected": 200}, {"args": [18], "expected": 400}, {"args": [65], "expected": 400}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'hello-twice', 0, 'stdout', 'Своя функция', 'Опишите функцию hello(name), которая печатает «Привет, <имя>!», и вызовите её дважды: для «Аня» и для «Борис».', '# def hello(name): ...
-# два вызова
-', 'def hello(name): print(f"Привет, {name}!") — а ниже hello("Аня") и hello("Борис").', '{"expected": ["Привет, Аня!", "Привет, Борис!"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'hello-twice', 0, 'stdout', 'Своя функция', 'Опишите функцию hello(name), которая печатает «Hello, <name>!», и вызовите её дважды: для «Ann» и для «Boris».', '# def hello(name): ...
+# two calls
+', 'def hello(name): print(f"Hello, {name}!") — а ниже hello("Ann") и hello("Boris").', '{"expected": ["Hello, Ann!", "Hello, Boris!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'average3', 1, 'func', 'Среднее трёх', 'Напишите функцию average3(a, b, c): среднее арифметическое трёх чисел. Функция должна вернуть результат, а не печатать его.', 'def average3(a, b, c):
     pass
 ', 'return (a + b + c) / 3 — именно return, а не print.', '{"func": "average3", "tests": [{"args": [1, 2, 3], "expected": 2.0}, {"args": [10, 20, 30], "expected": 20.0}, {"args": [0, 0, 1], "expected": 0.3333333333333333}, {"args": [-3, 3, 0], "expected": 0.0}]}');
@@ -67,50 +67,50 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'fizzbuzz', 5, 'func', 'Физзбазз', 'Напишите функцию fizzbuzz(n): «FizzBuzz», если n делится на 3 и на 5; «Fizz», если только на 3; «Buzz», если только на 5; иначе — само число в виде строки.', 'def fizzbuzz(n):
     pass
 ', 'Сначала самый строгий случай (оба), потом по одному; в конце return str(n).', '{"func": "fizzbuzz", "tests": [{"args": [15], "expected": "FizzBuzz"}, {"args": [9], "expected": "Fizz"}, {"args": [10], "expected": "Buzz"}, {"args": [7], "expected": "7"}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'triangle-kind', 6, 'func', 'Вид треугольника', 'Напишите функцию triangle_kind(a, b, c): «равносторонний», если все три стороны равны, «равнобедренный», если равны ровно две, иначе «разносторонний».', 'def triangle_kind(a, b, c):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'triangle-kind', 6, 'func', 'Вид треугольника', 'Напишите функцию triangle_kind(a, b, c): «equilateral», если все три стороны равны, «isosceles», если равны ровно две, иначе «scalene».', 'def triangle_kind(a, b, c):
     pass
-', 'Сначала проверьте a == b == c, затем «хоть одна пара равна»: a == b or b == c or a == c.', '{"func": "triangle_kind", "tests": [{"args": [3, 3, 3], "expected": "равносторонний"}, {"args": [3, 3, 5], "expected": "равнобедренный"}, {"args": [3, 5, 3], "expected": "равнобедренный"}, {"args": [3, 4, 5], "expected": "разносторонний"}]}');
+', 'Сначала проверьте a == b == c, затем «at least one pair is equal»: a == b or b == c or a == c.', '{"func": "triangle_kind", "tests": [{"args": [3, 3, 3], "expected": "equilateral"}, {"args": [3, 3, 5], "expected": "isosceles"}, {"args": [3, 5, 3], "expected": "isosceles"}, {"args": [3, 4, 5], "expected": "scalene"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 4, 'factorial-rec', 7, 'func', 'Факториал рекурсией', 'Напишите функцию fact(n): факториал n, но через рекурсию — функция должна вызывать саму себя. Базовый случай: fact(0) = 1.', 'def fact(n):
     pass
 ', 'if n == 0: return 1; иначе return n * fact(n - 1).', '{"func": "fact", "tests": [{"args": [0], "expected": 1}, {"args": [1], "expected": 1}, {"args": [5], "expected": 120}, {"args": [8], "expected": 40320}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'letters', 0, 'stdout', 'Буквы по одной', 'Напечатайте каждую букву слова «привет» на отдельной строке. Используйте цикл for по строке.', 'word = "привет"
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'letters', 0, 'stdout', 'Буквы по одной', 'Напечатайте каждую букву слова «python» на отдельной строке. Используйте цикл for по строке.', 'word = "python"
 # for ... in ...:
-', 'for ch in word: print(ch) — на каждом витке ch — очередная буква.', '{"expected": ["п", "р", "и", "в", "е", "т"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'countdown', 1, 'stdout', 'Обратный отсчёт', 'Напечатайте числа от 5 до 1 — каждое на своей строке, а в конце строку «Старт!». Используйте цикл while и не забудьте уменьшать счётчик.', 'n = 5
+', 'for ch in word: print(ch) — на каждом витке ch — очередная буква.', '{"expected": ["p", "y", "t", "h", "o", "n"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'countdown', 1, 'stdout', 'Обратный отсчёт', 'Напечатайте числа от 5 до 1 — каждое на своей строке, а в конце строку «Start!». Используйте цикл while и не забудьте уменьшать счётчик.', 'n = 5
 # while ...:
-', 'while n > 0: напечатать n, потом n -= 1. «Старт!» — после цикла, без отступа.', '{"expected": ["5", "4", "3", "2", "1", "Старт!"]}');
+', 'while n > 0: напечатать n, потом n -= 1. «Start!» — после цикла, без отступа.', '{"expected": ["5", "4", "3", "2", "1", "Start!"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'squares', 2, 'stdout', 'Квадраты чисел', 'Напечатайте квадраты чисел от 1 до 5 — каждый на своей строке. Числа получайте через range.', '# for i in range(...):
 ', 'range(1, 6) — шестёрка не входит. Внутри цикла: print(i * i).', '{"expected": ["1", "4", "9", "16", "25"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'sum-to', 3, 'func', 'Сумма от 1 до n', 'Напишите функцию sum_to(n), которая возвращает сумму всех целых чисел от 1 до n включительно. Считайте циклом с накопителем, не по формуле. Для n = 0 сумма равна 0.', 'def sum_to(n):
     total = 0
-    # цикл с накопителем
+    # loop with an accumulator
     return total
 ', 'for i in range(1, n + 1): total += i — правую границу range нужно сдвинуть на единицу.', '{"func": "sum_to", "tests": [{"args": [1], "expected": 1}, {"args": [4], "expected": 10}, {"args": [100], "expected": 5050}, {"args": [0], "expected": 0}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'odds', 4, 'stdout', 'Только нечётные', 'Напечатайте нечётные числа от 1 до 10 — каждое на своей строке. Чётные пропускайте командой continue.', '# for i in range(1, 11):
-#     если чётное — continue
+#     if even, continue
 ', 'if i % 2 == 0: continue — после неё до print дойдут только нечётные.', '{"expected": ["1", "3", "5", "7", "9"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'factorial', 5, 'func', 'Факториал', 'Напишите функцию factorial(n): произведение всех целых чисел от 1 до n. Для n = 0 результат — 1. Накопитель для произведения стартует с единицы, а не с нуля.', 'def factorial(n):
     result = 1
-    # цикл с накопителем
+    # loop with an accumulator
     return result
 ', 'for i in range(1, n + 1): result *= i. Ноль даст пустой цикл и ответ 1 — как и нужно.', '{"func": "factorial", "tests": [{"args": [0], "expected": 1}, {"args": [1], "expected": 1}, {"args": [5], "expected": 120}, {"args": [10], "expected": 3628800}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'first-digit', 6, 'func', 'Первая цифра в строке', 'Напишите функцию first_digit(s), которая возвращает первый символ-цифру строки s (тоже строкой). Если цифр нет — верните None. Выйдите из цикла, как только цифра найдена. Проверить символ поможет метод ch.isdigit().', 'def first_digit(s):
     for ch in s:
         pass
     return None
-', 'Внутри цикла: if ch.isdigit(): return ch — return тоже мгновенно завершает цикл.', '{"func": "first_digit", "tests": [{"args": ["abc7d9"], "expected": "7"}, {"args": ["сто1"], "expected": "1"}, {"args": ["привет"], "expected": null}, {"args": [""], "expected": null}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'reverse-word', 7, 'func', 'Слово наоборот', 'Напишите функцию reverse_word(s), которая возвращает строку s, записанную задом наперёд: из «привет» получается «тевирп». Собирайте результат циклом, приписывая очередную букву в НАЧАЛО накопителя. Готовым срезом [::-1] пользоваться нельзя.', 'def reverse_word(s):
+', 'Внутри цикла: if ch.isdigit(): return ch — return тоже мгновенно завершает цикл.', '{"func": "first_digit", "tests": [{"args": ["abc7d9"], "expected": "7"}, {"args": ["abc1"], "expected": "1"}, {"args": ["hello"], "expected": null}, {"args": [""], "expected": null}]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'reverse-word', 7, 'func', 'Слово наоборот', 'Напишите функцию reverse_word(s), которая возвращает строку s, записанную задом наперёд: из «hello» получается «olleh». Собирайте результат циклом, приписывая очередную букву в НАЧАЛО накопителя. Готовым срезом [::-1] пользоваться нельзя.', 'def reverse_word(s):
     result = ""
     # for ch in s: ...
     return result
-', 'result = ch + result — новая буква встаёт перед всем, что накоплено.', '{"func": "reverse_word", "tests": [{"args": ["привет"], "expected": "тевирп"}, {"args": ["a"], "expected": "a"}, {"args": [""], "expected": ""}, {"args": ["abc"], "expected": "cba"}]}');
+', 'result = ch + result — новая буква встаёт перед всем, что накоплено.', '{"func": "reverse_word", "tests": [{"args": ["hello"], "expected": "olleh"}, {"args": ["a"], "expected": "a"}, {"args": [""], "expected": ""}, {"args": ["abc"], "expected": "cba"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 5, 'count-pairs', 8, 'func', 'Сколько пар', 'Напишите функцию count_pairs(n): сколько существует пар чисел (i, j), у которых 1 <= i < j <= n. Переберите пары двумя вложенными циклами и посчитайте их счётчиком.', 'def count_pairs(n):
     count = 0
-    # внешний цикл по i, внутренний по j
+    # outer loop over i, inner over j
     return count
 ', 'for i in range(1, n + 1): for j in range(i + 1, n + 1): count += 1 — внутренний цикл стартует с i + 1.', '{"func": "count_pairs", "tests": [{"args": [1], "expected": 0}, {"args": [3], "expected": 3}, {"args": [4], "expected": 6}, {"args": [10], "expected": 45}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 6, 'build-list', 0, 'stdout', 'Первый список', 'Создайте список из чисел 10, 20, 30. Добавьте в конец 40 методом append, замените первый элемент на 99 и напечатайте список целиком. Должно получиться [99, 20, 30, 40].', 'nums = [10, 20, 30]
-# append, присваивание по индексу, print
+# append, assignment by index, print
 ', 'nums.append(40); nums[0] = 99; print(nums).', '{"expected": ["[99, 20, 30, 40]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 6, 'first-last', 1, 'func', 'Первый и последний', 'Напишите функцию first_last(nums), которая возвращает список из двух элементов: первого и последнего элемента nums. Список непустой. Последний берите отрицательным индексом.', 'def first_last(nums):
     pass
@@ -122,7 +122,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'for x in nums: result += x — тот же накопитель, что в главе про циклы.', '{"func": "total", "tests": [{"args": [[1, 2, 3]], "expected": 6}, {"args": [[]], "expected": 0}, {"args": [[-5, 5]], "expected": 0}, {"args": [[10, 20, 30, 40]], "expected": 100}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 6, 'biggest', 3, 'func', 'Наибольший элемент', 'Напишите функцию biggest(nums): наибольший элемент непустого списка. Без готовой функции max. Подсказка: начинайте не с нуля, а с первого элемента — иначе список из одних отрицательных чисел даст неверный ответ.', 'def biggest(nums):
     best = nums[0]
-    # сравнивайте каждый элемент с best
+    # compare every element with best
     return best
 ', 'for x in nums: if x > best: best = x.', '{"func": "biggest", "tests": [{"args": [[3, 9, 2]], "expected": 9}, {"args": [[-5, -1, -8]], "expected": -1}, {"args": [[42]], "expected": 42}, {"args": [[1, 7, 7, 3]], "expected": 7}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 6, 'count-greater', 4, 'func', 'Сколько больше порога', 'Напишите функцию count_greater(nums, limit): сколько элементов списка строго больше limit.', 'def count_greater(nums, limit):
@@ -130,7 +130,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'Счётчик с нуля; if x > limit: count += 1.', '{"func": "count_greater", "tests": [{"args": [[1, 5, 10, 15], 5], "expected": 2}, {"args": [[], 3], "expected": 0}, {"args": [[2, 2, 2], 2], "expected": 0}, {"args": [[-1, 0, 1], -5], "expected": 3}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 6, 'evens', 5, 'func', 'Отобрать чётные', 'Напишите функцию evens(nums), которая возвращает НОВЫЙ список из чётных элементов nums в исходном порядке. Заведите пустой список и наполняйте его через append.', 'def evens(nums):
     result = []
-    # for x in nums: если чётное — append
+    # for x in nums: if even, append
     return result
 ', 'if x % 2 == 0: result.append(x).', '{"func": "evens", "tests": [{"args": [[1, 2, 3, 4, 5, 6]], "expected": [2, 4, 6]}, {"args": [[1, 3, 5]], "expected": []}, {"args": [[]], "expected": []}, {"args": [[10, 0, -4]], "expected": [10, 0, -4]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 6, 'squares-list', 6, 'func', 'Список квадратов', 'Напишите функцию squares(nums): новый список, в котором каждый элемент — квадрат соответствующего элемента nums.', 'def squares(nums):
@@ -144,9 +144,9 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     result = []
     return result
 ', 'Не удаляйте из исходного списка — наполняйте новый: if item != x: result.append(item).', '{"func": "without", "tests": [{"args": [[1, 2, 3, 2], 2], "expected": [1, 3]}, {"args": [[5, 5, 5], 5], "expected": []}, {"args": [[1, 2, 3], 9], "expected": [1, 2, 3]}, {"args": [[], 1], "expected": []}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 7, 'numbered', 0, 'stdout', 'Нумерованный список', 'Напечатайте имена из списка с номерами, начиная с единицы, в виде «1. Аня». Используйте enumerate с параметром start.', 'names = ["Аня", "Борис", "Вера"]
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 7, 'numbered', 0, 'stdout', 'Нумерованный список', 'Напечатайте имена из списка с номерами, начиная с единицы, в виде «1. Ann». Используйте enumerate с параметром start.', 'names = ["Ann", "Boris", "Vera"]
 # for ..., ... in enumerate(names, start=1):
-', 'for i, name in enumerate(names, start=1): print(f"{i}. {name}").', '{"expected": ["1. Аня", "2. Борис", "3. Вера"]}');
+', 'for i, name in enumerate(names, start=1): print(f"{i}. {name}").', '{"expected": ["1. Ann", "2. Boris", "3. Vera"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 7, 'index-of-max', 1, 'func', 'Где максимум', 'Напишите функцию index_of_max(nums): индекс наибольшего элемента непустого списка. Если наибольших несколько — верните индекс первого. Удобно перебирать через enumerate.', 'def index_of_max(nums):
     best_i = 0
     # for i, x in enumerate(nums): ...
@@ -163,12 +163,12 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'На каждом витке zip — два append: сначала x, потом y.', '{"func": "interleave", "tests": [{"args": [[1, 2, 3], [10, 20, 30]], "expected": [1, 10, 2, 20, 3, 30]}, {"args": [[], []], "expected": []}, {"args": [["a"], ["b"]], "expected": ["a", "b"]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 7, 'flatten', 4, 'func', 'Выпрямить таблицу', 'Напишите функцию flatten(matrix): matrix — список списков чисел. Верните один плоский список со всеми числами по порядку: из [[1, 2], [3], []] получается [1, 2, 3].', 'def flatten(matrix):
     result = []
-    # внешний цикл по строкам, внутренний по числам
+    # outer loop over rows, inner loop over numbers
     return result
 ', 'for row in matrix: for x in row: result.append(x) — либо result.extend(row).', '{"func": "flatten", "tests": [{"args": [[[1, 2], [3], []]], "expected": [1, 2, 3]}, {"args": [[]], "expected": []}, {"args": [[[1], [2], [3]]], "expected": [1, 2, 3]}, {"args": [[[5, 6, 7]]], "expected": [5, 6, 7]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 7, 'copy-demo', 5, 'stdout', 'Настоящая копия', 'Дан список a. Сделайте его НАСТОЯЩУЮ копию b (не просто второе имя), добавьте в b число 4 и напечатайте сначала a, потом b. Исходный список a должен остаться без четвёрки.', 'a = [1, 2, 3]
-# b = копия a
-# добавьте 4 в b
+# b = a copy of a
+# add 4 to b
 # print(a), print(b)
 ', 'b = a.copy() (или a[:]); b = a лишь повесит на список вторую табличку.', '{"expected": ["[1, 2, 3]", "[1, 2, 3, 4]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 7, 'drop-negatives', 6, 'func', 'Убрать отрицательные', 'Напишите функцию drop_negatives(nums): список без отрицательных чисел (ноль остаётся). Не удаляйте элементы из списка, по которому идёте циклом: подряд идущие отрицательные так пропускаются. Соберите новый список.', 'def drop_negatives(nums):
@@ -183,7 +183,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'sorted(words, key=len) — сортировка устойчива: равные по длине не переставляются.', '{"func": "by_length", "tests": [{"args": [["ccc", "a", "bb"]], "expected": ["a", "bb", "ccc"]}, {"args": [["bb", "aa", "c"]], "expected": ["c", "bb", "aa"]}, {"args": [[]], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 8, 'word-lengths', 2, 'func', 'Длины слов', 'Напишите функцию word_lengths(words): список длин слов в том же порядке. Запишите одной строкой — генератором списка.', 'def word_lengths(words):
     return []
-', 'return [len(w) for w in words].', '{"func": "word_lengths", "tests": [{"args": [["привет", "мир"]], "expected": [6, 3]}, {"args": [[]], "expected": []}, {"args": [["", "a"]], "expected": [0, 1]}]}');
+', 'return [len(w) for w in words].', '{"func": "word_lengths", "tests": [{"args": [["python", "sun"]], "expected": [6, 3]}, {"args": [[]], "expected": []}, {"args": [["", "a"]], "expected": [0, 1]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 8, 'even-squares', 3, 'func', 'Квадраты чётных', 'Напишите функцию even_squares(nums): список квадратов только чётных элементов, в исходном порядке. Одним генератором списка с условием.', 'def even_squares(nums):
     return []
 ', '[x * x for x in nums if x % 2 == 0] — if идёт после for.', '{"func": "even_squares", "tests": [{"args": [[1, 2, 3, 4]], "expected": [4, 16]}, {"args": [[1, 3]], "expected": []}, {"args": [[]], "expected": []}, {"args": [[0, -2]], "expected": [0, 4]}]}');
@@ -192,7 +192,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'return all(x % 2 == 0 for x in nums).', '{"func": "all_even", "tests": [{"args": [[2, 4, 6]], "expected": true}, {"args": [[2, 3]], "expected": false}, {"args": [[]], "expected": true}, {"args": [[0]], "expected": true}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 8, 'unique-sorted', 5, 'func', 'Без повторов, по порядку', 'Напишите функцию unique_sorted(nums): отсортированный по возрастанию список без повторов: из [3, 1, 3, 2, 1] получится [1, 2, 3]. Множества (set) пока не используйте: отбирайте новые элементы проверкой in.', 'def unique_sorted(nums):
     seen = []
-    # если x ещё не в seen — добавить
+    # if x is not in seen yet -- add it
     return seen
 ', 'if x not in seen: seen.append(x); в конце seen.sort() и return seen.', '{"func": "unique_sorted", "tests": [{"args": [[3, 1, 3, 2, 1]], "expected": [1, 2, 3]}, {"args": [[]], "expected": []}, {"args": [[5, 5, 5]], "expected": [5]}, {"args": [[2, 1]], "expected": [1, 2]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 8, 'balanced', 6, 'func', 'Скобки в порядке', 'Напишите функцию balanced(s): True, если круглые скобки в строке s расставлены правильно: у каждой «(» есть своя «)» правее, и ни одна «)» не стоит раньше пары. Остальные символы игнорируйте. Используйте список как стопку: append на «(», pop на «)».', 'def balanced(s):
@@ -203,20 +203,20 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 8, 'second-largest', 7, 'func', 'Второе по величине', 'Напишите функцию second_largest(nums): второе по величине РАЗНОЕ значение в списке из хотя бы двух различных чисел: для [3, 1, 4, 1, 5] — 4, для [10, 10, 5] — 5.', 'def second_largest(nums):
     pass
 ', 'Уберите повторы (как в unique_sorted), отсортируйте и возьмите предпоследний: items[-2].', '{"func": "second_largest", "tests": [{"args": [[3, 1, 4, 1, 5]], "expected": 4}, {"args": [[10, 10, 5]], "expected": 5}, {"args": [[1, 2]], "expected": 1}, {"args": [[-1, -5, -3]], "expected": -3}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'build-dict', 0, 'stdout', 'Первый словарь', 'Дан прайс {«яблоко»: 50, «банан»: 70}. Добавьте «киви» за 90, поднимите цену яблока до 55, удалите банан и напечатайте словарь целиком. Должно получиться {''яблоко'': 55, ''киви'': 90}.', 'prices = {"яблоко": 50, "банан": 70}
-# добавить, изменить, удалить, print
-', 'prices["киви"] = 90; prices["яблоко"] = 55; del prices["банан"]; print(prices).', '{"expected": ["{''яблоко'': 55, ''киви'': 90}"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'build-dict', 0, 'stdout', 'Первый словарь', 'Дан прайс {«apple»: 50, «banana»: 70}. Добавьте «kiwi» за 90, поднимите цену яблока до 55, удалите банан и напечатайте словарь целиком. Должно получиться {''apple'': 55, ''kiwi'': 90}.', 'prices = {"apple": 50, "banana": 70}
+# add, change, delete, print
+', 'prices["kiwi"] = 90; prices["apple"] = 55; del prices["banana"]; print(prices).', '{"expected": ["{''apple'': 55, ''kiwi'': 90}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'price-of', 1, 'func', 'Цена товара', 'Напишите функцию price_of(prices, name): цена товара name из словаря prices, а если такого товара нет — 0. Программа не должна падать на неизвестном товаре.', 'def price_of(prices, name):
     pass
-', 'prices.get(name, 0) — второй аргумент и есть значение по умолчанию.', '{"func": "price_of", "tests": [{"args": [{"яблоко": 50}, "яблоко"], "expected": 50}, {"args": [{"яблоко": 50}, "киви"], "expected": 0}, {"args": [{}, "хлеб"], "expected": 0}]}');
+', 'prices.get(name, 0) — второй аргумент и есть значение по умолчанию.', '{"func": "price_of", "tests": [{"args": [{"apple": 50}, "apple"], "expected": 50}, {"args": [{"apple": 50}, "kiwi"], "expected": 0}, {"args": [{}, "bread"], "expected": 0}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'with-item', 2, 'func', 'Словарь с новой парой', 'Напишите функцию with_item(d, key, value): новый словарь — копия d с добавленной (или заменённой) парой key: value. Исходный словарь d менять нельзя.', 'def with_item(d, key, value):
     result = d.copy()
     return result
 ', 'Скопируйте словарь, затем присвойте result[key] = value и верните result.', '{"func": "with_item", "tests": [{"args": [{"a": 1}, "b", 2], "expected": {"a": 1, "b": 2}}, {"args": [{"a": 1}, "a", 5], "expected": {"a": 5}}, {"args": [{}, "x", 0], "expected": {"x": 0}}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'count-words', 3, 'func', 'Частоты слов', 'Напишите функцию count_words(words): словарь «слово → сколько раз оно встретилось в списке». Используйте шаблон counts.get(word, 0) + 1.', 'def count_words(words):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'count-words', 3, 'func', 'Частоты слов', 'Напишите функцию count_words(words): словарь «word → how many times it occurs in the list». Используйте шаблон counts.get(word, 0) + 1.', 'def count_words(words):
     counts = {}
     return counts
-', 'for w in words: counts[w] = counts.get(w, 0) + 1.', '{"func": "count_words", "tests": [{"args": [["да", "нет", "да"]], "expected": {"да": 2, "нет": 1}}, {"args": [[]], "expected": {}}, {"args": [["a", "a", "a"]], "expected": {"a": 3}}]}');
+', 'for w in words: counts[w] = counts.get(w, 0) + 1.', '{"func": "count_words", "tests": [{"args": [["yes", "no", "yes"]], "expected": {"yes": 2, "no": 1}}, {"args": [[]], "expected": {}}, {"args": [["a", "a", "a"]], "expected": {"a": 3}}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'total-price', 4, 'func', 'Стоимость корзины', 'Напишите функцию total_price(prices, cart): prices — цены товаров, cart — словарь «товар → количество штук». Верните общую стоимость. Товары, которых нет в прайсе, не стоят ничего.', 'def total_price(prices, cart):
     total = 0
     # for name, qty in cart.items(): ...
@@ -225,7 +225,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'word-lengths-dict', 5, 'func', 'Слово → длина', 'Напишите функцию length_map(words): словарь, где ключ — слово из списка, а значение — его длина.', 'def length_map(words):
     result = {}
     return result
-', 'result[word] = len(word) на каждом витке цикла.', '{"func": "length_map", "tests": [{"args": [["привет", "мир"]], "expected": {"мир": 3, "привет": 6}}, {"args": [[]], "expected": {}}, {"args": [["a", "a"]], "expected": {"a": 1}}]}');
+', 'result[word] = len(word) на каждом витке цикла.', '{"func": "length_map", "tests": [{"args": [["python", "sun"]], "expected": {"python": 6, "sun": 3}}, {"args": [[]], "expected": {}}, {"args": [["a", "a"]], "expected": {"a": 1}}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 9, 'has-value', 6, 'func', 'Есть ли такое значение', 'Напишите функцию has_value(d, value): True, если value встречается среди ЗНАЧЕНИЙ словаря d (а не среди ключей), иначе False.', 'def has_value(d, value):
     pass
 ', 'Слово in у самого словаря смотрит ключи; значения отдаёт d.values().', '{"func": "has_value", "tests": [{"args": [{"a": 1, "b": 2}, 2], "expected": true}, {"args": [{"a": 1, "b": 2}, "a"], "expected": false}, {"args": [{}, 1], "expected": false}]}');
@@ -247,25 +247,25 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 10, 'group-by-first', 3, 'func', 'Слова по первой букве', 'Напишите функцию group_by_first(words): словарь, где ключ — первая буква слова, а значение — список слов на эту букву в исходном порядке. Слова непустые.', 'def group_by_first(words):
     groups = {}
     return groups
-', 'groups.setdefault(word[0], []).append(word).', '{"func": "group_by_first", "tests": [{"args": [["арбуз", "банан", "абрикос"]], "expected": {"а": ["арбуз", "абрикос"], "б": ["банан"]}}, {"args": [[]], "expected": {}}, {"args": [["ёж"]], "expected": {"ё": ["ёж"]}}]}');
+', 'groups.setdefault(word[0], []).append(word).', '{"func": "group_by_first", "tests": [{"args": [["avocado", "banana", "apricot"]], "expected": {"a": ["avocado", "apricot"], "b": ["banana"]}}, {"args": [[]], "expected": {}}, {"args": [["egg"]], "expected": {"e": ["egg"]}}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 10, 'most-common', 4, 'func', 'Самое частое слово', 'Напишите функцию most_common(words): самое частое слово непустого списка. Если таких несколько — то, что встретилось в списке раньше. Посчитайте частоты и найдите максимум по значению.', 'def most_common(words):
     counts = {}
-    # посчитать частоты, затем max(counts, key=counts.get)
-', 'max(counts, key=counts.get) возвращает ключ с наибольшим значением, а при ничьей — первый.', '{"func": "most_common", "tests": [{"args": [["да", "нет", "да"]], "expected": "да"}, {"args": [["a", "b", "b", "a"]], "expected": "a"}, {"args": [["один"]], "expected": "один"}]}');
+    # count the frequencies, then max(counts, key=counts.get)
+', 'max(counts, key=counts.get) возвращает ключ с наибольшим значением, а при ничьей — первый.', '{"func": "most_common", "tests": [{"args": [["yes", "no", "yes"]], "expected": "yes"}, {"args": [["a", "b", "b", "a"]], "expected": "a"}, {"args": [["one"]], "expected": "one"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 10, 'adult-names', 5, 'func', 'Имена взрослых', 'Напишите функцию adult_names(users): users — список словарей {''name'': ..., ''age'': ...}. Верните список имён тех, кому 18 или больше, в исходном порядке.', 'def adult_names(users):
     pass
-', '[u[''name''] for u in users if u[''age''] >= 18].', '{"func": "adult_names", "tests": [{"args": [[{"age": 20, "name": "Аня"}, {"age": 15, "name": "Боря"}, {"age": 18, "name": "Вера"}]], "expected": ["Аня", "Вера"]}, {"args": [[]], "expected": []}, {"args": [[{"age": 5, "name": "Гоша"}]], "expected": []}]}');
+', '[u[''name''] for u in users if u[''age''] >= 18].', '{"func": "adult_names", "tests": [{"args": [[{"age": 20, "name": "Ann"}, {"age": 15, "name": "Boyd"}, {"age": 18, "name": "Vera"}]], "expected": ["Ann", "Vera"]}, {"args": [[]], "expected": []}, {"args": [[{"age": 5, "name": "Walt"}]], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 10, 'sort-by-age', 6, 'func', 'Сортировка по возрасту', 'Напишите функцию sort_by_age(users): список тех же записей {''name'': ..., ''age'': ...}, отсортированный по возрасту от младшего к старшему. Для ключа сортировки определите маленькую функцию-помощник.', 'def get_age(user):
     pass
 
 
 def sort_by_age(users):
     pass
-', 'def get_age(user): return user[''age''] — и sorted(users, key=get_age).', '{"func": "sort_by_age", "tests": [{"args": [[{"age": 30, "name": "А"}, {"age": 20, "name": "Б"}]], "expected": [{"age": 20, "name": "Б"}, {"age": 30, "name": "А"}]}, {"args": [[]], "expected": []}, {"args": [[{"age": 5, "name": "А"}, {"age": 5, "name": "Б"}]], "expected": [{"age": 5, "name": "А"}, {"age": 5, "name": "Б"}]}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 10, 'grade-word', 7, 'func', 'Оценка словом', 'Напишите функцию grade_word(grade): 5 → «отлично», 4 → «хорошо», 3 → «удовлетворительно», 2 → «плохо», всё остальное → «неизвестно». Без цепочки if — таблицей соответствий в словаре.', 'def grade_word(grade):
+', 'def get_age(user): return user[''age''] — и sorted(users, key=get_age).', '{"func": "sort_by_age", "tests": [{"args": [[{"age": 30, "name": "A"}, {"age": 20, "name": "B"}]], "expected": [{"age": 20, "name": "B"}, {"age": 30, "name": "A"}]}, {"args": [[]], "expected": []}, {"args": [[{"age": 5, "name": "A"}, {"age": 5, "name": "B"}]], "expected": [{"age": 5, "name": "A"}, {"age": 5, "name": "B"}]}]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 10, 'grade-word', 7, 'func', 'Оценка словом', 'Напишите функцию grade_word(grade): 5 → «excellent», 4 → «good», 3 → «satisfactory», 2 → «bad», всё остальное → «unknown». Без цепочки if — таблицей соответствий в словаре.', 'def grade_word(grade):
     words = {}
     pass
-', 'return words.get(grade, ''неизвестно'') — в словаре words пары 5: ''отлично'' и так далее.', '{"func": "grade_word", "tests": [{"args": [5], "expected": "отлично"}, {"args": [4], "expected": "хорошо"}, {"args": [3], "expected": "удовлетворительно"}, {"args": [2], "expected": "плохо"}, {"args": [7], "expected": "неизвестно"}]}');
+', 'return words.get(grade, ''unknown'') — в словаре words пары 5: ''excellent'' и так далее.', '{"func": "grade_word", "tests": [{"args": [5], "expected": "excellent"}, {"args": [4], "expected": "good"}, {"args": [3], "expected": "satisfactory"}, {"args": [2], "expected": "bad"}, {"args": [7], "expected": "unknown"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 11, 'unpack-point', 0, 'stdout', 'Распаковка точки', 'Дан кортеж point с координатами. Распакуйте его в переменные x и y одной строкой и напечатайте их произведение.', 'point = (3, 4)
 # x, y = ...
 ', 'x, y = point — затем print(x * y).', '{"expected": ["12"]}');
@@ -292,7 +292,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def sort_people(people):
     return sorted(people, key=by_key)
-', 'def by_key(person): name, age = person; return -age, name.', '{"func": "sort_people", "tests": [{"args": [[{"__tuple__": ["Аня", 20]}, {"__tuple__": ["Боря", 30]}]], "expected": [{"__tuple__": ["Боря", 30]}, {"__tuple__": ["Аня", 20]}]}, {"args": [[{"__tuple__": ["Вера", 20]}, {"__tuple__": ["Аня", 20]}]], "expected": [{"__tuple__": ["Аня", 20]}, {"__tuple__": ["Вера", 20]}]}, {"args": [[]], "expected": []}]}');
+', 'def by_key(person): name, age = person; return -age, name.', '{"func": "sort_people", "tests": [{"args": [[{"__tuple__": ["Ann", 20]}, {"__tuple__": ["Boyd", 30]}]], "expected": [{"__tuple__": ["Boyd", 30]}, {"__tuple__": ["Ann", 20]}]}, {"args": [[{"__tuple__": ["Vera", 20]}, {"__tuple__": ["Ann", 20]}]], "expected": [{"__tuple__": ["Ann", 20]}, {"__tuple__": ["Vera", 20]}]}, {"args": [[]], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 12, 'counter-class', 0, 'stdout', 'Класс-счётчик', 'Опишите класс Counter: у нового счётчика атрибут value равен 0; метод inc() увеличивает value на 1; метод reset() сбрасывает value в 0. Ничего не печатайте — проверка вызовет ваш класс сама.', 'class Counter:
     pass
 ', 'В __init__ задайте self.value = 0; в методах меняйте self.value.', '{"driver": "c = Counter()\nc.inc()\nc.inc()\nc.inc()\nprint(c.value)\nc.reset()\nprint(c.value)\nd = Counter()\nprint(d.value)\n", "expected": ["3", "0", "0"]}');
@@ -300,14 +300,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     def __init__(self, w, h):
         pass
 ', 'Сохраните self.w и self.h; в методах используйте их.', '{"driver": "r = Rectangle(3, 4)\nprint(r.area())\nprint(r.perimeter())\nprint(r.is_square())\nprint(Rectangle(5, 5).is_square())\n", "expected": ["12", "14", "False", "True"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 12, 'dog-str', 2, 'stdout', 'Собака с описанием', 'Опишите класс Dog(name, age) с методом __str__, который возвращает «Собака Рекс, 5 лет» (имя и возраст подставляются), и методом birthday(), который увеличивает возраст на 1.', 'class Dog:
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 12, 'dog-str', 2, 'stdout', 'Собака с описанием', 'Опишите класс Dog(name, age) с методом __str__, который возвращает «Dog Rex, 5 years» (имя и возраст подставляются), и методом birthday(), который увеличивает возраст на 1.', 'class Dog:
     def __init__(self, name, age):
         pass
-', 'def __str__(self): return f"Собака {self.name}, {self.age} лет".', '{"driver": "d = Dog(\"Рекс\", 5)\nprint(d)\nd.birthday()\nprint(d)\n", "expected": ["Собака Рекс, 5 лет", "Собака Рекс, 6 лет"]}');
+', 'def __str__(self): return f"Dog {self.name}, {self.age} years".', '{"driver": "d = Dog(\"Rex\", 5)\nprint(d)\nd.birthday()\nprint(d)\n", "expected": ["Dog Rex, 5 years", "Dog Rex, 6 years"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 12, 'bank-account', 3, 'stdout', 'Банковский счёт', 'Опишите класс BankAccount(balance=0): атрибут balance; метод deposit(x) пополняет счёт (x должно быть больше 0, иначе ValueError); метод withdraw(x) снимает деньги (x больше 0 и не больше баланса, иначе ValueError).', 'class BankAccount:
     def __init__(self, balance=0):
         pass
-', 'В начале каждого метода проверьте условие и сделайте raise ValueError(...), потом меняйте баланс.', '{"driver": "a = BankAccount(100)\na.deposit(50)\nprint(a.balance)\ntry:\n    a.withdraw(500)\nexcept ValueError:\n    print(''недостаточно средств'')\na.withdraw(30)\nprint(a.balance)\ntry:\n    a.deposit(-1)\nexcept ValueError:\n    print(''неверная сумма'')\nprint(BankAccount().balance)\n", "expected": ["150", "недостаточно средств", "120", "неверная сумма", "0"]}');
+', 'В начале каждого метода проверьте условие и сделайте raise ValueError(...), потом меняйте баланс.', '{"driver": "a = BankAccount(100)\na.deposit(50)\nprint(a.balance)\ntry:\n    a.withdraw(500)\nexcept ValueError:\n    print(''insufficient funds'')\na.withdraw(30)\nprint(a.balance)\ntry:\n    a.deposit(-1)\nexcept ValueError:\n    print(''invalid amount'')\nprint(BankAccount().balance)\n", "expected": ["150", "insufficient funds", "120", "invalid amount", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 12, 'stack-class', 4, 'stdout', 'Свой стек', 'Опишите класс Stack с методами push(x), pop() (снимает и возвращает верхний элемент), peek() (возвращает верхний, не снимая), is_empty() и size(). Хранить элементы нужно в списке внутри объекта.', 'class Stack:
     def __init__(self):
         pass
@@ -319,10 +319,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def best_student(students):
     pass
-', 'Идите по списку и обновляйте лучшего только при строго большей оценке.', '{"driver": "a = [Student(\"Аня\", 4), Student(\"Боря\", 5), Student(\"Вера\", 5)]\nprint(best_student(a))\nprint(best_student([Student(''Гоша'', 3)]))\n", "expected": ["Боря", "Гоша"]}');
+', 'Идите по списку и обновляйте лучшего только при строго большей оценке.', '{"driver": "a = [Student(\"Ann\", 4), Student(\"Boyd\", 5), Student(\"Vera\", 5)]\nprint(best_student(a))\nprint(best_student([Student(''Walt'', 3)]))\n", "expected": ["Boyd", "Walt"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 12, 'team-members', 6, 'stdout', 'Команда без общего списка', 'Опишите класс Team: метод add(name) добавляет участника, метод size() возвращает их число. У каждой команды свой список — не делайте его атрибутом класса.', 'class Team:
     pass
-', 'self.members = [] — внутри __init__, чтобы список был у каждого экземпляра свой.', '{"driver": "a = Team()\nb = Team()\na.add(\"х\")\na.add(\"у\")\nprint(a.size(), b.size())\n", "expected": ["2 0"]}');
+', 'self.members = [] — внутри __init__, чтобы список был у каждого экземпляра свой.', '{"driver": "a = Team()\nb = Team()\na.add(\"x\")\na.add(\"y\")\nprint(a.size(), b.size())\n", "expected": ["2 0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'vector-class', 0, 'stdout', 'Вектор', 'Опишите класс Vector(x, y) с операторами: + (сложение), - (вычитание), * на число (масштабирование), == (равенство по значению) и методом __repr__, который возвращает «Vector(1, 2)». Операторы возвращают НОВЫЕ векторы.', 'class Vector:
     def __init__(self, x, y):
         self.x = x
@@ -331,28 +331,28 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'money-class', 1, 'stdout', 'Деньги', 'Опишите класс Money(amount): объекты равны, если равны суммы (__eq__); их можно сортировать (__lt__); их можно использовать как ключи словаря (__hash__).', 'class Money:
     def __init__(self, amount):
         self.amount = amount
-', '__hash__: return hash(self.amount); __lt__: сравните суммы.', '{"driver": "ms = [Money(5), Money(1), Money(3)]\nprint([m.amount for m in sorted(ms)])\nprint(Money(2) == Money(2))\nd = {Money(2): ''два''}\nprint(Money(2) in d)\nprint(max(ms).amount)\n", "expected": ["[1, 3, 5]", "True", "True", "5"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'playlist-class', 2, 'stdout', 'Плейлист', 'Опишите класс Playlist(songs): len(p) возвращает число песен, p[i] — песню по номеру, «название in p» проверяет наличие. Пустой плейлист в условии должен считаться ложью.', 'class Playlist:
+', '__hash__: return hash(self.amount); __lt__: сравните суммы.', '{"driver": "ms = [Money(5), Money(1), Money(3)]\nprint([m.amount for m in sorted(ms)])\nprint(Money(2) == Money(2))\nd = {Money(2): ''two''}\nprint(Money(2) in d)\nprint(max(ms).amount)\n", "expected": ["[1, 3, 5]", "True", "True", "5"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'playlist-class', 2, 'stdout', 'Плейлист', 'Опишите класс Playlist(songs): len(p) возвращает число песен, p[i] — песню по номеру, «title in p» проверяет наличие. Пустой плейлист в условии должен считаться ложью.', 'class Playlist:
     def __init__(self, songs):
         self._songs = list(songs)
-', '__len__, __getitem__ и __contains__; bool() сам опирается на __len__.', '{"driver": "p = Playlist([\"а\", \"б\", \"в\"])\nprint(len(p))\nprint(p[1])\nprint(\"в\" in p, \"я\" in p)\nprint(bool(p), bool(Playlist([])))\n", "expected": ["3", "б", "True False", "True False"]}');
+', '__len__, __getitem__ и __contains__; bool() сам опирается на __len__.', '{"driver": "p = Playlist([\"a\", \"b\", \"c\"])\nprint(len(p))\nprint(p[1])\nprint(\"c\" in p, \"z\" in p)\nprint(bool(p), bool(Playlist([])))\n", "expected": ["3", "b", "True False", "True False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'temperature-class', 3, 'stdout', 'Температура', 'Опишите класс Temperature(celsius): свойство celsius с проверкой (ниже -273.15 — ValueError, в том числе при создании объекта) и вычисляемое свойство fahrenheit только для чтения: celsius * 9 / 5 + 32.', 'class Temperature:
     def __init__(self, celsius):
         pass
-', 'В __init__ присваивайте self.celsius = celsius — так сработает сеттер; хранить в self._celsius.', '{"driver": "t = Temperature(100)\nprint(t.fahrenheit)\nt.celsius = 0\nprint(t.fahrenheit)\ntry:\n    t.celsius = -300\nexcept ValueError:\n    print(''слишком холодно'')\nprint(t.celsius)\ntry:\n    Temperature(-500)\nexcept ValueError:\n    print(''нельзя создать'')\n", "expected": ["212.0", "32.0", "слишком холодно", "0", "нельзя создать"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'person-from-string', 4, 'stdout', 'Человек из строки', 'Опишите класс Person(name, age) и метод класса from_string(s), который разбирает строку «Аня,20» и возвращает Person (возраст — число). Метод __str__ возвращает «Аня (20)».', 'class Person:
+', 'В __init__ присваивайте self.celsius = celsius — так сработает сеттер; хранить в self._celsius.', '{"driver": "t = Temperature(100)\nprint(t.fahrenheit)\nt.celsius = 0\nprint(t.fahrenheit)\ntry:\n    t.celsius = -300\nexcept ValueError:\n    print(''too cold'')\nprint(t.celsius)\ntry:\n    Temperature(-500)\nexcept ValueError:\n    print(''cannot create'')\n", "expected": ["212.0", "32.0", "too cold", "0", "cannot create"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'person-from-string', 4, 'stdout', 'Человек из строки', 'Опишите класс Person(name, age) и метод класса from_string(s), который разбирает строку «Ann,20» и возвращает Person (возраст — число). Метод __str__ возвращает «Ann (20)».', 'class Person:
     def __init__(self, name, age):
         pass
-', '@classmethod def from_string(cls, s): name, age = s.split('',''); return cls(name, int(age)).', '{"driver": "p = Person.from_string(\"Аня,20\")\nprint(p)\nprint(p.age + 1)\n", "expected": ["Аня (20)", "21"]}');
+', '@classmethod def from_string(cls, s): name, age = s.split('',''); return cls(name, int(age)).', '{"driver": "p = Person.from_string(\"Ann,20\")\nprint(p)\nprint(p.age + 1)\n", "expected": ["Ann (20)", "21"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'circle-property', 5, 'stdout', 'Круг', 'Опишите класс Circle(radius): свойство radius (больше 0, иначе ValueError) и свойство только для чтения area — 3.14159 * radius ** 2.', 'class Circle:
     def __init__(self, radius):
         pass
-', 'Свойство без сеттера нельзя присвоить — Питон сам поднимет AttributeError.', '{"driver": "c = Circle(2)\nprint(round(c.area, 2))\nc.radius = 1\nprint(round(c.area, 2))\ntry:\n    c.radius = -5\nexcept ValueError:\n    print(''радиус должен быть положительным'')\ntry:\n    c.area = 1\nexcept AttributeError:\n    print(''area только для чтения'')\n", "expected": ["12.57", "3.14", "радиус должен быть положительным", "area только для чтения"]}');
+', 'Свойство без сеттера нельзя присвоить — Питон сам поднимет AttributeError.', '{"driver": "c = Circle(2)\nprint(round(c.area, 2))\nc.radius = 1\nprint(round(c.area, 2))\ntry:\n    c.radius = -5\nexcept ValueError:\n    print(''radius must be positive'')\ntry:\n    c.area = 1\nexcept AttributeError:\n    print(''area read-only'')\n", "expected": ["12.57", "3.14", "radius must be positive", "area read-only"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 13, 'version-class', 6, 'stdout', 'Версии', 'Опишите класс Version(text): text — строка вида «1.2.10». Версии сравниваются по числам, а не по тексту: 1.2.10 больше 1.2.9. Нужны __lt__, __eq__ и __str__ (возвращает исходную строку).', 'class Version:
     def __init__(self, text):
         self.text = text
 ', 'Сравнивайте кортежи чисел: tuple(int(p) for p in self.text.split(''.'')); для > Питон сам обратит __lt__.', '{"driver": "vs = [Version(\"1.10.0\"), Version(\"1.2.10\"), Version(\"1.2.9\")]\nprint([str(v) for v in sorted(vs)])\nprint(Version(''2.0'') == Version(''2.0''))\nprint(Version(''1.10'') > Version(''1.9''))\n", "expected": ["[''1.2.9'', ''1.2.10'', ''1.10.0'']", "True", "True"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'animals-polymorphism', 0, 'stdout', 'Животные', 'Опишите Animal(name) с методом speak() (возвращает «...») и describe() (возвращает «<имя>: <звук>» — звук берётся из speak). Наследники Dog и Cat переопределяют speak: «Гав!» и «Мяу!». describe() переопределять не нужно.', 'class Animal:
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'animals-polymorphism', 0, 'stdout', 'Животные', 'Опишите Animal(name) с методом speak() (возвращает «...») и describe() (возвращает «<name>: <sound>» — звук берётся из speak). Наследники Dog и Cat переопределяют speak: «Woof!» и «Meow!». describe() переопределять не нужно.', 'class Animal:
     def __init__(self, name):
         pass
 
@@ -363,7 +363,7 @@ class Dog(Animal):
 
 class Cat(Animal):
     pass
-', 'В Animal: describe возвращает f''{self.name}: {self.speak()}'' — self.speak() вызовет версию потомка.', '{"driver": "for a in [Dog(\"Шарик\"), Cat(\"Мурка\"), Animal(\"Нечто\")]:\n    print(a.describe())\n", "expected": ["Шарик: Гав!", "Мурка: Мяу!", "Нечто: ..."]}');
+', 'В Animal: describe возвращает f''{self.name}: {self.speak()}'' — self.speak() вызовет версию потомка.', '{"driver": "for a in [Dog(\"Rover\"), Cat(\"Misty\"), Animal(\"Thing\")]:\n    print(a.describe())\n", "expected": ["Rover: Woof!", "Misty: Meow!", "Thing: ..."]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'employee-manager', 1, 'stdout', 'Сотрудник и менеджер', 'Опишите Employee(name, salary) с методом pay() (зарплата) и наследника Manager(name, salary, bonus), у которого pay() возвращает зарплату плюс бонус. Используйте super() и в конструкторе, и в pay().', 'class Employee:
     def __init__(self, name, salary):
         pass
@@ -371,7 +371,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 class Manager(Employee):
     pass
-', 'В Manager: super().__init__(name, salary); self.bonus = bonus; pay: return super().pay() + self.bonus.', '{"driver": "e = Employee(\"Аня\", 100)\nm = Manager(\"Боря\", 200, 50)\nprint(e.pay())\nprint(m.pay())\nprint(m.name, m.bonus)\nprint(isinstance(m, Employee))\n", "expected": ["100", "250", "Боря 50", "True"]}');
+', 'В Manager: super().__init__(name, salary); self.bonus = bonus; pay: return super().pay() + self.bonus.', '{"driver": "e = Employee(\"Ann\", 100)\nm = Manager(\"Boyd\", 200, 50)\nprint(e.pay())\nprint(m.pay())\nprint(m.name, m.bonus)\nprint(isinstance(m, Employee))\n", "expected": ["100", "250", "Boyd 50", "True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'shapes-abstract', 2, 'stdout', 'Абстрактная фигура', 'Опишите абстрактный класс Shape (модуль abc) с абстрактным методом area(); Circle(r) с площадью 3.14159 * r ** 2 и Rect(w, h); а также функцию total_area(shapes) — сумму площадей. Создать Shape напрямую нельзя.', 'from abc import ABC, abstractmethod
 
 
@@ -381,8 +381,8 @@ class Shape(ABC):
 
 def total_area(shapes):
     pass
-', '@abstractmethod над def area(self); Circle и Rect наследуют от Shape и реализуют area.', '{"driver": "shapes = [Circle(1), Rect(2, 3)]\nprint(round(total_area(shapes), 2))\ntry:\n    Shape()\nexcept TypeError:\n    print(''нельзя создать'')\nprint(isinstance(Rect(1, 1), Shape))\n", "expected": ["9.14", "нельзя создать", "True"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'car-composition', 3, 'stdout', 'Автомобиль и двигатель', 'Опишите Engine(power) с методом start() — возвращает «двигатель <мощность> л.с. запущен» — и Car(engine), у которого метод go() возвращает результат engine.start(), к которому добавлено «, поехали». Car хранит двигатель как атрибут (композиция).', 'class Engine:
+', '@abstractmethod над def area(self); Circle и Rect наследуют от Shape и реализуют area.', '{"driver": "shapes = [Circle(1), Rect(2, 3)]\nprint(round(total_area(shapes), 2))\ntry:\n    Shape()\nexcept TypeError:\n    print(''cannot create'')\nprint(isinstance(Rect(1, 1), Shape))\n", "expected": ["9.14", "cannot create", "True"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'car-composition', 3, 'stdout', 'Автомобиль и двигатель', 'Опишите Engine(power) с методом start() — возвращает «engine <power> h.p. started» — и Car(engine), у которого метод go() возвращает результат engine.start(), к которому добавлено «, off we go». Car хранит двигатель как атрибут (композиция).', 'class Engine:
     def __init__(self, power):
         pass
 
@@ -390,8 +390,8 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 class Car:
     def __init__(self, engine):
         pass
-', 'Car.go: return self.engine.start() + ", поехали".', '{"driver": "car = Car(Engine(150))\nprint(car.go())\ncar.engine = Engine(300)\nprint(car.go())\n", "expected": ["двигатель 150 л.с. запущен, поехали", "двигатель 300 л.с. запущен, поехали"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'greet-mixin', 4, 'stdout', 'Примесь «поздороваться»', 'Опишите примесь GreetMixin с методом greet(), который возвращает «Привет, я <имя>» (имя берётся из self.name), и классы Person(name) и Robot(name), которые её подмешивают.', 'class GreetMixin:
+', 'Car.go: return self.engine.start() + ", off we go".', '{"driver": "car = Car(Engine(150))\nprint(car.go())\ncar.engine = Engine(300)\nprint(car.go())\n", "expected": ["engine 150 h.p. started, off we go", "engine 300 h.p. started, off we go"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'greet-mixin', 4, 'stdout', 'Примесь «поздороваться»', 'Опишите примесь GreetMixin с методом greet(), который возвращает «Hello, I''m <name>» (имя берётся из self.name), и классы Person(name) и Robot(name), которые её подмешивают.', 'class GreetMixin:
     pass
 
 
@@ -403,7 +403,7 @@ class Person(GreetMixin):
 class Robot(GreetMixin):
     def __init__(self, name):
         pass
-', 'greet — в GreetMixin; Person и Robot лишь задают self.name.', '{"driver": "print(Person(\"Аня\").greet())\nprint(Robot(\"R2\").greet())\n", "expected": ["Привет, я Аня", "Привет, я R2"]}');
+', 'greet — в GreetMixin; Person и Robot лишь задают self.name.', '{"driver": "print(Person(\"Ann\").greet())\nprint(Robot(\"R2\").greet())\n", "expected": ["Hello, i''m Ann", "Hello, i''m R2"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 14, 'count-dogs', 5, 'stdout', 'Сколько собак', 'Даны классы Animal, Dog(Animal), Puppy(Dog) и Cat(Animal) (уже описаны в проверке). Напишите функцию count_dogs(animals): сколько объектов в списке являются собаками — включая щенков. Используйте isinstance.', 'def count_dogs(animals):
     pass
 ', 'type(x) is Dog не посчитает щенков; isinstance(x, Dog) — посчитает.', '{"driver": "class Animal: pass\nclass Dog(Animal): pass\nclass Puppy(Dog): pass\nclass Cat(Animal): pass\nzoo = [Dog(), Puppy(), Cat(), Animal(), Dog()]\nprint(count_dogs(zoo))\nprint(count_dogs([]))\n", "expected": ["3", "0"]}');
@@ -419,50 +419,50 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'Поймайте именно ZeroDivisionError, остальное пусть падает.', '{"func": "safe_divide", "tests": [{"args": [6, 3], "expected": 2.0}, {"args": [1, 0], "expected": null}, {"args": [0, 5], "expected": 0.0}, {"args": [-9, 3], "expected": -3.0}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'parse-age', 2, 'stdout', 'Возраст с проверкой', 'Напишите функцию parse_age(text): возвращает целый возраст из строки. Если число отрицательное — поднимите ValueError с любым сообщением. Нечисловую строку int() отвергнет сам.', 'def parse_age(text):
     pass
-', 'age = int(text); if age < 0: raise ValueError(...); return age.', '{"driver": "print(parse_age(\"20\"))\ntry:\n    parse_age(\"-5\")\nexcept ValueError:\n    print(\"отрицательный\")\ntry:\n    parse_age(\"abc\")\nexcept ValueError:\n    print(\"не число\")\n", "expected": ["20", "отрицательный", "не число"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'custom-error', 3, 'stdout', 'Своё исключение', 'Опишите исключение NotEnoughMoney (наследник Exception) и функцию withdraw(balance, amount): если amount больше balance — поднимите NotEnoughMoney с сообщением «не хватает <сколько>», иначе верните остаток.', 'class NotEnoughMoney(Exception):
+', 'age = int(text); if age < 0: raise ValueError(...); return age.', '{"driver": "print(parse_age(\"20\"))\ntry:\n    parse_age(\"-5\")\nexcept ValueError:\n    print(\"negative\")\ntry:\n    parse_age(\"abc\")\nexcept ValueError:\n    print(\"not a number\")\n", "expected": ["20", "negative", "not a number"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'custom-error', 3, 'stdout', 'Своё исключение', 'Опишите исключение NotEnoughMoney (наследник Exception) и функцию withdraw(balance, amount): если amount больше balance — поднимите NotEnoughMoney с сообщением «short by <how much>», иначе верните остаток.', 'class NotEnoughMoney(Exception):
     pass
 
 
 def withdraw(balance, amount):
     pass
-', 'raise NotEnoughMoney(f"не хватает {amount - balance}").', '{"driver": "print(withdraw(100, 30))\ntry:\n    withdraw(100, 150)\nexcept NotEnoughMoney as e:\n    print(e)\nprint(issubclass(NotEnoughMoney, Exception))\n", "expected": ["70", "не хватает 50", "True"]}');
+', 'raise NotEnoughMoney(f"short by {amount - balance}").', '{"driver": "print(withdraw(100, 30))\ntry:\n    withdraw(100, 150)\nexcept NotEnoughMoney as e:\n    print(e)\nprint(issubclass(NotEnoughMoney, Exception))\n", "expected": ["70", "short by 50", "True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'first-int', 4, 'func', 'Первое число в списке', 'Напишите функцию first_int(items): items — список строк. Верните первое значение, которое удаётся превратить в целое число (уже как int), или None, если таких нет.', 'def first_int(items):
     pass
-', 'В цикле: try: return int(x) / except ValueError: continue; после цикла return None.', '{"func": "first_int", "tests": [{"args": [["а", "б", "12", "7"]], "expected": 12}, {"args": [["x", "y"]], "expected": null}, {"args": [[]], "expected": null}, {"args": [["5"]], "expected": 5}]}');
+', 'В цикле: try: return int(x) / except ValueError: continue; после цикла return None.', '{"func": "first_int", "tests": [{"args": [["a", "b", "12", "7"]], "expected": 12}, {"args": [["x", "y"]], "expected": null}, {"args": [[]], "expected": null}, {"args": [["5"]], "expected": 5}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'finally-log', 5, 'stdout', 'Журнал и finally', 'Напишите функцию process(items, log): добавьте в список log строку «start»; вычислите и верните список 100 / x для каждого x из items; но если встретится ноль — верните None. В любом случае, даже при ошибке, в конце добавьте в log строку «end» (блок finally).', 'def process(items, log):
     pass
 ', 'try: return [100 / x for x in items] / except ZeroDivisionError: return None / finally: log.append(''end'').', '{"driver": "log = []\nprint(process([1, 4], log))\nprint(log)\nlog = []\nprint(process([2, 0], log))\nprint(log)\n", "expected": ["[100.0, 25.0]", "[''start'', ''end'']", "None", "[''start'', ''end'']"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'raise-from', 6, 'stdout', 'Понятная ошибка', 'Напишите функцию get_port(config): возвращает config["port"], а если ключа нет — поднимает RuntimeError("нет порта") ИЗ исходной ошибки (raise ... from e).', 'def get_port(config):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'raise-from', 6, 'stdout', 'Понятная ошибка', 'Напишите функцию get_port(config): возвращает config["port"], а если ключа нет — поднимает RuntimeError("no port") ИЗ исходной ошибки (raise ... from e).', 'def get_port(config):
     pass
-', 'try: return config["port"] / except KeyError as e: raise RuntimeError("нет порта") from e.', '{"driver": "print(get_port({\"port\": 8080}))\ntry:\n    get_port({})\nexcept RuntimeError as e:\n    print(e, type(e.__cause__).__name__)\n", "expected": ["8080", "нет порта KeyError"]}');
+', 'try: return config["port"] / except KeyError as e: raise RuntimeError("no port") from e.', '{"driver": "print(get_port({\"port\": 8080}))\ntry:\n    get_port({})\nexcept RuntimeError as e:\n    print(e, type(e.__cause__).__name__)\n", "expected": ["8080", "no port KeyError"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 15, 'eafp-get', 7, 'func', 'EAFP вместо get', 'Напишите функцию get_or_default(d, key, default): значение по ключу или default. Метод get и слово in использовать нельзя — только try/except KeyError.', 'def get_or_default(d, key, default):
     pass
-', 'try: return d[key] / except KeyError: return default.', '{"func": "get_or_default", "tests": [{"args": [{"a": 1}, "a", 0], "expected": 1}, {"args": [{"a": 1}, "b", 0], "expected": 0}, {"args": [{}, "x", "нет"], "expected": "нет"}]}');
+', 'try: return d[key] / except KeyError: return default.', '{"func": "get_or_default", "tests": [{"args": [{"a": 1}, "a", 0], "expected": 1}, {"args": [{"a": 1}, "b", 0], "expected": 0}, {"args": [{}, "x", "no"], "expected": "no"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'write-lines', 0, 'stdout', 'Запись строк в файл', 'Напишите функцию write_lines(path, lines): записывает каждую строку списка в файл по своей строке (кодировка utf-8).', 'def write_lines(path, lines):
     pass
-', 'with open(path, ''w'', encoding=''utf-8'') as f: for line in lines: f.write(line + ''\n'').', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nwrite_lines(p, [''привет'', ''мир'', ''ещё''])\nprint(open(p, encoding=''utf-8'').read().split(''\\n''))\n", "expected": ["[''привет'', ''мир'', ''ещё'', '''']"]}');
+', 'with open(path, ''w'', encoding=''utf-8'') as f: for line in lines: f.write(line + ''\n'').', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nwrite_lines(p, [''hello'', ''world'', ''more''])\nprint(open(p, encoding=''utf-8'').read().split(''\\n''))\n", "expected": ["[''hello'', ''world'', ''more'', '''']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'read-lines', 1, 'stdout', 'Чтение строк', 'Напишите функцию read_lines(path): список строк файла без символов перевода строки.', 'def read_lines(path):
     pass
-', 'with open(...) as f: return [line.strip() for line in f] — либо read().splitlines().', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''один\\nдва\\nтри\\n'')\nprint(read_lines(p))\n", "expected": ["[''один'', ''два'', ''три'']"]}');
+', 'with open(...) as f: return [line.strip() for line in f] — либо read().splitlines().', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''one\\ntwo\\nthree\\n'')\nprint(read_lines(p))\n", "expected": ["[''one'', ''two'', ''three'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'count-words-file', 2, 'stdout', 'Слова в файле', 'Напишите функцию count_words(path): сколько всего слов в файле (слова разделены пробелами и переводами строк).', 'def count_words(path):
     pass
-', 'На каждой строке прибавляйте len(line.split()).', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''раз два\\nтри четыре пять\\n\\nшесть\\n'')\nprint(count_words(p))\n", "expected": ["6"]}');
+', 'На каждой строке прибавляйте len(line.split()).', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''one two\\nthree four five\\n\\nsix\\n'')\nprint(count_words(p))\n", "expected": ["6"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'append-log', 3, 'stdout', 'Журнал', 'Напишите функцию append_log(path, text): дописывает text и перевод строки в конец файла, не затирая предыдущее.', 'def append_log(path, text):
     pass
-', 'Режим ''a'' дописывает; ''w'' затёр бы всё.', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''log.txt'')\nappend_log(p, ''старт'')\nappend_log(p, ''работа'')\nappend_log(p, ''финиш'')\nprint(open(p, encoding=''utf-8'').read().splitlines())\n", "expected": ["[''старт'', ''работа'', ''финиш'']"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'word-freq-file', 4, 'stdout', 'Частоты слов в файле', 'Напишите функцию word_freq(path): словарь «слово → сколько раз» для слов файла без учёта регистра (приводите к нижнему).', 'def word_freq(path):
+', 'Режим ''a'' дописывает; ''w'' затёр бы всё.', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''log.txt'')\nappend_log(p, ''start'')\nappend_log(p, ''work'')\nappend_log(p, ''finish'')\nprint(open(p, encoding=''utf-8'').read().splitlines())\n", "expected": ["[''start'', ''work'', ''finish'']"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'word-freq-file', 4, 'stdout', 'Частоты слов в файле', 'Напишите функцию word_freq(path): словарь «word → how many times» для слов файла без учёта регистра (приводите к нижнему).', 'def word_freq(path):
     pass
-', 'counts[w] = counts.get(w, 0) + 1 для каждого слова line.lower().split().', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''Да нет да\\nНЕТ да\\n'')\nprint(sorted(word_freq(p).items()))\n", "expected": ["[(''да'', 3), (''нет'', 2)]"]}');
+', 'counts[w] = counts.get(w, 0) + 1 для каждого слова line.lower().split().', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''Cat dog cat\\nDOG cat\\n'')\nprint(sorted(word_freq(p).items()))\n", "expected": ["[(''cat'', 3), (''dog'', 2)]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'safe-read', 5, 'stdout', 'Чтение без падения', 'Напишите функцию safe_read(path): текст файла или None, если файла нет (FileNotFoundError).', 'def safe_read(path):
     pass
-', 'try: with open(...) as f: return f.read() / except FileNotFoundError: return None.', '{"driver": "import os, tempfile\nd = tempfile.mkdtemp()\np = os.path.join(d, ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''данные'')\nprint(safe_read(p))\nprint(safe_read(os.path.join(d, ''нет.txt'')))\n", "expected": ["данные", "None"]}');
+', 'try: with open(...) as f: return f.read() / except FileNotFoundError: return None.', '{"driver": "import os, tempfile\nd = tempfile.mkdtemp()\np = os.path.join(d, ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''data'')\nprint(safe_read(p))\nprint(safe_read(os.path.join(d, ''no.txt'')))\n", "expected": ["data", "None"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'copy-upper', 6, 'stdout', 'Копия заглавными', 'Напишите функцию copy_upper(src, dst): читает файл src и записывает в dst те же строки, но заглавными буквами. Оба файла открывайте одним with.', 'def copy_upper(src, dst):
     pass
-', 'with open(src, encoding=''utf-8'') as r, open(dst, ''w'', encoding=''utf-8'') as w: ...', '{"driver": "import os, tempfile\nd = tempfile.mkdtemp()\na, b = os.path.join(d, ''a.txt''), os.path.join(d, ''b.txt'')\nopen(a, ''w'', encoding=''utf-8'').write(''привет\\nмир\\n'')\ncopy_upper(a, b)\nprint(open(b, encoding=''utf-8'').read().splitlines())\n", "expected": ["[''ПРИВЕТ'', ''МИР'']"]}');
+', 'with open(src, encoding=''utf-8'') as r, open(dst, ''w'', encoding=''utf-8'') as w: ...', '{"driver": "import os, tempfile\nd = tempfile.mkdtemp()\na, b = os.path.join(d, ''a.txt''), os.path.join(d, ''b.txt'')\nopen(a, ''w'', encoding=''utf-8'').write(''hello\\nworld\\n'')\ncopy_upper(a, b)\nprint(open(b, encoding=''utf-8'').read().splitlines())\n", "expected": ["[''HELLO'', ''WORLD'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 16, 'longest-line', 7, 'stdout', 'Самая длинная строка', 'Напишите функцию longest_line(path): самая длинная строка файла без перевода строки (при равной длине — первая). Файл не пустой.', 'def longest_line(path):
     pass
-', 'Идите по строкам и обновляйте лучшую только при строго большей длине.', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''коротко\\nчуть подлиннее\\nсредне\\nодинаково-ок\\n'')\nprint(longest_line(p))\n", "expected": ["чуть подлиннее"]}');
+', 'Идите по строкам и обновляйте лучшую только при строго большей длине.', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''a.txt'')\nopen(p, ''w'', encoding=''utf-8'').write(''short\\nslightly longer\\nmedium\\nequally-ok\\n'')\nprint(longest_line(p))\n", "expected": ["slightly longer"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'file-info', 0, 'func', 'Части пути', 'Напишите функцию file_info(path): кортеж (имя файла, имя без расширения, расширение) для пути-строки. Используйте pathlib. Диск не нужен.', 'from pathlib import Path
 
 
@@ -475,7 +475,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 def join_path(parts):
     pass
 ', 'str(Path(*parts)) — звёздочка раскладывает список в аргументы.', '{"func": "join_path", "tests": [{"args": [["data", "reports", "a.csv"]], "expected": "data/reports/a.csv"}, {"args": [["x"]], "expected": "x"}, {"args": [["/", "tmp", "f.txt"]], "expected": "/tmp/f.txt"}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'json-roundtrip', 2, 'stdout', 'Сохранить и загрузить JSON', 'Напишите функции save_json(path, data) и load_json(path): сохранение словаря в файл (utf-8, русские буквы без кодов) и чтение обратно.', 'import json
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'json-roundtrip', 2, 'stdout', 'Сохранить и загрузить JSON', 'Напишите функции save_json(path, data) и load_json(path): сохранение словаря в файл (utf-8, не-ASCII буквы вроде «é» и «ü» без кодов \uXXXX) и чтение обратно.', 'import json
 
 
 def save_json(path, data):
@@ -484,31 +484,31 @@ def save_json(path, data):
 
 def load_json(path):
     pass
-', 'json.dump(data, f, ensure_ascii=False) и json.load(f) внутри with open(..., encoding=''utf-8'').', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''d.json'')\ndata = {''имя'': ''Аня'', ''возраст'': 20, ''теги'': [''а'', ''б'']}\nsave_json(p, data)\nprint(load_json(p) == data)\nprint(''Аня'' in open(p, encoding=''utf-8'').read())\n", "expected": ["True", "True"]}');
+', 'json.dump(data, f, ensure_ascii=False) и json.load(f) внутри with open(..., encoding=''utf-8'').', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''d.json'')\ndata = {''name'': ''Zoë'', ''city'': ''Zürich'', ''age'': 20, ''tags'': [''é'', ''ü'']}\nsave_json(p, data)\nprint(load_json(p) == data)\nprint(''Zoë'' in open(p, encoding=''utf-8'').read())\n", "expected": ["True", "True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'csv-column-sum', 3, 'stdout', 'Сумма столбца CSV', 'Напишите функцию column_sum(path, column): сумма чисел в столбце column CSV-файла с заголовком (значения целые).', 'import csv
 
 
 def column_sum(path, column):
     pass
-', 'csv.DictReader; на каждой строке int(row[column]).', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''t.csv'')\nopen(p, ''w'', encoding=''utf-8'', newline='''').write(''имя,цена,штук\\nчай,100,2\\nкофе,250,1\\nсок,80,5\\n'')\nprint(column_sum(p, ''цена''))\nprint(column_sum(p, ''штук''))\n", "expected": ["430", "8"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'csv-group-sum', 4, 'stdout', 'Итоги по отделам', 'Напишите функцию sum_by(path, key_col, value_col): словарь «значение из key_col → сумма значений value_col» по CSV с заголовком (value_col — целые числа).', 'import csv
+', 'csv.DictReader; на каждой строке int(row[column]).', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''t.csv'')\nopen(p, ''w'', encoding=''utf-8'', newline='''').write(''name,price,qty\\ntea,100,2\\ncoffee,250,1\\njuice,80,5\\n'')\nprint(column_sum(p, ''price''))\nprint(column_sum(p, ''qty''))\n", "expected": ["430", "8"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'csv-group-sum', 4, 'stdout', 'Итоги по отделам', 'Напишите функцию sum_by(path, key_col, value_col): словарь «value from key_col → sum of values value_col» по CSV с заголовком (value_col — целые числа).', 'import csv
 
 
 def sum_by(path, key_col, value_col):
     pass
-', 'totals[k] = totals.get(k, 0) + int(row[value_col]).', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''t.csv'')\nopen(p, ''w'', encoding=''utf-8'', newline='''').write(''отдел,зарплата\\nИТ,100\\nHR,70\\nИТ,120\\nHR,80\\nКУ,90\\n'')\nprint(sorted(sum_by(p, ''отдел'', ''зарплата'').items()))\n", "expected": ["[(''HR'', 150), (''ИТ'', 220), (''КУ'', 90)]"]}');
+', 'totals[k] = totals.get(k, 0) + int(row[value_col]).', '{"driver": "import os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''t.csv'')\nopen(p, ''w'', encoding=''utf-8'', newline='''').write(''dept,salary\\nIT,100\\nHR,70\\nIT,120\\nHR,80\\nQA,90\\n'')\nprint(sorted(sum_by(p, ''dept'', ''salary'').items()))\n", "expected": ["[(''HR'', 150), (''IT'', 220), (''QA'', 90)]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'csv-write-table', 5, 'stdout', 'Запись таблицы', 'Напишите функцию write_table(path, header, rows): записывает в CSV строку заголовка и затем строки таблицы (utf-8, newline=''''). Затем в проверке файл читается и разбирается.', 'import csv
 
 
 def write_table(path, header, rows):
     pass
-', 'w = csv.writer(f); w.writerow(header); w.writerows(rows).', '{"driver": "import csv, os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''t.csv'')\nwrite_table(p, [''имя'', ''возраст''], [[''Аня'', 20], [''Боря, мл.'', 31]])\nwith open(p, encoding=''utf-8'', newline='''') as f:\n    print(list(csv.reader(f)))\n", "expected": ["[[''имя'', ''возраст''], [''Аня'', ''20''], [''Боря, мл.'', ''31'']]"]}');
+', 'w = csv.writer(f); w.writerow(header); w.writerows(rows).', '{"driver": "import csv, os, tempfile\np = os.path.join(tempfile.mkdtemp(), ''t.csv'')\nwrite_table(p, [''name'', ''age''], [[''Ann'', 20], [''Boyd, jr.'', 31]])\nwith open(p, encoding=''utf-8'', newline='''') as f:\n    print(list(csv.reader(f)))\n", "expected": ["[[''name'', ''age''], [''Ann'', ''20''], [''Boyd, jr.'', ''31'']]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'atomic-write', 6, 'stdout', 'Атомарная запись', 'Напишите функцию atomic_write(path, text): сначала запишите текст во временный файл рядом (path + ''.tmp''), затем замените им целевой файл через os.replace. Временного файла после работы остаться не должно.', 'import os
 
 
 def atomic_write(path, text):
     pass
-', 'tmp = path + ''.tmp''; запишите в tmp; os.replace(tmp, path).', '{"driver": "import os, tempfile\nd = tempfile.mkdtemp()\np = os.path.join(d, ''state.txt'')\natomic_write(p, ''первая версия'')\natomic_write(p, ''вторая версия'')\nprint(open(p, encoding=''utf-8'').read())\nprint(sorted(os.listdir(d)))\n", "expected": ["вторая версия", "[''state.txt'']"]}');
+', 'tmp = path + ''.tmp''; запишите в tmp; os.replace(tmp, path).', '{"driver": "import os, tempfile\nd = tempfile.mkdtemp()\np = os.path.join(d, ''state.txt'')\natomic_write(p, ''first version'')\natomic_write(p, ''second version'')\nprint(open(p, encoding=''utf-8'').read())\nprint(sorted(os.listdir(d)))\n", "expected": ["second version", "[''state.txt'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 17, 'list-txt', 7, 'stdout', 'Файлы txt в папке', 'Напишите функцию list_txt(folder): отсортированный список ИМЁН файлов с расширением .txt в папке (без вложенных папок). Используйте pathlib.', 'from pathlib import Path
 
 
@@ -527,14 +527,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 18, 'dm-bool-account', 2, 'stdout', 'Пустой счёт — ложь', 'Допишите Account так, чтобы счёт с положительным остатком считался истинным, а с нулевым или отрицательным — ложным (условие if account: должно работать).', 'class Account:
     def __init__(self, balance):
         self.balance = balance
-', 'def __bool__(self): return self.balance > 0.', '{"driver": "print(bool(Account(10)))\nprint(bool(Account(0)))\nprint(\"есть\" if Account(5) else \"пусто\")\nprint(bool(Account(-1)))\n", "expected": ["True", "False", "есть", "False"]}');
+', 'def __bool__(self): return self.balance > 0.', '{"driver": "print(bool(Account(10)))\nprint(bool(Account(0)))\nprint(\"some\" if Account(5) else \"empty\")\nprint(bool(Account(-1)))\n", "expected": ["True", "False", "some", "False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 18, 'dm-len-basket', 3, 'stdout', 'Длина корзины', 'В Basket уже есть метод add. Добавьте __len__, чтобы len(basket) возвращало число товаров, а пустая корзина была ложью (без отдельного __bool__).', 'class Basket:
     def __init__(self):
         self.items = []
 
     def add(self, item):
         self.items.append(item)
-', 'def __len__(self): return len(self.items). Истинность Питон возьмёт из длины.', '{"driver": "b = Basket()\nprint(len(b), bool(b))\nb.add(\"хлеб\")\nb.add(\"сыр\")\nprint(len(b), bool(b))\n", "expected": ["0 False", "2 True"]}');
+', 'def __len__(self): return len(self.items). Истинность Питон возьмёт из длины.', '{"driver": "b = Basket()\nprint(len(b), bool(b))\nb.add(\"bread\")\nb.add(\"cheese\")\nprint(len(b), bool(b))\n", "expected": ["0 False", "2 True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 18, 'dm-eq-hash-version', 4, 'stdout', 'Равенство и хеш версий', 'Напишите для Version(major, minor) методы __eq__ и __hash__: версии с одинаковыми числами равны, их можно класть в множество и использовать как ключи. Сравнение с объектом другого типа (например, со строкой) должно просто давать False, а не ошибку.', 'class Version:
     def __init__(self, major, minor):
         self.major = major
@@ -554,7 +554,7 @@ class Version:
             return NotImplemented
         return (self.major, self.minor) == (other.major, other.minor)
 
-    # допишите __lt__
+    # add __lt__
 ', 'if not isinstance(other, Version): return NotImplemented; затем сравните кортежи (major, minor).', '{"driver": "vs = [Version(1, 10), Version(1, 2), Version(0, 9)]\nprint([(v.major, v.minor) for v in sorted(vs)])\nprint(Version(1, 2) < Version(1, 10), Version(1, 2) >= Version(1, 10), max(vs).minor)\ntry:\n    Version(1, 0) < 5\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["[(0, 9), (1, 2), (1, 10)]", "True False 10", "TypeError"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 18, 'dm-format-temp', 6, 'stdout', 'Свой формат температуры', 'Напишите Temperature.__format__(spec): спецификация «c» (и пустая) даёт «21.0 °C», спецификация «f» — градусы Фаренгейта с одним знаком («69.8 °F»). Любую другую спецификацию отвергайте ValueError.', 'class Temperature:
     def __init__(self, celsius):
@@ -563,12 +563,12 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 18, 'dm-getattr-config', 7, 'stdout', 'Настройки как атрибуты', 'Config хранит словарь в self._data. Допишите __getattr__ так, чтобы config.host возвращало значение ключа «host». Если ключа нет, поднимайте AttributeError (тогда hasattr и getattr с запасным значением работают правильно).', 'class Config:
     def __init__(self, data):
         self._data = dict(data)
-', 'try: return self._data[name]; except KeyError: raise AttributeError(name).', '{"driver": "c = Config({\"host\": \"localhost\", \"port\": 8080})\nprint(c.host, c.port)\nprint(hasattr(c, \"user\"))\nprint(getattr(c, \"user\", \"нет\"))\n", "expected": ["localhost 8080", "False", "нет"]}');
+', 'try: return self._data[name]; except KeyError: raise AttributeError(name).', '{"driver": "c = Config({\"host\": \"localhost\", \"port\": 8080})\nprint(c.host, c.port)\nprint(hasattr(c, \"user\"))\nprint(getattr(c, \"user\", \"no\"))\n", "expected": ["localhost 8080", "False", "no"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 18, 'dm-readonly-id', 8, 'stdout', 'Неизменяемый номер заказа', 'У Order поле id нельзя менять после создания, а total — можно. Напишите __setattr__: первую запись id пропускайте, повторную — отвергайте AttributeError. Остальные атрибуты пишутся как обычно (через super().__setattr__, чтобы не уйти в рекурсию).', 'class Order:
     def __init__(self, id, total):
         self.id = id
         self.total = total
-', 'if name == "id" and "id" in self.__dict__: raise AttributeError(...); затем super().__setattr__(name, value).', '{"driver": "o = Order(7, 100)\no.total = 150\nprint(o.id, o.total)\ntry:\n    o.id = 8\nexcept AttributeError:\n    print(\"запрещено\")\nprint(o.id)\n", "expected": ["7 150", "запрещено", "7"]}');
+', 'if name == "id" and "id" in self.__dict__: raise AttributeError(...); затем super().__setattr__(name, value).', '{"driver": "o = Order(7, 100)\no.total = 150\nprint(o.id, o.total)\ntry:\n    o.id = 8\nexcept AttributeError:\n    print(\"forbidden\")\nprint(o.id)\n", "expected": ["7 150", "forbidden", "7"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 19, 'ops-vector-add', 0, 'stdout', 'Сложение и вычитание векторов', 'Допишите в Vector методы __add__ и __sub__: оба возвращают новый вектор, а исходные не меняют.', 'class Vector:
     def __init__(self, x, y):
         self.x = x
@@ -682,11 +682,11 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 20, 'ct-suppress', 7, 'stdout', 'Свой suppress', 'Напишите менеджер контекста Suppress(*types): внутри with он подавляет исключения перечисленных типов (и их потомков), а остальные пропускает дальше.', 'class Suppress:
     def __init__(self, *types):
         self.types = types
-', '__enter__ возвращает self; __exit__(self, exc_type, exc, tb): return exc_type is not None and issubclass(exc_type, self.types).', '{"driver": "with Suppress(KeyError):\n    {}[\"x\"]\n    print(\"не дойдём\")\nprint(\"после первого\")\nwith Suppress(KeyError, ValueError):\n    int(\"не число\")\nprint(\"после второго\")\ntry:\n    with Suppress(KeyError):\n        1 / 0\nexcept ZeroDivisionError:\n    print(\"ZeroDivisionError прошёл\")\n", "expected": ["после первого", "после второго", "ZeroDivisionError прошёл"]}');
+', '__enter__ возвращает self; __exit__(self, exc_type, exc, tb): return exc_type is not None and issubclass(exc_type, self.types).', '{"driver": "with Suppress(KeyError):\n    {}[\"x\"]\n    print(\"not reached\")\nprint(\"after first\")\nwith Suppress(KeyError, ValueError):\n    int(\"not a number\")\nprint(\"after second\")\ntry:\n    with Suppress(KeyError):\n        1 / 0\nexcept ZeroDivisionError:\n    print(\"ZeroDivisionError passed\")\n", "expected": ["after first", "after second", "ZeroDivisionError passed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 20, 'ct-tag-manager', 8, 'stdout', 'Парные теги через contextmanager', 'Напишите менеджер tag(name) на @contextmanager: при входе печатает <name>, при выходе </name> — в том числе когда внутри блока случилась ошибка.', 'from contextlib import contextmanager
 
 
-', 'print вход; try: yield; finally: print выход.', '{"driver": "with tag(\"b\"):\n    print(\"текст\")\ntry:\n    with tag(\"i\"):\n        raise ValueError\nexcept ValueError:\n    print(\"ошибка\")\n", "expected": ["<b>", "текст", "</b>", "<i>", "</i>", "ошибка"]}');
+', 'print вход; try: yield; finally: print выход.', '{"driver": "with tag(\"b\"):\n    print(\"text\")\ntry:\n    with tag(\"i\"):\n        raise ValueError\nexcept ValueError:\n    print(\"error\")\n", "expected": ["<b>", "text", "</b>", "<i>", "</i>", "error"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 21, 'ds-fahrenheit', 0, 'stdout', 'Температура: свойство fahrenheit', 'Добавьте в Temperature свойство fahrenheit: чтение даёт градусы Фаренгейта по формуле C * 9 / 5 + 32, а запись пересчитывает и сохраняет значение в celsius.', 'class Temperature:
     def __init__(self, celsius):
         self.celsius = celsius
@@ -695,7 +695,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     def __init__(self, name, age):
         self.name = name
         self.age = age
-', 'Храните число в self._age; сеттер: if not isinstance(value, int) or value < 0: raise ValueError.', '{"driver": "p = Person(\"Ann\", 30)\nprint(p.age)\ntry:\n    p.age = -1\nexcept ValueError:\n    print(\"ValueError\")\ntry:\n    Person(\"Bob\", -5)\nexcept ValueError:\n    print(\"ValueError при создании\")\np.age = 31\nprint(p.age)\n", "expected": ["30", "ValueError", "ValueError при создании", "31"]}');
+', 'Храните число в self._age; сеттер: if not isinstance(value, int) or value < 0: raise ValueError.', '{"driver": "p = Person(\"Ann\", 30)\nprint(p.age)\ntry:\n    p.age = -1\nexcept ValueError:\n    print(\"ValueError\")\ntry:\n    Person(\"Bob\", -5)\nexcept ValueError:\n    print(\"ValueError on creation\")\np.age = 31\nprint(p.age)\n", "expected": ["30", "ValueError", "ValueError on creation", "31"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 21, 'ds-readonly-area', 2, 'stdout', 'Только для чтения', 'Добавьте в Rect вычисляемые свойства area (площадь) и perimeter (периметр) без сеттеров: они всегда пересчитываются по w и h, а попытка присвоить area поднимает AttributeError.', 'class Rect:
     def __init__(self, w, h):
         self.w = w
@@ -723,7 +723,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
     def __init__(self, x, y):
         self.x = x
         self.y = y
-', '__slots__ = ("x", "y") — в теле класса, до __init__.', '{"driver": "p = Point(1, 2)\nprint(p.x + p.y)\nprint(hasattr(p, \"__dict__\"))\ntry:\n    p.z = 3\nexcept AttributeError:\n    print(\"нельзя\")\n", "expected": ["3", "False", "нельзя"]}');
+', '__slots__ = ("x", "y") — в теле класса, до __init__.', '{"driver": "p = Point(1, 2)\nprint(p.x + p.y)\nprint(hasattr(p, \"__dict__\"))\ntry:\n    p.z = 3\nexcept AttributeError:\n    print(\"not allowed\")\n", "expected": ["3", "False", "not allowed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 21, 'ds-cached-report', 8, 'stdout', 'Кэшируем тяжёлую сумму', 'Report.total считает сумму значений при каждом обращении (счётчик calls растёт). Сделайте так, чтобы сумма вычислялась один раз для экземпляра, не меняя вызов r.total.', 'class Report:
     calls = 0
 
@@ -742,7 +742,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 22, 'repeater-iterable', 1, 'stdout', 'Многоразовый итерируемый', 'Опишите класс Repeater(word, times): его можно перебирать много раз, и каждый раз он выдаёт слово word ровно times раз. __iter__ должен каждый раз возвращать НОВЫЙ итератор.', 'class Repeater:
     def __init__(self, word, times):
         pass
-', 'def __iter__(self): return iter([self.word] * self.times) — каждый вызов строит новый итератор.', '{"driver": "r = Repeater(\"а\", 3)\nprint(list(r))\nprint(list(r))\nprint(len(list(Repeater(''б'', 0))))\n", "expected": ["[''а'', ''а'', ''а'']", "[''а'', ''а'', ''а'']", "0"]}');
+', 'def __iter__(self): return iter([self.word] * self.times) — каждый вызов строит новый итератор.', '{"driver": "r = Repeater(\"a\", 3)\nprint(list(r))\nprint(list(r))\nprint(len(list(Repeater(''b'', 0))))\n", "expected": ["[''a'', ''a'', ''a'']", "[''a'', ''a'', ''a'']", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 22, 'take-n', 2, 'stdout', 'Взять первые n', 'Напишите функцию take(iterator, n): список из первых n элементов итератора (или меньше, если элементов не хватило). Используйте next с запасным значением или цикл по итератору.', 'def take(iterator, n):
     pass
 ', 'n раз пробуйте next(iterator) внутри try; на StopIteration выходите из цикла.', '{"driver": "print(take(iter(range(10)), 3))\nprint(take(iter([1]), 5))\nit = iter(''abcdef'')\nprint(take(it, 2), take(it, 2))\nprint(take(iter([]), 3))\n", "expected": ["[0, 1, 2]", "[1]", "[''a'', ''b''] [''c'', ''d'']", "[]"]}');
@@ -759,7 +759,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'Храните текущее число; в __next__: если оно >= limit — StopIteration, иначе вернуть и прибавить 2.', '{"driver": "print(list(Evens(9)))\nprint(list(Evens(1)))\nprint(list(Evens(0)))\nprint(sum(Evens(11)))\n", "expected": ["[0, 2, 4, 6, 8]", "[0]", "[]", "30"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 22, 'count-items', 6, 'stdout', 'Сколько элементов', 'Напишите функцию count_items(iterable): сколько элементов выдаёт любой итерируемый объект (список, рэндж, генератор, файл). len использовать нельзя — работайте циклом.', 'def count_items(iterable):
     pass
-', 'n = 0; for _ in iterable: n += 1; return n.', '{"driver": "print(count_items([1, 2, 3]))\nprint(count_items(range(5)))\nprint(count_items(c for c in ''привет'' if c != ''в''))\nprint(count_items(iter([])))\n", "expected": ["3", "5", "5", "0"]}');
+', 'n = 0; for _ in iterable: n += 1; return n.', '{"driver": "print(count_items([1, 2, 3]))\nprint(count_items(range(5)))\nprint(count_items(c for c in ''hello'' if c != ''c''))\nprint(count_items(iter([])))\n", "expected": ["3", "5", "5", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 23, 'countdown-gen', 0, 'stdout', 'Генератор отсчёта', 'Напишите генераторную функцию countdown(n): отдаёт числа от n до 1 (для n = 0 — ничего). Используйте yield.', 'def countdown(n):
     pass
 ', 'while n > 0: yield n; n -= 1.', '{"driver": "print(list(countdown(3)))\nprint(list(countdown(0)))\ng = countdown(2)\nprint(next(g), next(g))\n", "expected": ["[3, 2, 1]", "[]", "2 1"]}');
@@ -774,7 +774,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'for i in range(0, len(items), n): yield items[i:i + n].', '{"driver": "print(list(chunks([1, 2, 3, 4, 5], 2)))\nprint(list(chunks([], 3)))\nprint(list(chunks(''abcdef'', 3)))\n", "expected": ["[[1, 2], [3, 4], [5]]", "[]", "[''abc'', ''def'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 23, 'flatten-gen', 4, 'stdout', 'Выпрямить вложенные списки', 'Напишите генератор flatten(items): отдаёт все не-списковые элементы произвольно вложенных списков по порядку. Используйте yield from и рекурсию.', 'def flatten(items):
     pass
-', 'if isinstance(x, list): yield from flatten(x); else: yield x.', '{"driver": "print(list(flatten([1, [2, [3, [4]], 5], [], 6])))\nprint(list(flatten([])))\nprint(list(flatten([[[''а'']]])))\n", "expected": ["[1, 2, 3, 4, 5, 6]", "[]", "[''а'']"]}');
+', 'if isinstance(x, list): yield from flatten(x); else: yield x.', '{"driver": "print(list(flatten([1, [2, [3, [4]], 5], [], 6])))\nprint(list(flatten([])))\nprint(list(flatten([[[''a'']]])))\n", "expected": ["[1, 2, 3, 4, 5, 6]", "[]", "[''a'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 23, 'read-numbers', 5, 'stdout', 'Числа из строк', 'Напишите генератор read_numbers(lines): из последовательности строк отдаёт целые числа. Пустые строки и строки, которые не являются числом (после strip состоят не только из цифр), пропускаются.', 'def read_numbers(lines):
     pass
 ', 's = line.strip(); if s.isdigit(): yield int(s).', '{"driver": "print(list(read_numbers([''1'', '''', '' 2 '', ''x'', ''3'', ''4a''])))\ng = read_numbers(iter([''10'', ''20'']))\nprint(next(g), next(g))\n", "expected": ["[1, 2, 3]", "10 20"]}');
@@ -786,7 +786,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def tag(name):
     pass
-', '@contextmanager; print вход; try: yield; finally: print выход.', '{"driver": "with tag(''p''):\n    print(''текст'')\ntry:\n    with tag(''b''):\n        raise ValueError(''сбой'')\nexcept ValueError:\n    print(''поймали'')\n", "expected": ["<p>", "текст", "</p>", "<b>", "</b>", "поймали"]}');
+', '@contextmanager; print вход; try: yield; finally: print выход.', '{"driver": "with tag(''p''):\n    print(''text'')\ntry:\n    with tag(''b''):\n        raise ValueError(''failure'')\nexcept ValueError:\n    print(''caught'')\n", "expected": ["<p>", "text", "</p>", "<b>", "</b>", "caught"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 24, 'gx-averager', 0, 'stdout', 'Скользящее среднее', 'Напишите корутину averager(): она принимает числа через send и после каждого отдаёт текущее среднее всех присланных чисел. Первый next возвращает None (чисел ещё нет).', 'def averager():
     pass
 ', 'Заведите total, count, average = None; в цикле: x = yield average; обновите total, count и average.', '{"driver": "avg = averager()\nprint(next(avg))\nprint(avg.send(10), avg.send(20), avg.send(30))\n", "expected": ["None", "10.0 15.0 20.0"]}');
@@ -795,10 +795,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'Внутри обёртки: gen = func(*args, **kwargs); next(gen); return gen.', '{"driver": "import inspect\n\n\n@primed\ndef collector():\n    items = []\n    while True:\n        item = yield items\n        items.append(item)\n\n\nc = collector()\nprint(c.send(\"a\"))\nprint(c.send(\"b\"))\nprint(inspect.getgeneratorstate(c))\n", "expected": ["[''a'']", "[''a'', ''b'']", "GEN_SUSPENDED"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 24, 'gx-throw-reset', 2, 'stdout', 'Счётчик со сбросом через throw', 'Напишите генератор counter(): отдаёт 0, 1, 2, … Если снаружи вбросили ValueError (gen.throw(ValueError)), счётчик сбрасывается в 0 и продолжает с нуля. Другие исключения не перехватывайте.', 'def counter():
     pass
-', 'while True: try: yield n; n += 1; except ValueError: n = 0.', '{"driver": "c = counter()\nprint(next(c), next(c), next(c))\nprint(c.throw(ValueError))\nprint(next(c))\ntry:\n    c.throw(KeyError)\nexcept KeyError:\n    print(\"KeyError пролетел\")\n", "expected": ["0 1 2", "0", "1", "KeyError пролетел"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 24, 'gx-close-cleanup', 3, 'stdout', 'Уборка при close', 'Напишите генератор lines(items): при первом запросе печатает «открыто», затем отдаёт элементы по одному, а при любом завершении — в том числе досрочном через close() — печатает «закрыто».', 'def lines(items):
+', 'while True: try: yield n; n += 1; except ValueError: n = 0.', '{"driver": "c = counter()\nprint(next(c), next(c), next(c))\nprint(c.throw(ValueError))\nprint(next(c))\ntry:\n    c.throw(KeyError)\nexcept KeyError:\n    print(\"KeyError slipped through\")\n", "expected": ["0 1 2", "0", "1", "KeyError slipped through"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 24, 'gx-close-cleanup', 3, 'stdout', 'Уборка при close', 'Напишите генератор lines(items): при первом запросе печатает «open», затем отдаёт элементы по одному, а при любом завершении — в том числе досрочном через close() — печатает «closed».', 'def lines(items):
     pass
-', 'print("открыто"); try: for item in items: yield item; finally: print("закрыто").', '{"driver": "g = lines([\"a\", \"b\", \"c\"])\nprint(next(g))\ng.close()\nprint(\"после close\")\nfor x in lines([\"z\"]):\n    print(x)\n", "expected": ["открыто", "a", "закрыто", "после close", "открыто", "z", "закрыто"]}');
+', 'print("open"); try: for item in items: yield item; finally: print("closed").', '{"driver": "g = lines([\"a\", \"b\", \"c\"])\nprint(next(g))\ng.close()\nprint(\"after close\")\nfor x in lines([\"z\"]):\n    print(x)\n", "expected": ["open", "a", "closed", "after close", "open", "z", "closed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 24, 'gx-return-value', 4, 'stdout', 'Генератор с итогом', 'Напишите генератор summing(items): он отдаёт каждый элемент как есть, а в конце возвращает (return) сумму всех элементов — она окажется в StopIteration.value.', 'def summing(items):
     pass
 ', 'total = 0; for x in items: total += x; yield x; в конце return total.', '{"driver": "g = summing([1, 2, 3])\nitems = []\ntry:\n    while True:\n        items.append(next(g))\nexcept StopIteration as e:\n    print(items, e.value)\n", "expected": ["[1, 2, 3] 6"]}');
@@ -827,22 +827,22 @@ def run(tasks):
 ', 'queue = deque(tasks); пока queue: task = queue.popleft(); try: out.append(next(task)); queue.append(task); except StopIteration: pass.', '{"driver": "def worker(name, n):\n    for i in range(n):\n        yield f\"{name}{i}\"\n\n\nprint(run([worker(\"a\", 2), worker(\"b\", 3), worker(\"c\", 1)]))\nprint(run([]))\n", "expected": ["[''a0'', ''b0'', ''c0'', ''a1'', ''b1'', ''b2'']", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'apply-all', 0, 'stdout', 'Применить все функции', 'Напишите функцию apply_all(funcs, x): список результатов вызова каждой функции из funcs от x, в том же порядке.', 'def apply_all(funcs, x):
     pass
-', 'Функции — обычные значения: [f(x) for f in funcs].', '{"driver": "print(apply_all([abs, float, str], -3))\nprint(apply_all([], 5))\nprint(apply_all([str.upper, str.title, len], ''привет мир''))\n", "expected": ["[3, -3.0, ''-3'']", "[]", "[''ПРИВЕТ МИР'', ''Привет Мир'', 10]"]}');
+', 'Функции — обычные значения: [f(x) for f in funcs].', '{"driver": "print(apply_all([abs, float, str], -3))\nprint(apply_all([], 5))\nprint(apply_all([str.upper, str.title, len], ''hello you!''))\n", "expected": ["[3, -3.0, ''-3'']", "[]", "[''HELLO YOU!'', ''Hello You!'', 10]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'sort-length-desc', 1, 'func', 'Самые длинные вперёд', 'Напишите функцию by_length_desc(words): слова от самых длинных к самым коротким; слова одной длины остаются в исходном порядке. Используйте sorted и lambda.', 'def by_length_desc(words):
     pass
 ', 'sorted(words, key=lambda w: len(w), reverse=True) — сортировка устойчива и с reverse.', '{"func": "by_length_desc", "tests": [{"args": [["bb", "a", "ccc"]], "expected": ["ccc", "bb", "a"]}, {"args": [["aa", "b", "cc"]], "expected": ["aa", "cc", "b"]}, {"args": [[]], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'oldest-user', 2, 'func', 'Самый старший', 'Напишите функцию oldest(users): users — список словарей {''name'': ..., ''age'': ...}. Верните имя самого старшего. Список не пустой. Используйте max с параметром key.', 'def oldest(users):
     pass
-', 'max(users, key=lambda u: u[''age''])[''name''].', '{"func": "oldest", "tests": [{"args": [[{"age": 31, "name": "Аня"}, {"age": 25, "name": "Боря"}]], "expected": "Аня"}, {"args": [[{"age": 5, "name": "Вера"}]], "expected": "Вера"}, {"args": [[{"age": 20, "name": "А"}, {"age": 40, "name": "Б"}, {"age": 30, "name": "В"}]], "expected": "Б"}]}');
+', 'max(users, key=lambda u: u[''age''])[''name''].', '{"func": "oldest", "tests": [{"args": [[{"age": 31, "name": "Ann"}, {"age": 25, "name": "Boyd"}]], "expected": "Ann"}, {"args": [[{"age": 5, "name": "Vera"}]], "expected": "Vera"}, {"args": [[{"age": 20, "name": "A"}, {"age": 40, "name": "B"}, {"age": 30, "name": "C"}]], "expected": "B"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'even-squares-map', 3, 'func', 'map и filter', 'Напишите функцию even_squares(nums): СПИСОК квадратов чётных чисел, в исходном порядке. Решите через filter и map (с lambda), а затем оберните результат в list.', 'def even_squares(nums):
     pass
 ', 'list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums))).', '{"func": "even_squares", "tests": [{"args": [[1, 2, 3, 4]], "expected": [4, 16]}, {"args": [[1, 3]], "expected": []}, {"args": [[]], "expected": []}, {"args": [[0, -2, 5]], "expected": [0, 4]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'compose-fn', 4, 'stdout', 'Композиция функций', 'Напишите функцию compose(f, g): возвращает новую функцию, которая сначала применяет g, затем f к результату: compose(f, g)(x) == f(g(x)).', 'def compose(f, g):
     pass
-', 'return lambda x: f(g(x)).', '{"driver": "clean = compose(str.strip, str.lower)\nprint(repr(clean(''  АБВ '')))\ninc_then_double = compose(lambda x: x * 2, lambda x: x + 1)\nprint(inc_then_double(5))\nprint(compose(len, str)(12345))\n", "expected": ["''абв''", "12", "5"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'count-args', 5, 'stdout', 'Сколько аргументов', 'Напишите функцию describe(*args, **kwargs): возвращает строку вида «2 позиционных, 1 именованных» — сколько позиционных и сколько именованных аргументов получено.', 'def describe(*args, **kwargs):
+', 'return lambda x: f(g(x)).', '{"driver": "clean = compose(str.strip, str.lower)\nprint(repr(clean(''  ABC '')))\ninc_then_double = compose(lambda x: x * 2, lambda x: x + 1)\nprint(inc_then_double(5))\nprint(compose(len, str)(12345))\n", "expected": ["''abc''", "12", "5"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'count-args', 5, 'stdout', 'Сколько аргументов', 'Напишите функцию describe(*args, **kwargs): возвращает строку вида «2 positional, 1 named» — сколько позиционных и сколько именованных аргументов получено.', 'def describe(*args, **kwargs):
     pass
-', 'return f"{len(args)} позиционных, {len(kwargs)} именованных".', '{"driver": "print(describe(1, 2, a=3))\nprint(describe())\nprint(describe(''x'', ''y'', ''z''))\nprint(describe(k=1, m=2))\nprint(describe(*[1, 2, 3], **{''q'': 1}))\n", "expected": ["2 позиционных, 1 именованных", "0 позиционных, 0 именованных", "3 позиционных, 0 именованных", "0 позиционных, 2 именованных", "3 позиционных, 1 именованных"]}');
+', 'return f"{len(args)} positional, {len(kwargs)} named".', '{"driver": "print(describe(1, 2, a=3))\nprint(describe())\nprint(describe(''x'', ''y'', ''z''))\nprint(describe(k=1, m=2))\nprint(describe(*[1, 2, 3], **{''q'': 1}))\n", "expected": ["2 positional, 1 named", "0 positional, 0 named", "3 positional, 0 named", "0 positional, 2 named", "3 positional, 1 named"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 25, 'pure-append', 6, 'stdout', 'Чистое добавление', 'Напишите чистую функцию pure_append(items, x): возвращает НОВЫЙ список с добавленным x, не меняя исходный.', 'def pure_append(items, x):
     pass
 ', 'return items + [x] — оператор плюс создаёт новый список.', '{"driver": "a = [1, 2]\nb = pure_append(a, 3)\nprint(a, b)\nprint(a is b)\nprint(pure_append([], ''x''))\n", "expected": ["[1, 2] [1, 2, 3]", "False", "[''x'']"]}');
@@ -864,21 +864,21 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 26, 'count-calls-deco', 3, 'stdout', 'Декоратор-счётчик вызовов', 'Напишите декоратор count_calls: после каждого вызова декорированной функции атрибут wrapper.calls увеличивается на единицу (начиная с 0). Результат и аргументы функции должны сохраняться.', 'def count_calls(func):
     pass
 ', 'Заведите wrapper.calls = 0 после описания wrapper; внутри wrapper: wrapper.calls += 1.', '{"driver": "@count_calls\ndef add(a, b=0):\n    return a + b\n\nprint(add.calls)\nprint(add(1, b=2), add(5))\nprint(add.calls)\n", "expected": ["0", "3 5", "2"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 26, 'logged-deco', 4, 'stdout', 'Декоратор с журналом', 'Напишите декоратор logged: перед каждым вызовом печатает «вызов <имя функции>», затем вызывает функцию и возвращает её результат. Имя и докстринг функции должны сохраняться (functools.wraps).', 'from functools import wraps
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 26, 'logged-deco', 4, 'stdout', 'Декоратор с журналом', 'Напишите декоратор logged: перед каждым вызовом печатает «call <function name>», затем вызывает функцию и возвращает её результат. Имя и докстринг функции должны сохраняться (functools.wraps).', 'from functools import wraps
 
 
 def logged(func):
     pass
-', '@wraps(func) над wrapper(*args, **kwargs); print(f''вызов {func.__name__}''); return func(*args, **kwargs).', '{"driver": "@logged\ndef greet(name):\n    \"\"\"Поздороваться.\"\"\"\n    return f''Привет, {name}!''\n\nprint(greet(''Аня''))\nprint(greet.__name__, greet.__doc__)\n", "expected": ["вызов greet", "Привет, Аня!", "greet Поздороваться."]}');
+', '@wraps(func) над wrapper(*args, **kwargs); print(f''call {func.__name__}''); return func(*args, **kwargs).', '{"driver": "@logged\ndef greet(name):\n    \"\"\"Say hello.\"\"\"\n    return f''Hello, {name}!''\n\nprint(greet(''Ann''))\nprint(greet.__name__, greet.__doc__)\n", "expected": ["call greet", "Hello, Ann!", "greet Say hello."]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 26, 'repeat-deco', 5, 'stdout', 'Декоратор с параметром', 'Напишите декоратор repeat(times): вызывает функцию times раз подряд и возвращает результат последнего вызова.', 'def repeat(times):
     pass
-', 'Три уровня: repeat(times) -> decorator(func) -> wrapper(*args, **kwargs).', '{"driver": "@repeat(3)\ndef hello(name):\n    print(''привет,'', name)\n    return name.upper()\n\nprint(hello(''аня''))\n", "expected": ["привет, аня", "привет, аня", "привет, аня", "АНЯ"]}');
+', 'Три уровня: repeat(times) -> decorator(func) -> wrapper(*args, **kwargs).', '{"driver": "@repeat(3)\ndef hello(name):\n    print(''hello,'', name)\n    return name.upper()\n\nprint(hello(''ann''))\n", "expected": ["hello, ann", "hello, ann", "hello, ann", "ANN"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 26, 'memoize-deco', 6, 'stdout', 'Кеширование', 'Напишите декоратор memoize: запоминает результаты функции одного аргумента в словаре; повторный вызов с тем же аргументом не вызывает функцию заново.', 'def memoize(func):
     pass
 ', 'cache = {} в декораторе; в wrapper: if n not in cache: cache[n] = func(n); return cache[n].', '{"driver": "calls = []\n\n@memoize\ndef slow(n):\n    calls.append(n)\n    return n * n\n\nprint(slow(4), slow(4), slow(5), slow(4))\nprint(calls)\n", "expected": ["16 16 25 16", "[4, 5]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 26, 'positive-args-deco', 7, 'stdout', 'Только положительные', 'Напишите декоратор positive_only: если хотя бы один позиционный аргумент меньше нуля, поднимает ValueError, иначе вызывает функцию и возвращает результат.', 'def positive_only(func):
     pass
-', 'В wrapper: for a in args: if a < 0: raise ValueError(...).', '{"driver": "@positive_only\ndef total(*nums):\n    return sum(nums)\n\nprint(total(1, 2, 3))\ntry:\n    total(1, -2)\nexcept ValueError:\n    print(''отрицательное'')\nprint(total())\n", "expected": ["6", "отрицательное", "0"]}');
+', 'В wrapper: for a in args: if a < 0: raise ValueError(...).', '{"driver": "@positive_only\ndef total(*nums):\n    return sum(nums)\n\nprint(total(1, 2, 3))\ntry:\n    total(1, -2)\nexcept ValueError:\n    print(''negative'')\nprint(total())\n", "expected": ["6", "negative", "0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 27, 'merge-dicts-reduce', 0, 'func', 'Слить много словарей', 'Напишите функцию merge_all(dicts): сливает список словарей в один; при совпадении ключей побеждает словарь, который стоит позже в списке. Используйте reduce (начальное значение — пустой словарь).', 'from functools import reduce
 
 
@@ -902,7 +902,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def sort_people(people):
     pass
-', 'sorted(people, key=itemgetter("city", "age")).', '{"func": "sort_people", "tests": [{"args": [[{"age": 30, "city": "Омск"}, {"age": 20, "city": "Тверь"}, {"age": 25, "city": "Омск"}]], "expected": [{"age": 25, "city": "Омск"}, {"age": 30, "city": "Омск"}, {"age": 20, "city": "Тверь"}]}, {"args": [[]], "expected": []}, {"args": [[{"age": 1, "city": "А"}]], "expected": [{"age": 1, "city": "А"}]}]}');
+', 'sorted(people, key=itemgetter("city", "age")).', '{"func": "sort_people", "tests": [{"args": [[{"age": 30, "city": "Omsk"}, {"age": 20, "city": "Tver"}, {"age": 25, "city": "Omsk"}]], "expected": [{"age": 25, "city": "Omsk"}, {"age": 30, "city": "Omsk"}, {"age": 20, "city": "Tver"}]}, {"args": [[]], "expected": []}, {"args": [[{"age": 1, "city": "A"}]], "expected": [{"age": 1, "city": "A"}]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 27, 'total-ordering-class', 4, 'stdout', 'Класс с total_ordering', 'Опишите класс Card(rank) с декоратором total_ordering: определите только __eq__ и __lt__ (по рангу), а остальные сравнения (<=, >, >=) должны заработать сами.', 'from functools import total_ordering
 
 
@@ -910,12 +910,12 @@ class Card:
     def __init__(self, rank):
         self.rank = rank
 ', '@total_ordering над class; __eq__: сравнить ранги; __lt__: self.rank < other.rank.', '{"driver": "a, b = Card(3), Card(7)\nprint(a < b, a <= b, a > b, a >= b, a == Card(3))\nprint(max(a, b).rank, sorted([b, a, Card(5)])[1].rank)\n", "expected": ["True True False False True", "7 5"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 27, 'single-dispatch-describe', 5, 'stdout', 'Перегрузка по типу', 'Напишите функцию describe(x) на singledispatch: для int — «целое <x>», для str — «строка из <n> символов», для list — «список из <n> элементов», для остальных — «что-то».', 'from functools import singledispatch
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 27, 'single-dispatch-describe', 5, 'stdout', 'Перегрузка по типу', 'Напишите функцию describe(x) на singledispatch: для int — «integer <x>», для str — «string of <n> characters», для list — «list of <n> elements», для остальных — «something».', 'from functools import singledispatch
 
 
 def describe(x):
     pass
-', '@singledispatch над базовой describe; @describe.register(int) def _(x): ... — и так для str и list.', '{"driver": "print(describe(5))\nprint(describe(''привет''))\nprint(describe([1, 2, 3]))\nprint(describe(2.5))\n", "expected": ["целое 5", "строка из 6 символов", "список из 3 элементов", "что-то"]}');
+', '@singledispatch над базовой describe; @describe.register(int) def _(x): ... — и так для str и list.', '{"driver": "print(describe(5))\nprint(describe(''planet''))\nprint(describe([1, 2, 3]))\nprint(describe(2.5))\n", "expected": ["integer 5", "string of 6 characters", "list of 3 elements", "something"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 27, 'cmp-to-key-sort', 6, 'func', 'Сортировка через сравнение', 'Напишите функцию sort_words(words): сначала короткие слова, при равной длине — по алфавиту. Реализуйте через функцию сравнения двух слов и functools.cmp_to_key.', 'from functools import cmp_to_key
 
 
@@ -931,7 +931,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def column(rows, i):
     pass
-', 'list(map(itemgetter(i), rows)).', '{"func": "column", "tests": [{"args": [[[1, 2, 3], [4, 5, 6]], 1], "expected": [2, 5]}, {"args": [[[1, "а"], [2, "б"]], 0], "expected": [1, 2]}, {"args": [[], 0], "expected": []}]}');
+', 'list(map(itemgetter(i), rows)).', '{"func": "column", "tests": [{"args": [[[1, 2, 3], [4, 5, 6]], 1], "expected": [2, 5]}, {"args": [[[1, "a"], [2, "b"]], 0], "expected": [1, 2]}, {"args": [[], 0], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 28, 'first-squares', 0, 'func', 'Первые квадраты', 'Напишите функцию first_squares(n): список первых n квадратов натуральных чисел: 1, 4, 9, … Используйте itertools.count и islice.', 'from itertools import count, islice
 
 
@@ -943,7 +943,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def chain_all(*lists):
     pass
-', 'list(chain(*lists)) — звёздочка раскладывает аргументы дальше.', '{"func": "chain_all", "tests": [{"args": [[1, 2], [3], []], "expected": [1, 2, 3]}, {"args": [], "expected": []}, {"args": [["а"], ["б", "в"]], "expected": ["а", "б", "в"]}]}');
+', 'list(chain(*lists)) — звёздочка раскладывает аргументы дальше.', '{"func": "chain_all", "tests": [{"args": [[1, 2], [3], []], "expected": [1, 2, 3]}, {"args": [], "expected": []}, {"args": [["a"], ["b", "c"]], "expected": ["a", "b", "c"]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 28, 'running-max', 2, 'func', 'Рекорды по ходу', 'Напишите функцию running_max(nums): список нарастающего максимума: для 3, 1, 4, 1, 5 — 3, 3, 4, 4, 5. Используйте accumulate с функцией max.', 'from itertools import accumulate
 
 
@@ -955,13 +955,13 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def group_sizes(words):
     pass
-', 'for k, g in groupby(sorted(words), key=lambda w: w[0]): result[k] = len(list(g)).', '{"func": "group_sizes", "tests": [{"args": [["арбуз", "банан", "абрикос", "берёза", "вишня"]], "expected": {"а": 2, "б": 2, "в": 1}}, {"args": [[]], "expected": {}}, {"args": [["я"]], "expected": {"я": 1}}]}');
+', 'for k, g in groupby(sorted(words), key=lambda w: w[0]): result[k] = len(list(g)).', '{"func": "group_sizes", "tests": [{"args": [["avocado", "banana", "apricot", "birch", "cherry"]], "expected": {"a": 2, "b": 2, "c": 1}}, {"args": [[]], "expected": {}}, {"args": [["yak"]], "expected": {"y": 1}}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 28, 'all-pairs', 4, 'func', 'Все пары', 'Напишите функцию all_pairs(items): список всех пар разных элементов (каждая пара один раз, порядок как в списке) — кортежами. Используйте itertools.combinations.', 'from itertools import combinations
 
 
 def all_pairs(items):
     pass
-', 'list(combinations(items, 2)).', '{"func": "all_pairs", "tests": [{"args": [["а", "б", "в"]], "expected": [{"__tuple__": ["а", "б"]}, {"__tuple__": ["а", "в"]}, {"__tuple__": ["б", "в"]}]}, {"args": [[1]], "expected": []}, {"args": [[]], "expected": []}]}');
+', 'list(combinations(items, 2)).', '{"func": "all_pairs", "tests": [{"args": [["a", "b", "c"]], "expected": [{"__tuple__": ["a", "b"]}, {"__tuple__": ["a", "c"]}, {"__tuple__": ["b", "c"]}]}, {"args": [[1]], "expected": []}, {"args": [[]], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 28, 'passwords-product', 5, 'func', 'Все пароли', 'Напишите функцию passwords(alphabet, length): список всех строк заданной длины из символов alphabet (с повторами), в лексикографическом порядке алфавита. Используйте itertools.product.', 'from itertools import product
 
 
@@ -988,13 +988,13 @@ def small_prefix(nums, limit):
 ', 'list(takewhile(lambda x: x < limit, nums)).', '{"func": "small_prefix", "tests": [{"args": [[1, 2, 9, 3], 5], "expected": [1, 2]}, {"args": [[10, 1], 5], "expected": []}, {"args": [[1, 2], 5], "expected": [1, 2]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-tag-stack', 0, 'stdout', 'Теги и порядок декораторов', 'Напишите декоратор tag(name): он оборачивает строку, которую возвращает функция, в <name>…</name>. Два тега подряд должны вкладываться так, что верхний оказывается снаружи.', 'def tag(name):
     pass
-', 'tag возвращает decorator(func), тот возвращает wrapper(*args, **kwargs): return f"<{name}>{func(*args, **kwargs)}</{name}>".', '{"driver": "@tag(\"b\")\n@tag(\"i\")\ndef text():\n    return \"привет\"\n\n\nprint(text())\n\n\n@tag(\"p\")\ndef greet(name):\n    return f\"Здравствуйте, {name}\"\n\n\nprint(greet(\"Аня\"))\n", "expected": ["<b><i>привет</i></b>", "<p>Здравствуйте, Аня</p>"]}');
+', 'tag возвращает decorator(func), тот возвращает wrapper(*args, **kwargs): return f"<{name}>{func(*args, **kwargs)}</{name}>".', '{"driver": "@tag(\"b\")\n@tag(\"i\")\ndef text():\n    return \"hello\"\n\n\nprint(text())\n\n\n@tag(\"p\")\ndef greet(name):\n    return f\"Greetings, {name}\"\n\n\nprint(greet(\"Ann\"))\n", "expected": ["<b><i>hello</i></b>", "<p>Greetings, Ann</p>"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-repeat-optional', 1, 'stdout', 'repeat: со скобками и без', 'Напишите декоратор repeat, который работает в двух формах: @repeat (два вызова функции) и @repeat(times=3) (заданное число вызовов). Он возвращает результат последнего вызова. Параметр times — только по имени.', 'def repeat(func=None, *, times=2):
     pass
 ', 'Если func is not None — return decorate(func); иначе return decorate.', '{"driver": "calls = []\n\n\n@repeat\ndef a():\n    calls.append(\"a\")\n    return len(calls)\n\n\n@repeat(times=3)\ndef b():\n    calls.append(\"b\")\n    return len(calls)\n\n\nprint(a(), calls)\nprint(b(), calls)\n", "expected": ["2 [''a'', ''a'']", "5 [''a'', ''a'', ''b'', ''b'', ''b'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-counted-wraps', 2, 'stdout', 'Счётчик вызовов и метаданные', 'Напишите декоратор counted: он считает вызовы в атрибуте wrapper.calls (начинается с нуля), сохраняет имя и документацию оригинала и ссылку __wrapped__ на него.', 'def counted(func):
     pass
-', '@functools.wraps(func) даёт имя, документацию и __wrapped__; счётчик — wrapper.calls = 0 после определения wrapper.', '{"driver": "@counted\ndef add(a, b):\n    \"\"\"Складывает числа.\"\"\"\n    return a + b\n\n\nprint(add(1, 2), add(3, 4), add.calls)\nprint(add.__name__, add.__doc__)\nprint(add.__wrapped__(10, 20))\nprint(add.calls)\n", "expected": ["3 7 2", "add Складывает числа.", "30", "2"]}');
+', '@functools.wraps(func) даёт имя, документацию и __wrapped__; счётчик — wrapper.calls = 0 после определения wrapper.', '{"driver": "@counted\ndef add(a, b):\n    \"\"\"Adds numbers.\"\"\"\n    return a + b\n\n\nprint(add(1, 2), add(3, 4), add.calls)\nprint(add.__name__, add.__doc__)\nprint(add.__wrapped__(10, 20))\nprint(add.calls)\n", "expected": ["3 7 2", "add Adds numbers.", "30", "2"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-class-plugin', 3, 'stdout', 'Реестр плагинов (декоратор класса)', 'Напишите декоратор класса plugin: он добавляет класс в словарь PLUGINS под именем в нижнем регистре и возвращает класс без изменений.', 'PLUGINS = {}
 
 
@@ -1006,13 +1006,13 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'def __repr__(self): fields = ", ".join(f"{k}={v!r}" for k, v in vars(self).items()); cls.__repr__ = __repr__; return cls.', '{"driver": "@auto_repr\nclass Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n\nprint(Point(1, 2))\nprint([Point(0, -1)])\n", "expected": ["Point(x=1, y=2)", "[Point(x=0, y=-1)]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-retry', 5, 'stdout', 'Повтор при ошибке', 'Напишите декоратор retry(times, exceptions=(Exception,)): вызывает функцию до times раз; если очередной вызов поднял одно из exceptions — пробует снова; после последней неудачи пробрасывает ошибку. Успешный результат возвращается сразу.', 'def retry(times, exceptions=(Exception,)):
     pass
-', 'for attempt in range(times): try: return func(...) except exceptions: if attempt == times - 1: raise.', '{"driver": "attempts = []\n\n\n@retry(3, (ConnectionError,))\ndef flaky():\n    attempts.append(1)\n    if len(attempts) < 3:\n        raise ConnectionError(\"сбой\")\n    return \"ок\"\n\n\nprint(flaky(), len(attempts))\n\n\n@retry(2)\ndef broken():\n    raise ValueError(\"всегда\")\n\n\ntry:\n    broken()\nexcept ValueError as e:\n    print(\"ValueError\", e)\n\n\n@retry(3, (KeyError,))\ndef other():\n    raise TypeError(\"не наша\")\n\n\ntry:\n    other()\nexcept TypeError:\n    print(\"TypeError без повторов\")\n", "expected": ["ок 3", "ValueError всегда", "TypeError без повторов"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-async-aware', 6, 'stdout', 'Декоратор для sync и async', 'Напишите декоратор traced: он печатает «вызов <имя>» перед выполнением и «готово <имя>» после — и для обычных функций, и для async def (для них обёртка должна быть асинхронной и дожидаться результата).', 'import inspect
+', 'for attempt in range(times): try: return func(...) except exceptions: if attempt == times - 1: raise.', '{"driver": "attempts = []\n\n\n@retry(3, (ConnectionError,))\ndef flaky():\n    attempts.append(1)\n    if len(attempts) < 3:\n        raise ConnectionError(\"failure\")\n    return \"ok\"\n\n\nprint(flaky(), len(attempts))\n\n\n@retry(2)\ndef broken():\n    raise ValueError(\"always\")\n\n\ntry:\n    broken()\nexcept ValueError as e:\n    print(\"ValueError\", e)\n\n\n@retry(3, (KeyError,))\ndef other():\n    raise TypeError(\"not ours\")\n\n\ntry:\n    other()\nexcept TypeError:\n    print(\"TypeError without repeats\")\n", "expected": ["ok 3", "ValueError always", "TypeError without repeats"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-async-aware', 6, 'stdout', 'Декоратор для sync и async', 'Напишите декоратор traced: он печатает «call <name>» перед выполнением и «done <name>» после — и для обычных функций, и для async def (для них обёртка должна быть асинхронной и дожидаться результата).', 'import inspect
 
 
 def traced(func):
     pass
-', 'if inspect.iscoroutinefunction(func): async def wrapper(...): ... result = await func(...); иначе обычная обёртка.', '{"driver": "import asyncio\n\n\n@traced\ndef plain(x):\n    return x + 1\n\n\n@traced\nasync def fetch(x):\n    await asyncio.sleep(0)\n    return x * 2\n\n\nprint(plain(1))\nprint(asyncio.run(fetch(5)))\nprint(inspect.iscoroutinefunction(fetch), inspect.iscoroutinefunction(plain))\n", "expected": ["вызов plain", "готово plain", "2", "вызов fetch", "готово fetch", "10", "True False"]}');
+', 'if inspect.iscoroutinefunction(func): async def wrapper(...): ... result = await func(...); иначе обычная обёртка.', '{"driver": "import asyncio\n\n\n@traced\ndef plain(x):\n    return x + 1\n\n\n@traced\nasync def fetch(x):\n    await asyncio.sleep(0)\n    return x * 2\n\n\nprint(plain(1))\nprint(asyncio.run(fetch(5)))\nprint(inspect.iscoroutinefunction(fetch), inspect.iscoroutinefunction(plain))\n", "expected": ["call plain", "done plain", "2", "call fetch", "done fetch", "10", "True False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 29, 'dc-callcounter-class', 7, 'stdout', 'Класс-декоратор для функций и методов', 'Допишите класс-декоратор CallCounter: он считает вызовы в атрибуте calls, сохраняет метаданные оригинала (functools.update_wrapper) и работает не только на функциях, но и на методах — для этого добавьте __get__ (при обращении через класс возвращайте сам счётчик).', 'import functools
 import types
 
@@ -1031,9 +1031,9 @@ def checked(func):
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 30, 'rf-public-data', 0, 'stdout', 'Публичные данные объекта', 'Напишите public_data(obj): отсортированный список имён атрибутов объекта (включая атрибуты класса), которые не начинаются с подчёркивания и не являются вызываемыми.', 'def public_data(obj):
     pass
 ', 'for name in dir(obj): if not name.startswith("_") and not callable(getattr(obj, name)).', '{"driver": "class A:\n    kind = \"x\"\n\n    def __init__(self):\n        self.a = 1\n        self._hidden = 2\n        self.fn = lambda: 0\n\n    def method(self):\n        return 1\n\n\nprint(public_data(A()))\nprint(public_data(object()))\n", "expected": ["[''a'', ''kind'']", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 30, 'rf-dispatch', 1, 'stdout', 'Диспетчер команд по имени', 'Напишите dispatch(obj, command, *args): вызывает метод obj с именем cmd_<command> и возвращает результат. Если такого метода нет, поднимайте ValueError("неизвестная команда: <command>"). Доступ только к методам с префиксом cmd_.', 'def dispatch(obj, command, *args):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 30, 'rf-dispatch', 1, 'stdout', 'Диспетчер команд по имени', 'Напишите dispatch(obj, command, *args): вызывает метод obj с именем cmd_<command> и возвращает результат. Если такого метода нет, поднимайте ValueError("unknown command: <command>"). Доступ только к методам с префиксом cmd_.', 'def dispatch(obj, command, *args):
     pass
-', 'handler = getattr(obj, "cmd_" + command, None); если None — ValueError.', '{"driver": "class Shell:\n    def cmd_add(self, a, b):\n        return a + b\n\n    def cmd_echo(self, text):\n        return text\n\n    def secret(self):\n        return \"не должно вызываться\"\n\n\nsh = Shell()\nprint(dispatch(sh, \"add\", 2, 3))\nprint(dispatch(sh, \"echo\", \"привет\"))\nfor bad in (\"secret\", \"mul\"):\n    try:\n        dispatch(sh, bad)\n    except ValueError as e:\n        print(e)\n", "expected": ["5", "привет", "неизвестная команда: secret", "неизвестная команда: mul"]}');
+', 'handler = getattr(obj, "cmd_" + command, None); если None — ValueError.', '{"driver": "class Shell:\n    def cmd_add(self, a, b):\n        return a + b\n\n    def cmd_echo(self, text):\n        return text\n\n    def secret(self):\n        return \"must not be called\"\n\n\nsh = Shell()\nprint(dispatch(sh, \"add\", 2, 3))\nprint(dispatch(sh, \"echo\", \"hello\"))\nfor bad in (\"secret\", \"mul\"):\n    try:\n        dispatch(sh, bad)\n    except ValueError as e:\n        print(e)\n", "expected": ["5", "hello", "unknown command: secret", "unknown command: mul"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 30, 'rf-param-info', 2, 'stdout', 'Описание параметров функции', 'Напишите param_info(func): список кортежей (имя, вид, есть_значение_по_умолчанию) для каждого параметра функции по её подписи. Вид — имя элемента inspect.Parameter.kind (например, KEYWORD_ONLY).', 'import inspect
 
 
@@ -1054,7 +1054,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'Рекурсивно обходите cls.__subclasses__() и собирайте имена во множество.', '{"driver": "class Base: pass\nclass A(Base): pass\nclass B(Base): pass\nclass C(A, B): pass\nclass D(C): pass\n\n\nprint(all_subclasses(Base))\nprint(all_subclasses(C))\nprint(all_subclasses(D))\n", "expected": ["[''A'', ''B'', ''C'', ''D'']", "[''D'']", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 30, 'rf-to-dict', 6, 'stdout', 'Объект в словарь', 'Напишите to_dict(obj): словарь из атрибутов экземпляра (vars). Вложенные объекты с атрибутами превращайте рекурсивно, списки и кортежи обрабатывайте поэлементно (как списки), простые значения оставляйте как есть.', 'def to_dict(obj):
     pass
-', 'Вспомогательная функция convert(value): если у значения есть __dict__ — to_dict, если list/tuple — [convert(x) ...], иначе значение.', '{"driver": "class Address:\n    def __init__(self, city, zip_code):\n        self.city = city\n        self.zip = zip_code\n\n\nclass Person:\n    def __init__(self, name, address, tags):\n        self.name = name\n        self.address = address\n        self.tags = tags\n\n\np = Person(\"Ann\", Address(\"Омск\", 644000), [\"a\", \"b\"])\nprint(to_dict(p))\nprint(to_dict(Address(\"Тула\", 1)))\n", "expected": ["{''name'': ''Ann'', ''address'': {''city'': ''Омск'', ''zip'': 644000}, ''tags'': [''a'', ''b'']}", "{''city'': ''Тула'', ''zip'': 1}"]}');
+', 'Вспомогательная функция convert(value): если у значения есть __dict__ — to_dict, если list/tuple — [convert(x) ...], иначе значение.', '{"driver": "class Address:\n    def __init__(self, city, zip_code):\n        self.city = city\n        self.zip = zip_code\n\n\nclass Person:\n    def __init__(self, name, address, tags):\n        self.name = name\n        self.address = address\n        self.tags = tags\n\n\np = Person(\"Ann\", Address(\"Omsk\", 644000), [\"a\", \"b\"])\nprint(to_dict(p))\nprint(to_dict(Address(\"Tula\", 1)))\n", "expected": ["{''name'': ''Ann'', ''address'': {''city'': ''Omsk'', ''zip'': 644000}, ''tags'': [''a'', ''b'']}", "{''city'': ''Tula'', ''zip'': 1}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 30, 'rf-caller-name', 7, 'stdout', 'Имя вызвавшей функции', 'Напишите caller_name(): возвращает имя функции, из которой её вызвали (на уровне модуля — «<module>»). Используйте inspect.currentframe() и f_back; не забудьте удалить ссылку на кадр.', 'import inspect
 
 
@@ -1075,16 +1075,16 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 ', 'def __init_subclass__(cls, name=None, **kwargs): super().__init_subclass__(**kwargs); Plugin.registry[name or cls.__name__.lower()] = cls.', '{"driver": "class Json(Plugin, name=\"json\"):\n    pass\n\n\nclass CsvReader(Plugin):\n    pass\n\n\nprint(sorted(Plugin.registry))\nprint(Plugin.registry[\"json\"] is Json, Plugin.registry[\"csvreader\"] is CsvReader)\n", "expected": ["[''csvreader'', ''json'']", "True True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-required-attrs', 2, 'stdout', 'Обязательный атрибут потомка', 'Допишите Shape: у каждого потомка при создании класса должен быть целочисленный атрибут sides; если его нет или он не int — поднимайте TypeError прямо в момент определения класса.', 'class Shape:
     pass
-', '__init_subclass__: if not isinstance(getattr(cls, "sides", None), int): raise TypeError(...).', '{"driver": "class Tri(Shape):\n    sides = 3\n\n\nprint(Tri.sides)\ntry:\n    class Bad(Shape):\n        pass\nexcept TypeError:\n    print(\"TypeError без sides\")\ntry:\n    class Worse(Shape):\n        sides = \"три\"\nexcept TypeError:\n    print(\"TypeError не int\")\n", "expected": ["3", "TypeError без sides", "TypeError не int"]}');
+', '__init_subclass__: if not isinstance(getattr(cls, "sides", None), int): raise TypeError(...).', '{"driver": "class Tri(Shape):\n    sides = 3\n\n\nprint(Tri.sides)\ntry:\n    class Bad(Shape):\n        pass\nexcept TypeError:\n    print(\"TypeError without sides\")\ntry:\n    class Worse(Shape):\n        sides = \"three\"\nexcept TypeError:\n    print(\"TypeError not int\")\n", "expected": ["3", "TypeError without sides", "TypeError not int"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-singleton', 3, 'stdout', 'Одиночка через метакласс', 'Напишите метакласс Singleton: у каждого класса с этим метаклассом существует не более одного экземпляра — повторный вызов класса возвращает уже созданный, а __init__ выполняется один раз. Разные классы получают разные экземпляры.', 'class Singleton(type):
     pass
 ', 'Храните словарь экземпляров в метаклассе; __call__(cls, *args, **kwargs): если cls нет в словаре — создайте через super().__call__.', '{"driver": "class Config(metaclass=Singleton):\n    def __init__(self):\n        print(\"init\")\n\n\nclass Other(metaclass=Singleton):\n    pass\n\n\na = Config()\nb = Config()\nprint(a is b)\nprint(Other() is Other(), Other() is a)\n", "expected": ["init", "True", "True False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-commands', 4, 'stdout', 'Метакласс собирает команды', 'Напишите метакласс CommandMeta: при создании класса он собирает функции с префиксом cmd_ в словарь commands (ключ — имя без префикса) и кладёт его в класс. Остальные атрибуты остаются как есть.', 'class CommandMeta(type):
     pass
-', 'В __new__: ns["commands"] = {k[4:]: v for k, v in ns.items() if k.startswith("cmd_") and callable(v)}; return super().__new__(mcs, name, bases, ns).', '{"driver": "class Bot(metaclass=CommandMeta):\n    def cmd_hi(self):\n        return \"привет\"\n\n    def cmd_bye(self):\n        return \"пока\"\n\n    def helper(self):\n        return \"служебная\"\n\n\nprint(sorted(Bot.commands))\nb = Bot()\nprint(Bot.commands[\"hi\"](b), b.helper())\nprint(Bot.commands == {k[4:]: v for k, v in vars(Bot).items() if k.startswith(\"cmd_\")})\n", "expected": ["[''bye'', ''hi'']", "привет служебная", "True"]}');
+', 'В __new__: ns["commands"] = {k[4:]: v for k, v in ns.items() if k.startswith("cmd_") and callable(v)}; return super().__new__(mcs, name, bases, ns).', '{"driver": "class Bot(metaclass=CommandMeta):\n    def cmd_hi(self):\n        return \"hello\"\n\n    def cmd_bye(self):\n        return \"bye\"\n\n    def helper(self):\n        return \"helper\"\n\n\nprint(sorted(Bot.commands))\nb = Bot()\nprint(Bot.commands[\"hi\"](b), b.helper())\nprint(Bot.commands == {k[4:]: v for k, v in vars(Bot).items() if k.startswith(\"cmd_\")})\n", "expected": ["[''bye'', ''hi'']", "hello helper", "True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-final', 5, 'stdout', 'Запрет наследования', 'Напишите метакласс FinalMeta: если у какого-либо родителя нового класса есть атрибут __final__ со значением True, создание класса должно завершаться TypeError (наследовать такой класс нельзя).', 'class FinalMeta(type):
     pass
-', 'В __new__: if any(getattr(base, "__final__", False) for base in bases): raise TypeError(...).', '{"driver": "class A(metaclass=FinalMeta):\n    __final__ = True\n\n\ntry:\n    class B(A):\n        pass\nexcept TypeError:\n    print(\"наследовать нельзя\")\n\n\nclass C(metaclass=FinalMeta):\n    pass\n\n\nclass D(C):\n    pass\n\n\nprint(D.__mro__[1].__name__, A.__final__)\n", "expected": ["наследовать нельзя", "C True"]}');
+', 'В __new__: if any(getattr(base, "__final__", False) for base in bases): raise TypeError(...).', '{"driver": "class A(metaclass=FinalMeta):\n    __final__ = True\n\n\ntry:\n    class B(A):\n        pass\nexcept TypeError:\n    print(\"cannot inherit\")\n\n\nclass C(metaclass=FinalMeta):\n    pass\n\n\nclass D(C):\n    pass\n\n\nprint(D.__mro__[1].__name__, A.__final__)\n", "expected": ["cannot inherit", "C True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-class-getitem', 6, 'stdout', 'Box[int] как обобщённый тип', 'Научите класс Box поддерживать запись Box[int] (и Box[str, int]): метод __class_getitem__ возвращает types.GenericAlias с исходным классом и аргументами.', 'import types
 
 
@@ -1093,7 +1093,7 @@ class Box:
 ', 'def __class_getitem__(cls, item): return types.GenericAlias(cls, item).', '{"driver": "alias = Box[int]\nprint(alias.__origin__ is Box, alias.__args__[0].__name__)\nprint([t.__name__ for t in Box[str, int].__args__])\nprint(Box() is not None)\n", "expected": ["True int", "[''str'', ''int'']", "True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-prepare-nodup', 7, 'stdout', 'Запрет повторных имён в теле класса', 'Напишите метакласс NoDupMeta: с помощью __prepare__ он подставляет собственное пространство имён (подкласс dict), которое поднимает TypeError, если имя (кроме специальных, начинающихся с двух подчёркиваний) определено в теле класса дважды. Класс должен создаваться обычным образом.', 'class NoDupMeta(type):
     pass
-', '__prepare__ — метод класса метакласса: верните экземпляр dict-наследника с __setitem__; в __new__ передайте dict(ns) в super().__new__.', '{"driver": "class Ok(metaclass=NoDupMeta):\n    def a(self):\n        return 1\n\n    def b(self):\n        return 2\n\n\nprint(Ok().a(), Ok().b())\ntry:\n    class Bad(metaclass=NoDupMeta):\n        def a(self):\n            return 1\n\n        def a(self):\n            return 2\n    print(\"ошибки нет\")\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["1 2", "TypeError"]}');
+', '__prepare__ — метод класса метакласса: верните экземпляр dict-наследника с __setitem__; в __new__ передайте dict(ns) в super().__new__.', '{"driver": "class Ok(metaclass=NoDupMeta):\n    def a(self):\n        return 1\n\n    def b(self):\n        return 2\n\n\nprint(Ok().a(), Ok().b())\ntry:\n    class Bad(metaclass=NoDupMeta):\n        def a(self):\n            return 1\n\n        def a(self):\n            return 2\n    print(\"no error\")\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["1 2", "TypeError"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 31, 'mc-counted', 8, 'stdout', 'Учёт экземпляров по классам', 'Напишите метакласс Counted: у каждого класса с этим метаклассом (и у каждого потомка отдельно) есть атрибут instances — сколько экземпляров создано именно этим классом.', 'class Counted(type):
     pass
 ', 'В __init__ метакласса: cls.instances = 0; в __call__: cls.instances += 1; return super().__call__(*args, **kwargs).', '{"driver": "class A(metaclass=Counted):\n    pass\n\n\nclass B(A):\n    pass\n\n\nA()\nA()\nB()\nprint(A.instances, B.instances)\n", "expected": ["2 1"]}');
@@ -1115,12 +1115,12 @@ UNARY = {ast.USub: operator.neg, ast.UAdd: operator.pos}
 def calc(expr):
     pass
 ', 'Рекурсивная функция по узлам: Constant → значение, BinOp → OPS[type(node.op)](...), UnaryOp → UNARY[...](...), иначе raise ValueError.', '{"driver": "print(calc(\"2 + 3 * 4\"))\nprint(calc(\"-(2 + 3) ** 2\"))\nprint(calc(\"10 / 4\"), calc(\"7 // 2\"))\nfor bad in [\"__import__(''os'')\", \"abs(-1)\", \"x + 1\", \"''a'' * 3\"]:\n    try:\n        calc(bad)\n    except ValueError:\n        print(\"ValueError\")\n", "expected": ["14", "-25", "2.5 3", "ValueError", "ValueError", "ValueError", "ValueError"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 32, 'ast-literal-config', 1, 'stdout', 'Настройки только из литералов', 'Напишите parse_config(text): превратите строку в значение функцией ast.literal_eval. Если в строке не литерал (вызов, выражение) или синтаксическая ошибка — поднимайте ValueError("некорректная настройка").', 'import ast
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 32, 'ast-literal-config', 1, 'stdout', 'Настройки только из литералов', 'Напишите parse_config(text): превратите строку в значение функцией ast.literal_eval. Если в строке не литерал (вызов, выражение) или синтаксическая ошибка — поднимайте ValueError("invalid setting").', 'import ast
 
 
 def parse_config(text):
     pass
-', 'try: return ast.literal_eval(text) except (ValueError, SyntaxError): raise ValueError("некорректная настройка").', '{"driver": "print(parse_config(\"{''a'': [1, 2], ''b'': (3, 4.5), ''c'': None}\"))\nfor bad in [\"__import__(''os'')\", \"{''a'': 1+}\", \"[x for x in range(3)]\"]:\n    try:\n        parse_config(bad)\n    except ValueError as e:\n        print(\"ValueError\", e)\n", "expected": ["{''a'': [1, 2], ''b'': (3, 4.5), ''c'': None}", "ValueError некорректная настройка", "ValueError некорректная настройка", "ValueError некорректная настройка"]}');
+', 'try: return ast.literal_eval(text) except (ValueError, SyntaxError): raise ValueError("invalid setting").', '{"driver": "print(parse_config(\"{''a'': [1, 2], ''b'': (3, 4.5), ''c'': None}\"))\nfor bad in [\"__import__(''os'')\", \"{''a'': 1+}\", \"[x for x in range(3)]\"]:\n    try:\n        parse_config(bad)\n    except ValueError as e:\n        print(\"ValueError\", e)\n", "expected": ["{''a'': [1, 2], ''b'': (3, 4.5), ''c'': None}", "ValueError invalid setting", "ValueError invalid setting", "ValueError invalid setting"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 32, 'ast-called-names', 2, 'stdout', 'Какие функции вызывает код', 'Напишите called_names(source): отсортированный список имён функций, вызываемых по простому имени (print(...), foo(...)). Вызовы методов вида obj.method() не учитывайте. Используйте ast.NodeVisitor и не забывайте обходить вложенные вызовы.', 'import ast
 
 
@@ -1169,19 +1169,19 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def top_words(text, n):
     pass
-', 'Counter(text.lower().split()).most_common(n).', '{"func": "top_words", "tests": [{"args": ["да нет Да нет ДА может", 2], "expected": [{"__tuple__": ["да", 3]}, {"__tuple__": ["нет", 2]}]}, {"args": ["а б б в в в", 1], "expected": [{"__tuple__": ["в", 3]}]}, {"args": ["", 3], "expected": []}]}');
+', 'Counter(text.lower().split()).most_common(n).', '{"func": "top_words", "tests": [{"args": ["yes no Yes no YES maybe", 2], "expected": [{"__tuple__": ["yes", 3]}, {"__tuple__": ["no", 2]}]}, {"args": ["a b b c c c", 1], "expected": [{"__tuple__": ["c", 3]}]}, {"args": ["", 3], "expected": []}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 33, 'anagram-counter', 1, 'func', 'Анаграммы', 'Напишите функцию is_anagram(a, b): True, если слова состоят из одних и тех же букв (регистр и пробелы не важны). Сравните счётчики букв.', 'from collections import Counter
 
 
 def is_anagram(a, b):
     pass
-', 'Приведите к нижнему регистру, уберите пробелы и сравните Counter(a) == Counter(b).', '{"func": "is_anagram", "tests": [{"args": ["Лотос", "столо"], "expected": true}, {"args": ["кот", "ток "], "expected": true}, {"args": ["кот", "кит"], "expected": false}, {"args": ["аа", "а"], "expected": false}]}');
+', 'Приведите к нижнему регистру, уберите пробелы и сравните Counter(a) == Counter(b).', '{"func": "is_anagram", "tests": [{"args": ["Stool", "tools"], "expected": true}, {"args": ["cat", "act "], "expected": true}, {"args": ["cat", "cot"], "expected": false}, {"args": ["aa", "a"], "expected": false}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 33, 'group-by-length', 2, 'stdout', 'Группы по длине', 'Напишите функцию group_by_length(words): словарь «длина → список слов этой длины» в исходном порядке. Используйте defaultdict(list) и верните обычный dict.', 'from collections import defaultdict
 
 
 def group_by_length(words):
     pass
-', 'groups[len(w)].append(w); в конце return dict(groups).', '{"driver": "r = group_by_length([''кот'', ''пёс'', ''слон'', ''мышь'', ''жук''])\nprint(sorted(r.items()))\nprint(type(r).__name__)\nprint(group_by_length([]))\n", "expected": ["[(3, [''кот'', ''пёс'', ''жук'']), (4, [''слон'', ''мышь''])]", "dict", "{}"]}');
+', 'groups[len(w)].append(w); в конце return dict(groups).', '{"driver": "r = group_by_length([''cat'', ''dog'', ''lion'', ''mole'', ''ant''])\nprint(sorted(r.items()))\nprint(type(r).__name__)\nprint(group_by_length([]))\n", "expected": ["[(3, [''cat'', ''dog'', ''ant'']), (4, [''lion'', ''mole''])]", "dict", "{}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 33, 'moving-average', 3, 'func', 'Скользящее среднее', 'Напишите функцию moving_average(nums, k): среднее каждого окна из k подряд идущих чисел (только полные окна). Используйте deque с maxlen=k.', 'from collections import deque
 
 
@@ -1193,7 +1193,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def bfs_order(graph, start):
     pass
-', 'queue = deque([start]); seen — словарь посещённых; popleft, добавить соседей, которых ещё не было.', '{"func": "bfs_order", "tests": [{"args": [{"А": ["Б", "В"], "Б": ["Г"], "В": ["Г"], "Г": []}, "А"], "expected": ["А", "Б", "В", "Г"]}, {"args": [{"1": ["2"], "2": ["1"]}, "1"], "expected": ["1", "2"]}, {"args": [{"x": []}, "x"], "expected": ["x"]}]}');
+', 'queue = deque([start]); seen — словарь посещённых; popleft, добавить соседей, которых ещё не было.', '{"func": "bfs_order", "tests": [{"args": [{"A": ["B", "C"], "B": ["D"], "C": ["D"], "D": []}, "A"], "expected": ["A", "B", "C", "D"]}, {"args": [{"1": ["2"], "2": ["1"]}, "1"], "expected": ["1", "2"]}, {"args": [{"x": []}, "x"], "expected": ["x"]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 33, 'namedtuple-distance', 5, 'stdout', 'Точка как namedtuple', 'Создайте именованный кортеж Point с полями x и y и функцию distance(p, q) — евклидово расстояние между двумя точками (используйте math.hypot).', 'from collections import namedtuple
 import math
 
@@ -1291,14 +1291,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 def format_ru(day):
     pass
 ', 'date.fromisoformat(day).strftime("%d.%m.%Y").', '{"func": "format_ru", "tests": [{"args": ["2024-03-05"], "expected": "05.03.2024"}, {"args": ["1999-12-31"], "expected": "31.12.1999"}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 35, 'weekday-name', 3, 'func', 'День недели', 'Напишите функцию weekday_name(day): название дня недели по-русски («понедельник», «вторник», …) для даты «ГГГГ-ММ-ДД».', 'from datetime import date
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 35, 'weekday-name', 3, 'func', 'День недели', 'Напишите функцию weekday_name(day): название дня недели по-английски (monday, tuesday, …) для даты «ГГГГ-ММ-ДД».', 'from datetime import date
 
-NAMES = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
+NAMES = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
 def weekday_name(day):
     pass
-', 'NAMES[date.fromisoformat(day).weekday()].', '{"func": "weekday_name", "tests": [{"args": ["2000-01-01"], "expected": "суббота"}, {"args": ["2024-02-29"], "expected": "четверг"}, {"args": ["2024-03-04"], "expected": "понедельник"}]}');
+', 'NAMES[date.fromisoformat(day).weekday()].', '{"func": "weekday_name", "tests": [{"args": ["2000-01-01"], "expected": "saturday"}, {"args": ["2024-02-29"], "expected": "thursday"}, {"args": ["2024-03-04"], "expected": "monday"}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 35, 'age-years', 4, 'func', 'Возраст', 'Напишите функцию age(born, today): полных лет между датой рождения и датой «сегодня» (строки «ГГГГ-ММ-ДД»). Если день рождения в этом году ещё не наступил, год не засчитывается.', 'from datetime import date
 
 
@@ -1323,108 +1323,108 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 def to_offset(iso_utc, hours):
     pass
 ', 'dt = datetime.fromisoformat(s).replace(tzinfo=timezone.utc); dt.astimezone(timezone(timedelta(hours=hours))).strftime(...).', '{"func": "to_offset", "tests": [{"args": ["2024-06-01T12:00", 3], "expected": "2024-06-01 15:00"}, {"args": ["2024-06-01T23:30", 3], "expected": "2024-06-02 02:30"}, {"args": ["2024-01-01T01:00", -5], "expected": "2023-12-31 20:00"}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 35, 'parse-log-line', 8, 'func', 'Строка журнала', 'Напишите функцию parse_log(line): строка журнала вида «2024-03-05 09:07:03 ERROR сбой диска». Верните кортеж (время в формате ISO с буквой T, уровень).', 'from datetime import datetime
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 35, 'parse-log-line', 8, 'func', 'Строка журнала', 'Напишите функцию parse_log(line): строка журнала вида «2024-03-05 09:07:03 ERROR disk failure». Верните кортеж (время в формате ISO с буквой T, уровень).', 'from datetime import datetime
 
 
 def parse_log(line):
     pass
-', 'date_part, time_part, level, *_ = line.split(); datetime.fromisoformat(date_part + '' '' + time_part).isoformat().', '{"func": "parse_log", "tests": [{"args": ["2024-03-05 09:07:03 ERROR сбой диска"], "expected": {"__tuple__": ["2024-03-05T09:07:03", "ERROR"]}}, {"args": ["2023-12-31 23:59:59 INFO ok"], "expected": {"__tuple__": ["2023-12-31T23:59:59", "INFO"]}}]}');
+', 'date_part, time_part, level, *_ = line.split(); datetime.fromisoformat(date_part + '' '' + time_part).isoformat().', '{"func": "parse_log", "tests": [{"args": ["2024-03-05 09:07:03 ERROR disk failure"], "expected": {"__tuple__": ["2024-03-05T09:07:03", "ERROR"]}}, {"args": ["2023-12-31 23:59:59 INFO ok"], "expected": {"__tuple__": ["2023-12-31T23:59:59", "INFO"]}}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'is-phone', 0, 'func', 'Номер телефона', 'Напишите функцию is_phone(s): True, если вся строка — номер вида «+7-900-123-45-67» (после +7 четыре группы через дефис: 3, 3, 2 и 2 цифры). Используйте re.fullmatch.', 'import re
 
 
 def is_phone(s):
     pass
-', 'bool(re.fullmatch(r"\+7-\d{3}-\d{3}-\d{2}-\d{2}", s)).', '{"func": "is_phone", "tests": [{"args": ["+7-900-123-45-67"], "expected": true}, {"args": ["+7-900-123-45-6"], "expected": false}, {"args": ["8-900-123-45-67"], "expected": false}, {"args": ["тел +7-900-123-45-67"], "expected": false}]}');
+', 'bool(re.fullmatch(r"\+7-\d{3}-\d{3}-\d{2}-\d{2}", s)).', '{"func": "is_phone", "tests": [{"args": ["+7-900-123-45-67"], "expected": true}, {"args": ["+7-900-123-45-6"], "expected": false}, {"args": ["8-900-123-45-67"], "expected": false}, {"args": ["tel +7-900-123-45-67"], "expected": false}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'find-numbers', 1, 'func', 'Числа из текста', 'Напишите функцию find_numbers(text): список всех целых чисел в тексте, как int; перед числом может стоять минус.', 'import re
 
 
 def find_numbers(text):
     pass
-', '[int(x) for x in re.findall(r"-?\d+", text)].', '{"func": "find_numbers", "tests": [{"args": ["у меня 3 яблока и -12 груш, а 100 — много"], "expected": [3, -12, 100]}, {"args": ["нет чисел"], "expected": []}, {"args": ["a1b22c333"], "expected": [1, 22, 333]}]}');
+', '[int(x) for x in re.findall(r"-?\d+", text)].', '{"func": "find_numbers", "tests": [{"args": ["i have 3 apples and -12 pears, a 100 — many"], "expected": [3, -12, 100]}, {"args": ["no numbers"], "expected": []}, {"args": ["a1b22c333"], "expected": [1, 22, 333]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'extract-emails', 2, 'func', 'Адреса почты', 'Напишите функцию extract_emails(text): список адресов вида имя@домен.зона (латиница, цифры, точки и подчёркивания в имени и домене) в порядке появления.', 'import re
 
 
 def extract_emails(text):
     pass
-', 're.findall(r"[\w.]+@[\w.]+\w", text).', '{"func": "extract_emails", "tests": [{"args": ["пишите на ivan@mail.ru или olga_1@ya.ru!"], "expected": ["ivan@mail.ru", "olga_1@ya.ru"]}, {"args": ["почты нет"], "expected": []}, {"args": ["a.b@c.d.org, x"], "expected": ["a.b@c.d.org"]}]}');
+', 're.findall(r"[\w.]+@[\w.]+\w", text).', '{"func": "extract_emails", "tests": [{"args": ["write to ivan@mail.ru or olga_1@ya.ru!"], "expected": ["ivan@mail.ru", "olga_1@ya.ru"]}, {"args": ["no mail"], "expected": []}, {"args": ["a.b@c.d.org, x"], "expected": ["a.b@c.d.org"]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'collapse-spaces', 3, 'func', 'Лишние пробелы', 'Напишите функцию collapse_spaces(text): подряд идущие пробельные символы (пробелы, табуляции, переводы строк) заменить одним пробелом и убрать пробелы по краям.', 'import re
 
 
 def collapse_spaces(text):
     pass
-', 're.sub(r"\s+", " ", text).strip().', '{"func": "collapse_spaces", "tests": [{"args": ["много   пробелов\n тут"], "expected": "много пробелов тут"}, {"args": ["   край   "], "expected": "край"}, {"args": ["а\t\tб"], "expected": "а б"}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'parse-date-groups', 4, 'func', 'Разбор даты', 'Напишите функцию parse_date(s): из строки «ДД.ММ.ГГГГ» верните кортеж чисел (год, месяц, день). Если строка не соответствует формату целиком — None.', 'import re
+', 're.sub(r"\s+", " ", text).strip().', '{"func": "collapse_spaces", "tests": [{"args": ["many   spaces\n here"], "expected": "many spaces here"}, {"args": ["   edge   "], "expected": "edge"}, {"args": ["a\t\tb"], "expected": "a b"}]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'parse-date-groups', 4, 'func', 'Разбор даты', 'Напишите функцию parse_date(s): из строки «DD.MM.YYYY» верните кортеж чисел (год, месяц, день). Если строка не соответствует формату целиком — None.', 'import re
 
 
 def parse_date(s):
     pass
-', 'm = re.fullmatch(r"(\d\d)\.(\d\d)\.(\d{4})", s); если m — int(m[3]), int(m[2]), int(m[1]).', '{"func": "parse_date", "tests": [{"args": ["05.03.2024"], "expected": {"__tuple__": [2024, 3, 5]}}, {"args": ["31.12.1999"], "expected": {"__tuple__": [1999, 12, 31]}}, {"args": ["5.3.2024"], "expected": null}, {"args": ["дата 05.03.2024"], "expected": null}]}');
+', 'm = re.fullmatch(r"(\d\d)\.(\d\d)\.(\d{4})", s); если m — int(m[3]), int(m[2]), int(m[1]).', '{"func": "parse_date", "tests": [{"args": ["05.03.2024"], "expected": {"__tuple__": [2024, 3, 5]}}, {"args": ["31.12.1999"], "expected": {"__tuple__": [1999, 12, 31]}}, {"args": ["5.3.2024"], "expected": null}, {"args": ["date 05.03.2024"], "expected": null}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'hashtags', 5, 'func', 'Хештеги', 'Напишите функцию hashtags(text): список хештегов (слово после #, буквы, цифры и подчёркивания) без символа #, в нижнем регистре.', 'import re
 
 
 def hashtags(text):
     pass
-', '[t.lower() for t in re.findall(r"#(\w+)", text)].', '{"func": "hashtags", "tests": [{"args": ["Привет #Питон и #regex_101, не # тег"], "expected": ["питон", "regex_101"]}, {"args": ["нет"], "expected": []}, {"args": ["#А#Б"], "expected": ["а", "б"]}]}');
+', '[t.lower() for t in re.findall(r"#(\w+)", text)].', '{"func": "hashtags", "tests": [{"args": ["Hello #Python and #regex_101, not # tag"], "expected": ["python", "regex_101"]}, {"args": ["no"], "expected": []}, {"args": ["#A#B"], "expected": ["a", "b"]}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'split-words-re', 6, 'func', 'Слова без знаков', 'Напишите функцию split_words(text): список слов текста (буквы и цифры), без знаков препинания и пустых элементов. Используйте re.findall.', 'import re
 
 
 def split_words(text):
     pass
-', 're.findall(r"\w+", text).', '{"func": "split_words", "tests": [{"args": ["Привет, мир! Как дела?"], "expected": ["Привет", "мир", "Как", "дела"]}, {"args": ["...!!!"], "expected": []}, {"args": ["a1-b2"], "expected": ["a1", "b2"]}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'censor-words', 7, 'func', 'Цензура', 'Напишите функцию censor(text, bad): замените каждое слово из списка bad (целиком, без учёта регистра) на «***». Части других слов не трогайте: «кот» не должно портить «котёл».', 'import re
+', 're.findall(r"\w+", text).', '{"func": "split_words", "tests": [{"args": ["Hello, world! How goes?"], "expected": ["Hello", "world", "How", "goes"]}, {"args": ["...!!!"], "expected": []}, {"args": ["a1-b2"], "expected": ["a1", "b2"]}]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'censor-words', 7, 'func', 'Цензура', 'Напишите функцию censor(text, bad): замените каждое слово из списка bad (целиком, без учёта регистра) на «***». Части других слов не трогайте: «cat» не должно портить «catalog».', 'import re
 
 
 def censor(text, bad):
     pass
-', 'Соберите шаблон r"\b(?:" + "|".join(map(re.escape, bad)) + r")\b" и вызовите re.sub с флагом re.I.', '{"func": "censor", "tests": [{"args": ["Кот и котёл, КОТ!", ["кот"]], "expected": "*** и котёл, ***!"}, {"args": ["ничего", ["плохо"]], "expected": "ничего"}, {"args": ["раз два три", ["два", "три"]], "expected": "раз *** ***"}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'parse-log-dict', 8, 'func', 'Журнал в словарь', 'Напишите функцию parse_log(line): строка «2024-03-05 09:07:03 ERROR сбой диска» → словарь с ключами «date», «time», «level», «msg». Если строка не подходит — None. Используйте именованные группы.', 'import re
+', 'Соберите шаблон r"\b(?:" + "|".join(map(re.escape, bad)) + r")\b" и вызовите re.sub с флагом re.I.', '{"func": "censor", "tests": [{"args": ["Cat and catalog, CAT!", ["cat"]], "expected": "*** and catalog, ***!"}, {"args": ["nothing", ["bad"]], "expected": "nothing"}, {"args": ["one two three", ["two", "three"]], "expected": "one *** ***"}]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 36, 'parse-log-dict', 8, 'func', 'Журнал в словарь', 'Напишите функцию parse_log(line): строка «2024-03-05 09:07:03 ERROR disk failure» → словарь с ключами «date», «time», «level», «msg». Если строка не подходит — None. Используйте именованные группы.', 'import re
 
 
 def parse_log(line):
     pass
-', '(?P<date>\d{4}-\d\d-\d\d) (?P<time>[\d:]{8}) (?P<level>[A-Z]+) (?P<msg>.*); m.groupdict().', '{"func": "parse_log", "tests": [{"args": ["2024-03-05 09:07:03 ERROR сбой диска"], "expected": {"date": "2024-03-05", "level": "ERROR", "msg": "сбой диска", "time": "09:07:03"}}, {"args": ["2023-12-31 23:59:59 INFO ok"], "expected": {"date": "2023-12-31", "level": "INFO", "msg": "ok", "time": "23:59:59"}}, {"args": ["мусор"], "expected": null}]}');
+', '(?P<date>\d{4}-\d\d-\d\d) (?P<time>[\d:]{8}) (?P<level>[A-Z]+) (?P<msg>.*); m.groupdict().', '{"func": "parse_log", "tests": [{"args": ["2024-03-05 09:07:03 ERROR disk failure"], "expected": {"date": "2024-03-05", "level": "ERROR", "msg": "disk failure", "time": "09:07:03"}}, {"args": ["2023-12-31 23:59:59 INFO ok"], "expected": {"date": "2023-12-31", "level": "INFO", "msg": "ok", "time": "23:59:59"}}, {"args": ["junk"], "expected": null}]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'parse-cli-args', 0, 'func', 'Разбор аргументов', 'Напишите функцию parse_cli(argv): с помощью argparse разберите список аргументов командной строки: позиционный text, необязательный --count (целое, по умолчанию 1) и флаг --upper. Верните кортеж (text, count, upper).', 'import argparse
 
 
 def parse_cli(argv):
     pass
-', 'p.add_argument(''text''); p.add_argument(''--count'', type=int, default=1); p.add_argument(''--upper'', action=''store_true'').', '{"func": "parse_cli", "tests": [{"args": [["привет", "--count", "3", "--upper"]], "expected": {"__tuple__": ["привет", 3, true]}}, {"args": [["мир"]], "expected": {"__tuple__": ["мир", 1, false]}}, {"args": [["--count", "2", "а"]], "expected": {"__tuple__": ["а", 2, false]}}]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'sum-cli-main', 1, 'stdout', 'Утилита-сумматор', 'Напишите функцию main(argv): аргументы argv — числа (argparse, nargs=''*'', type=int). Если чисел нет — напечатайте в stderr «нет чисел» и верните 1; иначе напечатайте сумму и верните 0.', 'import argparse
+', 'p.add_argument(''text''); p.add_argument(''--count'', type=int, default=1); p.add_argument(''--upper'', action=''store_true'').', '{"func": "parse_cli", "tests": [{"args": [["hello", "--count", "3", "--upper"]], "expected": {"__tuple__": ["hello", 3, true]}}, {"args": [["world"]], "expected": {"__tuple__": ["world", 1, false]}}, {"args": [["--count", "2", "a"]], "expected": {"__tuple__": ["a", 2, false]}}]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'sum-cli-main', 1, 'stdout', 'Утилита-сумматор', 'Напишите функцию main(argv): аргументы argv — числа (argparse, nargs=''*'', type=int). Если чисел нет — напечатайте в stderr «no numbers» и верните 1; иначе напечатайте сумму и верните 0.', 'import argparse
 import sys
 
 
 def main(argv=None):
     pass
-', 'p = argparse.ArgumentParser(); p.add_argument(''nums'', nargs=''*'', type=int); args = p.parse_args(argv).', '{"driver": "print(''код'', main([''1'', ''2'', ''3'']))\nprint(''код'', main([]))\nprint(''код'', main([''-5'', ''5'']))\n", "expected": ["6", "код 0", "код 1", "0", "код 0"]}');
+', 'p = argparse.ArgumentParser(); p.add_argument(''nums'', nargs=''*'', type=int); args = p.parse_args(argv).', '{"driver": "print(''code'', main([''1'', ''2'', ''3'']))\nprint(''code'', main([]))\nprint(''code'', main([''-5'', ''5'']))\n", "expected": ["6", "code 0", "code 1", "0", "code 0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'env-or-default', 2, 'stdout', 'Настройка из окружения', 'Напишите функцию get_port(): значение переменной окружения PORT как целое число; если переменной нет — 8000.', 'import os
 
 
 def get_port():
     pass
 ', 'int(os.environ.get(''PORT'', 8000)).', '{"driver": "import os\nos.environ.pop(''PORT'', None)\nprint(get_port())\nos.environ[''PORT''] = ''9090''\nprint(get_port(), type(get_port()).__name__)\n", "expected": ["8000", "9090 int"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'make-logger', 3, 'stdout', 'Свой логгер', 'Напишите функцию make_logger(stream): логгер с именем «app», который пишет в переданный поток сообщения уровня INFO и выше в формате «УРОВЕНЬ: сообщение» (propagate выключите).', 'import logging
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'make-logger', 3, 'stdout', 'Свой логгер', 'Напишите функцию make_logger(stream): логгер с именем «app», который пишет в переданный поток сообщения уровня INFO и выше в формате «LEVEL: message» (propagate выключите).', 'import logging
 
 
 def make_logger(stream):
     pass
-', 'StreamHandler(stream) + Formatter(''%(levelname)s: %(message)s''); logger.setLevel(logging.INFO); logger.propagate = False.', '{"driver": "import io\nbuf = io.StringIO()\nlog = make_logger(buf)\nlog.debug(''скрыто'')\nlog.info(''старт'')\nlog.warning(''внимание'')\nlog.error(''сбой'')\nprint(buf.getvalue().splitlines())\n", "expected": ["[''INFO: старт'', ''WARNING: внимание'', ''ERROR: сбой'']"]}');
+', 'StreamHandler(stream) + Formatter(''%(levelname)s: %(message)s''); logger.setLevel(logging.INFO); logger.propagate = False.', '{"driver": "import io\nbuf = io.StringIO()\nlog = make_logger(buf)\nlog.debug(''hidden'')\nlog.info(''start'')\nlog.warning(''caution'')\nlog.error(''failure'')\nprint(buf.getvalue().splitlines())\n", "expected": ["[''INFO: start'', ''WARNING: caution'', ''ERROR: failure'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'run-python-subprocess', 4, 'stdout', 'Запуск процесса', 'Напишите функцию run_python(code): запускает дочерний интерпретатор (sys.executable) с кодом code и возвращает кортеж (код возврата, вывод без пробелов по краям). Используйте subprocess.run, capture_output и text.', 'import subprocess
 import sys
 
 
 def run_python(code):
     pass
-', 'r = subprocess.run([sys.executable, ''-c'', code], capture_output=True, text=True); return r.returncode, r.stdout.strip().', '{"driver": "print(run_python(''print(2 + 2)''))\nprint(run_python(''raise SystemExit(5)''))\nprint(run_python(''import sys; print(\"привет\"); sys.exit(1)''))\n", "expected": ["(0, ''4'')", "(5, '''')", "(1, ''привет'')"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'run-with-timeout', 5, 'stdout', 'Процесс с таймаутом', 'Напишите функцию run_limited(code, seconds): запускает код в дочернем интерпретаторе; если он не уложился в seconds секунд — верните строку «таймаут», иначе — его вывод без пробелов по краям.', 'import subprocess
+', 'r = subprocess.run([sys.executable, ''-c'', code], capture_output=True, text=True); return r.returncode, r.stdout.strip().', '{"driver": "print(run_python(''print(2 + 2)''))\nprint(run_python(''raise SystemExit(5)''))\nprint(run_python(''import sys; print(\"hello\"); sys.exit(1)''))\n", "expected": ["(0, ''4'')", "(5, '''')", "(1, ''hello'')"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'run-with-timeout', 5, 'stdout', 'Процесс с таймаутом', 'Напишите функцию run_limited(code, seconds): запускает код в дочернем интерпретаторе; если он не уложился в seconds секунд — верните строку «timeout», иначе — его вывод без пробелов по краям.', 'import subprocess
 import sys
 
 
 def run_limited(code, seconds):
     pass
-', 'try: subprocess.run(..., timeout=seconds) / except subprocess.TimeoutExpired: return ''таймаут''.', '{"driver": "print(run_limited(''print(1)'', 5))\nprint(run_limited(''import time; time.sleep(10)'', 0.3))\n", "expected": ["1", "таймаут"]}');
+', 'try: subprocess.run(..., timeout=seconds) / except subprocess.TimeoutExpired: return ''timeout''.', '{"driver": "print(run_limited(''print(1)'', 5))\nprint(run_limited(''import time; time.sleep(10)'', 0.3))\n", "expected": ["1", "timeout"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 37, 'count-nonempty-stream', 6, 'stdout', 'Строки из потока', 'Напишите функцию count_lines(stream): сколько непустых строк (после strip) в файловом объекте stream. Работайте с потоком так же, как со стандартным вводом: перебирайте его циклом.', 'def count_lines(stream):
     pass
-', 'n = 0; for line in stream: if line.strip(): n += 1.', '{"driver": "import io\nprint(count_lines(io.StringIO(''а\\n\\nб\\n   \\nв\\n'')))\nprint(count_lines(io.StringIO('''')))\nprint(count_lines(io.StringIO(''одна'')))\n", "expected": ["3", "0", "1"]}');
+', 'n = 0; for line in stream: if line.strip(): n += 1.', '{"driver": "import io\nprint(count_lines(io.StringIO(''a\\n\\nb\\n   \\nc\\n'')))\nprint(count_lines(io.StringIO('''')))\nprint(count_lines(io.StringIO(''single'')))\n", "expected": ["3", "0", "1"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 38, 'point-dataclass', 0, 'stdout', 'Точка-датакласс', 'Опишите датакласс Point с полями x и y (числа, по умолчанию 0) и методом distance_to(other) — расстояние до другой точки (math.hypot).', 'from dataclasses import dataclass
 import math
 
@@ -1437,19 +1437,19 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 class Playlist:
     pass
-', 'songs: list = field(default_factory=list).', '{"driver": "a = Playlist(''а'')\nb = Playlist(''б'')\na.add(''песня 1'')\na.add(''песня 2'')\nprint(a)\nprint(b.songs)\nprint(a.songs is b.songs)\n", "expected": ["Playlist(name=''а'', songs=[''песня 1'', ''песня 2''])", "[]", "False"]}');
+', 'songs: list = field(default_factory=list).', '{"driver": "a = Playlist(''a'')\nb = Playlist(''b'')\na.add(''song 1'')\na.add(''song 2'')\nprint(a)\nprint(b.songs)\nprint(a.songs is b.songs)\n", "expected": ["Playlist(name=''a'', songs=[''song 1'', ''song 2''])", "[]", "False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 38, 'money-frozen', 2, 'stdout', 'Неизменяемые деньги', 'Опишите неизменяемый (frozen) датакласс Money с полями amount (число) и currency (строка), сравниваемый по порядку полей (order=True).', 'from dataclasses import dataclass
 
 
 class Money:
     pass
-', '@dataclass(frozen=True, order=True) — и заморозка, и сортировка, и хеш.', '{"driver": "a, b = Money(5, ''RUB''), Money(3, ''RUB'')\nprint(sorted([a, b]))\nprint({a: ''пять''}[Money(5, ''RUB'')])\ntry:\n    a.amount = 1\nexcept Exception as e:\n    print(type(e).__name__)\n", "expected": ["[Money(amount=3, currency=''RUB''), Money(amount=5, currency=''RUB'')]", "пять", "FrozenInstanceError"]}');
+', '@dataclass(frozen=True, order=True) — и заморозка, и сортировка, и хеш.', '{"driver": "a, b = Money(5, ''RUB''), Money(3, ''RUB'')\nprint(sorted([a, b]))\nprint({a: ''five''}[Money(5, ''RUB'')])\ntry:\n    a.amount = 1\nexcept Exception as e:\n    print(type(e).__name__)\n", "expected": ["[Money(amount=3, currency=''RUB''), Money(amount=5, currency=''RUB'')]", "five", "FrozenInstanceError"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 38, 'status-enum', 3, 'stdout', 'Статус заказа', 'Опишите перечисление Status с членами NEW = ''new'', PAID = ''paid'', SHIPPED = ''shipped'' и методом is_active() — True для NEW и PAID, False для SHIPPED.', 'from enum import Enum
 
 
 class Status(Enum):
     pass
-', 'NEW = ''new'' и так далее; is_active: return self in (Status.NEW, Status.PAID).', '{"driver": "print(Status(''paid''), Status.NEW.value, Status[''SHIPPED''].name)\nprint([s.is_active() for s in Status])\ntry:\n    Status(''lost'')\nexcept ValueError:\n    print(''нет такого статуса'')\n", "expected": ["Status.PAID new SHIPPED", "[True, True, False]", "нет такого статуса"]}');
+', 'NEW = ''new'' и так далее; is_active: return self in (Status.NEW, Status.PAID).', '{"driver": "print(Status(''paid''), Status.NEW.value, Status[''SHIPPED''].name)\nprint([s.is_active() for s in Status])\ntry:\n    Status(''lost'')\nexcept ValueError:\n    print(''no such status'')\n", "expected": ["Status.PAID new SHIPPED", "[True, True, False]", "no such status"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 38, 'perm-flag', 4, 'stdout', 'Права доступа', 'Опишите Flag-перечисление Perm с членами R, W, X (через auto) и функцию describe(p): строка из трёх символов, например «rw-» для R|W и «r-x» для R|X.', 'from enum import Flag, auto
 
 
@@ -1477,29 +1477,29 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 class TestLeap(unittest.TestCase):
     def test_example(self):
-        pass  # вызывайте is_leap(год)
-', 'assertTrue(is_leap(2024)), assertFalse(is_leap(2023)), assertFalse(is_leap(1900)), assertTrue(is_leap(2000)).', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestLeap))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(y): return y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)\ndef bad1(y): return y % 4 == 0\ndef bad2(y): return y % 4 == 0 and y % 100 != 0\ndef bad3(y): return y % 400 == 0\nfor name, f in [(''верная'', good), (''ошибка 1'', bad1), (''ошибка 2'', bad2), (''ошибка 3'', bad3)]:\n    is_leap = f\n    print(name, ''тесты прошли'' if run() else ''тесты упали'')\n", "expected": ["верная тесты прошли", "ошибка 1 тесты упали", "ошибка 2 тесты упали", "ошибка 3 тесты упали"]}');
+        pass  # call is_leap(year)
+', 'assertTrue(is_leap(2024)), assertFalse(is_leap(2023)), assertFalse(is_leap(1900)), assertTrue(is_leap(2000)).', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestLeap))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(y): return y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)\ndef bad1(y): return y % 4 == 0\ndef bad2(y): return y % 4 == 0 and y % 100 != 0\ndef bad3(y): return y % 400 == 0\nfor name, f in [(''correct'', good), (''error 1'', bad1), (''error 2'', bad2), (''error 3'', bad3)]:\n    is_leap = f\n    print(name, ''tests passed'' if run() else ''tests failed'')\n", "expected": ["correct tests passed", "error 1 tests failed", "error 2 tests failed", "error 3 tests failed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'tests-for-clamp', 1, 'stdout', 'Тесты для clamp', 'Допишите класс TestClamp: тесты функции clamp(x, low, high) — ограничивает x диапазоном [low, high]. Ваши тесты должны пройти на верной реализации и упасть на каждой из трёх сломанных. Проверьте значения внутри, ниже, выше и на границах.', 'import unittest
 
 
 class TestClamp(unittest.TestCase):
     def test_example(self):
-        pass  # вызывайте clamp(x, low, high)
-', 'clamp(5, 0, 10) == 5; clamp(-3, 0, 10) == 0; clamp(42, 0, 10) == 10; и сами границы.', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestClamp))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(x, lo, hi): return min(max(x, lo), hi)\ndef bad1(x, lo, hi): return max(x, lo)\ndef bad2(x, lo, hi): return min(x, hi)\ndef bad3(x, lo, hi):\n    if x < lo: return lo\n    if x > hi: return hi - 1\n    return x\nfor name, f in [(''верная'', good), (''ошибка 1'', bad1), (''ошибка 2'', bad2), (''ошибка 3'', bad3)]:\n    clamp = f\n    print(name, ''тесты прошли'' if run() else ''тесты упали'')\n", "expected": ["верная тесты прошли", "ошибка 1 тесты упали", "ошибка 2 тесты упали", "ошибка 3 тесты упали"]}');
+        pass  # call clamp(x, low, high)
+', 'clamp(5, 0, 10) == 5; clamp(-3, 0, 10) == 0; clamp(42, 0, 10) == 10; и сами границы.', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestClamp))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(x, lo, hi): return min(max(x, lo), hi)\ndef bad1(x, lo, hi): return max(x, lo)\ndef bad2(x, lo, hi): return min(x, hi)\ndef bad3(x, lo, hi):\n    if x < lo: return lo\n    if x > hi: return hi - 1\n    return x\nfor name, f in [(''correct'', good), (''error 1'', bad1), (''error 2'', bad2), (''error 3'', bad3)]:\n    clamp = f\n    print(name, ''tests passed'' if run() else ''tests failed'')\n", "expected": ["correct tests passed", "error 1 tests failed", "error 2 tests failed", "error 3 tests failed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'tests-for-divide', 2, 'stdout', 'Тесты для divide', 'Допишите класс TestDivide: тесты функции divide(a, b) — обычное деление; при b == 0 она должна поднимать ValueError. Ваши тесты должны пройти на верной реализации и упасть на трёх сломанных. Не забудьте assertRaises.', 'import unittest
 
 
 class TestDivide(unittest.TestCase):
     def test_example(self):
-        pass  # вызывайте divide(a, b)
-', 'self.assertEqual(divide(7, 2), 3.5); with self.assertRaises(ValueError): divide(1, 0).', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestDivide))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(a, b):\n    if b == 0: raise ValueError(''ноль'')\n    return a / b\ndef bad1(a, b):\n    if b == 0: return None\n    return a / b\ndef bad2(a, b):\n    return a / b\ndef bad3(a, b):\n    if b == 0: raise ValueError(''ноль'')\n    return a // b\nfor name, f in [(''верная'', good), (''ошибка 1'', bad1), (''ошибка 2'', bad2), (''ошибка 3'', bad3)]:\n    divide = f\n    print(name, ''тесты прошли'' if run() else ''тесты упали'')\n", "expected": ["верная тесты прошли", "ошибка 1 тесты упали", "ошибка 2 тесты упали", "ошибка 3 тесты упали"]}');
+        pass  # call divide(a, b)
+', 'self.assertEqual(divide(7, 2), 3.5); with self.assertRaises(ValueError): divide(1, 0).', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestDivide))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(a, b):\n    if b == 0: raise ValueError(''zero'')\n    return a / b\ndef bad1(a, b):\n    if b == 0: return None\n    return a / b\ndef bad2(a, b):\n    return a / b\ndef bad3(a, b):\n    if b == 0: raise ValueError(''zero'')\n    return a // b\nfor name, f in [(''correct'', good), (''error 1'', bad1), (''error 2'', bad2), (''error 3'', bad3)]:\n    divide = f\n    print(name, ''tests passed'' if run() else ''tests failed'')\n", "expected": ["correct tests passed", "error 1 tests failed", "error 2 tests failed", "error 3 tests failed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'tests-for-fizzbuzz', 3, 'stdout', 'Тесты для fizzbuzz', 'Допишите класс TestFizz: тесты функции fizzbuzz(n): «FizzBuzz» для кратных 15, «Fizz» для кратных 3, «Buzz» для кратных 5, иначе число строкой. Ваши тесты должны пройти на верной реализации и упасть на трёх сломанных.', 'import unittest
 
 
 class TestFizz(unittest.TestCase):
     def test_example(self):
-        pass  # вызывайте fizzbuzz(n)
-', 'assertEqual(fizzbuzz(15), "FizzBuzz"), 9, 5, 10 (для Buzz — и нечётное, и чётное кратное), 7 → "7".', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestFizz))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(n):\n    if n % 15 == 0: return ''FizzBuzz''\n    if n % 3 == 0: return ''Fizz''\n    if n % 5 == 0: return ''Buzz''\n    return str(n)\ndef bad1(n):\n    if n % 3 == 0: return ''Fizz''\n    if n % 5 == 0: return ''Buzz''\n    return str(n)\ndef bad2(n):\n    if n % 15 == 0: return ''FizzBuzz''\n    if n % 3 == 0: return ''Fizz''\n    if n % 10 == 0: return ''Buzz''\n    return str(n)\ndef bad3(n):\n    if n % 15 == 0: return ''FizzBuzz''\n    if n % 3 == 0: return ''Fizz''\n    if n % 5 == 0: return ''Buzz''\n    return n\nfor name, f in [(''верная'', good), (''ошибка 1'', bad1), (''ошибка 2'', bad2), (''ошибка 3'', bad3)]:\n    fizzbuzz = f\n    print(name, ''тесты прошли'' if run() else ''тесты упали'')\n", "expected": ["верная тесты прошли", "ошибка 1 тесты упали", "ошибка 2 тесты упали", "ошибка 3 тесты упали"]}');
+        pass  # call fizzbuzz(n)
+', 'assertEqual(fizzbuzz(15), "FizzBuzz"), 9, 5, 10 (для Buzz — и нечётное, и чётное кратное), 7 → "7".', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestFizz))\n    return r.wasSuccessful() and r.testsRun > 0\ndef good(n):\n    if n % 15 == 0: return ''FizzBuzz''\n    if n % 3 == 0: return ''Fizz''\n    if n % 5 == 0: return ''Buzz''\n    return str(n)\ndef bad1(n):\n    if n % 3 == 0: return ''Fizz''\n    if n % 5 == 0: return ''Buzz''\n    return str(n)\ndef bad2(n):\n    if n % 15 == 0: return ''FizzBuzz''\n    if n % 3 == 0: return ''Fizz''\n    if n % 10 == 0: return ''Buzz''\n    return str(n)\ndef bad3(n):\n    if n % 15 == 0: return ''FizzBuzz''\n    if n % 3 == 0: return ''Fizz''\n    if n % 5 == 0: return ''Buzz''\n    return n\nfor name, f in [(''correct'', good), (''error 1'', bad1), (''error 2'', bad2), (''error 3'', bad3)]:\n    fizzbuzz = f\n    print(name, ''tests passed'' if run() else ''tests failed'')\n", "expected": ["correct tests passed", "error 1 tests failed", "error 2 tests failed", "error 3 tests failed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'tests-for-stack', 4, 'stdout', 'Тесты для стека', 'Допишите класс TestStack: тесты класса Stack с методами push(x), pop() (снимает верхний; на пустом стеке — IndexError), peek() (верхний без снятия) и size(). Тесты должны пройти на верной реализации и упасть на трёх сломанных.', 'import unittest
 
 
@@ -1509,28 +1509,28 @@ class TestStack(unittest.TestCase):
 
     def test_example(self):
         pass
-', 'Положите 1, 2, 3: pop() == 3, peek() == 2, size() == 2; на пустом: with self.assertRaises(IndexError): self.s.pop().', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestStack))\n    return r.wasSuccessful() and r.testsRun > 0\nclass Good:\n    def __init__(self): self.a = []\n    def push(self, x): self.a.append(x)\n    def pop(self): return self.a.pop()\n    def peek(self): return self.a[-1]\n    def size(self): return len(self.a)\nclass Bad1(Good):\n    def pop(self): return self.a.pop(0)\nclass Bad2(Good):\n    def pop(self): return self.a.pop() if self.a else None\nclass Bad3(Good):\n    def size(self): return len(self.a) + 1\nfor name, c in [(''верная'', Good), (''ошибка 1'', Bad1), (''ошибка 2'', Bad2), (''ошибка 3'', Bad3)]:\n    Stack = c\n    print(name, ''тесты прошли'' if run() else ''тесты упали'')\n", "expected": ["верная тесты прошли", "ошибка 1 тесты упали", "ошибка 2 тесты упали", "ошибка 3 тесты упали"]}');
+', 'Положите 1, 2, 3: pop() == 3, peek() == 2, size() == 2; на пустом: with self.assertRaises(IndexError): self.s.pop().', '{"driver": "import io\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestStack))\n    return r.wasSuccessful() and r.testsRun > 0\nclass Good:\n    def __init__(self): self.a = []\n    def push(self, x): self.a.append(x)\n    def pop(self): return self.a.pop()\n    def peek(self): return self.a[-1]\n    def size(self): return len(self.a)\nclass Bad1(Good):\n    def pop(self): return self.a.pop(0)\nclass Bad2(Good):\n    def pop(self): return self.a.pop() if self.a else None\nclass Bad3(Good):\n    def size(self): return len(self.a) + 1\nfor name, c in [(''correct'', Good), (''error 1'', Bad1), (''error 2'', Bad2), (''error 3'', Bad3)]:\n    Stack = c\n    print(name, ''tests passed'' if run() else ''tests failed'')\n", "expected": ["correct tests passed", "error 1 tests failed", "error 2 tests failed", "error 3 tests failed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'doctest-abs-diff', 5, 'stdout', 'Функция с doctest', 'Напишите функцию abs_diff(a, b) — модуль разности чисел — и снабдите её докстринг не менее чем тремя doctest-примерами (формат «>>> abs_diff(5, 8)» и ответ на следующей строке). Проверка выполнит ваши примеры.', 'def abs_diff(a, b):
-    """Модуль разности.
+    """Absolute difference.
 
-    Добавьте примеры в формате doctest.
+    Add examples in doctest format.
     """
     pass
 ', '>>> abs_diff(5, 8)\n    3 — каждый пример: строка с >>> и строка с ожидаемым результатом.', '{"driver": "import doctest\nrunner = doctest.DocTestRunner(verbose=False)\nfor t in doctest.DocTestFinder().find(abs_diff, ''abs_diff'', globs={''abs_diff'': abs_diff}):\n    runner.run(t)\nres = runner.summarize(verbose=False)\nprint(res.failed, res.attempted >= 3)\nprint(abs_diff(5, 8), abs_diff(8, 5), abs_diff(2, 2))\n", "expected": ["0 True", "3 3 0"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'total-cost-mock', 6, 'stdout', 'Сумма через клиента', 'Напишите функцию total_cost(client, items): сумма цен всех товаров списка items; цену каждого возвращает client.get_price(item). Клиент передаётся параметром — так его можно подменить в тесте.', 'def total_cost(client, items):
     pass
-', 'sum(client.get_price(i) for i in items).', '{"driver": "from unittest.mock import Mock, call\nm = Mock()\nm.get_price.side_effect = lambda item: {''а'': 10, ''б'': 25}[item]\nprint(total_cost(m, [''а'', ''б'', ''а'']))\nprint(m.get_price.call_count, m.get_price.call_args_list == [call(''а''), call(''б''), call(''а'')])\nprint(total_cost(Mock(), []))\n", "expected": ["45", "3 True", "0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'greeting-injected-time', 7, 'stdout', 'Время параметром', 'Напишите функцию greeting(now): now — объект datetime. До 12 часов — «Доброе утро», с 12 до 18 — «Добрый день», позже — «Добрый вечер». Текущее время внутри не вызывайте.', 'def greeting(now):
+', 'sum(client.get_price(i) for i in items).', '{"driver": "from unittest.mock import Mock, call\nm = Mock()\nm.get_price.side_effect = lambda item: {''a'': 10, ''b'': 25}[item]\nprint(total_cost(m, [''a'', ''b'', ''a'']))\nprint(m.get_price.call_count, m.get_price.call_args_list == [call(''a''), call(''b''), call(''a'')])\nprint(total_cost(Mock(), []))\n", "expected": ["45", "3 True", "0"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 39, 'greeting-injected-time', 7, 'stdout', 'Время параметром', 'Напишите функцию greeting(now): now — объект datetime. До 12 часов — «Good morning», с 12 до 18 — «Good afternoon», позже — «Good evening». Текущее время внутри не вызывайте.', 'def greeting(now):
     pass
-', 'if now.hour < 12: ...; elif now.hour < 18: ...; else: ...', '{"driver": "from datetime import datetime\nfor h in (6, 11, 12, 17, 18, 23):\n    print(h, greeting(datetime(2024, 1, 1, h)))\n", "expected": ["6 Доброе утро", "11 Доброе утро", "12 Добрый день", "17 Добрый день", "18 Добрый вечер", "23 Добрый вечер"]}');
+', 'if now.hour < 12: ...; elif now.hour < 18: ...; else: ...', '{"driver": "from datetime import datetime\nfor h in (6, 11, 12, 17, 18, 23):\n    print(h, greeting(datetime(2024, 1, 1, h)))\n", "expected": ["6 Good morning", "11 Good morning", "12 Good afternoon", "17 Good afternoon", "18 Good evening", "23 Good evening"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-shape', 0, 'stdout', 'Абстрактная фигура', 'Напишите абстрактный класс Shape (от ABC) с обязательным методом area(), а также классы Rect(w, h) и Circle(r) (площадь круга — 3.14 * r * r). Создать Shape напрямую нельзя.', 'from abc import ABC, abstractmethod
 ', 'class Shape(ABC): @abstractmethod def area(self): ...; наследники реализуют area.', '{"driver": "try:\n    Shape()\nexcept TypeError:\n    print(\"TypeError\")\nshapes = [Rect(2, 3), Circle(1)]\nprint([s.area() for s in shapes])\nprint(all(isinstance(s, Shape) for s in shapes))\n", "expected": ["TypeError", "[6, 3.14]", "True"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-exporter', 1, 'stdout', 'Контракт экспортёра', 'Напишите абстрактный Exporter: обязательный метод export(data) и обязательное свойство extension. Класс, где не реализовано что-то одно, создать нельзя; полный наследник создаётся и работает.', 'from abc import ABC, abstractmethod
 ', 'Свойство: @property над @abstractmethod. Атрибут класса extension = "csv" тоже закрывает абстрактное свойство.', '{"driver": "class Csv(Exporter):\n    extension = \"csv\"\n\n    def export(self, data):\n        return \",\".join(map(str, data))\n\n\nclass NoExt(Exporter):\n    def export(self, data):\n        return \"\"\n\n\nclass NoExport(Exporter):\n    @property\n    def extension(self):\n        return \"x\"\n\n\nc = Csv()\nprint(c.export([1, 2, 3]), c.extension)\nfor cls in (NoExt, NoExport):\n    try:\n        cls()\n    except TypeError:\n        print(\"TypeError\", cls.__name__)\n", "expected": ["1,2,3 csv", "TypeError NoExt", "TypeError NoExport"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-template', 2, 'stdout', 'Шаблонный метод отчёта', 'Напишите абстрактный Report с готовым методом render(): он собирает строку из header(), body() и footer(). header и footer реализованы (возвращают «== отчёт ==» и «== конец ==»), а body — абстрактный шаг. Части склеиваются через перевод строки.', 'from abc import ABC, abstractmethod
-', 'def render(self): return "\n".join([self.header(), self.body(), self.footer()]).', '{"driver": "class Sales(Report):\n    def body(self):\n        return \"продажи: 42\"\n\n\nclass Users(Report):\n    def body(self):\n        return \"пользователей: 7\"\n\n    def footer(self):\n        return \"-- конец --\"\n\n\nprint(Sales().render())\nprint(Users().render())\ntry:\n    Report()\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["== отчёт ==", "продажи: 42", "== конец ==", "== отчёт ==", "пользователей: 7", "-- конец --", "TypeError"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-template', 2, 'stdout', 'Шаблонный метод отчёта', 'Напишите абстрактный Report с готовым методом render(): он собирает строку из header(), body() и footer(). header и footer реализованы (возвращают «== report ==» и «== end ==»), а body — абстрактный шаг. Части склеиваются через перевод строки.', 'from abc import ABC, abstractmethod
+', 'def render(self): return "\n".join([self.header(), self.body(), self.footer()]).', '{"driver": "class Sales(Report):\n    def body(self):\n        return \"sales: 42\"\n\n\nclass Users(Report):\n    def body(self):\n        return \"users: 7\"\n\n    def footer(self):\n        return \"-- end --\"\n\n\nprint(Sales().render())\nprint(Users().render())\ntry:\n    Report()\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["== report ==", "sales: 42", "== end ==", "== report ==", "users: 7", "-- end --", "TypeError"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-factory', 3, 'stdout', 'Абстрактная фабрика', 'Напишите абстрактный Animal: абстрактный классовый метод create() и абстрактный метод speak(). Для каждого наследника создавайте объект через create(); Animal создать напрямую нельзя.', 'from abc import ABC, abstractmethod
-', '@classmethod над @abstractmethod; тело create() в базовом классе может быть пустым или возвращать cls().', '{"driver": "class Dog(Animal):\n    @classmethod\n    def create(cls):\n        return cls()\n\n    def speak(self):\n        return \"гав\"\n\n\nclass Cat(Animal):\n    @classmethod\n    def create(cls):\n        return cls()\n\n    def speak(self):\n        return \"мяу\"\n\n\nprint([cls.create().speak() for cls in (Dog, Cat)])\ntry:\n    Animal.create()\nexcept TypeError:\n    print(\"TypeError\")\ntry:\n    class Bad(Animal):\n        def speak(self):\n            return \"?\"\n    Bad()\nexcept TypeError:\n    print(\"TypeError Bad\")\n", "expected": ["[''гав'', ''мяу'']", "TypeError", "TypeError Bad"]}');
+', '@classmethod над @abstractmethod; тело create() в базовом классе может быть пустым или возвращать cls().', '{"driver": "class Dog(Animal):\n    @classmethod\n    def create(cls):\n        return cls()\n\n    def speak(self):\n        return \"woof\"\n\n\nclass Cat(Animal):\n    @classmethod\n    def create(cls):\n        return cls()\n\n    def speak(self):\n        return \"meow\"\n\n\nprint([cls.create().speak() for cls in (Dog, Cat)])\ntry:\n    Animal.create()\nexcept TypeError:\n    print(\"TypeError\")\ntry:\n    class Bad(Animal):\n        def speak(self):\n            return \"?\"\n    Bad()\nexcept TypeError:\n    print(\"TypeError Bad\")\n", "expected": ["[''woof'', ''meow'']", "TypeError", "TypeError Bad"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-subclasshook', 4, 'stdout', 'Автоматический «подкласс»', 'Напишите ABC-класс HasLen: любой класс, у которого есть метод __len__, автоматически считается его подклассом (через __subclasshook__), без явного наследования. Проверьте, что isinstance работает для списков и для собственных классов с __len__, но не для чисел.', 'from abc import ABC
 
 
@@ -1542,27 +1542,27 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 class Duck:
     def quack(self):
-        return "кря"
+        return "quack"
 
 
 class Dog:
     pass
 ', 'class Quacker(ABC): pass; Quacker.register(Duck).', '{"driver": "print(isinstance(Duck(), Quacker), isinstance(Dog(), Quacker))\nprint(issubclass(Duck, Quacker), Duck.__mro__[0].__name__, Quacker in Duck.__mro__)\n", "expected": ["True False", "True Duck False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-sequence', 6, 'stdout', 'Последовательность на двух методах', 'Напишите Countdown(n) — наследника collections.abc.Sequence, содержащего числа n, n-1, …, 1. Реализуйте только __len__ и __getitem__ (индекс вне диапазона — IndexError): остальное приходит от базового класса.', 'from collections.abc import Sequence
-', '__getitem__(self, i): if isinstance(i, slice): return [self[k] for k in range(*i.indices(len(self)))]; иначе проверьте границы и верните self.n - i (для отрицательных сначала i += len(self)).', '{"driver": "c = Countdown(4)\nprint(len(c), c[0], c[-1])\nprint(list(c), list(reversed(c)))\nprint(3 in c, 9 in c, c.index(2), c.count(1))\nprint(c[1:3] if isinstance(c[1:3], (list, tuple, range)) else \"срез\")\n", "expected": ["4 4 1", "[4, 3, 2, 1] [1, 2, 3, 4]", "True False 2 1", "[3, 2]"]}');
+', '__getitem__(self, i): if isinstance(i, slice): return [self[k] for k in range(*i.indices(len(self)))]; иначе проверьте границы и верните self.n - i (для отрицательных сначала i += len(self)).', '{"driver": "c = Countdown(4)\nprint(len(c), c[0], c[-1])\nprint(list(c), list(reversed(c)))\nprint(3 in c, 9 in c, c.index(2), c.count(1))\nprint(c[1:3] if isinstance(c[1:3], (list, tuple, range)) else \"slice\")\n", "expected": ["4 4 1", "[4, 3, 2, 1] [1, 2, 3, 4]", "True False 2 1", "[3, 2]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-storage-copy', 7, 'stdout', 'Хранилища и подмена', 'Напишите абстрактный Storage (методы read(key) и write(key, value)), реализацию MemoryStorage на словаре (read несуществующего ключа даёт KeyError) и функцию copy_all(src, dst, keys), копирующую значения по ключам из src в dst. Функция должна работать с любыми Storage.', 'from abc import ABC, abstractmethod
-', 'copy_all: for key in keys: dst.write(key, src.read(key)).', '{"driver": "class Upper(Storage):\n    def __init__(self):\n        self.data = {}\n\n    def read(self, key):\n        return self.data[key]\n\n    def write(self, key, value):\n        self.data[key] = value.upper()\n\n\na = MemoryStorage()\na.write(\"x\", \"привет\")\na.write(\"y\", \"мир\")\nb = Upper()\ncopy_all(a, b, [\"x\", \"y\"])\nprint(b.read(\"x\"), b.read(\"y\"))\ntry:\n    a.read(\"z\")\nexcept KeyError:\n    print(\"KeyError\")\ntry:\n    Storage()\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["ПРИВЕТ МИР", "KeyError", "TypeError"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-describe', 8, 'stdout', 'Вид значения по абстрактным классам', 'Напишите describe(x): «строка» для str; «отображение» для Mapping; «последовательность» для Sequence; «итерируемое» для прочих Iterable; «число» для numbers.Number; иначе «прочее». Порядок проверок важен: строка — тоже последовательность.', 'import numbers
+', 'copy_all: for key in keys: dst.write(key, src.read(key)).', '{"driver": "class Upper(Storage):\n    def __init__(self):\n        self.data = {}\n\n    def read(self, key):\n        return self.data[key]\n\n    def write(self, key, value):\n        self.data[key] = value.upper()\n\n\na = MemoryStorage()\na.write(\"x\", \"hello\")\na.write(\"y\", \"world\")\nb = Upper()\ncopy_all(a, b, [\"x\", \"y\"])\nprint(b.read(\"x\"), b.read(\"y\"))\ntry:\n    a.read(\"z\")\nexcept KeyError:\n    print(\"KeyError\")\ntry:\n    Storage()\nexcept TypeError:\n    print(\"TypeError\")\n", "expected": ["HELLO WORLD", "KeyError", "TypeError"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 40, 'abc-describe', 8, 'stdout', 'Вид значения по абстрактным классам', 'Напишите describe(x): «string» для str; «mapping» для Mapping; «sequence» для Sequence; «iterable» для прочих Iterable; «number» для numbers.Number; иначе «other». Порядок проверок важен: строка — тоже последовательность.', 'import numbers
 from collections.abc import Iterable, Mapping, Sequence
 
 
 def describe(x):
     pass
-', 'Проверяйте по очереди: str, Mapping, Sequence, Iterable, numbers.Number.', '{"driver": "for v in [\"abc\", {}, [1], (1, 2), {1}, range(3), 5, 3.5, True, None, (i for i in range(2))]:\n    print(describe(v))\n", "expected": ["строка", "отображение", "последовательность", "последовательность", "итерируемое", "последовательность", "число", "число", "число", "прочее", "итерируемое"]}');
+', 'Проверяйте по очереди: str, Mapping, Sequence, Iterable, numbers.Number.', '{"driver": "for v in [\"abc\", {}, [1], (1, 2), {1}, range(3), 5, 3.5, True, None, (i for i in range(2))]:\n    print(describe(v))\n", "expected": ["string", "mapping", "sequence", "sequence", "iterable", "sequence", "number", "number", "number", "other", "iterable"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-closeable', 0, 'stdout', 'Протокол Closeable', 'Напишите Protocol Closeable с методом close() (с декоратором runtime_checkable) и функцию close_all(items): она закрывает всё, что подходит под протокол, и возвращает, сколько объектов закрыто. Остальные пропускайте.', 'from typing import Protocol, runtime_checkable
-', '@runtime_checkable class Closeable(Protocol): def close(self) -> None: ...; в close_all: if isinstance(item, Closeable): item.close().', '{"driver": "import io\n\n\nclass Res:\n    def close(self):\n        print(\"Res закрыт\")\n\n\nclass Plain:\n    pass\n\n\nprint(close_all([Res(), Plain(), io.StringIO(), 5]))\nprint(isinstance(Res(), Closeable), isinstance(Plain(), Closeable))\n", "expected": ["Res закрыт", "2", "True False"]}');
+', '@runtime_checkable class Closeable(Protocol): def close(self) -> None: ...; в close_all: if isinstance(item, Closeable): item.close().', '{"driver": "import io\n\n\nclass Res:\n    def close(self):\n        print(\"Res closed\")\n\n\nclass Plain:\n    pass\n\n\nprint(close_all([Res(), Plain(), io.StringIO(), 5]))\nprint(isinstance(Res(), Closeable), isinstance(Plain(), Closeable))\n", "expected": ["Res closed", "2", "True False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-data-protocol', 1, 'stdout', 'Протокол с атрибутом', 'Напишите runtime_checkable-протокол HasName с атрибутом name: str и функцию names(items): список значений name у объектов, которые подходят под протокол (остальные пропускаются).', 'from typing import Protocol, runtime_checkable
-', 'class HasName(Protocol): name: str — и @runtime_checkable; в names: [x.name for x in items if isinstance(x, HasName)].', '{"driver": "class User:\n    def __init__(self, name):\n        self.name = name\n\n\nclass Pet:\n    name = \"Барсик\"\n\n\nclass Thing:\n    pass\n\n\nprint(names([User(\"Аня\"), Thing(), Pet(), 5]))\nprint(isinstance(User(\"x\"), HasName), isinstance(Thing(), HasName))\n", "expected": ["[''Аня'', ''Барсик'']", "True False"]}');
+', 'class HasName(Protocol): name: str — и @runtime_checkable; в names: [x.name for x in items if isinstance(x, HasName)].', '{"driver": "class User:\n    def __init__(self, name):\n        self.name = name\n\n\nclass Pet:\n    name = \"Smokey\"\n\n\nclass Thing:\n    pass\n\n\nprint(names([User(\"Ann\"), Thing(), Pet(), 5]))\nprint(isinstance(User(\"x\"), HasName), isinstance(Thing(), HasName))\n", "expected": ["[''Ann'', ''Smokey'']", "True False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-generic-stack', 2, 'stdout', 'Обобщённый стек', 'Напишите обобщённый Stack(Generic[T]) с методами push(x), pop() (на пустом стеке — IndexError), peek() и __len__. Запись Stack[int]() тоже должна создавать рабочий стек.', 'from typing import Generic, TypeVar
 
 T = TypeVar("T")
@@ -1576,12 +1576,12 @@ from typing import overload
 ', '@overload def first(x: str) -> str: ...; @overload def first(x: list[int]) -> int: ...; затем def first(x): return x[0].', '{"driver": "print(first(\"abc\"), first([5, 6]))\nprint(len(typing.get_overloads(first)))\n", "expected": ["a 5", "2"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-self-builder', 6, 'stdout', 'Цепочки вызовов с Self', 'Напишите класс Query с методами where(cond) и limit(n): оба сохраняют настройки в экземпляре, возвращают self и аннотированы результатом typing.Self (чтобы наследники сохраняли свой тип). Метод build() возвращает строку вида «WHERE a AND b LIMIT 3».', 'from typing import Self
 ', 'build: части = []; если conds — "WHERE " + " AND ".join(conds); если limit не None — "LIMIT n"; соединить пробелом.', '{"driver": "class SqlQuery(Query):\n    pass\n\n\nq = SqlQuery().where(\"a\").where(\"b\").limit(3)\nprint(type(q).__name__, q.build())\nprint(Query().build() == \"\")\nprint(Query.where.__annotations__[\"return\"] is Self, Query.limit.__annotations__[\"return\"] is Self)\n", "expected": ["SqlQuery WHERE a AND b LIMIT 3", "True", "True True"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-typeddict-validate', 7, 'stdout', 'Проверка словаря по TypedDict', 'Напишите validate(data, schema): по подсказкам TypedDict (typing.get_type_hints(schema)) верните отсортированный список ошибок: «нет ключа K», «лишний ключ K», «K: ожидался T» (имя типа), если значение не того типа.', 'import typing
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-typeddict-validate', 7, 'stdout', 'Проверка словаря по TypedDict', 'Напишите validate(data, schema): по подсказкам TypedDict (typing.get_type_hints(schema)) верните отсортированный список ошибок: «missing key K», «extra key K», «K: expected T» (имя типа), если значение не того типа.', 'import typing
 
 
 def validate(data, schema):
     pass
-', 'hints = typing.get_type_hints(schema); пройдите по ключам hints и по ключам data.', '{"driver": "class User(typing.TypedDict):\n    name: str\n    age: int\n\n\nprint(validate({\"name\": \"Ann\", \"age\": 3}, User))\nprint(validate({\"name\": 5, \"extra\": 1}, User))\nprint(validate({}, User))\n", "expected": ["[]", "[''name: ожидался str'', ''лишний ключ extra'', ''нет ключа age'']", "[''нет ключа age'', ''нет ключа name'']"]}');
+', 'hints = typing.get_type_hints(schema); пройдите по ключам hints и по ключам data.', '{"driver": "class User(typing.TypedDict):\n    name: str\n    age: int\n\n\nprint(validate({\"name\": \"Ann\", \"age\": 3}, User))\nprint(validate({\"name\": 5, \"extra\": 1}, User))\nprint(validate({}, User))\n", "expected": ["[]", "[''extra key extra'', ''missing key age'', ''name: expected str'']", "[''missing key age'', ''missing key name'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 41, 'tp-describe-type', 8, 'stdout', 'Тип словами', 'Напишите describe_type(tp): строка вроде «list[int]», «dict[str, list[int]]», «int | None» по аннотации (используйте typing.get_origin и get_args; для обычных классов — имя класса, для NoneType — «None», для объединений — через « | »).', 'import types
 import typing
 
@@ -1599,10 +1599,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-can-combine', 2, 'stdout', 'Можно ли объединить базы', 'Напишите can_combine(*bases): True, если можно создать класс с этими базами (в таком порядке), и False, если Питон не может построить согласованный MRO (TypeError).', 'def can_combine(*bases):
     pass
 ', 'try: type("X", bases, {}) except TypeError: return False; return True.', '{"driver": "class A: pass\nclass B(A): pass\nclass C(A): pass\n\n\nprint(can_combine(B, C), can_combine(B, A), can_combine(A, B))\nprint(can_combine(C, B), can_combine())\n", "expected": ["True True False", "True True"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-coop-init', 3, 'stdout', 'Кооперативный __init__', 'Напишите NameMixin и AgeMixin: каждый принимает свой именованный параметр (name или age), сохраняет его и передаёт остальные параметры дальше через super().__init__(**kwargs). Базовый Base уже «гасит» оставшиеся параметры в поле extra. Порядок баз в Person не должен влиять на результат.', 'class Base:
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-coop-init', 3, 'stdout', 'Кооперативный __init__', 'Напишите NameMixin и AgeMixin: каждый принимает свой именованный параметр (name или age), сохраняет его и передаёт остальные параметры дальше через super().__init__(**kwargs). Базовый Base уже «swallows» оставшиеся параметры в поле extra. Порядок баз в Person не должен влиять на результат.', 'class Base:
     def __init__(self, **kwargs):
         self.extra = kwargs
-', 'def __init__(self, *, name, **kwargs): super().__init__(**kwargs); self.name = name.', '{"driver": "class Person(NameMixin, AgeMixin, Base):\n    pass\n\n\nclass Other(AgeMixin, NameMixin, Base):\n    pass\n\n\nfor cls in (Person, Other):\n    p = cls(name=\"Аня\", age=3, city=\"Омск\")\n    print(p.name, p.age, p.extra)\n", "expected": ["Аня 3 {''city'': ''Омск''}", "Аня 3 {''city'': ''Омск''}"]}');
+', 'def __init__(self, *, name, **kwargs): super().__init__(**kwargs); self.name = name.', '{"driver": "class Person(NameMixin, AgeMixin, Base):\n    pass\n\n\nclass Other(AgeMixin, NameMixin, Base):\n    pass\n\n\nfor cls in (Person, Other):\n    p = cls(name=\"Ann\", age=3, city=\"Omsk\")\n    print(p.name, p.age, p.extra)\n", "expected": ["Ann 3 {''city'': ''Omsk''}", "Ann 3 {''city'': ''Omsk''}"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-repr-mixin', 4, 'stdout', 'Миксин ReprMixin', 'Напишите миксин ReprMixin: __repr__ выдаёт имя класса и пары «поле=значение» атрибутов экземпляра в порядке создания (Point(x=1, y=2)). Он должен работать в сочетании с любым классом без собственного __init__.', 'class ReprMixin:
     pass
 ', '", ".join(f"{k}={v!r}" for k, v in vars(self).items()).', '{"driver": "class Point(ReprMixin):\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n\n\nclass Base:\n    def __init__(self):\n        self.id = 7\n\n\nclass Item(ReprMixin, Base):\n    pass\n\n\nprint(Point(1, 2))\nprint(Item())\nprint([Point(0, 0)])\n", "expected": ["Point(x=1, y=2)", "Item(id=7)", "[Point(x=0, y=0)]"]}');
@@ -1611,14 +1611,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 class JsonMixin:
     pass
-', 'from_json: obj = cls.__new__(cls); obj.__dict__.update(json.loads(text)); return obj.', '{"driver": "class User(JsonMixin):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n\nu = User(\"Аня\", 30)\ntext = u.to_json()\nprint(text)\nv = User.from_json(text)\nprint(type(v).__name__, v.name, v.age)\n", "expected": ["{\"age\": 30, \"name\": \"Аня\"}", "User Аня 30"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-logging-mixin', 6, 'stdout', 'Миксин-обёртка через super', 'Класс Model уже умеет save() (возвращает «сохранено»). Напишите LoggingMixin: его save() записывает в список LOG строку «перед save», вызывает super().save(), записывает «после save» и возвращает результат. Миксин нужно ставить слева от Model.', 'LOG = []
+', 'from_json: obj = cls.__new__(cls); obj.__dict__.update(json.loads(text)); return obj.', '{"driver": "class User(JsonMixin):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n\nu = User(\"Ann\", 30)\ntext = u.to_json()\nprint(text)\nv = User.from_json(text)\nprint(type(v).__name__, v.name, v.age)\n", "expected": ["{\"age\": 30, \"name\": \"Ann\"}", "User Ann 30"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-logging-mixin', 6, 'stdout', 'Миксин-обёртка через super', 'Класс Model уже умеет save() (возвращает «saved»). Напишите LoggingMixin: его save() записывает в список LOG строку «before save», вызывает super().save(), записывает «after save» и возвращает результат. Миксин нужно ставить слева от Model.', 'LOG = []
 
 
 class Model:
     def save(self):
-        return "сохранено"
-', 'class LoggingMixin: def save(self): LOG.append(...); result = super().save(); LOG.append(...); return result.', '{"driver": "class Logged(LoggingMixin, Model):\n    pass\n\n\nclass WrongOrder(Model, LoggingMixin):\n    pass\n\n\nprint(Logged().save(), LOG)\nLOG.clear()\nprint(WrongOrder().save(), LOG)\n", "expected": ["сохранено [''перед save'', ''после save'']", "сохранено []"]}');
+        return "saved"
+', 'class LoggingMixin: def save(self): LOG.append(...); result = super().save(); LOG.append(...); return result.', '{"driver": "class Logged(LoggingMixin, Model):\n    pass\n\n\nclass WrongOrder(Model, LoggingMixin):\n    pass\n\n\nprint(Logged().save(), LOG)\nLOG.clear()\nprint(WrongOrder().save(), LOG)\n", "expected": ["saved [''before save'', ''after save'']", "saved []"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-where-defined', 7, 'stdout', 'Где определён метод', 'Напишите where_defined(cls, name): имя первого класса в MRO, у которого имя name есть в собственном __dict__, или None, если нигде нет. А также chain(cls, name): список имён всех классов в MRO, определяющих это имя (в порядке MRO).', 'def where_defined(cls, name):
     pass
 
@@ -1626,10 +1626,10 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 def chain(cls, name):
     pass
 ', 'for c in cls.__mro__: if name in vars(c): ...', '{"driver": "class A:\n    def f(self): ...\n    def g(self): ...\n\n\nclass B(A):\n    def f(self): ...\n\n\nclass C(A):\n    def f(self): ...\n    def h(self): ...\n\n\nclass D(B, C):\n    pass\n\n\nprint(where_defined(D, \"f\"), where_defined(D, \"g\"), where_defined(D, \"h\"), where_defined(D, \"zzz\"))\nprint(chain(D, \"f\"), chain(D, \"h\"))\n", "expected": ["B A C None", "[''B'', ''C'', ''A''] [''C'']"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-validators', 8, 'stdout', 'Проверки на миксинах', 'Базовый Validator.validate(value) возвращает пустой список. Напишите NotEmpty (ошибка «пусто» для пустой строки) и NoDigits (ошибка «цифры» если в строке есть цифра): каждый вызывает super().validate(value) и добавляет свою ошибку. Классы собираются в любом сочетании.', 'class Validator:
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 42, 'mro-validators', 8, 'stdout', 'Проверки на миксинах', 'Базовый Validator.validate(value) возвращает пустой список. Напишите NotEmpty (ошибка «empty» для пустой строки) и NoDigits (ошибка «digits» если в строке есть цифра): каждый вызывает super().validate(value) и добавляет свою ошибку. Классы собираются в любом сочетании.', 'class Validator:
     def validate(self, value):
         return []
-', 'errors = super().validate(value); if не value: errors = errors + ["пусто"]; return errors.', '{"driver": "class Name(NotEmpty, NoDigits, Validator):\n    pass\n\n\nclass OnlyDigits(NoDigits, Validator):\n    pass\n\n\nprint(Name().validate(\"Аня\"))\nprint(Name().validate(\"\"))\nprint(Name().validate(\"a1\"))\nprint(OnlyDigits().validate(\"x9\"), OnlyDigits().validate(\"\"))\n", "expected": ["[]", "[''пусто'']", "[''цифры'']", "[''цифры''] []"]}');
+', 'errors = super().validate(value); if не value: errors = errors + ["empty"]; return errors.', '{"driver": "class Name(NotEmpty, NoDigits, Validator):\n    pass\n\n\nclass OnlyDigits(NoDigits, Validator):\n    pass\n\n\nprint(Name().validate(\"Ann\"))\nprint(Name().validate(\"\"))\nprint(Name().validate(\"a1\"))\nprint(OnlyDigits().validate(\"x9\"), OnlyDigits().validate(\"\"))\n", "expected": ["[]", "[''empty'']", "[''digits'']", "[''digits''] []"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 43, 'parallel-map-threads', 0, 'stdout', 'Параллельный map на потоках', 'Напишите функцию parallel_map(func, items, workers): применяет func к каждому элементу в пуле из workers потоков и возвращает список результатов В ИСХОДНОМ порядке. Используйте ThreadPoolExecutor.', 'from concurrent.futures import ThreadPoolExecutor
 
 
@@ -1654,7 +1654,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def first_done(funcs):
     pass
-', 'with ThreadPoolExecutor(len(funcs)) as pool: futures = [pool.submit(f) for f in funcs]; for fut in as_completed(futures): return fut.result().', '{"driver": "import time\ndef make(label, delay):\n    def f():\n        time.sleep(delay)\n        return label\n    return f\nprint(first_done([make(''медленная'', 0.3), make(''быстрая'', 0.05), make(''средняя'', 0.15)]))\nprint(first_done([make(''одна'', 0.01)]))\n", "expected": ["быстрая", "одна"]}');
+', 'with ThreadPoolExecutor(len(funcs)) as pool: futures = [pool.submit(f) for f in funcs]; for fut in as_completed(futures): return fut.result().', '{"driver": "import time\ndef make(label, delay):\n    def f():\n        time.sleep(delay)\n        return label\n    return f\nprint(first_done([make(''lazy'', 0.3), make(''brisk'', 0.05), make(''middle'', 0.15)]))\nprint(first_done([make(''single'', 0.01)]))\n", "expected": ["brisk", "single"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 43, 'stoppable-ticker', 4, 'stdout', 'Останавливаемый фоновый поток', 'Опишите класс Ticker: start() запускает фоновый поток, который каждые 0.02 секунды увеличивает атрибут ticks на 1; stop() останавливает его (через threading.Event) и дожидается завершения. После stop() тики больше не растут.', 'import threading
 
 
@@ -1673,31 +1673,31 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def run_all(funcs):
     pass
-', 'futures = [pool.submit(f) for f in funcs]; затем try: (''ok'', fut.result()) / except Exception as e: (''error'', str(e)).', '{"driver": "def good():\n    return 42\ndef bad():\n    raise ValueError(''сбой'')\ndef zero():\n    return 1 / 0\nprint(run_all([good, bad, zero]))\nprint(run_all([]))\n", "expected": ["[(''ok'', 42), (''error'', ''сбой''), (''error'', ''division by zero'')]", "[]"]}');
+', 'futures = [pool.submit(f) for f in funcs]; затем try: (''ok'', fut.result()) / except Exception as e: (''error'', str(e)).', '{"driver": "def good():\n    return 42\ndef bad():\n    raise ValueError(''failure'')\ndef zero():\n    return 1 / 0\nprint(run_all([good, bad, zero]))\nprint(run_all([]))\n", "expected": ["[(''ok'', 42), (''error'', ''failure''), (''error'', ''division by zero'')]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-add-later', 0, 'stdout', 'Первая корутина', 'Напишите корутину add_later(a, b, delay=0.01): ждёт delay секунд (asyncio.sleep) и возвращает a + b.', 'import asyncio
 
 
 async def add_later(a, b, delay=0.01):
     pass
-', 'await asyncio.sleep(delay); return a + b.', '{"driver": "import asyncio\nprint(asyncio.run(add_later(2, 3)))\nprint(asyncio.run(add_later(''а'', ''б'', delay=0)))\nprint(type(add_later(1, 1)).__name__)\nasync def main():\n    return await add_later(10, 5)\nprint(asyncio.run(main()))\n", "expected": ["5", "аб", "coroutine", "15"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-fetch-all', 1, 'stdout', 'Все сразу', 'Напишите корутину fetch_all(delays): для каждой задержки из списка запускает корутину, которая ждёт столько секунд и возвращает строку «готово <i>» (i — номер с нуля). Все ожидания должны идти одновременно (gather); результаты — в порядке списка.', 'import asyncio
+', 'await asyncio.sleep(delay); return a + b.', '{"driver": "import asyncio\nprint(asyncio.run(add_later(2, 3)))\nprint(asyncio.run(add_later(''a'', ''b'', delay=0)))\nprint(type(add_later(1, 1)).__name__)\nasync def main():\n    return await add_later(10, 5)\nprint(asyncio.run(main()))\n", "expected": ["5", "ab", "coroutine", "15"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-fetch-all', 1, 'stdout', 'Все сразу', 'Напишите корутину fetch_all(delays): для каждой задержки из списка запускает корутину, которая ждёт столько секунд и возвращает строку «done <i>» (i — номер с нуля). Все ожидания должны идти одновременно (gather); результаты — в порядке списка.', 'import asyncio
 
 
 async def fetch_all(delays):
     pass
-', 'Опишите вложенную async def one(i, d): await asyncio.sleep(d); return f''готово {i}'' и верните await asyncio.gather(*(one(i, d) for i, d in enumerate(delays))).', '{"driver": "import asyncio, time\nt0 = time.perf_counter()\nres = asyncio.run(fetch_all([0.3, 0.1, 0.2]))\nel = time.perf_counter() - t0\nprint(res)\nprint(el < 0.5)\nprint(asyncio.run(fetch_all([])))\n", "expected": ["[''готово 0'', ''готово 1'', ''готово 2'']", "True", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-with-timeout', 2, 'stdout', 'Ограничение по времени', 'Напишите корутину with_timeout(coro, seconds): ждёт результат корутины coro не дольше seconds секунд; если не уложилась — возвращает строку «таймаут».', 'import asyncio
+', 'Опишите вложенную async def one(i, d): await asyncio.sleep(d); return f''done {i}'' и верните await asyncio.gather(*(one(i, d) for i, d in enumerate(delays))).', '{"driver": "import asyncio, time\nt0 = time.perf_counter()\nres = asyncio.run(fetch_all([0.3, 0.1, 0.2]))\nel = time.perf_counter() - t0\nprint(res)\nprint(el < 0.5)\nprint(asyncio.run(fetch_all([])))\n", "expected": ["[''done 0'', ''done 1'', ''done 2'']", "True", "[]"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-with-timeout', 2, 'stdout', 'Ограничение по времени', 'Напишите корутину with_timeout(coro, seconds): ждёт результат корутины coro не дольше seconds секунд; если не уложилась — возвращает строку «timeout».', 'import asyncio
 
 
 async def with_timeout(coro, seconds):
     pass
-', 'try: return await asyncio.wait_for(coro, seconds) / except TimeoutError: return ''таймаут''.', '{"driver": "import asyncio\nasync def job(delay, value):\n    await asyncio.sleep(delay)\n    return value\nprint(asyncio.run(with_timeout(job(0.05, ''успел''), 1)))\nprint(asyncio.run(with_timeout(job(5, ''не успел''), 0.1)))\n", "expected": ["успел", "таймаут"]}');
+', 'try: return await asyncio.wait_for(coro, seconds) / except TimeoutError: return ''timeout''.', '{"driver": "import asyncio\nasync def job(delay, value):\n    await asyncio.sleep(delay)\n    return value\nprint(asyncio.run(with_timeout(job(0.05, ''in time''), 1)))\nprint(asyncio.run(with_timeout(job(5, ''too late''), 0.1)))\n", "expected": ["in time", "timeout"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-safe-all', 3, 'stdout', 'Результаты и ошибки', 'Напишите корутину run_safely(coros): запускает корутины конкурентно и возвращает список в исходном порядке: (''ok'', значение) для успешных и (''error'', текст) для упавших. Используйте gather с return_exceptions=True.', 'import asyncio
 
 
 async def run_safely(coros):
     pass
-', 'results = await asyncio.gather(*coros, return_exceptions=True); исключения — экземпляры BaseException.', '{"driver": "import asyncio\nasync def good(x):\n    await asyncio.sleep(0.01)\n    return x\nasync def bad():\n    raise ValueError(''сбой'')\nprint(asyncio.run(run_safely([good(1), bad(), good(3)])))\nprint(asyncio.run(run_safely([])))\n", "expected": ["[(''ok'', 1), (''error'', ''сбой''), (''ok'', 3)]", "[]"]}');
+', 'results = await asyncio.gather(*coros, return_exceptions=True); исключения — экземпляры BaseException.', '{"driver": "import asyncio\nasync def good(x):\n    await asyncio.sleep(0.01)\n    return x\nasync def bad():\n    raise ValueError(''failure'')\nprint(asyncio.run(run_safely([good(1), bad(), good(3)])))\nprint(asyncio.run(run_safely([])))\n", "expected": ["[(''ok'', 1), (''error'', ''failure''), (''ok'', 3)]", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 44, 'async-bounded-gather', 4, 'stdout', 'Не больше N сразу', 'Напишите корутину bounded_gather(funcs, limit): funcs — список функций без аргументов, каждая возвращает корутину. Запустите их конкурентно, но так, чтобы одновременно выполнялось не больше limit (asyncio.Semaphore). Верните результаты в исходном порядке.', 'import asyncio
 
 
@@ -1721,38 +1721,38 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 async def retry(make_coro, attempts, delay=0.01):
     pass
-', 'for i in range(attempts): try: return await make_coro() / except Exception as e: last = e; await asyncio.sleep(delay); после цикла raise last.', '{"driver": "import asyncio\ncalls = {''n'': 0}\nasync def flaky():\n    calls[''n''] += 1\n    if calls[''n''] < 3:\n        raise ConnectionError(''нет связи'')\n    return ''успех''\nprint(asyncio.run(retry(flaky, 5)), calls[''n''])\nasync def always_bad():\n    raise ValueError(''вечный сбой'')\ntry:\n    asyncio.run(retry(always_bad, 3))\nexcept ValueError as e:\n    print(''сдались:'', e)\n", "expected": ["успех 3", "сдались: вечный сбой"]}');
+', 'for i in range(attempts): try: return await make_coro() / except Exception as e: last = e; await asyncio.sleep(delay); после цикла raise last.', '{"driver": "import asyncio\ncalls = {''n'': 0}\nasync def flaky():\n    calls[''n''] += 1\n    if calls[''n''] < 3:\n        raise ConnectionError(''no connection'')\n    return ''success''\nprint(asyncio.run(retry(flaky, 5)), calls[''n''])\nasync def always_bad():\n    raise ValueError(''eternal failure'')\ntry:\n    asyncio.run(retry(always_bad, 3))\nexcept ValueError as e:\n    print(''gave up:'', e)\n", "expected": ["success 3", "gave up: eternal failure"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 45, 'tcp-roundtrip', 0, 'stdout', 'Свой TCP-сервер', 'Напишите корутину shout(text): поднимите asyncio-сервер на 127.0.0.1 (порт 0), который читает строку, отвечает ею же заглавными буквами; подключитесь клиентом, отправьте text + перевод строки и верните ответ сервера (без перевода строки).', 'import asyncio
 
 
 async def shout(text):
     pass
-', 'start_server(handle, ''127.0.0.1'', 0); порт — server.sockets[0].getsockname()[1]; не забудьте drain и закрытие writer.', '{"driver": "import asyncio\nprint(asyncio.run(shout(''привет'')))\nprint(asyncio.run(shout(''abc def'')))\n", "expected": ["ПРИВЕТ", "ABC DEF"]}');
+', 'start_server(handle, ''127.0.0.1'', 0); порт — server.sockets[0].getsockname()[1]; не забудьте drain и закрытие writer.', '{"driver": "import asyncio\nprint(asyncio.run(shout(''hello'')))\nprint(asyncio.run(shout(''abc def'')))\n", "expected": ["HELLO", "ABC DEF"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 45, 'async-run-commands', 1, 'stdout', 'Команды одновременно', 'Напишите корутину run_codes(codes): для каждой строки кода запускает дочерний интерпретатор (sys.executable, ''-c'', код) через asyncio.create_subprocess_exec, и возвращает список выводов (stdout без пробелов по краям) в исходном порядке. Все процессы должны идти одновременно.', 'import asyncio
 import sys
 
 
 async def run_codes(codes):
     pass
-', 'async def one(code): proc = await asyncio.create_subprocess_exec(sys.executable, ''-c'', code, stdout=asyncio.subprocess.PIPE); out, _ = await proc.communicate(); return out.decode().strip().', '{"driver": "import asyncio\nprint(asyncio.run(run_codes([''print(1 + 1)'', ''print(\"привет\")'', ''print(sum(range(5)))''])))\nprint(asyncio.run(run_codes([])))\n", "expected": ["[''2'', ''привет'', ''10'']", "[]"]}');
+', 'async def one(code): proc = await asyncio.create_subprocess_exec(sys.executable, ''-c'', code, stdout=asyncio.subprocess.PIPE); out, _ = await proc.communicate(); return out.decode().strip().', '{"driver": "import asyncio\nprint(asyncio.run(run_codes([''print(1 + 1)'', ''print(\"hello\")'', ''print(sum(range(5)))''])))\nprint(asyncio.run(run_codes([])))\n", "expected": ["[''2'', ''hello'', ''10'']", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 45, 'async-first-success', 2, 'stdout', 'Кто первый', 'Напишите корутину first_of(coros): запускает корутины конкурентно, возвращает результат ПЕРВОЙ завершившейся и отменяет остальные (asyncio.wait, FIRST_COMPLETED).', 'import asyncio
 
 
 async def first_of(coros):
     pass
-', 'tasks = [asyncio.create_task(c) for c in coros]; done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED); отмените pending и дождитесь их (gather с return_exceptions).', '{"driver": "import asyncio\nfinished = []\nasync def src(name, delay):\n    try:\n        await asyncio.sleep(delay)\n        finished.append(name)\n        return name\n    except asyncio.CancelledError:\n        finished.append(''отменён '' + name)\n        raise\nprint(asyncio.run(first_of([src(''медленный'', 0.4), src(''быстрый'', 0.05), src(''средний'', 0.2)])))\nprint(sorted(finished))\n", "expected": ["быстрый", "[''быстрый'', ''отменён медленный'', ''отменён средний'']"]}');
+', 'tasks = [asyncio.create_task(c) for c in coros]; done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED); отмените pending и дождитесь их (gather с return_exceptions).', '{"driver": "import asyncio\nfinished = []\nasync def src(name, delay):\n    try:\n        await asyncio.sleep(delay)\n        finished.append(name)\n        return name\n    except asyncio.CancelledError:\n        finished.append(''cancelled '' + name)\n        raise\nprint(asyncio.run(first_of([src(''lazy'', 0.4), src(''brisk'', 0.05), src(''middle'', 0.2)])))\nprint(sorted(finished))\n", "expected": ["brisk", "[''brisk'', ''cancelled lazy'', ''cancelled middle'']"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 45, 'backoff-delays', 3, 'stdout', 'Растущая задержка', 'Напишите корутину retry_backoff(func, tries, base): вызывает корутинную функцию func(); при исключении ConnectionError ждёт base * 2 ** i секунд (i — номер неудачной попытки с нуля) через asyncio.sleep и пробует снова; на последней неудаче поднимает исключение.', 'import asyncio
 
 
 async def retry_backoff(func, tries, base):
     pass
-', 'for i in range(tries): try: return await func() / except ConnectionError: if i == tries - 1: raise; await asyncio.sleep(base * 2 ** i).', '{"driver": "import asyncio\ndelays = []\n_real = asyncio.sleep\nasync def fake_sleep(d, *a, **k):\n    delays.append(d)\nasyncio.sleep = fake_sleep\ncalls = {''n'': 0}\nasync def flaky():\n    calls[''n''] += 1\n    if calls[''n''] < 4:\n        raise ConnectionError(''нет'')\n    return ''ок''\nprint(asyncio.run(retry_backoff(flaky, 6, 0.5)), calls[''n''], delays)\ndelays.clear()\nasync def bad():\n    raise ConnectionError(''вечно'')\ntry:\n    asyncio.run(retry_backoff(bad, 3, 1))\nexcept ConnectionError as e:\n    print(''сдались'', e, delays)\nasyncio.sleep = _real\n", "expected": ["ок 4 [0.5, 1.0, 2.0]", "сдались вечно [1, 2]"]}');
+', 'for i in range(tries): try: return await func() / except ConnectionError: if i == tries - 1: raise; await asyncio.sleep(base * 2 ** i).', '{"driver": "import asyncio\ndelays = []\n_real = asyncio.sleep\nasync def fake_sleep(d, *a, **k):\n    delays.append(d)\nasyncio.sleep = fake_sleep\ncalls = {''n'': 0}\nasync def flaky():\n    calls[''n''] += 1\n    if calls[''n''] < 4:\n        raise ConnectionError(''no'')\n    return ''ok''\nprint(asyncio.run(retry_backoff(flaky, 6, 0.5)), calls[''n''], delays)\ndelays.clear()\nasync def bad():\n    raise ConnectionError(''forever'')\ntry:\n    asyncio.run(retry_backoff(bad, 3, 1))\nexcept ConnectionError as e:\n    print(''gave up'', e, delays)\nasyncio.sleep = _real\n", "expected": ["ok 4 [0.5, 1.0, 2.0]", "gave up forever [1, 2]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 45, 'graceful-workers', 4, 'stdout', 'Аккуратная остановка', 'Напишите корутину run_workers(names, duration): запустите по корутине-воркеру на каждое имя; воркер в цикле делает await asyncio.sleep(0.01), пока не поставлено событие остановки, а при завершении (в finally) добавляет своё имя в список. Через duration секунд поставьте событие и верните отсортированный список имён остановившихся воркеров.', 'import asyncio
 
 
 async def run_workers(names, duration):
     pass
-', 'stop = asyncio.Event(); async with asyncio.TaskGroup() as tg: создать задачи; await asyncio.sleep(duration); stop.set().', '{"driver": "import asyncio\nprint(asyncio.run(run_workers([''в'', ''а'', ''б''], 0.1)))\nprint(asyncio.run(run_workers([], 0.05)))\n", "expected": ["[''а'', ''б'', ''в'']", "[]"]}');
+', 'stop = asyncio.Event(); async with asyncio.TaskGroup() as tg: создать задачи; await asyncio.sleep(duration); stop.set().', '{"driver": "import asyncio\nprint(asyncio.run(run_workers([''c'', ''a'', ''b''], 0.1)))\nprint(asyncio.run(run_workers([], 0.05)))\n", "expected": ["[''a'', ''b'', ''c'']", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 45, 'ctxvar-request-id', 5, 'stdout', 'Номер запроса в контексте', 'Опишите переменную request_id = contextvars.ContextVar(…, default=''-'') и корутину handle(rid): сохраняет rid в request_id, ждёт 0.01 с и возвращает строку «<rid>:<значение request_id>». Параллельные обработчики не должны мешать друг другу.', 'import asyncio
 import contextvars
 
@@ -1768,14 +1768,14 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 class TestTotal(unittest.IsolatedAsyncioTestCase):
     async def test_example(self):
         pass  # await total([...])
-', 'assertEqual(await total([1, 2, 3]), 6); пустой список → 0; отрицательные числа: await total([5, -3]) == 2; ещё один элемент в начале.', '{"driver": "import io\nimport asyncio\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestTotal))\n    return r.wasSuccessful() and r.testsRun > 0\nasync def good(p):\n    await asyncio.sleep(0)\n    return sum(p)\nasync def bad1(p):\n    return sum(p[1:])\nasync def bad2(p):\n    return sum(p) if p else None\nasync def bad3(p):\n    return sum(abs(x) for x in p)\nfor name, f in [(''верная'', good), (''ошибка 1'', bad1), (''ошибка 2'', bad2), (''ошибка 3'', bad3)]:\n    total = f\n    print(name, ''тесты прошли'' if run() else ''тесты упали'')\n", "expected": ["верная тесты прошли", "ошибка 1 тесты упали", "ошибка 2 тесты упали", "ошибка 3 тесты упали"]}');
+', 'assertEqual(await total([1, 2, 3]), 6); пустой список → 0; отрицательные числа: await total([5, -3]) == 2; ещё один элемент в начале.', '{"driver": "import io\nimport asyncio\ndef run():\n    r = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestTotal))\n    return r.wasSuccessful() and r.testsRun > 0\nasync def good(p):\n    await asyncio.sleep(0)\n    return sum(p)\nasync def bad1(p):\n    return sum(p[1:])\nasync def bad2(p):\n    return sum(p) if p else None\nasync def bad3(p):\n    return sum(abs(x) for x in p)\nfor name, f in [(''correct'', good), (''error 1'', bad1), (''error 2'', bad2), (''error 3'', bad3)]:\n    total = f\n    print(name, ''tests passed'' if run() else ''tests failed'')\n", "expected": ["correct tests passed", "error 1 tests failed", "error 2 tests failed", "error 3 tests failed"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-countdown', 0, 'stdout', 'Асинхронный итератор-класс', 'Напишите класс AsyncCountdown(n): асинхронный итератор, который отдаёт n, n-1, …, 1 (перед каждым значением делает await asyncio.sleep(0)) и затем поднимает StopAsyncIteration. Используйте __aiter__ и __anext__.', 'import asyncio
 
 
 class AsyncCountdown:
     def __init__(self, n):
         self.n = n
-', '__aiter__ возвращает self; async def __anext__: если n <= 0 — raise StopAsyncIteration; иначе await asyncio.sleep(0), уменьшить n и вернуть значение.', '{"driver": "async def main():\n    out = []\n    async for x in AsyncCountdown(3):\n        out.append(x)\n    print(out)\n    it = aiter(AsyncCountdown(2))\n    print(await anext(it), await anext(it))\n    try:\n        await anext(it)\n    except StopAsyncIteration:\n        print(\"конец\")\n\n\nasyncio.run(main())\n", "expected": ["[3, 2, 1]", "2 1", "конец"]}');
+', '__aiter__ возвращает self; async def __anext__: если n <= 0 — raise StopAsyncIteration; иначе await asyncio.sleep(0), уменьшить n и вернуть значение.', '{"driver": "async def main():\n    out = []\n    async for x in AsyncCountdown(3):\n        out.append(x)\n    print(out)\n    it = aiter(AsyncCountdown(2))\n    print(await anext(it), await anext(it))\n    try:\n        await anext(it)\n    except StopAsyncIteration:\n        print(\"end\")\n\n\nasyncio.run(main())\n", "expected": ["[3, 2, 1]", "2 1", "end"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-agen-pages', 1, 'stdout', 'Постраничный генератор', 'Напишите асинхронный генератор items(fetch): fetch(page) — корутина, возвращающая список элементов страницы (страницы нумеруются с 1); пустой список означает конец. Генератор отдаёт элементы по одному и не запрашивает лишних страниц.', 'import asyncio
 
 
@@ -1788,22 +1788,22 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 async def evens_squared(source):
     pass
 ', 'return [x * x async for x in source if x % 2 == 0].', '{"driver": "async def numbers(n):\n    for i in range(n):\n        await asyncio.sleep(0)\n        yield i\n\n\nasync def main():\n    print(await evens_squared(numbers(7)))\n    print(await evens_squared(numbers(1)))\n\n\nasyncio.run(main())\n", "expected": ["[0, 4, 16, 36]", "[0]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-async-with', 3, 'stdout', 'Класс-менеджер async with', 'Напишите класс Resource: __aenter__ печатает «открыт» и возвращает self (после await asyncio.sleep(0)), __aexit__ печатает «закрыт» и подавляет только KeyError (возвращает True), остальные исключения пропускает.', 'import asyncio
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-async-with', 3, 'stdout', 'Класс-менеджер async with', 'Напишите класс Resource: __aenter__ печатает «open» и возвращает self (после await asyncio.sleep(0)), __aexit__ печатает «closed» и подавляет только KeyError (возвращает True), остальные исключения пропускает.', 'import asyncio
 
 
 class Resource:
     pass
-', 'async def __aexit__(self, et, ev, tb): print("закрыт"); return et is not None and issubclass(et, KeyError).', '{"driver": "async def main():\n    async with Resource() as r:\n        print(type(r).__name__)\n    async with Resource():\n        raise KeyError(\"x\")\n    print(\"KeyError подавлен\")\n    try:\n        async with Resource():\n            raise ValueError(\"y\")\n    except ValueError:\n        print(\"ValueError прошёл\")\n\n\nasyncio.run(main())\n", "expected": ["открыт", "Resource", "закрыт", "открыт", "закрыт", "KeyError подавлен", "открыт", "закрыт", "ValueError прошёл"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-asynccontextmanager', 4, 'stdout', '@asynccontextmanager', 'Напишите менеджер connection(name) через @asynccontextmanager: при входе печатает «открыто <name>» и отдаёт словарь {"name": name}, при выходе — в том числе при ошибке в блоке — печатает «закрыто <name>».', 'import asyncio
+', 'async def __aexit__(self, et, ev, tb): print("closed"); return et is not None and issubclass(et, KeyError).', '{"driver": "async def main():\n    async with Resource() as r:\n        print(type(r).__name__)\n    async with Resource():\n        raise KeyError(\"x\")\n    print(\"KeyError suppressed\")\n    try:\n        async with Resource():\n            raise ValueError(\"y\")\n    except ValueError:\n        print(\"ValueError passed\")\n\n\nasyncio.run(main())\n", "expected": ["open", "Resource", "closed", "open", "closed", "KeyError suppressed", "open", "closed", "ValueError passed"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-asynccontextmanager', 4, 'stdout', '@asynccontextmanager', 'Напишите менеджер connection(name) через @asynccontextmanager: при входе печатает «open <name>» и отдаёт словарь {"name": name}, при выходе — в том числе при ошибке в блоке — печатает «closed <name>».', 'import asyncio
 from contextlib import asynccontextmanager
-', 'print вход; try: yield {...}; finally: print выход.', '{"driver": "async def main():\n    async with connection(\"db\") as c:\n        print(c)\n    try:\n        async with connection(\"cache\"):\n            raise RuntimeError(\"сбой\")\n    except RuntimeError as e:\n        print(\"ошибка:\", e)\n\n\nasyncio.run(main())\n", "expected": ["открыто db", "{''name'': ''db''}", "закрыто db", "открыто cache", "закрыто cache", "ошибка: сбой"]}');
+', 'print вход; try: yield {...}; finally: print выход.', '{"driver": "async def main():\n    async with connection(\"db\") as c:\n        print(c)\n    try:\n        async with connection(\"cache\"):\n            raise RuntimeError(\"failure\")\n    except RuntimeError as e:\n        print(\"error:\", e)\n\n\nasyncio.run(main())\n", "expected": ["open db", "{''name'': ''db''}", "closed db", "open cache", "closed cache", "error: failure"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-take-aclosing', 5, 'stdout', 'Взять первые n и закрыть генератор', 'Напишите async-функцию take(agen, n): верните список первых n элементов асинхронного генератора и гарантируйте, что генератор закрыт к моменту возврата (его блок finally уже выполнен) — используйте contextlib.aclosing.', 'import asyncio
 from contextlib import aclosing
 
 
 async def take(agen, n):
     pass
-', 'async with aclosing(agen) as g: out = []; async for x in g: if len(out) == n: break; out.append(x). Длину out проверяйте до добавления элемента.', '{"driver": "async def numbers():\n    try:\n        i = 0\n        while True:\n            await asyncio.sleep(0)\n            yield i\n            i += 1\n    finally:\n        print(\"очистка\")\n\n\nasync def main():\n    first = await take(numbers(), 2)\n    print(first)\n    print(await take(numbers(), 0))\n\n\nasyncio.run(main())\n", "expected": ["очистка", "[0, 1]", "очистка", "[]"]}');
+', 'async with aclosing(agen) as g: out = []; async for x in g: if len(out) == n: break; out.append(x). Длину out проверяйте до добавления элемента.', '{"driver": "async def numbers():\n    try:\n        i = 0\n        while True:\n            await asyncio.sleep(0)\n            yield i\n            i += 1\n    finally:\n        print(\"cleanup\")\n\n\nasync def main():\n    first = await take(numbers(), 2)\n    print(first)\n    print(await take(numbers(), 0))\n\n\nasyncio.run(main())\n", "expected": ["cleanup", "[0, 1]", "cleanup", "[]"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 46, 'aio-interleave', 6, 'stdout', 'Чередование потоков', 'Напишите асинхронный генератор interleave(*sources): по кругу берёт по одному элементу из каждого непустого асинхронного источника (через anext) и отдаёт их; источники, исчерпавшие элементы, пропускаются; работа заканчивается, когда исчерпаны все.', 'import asyncio
 
 
@@ -1836,7 +1836,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 def watch(obj, callback):
     pass
 ', 'name = type(obj).__name__; return weakref.ref(obj, lambda _ref: callback(name)).', '{"driver": "class Thing:\n    pass\n\n\nlog = []\nt = Thing()\nr = watch(t, log.append)\nprint(r() is t, log)\ndel t\nprint(log, r())\n", "expected": ["True []", "[''Thing''] None"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 47, 'mem-finalize', 2, 'stdout', 'finalize вместо __del__', 'Напишите track(name, log): создаёт и возвращает объект Handle, а через weakref.finalize регистрирует запись «закрыт <name>» в список log при смерти объекта. Класс Handle без __del__.', 'import weakref
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 47, 'mem-finalize', 2, 'stdout', 'finalize вместо __del__', 'Напишите track(name, log): создаёт и возвращает объект Handle, а через weakref.finalize регистрирует запись «closed <name>» в список log при смерти объекта. Класс Handle без __del__.', 'import weakref
 
 
 class Handle:
@@ -1845,7 +1845,7 @@ class Handle:
 
 def track(name, log):
     pass
-', 'h = Handle(); weakref.finalize(h, log.append, f"закрыт {name}"); return h.', '{"driver": "log = []\nh = track(\"a\", log)\nprint(log)\ndel h\nprint(log)\nh2 = track(\"b\", log)\nprint(log, type(h2).__name__, hasattr(Handle, \"__del__\"))\n", "expected": ["[]", "[''закрыт a'']", "[''закрыт a''] Handle False"]}');
+', 'h = Handle(); weakref.finalize(h, log.append, f"closed {name}"); return h.', '{"driver": "log = []\nh = track(\"a\", log)\nprint(log)\ndel h\nprint(log)\nh2 = track(\"b\", log)\nprint(log, type(h2).__name__, hasattr(Handle, \"__del__\"))\n", "expected": ["[]", "[''closed a'']", "[''closed a''] Handle False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 47, 'mem-cycle-gc', 3, 'stdout', 'Цикл и сборщик мусора', 'Напишите cycle_demo(): отключите сборщик (gc.disable()), создайте два объекта Node, ссылающихся друг на друга, возьмите слабую ссылку на первый и удалите оба имени; верните кортеж (жив_до_сборки, жив_после_сборки), где «после» — после gc.collect(). В конце включите сборщик обратно.', 'import gc
 import weakref
 
@@ -1910,7 +1910,7 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 
 def parallel_map(func, items, workers=4):
     pass
-', 'with ThreadPoolExecutor(workers) as pool: return list(pool.map(func, items)).', '{"driver": "import time\n\n\ndef slow(x):\n    time.sleep(0.01 * (5 - x))\n    return x * x\n\n\nprint(parallel_map(slow, range(5)))\nprint(parallel_map(str, []))\n\n\ndef bad(x):\n    if x == 2:\n        raise ValueError(\"два\")\n    return x\n\n\ntry:\n    parallel_map(bad, range(4))\nexcept ValueError as e:\n    print(\"ValueError\", e)\n", "expected": ["[0, 1, 4, 9, 16]", "[]", "ValueError два"]}');
+', 'with ThreadPoolExecutor(workers) as pool: return list(pool.map(func, items)).', '{"driver": "import time\n\n\ndef slow(x):\n    time.sleep(0.01 * (5 - x))\n    return x * x\n\n\nprint(parallel_map(slow, range(5)))\nprint(parallel_map(str, []))\n\n\ndef bad(x):\n    if x == 2:\n        raise ValueError(\"two\")\n    return x\n\n\ntry:\n    parallel_map(bad, range(4))\nexcept ValueError as e:\n    print(\"ValueError\", e)\n", "expected": ["[0, 1, 4, 9, 16]", "[]", "ValueError two"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 48, 'in-queue-pipeline', 4, 'stdout', 'Производитель и потребитель', 'Напишите consume_sum(items): поток-производитель кладёт числа в queue.Queue, а в конце — признак окончания None; поток-потребитель суммирует числа до None. Верните сумму. Общие данные передаются только через очередь.', 'import queue
 import threading
 
@@ -2044,12 +2044,12 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 def find_packages(root):
     pass
 ', 'Рекурсивная функция: для каждого подкаталога с __init__.py добавьте имя и спуститесь внутрь с префиксом.', '{"driver": "import pathlib\nimport tempfile\n\nwith tempfile.TemporaryDirectory() as tmp:\n    base = pathlib.Path(tmp)\n    for rel in [\"shop/__init__.py\", \"shop/utils/__init__.py\", \"shop/data/readme.txt\", \"tests/test_a.py\", \"other/__init__.py\", \"shop/data/sub/__init__.py\", \"shop/utils/deep/__init__.py\"]:\n        f = base / rel\n        f.parent.mkdir(parents=True, exist_ok=True)\n        f.write_text(\"\")\n    print(find_packages(str(base)))\n    print(find_packages(str(base / \"tests\")))\n", "expected": ["[''other'', ''shop'', ''shop.utils'', ''shop.utils.deep'']", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 50, 'pj-cli-main', 6, 'stdout', 'Командная строка проекта', 'Напишите main(argv=None): argparse с обязательным --name, необязательным --times (целое, по умолчанию 1) и флагом --shout. Печатает приветствие «Здравствуйте, <name>!» нужное число раз (с --shout — в верхнем регистре) и возвращает 0. Ошибка аргументов — обычное поведение argparse (SystemExit с кодом 2).', 'import argparse
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 50, 'pj-cli-main', 6, 'stdout', 'Командная строка проекта', 'Напишите main(argv=None): argparse с обязательным --name, необязательным --times (целое, по умолчанию 1) и флагом --shout. Печатает приветствие «Greetings, <name>!» нужное число раз (с --shout — в верхнем регистре) и возвращает 0. Ошибка аргументов — обычное поведение argparse (SystemExit с кодом 2).', 'import argparse
 
 
 def main(argv=None):
     pass
-', 'parser = argparse.ArgumentParser(); parser.add_argument("--name", required=True); --times type=int default=1; --shout action="store_true".', '{"driver": "print(main([\"--name\", \"Аня\"]))\nprint(main([\"--name\", \"Борис\", \"--times\", \"2\", \"--shout\"]))\nimport contextlib, io\nbuf = io.StringIO()\nwith contextlib.redirect_stderr(buf):\n    try:\n        main([\"--times\", \"x\"])\n    except SystemExit as e:\n        print(\"SystemExit\", e.code)\n", "expected": ["Здравствуйте, Аня!", "0", "ЗДРАВСТВУЙТЕ, БОРИС!", "ЗДРАВСТВУЙТЕ, БОРИС!", "0", "SystemExit 2"]}');
+', 'parser = argparse.ArgumentParser(); parser.add_argument("--name", required=True); --times type=int default=1; --shout action="store_true".', '{"driver": "print(main([\"--name\", \"Ann\"]))\nprint(main([\"--name\", \"Boris\", \"--times\", \"2\", \"--shout\"]))\nimport contextlib, io\nbuf = io.StringIO()\nwith contextlib.redirect_stderr(buf):\n    try:\n        main([\"--times\", \"x\"])\n    except SystemExit as e:\n        print(\"SystemExit\", e.code)\n", "expected": ["Greetings, Ann!", "0", "GREETINGS, BORIS!", "GREETINGS, BORIS!", "0", "SystemExit 2"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 50, 'pj-lock-diff', 7, 'stdout', 'Что изменилось в блокировке', 'Напишите lock_diff(old, new): old и new — словари «пакет → версия». Верните кортеж из трёх отсортированных списков строк: добавленные («+ имя версия»), удалённые («- имя версия») и обновлённые («~ имя старая → новая»).', 'def lock_diff(old, new):
     pass
 ', 'Сравнивайте множества ключей: new - old, old - new и пересечение с различающимися значениями.', '{"driver": "old = {\"httpx\": \"0.27.0\", \"anyio\": \"4.3.0\", \"idna\": \"3.6\"}\nnew = {\"httpx\": \"0.27.2\", \"anyio\": \"4.3.0\", \"certifi\": \"2024.8\"}\nadded, removed, changed = lock_diff(old, new)\nprint(added)\nprint(removed)\nprint(changed)\nprint(lock_diff({}, {}))\n", "expected": ["[''+ certifi 2024.8'']", "[''- idna 3.6'']", "[''~ httpx 0.27.0 → 0.27.2'']", "([], [], [])"]}');
@@ -2059,41 +2059,41 @@ INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, h
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-doctest', 0, 'stdout', 'Функция с проверяемыми примерами', 'Напишите fizzbuzz(n): для n, кратного 15, «FizzBuzz»; кратного 3 — «Fizz»; кратного 5 — «Buzz»; иначе число в виде строки. В строке документации приведите не меньше четырёх примеров в формате doctest (>>> …), и все они должны проходить.', 'def fizzbuzz(n):
     pass
 ', 'В docstring: >>> fizzbuzz(15), следующей строкой — ''FizzBuzz'' (с кавычками, как repr строки).', '{"driver": "import doctest\n\nfinder = doctest.DocTestFinder()\nrunner = doctest.DocTestRunner(verbose=False)\nexamples = 0\nfor test in finder.find(fizzbuzz, \"fizzbuzz\", globs={\"fizzbuzz\": fizzbuzz}):\n    examples += len(test.examples)\n    runner.run(test)\nprint(runner.failures == 0, examples >= 4)\nprint(fizzbuzz(15), fizzbuzz(9), fizzbuzz(10), fizzbuzz(7))\n", "expected": ["True True", "FizzBuzz Fizz Buzz 7"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-table-cases', 1, 'stdout', 'Табличные тесты', 'Напишите run_cases(func, cases): cases — список пар (аргументы, ожидаемое) (аргументы — кортеж). Верните список описаний провалов в порядке случаев: «func(аргументы): ожидали X, получили Y»; если функция упала с исключением — «func(аргументы): исключение ИмяТипа». Успешные случаи пропускайте.', 'def run_cases(func, cases):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-table-cases', 1, 'stdout', 'Табличные тесты', 'Напишите run_cases(func, cases): cases — список пар (аргументы, ожидаемое) (аргументы — кортеж). Верните список описаний провалов в порядке случаев: «func(args): expected X, got Y»; если функция упала с исключением — «func(args): exception TypeName». Успешные случаи пропускайте.', 'def run_cases(func, cases):
     pass
-', 'for args, want in cases: try: got = func(*args) except Exception as e: ...; if got != want: ...', '{"driver": "def half(x):\n    return x // 2\n\n\ncases = [((4,), 2), ((5,), 2), ((7,), 4), ((\"a\",), 1)]\nfor line in run_cases(half, cases):\n    print(line)\nprint(run_cases(half, [((2,), 1)]))\n", "expected": ["half((7,)): ожидали 4, получили 3", "half((''a'',)): исключение TypeError", "[]"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-mock', 2, 'stdout', 'Тест с Mock', 'Функция greet(user_id, fetch) возвращает «Привет, <имя>», где имя получено вызовом fetch(user_id). Напишите check_greet(): создайте Mock (unittest.mock) с return_value="Аня", вызовите greet(7, mock), проверьте результат и что mock вызван ровно один раз с аргументом 7; верните True, если всё верно, и False иначе.', 'from unittest.mock import Mock
+', 'for args, want in cases: try: got = func(*args) except Exception as e: ...; if got != want: ...', '{"driver": "def half(x):\n    return x // 2\n\n\ncases = [((4,), 2), ((5,), 2), ((7,), 4), ((\"a\",), 1)]\nfor line in run_cases(half, cases):\n    print(line)\nprint(run_cases(half, [((2,), 1)]))\n", "expected": ["half((7,)): expected 4, got 3", "half((''a'',)): exception TypeError", "[]"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-mock', 2, 'stdout', 'Тест с Mock', 'Функция greet(user_id, fetch) возвращает «Hello, <имя>», где имя получено вызовом fetch(user_id). Напишите check_greet(): создайте Mock (unittest.mock) с return_value="Ann", вызовите greet(7, mock), проверьте результат и что mock вызван ровно один раз с аргументом 7; верните True, если всё верно, и False иначе.', 'from unittest.mock import Mock
 
 
 def greet(user_id, fetch):
-    return f"Привет, {fetch(user_id)}"
+    return f"Hello, {fetch(user_id)}"
 
 
 def check_greet():
     pass
-', 'fetch = Mock(return_value="Аня"); text = greet(7, fetch); fetch.assert_called_once_with(7) внутри try/except AssertionError.', '{"driver": "print(check_greet())\n", "expected": ["True"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-logging', 3, 'stdout', 'Настройка журнала', 'Напишите setup_logger(stream): логгер с именем «app», уровнем INFO, одним обработчиком, пишущим в stream в формате «УРОВЕНЬ:сообщение» (%(levelname)s:%(message)s). Повторный вызов не должен добавлять второй обработчик. Распространение записей родительским логгерам отключите.', 'import logging
+', 'fetch = Mock(return_value="Ann"); text = greet(7, fetch); fetch.assert_called_once_with(7) внутри try/except AssertionError.', '{"driver": "print(check_greet())\n", "expected": ["True"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-logging', 3, 'stdout', 'Настройка журнала', 'Напишите setup_logger(stream): логгер с именем «app», уровнем INFO, одним обработчиком, пишущим в stream в формате «LEVEL:message» (%(levelname)s:%(message)s). Повторный вызов не должен добавлять второй обработчик. Распространение записей родительским логгерам отключите.', 'import logging
 
 
 def setup_logger(stream):
     pass
-', 'logger = logging.getLogger("app"); если нет обработчиков — StreamHandler(stream) с Formatter; level INFO; propagate = False.', '{"driver": "import io\n\nbuf = io.StringIO()\nlog = setup_logger(buf)\nlog = setup_logger(buf)\nlog.debug(\"скрыто\")\nlog.info(\"заказ %s создан\", 7)\nlog.warning(\"медленно\")\nprint(buf.getvalue(), end=\"\")\nprint(len(log.handlers), log.name, log.propagate)\n", "expected": ["INFO:заказ 7 создан", "WARNING:медленно", "1 app False"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-exceptions', 4, 'stdout', 'Иерархия исключений приложения', 'Создайте исключения: AppError(Exception), NotFound(AppError) и ValidationError(AppError). NotFound принимает имя сущности и ключ и формирует сообщение «<имя> не найден: <ключ>»; ValidationError хранит поле (атрибут field) и сообщение. Напишите find_user(users, user_id): возвращает пользователя из словаря или поднимает NotFound("user", user_id).', 'class AppError(Exception):
+', 'logger = logging.getLogger("app"); если нет обработчиков — StreamHandler(stream) с Formatter; level INFO; propagate = False.', '{"driver": "import io\n\nbuf = io.StringIO()\nlog = setup_logger(buf)\nlog = setup_logger(buf)\nlog.debug(\"hidden\")\nlog.info(\"order %s created\", 7)\nlog.warning(\"slow\")\nprint(buf.getvalue(), end=\"\")\nprint(len(log.handlers), log.name, log.propagate)\n", "expected": ["INFO:order 7 created", "WARNING:slow", "1 app False"]}');
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-exceptions', 4, 'stdout', 'Иерархия исключений приложения', 'Создайте исключения: AppError(Exception), NotFound(AppError) и ValidationError(AppError). NotFound принимает имя сущности и ключ и формирует сообщение «<name> not found: <key>»; ValidationError хранит поле (атрибут field) и сообщение. Напишите find_user(users, user_id): возвращает пользователя из словаря или поднимает NotFound("user", user_id).', 'class AppError(Exception):
     pass
-', 'NotFound.__init__(self, entity, key): super().__init__(f"{entity} не найден: {key}"); у ValidationError — сообщение f"{field}: {message}" и self.field.', '{"driver": "users = {1: \"Аня\"}\nprint(find_user(users, 1))\ntry:\n    find_user(users, 2)\nexcept AppError as e:\n    print(type(e).__name__, e)\nerr = ValidationError(\"age\", \"должен быть числом\")\nprint(err.field, err, isinstance(err, AppError), issubclass(NotFound, ValidationError))\n", "expected": ["Аня", "NotFound user не найден: 2", "age age: должен быть числом True False"]}');
+', 'NotFound.__init__(self, entity, key): super().__init__(f"{entity} not found: {key}"); у ValidationError — сообщение f"{field}: {message}" и self.field.', '{"driver": "users = {1: \"Ann\"}\nprint(find_user(users, 1))\ntry:\n    find_user(users, 2)\nexcept AppError as e:\n    print(type(e).__name__, e)\nerr = ValidationError(\"age\", \"must be a number\")\nprint(err.field, err, isinstance(err, AppError), issubclass(NotFound, ValidationError))\n", "expected": ["Ann", "NotFound user not found: 2", "age age: must be a number True False"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-strategy', 5, 'stdout', 'Скидки как стратегии', 'Напишите make_discount(spec): по строке возвращает функцию цены. «none» — без скидки; «percent:10» — скидка 10% (результат округляйте до копеек, round(…, 2)); «fixed:5» — минус 5, но не ниже нуля. Неизвестная схема — ValueError.', 'def make_discount(spec):
     pass
 ', 'kind, _, arg = spec.partition(":"); для каждого kind верните свою функцию (замыкание над числом).', '{"driver": "for spec in (\"none\", \"percent:10\", \"fixed:5\"):\n    f = make_discount(spec)\n    print(spec, f(100), f(3))\ntry:\n    make_discount(\"coupon:7\")\nexcept ValueError:\n    print(\"ValueError\")\n", "expected": ["none 100 3", "percent:10 90.0 2.7", "fixed:5 95 0", "ValueError"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-observer', 6, 'stdout', 'Шина событий', 'Напишите EventBus: subscribe(event, handler), unsubscribe(event, handler) и emit(event, *args) — вызывает обработчики события в порядке подписки и возвращает их число. Отписка от неподписанного обработчика не должна падать. Подписка одной и той же функции дважды вызывает её дважды.', 'class EventBus:
     pass
 ', 'словарь событие → список обработчиков; в unsubscribe удаляйте первое вхождение (list.remove) с try/except ValueError.', '{"driver": "bus = EventBus()\nlog = []\n\n\ndef a(x):\n    log.append((\"a\", x))\n\n\ndef b(x):\n    log.append((\"b\", x))\n\n\nbus.subscribe(\"save\", a)\nbus.subscribe(\"save\", b)\nbus.subscribe(\"save\", a)\nprint(bus.emit(\"save\", 1), log)\nbus.unsubscribe(\"save\", a)\nlog.clear()\nprint(bus.emit(\"save\", 2), log)\nbus.unsubscribe(\"save\", a)\nbus.unsubscribe(\"x\", a)\nprint(bus.emit(\"none\", 0))\n", "expected": ["3 [(''a'', 1), (''b'', 1), (''a'', 1)]", "2 [(''b'', 2), (''a'', 2)]", "0"]}');
-INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-idioms', 7, 'stdout', 'Перепишите по-питоновски', 'Функция pairs_report(names, scores) работает верно, но написана с индексами (range(len(...)), ручная сборка списка). Перепишите её идиоматично — через zip и включение, без range(len(...)) и без метода append. Результат: строки «<имя>: <балл>» для баллов не ниже 50.', 'def pairs_report(names, scores):
+INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-idioms', 7, 'stdout', 'Перепишите по-питоновски', 'Функция pairs_report(names, scores) работает верно, но написана с индексами (range(len(...)), ручная сборка списка). Перепишите её идиоматично — через zip и включение, без range(len(...)) и без метода append. Результат: строки «<name>: <score>» для баллов не ниже 50.', 'def pairs_report(names, scores):
     result = []
     for i in range(len(names)):
         if scores[i] >= 50:
             result.append(names[i] + ": " + str(scores[i]))
     return result
-', 'return [f"{n}: {s}" for n, s in zip(names, scores) if s >= 50].', '{"driver": "import ast\n\nsrc = open(\"/sandbox/solution.py\", encoding=\"utf-8\").read()\ntree = ast.parse(src)\nbad_range = any(\n    isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == \"range\"\n    and n.args and isinstance(n.args[0], ast.Call) and getattr(n.args[0].func, \"id\", \"\") == \"len\"\n    for n in ast.walk(tree)\n)\nbad_append = any(isinstance(n, ast.Attribute) and n.attr == \"append\" for n in ast.walk(tree))\nprint(pairs_report([\"Аня\", \"Борис\", \"Вера\"], [90, 40, 50]))\nprint(pairs_report([], []))\nprint(\"range(len)\" if bad_range else \"без range(len)\", \"append\" if bad_append else \"без append\")\n", "expected": ["[''Аня: 90'', ''Вера: 50'']", "[]", "без range(len) без append"]}');
+', 'return [f"{n}: {s}" for n, s in zip(names, scores) if s >= 50].', '{"driver": "import ast\n\nsrc = open(\"/sandbox/solution.py\", encoding=\"utf-8\").read()\ntree = ast.parse(src)\nbad_range = any(\n    isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == \"range\"\n    and n.args and isinstance(n.args[0], ast.Call) and getattr(n.args[0].func, \"id\", \"\") == \"len\"\n    for n in ast.walk(tree)\n)\nbad_append = any(isinstance(n, ast.Attribute) and n.attr == \"append\" for n in ast.walk(tree))\nprint(pairs_report([\"Ann\", \"Boris\", \"Vera\"], [90, 40, 50]))\nprint(pairs_report([], []))\nprint(\"range(len)\" if bad_range else \"without range(len)\", \"append\" if bad_append else \"without append\")\n", "expected": ["[''Ann: 90'', ''Vera: 50'']", "[]", "without range(len) without append"]}');
 INSERT INTO tasks (book_id, chapter, id, ord, mode, title, statement, starter, hint, spec) VALUES (13, 51, 'qa-property-check', 8, 'stdout', 'Мини-проверка свойств', 'Напишите check_property(prop, gen, trials=200, seed=0): создайте random.Random(seed), trials раз вызовите gen(rng) для получения входа и prop(вход); верните первый вход, на котором prop вернул ложь (или упал с исключением), либо None, если контрпримера не нашлось.', 'import random
 
 

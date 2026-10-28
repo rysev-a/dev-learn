@@ -35,7 +35,7 @@
   {
    "id": "single-dispatch-describe",
    "title": "Overloading by type",
-   "statement": "Write a function describe(x) using singledispatch: for int return «целое <x>», for str return «строка из <n> символов», for list return «список из <n> элементов», for everything else return «что-то». Output the Russian texts exactly as quoted, with <x> and <n> replaced by the value and the length.",
+   "statement": "Write a function describe(x) using singledispatch: for int return \"integer <x>\", for str return \"string of <n> characters\", for list return \"list of <n> elements\", for everything else return \"something\", with <x> and <n> replaced by the value and the length.",
    "hint": "@singledispatch above the base describe; @describe.register(int) def _(x): ... and the same for str and list."
   },
   {

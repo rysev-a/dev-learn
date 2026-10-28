@@ -41,25 +41,25 @@
   {
    "id": "j8-dog",
    "title": "Inheritance and super",
-   "statement": "Write a class Animal(name) with a method speak() → «<name> издаёт звук» and a class Dog extends Animal that overrides speak(): «<parent string>: гав!» (call the parent version through super). The output text stays in Russian exactly as written.",
+   "statement": "Write a class Animal(name) with a method speak() → «<name> makes a sound» and a class Dog extends Animal that overrides speak(): «<parent string>: woof!» (call the parent version through super).",
    "hint": "Dog does not need a constructor: it is inherited. The parent call: super.speak()."
   },
   {
    "id": "j8-shapes",
    "title": "Shapes: polymorphism",
-   "statement": "Write a base class Shape with a method area() that throws Error(\"не реализовано\"), and classes Rect(w, h) and Circle(r) that override area(). Then a function totalArea(shapes), the sum of the areas (for Circle, Math.PI * r ** 2). The error message stays in Russian exactly as written.",
+   "statement": "Write a base class Shape with a method area() that throws Error(\"not implemented\"), and classes Rect(w, h) and Circle(r) that override area(). Then a function totalArea(shapes), the sum of the areas (for Circle, Math.PI * r ** 2).",
    "hint": "Each subclass calls super() in its constructor before using this."
   },
   {
    "id": "j8-validation-error",
    "title": "A custom ValidationError",
-   "statement": "Write a class ValidationError extends Error: the constructor (field, message) sets this.name = \"ValidationError\", this.field and the message. And a function validateUser(u): it throws a ValidationError for an empty name (field \"name\") and for an age outside the range 0–150 (field \"age\"); otherwise it returns true.",
+   "statement": "Write a class ValidationError extends Error: the constructor (field, message) sets this.name = \"ValidationError\", this.field and the message. And a function validateUser(u): it throws a ValidationError for an empty name, including a name of only spaces (field \"name\", message \"Name is required\") and for an age outside the range 0–150 (field \"age\", message \"Invalid age\"); otherwise it returns true.",
    "hint": "super(message); then name and field. Write the age condition so that NaN and undefined do not pass."
   },
   {
    "id": "j8-http-error",
    "title": "An HTTP error hierarchy",
-   "statement": "Write a class HttpError extends Error (status, message; name = «HttpError») and its subclass NotFoundError (message defaults to «Не найдено», status = 404, name = «NotFoundError»). The function describe(err) returns «<name> <status>: <message>» for an HttpError and «Ошибка: <message>» for everything else. The texts in « » stay in Russian exactly as written.",
+   "statement": "Write a class HttpError extends Error (status, message; name = «HttpError») and its subclass NotFoundError (message defaults to «Not found», status = 404, name = «NotFoundError»). The function describe(err) returns «<name> <status>: <message>» for an HttpError and «Error: <message>» for everything else.",
    "hint": "The subclass calls super(404, message) and then changes this.name."
   },
   {
@@ -101,7 +101,7 @@
   {
    "id": "j8-compose-robot",
    "title": "Composition instead of inheritance",
-   "statement": "Write ability functions walker(state) and talker(state), each returning an object with one method: walker → walk() gives «<name> идёт», talker → talk() gives «<name>: привет». And a function makeRobot(name, ...abilities) that assembles an object: { name } plus the methods of the passed abilities (an ability receives state = { name }). The output text stays in Russian exactly as written.",
+   "statement": "Write ability functions walker(state) and talker(state), each returning an object with one method: walker → walk() gives «<name> goes», talker → talk() gives «<name>: hello». And a function makeRobot(name, ...abilities) that assembles an object: { name } plus the methods of the passed abilities (an ability receives state = { name }).",
    "hint": "Object.assign({ name }, ...abilities.map((a) => a(state)))"
   },
   {

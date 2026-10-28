@@ -41,7 +41,7 @@
    "title": "A function with doctest",
    "statement": "Write a function abs_diff(a, b), the absolute difference of two numbers, and give its docstring at least three doctest examples (the format is «>>> abs_diff(5, 8)» with the answer on the next line). The checker will run your examples.",
    "hint": ">>> abs_diff(5, 8)\\n    3: each example is a line with >>> and a line with the expected result.",
-   "starter": "def abs_diff(a, b):\n    \"\"\"Модуль разности.\n\n    Добавьте примеры в формате doctest.\n    \"\"\"\n    pass\n"
+   "starter": "def abs_diff(a, b):\n    \"\"\"Absolute difference.\n\n    Add examples in doctest format.\n    \"\"\"\n    pass\n"
   },
   {
    "id": "total-cost-mock",
@@ -52,7 +52,7 @@
   {
    "id": "greeting-injected-time",
    "title": "Time as a parameter",
-   "statement": "Write a function greeting(now), where now is a datetime object. Before 12 o'clock, return «Доброе утро»; from 12 to 18, «Добрый день»; later, «Добрый вечер». Do not call the current time inside.",
+   "statement": "Write a function greeting(now), where now is a datetime object. Before 12 o'clock, return «Good morning»; from 12 to 18, «Good afternoon»; later, «Good evening». Do not call the current time inside.",
    "hint": "if now.hour < 12: ...; elif now.hour < 18: ...; else: ..."
   }
  ]

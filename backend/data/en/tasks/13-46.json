@@ -23,13 +23,13 @@
   {
    "id": "aio-async-with",
    "title": "An async with manager class",
-   "statement": "Write a class Resource: __aenter__ prints «открыт» and returns self (after await asyncio.sleep(0)), __aexit__ prints «закрыт» and suppresses only KeyError (returns True), and lets other exceptions through.",
-   "hint": "async def __aexit__(self, et, ev, tb): print(\"закрыт\"); return et is not None and issubclass(et, KeyError)."
+   "statement": "Write a class Resource: __aenter__ prints \"open\" and returns self (after await asyncio.sleep(0)), __aexit__ prints \"closed\" and suppresses only KeyError (returns True), and lets other exceptions through.",
+   "hint": "async def __aexit__(self, et, ev, tb): print(\"closed\"); return et is not None and issubclass(et, KeyError)."
   },
   {
    "id": "aio-asynccontextmanager",
    "title": "@asynccontextmanager",
-   "statement": "Write a manager connection(name) using @asynccontextmanager: on entry it prints «открыто <name>» and yields the dict {\"name\": name}, on exit (including an error in the block) it prints «закрыто <name>».",
+   "statement": "Write a manager connection(name) using @asynccontextmanager: on entry it prints \"open <name>\" and yields the dict {\"name\": name}, on exit (including an error in the block) it prints \"closed <name>\".",
    "hint": "print on entry; try: yield {...}; finally: print on exit."
   },
   {

@@ -17,7 +17,7 @@
   {
    "id": "r31-countdown",
    "title": "CountDown",
-   "statement": "Write CountDown(u32): while the counter is above zero, each poll decrements it and returns Pending (with wake_by_ref); when it reaches zero, return Ready(\"поехали\").",
+   "statement": "Write CountDown(u32): while the counter is above zero, each poll decrements it and returns Pending (with wake_by_ref); when it reaches zero, return Ready(\"liftoff\").",
    "hint": "Do not forget wake_by_ref before Pending."
   },
   {
@@ -119,7 +119,7 @@
   {
    "id": "r31-timeout-polls",
    "title": "Timeout by poll count",
-   "statement": "Write Timeout<F> { inner: Pin<Box<F>>, left: u32 }: each poll decrements left; if inner is ready, Ok(value); if left is exhausted and inner is still Pending, Err(\"таймаут\").",
+   "statement": "Write Timeout<F> { inner: Pin<Box<F>>, left: u32 }: each poll decrements left; if inner is ready, Ok(value); if left is exhausted and inner is still Pending, Err(\"timeout\").",
    "hint": "Poll inner first; if it is Pending, check the remaining attempts."
   },
   {

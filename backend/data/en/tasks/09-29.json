@@ -74,7 +74,7 @@
   {
    "id": "d13-independence",
    "title": "Estimate and actual",
-   "statement": "The estimate under independence: the share of `city='Москва'` multiplied by the share of status='blocked' and by the number of rows. Output one row: est, the estimated number of rows (ROUND to an integer), and actual, the real number of rows where both conditions hold.",
+   "statement": "The estimate under independence: the share of `city='Moscow'` multiplied by the share of status='blocked' and by the number of rows. Output one row: est, the estimated number of rows (ROUND to an integer), and actual, the real number of rows where both conditions hold.",
    "hint": "est = n_city * n_status / n; actual is COUNT(*) with both conditions.",
    "starter": "-- estimate vs actual\nSELECT\n"
   },

@@ -7,116 +7,73 @@
    "id": "increment",
    "title": "Incrementer: +1",
    "statement": "Add one to a one-bit number A: 0 + 1 = 01, 1 + 1 = 10. S is the sum bit, P is the carry. Look closely at the table: it is simpler than it seems.",
-   "hint": "Carry P simply repeats A (a wire), and sum S is NOT A. Two elements and the adder is done.",
-   "spec_text": {
-    "/formula": "S = NOT A; P = A",
-    "/success": "An incrementer is a special case of an adder: the second addend is always 1. Note that the circuit now has TWO outputs: the high digit “drops out” of the low one as a separate carry signal."
-   }
+   "hint": "Carry P simply repeats A (a wire), and sum S is NOT A. Two elements and the adder is done."
   },
   {
    "id": "half-adder",
    "title": "Half adder",
    "statement": "Add two bits A and B by columns: S is the sum bit, P is the carry. The sum is 1 when the inputs DIFFER; the carry is 1 when both are 1.",
-   "hint": "S is the XOR from the “Simple circuits” section: (A OR B) AND NOT(A AND B), or the ready-made gate if it is already unlocked. P is a plain AND gate on the same inputs: 1 only in the row 1 1.",
-   "spec_text": {
-    "/success": "The half adder is done! It is called “half” because it does not accept a carry from the previous digit, so a chain of them cannot be built. We will fix that now."
-   }
+   "hint": "S is the XOR from the “Simple circuits” section: (A OR B) AND NOT(A AND B), or the ready-made gate if it is already unlocked. P is a plain AND gate on the same inputs: 1 only in the row 1 1."
   },
   {
    "id": "full-adder-sum",
    "title": "Full adder: sum bit",
    "statement": "Now THREE bits are added: A + B + Cin (the carry from the previous digit). Build the sum bit S: it is 1 when the number of ones among the inputs is ODD.",
-   "hint": "Add them one after another: first A⊕B, then that result ⊕ Cin. Each XOR is four AND/OR/NOT gates, or one ready-made XOR (or XNOR: a chain of three-input XNORs gives the same parity).",
-   "spec_text": {
-    "/success": "The sum bit is parity: a chain of XORs counts ones modulo 2. The same trick works in parity-check circuits."
-   }
+   "hint": "Add them one after another: first A⊕B, then that result ⊕ Cin. Each XOR is four AND/OR/NOT gates, or one ready-made XOR (or XNOR: a chain of three-input XNORs gives the same parity)."
   },
   {
    "id": "full-adder",
    "title": "Full adder",
    "statement": "The finale of the section: the complete full adder. S is the sum bit, P is the carry out. The carry is 1 when there are at least two ones.",
-   "hint": "Join two ready-made pieces: S = A⊕B⊕Cin (the previous exercise; XOR/XNOR is now in the palette) and P = AB OR AC OR BC (the majority circuit from “Simple circuits”). The outputs of both pieces go to S and P.",
-   "spec_text": {
-    "/formula": "S = A⊕B⊕Cin; P = AB OR AC OR BC",
-    "/success": "You built a full adder, the “building block” of 4-, 8- and 64-bit ALUs. The carry of one digit connects to the Cin of the next, which gives a ripple-carry adder. Next up: registers and the clock!"
-   }
+   "hint": "Join two ready-made pieces: S = A⊕B⊕Cin (the previous exercise; XOR/XNOR is now in the palette) and P = AB OR AC OR BC (the majority circuit from “Simple circuits”). The outputs of both pieces go to S and P."
   },
   {
    "id": "half-subtractor",
    "title": "Half subtractor",
    "statement": "Subtract bit B from bit A: R is the difference bit, Bo is the borrow. A borrow is needed when 1 is subtracted from 0: 0 − 1 = −1, and a one must be “borrowed” from the higher digit.",
-   "hint": "The difference is XOR again: it is 1 when the bits differ. The borrow is 1 only in the row A = 0, B = 1: that is NOT-A AND B.",
-   "spec_text": {
-    "/formula": "R = A⊕B; Bo = NOT-A·B",
-    "/success": "Compare with the half adder: sum and difference are computed the same way (XOR); only the carry differs, since the subtractor has an inverter before A. A little later, subtraction will reduce to addition altogether."
-   }
+   "hint": "The difference is XOR again: it is 1 when the bits differ. The borrow is 1 only in the row A = 0, B = 1: that is NOT-A AND B."
   },
   {
    "id": "full-subtractor",
    "title": "Full subtractor",
    "statement": "Subtract three bits: A − B − Bin, where Bin is the borrow from the lower digit. R is the difference bit, Bo is the borrow into the higher digit. A borrow is needed when the result is negative.",
-   "hint": "The difference is parity, as in the full adder: R = A⊕B⊕Bin. The borrow: Bo = NOT-A·B OR NOT(A⊕B)·Bin, meaning “borrowed itself” or “the debt from the lower digit is not covered”. In short, Bo is “at least two ones” among NOT-A, B and Bin.",
-   "spec_text": {
-    "/formula": "R = A⊕B⊕Bin; Bo = NOT-A·B + NOT(A⊕B)·Bin",
-    "/success": "The full subtractor is a mirror of the full adder. But processors almost never have separate subtractors: subtraction is done by adding a “complement”, which comes a bit later in the adder-subtractor exercise."
-   }
+   "hint": "The difference is parity, as in the full adder: R = A⊕B⊕Bin. The borrow: Bo = NOT-A·B OR NOT(A⊕B)·Bin, meaning “borrowed itself” or “the debt from the lower digit is not covered”. In short, Bo is “at least two ones” among NOT-A, B and Bin."
   },
   {
    "id": "increment2",
    "title": "Two-bit incrementer",
    "statement": "Add one to the two-bit number A1 A0. P is the carry into the third digit, S1 S0 is the sum: 00 → 01, 01 → 10, 10 → 11, and 11 + 1 = 100 (overflow: P = 1, S = 00).",
-   "hint": "The low bit always flips: S0 = NOT-A0. The high bit flips only if the low one was 1: S1 = A1⊕A0. The carry comes out when both were 1: P = A1·A0.",
-   "spec_text": {
-    "/formula": "S0 = NOT-A0; S1 = A1⊕A0; P = A1·A0",
-    "/success": "This is how a counter works: each digit flips when all the lower ones are ones. This “+1” circuit is what the program counter, the address of the next instruction, will later grow from."
-   }
+   "hint": "The low bit always flips: S0 = NOT-A0. The high bit flips only if the low one was 1: S1 = A1⊕A0. The carry comes out when both were 1: P = A1·A0."
   },
   {
    "id": "comparator1",
    "title": "One-bit comparator",
    "statement": "Compare two bits A and B with three outputs: Lt is lit when A < B; Eq when A = B; Gt when A > B. Exactly one is always lit.",
-   "hint": "A < B is only the row A = 0, B = 1: NOT-A AND B. A > B is the mirror: A AND NOT-B. Equality is a ready-made XNOR (or NOT of XOR).",
-   "spec_text": {
-    "/formula": "Lt = NOT-A·B; Eq = A⊙B; Gt = A·NOT-B",
-    "/success": "A comparator is the basis of conditional jumps (“if A < B, then…”). Note that Lt and Gt are the same gates that produced the borrow in the subtractor. Comparison is subtraction with only the sign kept."
-   }
+   "hint": "A < B is only the row A = 0, B = 1: NOT-A AND B. A > B is the mirror: A AND NOT-B. Equality is a ready-made XNOR (or NOT of XOR)."
   },
   {
    "id": "adder2",
    "title": "Two-bit adder",
    "statement": "Add the two-bit numbers A1 A0 and B1 B0. The result is three bits: P S1 S0 (P is the carry out of the high digit). For example, 11 + 11 = 110.",
-   "hint": "The low digit is a half adder: S0 = A0⊕B0, carry c = A0·B0. The high digit is a full adder with input c: S1 = A1⊕B1⊕c, P = A1·B1 OR (A1⊕B1)·c. The carry from the low digit “moves” into the high one.",
-   "spec_text": {
-    "/success": "This is a ripple-carry adder: each digit waits for the carry from its neighbor. The wider the number, the longer the chain and the longer the addition takes, which is why fast processors “guess” carries in advance."
-   }
+   "hint": "The low digit is a half adder: S0 = A0⊕B0, carry c = A0·B0. The high digit is a full adder with input c: S1 = A1⊕B1⊕c, P = A1·B1 OR (A1⊕B1)·c. The carry from the low digit “moves” into the high one."
   },
   {
    "id": "add-sub",
    "title": "Adder-subtractor",
    "statement": "One adder does both addition and subtraction. M is the mode: M = 0 gives A + B; M = 1 gives A − B as A + NOT-B + 1 (invert B and feed a one into the carry input). S is the result bit, P is the carry; when M = 1, a one in P means “no borrow”.",
-   "hint": "The controlled inverter from the multiplexers section: B⊕M. Then a full adder with inputs A, (B⊕M) and Cin = M: S = A⊕(B⊕M)⊕M, and P is the majority function of the same three.",
-   "spec_text": {
-    "/success": "This is how an ALU subtracts: in two's complement, A − B is A + NOT-B + 1. A separate subtractor is not needed, just a controlled inverter on input B and a one in the carry."
-   }
+   "hint": "The controlled inverter from the multiplexers section: B⊕M. Then a full adder with inputs A, (B⊕M) and Cin = M: S = A⊕(B⊕M)⊕M, and P is the majority function of the same three."
   },
   {
    "id": "comparator2",
    "title": "Two-bit comparator",
    "statement": "Compare the two-bit numbers A1 A0 and B1 B0: Lt means A is less than B, Eq means equal, Gt means A is greater than B. Exactly one output is lit.",
-   "hint": "Compare from the high digit. Eq: both digits match (two XNORs and an AND). Gt: A1 > B1 OR (A1 = B1 AND A0 > B0). Lt is the mirror.",
-   "spec_text": {
-    "/formula": "Gt = A1·NOT-B1 + (A1⊙B1)·A0·NOT-B0; Eq = (A1⊙B1)·(A0⊙B0)",
-    "/success": "The rule “compare the high digit, and move to the low one only if they are equal” works for numbers of any width. Conditional jumps in programs are made with exactly such comparators."
-   }
+   "hint": "Compare from the high digit. Eq: both digits match (two XNORs and an AND). Gt: A1 > B1 OR (A1 = B1 AND A0 > B0). Lt is the mirror."
   },
   {
    "id": "adder3",
    "title": "Three-bit adder",
    "statement": "The finale of the section: add the numbers A2 A1 A0 and B2 B1 B0. The result is four bits P S2 S1 S0. The carry chain must run through all three digits.",
-   "hint": "Three stages: the lowest is a half adder (S0 = A0⊕B0, c0 = A0·B0); the next two are full adders: S = A⊕B⊕c, carry = A·B OR (A⊕B)·c. Each stage's carry goes to the input of the next; the last carry is P. No inverters are needed.",
-   "spec_text": {
-    "/success": "You built a real multi-bit adder: the same stages chained give 8, 32 and 64 bits. This is the heart of an ALU, so processor “arithmetic” is no longer a mystery. Next up: registers and the clock, where to put the result and when."
-   }
+   "hint": "Three stages: the lowest is a half adder (S0 = A0⊕B0, c0 = A0·B0); the next two are full adders: S = A⊕B⊕c, carry = A·B OR (A⊕B)·c. Each stage's carry goes to the input of the next; the last carry is P. No inverters are needed."
   }
  ]
 }

@@ -183,13 +183,6 @@
    "starter": "fn main() {\n    let n = 5;\n    if n {\n        println!(\"non-zero\");\n    }\n}\n"
   },
   {
-   "id": "r3-char-basic",
-   "title": "Characters",
-   "statement": "c = `'ж'`. Print the character itself, then its code via as u32 («1078»), then c.is_alphabetic() («true»), and '7'.is_numeric() («true») — one per line.\n\nExpected output:\n```\nж\n1078\ntrue\ntrue\n```",
-   "hint": "`'ж'` as u32 is the character's Unicode code.",
-   "starter": "fn main() {\n    // your code\n}\n"
-  },
-  {
    "id": "r3-char-case",
    "title": "Character case",
    "statement": "For 'q' print c.to_ascii_uppercase() («Q»), for `'I'` print c.to_lowercase().next().unwrap() («i») and for the digit character '8' print '8'.to_digit(10).unwrap() + 1 («9») — three lines.\n\nExpected output:\n```\nQ\ni\n9\n```",

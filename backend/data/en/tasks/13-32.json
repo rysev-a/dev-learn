@@ -11,8 +11,8 @@
   {
    "id": "ast-literal-config",
    "title": "Settings from literals only",
-   "statement": "Write parse_config(text): turn the string into a value with ast.literal_eval. If the string is not a literal (a call, an expression) or has a syntax error, raise ValueError(\"некорректная настройка\").",
-   "hint": "try: return ast.literal_eval(text) except (ValueError, SyntaxError): raise ValueError(\"некорректная настройка\")."
+   "statement": "Write parse_config(text): turn the string into a value with ast.literal_eval. If the string is not a literal (a call, an expression) or has a syntax error, raise ValueError(\"invalid setting\").",
+   "hint": "try: return ast.literal_eval(text) except (ValueError, SyntaxError): raise ValueError(\"invalid setting\")."
   },
   {
    "id": "ast-called-names",

@@ -151,7 +151,7 @@
   {
    "id": "s06-22",
    "title": "Subordinates of Nina",
-   "statement": "HR database. Output the name of the subordinates of `Нина Белова` (boss — by name), ordered by id.",
+   "statement": "HR database. Output the name of the subordinates of `Nina Belova` (boss — by name), ordered by id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -179,14 +179,14 @@
   {
    "id": "s06-26",
    "title": "Bought electronics",
-   "statement": "Output without repeats the name of customers who bought at least one product of the category `Электроника`; ordered by name.",
+   "statement": "Output without repeats the name of customers who bought at least one product of the category `Tech`; ordered by name.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
   {
    "id": "s06-27",
    "title": "Bought the SQL book",
-   "statement": "Output the name of customers who bought `Книга SQL`; ordered by name, without repeats.",
+   "statement": "Output the name of customers who bought `Book SQL`; ordered by name, without repeats.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -221,7 +221,7 @@
   {
    "id": "s06-32",
    "title": "Premium-tier products",
-   "statement": "Output the title of products that fall into the tier `премиум` in the tiers table; ordered by title.",
+   "statement": "Output the title of products that fall into the tier `premium` in the tiers table; ordered by title.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -235,7 +235,7 @@
   {
    "id": "s06-34",
    "title": "Fives in math",
-   "statement": "School database. Output the name of students who got 5 in the course `Математика` (any year); ordered by name, without repeats.",
+   "statement": "School database. Output the name of students who got 5 in the course `Math` (any year); ordered by name, without repeats.",
    "hint": "",
    "starter": "-- Write a query\n"
   },

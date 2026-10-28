@@ -17,7 +17,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -46,7 +46,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -93,7 +93,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -125,7 +125,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Защищённая главная</h1>"
+                    "body": "<h1>Secure home</h1>"
                   }
                 ]
               },
@@ -185,12 +185,12 @@
         "goals": [
           {
             "id": "g1",
-            "text": "HTTPS-запрос возвращает 200",
+            "text": "The HTTPS request returns 200",
             "http": {
               "from": "pc",
               "url": "https://www.example.org/",
               "status": 200,
-              "body_includes": "Защищённая"
+              "body_includes": "Secure"
             }
           }
         ],
@@ -217,7 +217,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -246,7 +246,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -293,7 +293,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -325,7 +325,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Защищённая главная</h1>"
+                    "body": "<h1>Secure home</h1>"
                   }
                 ]
               },
@@ -385,12 +385,12 @@
         "goals": [
           {
             "id": "g1",
-            "text": "https://www.example.org/ открывается",
+            "text": "https://www.example.org/ opens",
             "http": {
               "from": "pc",
               "url": "https://www.example.org/",
               "status": 200,
-              "body_includes": "Защищённая"
+              "body_includes": "Secure"
             }
           }
         ],
@@ -417,7 +417,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -446,7 +446,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -493,7 +493,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -525,7 +525,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Защищённая главная</h1>"
+                    "body": "<h1>Secure home</h1>"
                   }
                 ]
               },
@@ -583,12 +583,12 @@
         "goals": [
           {
             "id": "g1",
-            "text": "HTTPS-запрос возвращает 200",
+            "text": "The HTTPS request returns 200",
             "http": {
               "from": "pc",
               "url": "https://www.example.org/",
               "status": 200,
-              "body_includes": "Защищённая"
+              "body_includes": "Secure"
             }
           }
         ],
@@ -615,7 +615,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -644,7 +644,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -691,7 +691,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -723,7 +723,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Защищённая главная</h1>"
+                    "body": "<h1>Secure home</h1>"
                   }
                 ]
               },
@@ -783,12 +783,12 @@
         "goals": [
           {
             "id": "g1",
-            "text": "https://intranet.corp/ открывается",
+            "text": "https://intranet.corp/ opens",
             "http": {
               "from": "pc",
               "url": "https://intranet.corp/",
               "status": 200,
-              "body_includes": "Защищённая"
+              "body_includes": "Secure"
             }
           }
         ],
@@ -815,7 +815,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Браузер (ПК)",
+              "name": "Browser (PC)",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -844,7 +844,7 @@
             {
               "id": "sw",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -891,7 +891,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -923,7 +923,7 @@
                   {
                     "path": "/",
                     "status": 200,
-                    "body": "<h1>Защищённая главная</h1>"
+                    "body": "<h1>Secure home</h1>"
                   }
                 ]
               },
@@ -983,12 +983,12 @@
         "goals": [
           {
             "id": "g1",
-            "text": "HTTPS-запрос возвращает 200",
+            "text": "The HTTPS request returns 200",
             "http": {
               "from": "pc",
               "url": "https://www.example.org/",
               "status": 200,
-              "body_includes": "Защищённая"
+              "body_includes": "Secure"
             }
           }
         ],

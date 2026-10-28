@@ -15,7 +15,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 110,
               "y": 180,
               "ifaces": [
@@ -41,7 +41,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 530,
               "y": 180,
               "ifaces": [
@@ -82,7 +82,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Клиент получает ответ на UDP-порту 5000",
+            "text": "The client gets a response on UDP port 5000",
             "udp": {
               "from": "pc1",
               "to": "@srv",
@@ -91,7 +91,7 @@
           },
           {
             "id": "g2",
-            "text": "Порт 5000 по TCP остаётся открытым",
+            "text": "TCP port 5000 stays open",
             "tcp": {
               "from": "pc1",
               "to": "@srv",
@@ -120,7 +120,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 110,
               "y": 180,
               "ifaces": [
@@ -146,7 +146,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 530,
               "y": 180,
               "ifaces": [
@@ -182,7 +182,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Веб (tcp/80) отвечает",
+            "text": "Web (tcp/80) responds",
             "tcp": {
               "from": "pc1",
               "to": "@srv",
@@ -191,7 +191,7 @@
           },
           {
             "id": "g2",
-            "text": "DNS (udp/53) отвечает",
+            "text": "DNS (udp/53) responds",
             "udp": {
               "from": "pc1",
               "to": "@srv",
@@ -200,7 +200,7 @@
           },
           {
             "id": "g3",
-            "text": "TCP-порт 53 закрыт",
+            "text": "TCP port 53 is closed",
             "tcp": {
               "from": "pc1",
               "to": "@srv",
@@ -237,7 +237,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 80,
               "y": 180,
               "ifaces": [
@@ -269,7 +269,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -314,7 +314,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 420,
               "y": 180,
               "ifaces": [
@@ -347,7 +347,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 575,
               "y": 180,
               "ifaces": [
@@ -414,7 +414,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "DNS-запрос (udp/53) получает ответ",
+            "text": "A DNS query (udp/53) gets a response",
             "udp": {
               "from": "pc1",
               "to": "@srv",
@@ -423,7 +423,7 @@
           },
           {
             "id": "g2",
-            "text": "Веб (tcp/80) открывается",
+            "text": "Web (tcp/80) opens",
             "tcp": {
               "from": "pc1",
               "to": "@srv",
@@ -432,7 +432,7 @@
           },
           {
             "id": "g3",
-            "text": "SSH (tcp/22) закрыт",
+            "text": "SSH (tcp/22) is closed",
             "tcp": {
               "from": "pc1",
               "to": "@srv",
@@ -474,7 +474,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 70,
               "y": 180,
               "ifaces": [
@@ -506,7 +506,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 250,
               "y": 180,
               "ifaces": [
@@ -553,7 +553,7 @@
             {
               "id": "s1",
               "kind": "server",
-              "name": "Сервер 1",
+              "name": "Server 1",
               "x": 480,
               "y": 70,
               "ifaces": [
@@ -585,7 +585,7 @@
             {
               "id": "s2",
               "kind": "server",
-              "name": "Сервер 2",
+              "name": "Server 2",
               "x": 480,
               "y": 290,
               "ifaces": [
@@ -644,7 +644,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Сервер 1 отвечает по UDP/5000",
+            "text": "Server 1 responds on UDP/5000",
             "udp": {
               "from": "pc1",
               "to": "@s1",
@@ -653,7 +653,7 @@
           },
           {
             "id": "g2",
-            "text": "Сервер 2 отвечает по UDP/5000",
+            "text": "Server 2 responds on UDP/5000",
             "udp": {
               "from": "pc1",
               "to": "@s2",

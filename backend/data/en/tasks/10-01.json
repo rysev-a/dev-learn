@@ -129,13 +129,6 @@
    "starter": "fn main() {\n    // your code\n}\n"
   },
   {
-   "id": "r1-unicode",
-   "title": "Russian and Unicode",
-   "statement": "Print two lines: «Раст любит Unicode» and «Краб 🦀 говорит привет».\n\nExpected output:\n«Раст любит Unicode\nКраб 🦀 говорит привет»",
-   "hint": "Strings in Rust are UTF-8, so Russian letters and emoji can be written right inside the quotes.",
-   "starter": "fn main() {\n    // your code\n}\n"
-  },
-  {
    "id": "r1-multiline-literal",
    "title": "A string of several lines",
    "statement": "With a single call of println!, print three lines: «First», «Second», «Third». To do this, put two newline characters \\n into the string (or write the string over several lines of code).\n\nExpected output:\n«First\nSecond\nThird»",

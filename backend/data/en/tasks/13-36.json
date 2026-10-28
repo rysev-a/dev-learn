@@ -47,13 +47,13 @@
   {
    "id": "censor-words",
    "title": "Censorship",
-   "statement": "Write a function censor(text, bad): replace each word from the list bad (whole words only, case-insensitive) with «***». Do not touch parts of other words: «кот» must not spoil «котёл».",
+   "statement": "Write a function censor(text, bad): replace each word from the list bad (whole words only, case-insensitive) with «***». Do not touch parts of other words: «cat» must not spoil «catalog».",
    "hint": "Build the pattern r\"\\b(?:\" + \"|\".join(map(re.escape, bad)) + r\")\\b\" and call re.sub with the re.I flag."
   },
   {
    "id": "parse-log-dict",
    "title": "Log line to a dictionary",
-   "statement": "Write a function parse_log(line): the string «2024-03-05 09:07:03 ERROR сбой диска» becomes a dictionary with the keys \"date\", \"time\", \"level\" and \"msg\". If the string does not fit, return None. Use named groups.",
+   "statement": "Write a function parse_log(line): the string «2024-03-05 09:07:03 ERROR disk failure» becomes a dictionary with the keys \"date\", \"time\", \"level\" and \"msg\". If the string does not fit, return None. Use named groups.",
    "hint": "(?P<date>\\d{4}-\\d\\d-\\d\\d) (?P<time>[\\d:]{8}) (?P<level>[A-Z]+) (?P<msg>.*); m.groupdict()."
   }
  ]

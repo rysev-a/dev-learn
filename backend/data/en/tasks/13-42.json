@@ -41,9 +41,9 @@
   {
    "id": "mro-logging-mixin",
    "title": "A wrapper mixin via super",
-   "statement": "The Model class already has save() (it returns «сохранено»). Write LoggingMixin: its save() appends the string «перед save» to the LOG list, calls super().save(), appends «после save» and returns the result. The mixin must be placed to the left of Model.",
+   "statement": "The Model class already has save() (it returns \"saved\"). Write LoggingMixin: its save() appends the string \"before save\" to the LOG list, calls super().save(), appends \"after save\" and returns the result. The mixin must be placed to the left of Model.",
    "hint": "class LoggingMixin: def save(self): LOG.append(...); result = super().save(); LOG.append(...); return result.",
-   "starter": "LOG = []\n\n\nclass Model:\n    def save(self):\n        return \"сохранено\"\n"
+   "starter": "LOG = []\n\n\nclass Model:\n    def save(self):\n        return \"saved\"\n"
   },
   {
    "id": "mro-where-defined",
@@ -54,8 +54,8 @@
   {
    "id": "mro-validators",
    "title": "Checks on mixins",
-   "statement": "The base Validator.validate(value) returns an empty list. Write NotEmpty (the error «пусто» for an empty string) and NoDigits (the error «цифры» if the string contains a digit): each calls super().validate(value) and adds its own error. The classes can be combined in any way.",
-   "hint": "errors = super().validate(value); if not value: errors = errors + [\"пусто\"]; return errors."
+   "statement": "The base Validator.validate(value) returns an empty list. Write NotEmpty (the error \"empty\" for an empty string) and NoDigits (the error \"digits\" if the string contains a digit): each calls super().validate(value) and adds its own error. The classes can be combined in any way.",
+   "hint": "errors = super().validate(value); if not value: errors = errors + [\"empty\"]; return errors."
   }
  ]
 }

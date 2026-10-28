@@ -155,7 +155,7 @@
   {
    "id": "j11-match",
    "title": "Pattern matching",
-   "statement": "Write a function match(value, cases): cases is an array of pairs [pattern, function]; a pattern is a predicate function, a primitive value (compared with ===), a template object (the value fits if it has all the fields of the template and they match the nested patterns) or match.any (always fits). It returns the result of the function of the first matching pair, called with value; if nothing matches, it throws Error(\"нет подходящего образца\") — this message text must be exactly as shown, in Russian.",
+   "statement": "Write a function match(value, cases): cases is an array of pairs [pattern, function]; a pattern is a predicate function, a primitive value (compared with ===), a template object (the value fits if it has all the fields of the template and they match the nested patterns) or match.any (always fits). It returns the result of the function of the first matching pair, called with value; if nothing matches, it throws Error(\"no matching pattern\").",
    "hint": "A recursive function matches(pattern, value): predicate, template object, primitive."
   },
   {
@@ -173,7 +173,7 @@
   {
    "id": "j11-pipeline-text",
    "title": "A text processing pipeline",
-   "statement": "Write a function wordFrequency(text, n) as a pure pipeline: lowercase the text, split it into words (runs of Unicode letters and digits — /[\\p{L}\\p{N}]+/gu), remove the stop words from the set STOP = [\"и\", \"в\", \"на\", \"не\"], count the frequencies, sort by descending frequency (on a tie, alphabetically by word) and return the first n pairs [word, count]. The test texts are in Russian.",
+   "statement": "Write a function wordFrequency(text, n) as a pure pipeline: lowercase the text, split it into words (runs of Unicode letters and digits — /[\\p{L}\\p{N}]+/gu), remove the stop words from the set STOP = [\"and\", \"in\", \"on\", \"not\"], count the frequencies, sort by descending frequency (on a tie, alphabetically by word) and return the first n pairs [word, count].",
    "hint": "match → filter → reduce into a Map → sort → slice."
   },
   {

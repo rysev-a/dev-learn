@@ -116,7 +116,7 @@
   {
    "id": "s12-17",
    "title": "The NULL group",
-   "statement": "How many customers are there in each city, including \"no city\"? NULL forms its own group. Output `city`, `n`; order by n descending, then by city.",
+   "statement": "How many customers are in each city, including customers with no city? NULL forms its own group. Output `city`, `n`; order by `n` descending, then by `city`.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -186,7 +186,7 @@
   {
    "id": "s12-27",
    "title": "Classes in a group",
-   "statement": "Output the price class `tier` (`'дёшево'` below 1000, otherwise `'дорого'`) and the number of products `n`: group by a CASE expression. Order by tier.",
+   "statement": "Output the price class `tier` (`'cheap'` below 1000, otherwise `'expensive'`) and the number of products `n`: group by a CASE expression. Order by tier.",
    "hint": "",
    "starter": "-- Write a query\n"
   },

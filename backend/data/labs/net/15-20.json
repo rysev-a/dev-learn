@@ -17,7 +17,7 @@
             {
               "id": "host",
               "kind": "router",
-              "name": "Docker-узел",
+              "name": "Docker host",
               "x": 300,
               "y": 180,
               "ifaces": [
@@ -50,7 +50,7 @@
             {
               "id": "sw0",
               "kind": "switch",
-              "name": "br0 (мост)",
+              "name": "br0 (bridge)",
               "x": 440,
               "y": 180,
               "ifaces": [
@@ -97,7 +97,7 @@
             {
               "id": "c1",
               "kind": "server",
-              "name": "c1 (веб)",
+              "name": "c1 (web)",
               "x": 580,
               "y": 90,
               "ifaces": [
@@ -213,7 +213,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "Клиент",
+              "name": "Client",
               "x": 60,
               "y": 90,
               "ifaces": [
@@ -239,7 +239,7 @@
             {
               "id": "ext",
               "kind": "host",
-              "name": "Внешний хост",
+              "name": "External host",
               "x": 60,
               "y": 270,
               "ifaces": [
@@ -305,7 +305,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Контейнер c2 пингует внешний хост (192.168.0.30)",
+            "text": "Container c2 pings an external host (192.168.0.30)",
             "ping": {
               "from": "c2",
               "to": "@ext"
@@ -313,7 +313,7 @@
           },
           {
             "id": "g2",
-            "text": "Клиент открывает веб c1 через узел: 192.168.0.5:8080",
+            "text": "Client opens c1's web through the host: 192.168.0.5:8080",
             "tcp": {
               "from": "pc",
               "to": "@host.eth0",
@@ -322,7 +322,7 @@
           },
           {
             "id": "g3",
-            "text": "Порт 80 узла снаружи закрыт",
+            "text": "Host port 80 is closed from outside",
             "tcp": {
               "from": "pc",
               "to": "@host.eth0",
@@ -364,7 +364,7 @@
             {
               "id": "app",
               "kind": "server",
-              "name": "Сервер приложений",
+              "name": "Application server",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -396,7 +396,7 @@
             {
               "id": "vpc",
               "kind": "router",
-              "name": "Маршрутизатор VPC",
+              "name": "VPC router",
               "x": 200,
               "y": 180,
               "ifaces": [
@@ -429,7 +429,7 @@
             {
               "id": "natgw",
               "kind": "router",
-              "name": "NAT-шлюз",
+              "name": "NAT gateway",
               "x": 350,
               "y": 180,
               "ifaces": [
@@ -468,7 +468,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Интернет",
+              "name": "Internet",
               "x": 470,
               "y": 180,
               "ifaces": [
@@ -501,7 +501,7 @@
             {
               "id": "repo",
               "kind": "server",
-              "name": "Репозиторий",
+              "name": "Repository",
               "x": 590,
               "y": 180,
               "ifaces": [
@@ -566,7 +566,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Сервер приложений пингует репозиторий",
+            "text": "The application server pings the repository",
             "ping": {
               "from": "app",
               "to": "@repo"
@@ -574,7 +574,7 @@
           },
           {
             "id": "g2",
-            "text": "Репозиторий видит адрес NAT-шлюза",
+            "text": "The repository sees the NAT gateway's address",
             "ping": {
               "from": "app",
               "to": "@repo",
@@ -583,7 +583,7 @@
           },
           {
             "id": "g3",
-            "text": "Репозиторий не достаёт до приватного сервера напрямую",
+            "text": "The repository cannot reach the private server directly",
             "ping": {
               "from": "repo",
               "to": "@app",
@@ -624,7 +624,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Клиент из интернета",
+              "name": "Client from the internet",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -656,7 +656,7 @@
             {
               "id": "vpc",
               "kind": "router",
-              "name": "VPC-маршрутизатор",
+              "name": "VPC router",
               "x": 300,
               "y": 180,
               "ifaces": [
@@ -703,7 +703,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Веб",
+              "name": "Web",
               "x": 520,
               "y": 60,
               "ifaces": [
@@ -740,7 +740,7 @@
             {
               "id": "app",
               "kind": "server",
-              "name": "Приложение",
+              "name": "Application",
               "x": 520,
               "y": 180,
               "ifaces": [
@@ -777,7 +777,7 @@
             {
               "id": "db",
               "kind": "server",
-              "name": "База данных",
+              "name": "Database",
               "x": 520,
               "y": 300,
               "ifaces": [
@@ -842,7 +842,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Интернет → веб (443)",
+            "text": "Internet → web (443)",
             "tcp": {
               "from": "guest",
               "to": "@web",
@@ -851,7 +851,7 @@
           },
           {
             "id": "g2",
-            "text": "Веб → приложение (8080)",
+            "text": "Web → application (8080)",
             "tcp": {
               "from": "web",
               "to": "@app",
@@ -860,7 +860,7 @@
           },
           {
             "id": "g3",
-            "text": "Приложение → база (3306)",
+            "text": "Application → database (3306)",
             "tcp": {
               "from": "app",
               "to": "@db",
@@ -869,7 +869,7 @@
           },
           {
             "id": "g4",
-            "text": "Интернет → приложение закрыто",
+            "text": "Internet → application is closed",
             "tcp": {
               "from": "guest",
               "to": "@app",
@@ -879,7 +879,7 @@
           },
           {
             "id": "g5",
-            "text": "Веб → база закрыто",
+            "text": "Web → database is closed",
             "tcp": {
               "from": "web",
               "to": "@db",
@@ -926,7 +926,7 @@
             {
               "id": "client",
               "kind": "host",
-              "name": "Под-клиент",
+              "name": "Pod client",
               "x": 60,
               "y": 180,
               "ifaces": [
@@ -952,7 +952,7 @@
             {
               "id": "kp",
               "kind": "router",
-              "name": "Узел (kube-proxy)",
+              "name": "Node (kube-proxy)",
               "x": 240,
               "y": 180,
               "ifaces": [
@@ -996,7 +996,7 @@
             {
               "id": "br",
               "kind": "switch",
-              "name": "Мост подов",
+              "name": "Pod bridge",
               "x": 390,
               "y": 180,
               "ifaces": [
@@ -1050,7 +1050,7 @@
             {
               "id": "p1",
               "kind": "server",
-              "name": "под 1",
+              "name": "pod 1",
               "x": 540,
               "y": 70,
               "ifaces": [
@@ -1087,7 +1087,7 @@
             {
               "id": "p2",
               "kind": "server",
-              "name": "под 2 (не готов)",
+              "name": "pod 2 (not ready)",
               "x": 540,
               "y": 180,
               "ifaces": [
@@ -1119,7 +1119,7 @@
             {
               "id": "p3",
               "kind": "server",
-              "name": "под 3",
+              "name": "pod 3",
               "x": 540,
               "y": 290,
               "ifaces": [
@@ -1190,7 +1190,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "6 соединений делятся между готовыми подами",
+            "text": "6 connections are split between the ready pods",
             "lbspread": {
               "from": "client",
               "to": "@kp",

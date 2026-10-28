@@ -19,7 +19,7 @@
   {
    "id": "d3-composite-order",
    "title": "Column order in a composite index",
-   "statement": "A frequent query: `WHERE city = 'Москва' AND created >= '2024-06-01'`. Create a composite index so that it can be searched both by city (equality) and by date (range) — choose the column order yourself.",
+   "statement": "A frequent query: `WHERE city = 'Moscow' AND created >= '2024-06-01'`. Create a composite index so that it can be searched both by city (equality) and by date (range) — choose the column order yourself.",
    "hint": "Put the equality column first and the range column last: (city, created).",
    "starter": "-- composite index for city (=) and created (>=)\nCREATE INDEX\n"
   },
@@ -40,8 +40,8 @@
   {
    "id": "d3-prefix-range",
    "title": "Prefix search as a range",
-   "statement": "We need products whose title starts with «Кн». The query with `LIKE '%Кн%'` scans the table. Output the plan of a query that searches by the range `title >= 'Кн' AND title < 'Ко'` through the index idx_title (the last command is EXPLAIN QUERY PLAN SELECT …).",
-   "hint": "A range over an ordered column: `title >= 'Кн' AND title < 'Ко'` replaces the prefix «Кн%».",
+   "statement": "We need products whose title starts with «Bo». The query with `LIKE '%Bo%'` scans the table. Output the plan of a query that searches by the range `title >= 'Bo' AND title < 'Bp'` through the index idx_title (the last command is EXPLAIN QUERY PLAN SELECT …).",
+   "hint": "A range over an ordered column: `title >= 'Bo' AND title < 'Bp'` replaces the prefix «Bo%».",
    "starter": "-- EXPLAIN QUERY PLAN for a range over title\n"
   },
   {

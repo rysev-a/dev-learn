@@ -1,115 +1,43 @@
 {
- "book": 15,
- "chapter": 10,
- "lab": "net",
- "tasks": [
-  {
-   "id": "n10-resolver",
-   "title": "The client has no DNS server",
-   "statement": "The PC opens the site by address but not by name: ping www.example.org answers “Temporary failure in name resolution”. The local network has a recursive resolver at 192.168.0.53. Set it on the PC and make sure the name resolves and the site opens by name. Press ▶ next to the goal and look at the query path: the resolver goes to the root, then to the .org server, then to the authoritative server.",
-   "hint": "On the PC: the “DNS server” field in the device card, or `echo \"nameserver 192.168.0.53\" > /etc/resolv.conf`. Check with `dig www.example.org` and `cat /etc/resolv.conf`.",
-   "spec_text": {
-    "/goals/0/text": "www.example.org resolves to 198.51.100.40",
-    "/goals/1/text": "PC pings the site by name",
-    "/goals/2/text": "PC opens port 80 by name",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Resolver",
-    "/start/devices/3/name": "Gateway",
-    "/start/devices/4/name": "Internet",
-    "/start/devices/5/name": "Root (.)",
-    "/start/devices/6/name": ".org server",
-    "/start/devices/7/name": "Authoritative example.org",
-    "/start/devices/8/name": "Website"
-   }
-  },
-  {
-   "id": "n10-record",
-   "title": "The record points to the old server",
-   "statement": "The site has moved to server 198.51.100.40, but in the example.org zone the www record still points to the old address 198.51.100.99, where there is nothing. You are the zone administrator: go to the authoritative server, delete the old record and add the correct one. Check that the name resolves and port 80 opens by name.",
-   "hint": "On the authoritative server: in the DNS records section delete the record with the cross and add a new one, or `dns del www.example.org A`, then `dns add www.example.org A 198.51.100.40`.",
-   "spec_text": {
-    "/goals/1/text": "The site opens by name (tcp/80)",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Resolver",
-    "/start/devices/3/name": "Gateway",
-    "/start/devices/4/name": "Internet",
-    "/start/devices/5/name": "Root (.)",
-    "/start/devices/6/name": ".org server",
-    "/start/devices/7/name": "Authoritative example.org",
-    "/start/devices/8/name": "Website"
-   }
-  },
-  {
-   "id": "n10-cname",
-   "title": "CNAME alias",
-   "statement": "The site needs a second name, shop.example.org, that leads to the same place as www. Add a CNAME record on the authoritative server, not a second A record: then when the address changes you only have to update one record. Check that the resolver returns the site's address and port 80 opens by the new name.",
-   "hint": "`dns add shop.example.org CNAME www.example.org` or the “+ record” form: name shop.example.org, type CNAME, value www.example.org. The resolver follows the chain to the A record on its own.",
-   "spec_text": {
-    "/goals/1/text": "The site opens by the name shop.example.org",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Resolver",
-    "/start/devices/3/name": "Gateway",
-    "/start/devices/4/name": "Internet",
-    "/start/devices/5/name": "Root (.)",
-    "/start/devices/6/name": ".org server",
-    "/start/devices/7/name": "Authoritative example.org",
-    "/start/devices/8/name": "Website"
-   }
-  },
-  {
-   "id": "n10-delegation",
-   "title": "Broken delegation",
-   "statement": "The server for the top-level domain .org has “forgotten” that the example.org zone is delegated to the authoritative server 198.51.100.30, so it answers NXDOMAIN to a query for www.example.org. Press ▶ next to the goal and find the step where the chain breaks. You manage the .org server: restore the delegation.",
-   "hint": "On the .org server: `dns delegate example.org 198.51.100.30` or the “+ delegation” form (zone example.org, server 198.51.100.30).",
-   "spec_text": {
-    "/goals/0/text": "www.example.org resolves",
-    "/goals/1/text": "The site opens by name",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Resolver",
-    "/start/devices/3/name": "Gateway",
-    "/start/devices/4/name": "Internet",
-    "/start/devices/5/name": "Root (.)",
-    "/start/devices/6/name": ".org server",
-    "/start/devices/7/name": "Authoritative example.org",
-    "/start/devices/8/name": "Website"
-   }
-  },
-  {
-   "id": "n10-roothint",
-   "title": "The resolver does not know the root",
-   "statement": "The PC is configured correctly, but the resolver returns SERVFAIL for every query: its settings contain a wrong root server address, 198.51.100.99. Find the cause in the ▶ log (the resolver gets no reply), then set the correct root server, 198.51.100.10.",
-   "hint": "On the resolver: `dns root 198.51.100.10` or the “root server” field in the DNS section. Check `dig www.example.org` on the PC.",
-   "spec_text": {
-    "/goals/0/text": "The name resolves through the resolver",
-    "/goals/1/text": "The site opens by name",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Resolver",
-    "/start/devices/3/name": "Gateway",
-    "/start/devices/4/name": "Internet",
-    "/start/devices/5/name": "Root (.)",
-    "/start/devices/6/name": ".org server",
-    "/start/devices/7/name": "Authoritative example.org",
-    "/start/devices/8/name": "Website"
-   }
-  },
-  {
-   "id": "n10-hosts",
-   "title": "The hosts file for testing",
-   "statement": "Before launching a new site you need to test it by the name staging.example.org on the test server 198.51.100.40, but DNS has no such record yet (the query returns NXDOMAIN). Without touching DNS, add a local hint to the hosts file on the PC and make sure that ping and connecting by name work.",
-   "hint": "On the PC: `echo \"198.51.100.40 staging.example.org\" >> /etc/hosts`; `cat /etc/hosts` shows the file. A hosts entry beats the DNS answer — which is also what happens in real life when “the site doesn't update” for just one person.",
-   "spec_text": {
-    "/goals/0/text": "DNS still has no such name",
-    "/goals/1/text": "PC pings staging.example.org",
-    "/goals/2/text": "PC opens port 80 by this name",
-    "/start/devices/0/name": "PC",
-    "/start/devices/1/name": "Resolver",
-    "/start/devices/3/name": "Gateway",
-    "/start/devices/4/name": "Internet",
-    "/start/devices/5/name": "Root (.)",
-    "/start/devices/6/name": ".org server",
-    "/start/devices/7/name": "Authoritative example.org",
-    "/start/devices/8/name": "Website"
-   }
-  }
- ]
+  "book": 15,
+  "chapter": 10,
+  "lab": "net",
+  "tasks": [
+    {
+      "id": "n10-resolver",
+      "title": "The client has no DNS server",
+      "statement": "The PC opens the site by address but not by name: ping www.example.org answers “Temporary failure in name resolution”. The local network has a recursive resolver at 192.168.0.53. Set it on the PC and make sure the name resolves and the site opens by name. Press ▶ next to the goal and look at the query path: the resolver goes to the root, then to the .org server, then to the authoritative server.",
+      "hint": "On the PC: the “DNS server” field in the device card, or `echo \"nameserver 192.168.0.53\" > /etc/resolv.conf`. Check with `dig www.example.org` and `cat /etc/resolv.conf`."
+    },
+    {
+      "id": "n10-record",
+      "title": "The record points to the old server",
+      "statement": "The site has moved to server 198.51.100.40, but in the example.org zone the www record still points to the old address 198.51.100.99, where there is nothing. You are the zone administrator: go to the authoritative server, delete the old record and add the correct one. Check that the name resolves and port 80 opens by name.",
+      "hint": "On the authoritative server: in the DNS records section delete the record with the cross and add a new one, or `dns del www.example.org A`, then `dns add www.example.org A 198.51.100.40`."
+    },
+    {
+      "id": "n10-cname",
+      "title": "CNAME alias",
+      "statement": "The site needs a second name, shop.example.org, that leads to the same place as www. Add a CNAME record on the authoritative server, not a second A record: then when the address changes you only have to update one record. Check that the resolver returns the site's address and port 80 opens by the new name.",
+      "hint": "`dns add shop.example.org CNAME www.example.org` or the “+ record” form: name shop.example.org, type CNAME, value www.example.org. The resolver follows the chain to the A record on its own."
+    },
+    {
+      "id": "n10-delegation",
+      "title": "Broken delegation",
+      "statement": "The server for the top-level domain .org has “forgotten” that the example.org zone is delegated to the authoritative server 198.51.100.30, so it answers NXDOMAIN to a query for www.example.org. Press ▶ next to the goal and find the step where the chain breaks. You manage the .org server: restore the delegation.",
+      "hint": "On the .org server: `dns delegate example.org 198.51.100.30` or the “+ delegation” form (zone example.org, server 198.51.100.30)."
+    },
+    {
+      "id": "n10-roothint",
+      "title": "The resolver does not know the root",
+      "statement": "The PC is configured correctly, but the resolver returns SERVFAIL for every query: its settings contain a wrong root server address, 198.51.100.99. Find the cause in the ▶ log (the resolver gets no reply), then set the correct root server, 198.51.100.10.",
+      "hint": "On the resolver: `dns root 198.51.100.10` or the “root server” field in the DNS section. Check `dig www.example.org` on the PC."
+    },
+    {
+      "id": "n10-hosts",
+      "title": "The hosts file for testing",
+      "statement": "Before launching a new site you need to test it by the name staging.example.org on the test server 198.51.100.40, but DNS has no such record yet (the query returns NXDOMAIN). Without touching DNS, add a local hint to the hosts file on the PC and make sure that ping and connecting by name work.",
+      "hint": "On the PC: `echo \"198.51.100.40 staging.example.org\" >> /etc/hosts`; `cat /etc/hosts` shows the file. A hosts entry beats the DNS answer — which is also what happens in real life when “the site doesn't update” for just one person."
+    }
+  ]
 }

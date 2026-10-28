@@ -10,7 +10,7 @@
    "hint": "Запятая объединяет селекторы: h1, h2.",
    "spec": {
     "kind": "selector",
-    "html": "<h1 id=\"t\">Название</h1><h2 id=\"s\">Раздел</h2><h3 id=\"u\">Подраздел</h3><p id=\"p\">Текст</p>",
+    "html": "<h1 id=\"t\">Title</h1><h2 id=\"s\">Section</h2><h3 id=\"u\">Subsection</h3><p id=\"p\">Text</p>",
     "starter_css": "",
     "want": [
      "t",
@@ -29,7 +29,7 @@
    "hint": "Пробел между селекторами означает «на любой глубине внутри».",
    "spec": {
     "kind": "selector",
-    "html": "<div class=\"article\"><h2 id=\"h\">Заголовок</h2><p id=\"p1\">Первый абзац</p><blockquote><p id=\"p2\">Абзац в цитате</p></blockquote></div><p id=\"out\">Абзац вне статьи</p>",
+    "html": "<div class=\"article\"><h2 id=\"h\">Heading</h2><p id=\"p1\">First paragraph</p><blockquote><p id=\"p2\">Paragraph in a quote</p></blockquote></div><p id=\"out\">Paragraph outside the article</p>",
     "starter_css": "",
     "want": [
      "p1",
@@ -48,7 +48,7 @@
    "hint": "Знак > выбирает только прямых детей.",
    "spec": {
     "kind": "selector",
-    "html": "<ul class=\"menu\"><li id=\"a\">Главная<ul><li id=\"a1\">Вложенный</li></ul></li><li id=\"b\">О нас</li></ul>",
+    "html": "<ul class=\"menu\"><li id=\"a\">Home<ul><li id=\"a1\">Nested</li></ul></li><li id=\"b\">About us</li></ul>",
     "starter_css": "",
     "want": [
      "a",
@@ -67,7 +67,7 @@
    "hint": "Знак + выбирает ближайшего следующего соседа, знак ~ — всех следующих.",
    "spec": {
     "kind": "selector",
-    "html": "<h2 id=\"t\">Заголовок</h2><p id=\"p1\">Сразу после заголовка</p><p id=\"p2\">Второй абзац</p><p id=\"p3\">Третий абзац</p>",
+    "html": "<h2 id=\"t\">Heading</h2><p id=\"p1\">Right after the heading</p><p id=\"p2\">Second paragraph</p><p id=\"p3\">Third paragraph</p>",
     "starter_css": "",
     "want": [
      "p1"
@@ -85,7 +85,7 @@
    "hint": "Селектор атрибута: [href^=\"https\"] — значение начинается с «https».",
    "spec": {
     "kind": "selector",
-    "html": "<a id=\"l1\" href=\"https://a.example\">Один</a> <a id=\"l2\" href=\"/local\">Два</a> <a id=\"l3\" href=\"https://b.example\">Три</a>",
+    "html": "<a id=\"l1\" href=\"https://a.example\">One</a> <a id=\"l2\" href=\"/local\">Two</a> <a id=\"l3\" href=\"https://b.example\">Three</a>",
     "starter_css": "",
     "want": [
      "l1",
@@ -104,7 +104,7 @@
    "hint": "Знак $ в селекторе атрибута: [href$=\".pdf\"] — значение заканчивается подстрокой.",
    "spec": {
     "kind": "selector",
-    "html": "<a id=\"f1\" href=\"report.pdf\">Отчёт</a> <a id=\"f2\" href=\"notes.txt\">Заметки</a> <a id=\"f3\" href=\"/docs/guide.pdf\">Руководство</a> <a id=\"f4\" href=\"https://a.example/pdf\">Раздел pdf</a>",
+    "html": "<a id=\"f1\" href=\"report.pdf\">Report</a> <a id=\"f2\" href=\"notes.txt\">Notes</a> <a id=\"f3\" href=\"/docs/guide.pdf\">Guide</a> <a id=\"f4\" href=\"https://a.example/pdf\">pdf section</a>",
     "starter_css": "",
     "want": [
      "f1",
@@ -143,7 +143,7 @@
    "hint": ":first-child и :last-child, объединённые запятой.",
    "spec": {
     "kind": "selector",
-    "html": "<ol><li id=\"f\">Первый</li><li id=\"m\">Средний</li><li id=\"l\">Последний</li></ol>",
+    "html": "<ol><li id=\"f\">First</li><li id=\"m\">Middle</li><li id=\"l\">Last</li></ol>",
     "starter_css": "",
     "want": [
      "f",
@@ -162,7 +162,7 @@
    "hint": "Псевдокласс :not(...) исключает совпавшее.",
    "spec": {
     "kind": "selector",
-    "html": "<button id=\"b1\" class=\"btn\">Один</button> <button id=\"b2\" class=\"btn disabled\">Два</button> <button id=\"b3\" class=\"btn\">Три</button> <button id=\"b4\" class=\"disabled\">Четыре</button>",
+    "html": "<button id=\"b1\" class=\"btn\">One</button> <button id=\"b2\" class=\"btn disabled\">Two</button> <button id=\"b3\" class=\"btn\">Three</button> <button id=\"b4\" class=\"disabled\">Four</button>",
     "starter_css": "",
     "want": [
      "b1",
@@ -181,7 +181,7 @@
    "hint": ":is(h2, p) подставляет список на место одного селектора: .article :is(…).",
    "spec": {
     "kind": "selector",
-    "html": "<div class=\"article\"><h2 id=\"h\">Заголовок</h2><p id=\"p1\">Текст</p><ul><li id=\"u\">Пункт</li></ul></div><h2 id=\"out1\">Заголовок снаружи</h2><p id=\"out2\">Абзац снаружи</p>",
+    "html": "<div class=\"article\"><h2 id=\"h\">Heading</h2><p id=\"p1\">Text</p><ul><li id=\"u\">Item</li></ul></div><h2 id=\"out1\">Heading outside</h2><p id=\"out2\">Paragraph outside</p>",
     "starter_css": "",
     "want": [
      "h",
@@ -200,7 +200,7 @@
    "hint": "Псевдокласс :has(...) выбирает элемент по тому, что лежит внутри него.",
    "spec": {
     "kind": "selector",
-    "html": "<div class=\"card\" id=\"c1\"><img src=\"a.jpg\" alt=\"Фото\"><p>С картинкой</p></div><div class=\"card\" id=\"c2\"><p>Без картинки</p></div><div class=\"card\" id=\"c3\"><img src=\"b.jpg\" alt=\"Фото\"></div>",
+    "html": "<div class=\"card\" id=\"c1\"><img src=\"a.jpg\" alt=\"Photo\"><p>With image</p></div><div class=\"card\" id=\"c2\"><p>Without image</p></div><div class=\"card\" id=\"c3\"><img src=\"b.jpg\" alt=\"Photo\"></div>",
     "starter_css": "",
     "want": [
      "c1",
@@ -219,7 +219,7 @@
    "hint": "Один класс даёт (0, 1, 0). Всё, что длиннее, уже тяжелее.",
    "spec": {
     "kind": "selector",
-    "html": "<div id=\"page\"><p id=\"n1\" class=\"note\">В странице</p><p id=\"n2\">Без класса</p></div><p id=\"n3\" class=\"note\">Снаружи</p>",
+    "html": "<div id=\"page\"><p id=\"n1\" class=\"note\">In page</p><p id=\"n2\">No class</p></div><p id=\"n3\" class=\"note\">Outside</p>",
     "starter_css": "#page .note",
     "want": [
      "n1",
@@ -247,7 +247,7 @@
    "hint": "Правило с псевдоклассом :hover применяется, пока курсор над элементом: .btn:hover { … }.",
    "spec": {
     "kind": "css",
-    "html": "<style>.btn { background: #2563eb; color: #fff; padding: 8px 16px; border: 0; }</style><button class=\"btn\" id=\"b\">Купить</button>",
+    "html": "<style>.btn { background: #2563eb; color: #fff; padding: 8px 16px; border: 0; }</style><button class=\"btn\" id=\"b\">Buy</button>",
     "starter_css": ".btn { background: #1d4ed8; }",
     "viewport": 1024,
     "checks": [
@@ -283,7 +283,7 @@
    "hint": "input:focus-visible { outline: 2px solid …; } — контур рисуется вне рамки и не сдвигает вёрстку.",
    "spec": {
     "kind": "css",
-    "html": "<style>input { border: 1px solid #94a3b8; padding: 6px; }</style><input id=\"f\" type=\"text\" placeholder=\"Ваше имя\">",
+    "html": "<style>input { border: 1px solid #94a3b8; padding: 6px; }</style><input id=\"f\" type=\"text\" placeholder=\"Your name\">",
     "starter_css": "input { border-color: #f59e0b; }",
     "viewport": 1024,
     "checks": [
@@ -333,7 +333,7 @@
    "hint": "input:checked + label { … } — подпись стоит сразу после чекбокса.",
    "spec": {
     "kind": "css",
-    "html": "<style>label { color: #444; }</style><p><input type=\"checkbox\" id=\"a\" checked><label id=\"la\" for=\"a\">Подписаться на рассылку</label></p><p><input type=\"checkbox\" id=\"b\"><label id=\"lb\" for=\"b\">Принять условия</label></p>",
+    "html": "<style>label { color: #444; }</style><p><input type=\"checkbox\" id=\"a\" checked><label id=\"la\" for=\"a\">Subscribe to newsletter</label></p><p><input type=\"checkbox\" id=\"b\"><label id=\"lb\" for=\"b\">Accept terms</label></p>",
     "starter_css": "label { color: #15803d; }",
     "viewport": 1024,
     "checks": [
@@ -365,7 +365,7 @@
    "hint": "Псевдокласс :invalid подходит полю, значение которого не проходит проверку, например type=\"email\" с текстом без собаки.",
    "spec": {
     "kind": "css",
-    "html": "<style>input { border: 2px solid #94a3b8; padding: 6px; }</style><input id=\"bad\" type=\"email\" required value=\"не-почта\"> <input id=\"good\" type=\"email\" value=\"ivan@mail.ru\">",
+    "html": "<style>input { border: 2px solid #94a3b8; padding: 6px; }</style><input id=\"bad\" type=\"email\" required value=\"not-an-email\"> <input id=\"good\" type=\"email\" value=\"ivan@mail.ru\">",
     "starter_css": "input { border-color: #dc2626; }",
     "viewport": 1024,
     "checks": [
@@ -401,7 +401,7 @@
    "hint": "Псевдоэлемент a::after со свойством content: \"→\". Без content он не появится.",
    "spec": {
     "kind": "css",
-    "html": "<a class=\"ext\" id=\"l\" href=\"https://example.org\">Документация</a>",
+    "html": "<a class=\"ext\" id=\"l\" href=\"https://example.org\">Documentation</a>",
     "starter_css": ".ext { color: #2563eb; }",
     "viewport": 1024,
     "checks": [
@@ -442,7 +442,7 @@
    "hint": "При равной специфичности выигрывает правило, которое записано ниже. Ваш CSS идёт после того, что уже есть.",
    "spec": {
     "kind": "css",
-    "html": "<style>.a { color: red; } .b { color: green; }</style><p class=\"a b\" id=\"t\">Какого я цвета?</p>",
+    "html": "<style>.a { color: red; } .b { color: green; }</style><p class=\"a b\" id=\"t\">What colour am I?</p>",
     "starter_css": "p { color: red; }",
     "viewport": 1024,
     "checks": [
@@ -471,7 +471,7 @@
    "hint": "Селектор #card .text весит (1, 1, 0). Добавьте ещё один класс или тип, не трогая ничего другого.",
    "spec": {
     "kind": "css",
-    "html": "<style>#card .text { color: red; }</style><div id=\"card\"><p class=\"text\" id=\"t\">Текст в карточке</p></div>",
+    "html": "<style>#card .text { color: red; }</style><div id=\"card\"><p class=\"text\" id=\"t\">Card text</p></div>",
     "starter_css": ".text { color: blue; }",
     "viewport": 1024,
     "checks": [
@@ -500,7 +500,7 @@
    "hint": "Повторите тот же вес — три класса — и запишите правило ниже: при равной специфичности побеждает последнее.",
    "spec": {
     "kind": "css",
-    "html": "<style>.list .item.active { color: gray; }</style><ul class=\"list\"><li class=\"item active\" id=\"t\">Текущий пункт</li><li class=\"item\">Обычный</li></ul>",
+    "html": "<style>.list .item.active { color: gray; }</style><ul class=\"list\"><li class=\"item active\" id=\"t\">Current item</li><li class=\"item\">Regular</li></ul>",
     "starter_css": ".item { color: red; }",
     "viewport": 1024,
     "checks": [

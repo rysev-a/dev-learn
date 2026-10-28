@@ -7,113 +7,49 @@
    "id": "sd18-s1-mvp",
    "title": "Stage 1. MVP",
    "statement": "The short-video service launches with 250 reads and 30 metadata writes per second. Build the simplest design — users, an app server, a database — and pick sizes so that load stays at or below 80% and the cost is $250 per month.",
-   "hint": "An S server handles 300 requests (280 is 93%), so you need an M. An S database is enough: 250 reads and 30 writes is 40%.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "App server",
-    "/start/nodes/2/name": "Database"
-   }
+   "hint": "An S server handles 300 requests (280 is 93%), so you need an M. An S database is enough: 250 reads and 30 writes is 40%."
   },
   {
    "id": "sd18-s2-growth",
    "title": "Stage 2. Tenfold growth",
    "statement": "Load has grown to 2,500 reads and 300 writes per second, with a 5 GB working set. Strengthen the design: a load balancer, several servers, a metadata cache (≥85%) and a database replica with automatic failover. The design survives a database, cache and server failure, load is at most 80%, and the budget is $1,400 per month.",
-   "hint": "Five M servers; a 5 GB cache with TTL 3600 and a replica; an M database (300 writes is too much for an S) with a replica and automatic failover.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "App server",
-    "/start/nodes/2/name": "Database"
-   }
+   "hint": "Five M servers; a 5 GB cache with TTL 3600 and a replica; an M database (300 writes is too much for an S) with a replica and automatic failover."
   },
   {
    "id": "sd18-s3-media",
    "title": "Stage 3. Video and CDN",
    "statement": "Users have started watching videos: 30,000 file requests per second. Move the files to object storage and put a CDN (≥90% of static requests) in front of it. The app servers must stay on metadata only, load at most 80%, the design stays resilient, and the budget is $1,500 per month.",
-   "hint": "CDN → storage (static traffic bypasses the servers); the CDN passes dynamic requests to the load balancer. Everything else is as in stage 2.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "Load balancer",
-    "/start/nodes/2/name": "App server",
-    "/start/nodes/3/name": "Cache",
-    "/start/nodes/4/name": "Database"
-   }
+   "hint": "CDN → storage (static traffic bypasses the servers); the CDN passes dynamic requests to the load balancer. Everything else is as in stage 2."
   },
   {
    "id": "sd18-s4-transcode",
    "title": "Stage 4. Transcoding through a queue",
    "statement": "Videos must be transcoded after upload. Add a queue and idempotent workers on spot instances (at least two): after a 10-second peak the queue drains with no lag (5 s is acceptable), the database and servers stay at or below 80%, and the budget is $1,600 per month.",
-   "hint": "Server → queue → workers → database. Two M workers handle 800 writes per second at a load of 300.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/2/name": "Load balancer",
-    "/start/nodes/3/name": "App server",
-    "/start/nodes/4/name": "Cache",
-    "/start/nodes/5/name": "Object storage",
-    "/start/nodes/6/name": "Database"
-   }
+   "hint": "Server → queue → workers → database. Two M workers handle 800 writes per second at a load of 300."
   },
   {
    "id": "sd18-s5-feed-search",
    "title": "Stage 5. Feed and search",
    "statement": "A subscription feed (100 followers per author on average) and title search (15% of reads, a 160 GB index) have been added. Choose the hybrid feed, add a search cluster (shards by volume, two replicas) and expand the cache to the working set (8 GB, ≥85%). The design survives a database and search failure, everything stays at or below 80%, and the budget is $3,500 per month.",
-   "hint": "Feed — set the server to “hybrid”. Search: four shards, two replicas (160 / 40 = 4). An 8 GB cache with a replica. The hybrid feed doubles writes, so an M database is already tight — you need an L.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/2/name": "Load balancer",
-    "/start/nodes/3/name": "App server",
-    "/start/nodes/4/name": "Cache",
-    "/start/nodes/5/name": "Object storage",
-    "/start/nodes/6/name": "Queue",
-    "/start/nodes/7/name": "Worker",
-    "/start/nodes/8/name": "Database"
-   }
+   "hint": "Feed — set the server to “hybrid”. Search: four shards, two replicas (160 / 40 = 4). An 8 GB cache with a replica. The hybrid feed doubles writes, so an M database is already tight — you need an L."
   },
   {
    "id": "sd18-s6-reliability",
    "title": "Stage 6. Zones and protection",
    "statement": "The service has become critical: it must survive a zone, a deployment and a server failure. Spread the servers, cache, workers and database across three zones, enable a rolling deployment and a circuit breaker, put a rate limiter at the entry (limit at least the normal load of 2,800) and add monitoring. Load at most 80%, budget $4,200 per month.",
-   "hint": "Nine M servers across three zones (after losing a zone, six remain — 4,200). Put the rate limiter between the load balancer and the servers; add monitoring to the design.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/2/name": "Load balancer",
-    "/start/nodes/3/name": "App server",
-    "/start/nodes/4/name": "Cache",
-    "/start/nodes/5/name": "Search",
-    "/start/nodes/6/name": "Object storage",
-    "/start/nodes/7/name": "Queue",
-    "/start/nodes/8/name": "Worker",
-    "/start/nodes/9/name": "Database"
-   }
+   "hint": "Nine M servers across three zones (after losing a zone, six remain — 4,200). Put the rate limiter between the load balancer and the servers; add monitoring to the design."
   },
   {
    "id": "sd18-s7-cost",
    "title": "Stage 7. Cut the bill",
    "statement": "The bill keeps growing while load is stable: the app servers are needed around the clock. Move them to the reserved pricing plan (a discount of about 40%) while keeping all the reliability goals: the design survives a zone, deployment, server, database and search failure, load is at most 80%, and the budget is $3,700 per month.",
-   "hint": "The app server's “Pricing” parameter — “reserved”. Leave everything else alone: reliability matters more than saving on it.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/2/name": "Load balancer",
-    "/start/nodes/3/name": "Rate limiter",
-    "/start/nodes/4/name": "App server",
-    "/start/nodes/5/name": "Cache",
-    "/start/nodes/6/name": "Search",
-    "/start/nodes/7/name": "Object storage",
-    "/start/nodes/8/name": "Queue",
-    "/start/nodes/9/name": "Worker",
-    "/start/nodes/10/name": "Database",
-    "/start/nodes/11/name": "Monitoring"
-   }
+   "hint": "The app server's “Pricing” parameter — “reserved”. Leave everything else alone: reliability matters more than saving on it."
   },
   {
    "id": "sd18-exam",
    "title": "Exam. The final design",
    "statement": "Final assignment. The service at full strength: 45,000 file requests per second, 3,800 reads and 450 writes per second, a subscription feed (100 followers per author), search (15% of reads, a 240 GB index), a 10 GB working set. Build the design from scratch: CDN (≥90%) → storage; load balancers (two), a rate limiter (limit from 4,300), servers with a rolling deployment, a circuit breaker and a hybrid feed; a cache (≥85%) with a replica; a queue with idempotent workers on spot instances; search (shards by volume, two replicas); a database with a replica and automatic failover; monitoring. The design survives a zone, deployment, server, database, cache and search failure; availability ≥ 99.9%, p99 ≤ 160 ms, load at most 80%, budget $4,700 per month.",
-   "hint": "Eleven M servers across three zones, reserved pricing; a 10 GB cache with a replica in three zones; search with 6 shards × 2 replicas; three M workers on spot instances; an L database with a replica in three zones; everything else as in the stages of the previous exercises.",
-   "spec_text": {
-    "/start/nodes/0/name": "Users",
-    "/start/nodes/1/name": "App server",
-    "/start/nodes/2/name": "Database"
-   }
+   "hint": "Eleven M servers across three zones, reserved pricing; a 10 GB cache with a replica in three zones; search with 6 shards × 2 replicas; three M workers on spot instances; an L database with a replica in three zones; everything else as in the stages of the previous exercises."
   }
  ]
 }

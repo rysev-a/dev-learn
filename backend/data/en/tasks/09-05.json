@@ -123,7 +123,7 @@
   {
    "id": "s05-18",
    "title": "Most expensive in a category",
-   "statement": "What is the highest price among products of the category `Электроника`? Column max_price.",
+   "statement": "What is the highest price among products of the category `Tech`? Column max_price.",
    "hint": "",
    "starter": "-- Write a query\n"
   },
@@ -193,7 +193,7 @@
   {
    "id": "s05-28",
    "title": "Glue with a separator",
-   "statement": "Output the names of customers from `Тверь` joined with ' | ' (in id order): group_concat(name, ' | ') as names. Hint: first a subquery with ORDER BY id.",
+   "statement": "Output the names of customers from `Tver` joined with ' | ' (in id order): group_concat(name, ' | ') as names. Hint: first a subquery with ORDER BY id.",
    "hint": "",
    "starter": "-- Write a query\n"
   },

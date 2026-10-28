@@ -24,8 +24,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "S = НЕ A; P = A",
-        "success": "Инкрементер — частный случай сумматора: второе слагаемое всегда 1. Заметьте: у схемы теперь ДВА выхода — старший разряд «выпадает» из младшего отдельным сигналом переноса.",
+        "formula": "S = NOT A; P = A",
+        "success": "An incrementer is a special case of an adder: the second addend is always 1. Note that the circuit now has TWO outputs: the high digit “drops out” of the low one as a separate carry signal.",
         "solution": {
           "gates": [
             {
@@ -95,7 +95,7 @@
         "clock": null,
         "ticks": false,
         "formula": "S = A⊕B; P = A·B",
-        "success": "Полусумматор готов! Он называется «полу-», потому что не принимает перенос из предыдущего разряда — в цепочке таких сложителей не собрать. Сейчас это исправим.",
+        "success": "The half adder is done! It is called “half” because it does not accept a carry from the previous digit, so a chain of them cannot be built. We will fix that now.",
         "solution": {
           "gates": [
             {
@@ -204,7 +204,7 @@
         "clock": null,
         "ticks": false,
         "formula": "S = A⊕B⊕Cin",
-        "success": "Бит суммы — это чётность (parity): цепочка XOR считает единицы по модулю 2. Тот же приём работает в схемах контроля чётности.",
+        "success": "The sum bit is parity: a chain of XORs counts ones modulo 2. The same trick works in parity-check circuits.",
         "solution": {
           "gates": [
             {
@@ -301,8 +301,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "S = A⊕B⊕Cin; P = AB ИЛИ AC ИЛИ BC",
-        "success": "Вы собрали полный сумматор — «кирпичик» 4-, 8- и 64-разрядных АЛУ. Перенос одного разряда подключается ко входу Cin следующего — получается сумматор с последовательным переносом. Дальше: регистры и такт!",
+        "formula": "S = A⊕B⊕Cin; P = AB OR AC OR BC",
+        "success": "You built a full adder, the “building block” of 4-, 8- and 64-bit ALUs. The carry of one digit connects to the Cin of the next, which gives a ripple-carry adder. Next up: registers and the clock!",
         "solution": {
           "gates": [
             {
@@ -550,8 +550,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R = A⊕B; Bo = НЕ-A·B",
-        "success": "Сравните с полусумматором: сумма и разность считаются одинаково (XOR), отличается только перенос — у вычитателя перед A стоит инвертор. Чуть позже вычитание сведётся к сложению совсем.",
+        "formula": "R = A⊕B; Bo = NOT-A·B",
+        "success": "Compare with the half adder: sum and difference are computed the same way (XOR); only the carry differs, since the subtractor has an inverter before A. A little later, subtraction will reduce to addition altogether.",
         "solution": {
           "gates": [
             {
@@ -676,8 +676,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "R = A⊕B⊕Bin; Bo = НЕ-A·B + НЕ(A⊕B)·Bin",
-        "success": "Полный вычитатель — зеркало полного сумматора. Но в процессорах отдельных вычитателей почти не строят: вычитание делают сложением с «дополнением» — об этом чуть дальше, в упражнении про сумматор-вычитатель.",
+        "formula": "R = A⊕B⊕Bin; Bo = NOT-A·B + NOT(A⊕B)·Bin",
+        "success": "The full subtractor is a mirror of the full adder. But processors almost never have separate subtractors: subtraction is done by adding a “complement”, which comes a bit later in the adder-subtractor exercise.",
         "solution": {
           "gates": [
             {
@@ -903,8 +903,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "S0 = НЕ-A0; S1 = A1⊕A0; P = A1·A0",
-        "success": "Так работает счётчик: каждый разряд переворачивается, когда все младшие — единицы. Это схема «+1», из которой потом вырастет счётчик команд — адрес следующей инструкции.",
+        "formula": "S0 = NOT-A0; S1 = A1⊕A0; P = A1·A0",
+        "success": "This is how a counter works: each digit flips when all the lower ones are ones. This “+1” circuit is what the program counter, the address of the next instruction, will later grow from.",
         "solution": {
           "gates": [
             {
@@ -1040,8 +1040,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Lt = НЕ-A·B; Eq = A⊙B; Gt = A·НЕ-B",
-        "success": "Компаратор — основа условных переходов («если A < B, то…»). Заметьте: Lt и Gt — те же элементы, что давали заём у вычитателя. Сравнение — это вычитание, от которого оставили только знак.",
+        "formula": "Lt = NOT-A·B; Eq = A⊙B; Gt = A·NOT-B",
+        "success": "A comparator is the basis of conditional jumps (“if A < B, then…”). Note that Lt and Gt are the same gates that produced the borrow in the subtractor. Comparison is subtraction with only the sign kept.",
         "solution": {
           "gates": [
             {
@@ -1240,7 +1240,7 @@
         "clock": null,
         "ticks": false,
         "formula": "S0 = A0⊕B0; c = A0·B0; S1 = A1⊕B1⊕c; P = A1·B1 + (A1⊕B1)·c",
-        "success": "Это сумматор с последовательным переносом: каждый разряд ждёт перенос от соседа. Чем шире число, тем длиннее цепочка и тем дольше складывается — поэтому в быстрых процессорах переносы «угадывают» заранее.",
+        "success": "This is a ripple-carry adder: each digit waits for the carry from its neighbor. The wider the number, the longer the chain and the longer the addition takes, which is why fast processors “guess” carries in advance.",
         "solution": {
           "gates": [
             {
@@ -1500,7 +1500,7 @@
         "clock": null,
         "ticks": false,
         "formula": "S = A⊕(B⊕M)⊕M; P = maj(A, B⊕M, M)",
-        "success": "Так АЛУ вычитает: в «дополнительном коде» A − B — это A + НЕ-B + 1. Отдельный вычитатель не нужен — достаточно управляемого инвертора на входе B и единицы в переносе.",
+        "success": "This is how an ALU subtracts: in two's complement, A − B is A + NOT-B + 1. A separate subtractor is not needed, just a controlled inverter on input B and a one in the carry.",
         "solution": {
           "gates": [
             {
@@ -1737,8 +1737,8 @@
         "blocks": [],
         "clock": null,
         "ticks": false,
-        "formula": "Gt = A1·НЕ-B1 + (A1⊙B1)·A0·НЕ-B0; Eq = (A1⊙B1)·(A0⊙B0)",
-        "success": "Правило «сравнивай старший разряд, и только если равны — идёшь к младшему» работает для чисел любой ширины. Условные переходы в программах делаются именно такими компараторами.",
+        "formula": "Gt = A1·NOT-B1 + (A1⊙B1)·A0·NOT-B0; Eq = (A1⊙B1)·(A0⊙B0)",
+        "success": "The rule “compare the high digit, and move to the low one only if they are equal” works for numbers of any width. Conditional jumps in programs are made with exactly such comparators.",
         "solution": {
           "gates": [
             {
@@ -2243,7 +2243,7 @@
         "clock": null,
         "ticks": false,
         "formula": "ci+1 = Ai·Bi + (Ai⊕Bi)·ci; Si = Ai⊕Bi⊕ci",
-        "success": "Вы собрали настоящий многоразрядный сумматор: те же звенья в цепочке дают 8, 32 и 64 бита. Это и есть сердце АЛУ — а значит, «арифметика» процессора теперь не загадка. Дальше — регистры и такт: куда складывать результат и когда.",
+        "success": "You built a real multi-bit adder: the same stages chained give 8, 32 and 64 bits. This is the heart of an ALU, so processor “arithmetic” is no longer a mystery. Next up: registers and the clock, where to put the result and when.",
         "solution": {
           "gates": [
             {

@@ -5,7 +5,7 @@
   {
    "id": "r35-mpsc-basic",
    "title": "First channel",
-   "statement": "Create mpsc::channel(4). From a spawned task send 1, 2, 3 (and close the channel by dropping the sender). In main read with while let Some(v) = rx.recv().await and print the values, and after the loop print «конец».\n\nExpected output:\n1\n2\n3\n«конец»",
+   "statement": "Create mpsc::channel(4). From a spawned task send 1, 2, 3 (and close the channel by dropping the sender). In main read with while let Some(v) = rx.recv().await and print the values, and after the loop print \"end\".\n\nExpected output:\n`1`\n`2`\n`3`\n`end`",
    "hint": "The Sender moves into the task via async move; once it is dropped, recv() returns None.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -26,14 +26,14 @@
   {
    "id": "r35-send-closed",
    "title": "No receiver",
-   "statement": "Create a channel, drop the receiver and send a value. Print «отправка не удалась: true» if send returned an error.\n\nExpected output:\n«отправка не удалась: true»",
+   "statement": "Create a channel, drop the receiver and send a value. Print \"send failed: true\" if send returned an error.\n\nExpected output:\n`send failed: true`",
    "hint": "tx.send(1).await.is_err() after drop(rx).",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r35-try-send",
    "title": "try_send and overflow",
-   "statement": "A channel of capacity 2. Call try_send three times: for successful ones print «ok», for an overflow (TrySendError::Full) print «переполнен».\n\nExpected output:\n«ok\nok\nпереполнен»",
+   "statement": "A channel of capacity 2. Call try_send three times: for successful ones print \"ok\", for an overflow (TrySendError::Full) print \"full\".\n\nExpected output:\n`ok`\n`ok`\n`full`",
    "hint": "use tokio::sync::mpsc::error::TrySendError; match tx.try_send(i) { Ok(()) => .., Err(TrySendError::Full(_)) => .., _ => .. }",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -54,7 +54,7 @@
   {
    "id": "r35-unbounded",
    "title": "Unbounded channel",
-   "statement": "Using mpsc::unbounded_channel send the numbers from 0 to 999 (send without .await), drop the sender and print «сумма: …» (add up everything received).\n\nExpected output:\n«сумма: 499500»",
+   "statement": "Using mpsc::unbounded_channel send the numbers from 0 to 999 (send without .await), drop the sender and print \"sum: …\" (add up everything received).\n\nExpected output:\n`sum: 499500`",
    "hint": "tx.send(i).unwrap(); then drop(tx) and while let Some(v) = rx.recv().await.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -103,7 +103,7 @@
   {
    "id": "r35-broadcast-lagged",
    "title": "A lagging subscriber",
-   "statement": "broadcast::channel(2): send 1, 2, 3, 4 without reading. Then read: on a Lagged(n) error print «пропущено n», print values as they are, until the end of the buffer (3 reads).\n\nExpected output:\n«пропущено 2»\n3\n4",
+   "statement": "broadcast::channel(2): send 1, 2, 3, 4 without reading. Then read: on a Lagged(n) error print \"skipped n\", print values as they are, until the end of the buffer (3 reads).\n\nExpected output:\n`skipped 2`\n`3`\n`4`",
    "hint": "use tokio::sync::broadcast::error::RecvError; Err(RecvError::Lagged(n)) => ..",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -138,28 +138,28 @@
   {
    "id": "r35-mutex-across-await",
    "title": "A lock across await",
-   "statement": "Two tasks take the same tokio::sync::Mutex and hold the guard during a 50 ms sleep. Print «последовательно: true» if all the work took at least 90 ms.\n\nExpected output:\n«последовательно: true»",
+   "statement": "Two tasks take the same tokio::sync::Mutex and hold the guard during a 50 ms sleep. Print \"sequentially: true\" if all the work took at least 90 ms.\n\nExpected output:\n`sequentially: true`",
    "hint": "let _g = m.lock().await; sleep(..).await; — the guard lives until the end of the block.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r35-fix-std-mutex",
    "title": "Fix it: std Mutex across await",
-   "statement": "The program does not compile: the std::sync::Mutex guard lives across .await inside spawn. Fix it by shortening its lifetime (increment the counter in a separate block before the sleep). Expected: «счётчик: 1».\n\nExpected output:\n«счётчик: 1»",
+   "statement": "The program does not compile: the std::sync::Mutex guard lives across .await inside spawn. Fix it by shortening its lifetime (increment the counter in a separate block before the sleep). Expected: \"counter: 1\".\n\nExpected output:\n`counter: 1`",
    "hint": "Wrap let mut g … *g += 1; in a separate pair of braces before .await — the guard will be dropped earlier.",
-   "starter": "use std::sync::{Arc, Mutex};\nuse std::time::Duration;\nuse tokio::time::sleep;\n\n#[tokio::main]\nasync fn main() {\n    let m = Arc::new(Mutex::new(0));\n    let m2 = Arc::clone(&m);\n    let h = tokio::spawn(async move {\n        let mut g = m2.lock().unwrap();\n        *g += 1;\n        sleep(Duration::from_millis(10)).await;\n    });\n    h.await.unwrap();\n    println!(\"счётчик: {}\", *m.lock().unwrap());\n}\n"
+   "starter": "use std::sync::{Arc, Mutex};\nuse std::time::Duration;\nuse tokio::time::sleep;\n\n#[tokio::main]\nasync fn main() {\n    let m = Arc::new(Mutex::new(0));\n    let m2 = Arc::clone(&m);\n    let h = tokio::spawn(async move {\n        let mut g = m2.lock().unwrap();\n        *g += 1;\n        sleep(Duration::from_millis(10)).await;\n    });\n    h.await.unwrap();\n    println!(\"counter: {}\", *m.lock().unwrap());\n}\n"
   },
   {
    "id": "r35-rwlock",
    "title": "RwLock: a writer and readers",
-   "statement": "Put a number into Arc<RwLock<u32>>: first write 10, then spawn three reading tasks, each returning what it read. Add up the results and print «сумма: …».\n\nExpected output:\n«сумма: 30»",
+   "statement": "Put a number into Arc<RwLock<u32>>: first write 10, then spawn three reading tasks, each returning what it read. Add up the results and print \"sum: …\".\n\nExpected output:\n`sum: 30`",
    "hint": "*lock.write().await = 10; let v = *lock.read().await;",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r35-semaphore-limit",
    "title": "Limiting parallelism",
-   "statement": "A semaphore with 2 permits, six tasks: each takes a permit, increments a counter of simultaneously running tasks (AtomicUsize), updates the maximum, sleeps 50 ms and decrements the counter. Print «максимум одновременно: 2».\n\nExpected output:\n«максимум одновременно: 2»",
+   "statement": "A semaphore with 2 permits, six tasks: each takes a permit, increments a counter of simultaneously running tasks (AtomicUsize), updates the maximum, sleeps 50 ms and decrements the counter. Print \"maximum at once: 2\".\n\nExpected output:\n`maximum at once: 2`",
    "hint": "cur.fetch_add(1) + 1; max.fetch_max(now); then cur.fetch_sub(1).",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -173,28 +173,28 @@
   {
    "id": "r35-try-acquire",
    "title": "try_acquire",
-   "statement": "A semaphore with one permit. The first try_acquire succeeds (print «ok»), and while the permit is held, the second one fails (print «занято»).\n\nExpected output:\n«ok\nзанято»",
+   "statement": "A semaphore with one permit. The first try_acquire succeeds (print \"ok\"), and while the permit is held, the second one fails (print \"busy\").\n\nExpected output:\n`ok`\n`busy`",
    "hint": "let p = sem.try_acquire(); … sem.try_acquire().is_err()",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r35-notify",
    "title": "Notify: waking a task",
-   "statement": "A task waits on notify.notified().await and then prints «проснулась». The main task prints «будим» and calls notify_one(), then waits for the task to finish.\n\nExpected output:\n«будим\nпроснулась»",
+   "statement": "A task waits on notify.notified().await and then prints \"woke up\". The main task prints \"waking\" and calls notify_one(), then waits for the task to finish.\n\nExpected output:\n`waking`\n`woke up`",
    "hint": "Notify in an Arc; the waiting task is a spawn; wake with notify.notify_one().",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r35-notify-permit",
    "title": "Notify: the remembered permit",
-   "statement": "Call notify_one() before waiting, then notified().await — it must not block. Print «не блокируется».\n\nExpected output:\n«не блокируется»",
+   "statement": "Call notify_one() before waiting, then notified().await — it must not block. Print \"does not block\".\n\nExpected output:\n`does not block`",
    "hint": "Notify remembers one permit if nobody is waiting.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
   {
    "id": "r35-barrier",
    "title": "Barrier",
-   "statement": "Barrier::new(3) and three tasks: each increments a shared AtomicUsize counter, then waits at the barrier and after it checks that the counter equals 3. Print «все видят 3: true».\n\nExpected output:\n«все видят 3: true»",
+   "statement": "Barrier::new(3) and three tasks: each increments a shared AtomicUsize counter, then waits at the barrier and after it checks that the counter equals 3. Print \"all see 3: true\".\n\nExpected output:\n`all see 3: true`",
    "hint": "barrier.wait().await; after the barrier all three increments are already done.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   },
@@ -208,7 +208,7 @@
   {
    "id": "r35-worker-pool",
    "title": "Worker pool",
-   "statement": "Three workers take jobs from a shared channel (the receiver in Arc<tokio::sync::Mutex<Receiver<u32>>>), compute the square and send the result to a results channel. Send jobs 1…9, close the jobs channel and print «сумма квадратов: …».\n\nExpected output:\n«сумма квадратов: 285»",
+   "statement": "Three workers take jobs from a shared channel (the receiver in Arc<tokio::sync::Mutex<Receiver<u32>>>), compute the square and send the result to a results channel. Send jobs 1…9, close the jobs channel and print \"sum of squares: …\".\n\nExpected output:\n`sum of squares: 285`",
    "hint": "Worker: let job = { let mut g = rx.lock().await; g.recv().await }; None — leave the loop.",
    "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
   }

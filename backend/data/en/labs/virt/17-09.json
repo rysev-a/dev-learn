@@ -7,12 +7,7 @@
    "id": "virt-sim-qcow2",
    "title": "qcow2 layer simulator",
    "statement": "Work with an image layer chain: take snapshots, write and read clusters, merge layers and revert the top one. Watch how a read descends down the chain and how many table accesses it costs. The exercise is solved when all three goals are met.",
-   "hint": "A snapshot is instant, but the longer the chain, the more expensive reads from the lower layers are: merging shortens the chain.",
-   "spec_text": {
-    "/goals/0/text": "Read a cluster from the base with a chain of 4 or more layers: the read costs 4 or more accesses",
-    "/goals/1/text": "Merge layers (commit) so that a chain of 4 layers shrinks to two",
-    "/goals/2/text": "Write a cluster to the top layer, revert the layer, and make sure the old data is back"
-   }
+   "hint": "A snapshot is instant, but the longer the chain, the more expensive reads from the lower layers are: merging shortens the chain."
   }
  ]
 }

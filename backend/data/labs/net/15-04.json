@@ -15,7 +15,7 @@
             {
               "id": "pa1",
               "kind": "host",
-              "name": "ПК А1",
+              "name": "PC A1",
               "x": 90,
               "y": 80,
               "ifaces": [
@@ -41,7 +41,7 @@
             {
               "id": "pa2",
               "kind": "host",
-              "name": "ПК А2",
+              "name": "PC A2",
               "x": 90,
               "y": 160,
               "ifaces": [
@@ -67,7 +67,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 320,
               "y": 120,
               "ifaces": [
@@ -100,7 +100,7 @@
             {
               "id": "pb1",
               "kind": "host",
-              "name": "ПК Б1",
+              "name": "PC B1",
               "x": 540,
               "y": 80,
               "ifaces": [
@@ -126,7 +126,7 @@
             {
               "id": "pb2",
               "kind": "host",
-              "name": "ПК Б2",
+              "name": "PC B2",
               "x": 540,
               "y": 160,
               "ifaces": [
@@ -152,7 +152,7 @@
             {
               "id": "sw_a",
               "kind": "switch",
-              "name": "SW А",
+              "name": "SW A",
               "x": 200,
               "y": 120,
               "ifaces": [
@@ -199,7 +199,7 @@
             {
               "id": "sw_b",
               "kind": "switch",
-              "name": "SW Б",
+              "name": "SW B",
               "x": 440,
               "y": 120,
               "ifaces": [
@@ -286,7 +286,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК А1 пингует ПК А2 (внутри отдела)",
+            "text": "PC A1 pings PC A2 (within the department)",
             "ping": {
               "from": "pa1",
               "to": "192.168.10.3"
@@ -294,7 +294,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК А1 пингует ПК Б1 (через маршрутизатор)",
+            "text": "PC A1 pings PC B1 (through the router)",
             "ping": {
               "from": "pa1",
               "to": "192.168.10.66"
@@ -302,7 +302,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК Б2 пингует ПК А2",
+            "text": "PC B2 pings PC A2",
             "ping": {
               "from": "pb2",
               "to": "192.168.10.3"
@@ -310,7 +310,7 @@
           },
           {
             "id": "g4",
-            "text": "ПК Б1 пингует ПК Б2",
+            "text": "PC B1 pings PC B2",
             "ping": {
               "from": "pb1",
               "to": "192.168.10.67"
@@ -373,7 +373,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК 1",
+              "name": "PC 1",
               "x": 100,
               "y": 180,
               "ifaces": [
@@ -399,7 +399,7 @@
             {
               "id": "pc2",
               "kind": "host",
-              "name": "ПК 2",
+              "name": "PC 2",
               "x": 540,
               "y": 80,
               "ifaces": [
@@ -425,7 +425,7 @@
             {
               "id": "pc3",
               "kind": "host",
-              "name": "ПК 3",
+              "name": "PC 3",
               "x": 540,
               "y": 280,
               "ifaces": [
@@ -451,7 +451,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 320,
               "y": 180,
               "ifaces": [
@@ -520,7 +520,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК 1 пингует 192.168.0.20 без конфликта",
+            "text": "PC 1 pings 192.168.0.20 without a conflict",
             "ping": {
               "from": "pc1",
               "to": "192.168.0.20"
@@ -528,7 +528,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК 1 пингует 192.168.0.30",
+            "text": "PC 1 pings 192.168.0.30",
             "ping": {
               "from": "pc1",
               "to": "192.168.0.30"
@@ -561,7 +561,7 @@
             {
               "id": "pa",
               "kind": "host",
-              "name": "ПК А",
+              "name": "PC A",
               "x": 90,
               "y": 60,
               "ifaces": [
@@ -593,7 +593,7 @@
             {
               "id": "pb",
               "kind": "host",
-              "name": "ПК Б",
+              "name": "PC B",
               "x": 90,
               "y": 180,
               "ifaces": [
@@ -619,7 +619,7 @@
             {
               "id": "pc",
               "kind": "host",
-              "name": "ПК В",
+              "name": "PC C",
               "x": 90,
               "y": 300,
               "ifaces": [
@@ -645,7 +645,7 @@
             {
               "id": "sw1",
               "kind": "switch",
-              "name": "Коммутатор",
+              "name": "Switch",
               "x": 260,
               "y": 180,
               "ifaces": [
@@ -706,7 +706,7 @@
             {
               "id": "r1",
               "kind": "router",
-              "name": "Маршрутизатор",
+              "name": "Router",
               "x": 420,
               "y": 180,
               "ifaces": [
@@ -739,7 +739,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Сервер",
+              "name": "Server",
               "x": 570,
               "y": 180,
               "ifaces": [
@@ -805,7 +805,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК А пингует сервер",
+            "text": "PC A pings the server",
             "ping": {
               "from": "pa",
               "to": "@srv"
@@ -813,7 +813,7 @@
           },
           {
             "id": "g2",
-            "text": "ПК Б пингует сервер",
+            "text": "PC B pings the server",
             "ping": {
               "from": "pb",
               "to": "@srv"
@@ -821,7 +821,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК В пингует сервер",
+            "text": "PC C pings the server",
             "ping": {
               "from": "pc",
               "to": "@srv"
@@ -886,7 +886,7 @@
             {
               "id": "pc1",
               "kind": "host",
-              "name": "ПК",
+              "name": "PC",
               "x": 70,
               "y": 180,
               "ifaces": [
@@ -918,7 +918,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Домашний шлюз",
+              "name": "Home gateway",
               "x": 230,
               "y": 180,
               "ifaces": [
@@ -957,7 +957,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 400,
               "y": 180,
               "ifaces": [
@@ -990,7 +990,7 @@
             {
               "id": "web",
               "kind": "server",
-              "name": "Сайт",
+              "name": "Website",
               "x": 570,
               "y": 180,
               "ifaces": [
@@ -1049,7 +1049,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "ПК пингует сайт",
+            "text": "The PC pings the website",
             "ping": {
               "from": "pc1",
               "to": "@web"
@@ -1057,7 +1057,7 @@
           },
           {
             "id": "g2",
-            "text": "Сайт видит адрес шлюза 203.0.113.2, а не частный",
+            "text": "The website sees the gateway address 203.0.113.2, not a private one",
             "ping": {
               "from": "pc1",
               "to": "@web",
@@ -1066,7 +1066,7 @@
           },
           {
             "id": "g3",
-            "text": "ПК открывает порт 80 сайта",
+            "text": "The PC opens port 80 on the website",
             "tcp": {
               "from": "pc1",
               "to": "@web",
@@ -1097,7 +1097,7 @@
             {
               "id": "srv",
               "kind": "server",
-              "name": "Веб-сервер",
+              "name": "Web server",
               "x": 90,
               "y": 180,
               "ifaces": [
@@ -1134,7 +1134,7 @@
             {
               "id": "gw",
               "kind": "router",
-              "name": "Шлюз",
+              "name": "Gateway",
               "x": 280,
               "y": 180,
               "ifaces": [
@@ -1179,7 +1179,7 @@
             {
               "id": "isp",
               "kind": "internet",
-              "name": "Провайдер",
+              "name": "ISP",
               "x": 440,
               "y": 180,
               "ifaces": [
@@ -1212,7 +1212,7 @@
             {
               "id": "guest",
               "kind": "host",
-              "name": "Гость",
+              "name": "Guest",
               "x": 590,
               "y": 180,
               "ifaces": [
@@ -1266,7 +1266,7 @@
         "goals": [
           {
             "id": "g1",
-            "text": "Веб-сервер выходит в интернет (ping гостя)",
+            "text": "The web server reaches the internet (ping the guest)",
             "ping": {
               "from": "srv",
               "to": "@guest"
@@ -1274,7 +1274,7 @@
           },
           {
             "id": "g2",
-            "text": "Гость открывает 203.0.113.2:8080",
+            "text": "The guest opens 203.0.113.2:8080",
             "tcp": {
               "from": "guest",
               "to": "@gw.eth1",
@@ -1283,7 +1283,7 @@
           },
           {
             "id": "g3",
-            "text": "Порт 80 шлюза остаётся закрытым",
+            "text": "Port 80 of the gateway stays closed",
             "tcp": {
               "from": "guest",
               "to": "@gw.eth1",

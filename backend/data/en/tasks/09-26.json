@@ -47,7 +47,7 @@
   {
    "id": "d10-rollup-emulation",
    "title": "Totals like ROLLUP",
-   "statement": "SQLite has no ROLLUP. Output revenue by category and the grand total in a single query: columns category, total; the last row has category = `ИТОГО`. Order: categories alphabetically, the total last.",
+   "statement": "SQLite has no ROLLUP. Output revenue by category and the grand total in a single query: columns category, total; the last row has category = `TOTAL`. Order: categories alphabetically, the total last.",
    "hint": "UNION ALL of the grouping and the grand total; add a helper column for ordering.",
    "starter": "-- totals by category and overall\nSELECT\n"
   },
@@ -75,7 +75,7 @@
   {
    "id": "d10-scd2-update",
    "title": "Close a version and add a new one",
-   "statement": "Client 7 moved to Moscow on 2026-04-01. Close the current version (valid_to = '2026-04-01') and add a new one with city = `Москва`, valid_from = '2026-04-01', valid_to = NULL. Do not touch client 8. The result is checked on the table.",
+   "statement": "Client 7 moved to Moscow on 2026-04-01. Close the current version (valid_to = '2026-04-01') and add a new one with city = `Moscow`, valid_from = '2026-04-01', valid_to = NULL. Do not touch client 8. The result is checked on the table.",
    "hint": "First UPDATE only the open version of client 7 (valid_to IS NULL), then INSERT.",
    "starter": "-- SCD2: close and add\n"
   },

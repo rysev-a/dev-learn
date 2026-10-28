@@ -5,9 +5,9 @@
   {
    "id": "build-dict",
    "title": "First dictionary",
-   "statement": "You are given the price list {«яблоко»: 50, «банан»: 70}. Add «киви» for 90, raise the price of «яблоко» to 55, delete «банан», and print the whole dictionary. You should get `{'яблоко': 55, 'киви': 90}`.",
-   "hint": "prices[\"киви\"] = 90; prices[\"яблоко\"] = 55; del prices[\"банан\"]; print(prices).",
-   "starter": "prices = {\"яблоко\": 50, \"банан\": 70}\n# add, change, delete, print\n"
+   "statement": "You are given the price list {«apple»: 50, «banana»: 70}. Add «kiwi» for 90, raise the price of «apple» to 55, delete «banana», and print the whole dictionary. You should get `{'apple': 55, 'kiwi': 90}`.",
+   "hint": "prices[\"kiwi\"] = 90; prices[\"apple\"] = 55; del prices[\"banana\"]; print(prices).",
+   "starter": "prices = {\"apple\": 50, \"banana\": 70}\n# add, change, delete, print\n"
   },
   {
    "id": "price-of",

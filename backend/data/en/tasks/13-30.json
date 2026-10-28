@@ -11,7 +11,7 @@
   {
    "id": "rf-dispatch",
    "title": "Command dispatcher by name",
-   "statement": "Write dispatch(obj, command, *args): it calls the method of obj named cmd_<command> and returns the result. If there is no such method, raise ValueError(\"неизвестная команда: <command>\"), keeping the message text in Russian exactly as shown. Only methods with the cmd_ prefix may be accessed.",
+   "statement": "Write dispatch(obj, command, *args): it calls the method of obj named cmd_<command> and returns the result. If there is no such method, raise ValueError(\"unknown command: <command>\"). Only methods with the cmd_ prefix are accessible.",
    "hint": "handler = getattr(obj, \"cmd_\" + command, None); if it is None, raise ValueError."
   },
   {

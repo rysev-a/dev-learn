@@ -63,7 +63,7 @@
   {
    "id": "d12-recursive-subordinates",
    "title": "All subordinates",
-   "statement": "Output all subordinates of «Сергей» (id 7) at all levels: columns `id`, `name`, `level` (1 — direct reports); order by level, then by id.",
+   "statement": "Output all subordinates of «Sergey» (id 7) at all levels: columns `id`, `name`, `level` (1 — direct reports); order by level, then by id.",
    "hint": "The anchor is the direct reports of id 7; the step joins those whose boss_id equals an id from the previous step.",
    "starter": "-- recursion downward\nWITH RECURSIVE\n"
   },
