@@ -1,7 +1,7 @@
-//! Виджет «База данных» в SQL-упражнении: ERD-диаграмма (таблицы можно перетаскивать, связи подсвечиваются при наведении)
-//! и просмотр данных таблиц. Схема приходит с сервером вместе с задачами главы (`ChapterTasks::datasets`).
+//! "Database" widget in an SQL exercise: ERD diagram (tables can be dragged, relations are highlighted on hover)
+//! and table data viewer. The schema comes from the server together with the chapter tasks (`ChapterTasks::datasets`).
 //!
-//! Раскладка, геометрия связей и подписи — чистые функции вверху файла (с тестами); компоненты только связывают их с сигналами.
+//! Layout, relation geometry and captions are pure functions at the top of the file (with tests); the components only connect them to signals.
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -18,17 +18,17 @@ const ROW_H: f64 = 19.0;
 const GAP_X: f64 = 96.0;
 const GAP_Y: f64 = 22.0;
 const PAD: f64 = 16.0;
-/// Запас справа от самой правой таблицы: сюда заходят петли связей.
+/// Margin to the right of the rightmost table: relation loops go here.
 const MARGIN_RIGHT: f64 = 40.0;
-/// Таблицу нельзя утащить ближе к краю холста.
+/// A table cannot be dragged closer to the canvas edge.
 const MIN_POS: f64 = 4.0;
-/// Сдвиг меньше этого — клик (открывает данные таблицы), а не перетаскивание.
+/// A shift smaller than this is a click (opens the table data), not a drag.
 const CLICK_SLOP: f64 = 3.0;
 
 const KEY_OPEN: &str = "cs-core-sx-open";
 const KEY_VIEW: &str = "cs-core-sx-view";
 
-// --- чистая логика ------------------------------------------------------------------------------
+// --- pure logic ---------------------------------------------------------------------------------
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Point {
@@ -36,14 +36,14 @@ pub struct Point {
     pub y: f64,
 }
 
-/// Положения таблиц на холсте по именам.
+/// Table positions on the canvas by name.
 pub type Layout = HashMap<String, Point>;
 
 fn box_h(t: &SqlTable) -> f64 {
     HEAD_H + t.columns.len() as f64 * ROW_H + 6.0
 }
 
-/// Начальная раскладка: родители (на кого ссылаются) слева, дети справа; внутри колонки — в порядке таблиц схемы.
+/// Initial layout: parents (the referenced ones) on the left, children on the right; within a column - in schema table order.
 pub fn auto_layout(schema: &SqlDataset) -> Layout {
     let mut level: HashMap<&str, usize> = schema.tables.iter().map(|t| (t.name.as_str(), 0)).collect();
     for _ in 0..schema.tables.len() {
@@ -70,19 +70,19 @@ pub fn auto_layout(schema: &SqlDataset) -> Layout {
     out
 }
 
-/// Размер области viewBox: все таблицы с полями и запасом справа.
+/// Size of the viewBox area: all tables with their fields and a margin on the right.
 pub fn canvas_size(tables: &[SqlTable], layout: &Layout) -> (f64, f64) {
     let right = layout.values().map(|p| p.x).fold(0.0, f64::max) + BOX_W + PAD;
     let bottom = tables.iter().map(|t| layout.get(&t.name).map_or(0.0, |p| p.y) + box_h(t)).fold(0.0, f64::max) + PAD;
     (right + MARGIN_RIGHT, bottom)
 }
 
-/// Стиль `<svg>`: растягивается по ширине, но не мельче трёх четвертей и не крупнее натурального размера.
+/// `<svg>` style: stretches to the width, but not smaller than three quarters and not larger than natural size.
 fn svg_style(width: f64) -> String {
     format!("width: 100%; min-width: {}px; max-width: {width}px; height: auto;", (width * 0.75).round())
 }
 
-/// Связь на холсте: кривая и места подписей «N» (у ребёнка) и «1» (у родителя).
+/// Relation on the canvas: a curve and positions of the labels "N" (at the child) and "1" (at the parent).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Link {
     pub d: String,
@@ -90,8 +90,8 @@ pub struct Link {
     pub parent: Point,
 }
 
-/// Кривая связи от столбца ребёнка (`from`, `ya` — высота столбца на холсте) к столбцу родителя (`to`, `yb`).
-/// Таблицы рядом — дуга между ними; друг над другом — обход справа; ссылка таблицы на себя — петля справа.
+/// Relation curve from the child column (`from`, `ya` - column height on the canvas) to the parent column (`to`, `yb`).
+/// Tables side by side - an arc between them; one above the other - a detour on the right; a table's self-reference - a loop on the right.
 pub fn link_geometry(from: Point, ya: f64, to: Point, yb: f64, same_table: bool) -> Link {
     if same_table {
         let x = from.x + BOX_W;
@@ -115,12 +115,12 @@ pub fn link_geometry(from: Point, ya: f64, to: Point, yb: f64, same_table: bool)
     }
 }
 
-/// Высота столбца внутри таблицы (от её верха); `None` — такого столбца нет.
+/// Column height inside a table (from its top); `None` - no such column.
 fn column_offset(t: &SqlTable, column: &str) -> Option<f64> {
     t.columns.iter().position(|c| c.name == column).map(|i| HEAD_H + i as f64 * ROW_H + ROW_H / 2.0)
 }
 
-/// Таблица подсвечена как «связанная», если на неё и на наведённую таблицу есть общая связь.
+/// A table is highlighted as "related" if it shares a relation with the hovered table.
 fn is_linked(relations: &[SqlRelation], hovered: Option<&str>, name: &str) -> bool {
     hovered.is_some_and(|h| relations.iter().any(|r| (r.from == h && r.to == name) || (r.to == h && r.from == name)))
 }
@@ -136,7 +136,7 @@ fn table_class(is_view: bool, hovered: bool, linked: bool) -> String {
     class
 }
 
-/// Перетаскиваемая таблица: смещение указателя внутри неё и признак «сдвинули».
+/// Draggable table: pointer offset inside it and a "was moved" flag.
 #[derive(Clone, Debug, PartialEq)]
 struct Drag {
     name: String,
@@ -146,12 +146,12 @@ struct Drag {
 }
 
 impl Drag {
-    /// Начало перетаскивания: указатель `pointer` над таблицей, стоящей в `at`.
+    /// Start of dragging: pointer `pointer` over the table located at `at`.
     fn start(name: &str, pointer: Point, at: Point) -> Self {
         Drag { name: name.to_string(), dx: pointer.x - at.x, dy: pointer.y - at.y, moved: false }
     }
 
-    /// Новое место таблицы для указателя `pointer`; запоминает, что таблицу действительно сдвинули.
+    /// New table position for pointer `pointer`; remembers that the table was actually moved.
     fn to(&mut self, pointer: Point, current: Point) -> Point {
         let next = Point { x: (pointer.x - self.dx).max(MIN_POS), y: (pointer.y - self.dy).max(MIN_POS) };
         if (next.x - current.x).abs() + (next.y - current.y).abs() > CLICK_SLOP {
@@ -161,7 +161,7 @@ impl Drag {
     }
 }
 
-/// Подпись в заголовке виджета: «5 таблиц · 2 представл.».
+/// Widget header caption: "5 tables · 2 views".
 fn summary(schema: &SqlDataset) -> String {
     let tables = schema.tables.iter().filter(|t| !t.is_view()).count();
     let views = schema.tables.len() - tables;
@@ -173,7 +173,7 @@ fn summary(schema: &SqlDataset) -> String {
     }
 }
 
-/// Значение ячейки как текст: `NULL` для пустого, строки без кавычек, целые вещественные — без «.0» (как показал бы браузер).
+/// Cell value as text: `NULL` for empty, strings without quotes, whole floats without ".0" (as the browser would show)
 pub fn cell_text(v: &Value) -> String {
     match v {
         Value::Null => "NULL".to_string(),
@@ -209,9 +209,9 @@ impl View {
     }
 }
 
-// --- компоненты ---------------------------------------------------------------------------------
+// --- components ---------------------------------------------------------------------------------
 
-/// Точка указателя в системе координат viewBox: по границам `<svg>` и размеру холста (высота `auto` сохраняет пропорции).
+/// Pointer point in viewBox coordinates: from the `<svg>` bounds and canvas size (height `auto` keeps proportions).
 fn pointer_in_svg(ev: &web_sys::PointerEvent, canvas: (f64, f64)) -> Option<Point> {
     let svg = ev.current_target()?.dyn_into::<web_sys::Element>().ok()?.closest("svg").ok()??;
     let rect = svg.get_bounding_client_rect();
@@ -221,7 +221,7 @@ fn pointer_in_svg(ev: &web_sys::PointerEvent, canvas: (f64, f64)) -> Option<Poin
     Some(Point { x: (f64::from(ev.client_x()) - rect.left()) * canvas.0 / rect.width(), y: (f64::from(ev.client_y()) - rect.top()) * canvas.1 / rect.height() })
 }
 
-/// Связь между двумя таблицами; кривая пересчитывается, только когда сдвинули одну из них.
+/// Relation between two tables; the curve is recomputed only when one of them is moved.
 #[component]
 fn RelationLine(rel: SqlRelation, from: SqlTable, to: SqlTable, layout: RwSignal<Layout>, hovered: RwSignal<Option<String>>) -> impl IntoView {
     let (Some(ya), Some(yb)) = (column_offset(&from, &rel.from_col), column_offset(&to, &rel.to_col)) else {
@@ -245,7 +245,7 @@ fn RelationLine(rel: SqlRelation, from: SqlTable, to: SqlTable, layout: RwSignal
     .into_any()
 }
 
-/// Таблица на диаграмме: рамка, заголовок и строки столбцов с отметками PK/FK.
+/// Table on the diagram: frame, header and column rows with PK/FK marks.
 #[component]
 fn TableBox(
     table: SqlTable,
@@ -306,7 +306,7 @@ fn TableBox(
     }
 }
 
-/// ERD: таблицы перетаскиваются, клик без сдвига открывает данные таблицы (`on_open_table`).
+/// ERD: tables are draggable, a click without a move opens the table data (`on_open_table`).
 #[component]
 fn Erd(schema: Arc<SqlDataset>, on_open_table: Callback<String>) -> impl IntoView {
     let initial = StoredValue::new(auto_layout(&schema));
@@ -391,7 +391,7 @@ fn cell_view(v: &Value) -> impl IntoView {
     }
 }
 
-/// Таблица данных: имя столбца с отметкой ключа и типом, строки, пометка об обрезанном списке.
+/// Data table: column name with key mark and type, rows, a note about a truncated list.
 fn grid_view(t: &SqlTable) -> impl IntoView {
     let head = t
         .columns
@@ -419,7 +419,7 @@ fn grid_view(t: &SqlTable) -> impl IntoView {
     }
 }
 
-/// Просмотр данных: вкладки таблиц и выбранная таблица; `selected` — имя, `None` — первая.
+/// Data viewer: table tabs and the selected table; `selected` - name, `None` - the first.
 #[component]
 fn Data(schema: Arc<SqlDataset>, selected: RwSignal<Option<String>>) -> impl IntoView {
     let current = {
@@ -455,7 +455,7 @@ fn Data(schema: Arc<SqlDataset>, selected: RwSignal<Option<String>>) -> impl Int
     }
 }
 
-/// Виджет целиком: заголовок со сворачиванием, переключатель «ERD / Данные» и выбранный вид. Вид и «развёрнуто» помнятся в настройках.
+/// Whole widget: header with collapsing, "ERD / Data" switch and the selected view. The view and "expanded" state are remembered in settings.
 #[component]
 pub fn SqlSchema(schema: SqlDataset) -> impl IntoView {
     if schema.tables.is_empty() {
@@ -528,7 +528,7 @@ mod tests {
         SqlRelation { from: from.into(), from_col: from_col.into(), to: to.into(), to_col: to_col.into() }
     }
 
-    /// Магазин: customers ← orders ← order_items → products.
+    /// Shop: customers <- orders <- order_items -> products.
     fn shop() -> SqlDataset {
         SqlDataset {
             tables: vec![
@@ -549,7 +549,7 @@ mod tests {
         assert_eq!(x("products"), PAD);
         assert_eq!(x("orders"), PAD + BOX_W + GAP_X);
         assert_eq!(x("order_items"), PAD + 2.0 * (BOX_W + GAP_X));
-        // в одной колонке таблицы идут друг под другом с зазором
+        // in one column the tables go one under another with a gap
         let customers_h = HEAD_H + 2.0 * ROW_H + 6.0;
         assert_eq!(l["customers"].y, PAD);
         assert_eq!(l["products"].y, PAD + customers_h + GAP_Y);
@@ -594,12 +594,12 @@ mod tests {
     fn link_between_neighbours_leaves_the_child_and_enters_the_parent() {
         let parent = Point { x: 16.0, y: 16.0 };
         let child = Point { x: 16.0 + BOX_W + GAP_X, y: 16.0 };
-        // ребёнок справа от родителя: кривая от левого края ребёнка к правому краю родителя
+        // child to the right of the parent: curve from the child's left edge to the parent's right edge
         let l = link_geometry(child, 60.0, parent, 40.0, false);
         assert!(l.d.starts_with(&format!("M{},60 ", child.x)));
         assert!(l.d.ends_with(&format!(" {},40", parent.x + BOX_W)));
         assert_eq!((l.child.x, l.parent.x), (child.x - 10.0, parent.x + BOX_W + 10.0));
-        // ребёнок слева: зеркально
+        // child on the left: mirrored
         let l = link_geometry(parent, 40.0, child, 60.0, false);
         assert!(l.d.starts_with(&format!("M{},40 ", parent.x + BOX_W)));
         assert_eq!((l.child.x, l.parent.x), (parent.x + BOX_W + 10.0, child.x - 10.0));
@@ -653,10 +653,10 @@ mod tests {
         let at = Point { x: 100.0, y: 50.0 };
         let mut d = Drag::start("t", Point { x: 120.0, y: 60.0 }, at);
         assert_eq!((d.dx, d.dy), (20.0, 10.0));
-        // дрожание в пределах трёх единиц — ещё клик
+        // jitter within three units is still a click
         assert_eq!(d.to(Point { x: 121.0, y: 61.0 }, at), Point { x: 101.0, y: 51.0 });
         assert!(!d.moved);
-        // уход за левый край упирается в поля
+        // going past the left edge stops at the margin
         assert_eq!(d.to(Point { x: 5.0, y: 100.0 }, at), Point { x: MIN_POS, y: 90.0 });
         assert!(d.moved);
     }
@@ -672,7 +672,7 @@ mod tests {
     #[test]
     fn cells_show_null_strings_and_integral_floats() {
         assert_eq!(cell_text(&Value::Null), "NULL");
-        assert_eq!(cell_text(&json!("Аня")), "Аня");
+        assert_eq!(cell_text(&json!("Ann")), "Ann");
         assert_eq!(cell_text(&json!(7)), "7");
         assert_eq!(cell_text(&json!(3.0)), "3");
         assert_eq!(cell_text(&json!(2.5)), "2.5");
@@ -682,7 +682,7 @@ mod tests {
     fn view_setting_defaults_to_the_diagram() {
         assert_eq!(View::from_setting(None), View::Erd);
         assert_eq!(View::from_setting(Some("data")), View::Data);
-        assert_eq!(View::from_setting(Some("мусор")), View::Erd);
+        assert_eq!(View::from_setting(Some("junk")), View::Erd);
         assert_eq!(View::from_setting(Some(View::Data.name())), View::Data);
     }
 }

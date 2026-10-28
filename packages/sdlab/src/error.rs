@@ -1,8 +1,8 @@
-//! Ошибка разбора данных лаборатории: понятное сообщение по-русски.
+//! Lab data parse error: a clear human-readable message.
 
 use std::fmt;
 
-/// Ошибка чтения схемы или файла данных.
+/// Error reading a design or a data file.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SdError(pub String);
 

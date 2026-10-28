@@ -1,5 +1,5 @@
-//! Плеер «озвучки без звука»: пока wav-файлов нет, каждый абзац «читается» по виртуальным часам со скоростью ~14 символов в секунду;
-//! слайды и метки шагов сцен идут по этим часам. Часы — чистая структура ([`Clock`]), плеер — тонкая обёртка над таймером.
+//! "Voiceless voice-over" player: while there are no wav files, each paragraph is "read" by a virtual clock at ~14 characters per second;
+//! slides and scene step marks follow this clock. The clock is a pure struct ([`Clock`]), the player is a thin wrapper over a timer.
 
 use gloo_timers::callback::Interval;
 use leptos::prelude::*;
@@ -7,28 +7,28 @@ use leptos::prelude::*;
 pub const CHARS_PER_SECOND: f64 = 14.0;
 const TICK_MS: u32 = 100;
 
-/// Сколько секунд «читается» абзац (не меньше трёх).
+/// How many seconds a paragraph is "read" (at least three).
 pub fn estimate_seconds(text: &str) -> f64 {
     (text.chars().count() as f64 / CHARS_PER_SECOND).max(3.0)
 }
 
-/// Секунды как `м:сс`.
+/// Seconds as `m:ss`.
 pub fn fmt_time(secs: f64) -> String {
     let s = secs.max(0.0).round() as u64;
     format!("{}:{:02}", s / 60, s % 60)
 }
 
-/// Что произошло за тик часов.
+/// What happened during a clock tick.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Tick {
     Playing,
-    /// абзац дочитан, начался следующий
+    /// paragraph finished, the next one started
     NextPart,
-    /// дочитан последний абзац
+    /// the last paragraph finished
     Ended,
 }
 
-/// Часы очереди абзацев: длительности, текущий абзац и время внутри него.
+/// Paragraph queue clock: durations, the current paragraph and the time within it.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Clock {
     pub durations: Vec<f64>,
@@ -41,7 +41,7 @@ impl Clock {
         Self { index: start.min(durations.len().saturating_sub(1)), durations, t: 0.0 }
     }
 
-    /// Прошло `dt` секунд. За один тик не больше одного перехода: остаток времени теряется (тик — доли секунды).
+    /// `dt` seconds passed. At most one transition per tick: the remaining time is lost (a tick is a fraction of a second).
     pub fn tick(&mut self, dt: f64) -> Tick {
         self.t += dt;
         let dur = self.durations.get(self.index).copied().unwrap_or(0.0);
@@ -61,10 +61,10 @@ impl Clock {
 
 #[derive(Clone, Copy)]
 pub struct Player {
-    /// номер абзаца (слайда), который сейчас читается; `None` — плеер остановлен
+    /// index of the paragraph (slide) being read now; `None` - the player is stopped
     pub playing: RwSignal<Option<usize>>,
     pub paused: RwSignal<bool>,
-    /// секунды от начала текущего абзаца
+    /// seconds since the start of the current paragraph
     pub t: RwSignal<f64>,
     clock: StoredValue<Clock>,
     last: StoredValue<f64>,
@@ -85,7 +85,7 @@ pub fn provide_player() -> Player {
 }
 
 impl Player {
-    /// Начать чтение с абзаца `from`: длительности всех абзацев главы.
+    /// Start reading from paragraph `from`: durations of all paragraphs in the chapter.
     pub fn start(&self, durations: Vec<f64>, from: usize) {
         let clock = Clock::new(durations, from);
         self.playing.set(Some(clock.index));
@@ -120,7 +120,7 @@ impl Player {
         }
         let paused = self.paused.get_untracked();
         if paused {
-            self.last.set_value(js_sys::Date::now()); // пауза не засчитывается как время чтения
+            self.last.set_value(js_sys::Date::now()); // a pause does not count as reading time
         }
         self.paused.set(!paused);
     }
@@ -132,7 +132,7 @@ impl Player {
         self.t.set(0.0);
     }
 
-    /// Время озвучки слайда `idx` — секунды от начала абзаца, пока он читается (в том числе на паузе), иначе `None`.
+    /// Voice-over time of slide `idx` - seconds since the start of the paragraph while it is being read (including on pause), otherwise `None`.
     pub fn audio_time(&self, idx: usize) -> Option<f64> {
         (self.playing.get() == Some(idx)).then(|| self.t.get())
     }
@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn estimate_is_by_characters_with_a_floor() {
         assert_eq!(estimate_seconds("ab"), 3.0);
-        assert_eq!(estimate_seconds(&"я".repeat(140)), 10.0);
+        assert_eq!(estimate_seconds(&"é".repeat(140)), 10.0);
     }
 
     #[test]

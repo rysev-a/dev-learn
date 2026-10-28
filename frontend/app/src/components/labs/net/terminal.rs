@@ -1,4 +1,4 @@
-//! Мини-терминал устройства: вывод по строкам, строка ввода с историей команд (стрелки вверх и вниз), курсор сразу в строке.
+//! Device mini terminal: line-by-line output, an input line with command history (up and down arrows), the cursor right in the line.
 
 use leptos::{html, prelude::*};
 use wasm_bindgen::JsCast;
@@ -6,7 +6,7 @@ use wasm_bindgen::JsCast;
 use super::lab::Lab;
 use super::logic;
 
-/// Выделен ли сейчас текст на странице (чтобы клик по терминалу не сбивал выделение вывода).
+/// Whether text is currently selected on the page (so a click on the terminal does not drop the output selection).
 fn has_selection() -> bool {
     web_sys::window().and_then(|w| selection_text(&w)).is_some_and(|t| !t.is_empty())
 }
@@ -19,7 +19,7 @@ fn selection_text(w: &web_sys::Window) -> Option<String> {
     text.as_string()
 }
 
-/// Поставить курсор в поле, не прокручивая страницу (`focus({preventScroll: true})`).
+/// Put the cursor in the field without scrolling the page (`focus({preventScroll: true})`).
 fn focus_quietly(el: &web_sys::HtmlInputElement) {
     let opts = js_sys::Object::new();
     let _ = js_sys::Reflect::set(&opts, &"preventScroll".into(), &true.into());
@@ -38,7 +38,7 @@ pub fn Terminal(lab: Lab, id: String) -> impl IntoView {
     let name = lab.name_of(&id);
     let prompt = logic::prompt(&name);
     let value = RwSignal::new(String::new());
-    // история команд от новых к старым и позиция в ней (−1 — строка набирается заново)
+    // command history from newest to oldest and the position in it (−1 means the line is typed anew)
     let hist = RwSignal::new(Vec::<String>::new());
     let pos = RwSignal::new(-1isize);
     let out_ref = NodeRef::<html::Div>::new();
@@ -49,13 +49,13 @@ pub fn Terminal(lab: Lab, id: String) -> impl IntoView {
         Signal::derive(move || lab.terms.with(|t| t.get(&id).cloned().unwrap_or_default()))
     };
 
-    // курсор сразу в строке ввода: терминал открывают, чтобы печатать
+    // the cursor is right in the input line: the terminal is opened to type
     Effect::new(move |_| {
         if let Some(i) = input_ref.get() {
             focus_quietly(&i);
         }
     });
-    // новый вывод — прокрутка вниз
+    // new output: scroll down
     let count = Memo::new(move |_| lines.with(Vec::len));
     Effect::new(move |_| {
         count.track();
@@ -92,7 +92,7 @@ pub fn Terminal(lab: Lab, id: String) -> impl IntoView {
         <div
             class="nl-term"
             on:click=move |_| {
-                // клик в любое место терминала ставит курсор в строку ввода (если не выделяют текст вывода)
+                // a click anywhere in the terminal puts the cursor in the input line (unless the output text is being selected)
                 if !has_selection() {
                     if let Some(i) = input_ref.get_untracked() {
                         focus_quietly(&i);

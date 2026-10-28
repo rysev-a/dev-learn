@@ -1,4 +1,4 @@
-//! Раздел (книга): меню уроков слева и вложенные страницы — список глав или глава.
+//! Section (book): lesson menu on the left and nested pages - chapter list or chapter.
 
 use api::dto::{Book, Section};
 use leptos::prelude::*;
@@ -12,7 +12,7 @@ use crate::{
     player::Player,
 };
 
-/// Курс открытой книги — для вложенных страниц.
+/// Course of the open book - for nested pages.
 #[derive(Clone, Copy)]
 pub struct BookCtx {
     pub book: Memo<i64>,
@@ -61,7 +61,7 @@ pub fn BookLayout(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
         }
         _ => ().into_any(),
     };
-    // книга без перевода на язык интерфейса показывается по-русски — говорим об этом
+    // a book without a translation into the interface language is shown in Russian - we say so
     let untranslated = move || books.get().into_iter().find(|b| Some(b.id) == book.get()).is_some_and(|b| !b.in_language(i18n::locale().code()));
     view! {
         {menu}
@@ -72,7 +72,7 @@ pub fn BookLayout(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
     }
 }
 
-/// Корень раздела: карточки глав по подразделам.
+/// Section root: chapter cards by subsection.
 #[component]
 pub fn ChaptersIndex() -> impl IntoView {
     let ctx = expect_context::<BookCtx>();

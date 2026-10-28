@@ -1,12 +1,12 @@
-//! Типы интерфейсов блоков. Порт блока — не один бит, а именованный набор бит с полями: так выходы
-//! одного блока подключаются ко входам другого одним проводом. Типы совместимы только по ИМЕНИ:
-//! `Addr2` и `Word2` оба из двух бит, но это разные вещи — между ними нужен явный переходник.
-//! Порт `interfaces.ts`.
+//! Block interface types. A block port is not a single bit but a named set of bits with fields: this is how the outputs
+//! of one block connect to the inputs of another with a single wire. Types are compatible by NAME only:
+//! `Addr2` and `Word2` are both two bits, but they are different things — an explicit adapter is needed between them.
+//! Port of `interfaces.ts`.
 
 use crate::model::NodeValue;
 use serde::{Deserialize, Serialize};
 
-/// Тип интерфейса порта (конечный набор).
+/// Port interface type (a finite set).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Iface {
     Bit,
@@ -18,7 +18,7 @@ pub enum Iface {
     Flags,
     Ctl,
     Phases,
-    // процессор «Мини-8»
+    // the "Mini-8" processor
     Byte,
     Reg3,
     Op4,
@@ -28,7 +28,7 @@ pub enum Iface {
     Ctrl,
 }
 
-/// Поле составного типа: имя и тип.
+/// Field of a composite type: name and type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Field {
     pub name: &'static str,
@@ -82,7 +82,7 @@ const CTRL: [Field; 18] = [
 ];
 
 impl Iface {
-    /// Имя типа.
+    /// Type name.
     pub fn name(self) -> &'static str {
         match self {
             Iface::Bit => "Bit",
@@ -104,7 +104,7 @@ impl Iface {
         }
     }
 
-    /// Короткое пояснение для подсказок на доске.
+    /// Short explanation for hints on the board.
     pub fn title(self) -> &'static str {
         match self {
             Iface::Bit => i18n::tr("single bit"),
@@ -126,7 +126,7 @@ impl Iface {
         }
     }
 
-    /// Поля по порядку: старшее — первое. У простых типов (`Bit`, `Clk`) полей нет — это один бит.
+    /// Fields in order: most significant first. Simple types (`Bit`, `Clk`) have no fields — they are a single bit.
     pub fn fields(self) -> &'static [Field] {
         match self {
             Iface::Bit | Iface::Clk => &[],
@@ -147,12 +147,12 @@ impl Iface {
         }
     }
 
-    /// Простой тип — один бит.
+    /// Simple type — a single bit.
     pub fn is_simple(self) -> bool {
         self.fields().is_empty()
     }
 
-    /// Сколько бит в типе.
+    /// How many bits the type has.
     pub fn width(self) -> usize {
         if self.is_simple() {
             1
@@ -161,13 +161,13 @@ impl Iface {
         }
     }
 
-    /// Разбор имени типа.
+    /// Parse a type name.
     pub fn parse(name: &str) -> Option<Iface> {
         ALL.iter().copied().find(|t| t.name() == name)
     }
 }
 
-/// Все типы интерфейсов.
+/// All interface types.
 pub const ALL: [Iface; 16] = [
     Iface::Bit,
     Iface::Clk,
@@ -187,7 +187,7 @@ pub const ALL: [Iface; 16] = [
     Iface::Ctrl,
 ];
 
-/// Пути всех бит типа по порядку: у `Instr` — `op.Op1, op.Op0, k.D1, k.D0`; у простого типа — `[""]`.
+/// Paths of all bits of a type in order: for `Instr` — `op.Op1, op.Op0, k.D1, k.D0`; for a simple type — `[""]`.
 pub fn leaf_paths(ty: Iface, prefix: &str) -> Vec<String> {
     if ty.is_simple() {
         return vec![prefix.to_string()];
@@ -201,7 +201,7 @@ pub fn leaf_paths(ty: Iface, prefix: &str) -> Vec<String> {
         .collect()
 }
 
-/// Часть типа: какой тип, с какого бита и сколько бит.
+/// Part of a type: which type, from which bit and how many bits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TypeSlice {
     pub ty: Iface,
@@ -209,7 +209,7 @@ pub struct TypeSlice {
     pub length: usize,
 }
 
-/// Ищет поле по пути (`""` — весь тип, `"op"`, `"k.D1"`); `None`, если такого поля нет.
+/// Looks up a field by path (`""` — the whole type, `"op"`, `"k.D1"`); `None` if there is no such field.
 pub fn slice_of(ty: Iface, path: &str) -> Option<TypeSlice> {
     let mut cur = ty;
     let mut offset = 0;
@@ -232,7 +232,7 @@ pub fn slice_of(ty: Iface, path: &str) -> Option<TypeSlice> {
     Some(TypeSlice { ty: cur, offset, length: cur.width() })
 }
 
-/// Непосредственное поле типа — для раскрытия порта на доске.
+/// Immediate field of a type — for expanding a port on the board.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChildField {
     pub name: &'static str,
@@ -240,7 +240,7 @@ pub struct ChildField {
     pub ty: Iface,
 }
 
-/// Непосредственные поля типа по пути.
+/// Immediate fields of a type by path.
 pub fn child_fields(ty: Iface, path: &str) -> Vec<ChildField> {
     let Some(slice) = slice_of(ty, path) else {
         return Vec::new();
@@ -257,12 +257,12 @@ pub fn child_fields(ty: Iface, path: &str) -> Vec<ChildField> {
         .collect()
 }
 
-/// Типы совместимы только при совпадении имён.
+/// Types are compatible only when their names match.
 pub fn can_connect(from: Iface, to: Iface) -> bool {
     from == to
 }
 
-/// Значение шины текстом: `10`, `1?` (старший бит слева).
+/// Bus value as text: `10`, `1?` (most significant bit on the left).
 pub fn bus_text(values: &[NodeValue]) -> String {
     values.iter().map(|v| v.map_or('?', |b| if b == 1 { '1' } else { '0' })).collect()
 }

@@ -1,7 +1,7 @@
 [project]
 name = "cs-core-voice"
 version = "0.1.0"
-description = "Озвучка курса (kokoro-ru): запускается один раз, когда готовы все главы всех книг; веб-сервису и воркеру не нужна"
+description = "Course voice-over (kokoro-ru): run once when all chapters of all books are ready; not needed by the web service or the worker"
 requires-python = ">=3.14"
 dependencies = [
     "kokoro>=0.9.4",

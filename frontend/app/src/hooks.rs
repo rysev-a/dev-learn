@@ -1,11 +1,11 @@
-//! Загрузка данных в компонентах: состояние запроса как сигнал.
+//! Data loading in components: request state as a signal.
 
 use std::future::Future;
 
 use api::{ApiError, Client};
 use leptos::{prelude::*, task::spawn_local};
 
-/// Состояние загрузки.
+/// Loading state.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Load<T> {
     Loading,
@@ -26,18 +26,18 @@ thread_local! {
     static CLIENT: std::cell::RefCell<Option<Client>> = const { std::cell::RefCell::new(None) };
 }
 
-/// Запоминает клиент API приложения (вызывается один раз при старте сессии).
+/// Remembers the application's API client (called once at session start).
 pub fn install_client(client: Client) {
     CLIENT.with(|c| *c.borrow_mut() = Some(client));
 }
 
-/// Клиент API приложения. Не из контекста Leptos: он нужен и в асинхронных задачах, и в таймерах, где владельца уже нет.
+/// The application's API client. Not from the Leptos context: it is needed in async tasks and timers where the owner is already gone.
 pub fn client() -> Client {
-    CLIENT.with(|c| c.borrow().clone()).expect("клиент API не установлен: сессия не создана")
+    CLIENT.with(|c| c.borrow().clone()).expect("API client not set: the session has not been created")
 }
 
-/// Загружает данные при каждом изменении ключа: `key()` вернул `None` — ничего не грузим (состояние `Loading`);
-/// ответ устаревшего запроса отбрасывается.
+/// Loads data whenever the key changes: if `key()` returned `None` - nothing is loaded (state `Loading`);
+/// the response of a stale request is discarded.
 pub fn use_load<K, T, Fut>(key: impl Fn() -> Option<K> + 'static, fetch: impl Fn(Client, K) -> Fut + 'static) -> ReadSignal<Load<T>>
 where
     K: Clone + 'static,

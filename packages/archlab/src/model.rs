@@ -1,20 +1,20 @@
-//! Модель логической схемы: вентили, провода, входы-тумблеры и геометрия доски.
+//! Logic circuit model: gates, wires, toggle inputs and board geometry.
 //!
-//! Порт `circuit.model.ts`. Координаты — в системе доски (viewBox 880 × 440).
+//! Port of `circuit.model.ts`. Coordinates are in board space (viewBox 880 × 440).
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Бит: 0 или 1.
+/// Bit: 0 or 1.
 pub type Bit = u8;
 
-/// Значение узла: 0, 1 или `None` («?» — не подключён или неизвестен).
+/// Node value: 0, 1 or `None` ("?" — not connected or unknown).
 pub type NodeValue = Option<Bit>;
 
-/// Значения узлов схемы по имени.
+/// Values of circuit nodes by name.
 pub type Values = HashMap<String, NodeValue>;
 
-/// Тип вентиля. `Dff` — D-триггер по фронту: вход 0 — данные D, вход 1 — такт CLK, выход — Q.
+/// Gate type. `Dff` — edge-triggered D flip-flop: input 0 — data D, input 1 — clock CLK, output — Q.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum GateType {
@@ -28,7 +28,7 @@ pub enum GateType {
     Dff,
 }
 
-/// Все типы вентилей в порядке палитры.
+/// All gate types in palette order.
 pub const GATE_TYPES: [GateType; 8] = [
     GateType::And,
     GateType::Or,
@@ -41,7 +41,7 @@ pub const GATE_TYPES: [GateType; 8] = [
 ];
 
 impl GateType {
-    /// Имя как в данных и на доске: `AND`, `NOR`, …
+    /// Name as in the data and on the board: `AND`, `NOR`, …
     pub fn name(self) -> &'static str {
         match self {
             GateType::And => "AND",
@@ -55,7 +55,7 @@ impl GateType {
         }
     }
 
-    /// Русское название (`RU_NAMES` из `gate-shapes.ts`).
+    /// Russian name (`RU_NAMES` from `gate-shapes.ts`).
     pub fn ru_name(self) -> &'static str {
         match self {
             GateType::And => i18n::tr("AND"),
@@ -69,7 +69,7 @@ impl GateType {
         }
     }
 
-    /// Входные пины: у НЕ один, у остальных два.
+    /// Input pins: NOT has one, the rest have two.
     pub fn pins(self) -> &'static [PinKind] {
         if self == GateType::Not {
             &[PinKind::In0]
@@ -79,7 +79,7 @@ impl GateType {
     }
 }
 
-/// Физические входы-тумблеры доски.
+/// Physical toggle inputs of the board.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum InputId {
     A,
@@ -90,7 +90,7 @@ pub enum InputId {
     F,
 }
 
-/// Все входы по порядку.
+/// All inputs in order.
 pub const INPUT_IDS: [InputId; 6] = [
     InputId::A,
     InputId::B,
@@ -101,7 +101,7 @@ pub const INPUT_IDS: [InputId; 6] = [
 ];
 
 impl InputId {
-    /// Имя узла: `"A"`…`"F"`.
+    /// Node name: `"A"`…`"F"`.
     pub fn as_str(self) -> &'static str {
         match self {
             InputId::A => "A",
@@ -113,41 +113,41 @@ impl InputId {
         }
     }
 
-    /// Разбор имени узла.
+    /// Parse a node name.
     pub fn parse(s: &str) -> Option<InputId> {
         INPUT_IDS.iter().copied().find(|i| i.as_str() == s)
     }
 
-    /// Номер 0…5.
+    /// Number 0…5.
     pub fn index(self) -> usize {
         self as usize
     }
 }
 
-/// Состояние шести тумблеров.
+/// State of the six toggles.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct InputState(pub [Bit; 6]);
 
 impl InputState {
-    /// Все тумблеры в нуле.
+    /// All toggles at zero.
     pub fn zero() -> Self {
         InputState([0; 6])
     }
-    /// Уровень тумблера.
+    /// Toggle level.
     pub fn get(&self, id: InputId) -> Bit {
         self.0[id.index()]
     }
-    /// Установить уровень (любое ненулевое — единица).
+    /// Set the level (any non-zero — one).
     pub fn set(&mut self, id: InputId, level: Bit) {
         self.0[id.index()] = (level != 0) as Bit;
     }
-    /// Число из значений тумблеров `ids`: первый — старший.
+    /// Number from the toggle values `ids`: the first is the most significant.
     pub fn row(&self, ids: &[InputId]) -> usize {
         ids.iter().fold(0, |acc, id| (acc << 1) | self.get(*id) as usize)
     }
 }
 
-/// Значения входов для строки таблицы истинности (`row` — биты активных входов, старший первым).
+/// Input values for a truth-table row (`row` — bits of the active inputs, most significant first).
 pub fn inputs_for_row(ids: &[InputId], row: usize) -> InputState {
     let mut state = InputState::zero();
     let n = ids.len();
@@ -157,7 +157,7 @@ pub fn inputs_for_row(ids: &[InputId], row: usize) -> InputState {
     state
 }
 
-/// Экземпляр вентиля на доске.
+/// Gate instance on the board.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GateInstance {
     pub id: String,
@@ -169,7 +169,7 @@ pub struct GateInstance {
     pub y: f64,
 }
 
-/// Какой пин: выход или один из входов.
+/// Which pin: the output or one of the inputs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PinKind {
@@ -178,7 +178,7 @@ pub enum PinKind {
     In1,
 }
 
-/// Конец провода: узел (`A`…`F`, id вентиля или имя выхода упражнения) и пин.
+/// Wire end: node (`A`…`F`, gate id or exercise output name) and pin.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PinRef {
     pub node: String,
@@ -186,17 +186,17 @@ pub struct PinRef {
 }
 
 impl PinRef {
-    /// Выход узла.
+    /// Node output.
     pub fn out(node: impl Into<String>) -> Self {
         PinRef { node: node.into(), pin: PinKind::Out }
     }
-    /// Вход узла.
+    /// Node input.
     pub fn inp(node: impl Into<String>, pin: PinKind) -> Self {
         PinRef { node: node.into(), pin }
     }
 }
 
-/// Провод от выхода к входу.
+/// Wire from an output to an input.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Wire {
     pub id: String,
@@ -204,7 +204,7 @@ pub struct Wire {
     pub to: PinRef,
 }
 
-/// Вид встроенной памяти.
+/// Kind of built-in memory.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum NativeKind {
@@ -212,28 +212,28 @@ pub enum NativeKind {
     Ram,
 }
 
-/// Встроенная память — «микросхема» с адресом и данными; содержимое грузится снаружи.
-/// Общий симулятор её не умеет — только быстрый ([`crate::cpu8::fast::CompiledSim`]).
+/// Built-in memory — a "chip" with address and data; the contents are loaded from outside.
+/// The general simulator does not support it — only the fast one ([`crate::cpu8::fast::CompiledSim`]).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NativeInstance {
     pub id: String,
     pub kind: NativeKind,
-    /// Узлы-источники адреса, старший бит первым; `None` — не подключён.
+    /// Address source nodes, most significant bit first; `None` — not connected.
     pub addr: Vec<Option<String>>,
-    /// Узлы данных на запись (только ram).
+    /// Data nodes for writing (ram only).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub din: Option<Vec<Option<String>>>,
-    /// Разрешение записи (только ram).
+    /// Write enable (ram only).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub we: Option<String>,
-    /// Такт (только ram).
+    /// Clock (ram only).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub clk: Option<String>,
-    /// Имена узлов-выходов, старший бит первым.
+    /// Output node names, most significant bit first.
     pub dout: Vec<String>,
 }
 
-/// Плоская схема: вентили, провода и (у процессора) встроенная память.
+/// Flat circuit: gates, wires and (for the processor) built-in memory.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Circuit {
     pub gates: Vec<GateInstance>,
@@ -243,13 +243,13 @@ pub struct Circuit {
 }
 
 impl Circuit {
-    /// Схема без памяти.
+    /// Circuit without memory.
     pub fn new(gates: Vec<GateInstance>, wires: Vec<Wire>) -> Self {
         Circuit { gates, wires, natives: Vec::new() }
     }
 }
 
-/// Строка таблицы истинности после расчёта.
+/// Truth-table row after evaluation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TableRow {
     pub targets: Vec<Bit>,
@@ -258,16 +258,16 @@ pub struct TableRow {
 }
 
 /* ============================================================
-   Геометрия доски
+   Board geometry
    ============================================================ */
 
 pub const BOARD_W: f64 = 880.0;
 pub const BOARD_H: f64 = 440.0;
 pub const GATE_W: f64 = 64.0;
 pub const GATE_H: f64 = 48.0;
-/// X выходного пина входа-тумблера.
+/// X of the output pin of a toggle input.
 pub const INPUT_X: f64 = 100.0;
-/// X входных пинов выходов (Y, Q, …).
+/// X of the input pins of outputs (Y, Q, …).
 pub const OUT_X: f64 = 780.0;
 pub const GATE_MIN_X: f64 = 140.0;
 pub const GATE_MAX_X: f64 = 690.0;
@@ -276,29 +276,29 @@ pub const GATE_MAX_Y: f64 = BOARD_H - GATE_H - 12.0;
 
 const LEGACY_INPUT_Y: [f64; 3] = [80.0, 200.0, 320.0];
 
-/// Точка на доске.
+/// Point on the board.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
 }
 
-/// Y-координаты узлов по именам в порядке добавления (порядок важен: от него зависит автопроводка).
+/// Y coordinates of nodes by name in insertion order (the order matters: auto-wiring depends on it).
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct YMap(pub Vec<(String, f64)>);
 
 impl YMap {
-    /// Y узла.
+    /// Y of a node.
     pub fn get(&self, node: &str) -> Option<f64> {
         self.0.iter().find(|(n, _)| n == node).map(|(_, y)| *y)
     }
 
-    /// Имена узлов по порядку.
+    /// Node names in order.
     pub fn keys(&self) -> impl Iterator<Item = &str> {
         self.0.iter().map(|(n, _)| n.as_str())
     }
 
-    /// Пары «имя — Y».
+    /// "name — Y" pairs.
     pub fn iter(&self) -> impl Iterator<Item = (&str, f64)> {
         self.0.iter().map(|(n, y)| (n.as_str(), *y))
     }
@@ -315,7 +315,7 @@ fn spread<S: AsRef<str>>(names: &[S], top: f64, bottom: f64) -> YMap {
     )
 }
 
-/// Y входов на левом краю: до трёх — 80/200/320, больше — равномерно по высоте.
+/// Y of inputs on the left edge: up to three — 80/200/320, more — evenly over the height.
 pub fn input_ys(ids: &[InputId]) -> YMap {
     if ids.len() <= 3 {
         return YMap(ids.iter().enumerate().map(|(i, id)| (id.as_str().to_string(), LEGACY_INPUT_Y[i])).collect());
@@ -324,7 +324,7 @@ pub fn input_ys(ids: &[InputId]) -> YMap {
     spread(&names, 50.0, 390.0)
 }
 
-/// Y выходов на правом краю: один — по центру, до четырёх — как раньше, больше — по всей высоте.
+/// Y of outputs on the right edge: one — centered, up to four — as before, more — over the full height.
 pub fn output_ys<S: AsRef<str>>(outputs: &[S]) -> YMap {
     if outputs.len() == 1 {
         return YMap(vec![(outputs[0].as_ref().to_string(), 200.0)]);
@@ -336,7 +336,7 @@ pub fn output_ys<S: AsRef<str>>(outputs: &[S]) -> YMap {
     }
 }
 
-/// X выходного пина вентиля (у вентилей с инверсией правее — там пузырёк).
+/// X of a gate's output pin (further right for inverting gates — the bubble is there).
 pub fn out_pin_x(ty: GateType) -> f64 {
     match ty {
         GateType::And | GateType::Or | GateType::Xor | GateType::Dff => GATE_W + 8.0,
@@ -345,7 +345,7 @@ pub fn out_pin_x(ty: GateType) -> f64 {
     }
 }
 
-/// Координаты пина на доске. `output_y` — Y выходных узлов, `input_y` — Y входов.
+/// Pin coordinates on the board. `output_y` — Y of output nodes, `input_y` — Y of inputs.
 pub fn pin_pos(r: &PinRef, gates: &[GateInstance], output_y: &YMap, input_y: &YMap) -> Point {
     if r.pin != PinKind::Out {
         if let Some(oy) = output_y.get(&r.node) {
@@ -367,18 +367,18 @@ pub fn pin_pos(r: &PinRef, gates: &[GateInstance], output_y: &YMap, input_y: &YM
     }
 }
 
-/// Входы по умолчанию (A, B, C) для [`pin_pos`].
+/// Default inputs (A, B, C) for [`pin_pos`].
 pub fn legacy_input_ys() -> YMap {
     YMap(["A", "B", "C"].iter().zip(LEGACY_INPUT_Y).map(|(n, y)| (n.to_string(), y)).collect())
 }
 
-/// Путь провода — кубическая кривая Безье (атрибут `d` SVG).
+/// Wire path — cubic Bézier curve (SVG `d` attribute).
 pub fn wire_path(a: Point, b: Point) -> String {
     let dx = 110f64.min(36f64.max((b.x - a.x).abs() / 2.0));
     format!("M {} {} C {} {}, {} {}, {} {}", a.x, a.y, a.x + dx, a.y, b.x - dx, b.y, b.x, b.y)
 }
 
-/// Создаст ли новое соединение from → to цикл: из целевого узла можно «дойти» до источника.
+/// Would a new connection from → to create a cycle: the source is reachable from the target node.
 pub fn creates_cycle(circuit: &Circuit, from: &PinRef, to: &PinRef) -> bool {
     if to.node == from.node {
         return true;
@@ -402,19 +402,19 @@ pub fn creates_cycle(circuit: &Circuit, from: &PinRef, to: &PinRef) -> bool {
     false
 }
 
-/// Выдача новых id (`g3`, `w7`, …): после загрузки сохранённой схемы новые не совпадут со старыми.
+/// Allocation of new ids (`g3`, `w7`, …): after loading a saved circuit, new ids will not collide with old ones.
 #[derive(Debug, Default, Clone)]
 pub struct UidGen {
     seq: u64,
 }
 
 impl UidGen {
-    /// Начать счёт с нуля.
+    /// Start counting from zero.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Занять id вида `префикс<число>`: счёт продолжится после наибольшего числа.
+    /// Reserve an id of the form `prefix<number>`: counting continues after the largest number.
     pub fn reserve<S: AsRef<str>>(&mut self, ids: &[S]) {
         for id in ids {
             let s = id.as_ref();
@@ -425,7 +425,7 @@ impl UidGen {
         }
     }
 
-    /// Новый id с префиксом.
+    /// New id with a prefix.
     pub fn next(&mut self, prefix: &str) -> String {
         self.seq += 1;
         format!("{prefix}{}", self.seq)

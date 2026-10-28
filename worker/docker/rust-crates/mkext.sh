@@ -1,6 +1,6 @@
 #!/bin/sh
-# Строит /opt/ext/externs: по строке `--extern имя=путь` на каждый прямой крейт проекта /opt/deps
-# (ровно те rlib, с которыми cargo собирал корневой крейт: у зависимостей бывает по две сборки с разными фичами).
+# Builds /opt/ext/externs: one `--extern name=path` line per direct crate of the /opt/deps project
+# (exactly the rlibs cargo used to build the root crate: dependencies may have two builds with different features).
 set -eu
 cd /opt/deps
 mkdir -p /opt/ext

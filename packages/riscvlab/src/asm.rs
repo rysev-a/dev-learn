@@ -1,8 +1,8 @@
-//! Ассемблер RV32IM: текст → образ памяти. Все ошибки собираются, а не только первая.
+//! RV32IM assembler: text → memory image. All errors are collected, not just the first one.
 //!
-//! Порт прежнего ассемблера на TypeScript: те же директивы, псевдокоманды, выражения (`%hi`, `%lo`, `+`/`-`, символы
-//! в кавычках) и те же тексты сообщений на русском, включая порядок и повторы сообщений (выражения вычисляются в двух
-//! проходах).
+//! Port of the previous TypeScript assembler: the same directives, pseudo-instructions, expressions (`%hi`, `%lo`, `+`/`-`, quoted
+//! characters) and the same Russian message texts, including the order and repetition of messages (expressions are evaluated in two
+//! passes).
 
 use std::collections::{BTreeMap, HashMap};
 
@@ -13,57 +13,57 @@ use crate::isa::{
 };
 use crate::js;
 
-/// Размер оперативной памяти учебного «мягкого процессора» — 16 КиБ.
+/// RAM size of the educational "soft processor" — 16 KiB.
 pub const RAM_SIZE: usize = 0x4000;
-/// С какого адреса лежат команды.
+/// Address where instructions start.
 pub const TEXT_BASE: u32 = 0x0000;
-/// С какого адреса лежат данные.
+/// Address where data starts.
 pub const DATA_BASE: u32 = 0x1000;
-/// Под стек оставляем последнюю килобайтную область памяти.
+/// The last kilobyte of memory is reserved for the stack.
 pub const STACK_RESERVE: usize = 0x400;
-/// Начальное значение sp — вершина памяти.
+/// Initial value of sp — top of memory.
 pub const STACK_TOP: u32 = RAM_SIZE as u32;
 
-/// Одно слово машинного кода и откуда оно взялось.
+/// One word of machine code and where it came from.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AsmLine {
-    /// номер строки исходника, с 1
+    /// source line number, 1-based
     pub line: u32,
-    /// адрес
+    /// address
     pub addr: u32,
-    /// слово команды
+    /// instruction word
     pub word: u32,
-    /// исходный текст команды
+    /// source text of the instruction
     pub text: String,
-    /// эта команда — часть развёрнутой псевдокоманды
+    /// this instruction is part of an expanded pseudo-instruction
     pub pseudo: bool,
 }
 
-/// Ошибка ассемблера.
+/// Assembler error.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AsmError {
-    /// номер строки исходника, с 1
+    /// source line number, 1-based
     pub line: u32,
-    /// текст сообщения
+    /// message text
     pub message: String,
 }
 
-/// Результат ассемблирования.
+/// Assembly result.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AsmResult {
-    /// образ оперативной памяти (`RAM_SIZE` байт): команды с адреса 0, данные с `DATA_BASE`
+    /// RAM image (`RAM_SIZE` bytes): instructions from address 0, data from `DATA_BASE`
     pub image: Vec<u8>,
-    /// сколько байт занимают команды
+    /// how many bytes the instructions occupy
     pub text_size: usize,
-    /// сколько байт занимают данные
+    /// how many bytes the data occupies
     pub data_size: usize,
-    /// листинг: слова машинного кода и откуда они взялись
+    /// listing: machine code words and where they came from
     pub lines: Vec<AsmLine>,
-    /// адреса меток
+    /// label addresses
     pub symbols: BTreeMap<String, u32>,
-    /// с какого адреса начинается выполнение: метка `_start`, а если её нет — 0
+    /// address where execution starts: the `_start` label, or 0 if there is none
     pub entry: u32,
-    /// ошибки (пусто, если всё собралось)
+    /// errors (empty if everything assembled)
     pub errors: Vec<AsmError>,
 }
 
@@ -79,9 +79,9 @@ enum Kind {
         mnemonic: String,
         operands: Vec<String>,
     },
-    /// готовые байты (хвост из нулей не хранится: образ памяти и так нулевой)
+    /// ready bytes (the trailing zeros are not stored: the memory image is zeroed anyway)
     Bytes(Vec<u8>),
-    /// `.word`, `.half`, `.byte`: выражения считаются во втором проходе
+    /// `.word`, `.half`, `.byte`: expressions are evaluated in the second pass
     Exprs {
         exprs: Vec<String>,
         size: usize,
@@ -91,17 +91,17 @@ enum Kind {
 struct Item {
     line: u32,
     section: Section,
-    /// смещение в своей секции
+    /// offset within its section
     offset: usize,
     kind: Kind,
 }
 
-/// Значение символа: для имён меток и констант.
+/// Symbol value: for label and constant names.
 type AddrOf<'a> = Option<&'a dyn Fn(&str) -> Option<i64>>;
 
-/* ---------- мелкий разбор текста ---------- */
+/* ---------- low-level text parsing ---------- */
 
-/// Отрезать комментарий (`#`, `;`, `//`) вне кавычек.
+/// Strip a comment (`#`, `;`, `//`) outside quotes.
 fn strip_comment(s: &str) -> String {
     let c: Vec<char> = s.chars().collect();
     let mut quote: Option<char> = None;
@@ -127,7 +127,7 @@ fn strip_comment(s: &str) -> String {
     s.to_string()
 }
 
-/// Разделить операнды по запятым вне скобок и кавычек.
+/// Split operands by commas outside parentheses and quotes.
 fn split_operands(s: &str) -> Vec<String> {
     let c: Vec<char> = s.chars().collect();
     let mut out: Vec<String> = Vec::new();
@@ -190,15 +190,15 @@ fn unit_is_terminator(u: u16) -> bool {
     matches!(u, 0x0a | 0x0d | 0x2028 | 0x2029)
 }
 
-/// Строка в кавычках → байты. Работает по кодам UTF-16, как прежний разбор: символ вне BMP даёт два символа
-/// подстановки (каждая половина пары кодируется отдельно), а код после обратной косой берётся по младшим 8 битам.
+/// Quoted string → bytes. Works on UTF-16 code units, like the previous parser: a character outside the BMP yields two replacement
+/// characters (each half of the pair is encoded separately), and the code after a backslash is taken by its low 8 bits.
 fn parse_string(token: &str) -> Option<Vec<u8>> {
     let t: Vec<u16> = js::trim(token).encode_utf16().collect();
     if t.len() < 2 || t[0] != 0x22 || t[t.len() - 1] != 0x22 {
         return None;
     }
     let inner = &t[1..t.len() - 1];
-    // проверка шаблона: (\\. | [^"\\])*
+    // pattern check: (\\. | [^"\\])*
     let mut i = 0;
     while i < inner.len() {
         let u = inner[i];
@@ -232,12 +232,12 @@ fn parse_string(token: &str) -> Option<Vec<u8>> {
     Some(out)
 }
 
-/// Младшие 32 бита числа, как `ToInt32` в JavaScript.
+/// Low 32 bits of a number, like `ToInt32` in JavaScript.
 fn i32w(v: i64) -> i32 {
     v as i32
 }
 
-/// Знаковое расширение младших `bits` бит.
+/// Sign extension of the low `bits` bits.
 fn sext(v: i64, bits: u32) -> i64 {
     let m: i32 = 1 << (bits - 1);
     i64::from(((i32w(v) & ((1i32 << bits) - 1)) ^ m).wrapping_sub(m))
@@ -247,7 +247,7 @@ fn parse_radix(digits: &str, radix: u32) -> i64 {
     i64::from_str_radix(digits, radix).unwrap_or(i64::MAX)
 }
 
-/// Подходит ли текст под `^'(\\.|[^\\'])'$` (по кодам UTF-16) и каков код символа.
+/// Whether the text matches `^'(\\.|[^\\'])'$` (by UTF-16 code units) and what the character code is.
 fn char_literal(t: &str) -> Option<i64> {
     let u: Vec<u16> = t.encode_utf16().collect();
     if u.len() < 3 || u[0] != 0x27 || u[u.len() - 1] != 0x27 {
@@ -261,10 +261,10 @@ fn char_literal(t: &str) -> Option<i64> {
     }
 }
 
-/// `^(.*)\(\s*([^)]+?)\s*\)$`: смещение и регистр из `смещение(регистр)`.
+/// `^(.*)\(\s*([^)]+?)\s*\)$`: offset and register from `offset(register)`.
 fn parse_mem_operand(s: &str) -> Option<(String, String)> {
     let c: Vec<char> = s.chars().collect();
-    // жадная «.*» отступает с конца: пробуем последнюю открывающую скобку первой
+    // the greedy ".*" backtracks from the end: try the last opening parenthesis first
     for k in (0..c.len()).rev() {
         if c[k] != '(' {
             continue;
@@ -291,7 +291,7 @@ fn parse_mem_operand(s: &str) -> Option<(String, String)> {
     None
 }
 
-/// Метка в начале строки: `имя:` и остаток строки.
+/// Label at the start of a line: `name:` and the rest of the line.
 fn split_label(text: &str) -> Option<(String, String)> {
     let c: Vec<char> = text.chars().collect();
     if !c.first().is_some_and(|ch| js::is_ident_start(*ch)) {
@@ -316,13 +316,13 @@ fn split_label(text: &str) -> Option<(String, String)> {
     Some((name, rest))
 }
 
-/// Добавить в секцию готовые байты (`len` может быть больше `bytes.len()`: остаток — нули).
+/// Append ready bytes to a section (`len` may exceed `bytes.len()`: the remainder is zeros).
 fn emit(items: &mut Vec<Item>, size: &mut [usize; 2], section: Section, line: u32, len: usize, bytes: Vec<u8>) {
     items.push(Item { line, section, offset: size[section as usize], kind: Kind::Bytes(bytes) });
     size[section as usize] = size[section as usize].saturating_add(len);
 }
 
-/* ---------- вычисление выражений ---------- */
+/* ---------- expression evaluation ---------- */
 
 struct Ctx {
     errors: Vec<AsmError>,
@@ -334,14 +334,14 @@ impl Ctx {
         self.errors.push(AsmError { line, message: message.into() });
     }
 
-    /// Значение выражения; `addr_of` — доступны ли метки (после первого прохода).
+    /// Value of an expression; `addr_of` — whether labels are available (after the first pass).
     fn eval(&mut self, expr: &str, line: u32, addr_of: AddrOf) -> Option<i64> {
         let e = js::trim(expr);
         if e.is_empty() {
             self.fail(line, i18n::tr("Empty expression"));
             return None;
         }
-        // %hi(...) и %lo(...)
+        // %hi(...) and %lo(...)
         for (prefix, hi) in [("%hi(", true), ("%lo(", false)] {
             if e.len() >= 5 && e.starts_with(prefix) && e.ends_with(')') {
                 let inner = &e[4..e.len() - 1];
@@ -355,7 +355,7 @@ impl Ctx {
                 }
             }
         }
-        // сумма и разность термов
+        // sum and difference of terms
         let units: Vec<u16> = e.encode_utf16().collect();
         let parts = scan_terms(&units);
         let strip = |u: &[u16]| -> Vec<u16> { u.iter().copied().filter(|x| !js::is_space_unit(*x)).collect() };
@@ -409,11 +409,11 @@ impl Ctx {
     }
 }
 
-/// Все совпадения `(?:^|[+-])\s*(?:'(?:\\.|[^\\'])'|[^+\-\s]+)` в тексте (как `String.match` с флагом g).
+/// All matches of `(?:^|[+-])\s*(?:'(?:\\.|[^\\'])'|[^+\-\s]+)` in the text (like `String.match` with the g flag).
 fn scan_terms(c: &[u16]) -> Vec<Vec<u16>> {
     let n = c.len();
     let is_sp = |i: usize| c.get(i).is_some_and(|u| js::is_space_unit(*u));
-    // терм с позиции q (после пробелов): сначала символ в кавычках, потом «слово»
+    // term from position q (after whitespace): first a quoted character, then a "word"
     let term = |q: usize| -> Option<usize> {
         if c.get(q) == Some(&0x27) {
             match (c.get(q + 1), c.get(q + 2), c.get(q + 3)) {
@@ -455,16 +455,16 @@ fn scan_terms(c: &[u16]) -> Vec<Vec<u16>> {
     out
 }
 
-/* ---------- ассемблер ---------- */
+/* ---------- assembler ---------- */
 
-/// Ассемблер RV32IM: текст → образ памяти. Все ошибки собираются, а не только первая.
+/// RV32IM assembler: text → memory image. All errors are collected, not just the first one.
 pub fn assemble(source: &str) -> AsmResult {
     let mut cx = Ctx { errors: Vec::new(), equ: HashMap::new() };
-    // метка → секция и смещение (адрес станет известен после первого прохода)
+    // label → section and offset (the address becomes known after the first pass)
     let mut labels: HashMap<String, (Section, usize)> = HashMap::new();
     let mut label_order: Vec<String> = Vec::new();
     let mut items: Vec<Item> = Vec::new();
-    // занятое место по секциям: [команды, данные]
+    // space used per section: [instructions, data]
     let mut size: [usize; 2] = [0, 0];
     let mut section = Section::Text;
 
@@ -478,7 +478,7 @@ pub fn assemble(source: &str) -> AsmResult {
             continue;
         }
 
-        // метки в начале строки (их может быть несколько)
+        // labels at the start of the line (there may be several)
         while let Some((name, rest)) = split_label(&text) {
             if labels.contains_key(&name) {
                 cx.fail(line, i18n::trf!("Label “{0}” is already defined", name));
@@ -493,7 +493,7 @@ pub fn assemble(source: &str) -> AsmResult {
             continue;
         }
 
-        // голова: «слово» до первого пробела и остаток
+        // head: the "word" up to the first space, and the rest
         let (head, rest) = match text.find(js::is_space) {
             Some(p) => {
                 let (h, r) = text.split_at(p);
@@ -624,7 +624,7 @@ pub fn assemble(source: &str) -> AsmResult {
         cx.fail(1, i18n::trf!("Too much data: {0} bytes; {1} bytes must be left for the stack", size_data, STACK_RESERVE));
     }
 
-    // адреса меток
+    // label addresses
     let mut symbols: BTreeMap<String, u32> = BTreeMap::new();
     for name in &label_order {
         if let Some((sec, off)) = labels.get(name) {
@@ -634,7 +634,7 @@ pub fn assemble(source: &str) -> AsmResult {
     }
     let sym_lookup = |name: &str| -> Option<i64> { symbols.get(name).map(|v| i64::from(*v)) };
 
-    // проход 2: кодирование
+    // pass 2: encoding
     let mut image = vec![0u8; RAM_SIZE];
     let mut lines: Vec<AsmLine> = Vec::new();
     for it in &items {
@@ -688,16 +688,16 @@ pub fn assemble(source: &str) -> AsmResult {
     AsmResult { image, text_size: size_text, data_size: size_data, lines, symbols, entry, errors: cx.errors }
 }
 
-/// Сколько слов займёт команда или псевдокоманда.
+/// How many words an instruction or pseudo-instruction will take.
 fn insn_words(cx: &mut Ctx, mn: &str, ops: &[String], line: u32) -> usize {
     match mn {
         "la" | "call" | "tail" => 2,
         "li" => {
             if ops.len() != 2 {
-                return 1; // ошибку отловит второй проход
+                return 1; // the error will be caught by the second pass
             }
             let Some(raw) = cx.eval(&ops[1], line, None) else { return 1 };
-            let v = i32w(raw); // 0xFFFFFFFF и −1 — одно и то же 32-битное слово
+            let v = i32w(raw); // 0xFFFFFFFF and −1 are the same 32-bit word
             if (-2048..=2047).contains(&v) || v & 0xfff == 0 {
                 1
             } else {
@@ -717,7 +717,7 @@ fn is_pseudo(mn: &str) -> bool {
     PSEUDO_NAMES.contains(&mn)
 }
 
-/// Состояние кодирования одной команды: сюда копятся ошибки и считаются операнды.
+/// State of encoding one instruction: errors accumulate here and operands are evaluated.
 struct Enc<'a> {
     cx: &'a mut Ctx,
     line: u32,
@@ -775,7 +775,7 @@ impl<'a> Enc<'a> {
         Some(v)
     }
 
-    /// Смещение до метки (или явное число).
+    /// Offset to a label (or an explicit number).
     fn target(&mut self, t: &str, bits: u32) -> Option<i64> {
         let tt = js::trim(t);
         let off = if js::is_ident(tt) && (self.addr_of)(tt).is_some() {
@@ -800,7 +800,7 @@ fn opi(op: Op) -> &'static OpInfo {
     op.info()
 }
 
-/// Кодирование команды или псевдокоманды в слова; `None` — были ошибки.
+/// Encoding of an instruction or pseudo-instruction into words; `None` — there were errors.
 fn encode_insn(
     cx: &mut Ctx,
     line: u32,
@@ -816,7 +816,7 @@ fn encode_insn(
     real(&mut e)
 }
 
-/// Два регистра `rd, rs`; `None` — ошибки уже записаны.
+/// Two registers `rd, rs`; `None` — errors already recorded.
 fn two_regs(e: &mut Enc, usage: &str) -> Option<(u8, u8)> {
     if !e.need(2, usage) {
         return None;
@@ -825,7 +825,7 @@ fn two_regs(e: &mut Enc, usage: &str) -> Option<(u8, u8)> {
     rd.zip(rs)
 }
 
-/// Псевдокоманды. `None` — это не псевдокоманда, продолжаем как настоящую.
+/// Pseudo-instructions. `None` — not a pseudo-instruction, continue as a real one.
 fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
     let mn = e.mn;
     let ops = e.ops;
@@ -858,7 +858,7 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
                 e.fail(i18n::trf!("Number {0} does not fit in 32 bits", raw));
                 return Some(None);
             }
-            let v = i32w(raw); // 0xFFFFFFFF и −1 — одно и то же 32-битное слово
+            let v = i32w(raw); // 0xFFFFFFFF and −1 are the same 32-bit word
             if (-2048..=2047).contains(&v) {
                 return Some(Some(vec![enc_i(opi(Op::Addi), rd, 0, v)]));
             }
@@ -949,12 +949,12 @@ fn pseudo(e: &mut Enc) -> Option<Option<Vec<u32>>> {
     }
 }
 
-/// Настоящие команды.
+/// Real instructions.
 fn real(e: &mut Enc) -> Option<Vec<u32>> {
     let mn = e.mn;
     let ops = e.ops;
     let Some(def) = op_by_mnemonic(mn) else {
-        // в сообщении — мнемоника как написана (она уже строчная, как и в прежней версии)
+        // the message uses the mnemonic as written (it is already lowercase, as in the previous version)
         e.fail(i18n::trf!("Unknown instruction “{0}”", mn));
         return None;
     };
@@ -1028,7 +1028,7 @@ fn real(e: &mut Enc) -> Option<Vec<u32>> {
             Some(vec![enc_j(def, rd?, off? as i32)])
         }
         Fmt::JR => {
-            // jalr rd, смещение(rs)  |  jalr rd, rs, смещение  |  jalr rs
+            // jalr rd, offset(rs)  |  jalr rd, rs, offset  |  jalr rs
             if ops.len() == 1 {
                 let rs = e.reg(e.op(0));
                 return Some(vec![enc_i(def, 1, rs?, 0)]);

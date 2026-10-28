@@ -1,5 +1,5 @@
-//! Общее для симуляторов: цели упражнения (отметка достигнутых и однократная отправка решения), список целей,
-//! форматирование чисел.
+//! Shared by the simulators: exercise goals (marking reached ones and one-time solution submission), the goal list,
+//! number formatting.
 
 use std::collections::BTreeMap;
 
@@ -7,9 +7,9 @@ use leptos::prelude::*;
 use serde::Serialize;
 use serde_json::Value;
 
-/// Достигнутые цели упражнения: `id → данные` (то же, что `useGoals` в React).
+/// Reached goals of the exercise: `id → data` (the same as `useGoals` in React).
 ///
-/// Когда достигнуты все цели и упражнение ещё не решено, решение один раз уходит на сервер.
+/// When all goals are reached and the exercise is not solved yet, the solution is sent to the server once.
 #[derive(Clone, Copy)]
 pub struct Goals {
     done: RwSignal<BTreeMap<String, Value>>,
@@ -30,12 +30,12 @@ impl Goals {
         }
     }
 
-    /// Цель достигнута (или упражнение уже решено раньше).
+    /// The goal is reached (or the exercise was already solved earlier).
     pub fn is_done(&self, id: &str) -> bool {
         self.solved.get() || self.done.with(|d| d.contains_key(id))
     }
 
-    /// Отметить цель достигнутой, `info` — её данные для серверной перепроверки.
+    /// Mark a goal as reached; `info` is its data for server re-checking.
     pub fn mark(&self, id: &str, info: Value) {
         let mut solution = None;
         self.done.update(|d| {
@@ -54,7 +54,7 @@ impl Goals {
     }
 }
 
-/// Записать цель; `false` — она уже была достигнута (данные не меняются).
+/// Record a goal; `false` — it was already reached (the data does not change).
 pub fn insert_goal(done: &mut BTreeMap<String, Value>, id: &str, info: Value) -> bool {
     if done.contains_key(id) {
         return false;
@@ -63,27 +63,27 @@ pub fn insert_goal(done: &mut BTreeMap<String, Value>, id: &str, info: Value) ->
     true
 }
 
-/// Достигнуты ли все цели из списка.
+/// Whether all goals from the list are reached.
 pub fn all_reached(ids: &[String], done: &BTreeMap<String, Value>) -> bool {
     ids.iter().all(|id| done.contains_key(id))
 }
 
-/// Решение для сервера: JSON `{id цели: данные}`.
+/// Solution for the server: JSON `{goal id: data}`.
 pub fn solution_json(done: &BTreeMap<String, Value>) -> String {
     serde_json::to_string(done).unwrap_or_else(|_| "{}".to_string())
 }
 
-/// Данные цели из любого сериализуемого значения (на сбой — `true`, как «прежний клиент»).
+/// Goal data from any serializable value (on failure — `true`, like the "old client").
 pub fn data<T: Serialize>(value: &T) -> Value {
     serde_json::to_value(value).unwrap_or(Value::Bool(true))
 }
 
-/// Данные цели симуляторов с записью действий: `{trace: [...]}`.
+/// Goal data of simulators that record actions: `{trace: [...]}`.
 pub fn trace_data<T: Serialize>(trace: &[T]) -> Value {
     data(&serde_json::json!({ "trace": trace }))
 }
 
-/// Цель в списке «цели»: текст и необязательная приписка курсивом.
+/// A goal in the "goals" list: text and an optional italic note.
 #[derive(Clone)]
 pub struct GoalItem {
     pub id: String,
@@ -102,7 +102,7 @@ impl GoalItem {
     }
 }
 
-/// Список целей с отметками ✓ / ○.
+/// Goal list with ✓ / ○ marks.
 #[component]
 pub fn GoalList(goals: Goals, items: Vec<GoalItem>) -> impl IntoView {
     let rows = items
@@ -123,7 +123,7 @@ pub fn GoalList(goals: Goals, items: Vec<GoalItem>) -> impl IntoView {
     }
 }
 
-/// Вкладка со своим номером, отметкой достигнутой цели и названием.
+/// Tab with its own number, a reached-goal mark and a name.
 #[component]
 pub fn Tab(
     title: String,
@@ -149,7 +149,7 @@ pub fn Tab(
     }
 }
 
-/// Целое число по-русски: тысячи через неразрывный пробел, как `toLocaleString("ru-RU")`.
+/// Integer in the Russian style: thousands separated by a non-breaking space, like `toLocaleString("ru-RU")`.
 pub fn fmt_ru(n: f64) -> String {
     let r = n.round();
     let digits = format!("{}", r.abs() as u64);
@@ -166,7 +166,7 @@ pub fn fmt_ru(n: f64) -> String {
     out
 }
 
-/// Доля в процентах: `0.25` → `25%`.
+/// Percentage: `0.25` → `25%`.
 pub fn pct(x: f64) -> String {
     format!("{}%", (x * 100.0).round() as i64)
 }
@@ -179,17 +179,17 @@ mod tests {
 
     #[test]
     fn solution_contains_every_goal_once() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut done = BTreeMap::new();
         assert!(insert_goal(&mut done, "a", json!({"x": 1})));
-        assert!(!insert_goal(&mut done, "a", json!({"x": 2})), "повторная отметка не меняет данные");
+        assert!(!insert_goal(&mut done, "a", json!({"x": 2})), "a repeated mark does not change the data");
         assert!(insert_goal(&mut done, "b", Value::Bool(true)));
         assert_eq!(solution_json(&done), r#"{"a":{"x":1},"b":true}"#);
     }
 
     #[test]
     fn reached_requires_all_ids() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let ids = vec!["a".to_string(), "b".to_string()];
         let mut done = BTreeMap::new();
         insert_goal(&mut done, "a", Value::Bool(true));
@@ -201,14 +201,14 @@ mod tests {
 
     #[test]
     fn trace_goes_into_data() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let v = trace_data(&[virtlab::virtq::Action::Reap, virtlab::virtq::Action::Post { n: 3 }]);
         assert_eq!(v, json!({"trace": [{"op": "reap"}, {"op": "post", "n": 3}]}));
     }
 
     #[test]
     fn numbers_are_grouped_with_nbsp() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(fmt_ru(0.0), "0");
         assert_eq!(fmt_ru(999.0), "999");
         assert_eq!(fmt_ru(1000.0), "1\u{a0}000");
@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn percent_rounds() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(pct(0.0), "0%");
         assert_eq!(pct(0.25), "25%");
         assert_eq!(pct(0.5), "50%");

@@ -1,15 +1,15 @@
-//! Окно «За кадром»: текст абзаца текущего слайда. Закреплено у нижнего края, стоит по центру области, где показано; слова
-//! подсвечиваются по мере «чтения». «Лапка» наверху меняет высоту (не выше полного текста); высота запоминается.
+//! "Voice-over" window: text of the current slide's paragraph. Pinned to the bottom edge, centered over the area where it is shown; words
+//! are highlighted as they are "read". The "handle" at the top changes the height (not above the full text); the height is remembered.
 
 use leptos::{html, prelude::*};
 
 use crate::{dom, settings};
 
 const MIN_H: f64 = 60.0;
-/// «Показывать весь текст» (до 70% экрана): запоминается вместо высоты конкретного абзаца.
+/// "Show all text" (up to 70% of the screen): remembered instead of the height for a specific paragraph.
 const FULL: f64 = 2000.0;
 
-/// Номер слова, которое читается сейчас: `t` и `d` — время и длительность абзаца (без чтения слов не подсвечены).
+/// Index of the word being read now: `t` and `d` - time and duration of the paragraph (without reading no words are highlighted).
 pub fn current_word(words: usize, t: Option<f64>, d: f64) -> Option<usize> {
     let t = t?;
     (words > 0 && d > 0.0).then(|| (((t / d) * words as f64).floor() as usize).min(words - 1))
@@ -26,7 +26,7 @@ pub fn VoicePopup(text: String, #[prop(into)] t: Signal<Option<f64>>, d: f64) ->
     let body = NodeRef::<html::P>::new();
     let height = RwSignal::new(settings::read(settings::VOICE_H).and_then(|v| v.parse::<f64>().ok()).filter(|v| (MIN_H..=FULL).contains(v)));
 
-    // полная высота окна нужна плееру и полям страницы; центр и ширина — по области, где окно показано
+    // the full window height is needed by the player and page margins; center and width - by the area where the window is shown
     let guard = StoredValue::new_local(None::<dom::ResizeGuard>);
     Effect::new(move |_| {
         let Some(el) = pop.get() else { return };
@@ -55,7 +55,7 @@ pub fn VoicePopup(text: String, #[prop(into)] t: Signal<Option<f64>>, d: f64) ->
         dom::remove_root_var("--voice-h");
     });
 
-    // текущее слово остаётся в видимой части текста
+    // the current word stays in the visible part of the text
     Effect::new(move |_| {
         let _ = cur.get();
         let Some(p) = body.get() else { return };
@@ -137,10 +137,10 @@ mod tests {
 
     #[test]
     fn highlighted_word_follows_the_clock() {
-        assert_eq!(current_word(10, None, 5.0), None, "без чтения слова не подсвечены");
+        assert_eq!(current_word(10, None, 5.0), None, "without reading, words are not highlighted");
         assert_eq!(current_word(10, Some(0.0), 5.0), Some(0));
         assert_eq!(current_word(10, Some(2.6), 5.0), Some(5));
-        assert_eq!(current_word(10, Some(99.0), 5.0), Some(9), "не дальше последнего слова");
+        assert_eq!(current_word(10, Some(99.0), 5.0), Some(9), "not past the last word");
         assert_eq!(current_word(0, Some(1.0), 5.0), None);
     }
 }

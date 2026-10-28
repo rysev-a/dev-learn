@@ -1,22 +1,22 @@
-//! Данные упражнений книги «Компьютерные сети» и серверная проверка присланного решения.
+//! Exercise data of the "Computer Networks" book and server-side check of a submitted solution.
 //!
-//! Файл данных главы — `labs/net/<книга>-<глава:02>.json` ([`LabChapter`]): у каждого упражнения условие, подсказка и
-//! `spec` — исходная сеть, цели, шаги эталонного решения и разрешённые инструменты. Клиенту `spec.solution`
-//! не отдаётся; сервер проверяет присланное состояние сети функцией [`verify`].
+//! The chapter data file is `labs/net/<book>-<chapter:02>.json` ([`LabChapter`]): each exercise has a statement, a hint and
+//! `spec`: the initial network, goals, reference solution steps and allowed tools. `spec.solution` is not sent
+//! to the client; the server checks the submitted network state with [`verify`].
 
 use crate::check::{apply_ops, check_goals, Goal, GoalResult, Step};
 use crate::types::*;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-/// Номер книги «Компьютерные сети».
+/// Number of the "Computer Networks" book.
 pub const NET_BOOK: u32 = 15;
 
 fn is_false(b: &bool) -> bool {
     !*b
 }
 
-/// Инструменты, открытые в упражнении (формы в карточке устройства и панель «Кабель»).
+/// Tools opened in the exercise (forms in the device card and the "Cable" panel).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Tools {
     #[serde(default, skip_serializing_if = "is_false")]
@@ -48,7 +48,7 @@ pub struct Tools {
 }
 
 impl Tools {
-    /// Включить инструмент по имени; `false` — такого инструмента нет.
+    /// Enable a tool by name; `false` means there is no such tool.
     pub fn set(&mut self, name: &str, on: bool) -> bool {
         let slot = match name {
             "cable" => &mut self.cable,
@@ -71,19 +71,19 @@ impl Tools {
     }
 }
 
-/// Содержимое упражнения: исходная сеть, цели и эталонное решение.
+/// Exercise contents: initial network, goals and reference solution.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NetSpec {
     #[serde(default)]
     pub tools: Tools,
     pub start: NetState,
     pub goals: Vec<Goal>,
-    /// Шаги эталона; клиенту сервер их не отдаёт, поэтому поле необязательно.
+    /// Reference steps; the server does not send them to the client, so the field is optional.
     #[serde(default)]
     pub solution: Vec<Step>,
 }
 
-/// Упражнение главы.
+/// Chapter exercise.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
@@ -93,18 +93,18 @@ pub struct Task {
     pub spec: NetSpec,
 }
 
-/// Файл данных главы.
+/// Chapter data file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LabChapter {
     pub book: u32,
     pub chapter: u32,
-    /// Вид лаборатории: «net».
+    /// Lab kind: "net".
     pub lab: String,
     pub tasks: Vec<Task>,
 }
 
 impl LabChapter {
-    /// Разобрать файл данных.
+    /// Parse a data file.
     pub fn from_json(s: &str) -> Result<LabChapter, String> {
         let c: LabChapter = serde_json::from_str(s).map_err(|e| i18n::trf!("chapter file: {0}", e))?;
         if c.lab != "net" {
@@ -113,24 +113,24 @@ impl LabChapter {
         Ok(c)
     }
 
-    /// Прочитать файл данных с диска.
+    /// Read a data file from disk.
     pub fn load(path: &Path) -> Result<LabChapter, String> {
         let s = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
         Self::from_json(&s).map_err(|e| format!("{}: {e}", path.display()))
     }
 
-    /// Имя файла главы: `15-03.json`.
+    /// Chapter file name: `15-03.json`.
     pub fn file_name(&self) -> String {
         format!("{}-{:02}.json", self.book, self.chapter)
     }
 
-    /// Упражнение по id.
+    /// Exercise by id.
     pub fn task(&self, id: &str) -> Option<&Task> {
         self.tasks.iter().find(|t| t.id == id)
     }
 }
 
-/// Прочитать все главы каталога данных (`*.json`), по порядку глав.
+/// Read all chapters of a data directory (`*.json`), in chapter order.
 pub fn load_dir(dir: &Path) -> Result<Vec<LabChapter>, String> {
     let mut files: Vec<_> = std::fs::read_dir(dir)
         .map_err(|e| format!("{}: {e}", dir.display()))?
@@ -148,12 +148,12 @@ pub fn load_dir(dir: &Path) -> Result<Vec<LabChapter>, String> {
 }
 
 impl NetSpec {
-    /// Исходная сеть упражнения (чистая копия без кэшей).
+    /// Initial network of the exercise (clean copy without caches).
     pub fn start_state(&self) -> NetState {
         self.start.stripped()
     }
 
-    /// Сеть после шагов эталонного решения.
+    /// Network after the reference solution steps.
     pub fn solved_state(&self) -> Result<NetState, String> {
         let mut s = self.start_state();
         apply_ops(&mut s, &self.solution)?;
@@ -161,7 +161,7 @@ impl NetSpec {
     }
 }
 
-/// Итог проверки по одной цели.
+/// Check outcome for one goal.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct GoalVerdict {
     pub id: String,
@@ -170,11 +170,11 @@ pub struct GoalVerdict {
     pub detail: String,
 }
 
-/// Итог проверки решения: все ли цели выполнены и что с каждой.
+/// Solution check outcome: whether all goals are met and what happened to each.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Verdict {
     pub ok: bool,
-    /// Присланное решение не годится вообще (чужие устройства, испорченный JSON) — текст причины.
+    /// The submitted solution is unusable at all (foreign devices, broken JSON): the reason text.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
     pub goals: Vec<GoalVerdict>,
@@ -199,8 +199,8 @@ fn default_cable(l: &Link) -> bool {
     l.km == 0.01 && l.mbps == 1000.0 && l.mtu.is_none() && l.loss.is_none()
 }
 
-/// Присланное состояние — то же упражнение: те же устройства, закрытые устройства не тронуты, кабели меняются
-/// только при открытом инструменте «Кабель» (и только обычными кабелями).
+/// The submitted state is the same exercise: same devices, locked devices untouched, cables change
+/// only with the "Cable" tool open (and only as ordinary cables).
 pub fn check_integrity(spec: &NetSpec, sub: &NetState) -> Result<(), String> {
     sub.validate()?;
     let start = &spec.start;
@@ -216,7 +216,7 @@ pub fn check_integrity(spec: &NetSpec, sub: &NetState) -> Result<(), String> {
             let mut same = d.clone();
             same.x = d0.x;
             same.y = d0.y;
-            // знание хоста об SSH-ключах — состояние клиента, а не настройка
+            // the host's knowledge of SSH keys is client state, not configuration
             same.known_hosts = d0.known_hosts.clone();
             if same != *d0 {
                 return Err(i18n::trf!("device “{0}” is locked for configuration, but it was changed", d0.name));
@@ -240,7 +240,7 @@ pub fn check_integrity(spec: &NetSpec, sub: &NetState) -> Result<(), String> {
     Ok(())
 }
 
-/// Проверить присланное решение: целостность и цели на чистой копии сети.
+/// Check a submitted solution: integrity and goals on a clean copy of the network.
 pub fn verify(spec: &NetSpec, submitted: &NetState) -> Verdict {
     if let Err(e) = check_integrity(spec, submitted) {
         return Verdict::rejected(e);
@@ -248,7 +248,7 @@ pub fn verify(spec: &NetSpec, submitted: &NetState) -> Verdict {
     Verdict::from_results(check_goals(submitted, &spec.goals))
 }
 
-/// То же для JSON-строки (то, что клиент шлёт на `PUT /api/exercises/15/<глава>/<id>/solved`).
+/// Same for a JSON string (what the client sends to `PUT /api/exercises/15/<chapter>/<id>/solved`).
 pub fn verify_json(spec: &NetSpec, solution: &str) -> Verdict {
     match crate::model::state_from_json(solution) {
         Ok(s) => verify(spec, &s),

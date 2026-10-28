@@ -1,10 +1,10 @@
-//! Отрисовка покадровых схем слайдов на Leptos. Данные сцены (элементы, кадры, компиляция) — в crate `content`; здесь:
+//! Rendering of frame-by-frame slide scenes in Leptos. Scene data (elements, frames, compilation) lives in the `content` crate; here:
 //!
-//! * [`view`] — компоненты: оболочка сцены ([`Stage`]), плавные узлы SVG, отрисовка каждого вида элемента, [`SceneView`];
-//! * [`paint`] — точечная смена цвета фигур для сцен со своей отрисовкой;
-//! * [`env`] — среда (время озвучки, «без движения»).
+//! * [`view`] — components: the scene shell ([`Stage`]), smooth SVG nodes, rendering of every element kind, [`SceneView`];
+//! * [`paint`] — per-shape color override for scenes with custom rendering;
+//! * [`env`] — environment (voice-over time, "no motion").
 //!
-//! Данные сцен и их проверку (`cargo test`) см. в `content` и в генераторах (`packages/gen`).
+//! For scene data and its checks (`cargo test`) see `content` and the generators (`packages/gen`).
 
 pub mod env;
 pub mod paint;

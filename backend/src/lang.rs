@@ -1,5 +1,5 @@
-//! Язык ответа. Базовое содержимое курса — русское; переводы лежат в таблицах `<таблица>_i18n` (поле `lang`) и покрывают
-//! книгу целиком: у книги либо есть перевод на язык запроса, либо она отдаётся по-русски (`translated` → `false`).
+//! Response language. The base course content is Russian; translations live in the `<table>_i18n` tables (field `lang`) and cover
+//! a whole book: a book either has a translation into the request language or is served in Russian (`translated` -> `false`).
 
 use axum::{
     extract::FromRequestParts,
@@ -8,7 +8,7 @@ use axum::{
 
 use crate::db::Db;
 
-/// Языки интерфейса. Русский — язык основного содержимого.
+/// Interface languages. Russian is the language of the main content.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Lang {
     Ru,
@@ -25,7 +25,7 @@ impl Lang {
         }
     }
 
-    /// Язык для движков лабораторий (общий крейт `i18n`).
+    /// Language for the lab engines (shared `i18n` crate).
     pub fn locale(self) -> i18n::Locale {
         match self {
             Lang::Ru => i18n::Locale::Ru,
@@ -33,19 +33,19 @@ impl Lang {
         }
     }
 
-    /// Код языка из `ru`, `en-US`, `ru_RU` и т. п.; неизвестный язык — `None`.
+    /// Language code from `ru`, `en-US`, `ru_RU` etc.; an unknown language - `None`.
     pub fn parse(tag: &str) -> Option<Lang> {
         let primary = tag.trim().split(['-', '_']).next()?.to_ascii_lowercase();
         Lang::ALL.into_iter().find(|l| l.code() == primary)
     }
 
-    /// Язык по заголовку `Accept-Language`: первый из известных тегов (качество `q` не разбираем — порядок важнее для двух языков).
+    /// Language from the `Accept-Language` header: the first known tag (quality `q` is not parsed - order matters more for two languages).
     pub fn from_accept_language(header: &str) -> Option<Lang> {
         header.split(',').filter_map(|part| Lang::parse(part.split(';').next().unwrap_or(""))).next()
     }
 }
 
-/// `?lang=en` важнее заголовка `Accept-Language`; без них — русский.
+/// `?lang=en` overrides the `Accept-Language` header; without them - Russian.
 impl<S: Send + Sync> FromRequestParts<S> for Lang {
     type Rejection = std::convert::Infallible;
 
@@ -56,7 +56,7 @@ impl<S: Send + Sync> FromRequestParts<S> for Lang {
     }
 }
 
-/// Переведена ли книга на язык (для русского — всегда «базовое»).
+/// Whether the book is translated into the language (for Russian - always "base").
 pub async fn translated(db: &Db, lang: Lang, book: i64) -> Result<bool, surrealdb::Error> {
     if lang == Lang::Ru {
         return Ok(false);
@@ -66,8 +66,8 @@ pub async fn translated(db: &Db, lang: Lang, book: i64) -> Result<bool, surreald
     Ok(!rows.is_empty())
 }
 
-/// Подставляет переведённые поля в строки задач главы: `table` — `tasks_i18n` или `lab_tasks_i18n`, строки связываются по `tid`.
-/// Книга без перевода (или русский язык) отдаётся как есть.
+/// Substitutes translated fields into the chapter's task rows: `table` - `tasks_i18n` or `lab_tasks_i18n`, rows are linked by `tid`.
+/// A book without a translation (or the Russian language) is returned as is.
 pub async fn overlay(db: &Db, table: &str, lang: Lang, book: i64, chapter: i64, rows: &mut [serde_json::Value], fields: &[&str]) -> Result<(), surrealdb::Error> {
     if rows.is_empty() || !translated(db, lang, book).await? {
         return Ok(());
@@ -85,7 +85,7 @@ pub async fn overlay(db: &Db, table: &str, lang: Lang, book: i64, chapter: i64, 
     Ok(())
 }
 
-/// Таблица и условие выборки: базовая таблица без условия или `<таблица>_i18n` с условием на язык (`$l` привязывает вызывающий).
+/// Table and selection condition: the base table without a condition or `<table>_i18n` with a language condition (`$l` is bound by the caller).
 pub fn source(table: &str, translated: bool) -> (String, &'static str) {
     if translated {
         (format!("{table}_i18n"), " AND lang = $l")

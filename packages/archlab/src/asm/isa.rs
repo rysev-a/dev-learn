@@ -1,17 +1,17 @@
-//! Набор команд «Мини-8»: 8-битные данные, 8 регистров, команда — 16 бит.
+//! The "Mini-8" instruction set: 8-bit data, 8 registers, a 16-bit instruction.
 //!
 //! ```text
 //!   15..12   11..9   8..6   5..0
-//!   опкод      A      B      C
+//!   opcode     A      B      C
 //! ```
 //!
-//! Поля A, B, C трактуются по-разному в зависимости от формата команды. Порт `isa.ts`.
+//! Fields A, B, C are interpreted differently depending on the instruction format. Port of `isa.ts`.
 
 pub const REG_COUNT: usize = 8;
 pub const MEM_SIZE: usize = 256;
 pub const PROGRAM_MAX: usize = 256;
 
-/// Формат команды.
+/// Instruction format.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Format {
     /// `hlt`
@@ -24,19 +24,19 @@ pub enum Format {
     I,
     /// `lb rd, imm6(rs)`
     Mem,
-    /// `beq ra, rb, метка`
+    /// `beq ra, rb, label`
     Branch,
-    /// `jmp метка`
+    /// `jmp label`
     Jump,
 }
 
-/// Описание команды.
+/// Instruction description.
 #[derive(Debug, Clone, Copy)]
 pub struct OpDef {
     pub mnemonic: &'static str,
     pub opcode: u16,
     pub format: Format,
-    /// Что делает — одной строкой.
+    /// What it does — in one line.
     pub meaning: &'static str,
     pub example: &'static str,
 }
@@ -45,7 +45,7 @@ const fn op(mnemonic: &'static str, opcode: u16, format: Format, meaning: &'stat
     OpDef { mnemonic, opcode, format, meaning, example }
 }
 
-/// Все команды.
+/// All instructions.
 pub const OPS: [OpDef; 15] = [
     op("hlt", 0x0, Format::None, i18n::t!("halt the processor"), "hlt"),
     op("li", 0x1, Format::Li, i18n::t!("rd = number (0…255)"), "li r1, 72"),
@@ -64,7 +64,7 @@ pub const OPS: [OpDef; 15] = [
     op("jmp", 0xe, Format::Jump, i18n::t!("unconditional jump to label"), i18n::t!("jmp loop")),
 ];
 
-/// Псевдокоманда: сокращение, которое ассемблер сам заменяет настоящей.
+/// Pseudo-instruction: a shorthand the assembler itself replaces with a real one.
 #[derive(Debug, Clone, Copy)]
 pub struct Pseudo {
     pub name: &'static str,
@@ -72,7 +72,7 @@ pub struct Pseudo {
     pub becomes: &'static str,
 }
 
-/// Все псевдокоманды.
+/// All pseudo-instructions.
 pub const PSEUDO: [Pseudo; 9] = [
     Pseudo { name: "nop", example: "nop", becomes: "addi r0, r0, 0" },
     Pseudo { name: "mv", example: "mv r1, r2", becomes: "addi r1, r2, 0" },
@@ -85,17 +85,17 @@ pub const PSEUDO: [Pseudo; 9] = [
     Pseudo { name: "j", example: i18n::t!("j label"), becomes: i18n::t!("jmp label") },
 ];
 
-/// Команда по мнемонике.
+/// Instruction by mnemonic.
 pub fn op_by_mnemonic(m: &str) -> Option<&'static OpDef> {
     OPS.iter().find(|o| o.mnemonic == m)
 }
 
-/// Команда по коду операции.
+/// Instruction by opcode.
 pub fn op_by_opcode(c: u16) -> Option<&'static OpDef> {
     OPS.iter().find(|o| o.opcode == c)
 }
 
-/// Число из `bits` бит → со знаком.
+/// Number of `bits` bits → signed.
 pub fn to_signed(value: i32, bits: u32) -> i32 {
     let mask = (1i32 << bits) - 1;
     let v = value & mask;
@@ -106,12 +106,12 @@ pub fn to_signed(value: i32, bits: u32) -> i32 {
     }
 }
 
-/// Собрать слово из полей.
+/// Assemble a word from fields.
 pub fn pack(opcode: u16, a: u16, b: u16, c: i32) -> u16 {
     ((opcode & 0xf) << 12) | ((a & 7) << 9) | ((b & 7) << 6) | (c as u16 & 0x3f)
 }
 
-/// Слово команды, разобранное по полям.
+/// Instruction word split into fields.
 #[derive(Debug, Clone, Copy)]
 pub struct Decoded {
     pub word: u16,
@@ -122,7 +122,7 @@ pub struct Decoded {
     pub def: Option<&'static OpDef>,
 }
 
-/// Разобрать слово.
+/// Decode a word.
 pub fn decode(word: u16) -> Decoded {
     Decoded {
         word,
@@ -142,7 +142,7 @@ fn signed_str(n: i32) -> String {
     }
 }
 
-/// Команда обратно в текст — для списка машинного кода.
+/// Instruction back to text — for the machine code listing.
 pub fn disassemble(word: u16) -> String {
     let d = decode(word);
     let Some(def) = d.def else {
@@ -159,7 +159,7 @@ pub fn disassemble(word: u16) -> String {
     }
 }
 
-/// Двоичная запись слова по полям — для «как устроена команда».
+/// Binary notation of a word by fields — for "how an instruction is structured".
 pub fn fields(word: u16) -> (String, String, String, String) {
     let d = decode(word);
     (format!("{:04b}", d.opcode), format!("{:03b}", d.a), format!("{:03b}", d.b), format!("{:06b}", d.c))

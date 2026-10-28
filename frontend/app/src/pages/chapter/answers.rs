@@ -1,4 +1,4 @@
-//! Упражнения с вводом ответа: верные ответы знает только сервер, он же проверяет введённое; ответ показать нельзя, только подсказку.
+//! Exercises with answer input: only the server knows the correct answers and checks the input; the answer cannot be shown, only a hint.
 
 use api::dto::PracticeSet;
 use leptos::{prelude::*, task::spawn_local};
@@ -92,7 +92,7 @@ fn AnswersBody(book: i64, num: i64, set: PracticeSet) -> impl IntoView {
                             on:input=move |ev| {
                                 values.update(|v| v[i] = event_target_value(&ev));
                                 if verdicts.with_untracked(|v| v[i] == Verdict::Wrong) {
-                                    verdicts.update(|v| v[i] = Verdict::Open); // новая правка снимает «неверно»
+                                    verdicts.update(|v| v[i] = Verdict::Open); // a new edit clears "incorrect"
                                 }
                             }
                             on:keydown=move |ev| if ev.key() == "Enter" { check(i) }

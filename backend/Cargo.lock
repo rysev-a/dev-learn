@@ -15,7 +15,7 @@ dependencies = [
 name = "admin_api"
 version = "0.2.1"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "a55ae2c3b2e62037aed979b09f6aea96aba76cad90f604fff3efaaa0fdfce762"
+checksum = "ff144e83a64831d0016748d790a1fcb68d2a85f06ac7ccb05ab1bc8a27a9479d"
 dependencies = [
  "auth",
  "axum",
@@ -214,7 +214,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 name = "auth"
 version = "0.2.4"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "b2f5cda6051a5bf78ed92718a2ee18c2b7463e5249deba64cd6b6fd69e5f8075"
+checksum = "e784279810ddf032ba284631f3753e7f50d1ddbc57c7fea10ef2be9b4003bba4"
 dependencies = [
  "anyhow",
  "argon2 0.6.0",
@@ -233,7 +233,7 @@ dependencies = [
 name = "auth_api"
 version = "0.2.2"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "3161125be1f34a9b0d3bf827b4296dcb4b5708c27af2f111e9ba3231f56739cc"
+checksum = "2292d679523866750f48bf698a4e264060f87cd55cecb30bc66955890394333b"
 dependencies = [
  "auth",
  "axum",
@@ -887,6 +887,7 @@ dependencies = [
  "dotenvy",
  "http-body-util",
  "i18n",
+ "locales",
  "mail",
  "netlab",
  "observability",
@@ -2157,7 +2158,10 @@ dependencies = [
 
 [[package]]
 name = "i18n"
-version = "0.1.0"
+version = "0.2.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "i_float"
@@ -2607,6 +2611,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae"
 
 [[package]]
+name = "locales"
+version = "0.1.0"
+dependencies = [
+ "i18n",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2688,7 +2699,7 @@ checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 name = "mail"
 version = "0.2.4"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "4002151ec01fe038e6482924735308b0ac99ef42fec16c759e5e18edde21bd22"
+checksum = "cd9485f40bf3f70b61388c0e63c8ab4cd4ac4797d63cd12cdbcec0a41321f2f7"
 dependencies = [
  "anyhow",
  "lettre",
@@ -3072,7 +3083,7 @@ dependencies = [
 name = "observability"
 version = "0.1.3"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "5e80c8e4cc4a8b988ef2d2ead39bd3e52bc5cf239c145651d2281a73b2b15e96"
+checksum = "652ad520b1f6cf8356da8e091b61a2c41ac3141224edfc3bd4ab23177cdab272"
 dependencies = [
  "axum",
  "axum-tracing-opentelemetry",
@@ -5580,7 +5591,7 @@ dependencies = [
 name = "system_tasks"
 version = "0.2.2"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "7e2e12a7bc57d1d29d87f29ba67a4ea444fcb9db956e908d5d99db415dac2612"
+checksum = "bc1a5104874e18ad72ad98f918bfd6717fe98fd87d9e88105e60772cd9c9626f"
 dependencies = [
  "anyhow",
  "chrono",

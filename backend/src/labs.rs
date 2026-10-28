@@ -1,7 +1,7 @@
-//! Упражнения-лаборатории (схемы, симуляторы): условия и сценарии хранятся данными, решение проверяет сервер движком лаборатории.
+//! Lab exercises (circuits, simulators): statements and scenarios are stored as data, the solution is checked by the server with the lab engine.
 //!
-//! Данные — файлы `labs/<вид>/<книга>-<глава>.json` (`{book, chapter, lab, tasks: [{id, title, statement, hint, spec}]}`),
-//! в базе — таблица `lab_tasks`. Клиент получает сценарий без эталонного решения (`spec.solution` / `spec.reference`).
+//! Data - files `labs/<kind>/<book>-<chapter>.json` (`{book, chapter, lab, tasks: [{id, title, statement, hint, spec}]}`),
+//! in the database - the `lab_tasks` table. The client gets the scenario without the reference solution (`spec.solution` / `spec.reference`).
 
 use std::path::{Path as FsPath, PathBuf};
 
@@ -23,7 +23,7 @@ pub fn routes() -> Router<AppState> {
     Router::new().route("/api/labs/{book}/{chapter}", get(chapter))
 }
 
-/// Строки `lab_tasks` из файлов данных; содержимое файлов входит в хеш пересева.
+/// `lab_tasks` rows from the data files; the file contents go into the reseed hash.
 pub fn load(dir: &FsPath, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>> {
     let mut rows = Vec::new();
     if !dir.is_dir() {
@@ -38,9 +38,9 @@ pub fn load(dir: &FsPath, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>> {
         let bytes = std::fs::read(&f)?;
         raw.extend_from_slice(f.to_string_lossy().as_bytes());
         raw.extend_from_slice(&bytes);
-        let ch: Value = serde_json::from_slice(&bytes).with_context(|| format!("лаборатория {}", f.display()))?;
+        let ch: Value = serde_json::from_slice(&bytes).with_context(|| format!("lab {}", f.display()))?;
         let (book, chapter, lab) = (i(&ch, "book"), i(&ch, "chapter"), s(&ch, "lab"));
-        for (ord, t) in ch.get("tasks").and_then(Value::as_array).context("нет tasks")?.iter().enumerate() {
+        for (ord, t) in ch.get("tasks").and_then(Value::as_array).context("no tasks")?.iter().enumerate() {
             rows.push(json!({
                 "book": book, "chapter": chapter, "lab": lab, "tid": s(t, "id"), "ord": ord,
                 "title": s(t, "title"), "statement": s(t, "statement"), "hint": s(t, "hint"),
@@ -51,8 +51,8 @@ pub fn load(dir: &FsPath, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>> {
     Ok(rows)
 }
 
-/// Переведённые тексты упражнений: `<язык>/labs/<вид>/<книга>-<глава>.json` с теми же полями `id`, `title`, `statement`, `hint`;
-/// сценарий (`spec`), цели и эталоны — русские, общие для всех языков.
+/// Translated exercise texts: `<language>/labs/<kind>/<book>-<chapter>.json` with the same fields `id`, `title`, `statement`, `hint`;
+/// the scenario (`spec`), goals and references are Russian, shared by all languages.
 pub fn load_texts(dir: &FsPath, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>> {
     let mut rows = Vec::new();
     if !dir.is_dir() {
@@ -67,10 +67,10 @@ pub fn load_texts(dir: &FsPath, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>>
         let bytes = std::fs::read(&f)?;
         raw.extend_from_slice(f.to_string_lossy().as_bytes());
         raw.extend_from_slice(&bytes);
-        let ch: Value = serde_json::from_slice(&bytes).with_context(|| format!("лаборатория {}", f.display()))?;
+        let ch: Value = serde_json::from_slice(&bytes).with_context(|| format!("lab {}", f.display()))?;
         let (book, chapter) = (i(&ch, "book"), i(&ch, "chapter"));
-        for t in ch.get("tasks").and_then(Value::as_array).context("нет tasks")? {
-            // `spec_text`: переведённые подписи внутри сценария по путям JSON (`/goals/0/text`); остальное в сценарии общее
+        for t in ch.get("tasks").and_then(Value::as_array).context("no tasks")? {
+            // `spec_text`: translated labels inside the scenario by JSON paths (`/goals/0/text`); the rest of the scenario is shared
             rows.push(json!({
                 "book": book, "chapter": chapter, "tid": s(t, "id"), "title": s(t, "title"), "statement": s(t, "statement"), "hint": s(t, "hint"),
                 "spec_text": t.get("spec_text").cloned().unwrap_or_else(|| json!({})),
@@ -80,7 +80,7 @@ pub fn load_texts(dir: &FsPath, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>>
     Ok(rows)
 }
 
-/// Подставляет переведённые подписи сценария: `texts` — объект «путь JSON → текст».
+/// Substitutes the translated scenario labels: `texts` - an object "JSON path -> text".
 fn apply_spec_text(spec: &mut Value, texts: &Value) {
     for (path, text) in texts.as_object().into_iter().flatten() {
         if let (Some(slot), true) = (spec.pointer_mut(path), text.is_string()) {
@@ -89,7 +89,7 @@ fn apply_spec_text(spec: &mut Value, texts: &Value) {
     }
 }
 
-/// Переведённые подписи сценариев главы: `tid` → `spec_text` (пусто, если книга не переведена на язык).
+/// Translated scenario labels of a chapter: `tid` -> `spec_text` (empty if the book is not translated into the language).
 async fn spec_texts(db: &Db, lang: crate::lang::Lang, book: i64, chapter: i64) -> Result<std::collections::HashMap<String, Value>, surrealdb::Error> {
     let mut out = std::collections::HashMap::new();
     if !crate::lang::translated(db, lang, book).await? {
@@ -103,11 +103,11 @@ async fn spec_texts(db: &Db, lang: crate::lang::Lang, book: i64, chapter: i64) -
     Ok(out)
 }
 
-/// Копия сценария для клиента: без эталонного решения.
+/// Copy of the scenario for the client: without the reference solution.
 fn public_spec(spec: &Value) -> Value {
     let mut spec = spec.clone();
     if let Some(o) = spec.as_object_mut() {
-        // эталон: у схем и сетей — `solution`, у программ RISC-V — `reference`
+        // reference: for circuits and networks - `solution`, for RISC-V programs - `reference`
         for key in ["solution", "reference"] {
             o.remove(key);
         }
@@ -115,7 +115,7 @@ fn public_spec(spec: &Value) -> Value {
     spec
 }
 
-/// Упражнения-лаборатории главы: условия и сценарии без эталонов.
+/// A chapter's lab exercises: statements and scenarios without references.
 async fn chapter(State(state): State<AppState>, lang: crate::lang::Lang, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
     let mut res = state
         .db
@@ -141,8 +141,8 @@ async fn chapter(State(state): State<AppState>, lang: crate::lang::Lang, Path((b
     Ok(Json(json!({ "lab": lab, "tasks": tasks })))
 }
 
-/// Проверка решения упражнения-лаборатории. `None` — решение верное (или у упражнения нет данных лаборатории: старые задачи
-/// принимаются как раньше); `Some(причина)` — отказ.
+/// Check of a lab exercise solution. `None` - the solution is correct (or the exercise has no lab data: old tasks
+/// are accepted as before); `Some(reason)` - rejected.
 pub async fn check(state: &AppState, lang: crate::lang::Lang, user: &str, book: i64, chapter: i64, tid: &str, solution: &str) -> ApiResult<Option<String>> {
     let mut res = state
         .db
@@ -153,23 +153,23 @@ pub async fn check(state: &AppState, lang: crate::lang::Lang, user: &str, book: 
         .await?;
     let rows: Vec<Value> = res.take(0)?;
     let Some(row) = rows.first() else {
-        tracing::warn!("лаборатория {book}:{chapter}/{tid}: нет данных, решение принято без проверки");
+        tracing::warn!("lab {book}:{chapter}/{tid}: no data, solution accepted without checking");
         return Ok(None);
     };
     let mut spec = row.get("spec").cloned().unwrap_or(Value::Null);
-    // подписи целей в причинах отказа — на языке запроса
+    // goal labels in rejection reasons - in the request language
     if let Some(t) = spec_texts(&state.db, lang, book, chapter).await?.get(tid) {
         apply_spec_text(&mut spec, t);
     }
     let solution = solution.to_string();
     let lab = s(row, "lab");
-    // составные блоки схем собираются из решений самого ученика (черновики главы — как `hydrate.ts` в React)
+    // composite circuit blocks are assembled from the student's own solutions (the chapter's drafts - like `hydrate.ts` in React)
     let drafts = if lab == "arch" { drafts(&state.db, user, book).await? } else { Vec::new() };
     let arch = state.arch.clone();
     let chapter = u32::try_from(chapter).unwrap_or(0);
     let tid = tid.to_string();
     let locale = lang.locale();
-    // расчёт движка — блокирующая работа; причины отказа — на языке запроса
+    // the engine computation is blocking work; rejection reasons - in the request language
     tokio::task::spawn_blocking(move || i18n::with_locale(locale, || match lab.as_str() {
         "arch" => {
             let rows: Vec<(u32, &str, &str)> = drafts.iter().map(|(c, id, code)| (*c, id.as_str(), code.as_str())).collect();
@@ -183,8 +183,8 @@ pub async fn check(state: &AppState, lang: crate::lang::Lang, user: &str, book: 
     .map_err(|e| ApiError::from(anyhow::anyhow!(e)))
 }
 
-/// Решения ученика по книге: (глава, id упражнения, JSON/текст) — только решённые упражнения (статус `ok`):
-/// черновик нерешённого упражнения блоков и составных элементов не открывает.
+/// The student's solutions for the book: (chapter, exercise id, JSON/text) - only solved exercises (status `ok`):
+/// the draft of an unsolved exercise does not unlock blocks and composite elements.
 async fn drafts(db: &Db, user: &str, book: i64) -> ApiResult<Vec<(u32, String, String)>> {
     let mut res = db
         .query("SELECT chapter, tid, code FROM code_drafts WHERE user = $u AND book = $b; SELECT chapter, tid FROM code_status WHERE user = $u AND book = $b AND status = 'ok'")
@@ -196,7 +196,7 @@ async fn drafts(db: &Db, user: &str, book: i64) -> ApiResult<Vec<(u32, String, S
     Ok(rows.iter().filter(|r| done.contains(&(i(r, "chapter"), s(r, "tid")))).map(|r| (u32::try_from(i(r, "chapter")).unwrap_or(0), s(r, "tid"), s(r, "code"))).collect())
 }
 
-/// Диспетчер по виду лаборатории.
+/// Dispatcher by lab kind.
 fn verify(lab: &str, spec: Value, solution: &str) -> Option<String> {
     match lab {
         "sd" => {
@@ -219,7 +219,7 @@ fn verify(lab: &str, spec: Value, solution: &str) -> Option<String> {
                 Ok(v) => v,
                 Err(e) => return Some(i18n::trf!("Solution could not be parsed: {0}", e)),
             };
-            // строго: цель без записи действий (trace), которую нечем перепроверить, не засчитывается — клиент присылает записи
+            // strict: a goal without an action record (trace) that cannot be re-verified is not counted - the client sends the records
             let verdict = virtlab::verify_with(&spec, &submitted, virtlab::Strictness::Strict);
             (!verdict.solved).then(|| verdict.first_rejection().unwrap_or_else(|| i18n::tr("Solution not accepted").into()))
         }
@@ -258,7 +258,7 @@ fn verify(lab: &str, spec: Value, solution: &str) -> Option<String> {
             (!report.ok()).then(|| report.reason().unwrap_or_else(|| i18n::tr("Solution not accepted").into()))
         }
         other => {
-            tracing::warn!("вид лаборатории «{other}»: проверки на сервере пока нет, решение принято");
+            tracing::warn!("lab kind '{other}': no server-side check yet, solution accepted");
             None
         }
     }
@@ -272,7 +272,7 @@ mod tests {
 
     #[test]
     fn spec_text_replaces_only_the_named_strings() {
-        let mut spec = json!({ "goals": [{ "id": "g1", "text": "ПК 1 пингует ПК 2" }], "start": { "devices": [{ "name": "ПК 1" }] } });
+        let mut spec = json!({ "goals": [{ "id": "g1", "text": "PC 1 pings PC 2" }], "start": { "devices": [{ "name": "PC 1" }] } });
         apply_spec_text(&mut spec, &json!({ "/goals/0/text": "PC 1 pings PC 2", "/start/devices/0/name": "PC 1", "/missing/0": "x" }));
         assert_eq!(spec, json!({ "goals": [{ "id": "g1", "text": "PC 1 pings PC 2" }], "start": { "devices": [{ "name": "PC 1" }] } }));
     }

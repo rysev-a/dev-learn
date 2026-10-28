@@ -1,25 +1,25 @@
-//! Интерфейс на двух языках (английский и русский). Ключ перевода — английский текст: в коде везде `tr("Sign in")`, русская
-//! версия лежит в словаре [`RU`]. Незнакомый ключ показывается как есть (английский текст), поэтому пропуск в словаре не ломает экран.
+//! Multi-language interface without any texts inside: the translation key is the English text (`tr("Sign in")`), the application
+//! loads its dictionaries itself at startup ([`load_json`] / [`extend`]) from its own JSON files. An unknown key is shown as is (the English
+//! text), so a gap in the dictionary never breaks the screen.
 //!
-//! Язык выбирается один раз при старте (`cs-core-lang` в `localStorage`, иначе язык браузера) и меняется перезагрузкой страницы,
-//! поэтому `tr` читает его без подписок на сигнал. Переводятся только неизменные тексты интерфейса: содержимое курса приходит
-//! с сервера уже на нужном языке (заголовок `Accept-Language`).
-
-mod ru;
+//! The language is chosen once at startup ([`set_locale`]) and usually changes with a page reload, so `tr` reads it without
+//! subscribing to a signal; on the server the request language is enabled for the duration of a call ([`with_locale`]). The crate is project-agnostic:
+//! it can be used in any service together with that service's own set of JSON dictionaries.
+//!
+//! Dictionary format — a flat JSON object: `{"Sign in": "Войти", "row|rows": "строка|строки|строк"}`. A key with `|` holds plural forms
+//! ([`plural`]): two forms — the English rule (1 / the rest), three — the Russian rule (1 / 2–4 / 5+, with the 11–14 exception).
 
 use std::{
     collections::HashMap,
     fmt::{Display, Write},
     sync::{
         atomic::{AtomicU8, Ordering},
-        OnceLock,
+        RwLock,
     },
 };
 
-pub use ru::entries;
-
-/// Язык интерфейса.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// Interface language. The base language is English: its texts are the keys, so it needs no dictionary.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Locale {
     En,
     Ru,
@@ -28,7 +28,7 @@ pub enum Locale {
 impl Locale {
     pub const ALL: [Locale; 2] = [Locale::En, Locale::Ru];
 
-    /// Код для `localStorage`, `<html lang>` и заголовка `Accept-Language`.
+    /// Code for `localStorage`, `<html lang>` and the `Accept-Language` header.
     pub fn code(self) -> &'static str {
         match self {
             Locale::En => "en",
@@ -36,7 +36,7 @@ impl Locale {
         }
     }
 
-    /// Название на самом языке (в списке выбора).
+    /// Name in the language itself (for the language picker).
     pub fn native_name(self) -> &'static str {
         match self {
             Locale::En => "English",
@@ -44,38 +44,44 @@ impl Locale {
         }
     }
 
-    /// `ru`, `ru-RU`, `en_US` → язык; неизвестный тег — `None`.
+    /// `ru`, `ru-RU`, `en_US` → language; an unknown tag — `None`.
     pub fn parse(tag: &str) -> Option<Locale> {
         let primary = tag.trim().split(['-', '_']).next()?.to_ascii_lowercase();
         Locale::ALL.into_iter().find(|l| l.code() == primary)
     }
 
-    /// Выбор при старте: сохранённый язык важнее языка браузера; иначе английский.
+    /// Choice at startup: the stored language wins over the browser language; otherwise English.
     pub fn detect(stored: Option<&str>, browser: Option<&str>) -> Locale {
-        stored.and_then(Locale::parse).or_else(|| browser.and_then(Locale::parse)).unwrap_or(Locale::En)
+        stored
+            .and_then(Locale::parse)
+            .or_else(|| browser.and_then(Locale::parse))
+            .unwrap_or(Locale::En)
+    }
+
+    fn index(self) -> usize {
+        self as usize
     }
 }
 
 static CURRENT: AtomicU8 = AtomicU8::new(0);
 
 thread_local! {
-    /// Язык на время вызова [`with_locale`]: сервер проверяет решения на языке запроса, а язык процесса у него один на всех.
+    /// Language for the duration of a [`with_locale`] call: the server checks solutions in the request language, while the process language is shared by everyone.
     static OVERRIDE: std::cell::Cell<Option<Locale>> = const { std::cell::Cell::new(None) };
 }
 
-/// Текущий язык (до [`set_locale`] — английский; внутри [`with_locale`] — заданный там).
+/// Current language (English until [`set_locale`]; inside [`with_locale`] — the one set there).
 pub fn locale() -> Locale {
     if let Some(l) = OVERRIDE.with(std::cell::Cell::get) {
         return l;
     }
-    if CURRENT.load(Ordering::Relaxed) == 1 {
-        Locale::Ru
-    } else {
-        Locale::En
+    match CURRENT.load(Ordering::Relaxed) {
+        1 => Locale::Ru,
+        _ => Locale::En,
     }
 }
 
-/// Охранник языка: пока он жив, в текущем потоке действует заданный язык (тесты, которые сверяют русские тексты).
+/// Language guard: while it lives, the given language is active in the current thread (tests that compare Russian texts).
 pub struct LocaleGuard(Option<Locale>);
 
 impl Drop for LocaleGuard {
@@ -84,13 +90,13 @@ impl Drop for LocaleGuard {
     }
 }
 
-/// Включает язык до конца области видимости охранника.
+/// Enables the language until the end of the guard's scope.
 #[must_use]
 pub fn guard(locale: Locale) -> LocaleGuard {
     LocaleGuard(OVERRIDE.with(|o| o.replace(Some(locale))))
 }
 
-/// Выполняет `f` с другим языком в текущем потоке: движки лабораторий на сервере сообщают причины отказа на языке запроса.
+/// Runs `f` with another language in the current thread: lab engines on the server report rejection reasons in the request language.
 pub fn with_locale<T>(locale: Locale, f: impl FnOnce() -> T) -> T {
     let before = OVERRIDE.with(|o| o.replace(Some(locale)));
     let out = f();
@@ -99,38 +105,84 @@ pub fn with_locale<T>(locale: Locale, f: impl FnOnce() -> T) -> T {
 }
 
 pub fn set_locale(locale: Locale) {
-    CURRENT.store(u8::from(locale == Locale::Ru), Ordering::Relaxed);
+    CURRENT.store(locale.index() as u8, Ordering::Relaxed);
 }
 
-fn index() -> &'static HashMap<&'static str, &'static str> {
-    static INDEX: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    INDEX.get_or_init(|| entries().collect())
+// --- dictionaries ----------------------------------------------------------------------------
+
+type Dict = HashMap<&'static str, &'static str>;
+
+/// Dictionaries per language. The strings live until the program ends (a dictionary is loaded once), so `tr` returns `&'static str`.
+fn dicts() -> &'static RwLock<Vec<Dict>> {
+    static DICTS: std::sync::OnceLock<RwLock<Vec<Dict>>> = std::sync::OnceLock::new();
+    DICTS.get_or_init(|| RwLock::new(Locale::ALL.iter().map(|_| Dict::new()).collect()))
 }
 
-/// Перевод по английскому тексту-ключу. Для английского и для ключей без перевода возвращает сам ключ.
+fn leak(s: &str) -> &'static str {
+    Box::leak(s.to_owned().into_boxed_str())
+}
+
+/// Adds entries to a language's dictionary (a repeated key replaces the previous one). Returns the number of entries added.
+pub fn extend<'a>(locale: Locale, pairs: impl IntoIterator<Item = (&'a str, &'a str)>) -> usize {
+    let mut all = dicts().write().unwrap_or_else(|e| e.into_inner());
+    let dict = &mut all[locale.index()];
+    let mut n = 0;
+    for (k, v) in pairs {
+        dict.insert(leak(k), leak(v));
+        n += 1;
+    }
+    n
+}
+
+/// Loads a dictionary from a JSON object `{"key": "translation"}`; may be called several times (one file per area), entries merge.
+pub fn load_json(locale: Locale, text: &str) -> Result<usize, String> {
+    let value: serde_json::Value =
+        serde_json::from_str(text).map_err(|e| format!("dictionary is not valid JSON: {e}"))?;
+    let obj = value
+        .as_object()
+        .ok_or_else(|| "dictionary must be a JSON object".to_string())?;
+    let mut pairs = Vec::with_capacity(obj.len());
+    for (k, v) in obj {
+        let v = v
+            .as_str()
+            .ok_or_else(|| format!("translation of {k:?} must be a string"))?;
+        pairs.push((k.as_str(), v));
+    }
+    Ok(extend(locale, pairs))
+}
+
+/// All entries of a language's dictionary (for completeness checks).
+pub fn entries(locale: Locale) -> Vec<(&'static str, &'static str)> {
+    let all = dicts().read().unwrap_or_else(|e| e.into_inner());
+    all[locale.index()].iter().map(|(k, v)| (*k, *v)).collect()
+}
+
+fn lookup(locale: Locale, key: &str) -> Option<&'static str> {
+    if locale == Locale::En {
+        return None;
+    }
+    let all = dicts().read().unwrap_or_else(|e| e.into_inner());
+    all[locale.index()].get(key).copied()
+}
+
+/// Translation by the English text key. For English and for keys without a translation returns the key itself.
 pub fn tr(key: &'static str) -> &'static str {
-    match locale() {
-        Locale::En => key,
-        Locale::Ru => index().get(key).copied().unwrap_or(key),
-    }
+    lookup(locale(), key).unwrap_or(key)
 }
 
-/// [`tr`] для текста, которого нет в коде как литерала (сообщения сервера): без перевода возвращает его как есть.
+/// [`tr`] for text that is not a literal in the code (server messages): without a translation returns it as is.
 pub fn tr_dyn(key: &str) -> String {
-    match locale() {
-        Locale::En => key.to_string(),
-        Locale::Ru => index().get(key).copied().unwrap_or(key).to_string(),
-    }
+    lookup(locale(), key).map_or_else(|| key.to_string(), str::to_string)
 }
 
-/// Подставляет значения в шаблон: `{}` — по порядку, `{0}`, `{1}` — по номеру (порядок слов в языках разный).
+/// Substitutes values into a template: `{}` — in order, `{0}`, `{1}` — by number (word order differs between languages).
 pub fn format_dyn(template: &str, args: &[&dyn Display]) -> String {
     let mut out = String::with_capacity(template.len() + 8);
     let mut next = 0;
     let mut chars = template.chars();
     while let Some(c) = chars.next() {
         if c == '}' {
-            // `}}` — литеральная скобка
+            // `}}` — a literal brace
             if chars.clone().next() == Some('}') {
                 chars.next();
             }
@@ -166,8 +218,8 @@ pub fn format_dyn(template: &str, args: &[&dyn Display]) -> String {
     out
 }
 
-/// Помечает ключ перевода там, где вызвать [`tr`] нельзя (константы и статические таблицы): сам даёт литерал, а показывать его
-/// нужно через `tr(…)`. Словарь и тест полноты считают такие ключи используемыми.
+/// Marks a translation key where [`tr`] cannot be called (constants and static tables): yields the literal itself, and it must be
+/// shown through `tr(…)`. The dictionary and the completeness test count such keys as used.
 #[macro_export]
 macro_rules! t {
     ($key:literal) => {
@@ -175,7 +227,7 @@ macro_rules! t {
     };
 }
 
-/// `trf!("Solved {} of {}", done, total)` — перевод шаблона и подстановка значений.
+/// `trf!("Solved {} of {}", done, total)` — translates the template and substitutes the values.
 #[macro_export]
 macro_rules! trf {
     ($key:literal $(, $arg:expr)* $(,)?) => {
@@ -183,18 +235,17 @@ macro_rules! trf {
     };
 }
 
-/// Слово в нужной форме числа. Ключ — `"one|many"` по-английски; русский словарь даёт три формы `"одна|две|пять"`
-/// (1, 2–4, 5+; 11–14 — третья форма).
+/// A word in the right plural form. The key is `"one|many"` in English; the dictionary gives forms separated by `|`: two — the English rule
+/// (1 / the rest), three — the Russian rule (1, 2–4, 5+; 11–14 — the third form). Without a dictionary entry — the English rule on the key.
 pub fn plural(n: u64, one: &'static str, many: &'static str) -> &'static str {
-    match locale() {
-        Locale::En => {
-            if n == 1 {
-                one
-            } else {
-                many
-            }
-        }
-        Locale::Ru => {
+    let english = if n == 1 { one } else { many };
+    let Some(forms) = lookup(locale(), &format!("{one}|{many}")) else {
+        return english;
+    };
+    let forms: Vec<&'static str> = forms.split('|').collect();
+    match forms.len() {
+        2 => forms[usize::from(n != 1)],
+        3 => {
             let (n10, n100) = (n % 10, n % 100);
             let pick = if n10 == 1 && n100 != 11 {
                 0
@@ -203,24 +254,10 @@ pub fn plural(n: u64, one: &'static str, many: &'static str) -> &'static str {
             } else {
                 2
             };
-            ru_forms(one, many).map_or(many, |f| f[pick])
+            forms[pick]
         }
+        _ => english,
     }
-}
-
-/// Три русские формы слова из словаря (ключ `"one|many"`, значение `"форма1|форма2|форма3"`).
-fn ru_forms(one: &'static str, many: &'static str) -> Option<[&'static str; 3]> {
-    static FORMS: OnceLock<HashMap<String, [&'static str; 3]>> = OnceLock::new();
-    let forms = FORMS.get_or_init(|| {
-        entries()
-            .filter(|(k, _)| k.contains('|'))
-            .filter_map(|(k, v)| {
-                let mut it = v.split('|');
-                Some((k.to_string(), [it.next()?, it.next()?, it.next()?]))
-            })
-            .collect()
-    });
-    forms.get(&format!("{one}|{many}")).copied()
 }
 
 #[cfg(test)]
@@ -237,16 +274,65 @@ mod tests {
     }
 
     #[test]
-    fn plurals_in_both_languages() {
-        // одна проверка на оба языка: язык — глобальное состояние, параллельные тесты мешали бы друг другу
-        set_locale(Locale::En);
-        assert_eq!((plural(1, "row", "rows"), plural(0, "row", "rows"), plural(5, "row", "rows")), ("row", "rows", "rows"));
-        set_locale(Locale::Ru);
-        let forms: Vec<_> = [1, 2, 4, 5, 11, 12, 21, 22, 25, 111].into_iter().map(|n| plural(n, "row", "rows")).collect();
-        assert_eq!(forms, ["строка", "строки", "строки", "строк", "строк", "строк", "строка", "строки", "строк", "строк"]);
+    fn dictionary_is_loaded_from_json_and_used_for_plurals() {
+        assert_eq!(
+            load_json(
+                Locale::Ru,
+                r#"{"Loading…": "Загрузка…", "{} of {}": "{} из {}", "row|rows": "строка|строки|строк"}"#
+            ),
+            Ok(3)
+        );
+        assert!(load_json(Locale::Ru, "[1]").is_err());
+        assert!(load_json(Locale::Ru, r#"{"a": 1}"#).is_err());
+        // one guard for all checks: the process language is shared, the guard is per thread
+        let _ru = guard(Locale::Ru);
         assert_eq!(tr("Loading…"), "Загрузка…");
+        assert_eq!(
+            tr("Unknown key"),
+            "Unknown key",
+            "without a translation the key is returned as is"
+        );
+        assert_eq!(tr_dyn("Loading…"), "Загрузка…");
         assert_eq!(trf!("{} of {}", 1, 2), "1 из 2");
-        set_locale(Locale::En);
+        let forms: Vec<_> = [1, 2, 4, 5, 11, 12, 21, 22, 25, 111]
+            .into_iter()
+            .map(|n| plural(n, "row", "rows"))
+            .collect();
+        assert_eq!(
+            forms,
+            [
+                "строка",
+                "строки",
+                "строки",
+                "строк",
+                "строк",
+                "строк",
+                "строка",
+                "строки",
+                "строк",
+                "строк"
+            ]
+        );
+        assert_eq!(
+            plural(2, "cat", "cats"),
+            "cats",
+            "no entry: the English rule applies"
+        );
+        assert!(entries(Locale::Ru).len() >= 3);
+    }
+
+    #[test]
+    fn english_is_the_base_language() {
+        let _en = guard(Locale::En);
+        assert_eq!(
+            (
+                plural(1, "row", "rows"),
+                plural(0, "row", "rows"),
+                plural(5, "row", "rows")
+            ),
+            ("row", "rows", "rows")
+        );
+        assert_eq!(tr("Loading…"), "Loading…");
     }
 
     #[test]

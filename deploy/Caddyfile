@@ -1,8 +1,8 @@
-# Frontend за Traefik: внутри сети слушаем обычный HTTP (CS_CORE_SITE=:80), HTTPS и сертификаты делает Traefik
+# Frontend behind Traefik: inside the network we listen on plain HTTP (CS_CORE_SITE=:80), Traefik handles HTTPS and certificates
 {$CS_CORE_SITE:localhost} {
 	encode zstd gzip
 
-	# API воркеров доступно только внутри сети compose (воркер ходит прямо на api:8000)
+	# The worker API is reachable only inside the compose network (the worker calls api:8000 directly)
 	@internal path /internal/*
 	handle @internal {
 		respond 404

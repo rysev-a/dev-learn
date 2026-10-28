@@ -1,4 +1,4 @@
-//! API упражнений: список задач главы, постановка проверки в очередь, история попыток (как `exercises/router.py`).
+//! Exercises API: the chapter's task list, queueing a check, attempt history (like `exercises/router.py`).
 
 use axum::{
     extract::{Path, State},
@@ -17,8 +17,8 @@ use crate::{
     jobs, practice, schema_view, AppState,
 };
 
-const MAX_CODE: usize = 20_000; // символов в одном решении
-const MAX_DRAFT: usize = 200_000; // черновик: у схем из вентилей решение — JSON и бывает крупным
+const MAX_CODE: usize = 20_000; // characters in one solution
+const MAX_DRAFT: usize = 200_000; // draft: for gate circuits the solution is JSON and can be large
 
 pub fn public() -> Router<AppState> {
     Router::new().route("/api/exercises", get(summary)).route("/api/exercises/runner/status", get(runner_status)).route("/api/exercises/{book_id}/{chapter}", get(list_tasks))
@@ -34,7 +34,7 @@ pub fn private() -> Router<AppState> {
         .route("/api/exercises/{book_id}/{chapter}/{task_id}/solved", put(mark_lab_solved))
 }
 
-/// Определение задачи как в исходных модулях: публичные поля и всё остальное из `spec` (кортежи — `{"__tuple__": [...]}`).
+/// Task definition as in the source modules: public fields and everything else from `spec` (tuples - `{"__tuple__": [...]}`).
 fn join_task(row: &Value) -> Value {
     let mut task = serde_json::Map::new();
     task.insert("id".into(), json!(s(row, "tid")));
@@ -65,7 +65,7 @@ async fn summary(State(state): State<AppState>) -> ApiResult<Json<Value>> {
     Ok(Json(crate::quizzes::counts(&state.db, "tasks").await?))
 }
 
-/// Работает ли проверка кода и сколько заданий в очереди (интерфейс показывает «временно недоступна»).
+/// Whether code checking works and how many jobs are in the queue (the interface shows "temporarily unavailable").
 async fn runner_status(State(state): State<AppState>) -> ApiResult<Json<Value>> {
     let mut st = jobs::status(&state.db).await?;
     let available = st["workers"].as_i64().unwrap_or(0) > 0;
@@ -81,7 +81,7 @@ struct RunIn {
     code: String,
 }
 
-/// Ставит решение в очередь проверки: результат — по GET /run/{id} (у пользователя идёт не больше одной проверки).
+/// Puts a solution in the check queue: the result comes via GET /run/{id} (a user has at most one check running).
 async fn run_code(State(state): State<AppState>, Extension(me): Extension<Identity>, Json(b): Json<RunIn>) -> ApiResult<(StatusCode, Json<Value>)> {
     if b.code.chars().count() > MAX_CODE {
         return Err(ApiError::invalid(format!("code: at most {MAX_CODE} characters")));
@@ -104,14 +104,14 @@ async fn run_state(State(state): State<AppState>, Extension(me): Extension<Ident
     jobs::get_for_user(&state.db, &job_id, &me.user.id).await?.map(Json).ok_or_else(|| ApiError::not_found("Check not found"))
 }
 
-/// Схема и данные учебных баз — описание SQLite строится один раз на набор и кэшируется.
+/// Schema and data of the teaching databases - the SQLite description is built once per set and cached.
 async fn dataset(state: &AppState, setup: String) -> ApiResult<Value> {
     let key = schema_view::dataset_key(&setup);
-    if let Some(v) = state.datasets.lock().expect("замок datasets").get(&key) {
+    if let Some(v) = state.datasets.lock().expect("datasets lock").get(&key) {
         return Ok(v.clone());
     }
     let v = tokio::task::spawn_blocking(move || schema_view::describe(&setup)).await.map_err(|e| ApiError::from(anyhow::anyhow!(e)))??;
-    state.datasets.lock().expect("замок datasets").insert(key, v.clone());
+    state.datasets.lock().expect("datasets lock").insert(key, v.clone());
     Ok(v)
 }
 
@@ -145,7 +145,7 @@ async fn list_tasks(State(state): State<AppState>, lang: Lang, Path((book, chapt
     Ok(Json(json!({ "tasks": items, "datasets": datasets })))
 }
 
-/// Статусы и черновики пользователя по задачам главы.
+/// The user's statuses and drafts for the chapter's tasks.
 async fn chapter_state(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
     Ok(Json(practice::chapter_state(&state.db, &me.user.id, book, chapter).await?))
 }
@@ -164,7 +164,7 @@ async fn save_draft(State(state): State<AppState>, Extension(me): Extension<Iden
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// История попыток пользователя по задаче: от новых к старым, с кодом.
+/// The user's attempt history for a task: newest first, with code.
 async fn task_attempts(State(state): State<AppState>, Extension(me): Extension<Identity>, Path((book, chapter, task)): Path<(i64, i64, String)>) -> ApiResult<Json<Value>> {
     find_task(&state.db, book, chapter, &task).await?.ok_or_else(|| ApiError::not_found("Task not found"))?;
     Ok(Json(json!({ "attempts": practice::attempts(&state.db, &me.user.id, book, chapter, &task).await? })))
@@ -176,19 +176,19 @@ struct SolvedIn {
     solution: String,
 }
 
-/// Интерактивное упражнение (схема, ассемблер) решено — проверка прошла в браузере; принимается только для задач режима lab.
+/// An interactive exercise (circuit, assembler) is solved - the check passed in the browser; accepted only for tasks of mode lab.
 async fn mark_lab_solved(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter, task_id)): Path<(i64, i64, String)>, Json(b): Json<SolvedIn>) -> ApiResult<StatusCode> {
     if b.solution.chars().count() > MAX_DRAFT {
         return Err(ApiError::invalid(format!("solution: at most {MAX_DRAFT} characters")));
     }
     find_task(&state.db, book, chapter, &task_id).await?.filter(|t| t.get("mode").and_then(Value::as_str) == Some("lab")).ok_or_else(|| ApiError::not_found("Task not found"))?;
-    // решение лаборатории перепроверяет сервер движком лаборатории: клиенту засчитывать «решено» на слово нельзя
+    // the lab solution is re-verified by the server with the lab engine: the client's word for "solved" cannot be trusted
     if let Some(reason) = crate::labs::check(&state, lang, &me.user.id, book, chapter, &task_id, &b.solution).await? {
         return Err(ApiError::invalid(reason));
     }
     practice::record_attempt(&state.db, practice::Attempt { user: &me.user.id, book, chapter, task: &task_id, code: &b.solution, passed: 1, total: 1, solved: true }).await?;
     if !b.solution.is_empty() {
-        // решение же и есть «черновик»: оно вернётся на доску при входе
+        // the solution itself is the "draft": it returns to the board on sign-in
         practice::save_draft(&state.db, &me.user.id, book, chapter, &task_id, &b.solution).await?;
     }
     Ok(StatusCode::NO_CONTENT)

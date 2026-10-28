@@ -1,32 +1,32 @@
-//! Такт для упражнений с защёлками и регистрами: один импульс по кнопке и автогенератор (`clock.ts` в React).
-//! Тактовый вход — обычный тумблер доски: часы лишь переключают его уровень и считают фронты 0 → 1.
+//! Clock for exercises with latches and registers: a single pulse on a button and an auto-generator (`clock.ts` in React).
+//! The clock input is an ordinary board switch: the clock only toggles its level and counts 0 → 1 edges.
 
 use archlab::model::{InputId, InputState};
 use gloo_timers::callback::{Interval, Timeout};
 use leptos::prelude::*;
 
-/// Сколько миллисекунд клок держит единицу при одиночном такте.
+/// How many milliseconds the clock holds one for a single tick.
 const TICK_MS: u32 = 600;
-/// Частоты автогенератора, Гц.
+/// Auto-generator frequencies, Hz.
 pub const CLOCK_RATES: [f64; 4] = [0.5, 1.0, 2.0, 4.0];
 
-/// Период переключения уровня автогенератором: полупериод частоты `hz`.
+/// Level toggle period of the auto-generator: half the period of frequency `hz`.
 pub fn half_period_ms(hz: f64) -> u32 {
     (500.0 / hz.max(0.01)).round() as u32
 }
 
-/// Подпись частоты: `0.5 Гц`, `1 Гц`.
+/// Frequency label: `0.5 Hz`, `1 Hz`.
 pub fn rate_label(hz: f64) -> String {
     i18n::trf!("{0} Hz", hz)
 }
 
-/// Состояние и управление тактом: сигналы для интерфейса и таймеры.
+/// Clock state and control: signals for the interface and timers.
 #[derive(Clone, Copy)]
 pub struct Clock {
     pub ticking: RwSignal<bool>,
     pub auto: RwSignal<bool>,
     pub rate: RwSignal<f64>,
-    /// сколько фронтов (0 → 1) подано с начала упражнения
+    /// how many edges (0 → 1) have been applied since the start of the exercise
     pub edges: RwSignal<u32>,
     clock_id: Option<InputId>,
     inputs: RwSignal<InputState>,
@@ -54,7 +54,7 @@ impl Clock {
         self.inputs.with_untracked(|s| s.get(id))
     }
 
-    /// Выставляет уровень тумблера; подъём тактового входа считается фронтом.
+    /// Sets the switch level; a rising clock input counts as an edge.
     pub fn set_level(&self, id: InputId, level: u8) {
         if Some(id) == self.clock_id && level != 0 && self.level(id) == 0 {
             self.edges.update(|n| *n += 1);
@@ -62,12 +62,12 @@ impl Clock {
         self.inputs.update(|s| s.set(id, level));
     }
 
-    /// Переключает тумблер на противоположный.
+    /// Toggles the switch to the opposite level.
     pub fn toggle(&self, id: InputId) {
         self.set_level(id, self.level(id) ^ 1);
     }
 
-    /// Один такт: CLK поднимается в 1 и через паузу опускается в 0.
+    /// One tick: CLK rises to 1 and falls back to 0 after a pause.
     pub fn tick(&self) {
         let Some(id) = self.clock_id else { return };
         if self.ticking.get_untracked() || self.auto.get_untracked() || self.level(id) == 1 {
@@ -98,7 +98,7 @@ impl Clock {
         }
     }
 
-    /// Остановить такт; если CLK остался в единице, опустить его.
+    /// Stop the clock; if CLK stayed at one, lower it.
     pub fn stop(&self) {
         self.pulse.set_value(None);
         self.interval.set_value(None);
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn auto_generator_toggles_twice_per_period() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(half_period_ms(1.0), 500);
         assert_eq!(half_period_ms(0.5), 1000);
         assert_eq!(half_period_ms(4.0), 125);
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn rate_labels_are_short() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(rate_label(1.0), "1 Гц");
         assert_eq!(rate_label(0.5), "0.5 Гц");
     }

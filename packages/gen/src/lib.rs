@@ -1,5 +1,5 @@
-//! Генераторы содержимого. Результат — файлы данных `backend/data/slides/<книга>-<глава>.json` (канонический JSON
-//! структуры [`content::Chapter`]); бэкенд читает их при сиде и кладёт в базу.
+//! Content generators. The result — data files `backend/data/slides/<book>-<chapter>.json` (canonical JSON
+//! of the [`content::Chapter`] structure); the backend reads them at seed time and stores them in the database.
 
 use std::path::Path;
 
@@ -17,18 +17,18 @@ pub mod web_ch19;
 pub mod web_ch20;
 pub mod web_ch21;
 
-/// Главы, которые пишут генераторы на Rust (источник — этот код, а не перенос из TypeScript).
+/// Chapters written by Rust generators (the source is this code, not the port from TypeScript).
 pub fn generated() -> Vec<Chapter> {
-    // главы без слайдов — заготовки (их ещё пишут), в данные не попадают
+    // chapters without slides — stubs (still being written), not included in the data
     vec![py_ch00::chapter(), web_ch13::chapter(), web_ch14::chapter(), web_ch15::chapter(), web_ch16::chapter(), web_ch17::chapter(), web_ch18::chapter(), web_ch19::chapter(), web_ch20::chapter(), web_ch21::chapter()].into_iter().filter(|c| !c.slides.is_empty()).collect()
 }
 
-/// Имя файла главы: `13-05.json`.
+/// Chapter file name: `13-05.json`.
 pub fn file_name(book: i64, chapter: i64) -> String {
     format!("{book:02}-{chapter:02}.json")
 }
 
-/// Записывает главу как данные (проверяет её перед записью).
+/// Writes a chapter as data (checks it before writing).
 pub fn write_chapter(dir: &Path, ch: &Chapter) -> anyhow::Result<()> {
     ch.check().map_err(|e| anyhow::anyhow!("{e}"))?;
     std::fs::create_dir_all(dir)?;
@@ -36,7 +36,7 @@ pub fn write_chapter(dir: &Path, ch: &Chapter) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Сцены, переписанные из ручной отрисовки React (`kit.tsx`) в данные: по имени прежнего компонента.
+/// Scenes rewritten from manual React rendering (`kit.tsx`) to data: by former component name.
 pub fn kit_scene(name: &str) -> Option<SceneSpec> {
     dm::scenes().into_iter().find(|(n, _)| *n == name).map(|(_, spec)| spec)
 }

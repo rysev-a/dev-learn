@@ -1,6 +1,6 @@
-//! Модель передачи файла по TCP: окно приёма, окно перегрузки, медленный старт, потери и очередь.
-//! Это не пакетная симуляция, а пораундовая модель (один шаг — один круговой обход): достаточно, чтобы видеть
-//! «пилу», влияние окна и алгоритма, потерь и размера буфера. Детерминирована.
+//! Model of a file transfer over TCP: receive window, congestion window, slow start, losses and queue.
+//! Not a packet simulation but a per-round model (one step is one round trip): enough to see
+//! the "sawtooth", the effect of window and algorithm, losses and buffer size. Deterministic.
 
 use crate::ip::*;
 use crate::sim::{ping1, PingOpts};
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 const MSS: f64 = 1460.0;
 const INIT: f64 = 10.0 * MSS;
 
-/// Участок пути «туда»: кабель и откуда он идёт.
+/// Segment of the forward path: the cable and where it goes from.
 #[derive(Clone, Debug)]
 pub struct PathHop {
     pub link: Link,
@@ -43,29 +43,29 @@ fn mbps_of(l: &Link) -> f64 {
     }
 }
 
-/// Свойства пути до адреса.
+/// Properties of the path to an address.
 #[derive(Clone, Debug)]
 pub enum PathInfo {
-    /// Связи нет: статус пробы.
+    /// No connectivity: probe status.
     NoReply(ProbeStatus),
     Ok {
         probe: ProbeRun,
         dst_id: Option<String>,
         path: Vec<PathHop>,
-        /// RTT без нагрузки, мкс.
+        /// Unloaded RTT, us.
         rtt0: f64,
-        /// Скорость узкого места, Мбит/с.
+        /// Bottleneck rate, Mbit/s.
         rate: f64,
-        /// Вероятность потери пакета на пути.
+        /// Packet loss probability on the path.
         loss_p: f64,
-        /// Индекс участка-узкого места.
+        /// Index of the bottleneck segment.
         bott: Option<usize>,
     },
 }
 
-/// Свойства пути: RTT, узкое место, вероятность потери, получатель.
+/// Path properties: RTT, bottleneck, loss probability, receiver.
 pub fn path_info(state: &mut NetState, src_id: &str, dst: u32) -> PathInfo {
-    ping1(state, src_id, dst, &PingOpts { id: 900, ..Default::default() }); // прогрев ARP и таблиц
+    ping1(state, src_id, dst, &PingOpts { id: 900, ..Default::default() }); // warm up ARP and tables
     let probe = ping1(state, src_id, dst, &PingOpts { id: 901, ..Default::default() });
     if probe.status != ProbeStatus::Reply {
         return PathInfo::NoReply(probe.status);
@@ -85,7 +85,7 @@ pub struct TracePoint {
     pub rtt: f64,
 }
 
-/// График передачи: окно перегрузки и RTT по кругам.
+/// Transfer chart: congestion window and RTT per round.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TransferChart {
     pub trace: Vec<TracePoint>,
@@ -97,11 +97,11 @@ pub struct TransferChart {
     pub to: String,
 }
 
-/// Итог передачи файла.
+/// File transfer outcome.
 #[derive(Clone, Debug)]
 pub struct TransferResult {
     pub ok: bool,
-    /// «done» или статус пробы / «nopath».
+    /// "done" or probe status / "nopath".
     pub status: String,
     pub mbps: f64,
     pub seconds: f64,
@@ -130,7 +130,7 @@ fn failed(status: &str) -> TransferResult {
     }
 }
 
-/// Передача `bytes` байт от устройства `src_id` к адресу `dst`.
+/// Transfer of `bytes` bytes from device `src_id` to address `dst`.
 pub fn transfer(state: &mut NetState, src_id: &str, dst: u32, bytes: f64) -> TransferResult {
     let info = path_info(state, src_id, dst);
     let PathInfo::Ok { dst_id, path, rtt0, rate, loss_p, bott, .. } = info else {
@@ -141,13 +141,13 @@ pub fn transfer(state: &mut NetState, src_id: &str, dst: u32, bytes: f64) -> Tra
     };
     let (Some(bott), Some(dst_id)) = (bott, dst_id) else { return failed("nopath") };
     let bott = &path[bott];
-    let qlen = state.devices.get(&bott.from).and_then(|d| d.iface(&bott.from_port)).and_then(|i| i.txqueuelen).unwrap_or(1000) as f64; // пакетов
+    let qlen = state.devices.get(&bott.from).and_then(|d| d.iface(&bott.from_port)).and_then(|i| i.txqueuelen).unwrap_or(1000) as f64; // packets
     let Some(srcd) = state.devices.get(src_id) else { return failed("nopath") };
     let Some(dstd) = state.devices.get(&dst_id) else { return failed("nopath") };
-    let rwnd = dstd.rwnd.unwrap_or(64) as f64 * 1024.0; // байт
+    let rwnd = dstd.rwnd.unwrap_or(64) as f64 * 1024.0; // bytes
     let cc = srcd.cc.unwrap_or(Cc::Cubic);
 
-    let rate_bps = (rate * 1e6) / 8.0; // байт/с
+    let rate_bps = (rate * 1e6) / 8.0; // bytes/s
     let bdp = (rate_bps * rtt0) / 1e6;
     let qcap = qlen * 1500.0;
 
@@ -167,7 +167,7 @@ pub fn transfer(state: &mut NetState, src_id: &str, dst: u32, bytes: f64) -> Tra
         let rtt;
         let delivered;
         if cc == Cc::Bbr {
-            // BBR держит скорость у канала и почти игнорирует потери
+            // BBR keeps the rate at the link capacity and almost ignores losses
             win = rwnd.min(if rounds < 4 { cwnd } else { bdp * 1.25 + 4.0 * MSS });
             rtt = rtt0 + ((win - bdp).max(0.0) * 8.0) / (rate * 1e6) * 1e6;
             delivered = win.min((rate_bps * rtt) / 1e6) * (1.0 - loss_p * 0.6);
@@ -179,7 +179,7 @@ pub fn transfer(state: &mut NetState, src_id: &str, dst: u32, bytes: f64) -> Tra
             delivered = win.min((rate_bps * rtt) / 1e6);
             let mut loss = false;
             if win > bdp + qcap {
-                loss = true; // очередь переполнена
+                loss = true; // queue overflow
             }
             loss_acc += (delivered / MSS) * loss_p;
             if loss_acc >= 1.0 {

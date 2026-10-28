@@ -1,6 +1,6 @@
-//! Дискретная математика, глава 8 «Графы: основы»: сцены (перенос с `slides/anim/C8*.tsx` в данные).
-//! Граф в старых сценах рисовал компонент `GraphView`; здесь он — набор круглых узлов (`dot`) и линий (`line`/`arrow`)
-//! с устойчивыми `id`, поэтому при смене рисунка узлы и рёбра плавно переезжают, а цвета перетекают.
+//! Discrete mathematics, chapter 8 "Graphs: the basics": scenes (port of `slides/anim/C8*.tsx` to data).
+//! In the old scenes the graph was drawn by the `GraphView` component; here it is a set of round nodes (`dot`) and lines (`line`/`arrow`)
+//! with stable `id`s, so when the picture changes the nodes and edges move smoothly and the colours blend.
 
 use content::{
     dsl::{arrow, bx, dot, line, path, text},
@@ -8,7 +8,7 @@ use content::{
     Frame, Item, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-/// Сцены главы: имя прежнего React-компонента и описание.
+/// Chapter scenes: former React component name and description.
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     vec![
         ("C8Intro", intro()),
@@ -27,12 +27,12 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники ----------------------------------------------------------------------------------
+// --- helpers ------------------------------------------------------------------------------------
 
-/// Вершина: x, y, подпись.
+/// Vertex: x, y, label.
 type P = (f64, f64, &'static str);
 
-/// Ребро: от `a` к `b` (индексы вершин), необязательный вес и изгиб дугой.
+/// Edge: from `a` to `b` (vertex indices), optional weight and arc bend.
 #[derive(Clone, Copy)]
 struct Ed {
     a: usize,
@@ -58,7 +58,7 @@ fn eds(pairs: &[(usize, usize)]) -> Vec<Ed> {
     pairs.iter().map(|&(a, b)| ed(a, b)).collect()
 }
 
-/// Граф на холсте: узлы `<id>n<i>`, рёбра `<id>e<i>`, веса `<id>w<i>`.
+/// Graph on the canvas: nodes `<id>n<i>`, edges `<id>e<i>`, weights `<id>w<i>`.
 struct Gr {
     id: &'static str,
     nodes: Vec<P>,
@@ -78,12 +78,12 @@ impl Gr {
     fn r(self, r: f64, lsize: f64) -> Self {
         Self { r, lsize, ..self }
     }
-    /// Те же рёбра на других местах (и с другими подписями).
+    /// The same edges at other positions (and with other labels).
     fn at(&self, nodes: &[P]) -> Self {
         Self { id: self.id, nodes: nodes.to_vec(), edges: self.edges.clone(), directed: self.directed, r: self.r, lsize: self.lsize }
     }
-    /// Элементы кадра: рёбра, затем веса, затем узлы (узлы рисуются поверх рёбер). `nc` — цвет узла, `ec` — цвет ребра
-    /// (`None` — ребро скрыто), `o` — прозрачность всего графа.
+    /// Frame elements: edges, then weights, then nodes (nodes are drawn over the edges). `nc` — node colour, `ec` — edge colour
+    /// (`None` — edge hidden), `o` — opacity of the whole graph.
     fn draw(&self, nc: &dyn Fn(usize) -> Tone, ec: &dyn Fn(usize, &Ed) -> Option<Tone>, o: f64) -> Vec<Item> {
         let mut out: Vec<Item> = Vec::new();
         for (i, e) in self.edges.iter().enumerate() {
@@ -108,23 +108,23 @@ impl Gr {
         }
         out
     }
-    /// Всё приглушённое, полной яркости.
+    /// Everything muted, full brightness.
     fn plain(&self) -> Vec<Item> {
         self.draw(&|_| M, &|_, _| Some(M), 1.0)
     }
 }
 
-/// Моноширинная подпись по центру: `size` — кегль; цвет — цепочкой `.tone(..)`.
+/// Centred monospace label: `size` — font size; colour — by chaining `.tone(..)`.
 fn mono(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).mono().size(size)
 }
 
-/// Обычная подпись по центру.
+/// Centred regular label.
 fn cap(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).size(size)
 }
 
-/// Пунктирная овальная рамка вокруг группы вершин: прямоугольник (x, y, w, h — левый верхний угол) со скруглением 16.
+/// Dashed oval frame around a group of vertices: rectangle (x, y, w, h — top-left corner) with rounding 16.
 fn hull(id: &str, x: f64, y: f64, w: f64, h: f64, tone: Tone) -> Path {
     let d = format!(
         "M{} {y} H{} A16 16 0 0 1 {} {} V{} A16 16 0 0 1 {} {} H{} A16 16 0 0 1 {x} {} V{} A16 16 0 0 1 {} {y}Z",
@@ -143,12 +143,12 @@ fn hull(id: &str, x: f64, y: f64, w: f64, h: f64, tone: Tone) -> Path {
     Path { dash: Some("5 4".into()), ..path(id, d).tone(tone).width(1.6) }
 }
 
-/// Кадры сцены по номеру шага.
+/// Scene frames by step number.
 fn frames(n: usize, f: impl Fn(usize) -> Frame) -> Vec<Frame> {
     (0..n).map(f).collect()
 }
 
-// --- 1. Графы вокруг нас ------------------------------------------------------------------------
+// --- 1. Graphs around us ------------------------------------------------------------------------
 
 fn intro() -> SceneSpec {
     let tree = Gr::new("t", &[(180.0, 28.0, "html"), (110.0, 78.0, "head"), (250.0, 78.0, "body"), (215.0, 128.0, "div"), (285.0, 128.0, "p")], eds(&[(0, 1), (0, 2), (2, 3), (2, 4)]));
@@ -180,7 +180,7 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 2. Что такое граф --------------------------------------------------------------------------
+// --- 2. What a graph is -------------------------------------------------------------------------
 
 fn definition() -> SceneSpec {
     let l1 = [(90.0, 46.0), (190.0, 28.0), (280.0, 70.0), (200.0, 118.0), (96.0, 110.0)];
@@ -221,7 +221,7 @@ fn definition() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 3. Ориентированные и неориентированные рёбра -----------------------------------------------
+// --- 3. Directed and undirected edges -----------------------------------------------------------
 
 fn directed() -> SceneSpec {
     let friend = Gr::new("f", &[(70.0, 80.0, "я"), (180.0, 50.0, "друг")], eds(&[(0, 1)]));
@@ -260,7 +260,7 @@ fn directed() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 4. Степень вершины -------------------------------------------------------------------------
+// --- 4. Vertex degree ---------------------------------------------------------------------------
 
 fn degree() -> SceneSpec {
     let nodes: [P; 7] = [(150.0, 74.0, "A"), (70.0, 40.0, "B"), (70.0, 112.0, "C"), (230.0, 40.0, "D"), (230.0, 112.0, "E"), (300.0, 40.0, "F"), (300.0, 112.0, "G")];
@@ -305,7 +305,7 @@ fn degree() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 5. Путь, длина, цикл, достижимость ---------------------------------------------------------
+// --- 5. Path, length, cycle, reachability -------------------------------------------------------
 
 fn walk() -> SceneSpec {
     let nodes: [P; 5] = [(60.0, 90.0, "дом"), (140.0, 46.0, "магаз"), (230.0, 46.0, "работа"), (300.0, 100.0, "парк"), (190.0, 124.0, "кафе")];
@@ -314,7 +314,7 @@ fn walk() -> SceneSpec {
     const PATH: [usize; 3] = [0, 1, 2];
     const CYC: [usize; 3] = [0, 1, 4];
     let idx = |a: usize| PATH.iter().position(|&p| p == a);
-    // сервис достижим: путь сервис → API → БД, кэш — в стороне
+    // the service is reachable: path service → API → DB, the cache — aside
     let srv = Gr::new("s", &[(60.0, 80.0, "сервис"), (160.0, 50.0, "API"), (160.0, 110.0, "кэш"), (270.0, 80.0, "БД")], eds(&[(0, 1), (0, 2), (1, 3)])).directed().r(20.0, 8.5);
     SceneSpec::new(
         &["Движение", "Путь", "Длина", "Цикл", "Достижимость"],
@@ -357,11 +357,11 @@ fn walk() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 6. Связность и компоненты ------------------------------------------------------------------
+// --- 6. Connectivity and components -------------------------------------------------------------
 
 fn components() -> SceneSpec {
     let nodes: [P; 8] = [(50.0, 50.0, "1"), (100.0, 100.0, "2"), (130.0, 44.0, "3"), (220.0, 54.0, "4"), (260.0, 108.0, "5"), (310.0, 54.0, "6"), (180.0, 130.0, "7"), (220.0, 150.0, "8")];
-    // два последних ребра — «мосты» между островами
+    // the last two edges — "bridges" between the islands
     let g = Gr::new("g", &nodes, eds(&[(0, 1), (0, 2), (1, 2), (3, 4), (4, 5), (3, 5), (6, 7), (2, 3), (1, 6)]));
     let comp = |i: usize| match i {
         0..=2 => 0,
@@ -401,7 +401,7 @@ fn components() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 7. Три примера -----------------------------------------------------------------------------
+// --- 7. Three examples --------------------------------------------------------------------------
 
 fn examples() -> SceneSpec {
     let tree = Gr::new("t", &[(180.0, 26.0, "html"), (110.0, 76.0, "head"), (250.0, 76.0, "body"), (200.0, 128.0, "div"), (300.0, 128.0, "p")], eds(&[(0, 1), (0, 2), (2, 3), (2, 4)])).directed();
@@ -446,7 +446,7 @@ fn examples() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 8. Матрица смежности -----------------------------------------------------------------------
+// --- 8. Adjacency matrix ------------------------------------------------------------------------
 
 fn matrix() -> SceneSpec {
     let names = ["A", "B", "C", "D", "E"];
@@ -500,7 +500,7 @@ fn matrix() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 9. Списки смежности ------------------------------------------------------------------------
+// --- 9. Adjacency lists -------------------------------------------------------------------------
 
 fn lists() -> SceneSpec {
     let adj: [&[&str]; 5] = [&["B", "C"], &["A", "C", "E"], &["A", "B", "D"], &["C", "E"], &["B", "D"]];
@@ -552,7 +552,7 @@ fn lists() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 10. Выбор представления --------------------------------------------------------------------
+// --- 10. Choosing a representation --------------------------------------------------------------
 
 fn choice() -> SceneSpec {
     SceneSpec::new(
@@ -567,7 +567,7 @@ fn choice() -> SceneSpec {
         frames(5, |step| {
             let f = Frame::new();
             match step {
-                // полосы следующего шага стоят здесь нулевой длины (линия с плоским концом невидима) и потом вырастают
+                // the bars of the next step stand here with zero length (a line with a flat end is invisible) and grow afterwards
                 0 => f
                     .with(bx("q1", 180.0, 50.0, 240.0, 34.0, "1. плотный или разреженный?").tone(G).size(11.5))
                     .with(bx("q2", 180.0, 100.0, 240.0, 34.0, "2. какая операция горячая?").tone(B).size(11.5))
@@ -605,7 +605,7 @@ fn choice() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 11. Исходящая и входящая степень -----------------------------------------------------------
+// --- 11. Out-degree and in-degree ---------------------------------------------------------------
 
 fn in_out() -> SceneSpec {
     let nodes: [P; 5] = [(60.0, 40.0, "A"), (60.0, 120.0, "B"), (160.0, 80.0, "C"), (260.0, 40.0, "D"), (260.0, 120.0, "E")];
@@ -648,14 +648,14 @@ fn in_out() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 12. Циклы в зависимостях -------------------------------------------------------------------
+// --- 12. Cycles in dependencies -----------------------------------------------------------------
 
 fn cycles() -> SceneSpec {
     let cyc = Gr::new("c", &[(90.0, 100.0, "a"), (180.0, 36.0, "b"), (270.0, 100.0, "c")], eds(&[(0, 1), (1, 2), (2, 0)])).directed();
-    // тот же граф без циклов: сначала (невидимый) вразброс, затем выстроенный в линию — все стрелки слева направо
+    // the same graph without cycles: first (invisible) scattered, then lined up — all arrows left to right
     let up = [(60.0, 40.0, "a"), (140.0, 110.0, "b"), (220.0, 40.0, "c"), (300.0, 110.0, "d")];
     let line_pos = [(60.0, 100.0, "a"), (140.0, 100.0, "b"), (220.0, 100.0, "c"), (300.0, 100.0, "d")];
-    // ребро a → c идёт дугой над вершиной b
+    // edge a → c goes as an arc over vertex b
     let dag = Gr::new("g", &up, vec![ed(0, 1), ed(1, 2), ed(2, 3), ed(0, 2).bend(-26.0)]).directed();
     SceneSpec::new(
         &["Циклы", "a → b → c → a", "Порядок", "Дальше"],
@@ -688,7 +688,7 @@ fn cycles() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 13. Итог главы -----------------------------------------------------------------------------
+// --- 13. Chapter summary ------------------------------------------------------------------------
 
 fn recap() -> SceneSpec {
     let cards = [("V, E", "граф", 1), ("Σ = 2|E|", "степени", 2), ("путь · цикл", "достижимость", 3), ("adj", "память", 4)];
@@ -728,7 +728,7 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Компоненты сцен в порядке импорта `slides/dm/ch08.tsx`.
+    /// Scene components in the import order of `slides/dm/ch08.tsx`.
     const NAMES: [&str; 13] = [
         "C8Intro", "C8Definition", "C8Directed", "C8Degree", "C8Path", "C8Components", "C8Examples", "C8Matrix", "C8Lists", "C8Choice", "C8InOut", "C8Cycles", "C8Recap",
     ];

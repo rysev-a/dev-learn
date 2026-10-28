@@ -1,38 +1,38 @@
-//! Модель мини-гипервизора (глава 2): ученик играет монитор виртуальных машин.
+//! Mini-hypervisor model (chapter 2): the student plays the virtual machine monitor.
 //!
-//! Гость исполняет программу без привилегий. Обычные команды идут напрямую, а на привилегированных процессор вызывает
-//! ловушку, и монитор должен правильно сымитировать действие над виртуальным состоянием гостя. Команда POPF в кольце 1
-//! не вызывает ловушки (дыра x86), пока не включена двоичная трансляция.
+//! The guest runs a program without privileges. Ordinary instructions execute directly, while on privileged ones the CPU raises
+//! a trap, and the monitor must correctly emulate the action on the guest's virtual state. The POPF instruction in ring 1
+//! does not trap (the x86 hole) until binary translation is enabled.
 //!
-//! Цель упражнения — по одной на программу: пройти программу, на каждой ловушке выбрав верную имитацию (идентификатор цели
-//! совпадает с [`Program::id`]). Историю действий ученика ведёт [`Session`] (то же, что обработчики `HvLab.tsx`);
-//! для серверной перепроверки история записывается как [`Run`] и воспроизводится [`replay`].
+//! One exercise goal per program: complete the program, choosing the correct emulation at each trap (the goal identifier
+//! equals [`Program::id`]). The student's action history is kept by [`Session`] (same as the `HvLab.tsx` handlers);
+//! for server-side re-checking the history is recorded as [`Run`] and replayed by [`replay`].
 
 use serde::{Deserialize, Serialize};
 
 use crate::error::SpecError;
 use crate::goal::Goal;
 
-/// Программа гостя: команды в текстовом виде («ADD 3», «CLI», «POPF 1»…).
+/// Guest program: instructions as text ("ADD 3", "CLI", "POPF 1"…).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Program {
-    /// Идентификатор программы (он же идентификатор цели).
+    /// Program identifier (also the goal identifier).
     pub id: String,
-    /// Название вкладки.
+    /// Tab title.
     pub title: String,
-    /// Команды программы.
+    /// Program instructions.
     pub code: Vec<String>,
-    /// Текст цели.
+    /// Goal text.
     pub goal: String,
 }
 
 impl Program {
-    /// Цель упражнения по этой программе.
+    /// Exercise goal for this program.
     pub fn as_goal(&self) -> Goal {
         Goal::new(self.id.clone(), self.goal.clone())
     }
 
-    /// Проверка: программа не пуста и все команды разбираются.
+    /// Validation: the program is non-empty and all instructions parse.
     pub fn validate(&self) -> Result<(), SpecError> {
         for c in &self.code {
             Instr::parse(c).map_err(|e| SpecError::new(i18n::trf!("program {0}: {1}", self.id, e)))?;
@@ -44,31 +44,31 @@ impl Program {
     }
 }
 
-/// Команда гостя.
+/// Guest instruction.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Instr {
-    /// `ADD n` — обычная команда, идёт напрямую.
+    /// `ADD n` — ordinary instruction, executes directly.
     Add(i64),
-    /// `CLI` — запретить прерывания.
+    /// `CLI` — disable interrupts.
     Cli,
-    /// `STI` — разрешить прерывания.
+    /// `STI` — enable interrupts.
     Sti,
-    /// `WRCR3 n` — записать в CR3.
+    /// `WRCR3 n` — write to CR3.
     Wrcr3(i64),
-    /// `RDCR3` — прочитать CR3 в аккумулятор.
+    /// `RDCR3` — read CR3 into the accumulator.
     Rdcr3,
-    /// `HLT` — остановить процессор.
+    /// `HLT` — halt the processor.
     Hlt,
-    /// `IRQ n` — внешнее прерывание для гостя.
+    /// `IRQ n` — external interrupt for the guest.
     Irq(i64),
-    /// `POPF n` — загрузить флаги.
+    /// `POPF n` — load flags.
     Popf(i64),
-    /// Любая другая команда: исполняется напрямую и ничего не меняет (как `default` в TypeScript).
+    /// Any other instruction: executes directly and changes nothing (like `default` in TypeScript).
     Other,
 }
 
 impl Instr {
-    /// Разобрать команду вида «ИМЯ» или «ИМЯ число».
+    /// Parse an instruction of the form "NAME" or "NAME number".
     pub fn parse(text: &str) -> Result<Instr, SpecError> {
         let mut it = text.split(' ');
         let op = it.next().unwrap_or("");
@@ -91,28 +91,28 @@ impl Instr {
     }
 }
 
-/// Виртуальное состояние гостя и счётчики прогона.
+/// Virtual guest state and run counters.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GuestState {
-    /// Номер текущей команды.
+    /// Index of the current instruction.
     pub pc: usize,
-    /// Аккумулятор.
+    /// Accumulator.
     pub acc: i64,
-    /// Виртуальный флаг прерываний IF.
+    /// Virtual interrupt flag IF.
     pub vif: i64,
-    /// Виртуальный CR3.
+    /// Virtual CR3.
     pub vcr3: i64,
-    /// Очередь прерываний, ждущих разрешения.
+    /// Queue of interrupts waiting to be enabled.
     pub queue: Vec<i64>,
-    /// Доставленные гостю прерывания.
+    /// Interrupts delivered to the guest.
     pub delivered: Vec<i64>,
-    /// Журнал шагов (для показа).
+    /// Step log (for display).
     pub log: Vec<String>,
-    /// Число неверных выборов монитора.
+    /// Number of wrong monitor choices.
     pub mistakes: u32,
-    /// Была команда, которую монитор не заметил (POPF без трансляции).
+    /// There was an instruction the monitor missed (POPF without translation).
     pub silent: bool,
-    /// Гость остановлен (HLT).
+    /// Guest halted (HLT).
     pub halted: bool,
 }
 
@@ -122,7 +122,7 @@ impl Default for GuestState {
     }
 }
 
-/// Начальное состояние гостя.
+/// Initial guest state.
 pub fn initial() -> GuestState {
     GuestState {
         pc: 0,
@@ -138,34 +138,34 @@ pub fn initial() -> GuestState {
     }
 }
 
-/// Вариант имитации на ловушке.
+/// Emulation option at a trap.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrapOption {
-    /// Текст варианта.
+    /// Option text.
     pub label: String,
-    /// Верный ли вариант.
+    /// Whether the option is correct.
     pub ok: bool,
-    /// Пояснение (для неверного — почему нельзя).
+    /// Explanation (for a wrong one — why it is not allowed).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub why: Option<String>,
 }
 
-/// Что происходит на команде.
+/// What happens on an instruction.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Inspection {
-    /// Команда идёт напрямую на процессоре.
+    /// The instruction executes directly on the CPU.
     Direct,
-    /// Команда «молча» не сработала, ловушки не было.
+    /// The instruction silently failed, there was no trap.
     Silent {
-        /// Объяснение.
+        /// Explanation.
         why: String,
     },
-    /// Ловушка: монитор выбирает имитацию.
+    /// Trap: the monitor chooses an emulation.
     Trap {
-        /// Заголовок ловушки.
+        /// Trap title.
         title: String,
-        /// Варианты (в порядке модели; интерфейс может перемешать).
+        /// Options (in model order; the UI may shuffle them).
         options: Vec<TrapOption>,
     },
 }
@@ -174,7 +174,7 @@ fn opt(label: impl Into<String>, ok: bool, why: Option<&str>) -> TrapOption {
     TrapOption { label: label.into(), ok, why: why.map(str::to_string) }
 }
 
-/// Что происходит на команде `ins` в состоянии `s` (`translate` — включена ли двоичная трансляция).
+/// What happens on instruction `ins` in state `s` (`translate` — whether binary translation is enabled).
 pub fn inspect(ins: &Instr, s: &GuestState, translate: bool) -> Inspection {
     let trap = |title: String, options: Vec<TrapOption>| Inspection::Trap { title, options };
     match ins {
@@ -261,7 +261,7 @@ pub fn inspect(ins: &Instr, s: &GuestState, translate: bool) -> Inspection {
     }
 }
 
-/// Применить верную имитацию (или прямое исполнение) команды к состоянию.
+/// Apply the correct emulation (or direct execution) of an instruction to the state.
 pub fn apply(ins: &Instr, s: &GuestState) -> GuestState {
     let mut t = s.clone();
     t.pc += 1;
@@ -289,55 +289,55 @@ pub fn apply(ins: &Instr, s: &GuestState) -> GuestState {
     t
 }
 
-/// Ожидаемое виртуальное состояние при верной имитации всей программы.
+/// Expected virtual state after correct emulation of the whole program.
 pub fn expected(code: &[Instr]) -> GuestState {
     code.iter().fold(initial(), |s, i| apply(i, &s))
 }
 
-/// Итог прогона программы (остановка гостя).
+/// Outcome of a program run (guest halted).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Finish {
-    /// Состояние верное: монитор не пропустил команду, а acc, vif, vcr3 и доставленные прерывания совпали с ожидаемыми.
+    /// State is correct: the monitor missed no instruction, and acc, vif, vcr3 and delivered interrupts match the expected ones.
     pub ok: bool,
-    /// Число неверных выборов за прогон.
+    /// Number of wrong choices during the run.
     pub mistakes: u32,
-    /// Итоговое состояние.
+    /// Final state.
     pub state: GuestState,
-    /// Ожидаемое состояние при верной имитации.
+    /// Expected state under correct emulation.
     pub want: GuestState,
 }
 
-/// Результат кнопки «Шаг».
+/// Result of the "Step" button.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Stepped {
-    /// Шагать нечем: программа остановлена или кончилась, либо на команде ловушка (нужен выбор).
+    /// Nothing to step: the program is halted or finished, or the instruction traps (a choice is needed).
     Blocked,
-    /// Команда исполнена напрямую.
+    /// Instruction executed directly.
     Direct,
-    /// Команда не сработала молча (POPF без трансляции).
+    /// Instruction silently failed (POPF without translation).
     Silent {
-        /// Объяснение для ученика.
+        /// Explanation for the student.
         why: String,
     },
 }
 
-/// Результат выбора варианта на ловушке.
+/// Result of choosing an option at a trap.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Choice {
-    /// Сейчас нет ловушки или такого варианта нет.
+    /// There is no trap now, or no such option.
     Invalid,
-    /// Неверный вариант: ошибка записана, состояние не изменилось.
+    /// Wrong option: the mistake is recorded, the state is unchanged.
     Wrong {
-        /// Почему нельзя.
+        /// Why it is not allowed.
         why: String,
     },
-    /// Верный вариант, программа продолжается.
+    /// Correct option, the program continues.
     Applied,
-    /// Верный вариант, гость остановлен: прогон окончен.
+    /// Correct option, the guest halted: the run is over.
     Finished(Box<Finish>),
 }
 
-/// Прогон программы учеником: те же действия, что в `HvLab.tsx` (шаг, выбор на ловушке, начать сначала).
+/// A program run by the student: the same actions as in `HvLab.tsx` (step, choice at a trap, restart).
 #[derive(Clone, Debug)]
 pub struct Session {
     raw: Vec<String>,
@@ -349,34 +349,34 @@ pub struct Session {
 }
 
 impl Session {
-    /// Новый прогон программы `code`.
+    /// New run of program `code`.
     pub fn new(code: &[String], translate: bool) -> Result<Session, SpecError> {
         let parsed = code.iter().map(|c| Instr::parse(c)).collect::<Result<Vec<_>, _>>()?;
         let want = expected(&parsed);
         Ok(Session { raw: code.to_vec(), code: parsed, translate, state: initial(), want, finish: None })
     }
 
-    /// Текущее состояние гостя.
+    /// Current guest state.
     pub fn state(&self) -> &GuestState {
         &self.state
     }
 
-    /// Итог, если прогон окончен остановкой гостя.
+    /// Outcome, if the run ended with the guest halting.
     pub fn finish(&self) -> Option<&Finish> {
         self.finish.as_ref()
     }
 
-    /// Включена ли двоичная трансляция.
+    /// Whether binary translation is enabled.
     pub fn translate(&self) -> bool {
         self.translate
     }
 
-    /// Прогон уже начат (трансляцию менять нельзя).
+    /// The run has already started (translation cannot be changed).
     pub fn started(&self) -> bool {
         self.state.pc > 0 || !self.state.log.is_empty()
     }
 
-    /// Включить/выключить трансляцию; до запуска. `false` — прогон начат, ничего не изменилось.
+    /// Enable/disable translation; before starting. `false` — the run has started, nothing changed.
     pub fn set_translate(&mut self, on: bool) -> bool {
         if self.started() {
             return false;
@@ -385,13 +385,13 @@ impl Session {
         true
     }
 
-    /// Начать сначала (трансляция сохраняется).
+    /// Restart (translation setting is kept).
     pub fn reset(&mut self) {
         self.state = initial();
         self.finish = None;
     }
 
-    /// Текущая команда (текстом), если гость не остановлен и программа не кончилась.
+    /// Current instruction (as text), if the guest is not halted and the program is not finished.
     pub fn current(&self) -> Option<&str> {
         if self.state.halted {
             return None;
@@ -399,7 +399,7 @@ impl Session {
         self.raw.get(self.state.pc).map(String::as_str)
     }
 
-    /// Что происходит на текущей команде.
+    /// What happens on the current instruction.
     pub fn inspect(&self) -> Option<Inspection> {
         if self.state.halted {
             return None;
@@ -407,7 +407,7 @@ impl Session {
         self.code.get(self.state.pc).map(|i| inspect(i, &self.state, self.translate))
     }
 
-    /// Кнопка «Шаг»: прямая команда исполняется, «тихая» тоже (ничего не меняя), на ловушке шаг заблокирован.
+    /// The "Step" button: a direct instruction executes, a "silent" one too (changing nothing), at a trap the step is blocked.
     pub fn step(&mut self) -> Stepped {
         let (Some(ins), Some(info)) = (self.code.get(self.state.pc).cloned(), self.inspect()) else {
             return Stepped::Blocked;
@@ -432,7 +432,7 @@ impl Session {
         }
     }
 
-    /// Выбрать вариант на ловушке по тексту.
+    /// Choose an option at a trap by its text.
     pub fn choose(&mut self, label: &str) -> Choice {
         let (Some(ins), Some(Inspection::Trap { options, .. })) =
             (self.code.get(self.state.pc).cloned(), self.inspect())
@@ -465,32 +465,32 @@ impl Session {
     }
 }
 
-/// Одно действие ученика в записи прогона.
+/// One student action in a recorded run.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "step", rename_all = "snake_case")]
 pub enum Step {
-    /// «Шаг» на прямой команде.
+    /// "Step" on a direct instruction.
     Direct,
-    /// «Шаг» на команде, не вызвавшей ловушку (POPF без трансляции).
+    /// "Step" on an instruction that did not trap (POPF without translation).
     Silent,
-    /// Выбор варианта на ловушке (текст варианта; неверный выбор тоже записывается — он считается ошибкой).
+    /// Option choice at a trap (option text; a wrong choice is recorded too — it counts as a mistake).
     Trap {
-        /// Текст выбранного варианта.
+        /// Text of the chosen option.
         label: String,
     },
 }
 
-/// Запись прогона: настройка и действия. Клиент может приложить её к решению, сервер — воспроизвести.
+/// Recorded run: setting and actions. The client may attach it to the solution, the server replays it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Run {
-    /// Была ли включена двоичная трансляция.
+    /// Whether binary translation was enabled.
     pub translate: bool,
-    /// Действия по порядку.
+    /// Actions in order.
     pub steps: Vec<Step>,
 }
 
-/// Воспроизвести запись прогона на программе. Ошибка — запись не соответствует модели (действие невозможно на этой
-/// команде, лишние действия после остановки гостя, программа не доведена до остановки).
+/// Replay a recorded run on a program. Error — the record does not match the model (the action is impossible on this
+/// instruction, extra actions after the guest halted, the program was not run to a halt).
 pub fn replay(program: &Program, run: &Run) -> Result<Finish, SpecError> {
     let mut s = Session::new(&program.code, run.translate)?;
     for (i, st) in run.steps.iter().enumerate() {
@@ -521,8 +521,8 @@ pub fn replay(program: &Program, run: &Run) -> Result<Finish, SpecError> {
     s.finish().cloned().ok_or_else(|| SpecError::new(i18n::tr("the program did not run until the guest halted")))
 }
 
-/// Идеальный прогон программы: на каждой ловушке верный вариант. Если без трансляции встретилась «тихая» команда,
-/// прогон продолжается и закончится неверным итогом ([`Finish::ok`] = `false`).
+/// Ideal program run: the correct option at every trap. If a "silent" instruction is met without translation,
+/// the run continues and ends with an incorrect outcome ([`Finish::ok`] = `false`).
 pub fn ideal_run(program: &Program, translate: bool) -> Result<Run, SpecError> {
     let mut s = Session::new(&program.code, translate)?;
     let mut steps = vec![];
@@ -549,12 +549,12 @@ pub fn ideal_run(program: &Program, translate: bool) -> Result<Run, SpecError> {
     Ok(Run { translate, steps })
 }
 
-/// Нужна ли программе двоичная трансляция: без неё встречается команда, не вызывающая ловушку.
+/// Whether the program needs binary translation: without it an instruction that does not trap is encountered.
 pub fn needs_translation(program: &Program) -> Result<bool, SpecError> {
     Ok(ideal_run(program, false)?.steps.contains(&Step::Silent))
 }
 
-/// Программы по умолчанию (упражнение главы 2).
+/// Default programs (chapter 2 exercise).
 pub fn default_programs() -> Vec<Program> {
     let p = |id: &str, title: &str, code: &[&str], goal: &str| Program {
         id: id.into(),

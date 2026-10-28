@@ -1,29 +1,29 @@
-//! Состояние лаборатории RISC-V: текст программы, ассемблирование, машина и итог запуска.
+//! State of the RISC-V lab: program text, assembly, machine and run outcome.
 //!
-//! Машина лежит в сигнале и меняется на месте (`update`), а всё, что рисует интерфейс, — производные `Memo`
-//! (`status`, `result`), которые пересчитываются после каждого шага. Правка текста или «Сбросить» собирает машину заново.
+//! The machine lives in a signal and is changed in place (`update`), while everything the interface draws is derived `Memo`s
+//! (`status`, `result`) recomputed after every step. Editing the text or "Reset" rebuilds the machine.
 
 use leptos::prelude::*;
 use riscvlab::{asm::AsmResult, assemble, machine::Machine, task::TaskSpec};
 
 use super::format::{build_machine, evaluate, run_limit, window_for, RunResult, Status};
 
-/// Все сигналы одного упражнения; копируется по значению в обработчики.
+/// All signals of one exercise; copied by value into handlers.
 #[derive(Clone, Copy)]
 pub struct Session {
     pub spec: StoredValue<TaskSpec>,
-    /// текст программы ученика (без данных задания)
+    /// student's program text (without the task data)
     pub source: RwSignal<String>,
-    /// результат ассемблирования полного текста (программа + данные задания)
+    /// result of assembling the full text (program + task data)
     pub asm: Memo<AsmResult>,
     machine: RwSignal<Option<Machine>>,
-    /// снимок машины; `None`, пока в программе есть ошибки
+    /// machine snapshot; `None` while the program has errors
     pub status: Memo<Option<Status>>,
-    /// итог, когда машина остановилась
+    /// outcome once the machine has stopped
     pub result: Memo<Option<RunResult>>,
-    /// номер окна памяти
+    /// memory window number
     pub window: RwSignal<usize>,
-    /// выбранная строка листинга (адрес)
+    /// selected listing row (address)
     pub selected: RwSignal<Option<u32>>,
     pub hint_open: RwSignal<bool>,
     reset: RwSignal<u32>,
@@ -31,15 +31,15 @@ pub struct Session {
 }
 
 impl Session {
-    /// `initial` — текст программы при открытии; `report` вызывается с текстом программы, когда запуск выполнил задание
-    /// (и сервер его ещё не засчитал).
+    /// `initial` — program text on open; `report` is called with the program text when a run completed the task
+    /// (and the server has not accepted it yet).
     pub fn new(spec: TaskSpec, initial: String, solved: Signal<bool>, report: Callback<String>, on_draft: Callback<String>) -> Self {
         let spec = StoredValue::new(spec);
         let source = RwSignal::new(initial);
         let asm = Memo::new(move |_| spec.with_value(|s| assemble(&s.full_source(&source.get()))));
         let machine = RwSignal::new(asm.with_untracked(|a| spec.with_value(|s| build_machine(s, a))));
         let reset = RwSignal::new(0u32);
-        // новая программа или «Сбросить» — машина с нуля (первый прогон не нужен: машина уже собрана)
+        // new program or "Reset" — machine from scratch (no first run needed: the machine is already built)
         Effect::new(move |prev: Option<()>| {
             asm.track();
             reset.track();
@@ -54,7 +54,7 @@ impl Session {
                 asm.with(|a| spec.with_value(|s| evaluate(s, a, m, &source.get_untracked())))
             })
         });
-        // задание выполнено — сообщаем решение (сервер перепроверит его тем же движком)
+        // task completed — report the solution (the server re-checks it with the same engine)
         Effect::new(move |_| {
             if result.get().is_some_and(|r| r.ok) && !solved.get_untracked() {
                 report.run(source.get_untracked());
@@ -63,20 +63,20 @@ impl Session {
         Self { spec, source, asm, machine, status, result, window: RwSignal::new(0), selected: RwSignal::new(None), hint_open: RwSignal::new(false), reset, on_draft }
     }
 
-    /// Ученик правит текст программы.
+    /// The student edits the program text.
     pub fn edit(&self, text: String) {
         self.selected.set(None);
         self.source.set(text.clone());
         self.on_draft.run(text);
     }
 
-    /// «Начать заново»: вернуть заготовку.
+    /// "Start over": restore the starter.
     pub fn restart(&self) {
         let starter = self.spec.with_value(|s| s.starter.clone());
         self.edit(starter);
     }
 
-    /// Одна команда.
+    /// One instruction.
     pub fn step(&self) {
         self.machine.update(|m| {
             if let Some(m) = m {
@@ -86,7 +86,7 @@ impl Session {
         self.follow();
     }
 
-    /// До остановки (но не дольше лимита шагов задачи).
+    /// Until it stops (but no longer than the task's step limit).
     pub fn run(&self) {
         let limit = self.spec.with_value(run_limit);
         let can = self.status.with_untracked(|s| s.as_ref().is_some_and(Status::can_step));
@@ -101,12 +101,12 @@ impl Session {
         self.follow();
     }
 
-    /// «Сбросить»: машина в начальное состояние, программа та же.
+    /// "Reset": machine to its initial state, same program.
     pub fn reset(&self) {
         self.reset.update(|n| *n += 1);
     }
 
-    /// Окно памяти перескакивает туда, где команда только что писала или читала.
+    /// The memory window jumps to where the instruction just wrote or read.
     fn follow(&self) {
         let addr = self.machine.with_untracked(|m| m.as_ref().and_then(|m| m.last_write.or(m.last_read)));
         if let Some(i) = addr.and_then(window_for) {
@@ -114,7 +114,7 @@ impl Session {
         }
     }
 
-    /// Окно памяти: байты машины, а пока её нет — образ из ассемблера.
+    /// Memory window: the machine's bytes, and while there is no machine — the assembler image.
     pub fn memory<R>(&self, f: impl FnOnce(&[u8], Option<u32>, Option<u32>) -> R) -> R {
         self.machine.with(|m| match m {
             Some(m) => f(&m.mem, m.last_read, m.last_write),

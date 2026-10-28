@@ -1,8 +1,8 @@
-//! Каталог блоков процессора «Мини-8».
-//! Всё построено из вентилей И, ИЛИ, НЕ, XOR и триггера DFF — тех самых, что ученик собирал на доске.
-//! Мелкие блоки (мультиплексор, полный сумматор, бит регистра) повторяются в более крупных:
-//! байтовый регистр — восемь битовых, регистровый файл — семь байтовых регистров и два мультиплексора.
-//! Порт `cpu8/blocks.ts`.
+//! Block catalog of the "Mini-8" processor.
+//! Everything is built from AND, OR, NOT, XOR gates and the DFF flip-flop — the very ones the student built on the board.
+//! Small blocks (multiplexer, full adder, register bit) are reused in larger ones:
+//! a byte register is eight bit registers, the register file is seven byte registers and two multiplexers.
+//! Port of `cpu8/blocks.ts`.
 
 use super::builders::*;
 use crate::blocks::*;
@@ -10,7 +10,7 @@ use crate::interfaces::Iface::{self, *};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-/// Номера команд (опкоды) — как в `asm::isa`.
+/// Instruction numbers (opcodes) — as in `asm::isa`.
 mod op {
     pub const HLT: usize = 0;
     pub const LI: usize = 1;
@@ -43,7 +43,7 @@ fn pairs(list: &[(String, String)]) -> Vec<(String, String)> {
 fn build_blocks() -> Vec<GeneratedBlock> {
     let mut blocks: Vec<GeneratedBlock> = Vec::new();
 
-    /* ===================== Биты ===================== */
+    /* ===================== Bits ===================== */
 
     blocks.push(gate_block(
         "c8-mux2",
@@ -81,7 +81,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         i18n::tr("Register bit with write"),
         &[pin("d", Bit), pin("load", Bit), pin("clk", Clk), pout("q", Bit)],
         |g| {
-            // «себя или новое»: при load = 0 триггер получает собственный выход
+            // "itself or the new value": at load = 0 the flip-flop receives its own output
             let nl = g.not("load");
             let keep = g.and("q_ff", &nl);
             let take = g.and("d", "load");
@@ -107,12 +107,12 @@ fn build_blocks() -> Vec<GeneratedBlock> {
             pout("cout", Bit),
         ],
         |g| {
-            // арифметика: при вычитании B инвертируется, а перенос на входе младшего разряда равен 1
+            // arithmetic: on subtraction B is inverted and the carry into the least significant bit is 1
             let bx = g.xor("b", "sub");
             let p = g.xor("a", &bx);
             let sum = g.xor(&p, "cin");
             g.out("cout", g.or(g.and("a", &bx), g.and(&p, "cin")));
-            // логика: все результаты считаются сразу, а нужный выбирают сигналы управления
+            // logic: all results are computed at once, and the control signals select the needed one
             let t_add = g.and(&sum, "sAdd");
             let t_and = g.and(g.and("a", "b"), "sAnd");
             let t_or = g.and(g.or("a", "b"), "sOr");
@@ -137,7 +137,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         i18n::tr("Compare: bit slice"),
         &[pin("x", Bit), pin("y", Bit), pin("ltIn", Bit), pout("lt", Bit), pout("eq", Bit)],
         |g| {
-            // x < y, если в этом разряде x = 0, а y = 1, или разряды равны и младшие уже дали «меньше»
+            // x < y if in this bit x = 0 and y = 1, or the bits are equal and the lower bits already gave "less"
             let eq = g.xnor("x", "y");
             g.out("lt", g.or(g.and(g.not("x"), "y"), g.and(&eq, "ltIn")));
             g.out("eq", &eq);
@@ -150,7 +150,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
     }));
 
     blocks.push(gate_block("c8-zero8", i18n::tr("Zero byte"), &[pin("a", Clk), pout("y", Byte)], |g| {
-        // сигнал И его инверсия — всегда 0
+        // a signal AND its inverse — always 0
         let z = g.and("a", g.not("a"));
         for i in BITS {
             g.out(bit("y", i), &z);
@@ -181,13 +181,13 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         },
     ));
 
-    /* ===================== Управление ===================== */
+    /* ===================== Control ===================== */
 
     blocks.push(gate_block("c8-decode", i18n::tr("Instruction decoder"), &[pin("op", Op4), pout("ctl", Ctrl)], |g| {
         let o: Vec<String> = (0..4).map(|i| bit("op", i)).collect();
         let neg: Vec<String> = o.iter().map(|x| g.not(x)).collect();
         let lit = |i: usize, v: usize| if v != 0 { &o[i] } else { &neg[i] };
-        // «старшая» и «младшая» пары бит кода операции — четыре варианта каждая
+        // the "high" and "low" bit pairs of the opcode — four variants each
         let hi: Vec<String> = (0..4usize).map(|k| g.and(lit(3, k >> 1), lit(2, k & 1))).collect();
         let lo: Vec<String> = (0..4usize).map(|k| g.and(lit(1, k >> 1), lit(0, k & 1))).collect();
         let mut m: HashMap<usize, String> = HashMap::new();
@@ -240,7 +240,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         i18n::tr("Halt"),
         &[pin("clk", Clk), pin("isHlt", Bit), pout("halted", Bit), pout("run", Bit)],
         |g| {
-            // однажды встретив hlt, триггер держит единицу до конца работы
+            // once hlt is seen, the flip-flop holds one until the end of the run
             g.dff_at("h_ff", g.or("h_ff", "isHlt"), "clk");
             g.out("halted", "h_ff");
             g.out("run", g.not("h_ff"));
@@ -252,7 +252,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         i18n::tr("Write enables"),
         &[pin("ctl", Ctrl), pin("run", Bit), pout("pcEn", Bit), pout("regWe", Bit), pout("ramWe", Bit)],
         |g| {
-            // пока процессор не остановлен: счётчик команд шагает (кроме hlt), регистр и диск пишут по команде
+            // while the processor is not halted: the program counter steps (except hlt), the register and the disk write on command
             g.out("pcEn", g.and("run", g.not(field("ctl", "isHlt"))));
             g.out("regWe", g.and("run", field("ctl", "regWrite")));
             g.out("ramWe", g.and("run", field("ctl", "store")));
@@ -260,13 +260,13 @@ fn build_blocks() -> Vec<GeneratedBlock> {
     ));
 
     let mut imm_links: Vec<(String, String)> = Vec::new();
-    // шесть бит с расширением знака до байта
+    // six bits sign-extended to a byte
     for i in 0..6 {
         imm_links.push((bit("instr", i), bit("imm6", i)));
     }
     imm_links.push((bit("instr", 5), bit("imm6", 6)));
     imm_links.push((bit("instr", 5), bit("imm6", 7)));
-    // восемь младших бит команды — число для li и смещение для jmp
+    // the eight low bits of the instruction — the number for li and the offset for jmp
     for i in BITS {
         imm_links.push((bit("instr", i), bit("imm8", i)));
     }
@@ -277,7 +277,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         &pairs(&imm_links),
     ));
 
-    /* ===================== Байтовые блоки ===================== */
+    /* ===================== Byte blocks ===================== */
 
     blocks.push(hier_block(
         "c8-mux2x8",
@@ -364,7 +364,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
                 for sig in ["sub", "sAdd", "sAnd", "sOr", "sXor", "sB"] {
                     h.link(&format!("$.{sig}"), &format!("s{i}.{sig}"));
                 }
-                // перенос бежит от младшего разряда к старшему; вычитание — прибавление НЕ-B и единицы
+                // the carry runs from the least significant bit to the most significant; subtraction is adding NOT-B and one
                 let cin = if i == 0 { s("$.sub") } else { format!("s{}.cout", i - 1) };
                 h.link(&cin, &format!("s{i}.cin"));
             }
@@ -391,7 +391,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         },
     ));
 
-    /* ===================== Регистры и счётчик команд ===================== */
+    /* ===================== Registers and program counter ===================== */
 
     blocks.push(hier_block(
         "c8-mux4x8",
@@ -433,7 +433,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
     blocks.push(hier_block("c8-regfile", i18n::tr("Register file"), &rf_specs, |h| {
         h.inst("wdec", "c8-wdec").inst("z", "c8-zero8").inst("m1", "c8-mux8x8").inst("m2", "c8-mux8x8");
         h.link("$.wsel", "wdec.s").link("$.we", "wdec.we");
-        h.link("$.clk", "z.a").link("z.y", "m1.d0").link("z.y", "m2.d0"); // r0 — всегда ноль
+        h.link("$.clk", "z.a").link("z.y", "m1.d0").link("z.y", "m2.d0"); // r0 is always zero
         for k in 1..=7 {
             h.inst(&format!("r{k}"), "c8-reg8");
             h.link("$.clk", &format!("r{k}.clk"))
@@ -461,7 +461,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         |h| {
             h.inst("reg", "c8-reg8").inst("add", "c8-add8").inst("one", "c8-one8");
             h.inst("stepJ", "c8-mux2x8").inst("step", "c8-mux2x8");
-            // шаг: по умолчанию +1; для jmp — смещение из команды; при условном переходе — короткое смещение
+            // step: +1 by default; for jmp — the offset from the instruction; for a conditional jump — the short offset
             h.link("$.clk", "one.a").link("$.isJmp", "stepJ.s").link("one.y", "stepJ.d0").link("$.imm8", "stepJ.d1");
             h.link("$.take", "step.s").link("stepJ.y", "step.d0").link("$.imm6", "step.d1");
             h.link("reg.q", "add.a").link("step.y", "add.b").link("add.s", "reg.d");
@@ -469,7 +469,7 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         },
     ));
 
-    /* ===================== Память ===================== */
+    /* ===================== Memory ===================== */
 
     blocks.push(native_block("c8-rom", i18n::tr("ROM: program"), &[pin("addr", Byte), pout("word", Instr16)], |def| NativeSolution {
         native: crate::model::NativeKind::Rom,
@@ -494,12 +494,12 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         },
     ));
 
-    /* ===================== Процессор ===================== */
+    /* ===================== Processor ===================== */
 
     let mut cpu_specs: Vec<PortSpec> = vec![pin("clk", Clk), pout("pc", Byte), pout("halted", Bit)];
     cpu_specs.extend((1..=7).map(|k| pout(format!("r{k}"), Byte)));
     blocks.push(hier_block("c8-cpu", i18n::tr("“Mini-8” processor"), &cpu_specs, |h| {
-        // слева направо: выборка и декодирование → регистры и операнды → АЛУ, сравнение и диск
+        // left to right: fetch and decode → registers and operands → ALU, comparison and disk
         let col = |n: usize, y: f64| (150.0 + n as f64 * 196.0, y);
         let put = |h: &mut HierBuilder, id: &str, block: &str, at: (f64, f64)| {
             h.inst_at(id, block, at.0, at.1);
@@ -520,11 +520,11 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         put(h, "br", "c8-branch", col(2, 410.0));
         put(h, "ram", "c8-ram", col(2, 550.0));
 
-        // выборка: счётчик команд → ПЗУ → команда, разобранная на части
+        // fetch: program counter → ROM → instruction split into parts
         h.link("pc.pc", "rom.addr").link("rom.word", "imm.instr").link("rom.word.op", "dec.op");
         h.link("imm.imm6", "pc.imm6").link("imm.imm8", "pc.imm8");
 
-        // регистры: куда писать (поле A), что читать (B) и второй операнд (C или A)
+        // registers: where to write (field A), what to read (B) and the second operand (C or A)
         h.link("rom.word.a", "rf.wsel").link("rom.word.b", "rf.rsel1");
         h.link("rom.word.a", "p2s.d0");
         for i in [2, 1, 0] {
@@ -532,28 +532,28 @@ fn build_blocks() -> Vec<GeneratedBlock> {
         }
         h.link("dec.ctl.isR", "p2s.s").link("p2s.y", "rf.rsel2");
 
-        // АЛУ: первый операнд — регистр B, второй — регистр или число из команды
+        // ALU: the first operand is register B, the second is a register or the number from the instruction
         h.link("dec.ctl.useImm6", "opm1.s").link("rf.rd2", "opm1.d0").link("imm.imm6", "opm1.d1");
         h.link("dec.ctl.useImm8", "opm2.s").link("opm1.y", "opm2.d0").link("imm.imm8", "opm2.d1");
         h.link("rf.rd1", "alu.a").link("opm2.y", "alu.b");
         h.link("dec.ctl.sub", "alu.sub").link("dec.ctl.selAdd", "alu.sAdd").link("dec.ctl.selAnd", "alu.sAnd");
         h.link("dec.ctl.selOr", "alu.sOr").link("dec.ctl.selXor", "alu.sXor").link("dec.ctl.selB", "alu.sB");
 
-        // переходы: сравнение двух регистров и решение
+        // jumps: comparison of two registers and the decision
         h.link("rf.rd2", "cmp.x").link("rf.rd1", "cmp.y");
         h.link("dec.ctl", "br.ctl").link("cmp.eq", "br.eq").link("cmp.lt", "br.lt");
         h.link("br.take", "pc.take").link("dec.ctl.isJmp", "pc.isJmp");
 
-        // диск: адрес считает АЛУ, на запись идёт регистр A
+        // disk: the ALU computes the address, register A goes to the write
         h.link("alu.res", "ram.addr").link("rf.rd2", "ram.din");
         h.link("dec.ctl.load", "wb.s").link("alu.res", "wb.d0").link("ram.dout", "wb.d1").link("wb.y", "rf.wdata");
 
-        // разрешения и остановка
+        // enables and halt
         h.link("dec.ctl.isHlt", "halt.isHlt").link("halt.run", "en.run").link("dec.ctl", "en.ctl");
         h.link("en.pcEn", "pc.run").link("en.regWe", "rf.we").link("en.ramWe", "ram.we");
         h.link("$.clk", "pc.clk").link("$.clk", "rf.clk").link("$.clk", "ram.clk").link("$.clk", "halt.clk");
 
-        // что видно снаружи
+        // what is visible from outside
         h.link("pc.pc", "$.pc").link("halt.halted", "$.halted");
         for k in 1..=7 {
             h.link(&format!("rf.r{k}"), &format!("$.r{k}"));
@@ -563,24 +563,24 @@ fn build_blocks() -> Vec<GeneratedBlock> {
     blocks
 }
 
-/// Все блоки процессора: описания, содержимое, порядок как в каталоге.
+/// All processor blocks: descriptions, contents, order as in the catalog.
 pub struct Cpu8Blocks {
     list: Vec<GeneratedBlock>,
     index: HashMap<String, usize>,
 }
 
 impl Cpu8Blocks {
-    /// Блок по id.
+    /// Block by id.
     pub fn get(&self, id: &str) -> Option<&GeneratedBlock> {
         self.index.get(id).map(|i| &self.list[*i])
     }
 
-    /// Все блоки по порядку каталога.
+    /// All blocks in catalog order.
     pub fn all(&self) -> &[GeneratedBlock] {
         &self.list
     }
 
-    /// Библиотека блоков в том виде, в каком её ждёт доска блоков (только просмотр).
+    /// Block library in the form the block board expects (view only).
     pub fn library(&self) -> BlockLibrary {
         let mut lib = BlockLibrary::default();
         for b in &self.list {
@@ -597,7 +597,7 @@ impl BlockLookup for Cpu8Blocks {
     }
 }
 
-/// Каталог блоков процессора; собирается один раз.
+/// Processor block catalog; built once.
 pub fn cpu8_blocks() -> &'static Cpu8Blocks {
     static BLOCKS: OnceLock<Cpu8Blocks> = OnceLock::new();
     BLOCKS.get_or_init(|| {
@@ -607,7 +607,7 @@ pub fn cpu8_blocks() -> &'static Cpu8Blocks {
     })
 }
 
-/// Описание блока по id; `None`, если такого блока нет.
+/// Block description by id; `None` if there is no such block.
 pub fn cpu8_def(id: &str) -> Option<&'static BlockDef> {
     cpu8_blocks().get(id).map(|b| &b.def)
 }

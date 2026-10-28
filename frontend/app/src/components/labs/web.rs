@@ -1,8 +1,8 @@
-//! Лаборатория «HTML и CSS» (книга 11): ученик пишет разметку, стили или селектор, справа — живой предпросмотр, внизу — условия.
+//! HTML and CSS lab (book 11): the student writes markup, styles or a selector, with a live preview on the right and the conditions below.
 //!
-//! Проверка — крейт `weblab` (общий с сервером): условия пересчитываются при каждой правке, а когда выполнены все, решение
-//! один раз уходит на сервер (`LabProps::report`), и тот перепроверяет его тем же кодом. Предпросмотр — `iframe` с пустым
-//! `sandbox`: скрипты в нём не выполняются.
+//! Checking is done by the `weblab` crate (shared with the server): the conditions are recomputed on every edit, and when all are met, the solution
+//! is sent to the server once (`LabProps::report`), which re-checks it with the same code. The preview is an `iframe` with an empty
+//! `sandbox`: scripts do not run in it.
 
 use highlight::Lang;
 use leptos::prelude::*;
@@ -11,15 +11,15 @@ use weblab::{Kind, Solution, Task};
 use super::LabProps;
 use crate::components::code_editor::CodeEditor;
 
-/// Ширины окна предпросмотра: телефон, планшет, ноутбук.
+/// Preview window widths: phone, tablet, laptop.
 const WIDTHS: [(u32, &str); 3] = [(360, "360"), (768, "768"), (1100, "1100")];
 
-/// Документ для предпросмотра.
+/// Document for the preview.
 pub fn preview_doc(task: &Task, s: &Solution) -> String {
     match task.kind {
         Kind::Html => strip_scripts(&s.html),
         Kind::Css => with_style(&task.html, &s.css),
-        // выбранные селектором элементы обводятся; неверный селектор ничего не обводит
+        // elements chosen by the selector are outlined; an invalid selector outlines nothing
         Kind::Selector => {
             let sel = s.css.trim();
             let rule = if sel.is_empty() || weblab::html::selector(sel).is_err() { String::new() } else { format!("{sel} {{ outline: 3px solid #e5484d !important; outline-offset: 2px !important; }}") };
@@ -28,7 +28,7 @@ pub fn preview_doc(task: &Task, s: &Solution) -> String {
     }
 }
 
-/// Скрипты в предпросмотре не работают (песочница) — вырезаем их, чтобы браузер не сыпал ошибками о блокировке.
+/// Scripts do not work in the preview (sandbox), so we strip them to keep the browser from flooding the console with blocking errors.
 fn strip_scripts(html: &str) -> String {
     let lower = html.to_lowercase();
     let (mut out, mut at) = (String::new(), 0);
@@ -46,7 +46,7 @@ fn strip_scripts(html: &str) -> String {
     out
 }
 
-/// `<style>` в начало документа (после `<head>`, если он есть).
+/// Puts `<style>` at the start of the document (after `<head>`, if there is one).
 fn with_style(html: &str, css: &str) -> String {
     let style = format!("<style>{css}</style>");
     match html.find("<head>") {
@@ -59,7 +59,7 @@ fn solution_json(s: &Solution) -> String {
     serde_json::to_string(s).unwrap_or_default()
 }
 
-/// Лаборатория выбранного упражнения.
+/// Lab for the selected exercise.
 #[component]
 pub fn WebLab(props: LabProps) -> impl IntoView {
     let task: Task = match serde_json::from_value(props.task.spec.clone()) {
@@ -76,7 +76,7 @@ pub fn WebLab(props: LabProps) -> impl IntoView {
     let task = StoredValue::new(task);
     let report = Memo::new(move |_| task.with_value(|t| sol.with(|s| weblab::verify(t, s))));
     let (solved, on_draft, on_report) = (props.solved, props.on_draft, props.report);
-    // решено — один раз отправить на сервер
+    // solved - send to the server once
     Effect::new(move |_| {
         let ok = report.with(|r| r.ok());
         if ok && !solved.get_untracked() && !reported.get_value() {
@@ -180,10 +180,10 @@ mod tests {
 
     #[test]
     fn scripts_are_removed_from_the_preview() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(strip_scripts("<p>a</p><script src=x></script><p>b</p>"), "<p>a</p><p>b</p>");
-        assert_eq!(strip_scripts("<SCRIPT>alert(1)</SCRIPT>тут"), "тут");
-        assert_eq!(strip_scripts("<p>без скриптов</p>"), "<p>без скриптов</p>");
-        assert_eq!(strip_scripts("до<script>не закрыт"), "до");
+        assert_eq!(strip_scripts("<SCRIPT>alert(1)</SCRIPT>here"), "here");
+        assert_eq!(strip_scripts("<p>no scripts</p>"), "<p>no scripts</p>");
+        assert_eq!(strip_scripts("before<script>unclosed"), "before");
     }
 }

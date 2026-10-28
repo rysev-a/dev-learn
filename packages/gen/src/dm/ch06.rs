@@ -1,5 +1,5 @@
-//! Дискретная математика, глава 6 — «Предикаты и кванторы»: 13 сцен.
-//! Перенос с `frontend/src/slides/dm/ch06.tsx` и `anim/C6*.tsx` в данные; значения `cues` и длительность шага — как в прежних сценах.
+//! Discrete mathematics, chapter 6 — "Predicates and quantifiers": 13 scenes.
+//! Port of `frontend/src/slides/dm/ch06.tsx` and `anim/C6*.tsx` to data; `cues` values and step duration — as in the former scenes.
 
 use content::{
     dsl::{arrow, bx, dot, line, py, text},
@@ -7,28 +7,28 @@ use content::{
     Frame, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-// --- помощники сцен главы ----------------------------------------------------------------------
+// --- chapter scene helpers ---------------------------------------------------------------------
 
 const ACCENT: &str = "var(--s-accent)";
 
-/// Плашка с подписью: (x, y) — центр.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотной таблицы кадров
+/// Plate with a label: (x, y) — centre.
+#[allow(clippy::too_many_arguments)] // short helper for a dense frame table
 fn pill(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Плашка с зелёной подписью (акцентная заливка, как в прежних сценах).
+/// Plate with a green label (accent fill, as in the former scenes).
 #[allow(clippy::too_many_arguments)]
 fn pill_g(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, size: f64) -> Cell {
     pill(id, x, y, w, h, label, G, size).text_color(ACCENT)
 }
 
-/// Подпись обычным шрифтом.
+/// Label in regular font.
 fn cap(id: &str, x: f64, y: f64, label: &str, size: f64) -> Text {
     text(id, x, y, label).size(size)
 }
 
-/// Подпись моноширинным шрифтом нужного цвета.
+/// Label in monospace font of the given colour.
 fn mono(id: &str, x: f64, y: f64, label: &str, size: f64, tone: Option<Tone>) -> Text {
     let t = text(id, x, y, label).size(size).mono();
     match tone {
@@ -37,18 +37,18 @@ fn mono(id: &str, x: f64, y: f64, label: &str, size: f64, tone: Option<Tone>) ->
     }
 }
 
-/// Кружок с подписью.
+/// Circle with a label.
 #[allow(clippy::too_many_arguments)]
 fn circ(id: &str, x: f64, y: f64, r: f64, label: &str, tone: Tone, size: f64) -> Dot {
     dot(id, x, y, label).r(r).tone(tone).size(size)
 }
 
-/// Стрелка нужного цвета.
+/// Arrow of the given colour.
 fn arr(id: &str, x1: f64, y1: f64, x2: f64, y2: f64, tone: Tone) -> Line {
     arrow(id, x1, y1, x2, y2).tone(tone)
 }
 
-/// Ряд «пристёгнутых» пассажиров: все ✓, у `bad` — ✗ (красный).
+/// Row of "buckled-up" passengers: all ✓, `bad` — ✗ (red).
 fn row_ok(prefix: &str, n: usize, x0: f64, dx: f64, y: f64, r: f64, bad: usize) -> Vec<Dot> {
     (0..n).map(|i| if i == bad { circ(&format!("{prefix}{i}"), x0 + i as f64 * dx, y, r, "✗", R, 12.0) } else { circ(&format!("{prefix}{i}"), x0 + i as f64 * dx, y, r, "✓", G, 12.0) }).collect()
 }
@@ -71,7 +71,7 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// 1. Условия в коде — это язык кванторов
+// 1. Conditions in code are the language of quantifiers
 fn intro() -> SceneSpec {
     SceneSpec::new(
         &["Глава", "Условия", "Все случаи", "Инструменты", "Тесты"],
@@ -103,7 +103,7 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// 2. Предикат — заготовка с переменной
+// 2. A predicate is a template with a variable
 fn predicate() -> SceneSpec {
     let rows = |vals: [&str; 2], lbl: [&str; 2], w: f64, x2: f64| -> Vec<Item> {
         let mut v: Vec<Item> = Vec::new();
@@ -142,7 +142,7 @@ fn predicate() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 3. Предикаты в работе: filter, find, if
+// 3. Predicates at work: filter, find, if
 fn filter() -> SceneSpec {
     const NUMS: [i32; 8] = [3, 8, 5, 12, 7, 10, 1, 6];
     let nums = |step: usize| -> Vec<Dot> {
@@ -196,7 +196,7 @@ fn filter() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 4. Квантор всеобщности
+// 4. Universal quantifier
 fn forall() -> SceneSpec {
     SceneSpec::new(
         &["Утверждение", "∀", "x + 0 = x", "Пассажиры", "Не примерами"],
@@ -234,7 +234,7 @@ fn forall() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 5. Квантор существования
+// 5. Existential quantifier
 fn exists() -> SceneSpec {
     let guests = |step: usize| -> Vec<Dot> {
         (0..6)
@@ -285,10 +285,10 @@ fn exists() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 6. Кванторы в тестах
+// 6. Quantifiers in tests
 fn tests() -> SceneSpec {
     const BAD: f64 = 214.0;
-    // детерминированные «случайные» точки на числовой оси
+    // deterministic "random" points on the number line
     let pts = || -> Vec<Dot> { (0..60u32).map(|i| circ(&format!("p{i}"), (20 + ((i * 97 + (i * i * 13) % 53) % 320)) as f64, 86.0, 4.0, "", G, 10.0)).collect() };
     let bad = || vec![circ("bad", BAD, 86.0, 9.0, "", R, 10.0), ];
     SceneSpec::new(
@@ -324,7 +324,7 @@ fn tests() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 7. Отрицание кванторов
+// 7. Negating quantifiers
 fn negation() -> SceneSpec {
     let meat = || (0..6).map(|i| circ(&format!("d{i}"), 46.0 + i as f64 * 54.0, 68.0, 16.0, "🥩", Y, 12.0));
     SceneSpec::new(
@@ -363,7 +363,7 @@ fn negation() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 8. Отрицание кванторов в коде
+// 8. Negating quantifiers in code
 fn code_neg() -> SceneSpec {
     SceneSpec::new(
         &["Перевёртыш", "every ↔ some", "Читаемость", "На ревью"],
@@ -395,10 +395,10 @@ fn code_neg() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 9. Порядок кванторов
+// 9. Quantifier order
 fn order() -> SceneSpec {
     const P: [f64; 4] = [32.0, 66.0, 100.0, 134.0];
-    // step 1: ∀x ∃y — у каждого своя мама; step 2: ∃y ∀x — одна на всех
+    // step 1: ∀x ∃y — everyone has their own mother; step 2: ∃y ∀x — one for all
     let pairs = |step: usize| -> Frame {
         let mut f = Frame::new();
         for (i, &y) in P.iter().enumerate() {
@@ -435,7 +435,7 @@ fn order() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 10. Порядок кванторов в требованиях
+// 10. Quantifier order in requirements
 fn requirements() -> SceneSpec {
     const REQ: [&str; 3] = ["GET /a", "POST /b", "PUT /c"];
     let reqs = || (0..3).map(|i| pill(&format!("r{i}"), 60.0, 40.0 + i as f64 * 36.0, 74.0, 26.0, REQ[i], B, 9.5));
@@ -476,7 +476,7 @@ fn requirements() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 11. Кванторы ограничены областью
+// 11. Quantifiers are bounded by a domain
 fn domain() -> SceneSpec {
     SceneSpec::new(
         &["Область", "filter", "Генераторы", "Тонкость", "Дыра"],
@@ -522,9 +522,9 @@ fn domain() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 12. Карманный справочник
+// 12. Pocket reference
 fn cheat() -> SceneSpec {
-    // (квантор, «доказать», «опровергнуть», дорогое/дешёвое)
+    // (quantifier, "prove", "disprove", expensive/cheap)
     const ROWS: [(&str, &str, &str, [bool; 2]); 2] = [("∀", "общее рассуждение", "один контрпример", [false, true]), ("∃", "один пример", "общее рассуждение", [true, false])];
     let table = |step: usize| -> Frame {
         let mut f = Frame::new();
@@ -570,7 +570,7 @@ fn cheat() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 13. Итог главы
+// 13. Chapter summary
 fn recap() -> SceneSpec {
     const CARDS: [(&str, &str); 4] = [("P(x)", "предикат"), ("∀  ∃", "кванторы"), ("∀∃≠∃∀", "порядок"), ("тесты", "∃ и ∀")];
     let cards = |step: usize| -> Frame {

@@ -1,4 +1,4 @@
-//! Страница настроек: внешний вид хранится в браузере (`localStorage`) и применяется сразу, прогресс и аккаунт — в кабинете.
+//! Settings page: appearance is stored in the browser (`localStorage`) and applied immediately, progress and account - in the cabinet.
 
 use api::dto::ResetScope;
 use leptos::{prelude::*, task::spawn_local};
@@ -14,7 +14,7 @@ use crate::{
 };
 use highlight::{highlight, Lang};
 
-/// Тексты строки сброса: название, пояснение, вопрос в подтверждении и подпись кнопки.
+/// Texts of the reset row: title, explanation, confirmation question and button caption.
 #[derive(Clone, Copy)]
 struct ResetCopy {
     title: &'static str,
@@ -40,7 +40,7 @@ fn reset_copy(scope: ResetScope) -> ResetCopy {
     }
 }
 
-/// Подтверждение браузера; без окна (или при отказе) — «нет».
+/// Browser confirmation; without a dialog (or on refusal) - "no".
 fn confirm(question: &str) -> bool {
     web_sys::window().and_then(|w| w.confirm_with_message(question).ok()).unwrap_or(false)
 }
@@ -48,7 +48,7 @@ fn confirm(question: &str) -> bool {
 #[component]
 pub fn SettingsPage(theme: RwSignal<Theme>) -> impl IntoView {
     let aside = expect_context::<AsideState>();
-    // какой сброс только что выполнен и чем закончился неудачный
+    // which reset was just performed and how an unsuccessful one ended
     let done = RwSignal::new(None::<ResetScope>);
     let failure = RwSignal::new(None::<String>);
     view! {
@@ -110,7 +110,7 @@ pub fn SettingsPage(theme: RwSignal<Theme>) -> impl IntoView {
     }
 }
 
-/// Кто вошёл и кнопка «Выйти».
+/// Who is signed in and the "Sign out" button.
 #[component]
 fn AccountRow() -> impl IntoView {
     let session = expect_context::<Session>();
@@ -136,10 +136,10 @@ fn AccountRow() -> impl IntoView {
     }
 }
 
-/// Образец кода на карточке темы: цвета берутся из переменных карточки (`data-palette`), как в редакторе.
+/// Code sample on the theme card: colors come from the card's variables (`data-palette`), as in the editor.
 const SAMPLE: [&str; 3] = ["def total(xs):  # сумма", "    return sum(xs) + 42", "print(\"итого\", total([1, 2]))"];
 
-/// Выбор цветовой темы: интерфейс, слайды и редактор кода. Карточки показывают тему вживую, выбор переключает и светлый или тёмный режим.
+/// Color theme choice: interface, slides and code editor. Cards show the theme live, the choice switches the light or dark mode too.
 #[component]
 fn PalettePicker(theme: RwSignal<Theme>) -> impl IntoView {
     let dark = RwSignal::new(settings::read_palette(Theme::Dark));
@@ -200,7 +200,7 @@ fn PalettePicker(theme: RwSignal<Theme>) -> impl IntoView {
     }
 }
 
-/// Строка с переключателем.
+/// Row with a switch.
 #[component]
 fn SwitchRow(title: &'static str, text: &'static str, #[prop(into)] on: Signal<bool>, on_toggle: Callback<()>) -> impl IntoView {
     view! {
@@ -224,7 +224,7 @@ fn SwitchRow(title: &'static str, text: &'static str, #[prop(into)] on: Signal<b
     }
 }
 
-/// Переключатель настройки из `localStorage`: значение читается при открытии, запись — при каждом щелчке.
+/// Switch for a `localStorage` setting: the value is read on open, written on every click.
 #[component]
 fn FlagRow(flag: Flag, title: &'static str, text: &'static str) -> impl IntoView {
     let on = RwSignal::new(flag.read());
@@ -236,7 +236,7 @@ fn FlagRow(flag: Flag, title: &'static str, text: &'static str) -> impl IntoView
     view! { <SwitchRow title=title text=text on=on on_toggle=toggle /> }
 }
 
-/// Строка сброса прогресса: подтверждение, запрос на сервер, пометка «Готово».
+/// Progress reset row: confirmation, server request, "Done" mark.
 #[component]
 fn ResetRow(scope: ResetScope, done: RwSignal<Option<ResetScope>>, failure: RwSignal<Option<String>>) -> impl IntoView {
     let progress = expect_context::<ProgressStore>();
@@ -280,6 +280,6 @@ mod tests {
         assert_ne!(practice.title, all.title);
         assert_ne!(practice.confirm, all.confirm);
         assert!(practice.confirm.ends_with('?') && all.confirm.ends_with('?'));
-        assert!(practice.text.contains("Quiz answers and slides are not affected"), "сброс упражнений не трогает вопросы и слайды");
+        assert!(practice.text.contains("Quiz answers and slides are not affected"), "exercise reset does not touch questions and slides");
     }
 }

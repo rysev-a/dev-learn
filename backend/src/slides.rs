@@ -1,4 +1,4 @@
-//! Слайды глав: схемы (сцены из кадров) и блоки тела слайда — данные, которые рисует клиент.
+//! Chapter slides: diagrams (scenes made of frames) and slide body blocks - data that the client draws.
 
 use axum::{
     extract::{Path, State},
@@ -17,14 +17,14 @@ pub fn routes() -> Router<AppState> {
     Router::new().route("/api/slides", get(list)).route("/api/slides/{book}/{chapter}", get(chapter))
 }
 
-/// Главы, у которых есть слайды: `[{book, chapter, slides}]` (по нему клиент решает, показывать ли вкладку «Теория»).
+/// Chapters that have slides: `[{book, chapter, slides}]` (the client uses it to decide whether to show the "Theory" tab).
 async fn list(State(state): State<AppState>) -> ApiResult<Json<Value>> {
     let mut res = state.db.query("SELECT book, chapter, slides FROM slide_chapters ORDER BY book, chapter").await?;
     let rows: Vec<Value> = res.take(0)?;
     Ok(Json(Value::Array(rows.iter().map(|r| json!({ "book": i(r, "book"), "chapter": i(r, "chapter"), "slides": i(r, "slides") })).collect())))
 }
 
-/// Слайды главы: рубрика и слайды по порядку (`title`, `sub`, `short`, `main`, `body` — блоки).
+/// A chapter's slides: rubric and slides in order (`title`, `sub`, `short`, `main`, `body` - blocks).
 async fn chapter(State(state): State<AppState>, lang: Lang, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
     let tr = lang::translated(&state.db, lang, book).await?;
     let (chapters_t, cond) = lang::source("slide_chapters", tr);

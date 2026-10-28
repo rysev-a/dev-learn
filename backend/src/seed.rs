@@ -1,6 +1,6 @@
-//! Сид содержимого курса из исходников в `data/`: учебники (`textbook/**/*.md`) и SQL-файлы
-//! (`sql/books.sql`, `sql/{tasks,quizzes,answers}`). SQL выполняется во временной SQLite в памяти, строки переносятся в
-//! SurrealDB. Прогресс пользователей сид не трогает. Пересев — только если исходники изменились (хеш в `meta:seed`).
+//! Course content seed from the sources in `data/`: textbooks (`textbook/**/*.md`) and SQL files
+//! (`sql/books.sql`, `sql/{tasks,quizzes,answers}`). SQL is run in a temporary in-memory SQLite, rows are moved into
+//! SurrealDB. The seed does not touch user progress. Reseed only if the sources changed (hash in `meta:seed`).
 
 use std::path::{Path, PathBuf};
 
@@ -12,10 +12,10 @@ use uuid::Uuid;
 
 use crate::{config::Config, db::Db, lang::Lang};
 
-/// Фиксированное пространство имён для стабильных id уроков (не менять: от него зависят id аудио).
+/// Fixed namespace for stable lesson ids (do not change: audio ids depend on it).
 const NS: Uuid = Uuid::from_u128(0xd3a7c0de_0000_4000_8000_4b6f6b6f726f);
 
-/// Таблицы содержимого в порядке записи: (имя таблицы, строки).
+/// Content tables in write order: (table name, rows).
 pub struct Content {
     pub tables: Vec<(&'static str, Vec<Value>)>,
     pub hash: String,
@@ -47,13 +47,13 @@ struct Book {
     sections: Vec<Section>,
 }
 
-/// Разбор учебников: `#BOOK n`, `#SECTION название`, `#CHAPTER n | название`, затем строки текста урока.
+/// Textbook parsing: `#BOOK n`, `#SECTION title`, `#CHAPTER n | title`, then the lesson text lines.
 fn parse_textbooks(dir: &Path) -> anyhow::Result<(Vec<Book>, Vec<u8>)> {
     let mut files = Vec::new();
-    walk(dir, &mut files).with_context(|| format!("каталог учебников {}", dir.display()))?;
+    walk(dir, &mut files).with_context(|| format!("textbooks directory {}", dir.display()))?;
     files.sort();
     let mut books: Vec<Book> = Vec::new();
-    let mut raw = Vec::new(); // содержимое для хеша
+    let mut raw = Vec::new(); // content for the hash
     let (mut book, mut section, mut chapter): (Option<usize>, Option<usize>, Option<usize>) = (None, None, None);
     for path in &files {
         let text = std::fs::read_to_string(path)?;
@@ -65,7 +65,7 @@ fn parse_textbooks(dir: &Path) -> anyhow::Result<(Vec<Book>, Vec<u8>)> {
                 continue;
             }
             if let Some(rest) = line.strip_prefix("#BOOK ") {
-                let id: i64 = rest.trim().parse().with_context(|| format!("строка #BOOK в {}: {line}", path.display()))?;
+                let id: i64 = rest.trim().parse().with_context(|| format!("#BOOK line in {}: {line}", path.display()))?;
                 let idx = match books.iter().position(|b| b.id == id) {
                     Some(i) => i,
                     None => {
@@ -95,23 +95,23 @@ fn parse_textbooks(dir: &Path) -> anyhow::Result<(Vec<Book>, Vec<u8>)> {
                 section = Some(books[bi].sections.len() - 1);
                 chapter = None;
             } else if let Some(rest) = line.strip_prefix("#CHAPTER ") {
-                let (num, title) = rest.split_once('|').with_context(|| format!("строка #CHAPTER в {}: {line}", path.display()))?;
-                let num: i64 = num.trim().parse().with_context(|| format!("номер главы в {}: {line}", path.display()))?;
+                let (num, title) = rest.split_once('|').with_context(|| format!("#CHAPTER line in {}: {line}", path.display()))?;
+                let num: i64 = num.trim().parse().with_context(|| format!("chapter number in {}: {line}", path.display()))?;
                 let (Some(bi), Some(si)) = (book, section) else {
-                    anyhow::bail!("глава вне раздела в {}: {line}", path.display());
+                    anyhow::bail!("chapter outside a section in {}: {line}", path.display());
                 };
                 books[bi].sections[si].chapters.push(Chapter { num, title: title.trim().to_string(), lessons: Vec::new() });
                 chapter = Some(books[bi].sections[si].chapters.len() - 1);
             } else {
                 let (Some(bi), Some(si), Some(ci)) = (book, section, chapter) else {
-                    anyhow::bail!("урок вне главы в {}: {}", path.display(), line.chars().take(60).collect::<String>());
+                    anyhow::bail!("lesson outside a chapter in {}: {}", path.display(), line.chars().take(60).collect::<String>());
                 };
-                // литеральное \n в исходнике — граница абзацев
+                // a literal \n in the source is the paragraph boundary
                 books[bi].sections[si].chapters[ci].lessons.push(line.replace("\\n", "\n"));
             }
         }
     }
-    // файлы глав самодостаточны и повторяют #SECTION: подряд идущие одинаковые разделы склеиваем
+    // chapter files are self-contained and repeat #SECTION: consecutive identical sections are merged
     for b in &mut books {
         let mut merged: Vec<Section> = Vec::new();
         for s in std::mem::take(&mut b.sections) {
@@ -123,7 +123,7 @@ fn parse_textbooks(dir: &Path) -> anyhow::Result<(Vec<Book>, Vec<u8>)> {
         b.sections = merged;
     }
     books.sort_by_key(|b| b.id);
-    // каждый абзац урока — отдельная часть (слайд)
+    // every lesson paragraph is a separate part (slide)
     for b in &mut books {
         for s in &mut b.sections {
             for c in &mut s.chapters {
@@ -138,7 +138,7 @@ fn parse_textbooks(dir: &Path) -> anyhow::Result<(Vec<Book>, Vec<u8>)> {
 
 fn sql_files(dir: &Path) -> anyhow::Result<Vec<PathBuf>> {
     let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
-        .with_context(|| format!("каталог SQL {}", dir.display()))?
+        .with_context(|| format!("SQL directory {}", dir.display()))?
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| p.extension().is_some_and(|e| e == "sql"))
         .collect();
@@ -150,7 +150,7 @@ fn run_sql(lite: &Sqlite, files: &[PathBuf], raw: &mut Vec<u8>) -> anyhow::Resul
     for f in files {
         let text = std::fs::read_to_string(f)?;
         raw.extend_from_slice(text.as_bytes());
-        lite.execute_batch(&text).with_context(|| format!("SQL-файл {}", f.display()))?;
+        lite.execute_batch(&text).with_context(|| format!("SQL file {}", f.display()))?;
     }
     Ok(())
 }
@@ -215,8 +215,8 @@ fn read_books(lite: &Sqlite) -> anyhow::Result<Vec<(i64, Value)>> {
     Ok(rows.collect::<Result<_, _>>()?)
 }
 
-/// Слайды глав из файлов данных: глава проверяется (все сцены компилируются), затем раскладывается на строки
-/// `slide_chapters` (рубрика и число слайдов) и `slides` (по строке на слайд; тело — блоки документом).
+/// Chapter slides from the data files: the chapter is validated (all scenes compile), then split into rows
+/// `slide_chapters` (rubric and slide count) and `slides` (a row per slide; the body is blocks as a document).
 fn load_slides(dir: &Path, raw: &mut Vec<u8>) -> anyhow::Result<(Vec<Value>, Vec<Value>)> {
     let (mut chapters, mut slides) = (Vec::new(), Vec::new());
     if !dir.is_dir() {
@@ -228,7 +228,7 @@ fn load_slides(dir: &Path, raw: &mut Vec<u8>) -> anyhow::Result<(Vec<Value>, Vec
         let bytes = std::fs::read(&f)?;
         raw.extend_from_slice(f.file_name().and_then(|n| n.to_str()).unwrap_or("").as_bytes());
         raw.extend_from_slice(&bytes);
-        let ch: content::Chapter = serde_json::from_slice(&bytes).with_context(|| format!("слайды {}", f.display()))?;
+        let ch: content::Chapter = serde_json::from_slice(&bytes).with_context(|| format!("slides {}", f.display()))?;
         ch.check().map_err(|e| anyhow::anyhow!("{}: {e}", f.display()))?;
         chapters.push(json!({ "book": ch.book, "chapter": ch.chapter, "rubric": ch.rubric, "slides": ch.slides.len() }));
         for (idx, s) in ch.slides.iter().enumerate() {
@@ -242,7 +242,7 @@ fn load_slides(dir: &Path, raw: &mut Vec<u8>) -> anyhow::Result<(Vec<Value>, Vec
 }
 
 
-/// Таблицы переводов в порядке записи.
+/// Translation tables in write order.
 const I18N_TABLES: [&str; 12] = [
     "books_i18n",
     "sections_i18n",
@@ -269,9 +269,9 @@ fn with_lang(mut v: Value, lang: Lang) -> Value {
     v
 }
 
-/// Перевод содержимого: каталог `data/<язык>/` с теми же файлами, что и русский (учебники, слайды, `sql/books.sql`,
-/// `sql/{quizzes,answers}`). Книга переводится целиком; ключи (id глав и разделов, номера глав, число абзацев, слайдов, вопросов и
-/// вариантов) обязаны совпадать с русскими — иначе прогресс пользователей («книга + глава + номер») поедет, и сид падает.
+/// Content translation: the directory `data/<language>/` with the same files as the Russian one (textbooks, slides, `sql/books.sql`,
+/// `sql/{quizzes,answers}`). A book is translated as a whole; keys (chapter and section ids, chapter numbers, number of paragraphs, slides, questions and
+/// options) must match the Russian ones - otherwise user progress ("book + chapter + number") would drift, and the seed fails.
 fn load_translation(cfg: &Config, lang: Lang, ru: &[(&'static str, Vec<Value>)], raw: &mut Vec<u8>) -> anyhow::Result<Vec<(&'static str, Vec<Value>)>> {
     let root = cfg.lang_dir(lang);
     raw.extend_from_slice(lang.code().as_bytes());
@@ -281,7 +281,7 @@ fn load_translation(cfg: &Config, lang: Lang, ru: &[(&'static str, Vec<Value>)],
     let sql = root.join("sql");
     let lite = Sqlite::open_in_memory()?;
     run_sql(&lite, &[sql.join("books.sql")], raw)?;
-    // схема таблиц общая с русской (файл `00-schema.sql`), строки — переводные
+    // table schema is shared with the Russian one (file `00-schema.sql`), rows are translated
     for dir in ["quizzes", "answers"] {
         let mut files = vec![cfg.sql_dir().join(dir).join("00-schema.sql")];
         if sql.join(dir).is_dir() {
@@ -298,7 +298,7 @@ fn load_translation(cfg: &Config, lang: Lang, ru: &[(&'static str, Vec<Value>)],
             .unwrap_or_else(|| format!("b{bid}-ch"))
     };
 
-    // id разделов и глав — русские: адреса в клиенте не зависят от языка
+    // section and chapter ids are the Russian ones: client addresses do not depend on the language
     let sid_of: std::collections::HashMap<(i64, i64), i64> = rows_of(ru, "sections").iter().map(|r| ((r["bid"].as_i64().unwrap_or(0), r["ord"].as_i64().unwrap_or(0)), r["sid"].as_i64().unwrap_or(0))).collect();
     let cid_of: std::collections::HashMap<(i64, i64), i64> = rows_of(ru, "chapters").iter().map(|r| ((r["bid"].as_i64().unwrap_or(0), r["num"].as_i64().unwrap_or(0)), r["cid"].as_i64().unwrap_or(0))).collect();
 
@@ -306,10 +306,10 @@ fn load_translation(cfg: &Config, lang: Lang, ru: &[(&'static str, Vec<Value>)],
     for b in &books {
         let prefix = prefix_of(b.id);
         for (s_ord, s) in b.sections.iter().enumerate() {
-            let sid = *sid_of.get(&(b.id, s_ord as i64)).with_context(|| format!("книга {}: в русской версии нет раздела №{}", b.id, s_ord + 1))?;
+            let sid = *sid_of.get(&(b.id, s_ord as i64)).with_context(|| format!("book {}: the Russian version has no section #{}", b.id, s_ord + 1))?;
             sections.push(with_lang(json!({ "sid": sid, "bid": b.id, "title": s.title, "ord": s_ord }), lang));
             for c in &s.chapters {
-                let cid = *cid_of.get(&(b.id, c.num)).with_context(|| format!("книга {}: в русской версии нет главы {}", b.id, c.num))?;
+                let cid = *cid_of.get(&(b.id, c.num)).with_context(|| format!("book {}: the Russian version has no chapter {}", b.id, c.num))?;
                 chapters.push(with_lang(json!({ "cid": cid, "sid": sid, "bid": b.id, "num": c.num, "title": c.title }), lang));
                 for (l_ord, text) in c.lessons.iter().enumerate() {
                     let lid = Uuid::new_v5(&NS, format!("{}:{prefix}{}-l{l_ord}", lang.code(), c.num).as_bytes()).simple().to_string();
@@ -344,13 +344,13 @@ fn load_translation(cfg: &Config, lang: Lang, ru: &[(&'static str, Vec<Value>)],
     Ok(out)
 }
 
-/// Ключи строк одной книги: поля, образующие ключ, и, при необходимости, форма содержимого (число вариантов, верный ответ).
+/// Keys of one book's rows: the fields forming the key and, if needed, the content shape (option count, right answer).
 fn keys_of(rows: &[Value], book_field: &str, book: i64, key: &dyn Fn(&Value) -> String) -> std::collections::BTreeSet<String> {
     rows.iter().filter(|r| r[book_field].as_i64() == Some(book)).map(key).collect()
 }
 
-/// Тексты код-задач перевода: файлы `<язык>/tasks/<книга>-<глава>.json` — `{book, chapter, tasks: [{id, title, statement, hint, starter?}]}`.
-/// Тесты, драйверы и эталоны остаются русскими (общая таблица `tasks`); начальный код переводится только в комментариях.
+/// Translated code-task texts: files `<language>/tasks/<book>-<chapter>.json` - `{book, chapter, tasks: [{id, title, statement, hint, starter?}]}`.
+/// Tests, drivers and references stay Russian (the shared `tasks` table); starter code is translated only in comments.
 fn load_task_texts(dir: &std::path::Path, raw: &mut Vec<u8>) -> anyhow::Result<Vec<Value>> {
     let mut rows = Vec::new();
     if !dir.is_dir() {
@@ -362,9 +362,9 @@ fn load_task_texts(dir: &std::path::Path, raw: &mut Vec<u8>) -> anyhow::Result<V
         let bytes = std::fs::read(&f)?;
         raw.extend_from_slice(f.to_string_lossy().as_bytes());
         raw.extend_from_slice(&bytes);
-        let ch: Value = serde_json::from_slice(&bytes).with_context(|| format!("задачи {}", f.display()))?;
+        let ch: Value = serde_json::from_slice(&bytes).with_context(|| format!("tasks {}", f.display()))?;
         let (book, chapter) = (ch["book"].as_i64().unwrap_or(0), ch["chapter"].as_i64().unwrap_or(0));
-        for t in ch["tasks"].as_array().with_context(|| format!("{}: нет tasks", f.display()))? {
+        for t in ch["tasks"].as_array().with_context(|| format!("{}: no tasks", f.display()))? {
             let mut row = json!({ "book": book, "chapter": chapter, "tid": t["id"], "title": t["title"], "statement": t["statement"], "hint": t["hint"] });
             if let Some(starter) = t.get("starter").filter(|v| v.is_string()) {
                 row["starter"] = starter.clone();
@@ -375,9 +375,9 @@ fn load_task_texts(dir: &std::path::Path, raw: &mut Vec<u8>) -> anyhow::Result<V
     Ok(rows)
 }
 
-/// Код без комментариев: у переведённого начального кода всё, кроме комментариев, совпадает с русским.
+/// Code without comments: in translated starter code everything except comments matches the Russian one.
 fn code_skeleton(code: &str) -> String {
-    // блочные комментарии `/* … */` убираем целиком (как в C, Rust, SQL), остальные — от `#`, `//` или `--` до конца строки
+    // block comments `/* ... */` are removed entirely (as in C, Rust, SQL), the others - from `#`, `//` or `--` to the end of the line
     let mut text = String::with_capacity(code.len());
     let mut rest = code;
     while let Some(start) = rest.find("/*") {
@@ -394,40 +394,40 @@ fn code_skeleton(code: &str) -> String {
     text.lines().map(|l| l.split('#').next().unwrap_or("").split("//").next().unwrap_or("").split("--").next().unwrap_or("").trim_end()).collect::<Vec<_>>().join("\n")
 }
 
-/// Тексты лабораторий: у каждой главы с переводом те же упражнения, что и в русских данных, а пути `spec_text` указывают на строки сценария.
+/// Lab texts: each translated chapter has the same exercises as the Russian data, and the `spec_text` paths point at scenario strings.
 fn check_lab_texts(ru: &[(&'static str, Vec<Value>)], tr: &[(&'static str, Vec<Value>)]) -> anyhow::Result<()> {
     let base: std::collections::HashMap<(i64, i64, String), &Value> =
         rows_of(ru, "lab_tasks").iter().map(|r| ((r["book"].as_i64().unwrap_or(0), r["chapter"].as_i64().unwrap_or(0), r["tid"].as_str().unwrap_or("").to_string()), r)).collect();
     let mut seen: std::collections::BTreeMap<(i64, i64), std::collections::BTreeSet<String>> = Default::default();
     for r in rows_of(tr, "lab_tasks_i18n") {
         let (book, chapter, tid) = (r["book"].as_i64().unwrap_or(0), r["chapter"].as_i64().unwrap_or(0), r["tid"].as_str().unwrap_or("").to_string());
-        let ru_row = base.get(&(book, chapter, tid.clone())).with_context(|| format!("лаборатория {book}:{chapter}/{tid}: такого упражнения нет в русских данных"))?;
+        let ru_row = base.get(&(book, chapter, tid.clone())).with_context(|| format!("lab {book}:{chapter}/{tid}: no such exercise in the Russian data"))?;
         for path in r["spec_text"].as_object().into_iter().flatten().map(|(p, _)| p) {
-            anyhow::ensure!(ru_row["spec"].pointer(path).is_some_and(Value::is_string), "лаборатория {book}:{chapter}/{tid}: в сценарии нет строки по пути {path}");
+            anyhow::ensure!(ru_row["spec"].pointer(path).is_some_and(Value::is_string), "lab {book}:{chapter}/{tid}: the scenario has no string at path {path}");
         }
         seen.entry((book, chapter)).or_default().insert(tid);
     }
     for ((book, chapter), tids) in seen {
         let want: std::collections::BTreeSet<String> = base.keys().filter(|k| k.0 == book && k.1 == chapter).map(|k| k.2.clone()).collect();
-        anyhow::ensure!(want == tids, "лаборатория {book}:{chapter}: набор упражнений перевода не совпадает с русским");
+        anyhow::ensure!(want == tids, "lab {book}:{chapter}: the translation's exercise set does not match the Russian one");
     }
     Ok(())
 }
 
-/// Начальный код переведённой задачи отличается от русского только комментариями.
+/// Starter code of a translated task differs from the Russian one only in comments.
 fn check_starters(ru: &[(&'static str, Vec<Value>)], tr: &[(&'static str, Vec<Value>)]) -> anyhow::Result<()> {
     let base: std::collections::HashMap<(i64, i64, String), &str> =
         rows_of(ru, "tasks").iter().map(|r| ((r["book"].as_i64().unwrap_or(0), r["chapter"].as_i64().unwrap_or(0), r["tid"].as_str().unwrap_or("").to_string()), r["starter"].as_str().unwrap_or(""))).collect();
     for r in rows_of(tr, "tasks_i18n") {
         let (Some(starter), key) = (r["starter"].as_str(), (r["book"].as_i64().unwrap_or(0), r["chapter"].as_i64().unwrap_or(0), r["tid"].as_str().unwrap_or("").to_string())) else { continue };
         if let Some(ru_starter) = base.get(&key) {
-            anyhow::ensure!(code_skeleton(ru_starter) == code_skeleton(starter), "задача {}:{}/{}: в переведённом начальном коде изменено не только комментарии", key.0, key.1, key.2);
+            anyhow::ensure!(code_skeleton(ru_starter) == code_skeleton(starter), "task {}:{}/{}: the translated starter code changes more than comments", key.0, key.1, key.2);
         }
     }
     Ok(())
 }
 
-/// Для каждой переведённой книги наборы ключей русских и переведённых строк совпадают во всех таблицах.
+/// For each translated book the key sets of Russian and translated rows match in all tables.
 fn check_translation(lang: Lang, ru: &[(&'static str, Vec<Value>)], tr: &[(&'static str, Vec<Value>)]) -> anyhow::Result<()> {
     let fields = |r: &Value, names: &[&str]| names.iter().map(|n| r[*n].to_string()).collect::<Vec<_>>().join("/");
     let options_len = |r: &Value| r["options"].as_array().map_or(0, Vec::len);
@@ -451,14 +451,14 @@ fn check_translation(lang: Lang, ru: &[(&'static str, Vec<Value>)], tr: &[(&'sta
             if want != have {
                 let missing: Vec<_> = want.difference(&have).take(3).cloned().collect();
                 let extra: Vec<_> = have.difference(&want).take(3).cloned().collect();
-                anyhow::bail!("книга {book}, {} / {}: структура перевода не совпадает с русской (нет: {missing:?}; лишнее: {extra:?})", base, lang.code());
+                anyhow::bail!("book {book}, {} / {}: translation structure does not match the Russian one (missing: {missing:?}; extra: {extra:?})", base, lang.code());
             }
         }
     }
     Ok(())
 }
 
-/// Читает исходники и собирает строки всех таблиц содержимого. Блокирующая работа (файлы, SQLite).
+/// Reads the sources and builds the rows of all content tables. Blocking work (files, SQLite).
 pub fn load(cfg: &Config) -> anyhow::Result<Content> {
     let (books, mut raw) = parse_textbooks(&cfg.textbook_dir())?;
     let sql = cfg.sql_dir();
@@ -536,7 +536,7 @@ pub fn load(cfg: &Config) -> anyhow::Result<Content> {
     ];
     for lang in Lang::ALL.into_iter().filter(|l| *l != Lang::Ru) {
         if cfg.lang_dir(lang).is_dir() {
-            let translated = load_translation(cfg, lang, &tables, &mut raw).with_context(|| format!("перевод «{}»", lang.code()))?;
+            let translated = load_translation(cfg, lang, &tables, &mut raw).with_context(|| format!("translation '{}'", lang.code()))?;
             tables.extend(translated);
         }
     }
@@ -545,7 +545,7 @@ pub fn load(cfg: &Config) -> anyhow::Result<Content> {
     Ok(Content { tables, hash })
 }
 
-/// Записывает содержимое в SurrealDB: таблицы очищаются и заполняются заново порциями.
+/// Writes the content to SurrealDB: tables are cleared and refilled in batches.
 pub async fn write(db: &Db, content: Content) -> anyhow::Result<()> {
     for (table, rows) in content.tables {
         db.query(format!("DELETE {table}")).await?.check()?;
@@ -559,13 +559,13 @@ pub async fn write(db: &Db, content: Content) -> anyhow::Result<()> {
         for chunk in rows.chunks(step) {
             db.query(format!("INSERT INTO {table} $rows")).bind(("rows", chunk.to_vec())).await?.check()?;
         }
-        tracing::info!("сид: {table} — {total}");
+        tracing::info!("seed: {table} - {total}");
     }
     db.query("UPSERT meta:seed SET hash = $h").bind(("h", content.hash)).await?.check()?;
     Ok(())
 }
 
-/// Сид по режиму `SEED`: `auto` — только если исходники изменились, `always` — всегда, `off` — никогда.
+/// Seed by the `SEED` mode: `auto` - only if the sources changed, `always` - always, `off` - never.
 pub async fn run(db: &Db, cfg: &Config) -> anyhow::Result<()> {
     if cfg.seed == "off" {
         return Ok(());
@@ -580,7 +580,7 @@ pub async fn run(db: &Db, cfg: &Config) -> anyhow::Result<()> {
             r.take(0)?
         };
         if have.first().is_some_and(|h| *h == content.hash) && !books.is_empty() {
-            tracing::info!("сид: исходники не изменились, пропускаю");
+            tracing::info!("seed: sources unchanged, skipping");
             return Ok(());
         }
     }

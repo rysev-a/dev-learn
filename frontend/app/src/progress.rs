@@ -1,4 +1,4 @@
-//! Прогресс пользователя: копия на клиенте (для дашборда и вкладок) и точечные записи на сервер.
+//! User progress: a client-side copy (for the dashboard and tabs) and targeted writes to the server.
 
 use api::{
     dto::{progress_key, Progress, ResetScope},
@@ -12,7 +12,7 @@ pub struct ProgressStore {
     pub ready: RwSignal<bool>,
 }
 
-/// Загружает прогресс при входе и сбрасывает при выходе.
+/// Loads progress on sign-in and resets it on sign-out.
 pub fn provide_progress(session: crate::session::Session) -> ProgressStore {
     let store = ProgressStore { data: RwSignal::new(Progress::default()), ready: RwSignal::new(false) };
     provide_context(store);
@@ -31,14 +31,14 @@ pub fn provide_progress(session: crate::session::Session) -> ProgressStore {
 }
 
 impl ProgressStore {
-    /// Перечитывает прогресс с сервера (при ошибке остаётся прежняя копия).
+    /// Re-reads progress from the server (on error the previous copy stays).
     async fn reload(self) {
         if let Ok(p) = crate::hooks::client().progress().await {
             self.data.set(p);
         }
     }
 
-    /// Сбрасывает прогресс на сервере и перечитывает копию: дашборд и вкладки сразу показывают чистое состояние.
+    /// Resets progress on the server and re-reads the copy: the dashboard and tabs immediately show a clean state.
     pub async fn reset(&self, scope: ResetScope) -> Result<(), ApiError> {
         crate::hooks::client().reset_progress(scope).await?;
         self.reload().await;
@@ -49,7 +49,7 @@ impl ProgressStore {
         self.data.with(|d| d.slides.get(&progress_key(book, chapter)).map_or(0, Vec::len))
     }
 
-    /// Просмотренный слайд: сразу в копию, на сервер — без ожидания.
+    /// Viewed slide: into the copy immediately, to the server without waiting.
     pub fn mark_slide(&self, book: i64, chapter: i64, slide: usize) {
         let key = progress_key(book, chapter);
         let new = self.data.with_untracked(|d| d.slides.get(&key).is_none_or(|v| !v.contains(&slide)));
@@ -75,7 +75,7 @@ impl ProgressStore {
         self.data.with(|d| d.quiz_right.get(&progress_key(book, chapter)).copied().unwrap_or(0))
     }
 
-    /// Выбор варианта (после ответа сервера): `right` — сколько верных теперь в главе.
+    /// Option choice (after the server's reply): `right` - how many are now correct in the chapter.
     pub fn record_quiz_pick(&self, book: i64, chapter: i64, question: usize, total: usize, pick: usize, right: usize) {
         let key = progress_key(book, chapter);
         self.data.update(|d| {
@@ -114,7 +114,7 @@ impl ProgressStore {
         });
     }
 
-    /// Статус кодовой задачи: решённое остаётся решённым.
+    /// Code task status: solved stays solved.
     pub fn set_code_status(&self, book: i64, chapter: i64, task: &str, status: &str) {
         self.data.update(|d| {
             let m = d.code.entry(progress_key(book, chapter)).or_default();

@@ -1,5 +1,5 @@
-//! Перехват пакетов (tcpdump): каждый кадр, прошедший через интерфейс при пробах, попадает в кольцо
-//! устройства; команда tcpdump показывает кольцо с фильтром. Время в кольце — монотонные «московские» часы.
+//! Packet capture (tcpdump): every frame that passed through an interface during probes lands in the device's
+//! ring; the tcpdump command shows the ring with a filter. Time in the ring is a monotonic "Moscow" clock.
 
 use crate::ip::*;
 use crate::sim::Sim;
@@ -8,7 +8,7 @@ use crate::util::{js_num, js_round};
 
 const LIMIT: usize = 300;
 
-/// Записать переходы кадров пробы в кольца перехвата.
+/// Record the frame hops of a probe into the capture rings.
 pub(crate) fn record_capture(sim: &mut Sim) {
     let base = sim.rt.clock;
     let mut last: f64 = 0.0;
@@ -47,7 +47,7 @@ fn or_undef(o: Option<i64>) -> String {
     o.map(|v| v.to_string()).unwrap_or_else(|| "undefined".into())
 }
 
-/// Строка перехвата в стиле tcpdump.
+/// Capture line in tcpdump style.
 pub fn line_of(frame: &Frame) -> String {
     match &frame.body {
         Payload::Arp(a) => {
@@ -153,7 +153,7 @@ fn matches(frame: &Frame, filters: &[&str]) -> bool {
     true
 }
 
-/// Строки перехвата для устройства: интерфейс или «any».
+/// Capture lines for a device: an interface or "any".
 pub fn capture_lines(state: &NetState, dev: &str, iface: &str, filters: &[&str], count: i64) -> Vec<String> {
     let keys: Vec<String> = if iface == "any" {
         state.devices.get(dev).map(|d| d.ifaces.iter().map(|i| format!("{dev}:{}", i.name)).collect()).unwrap_or_default()

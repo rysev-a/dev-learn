@@ -1,10 +1,10 @@
-//! Состояние лаборатории «Компьютерные сети»: сеть ученика, выбор и режимы, последняя проба с анимацией, терминалы и
-//! цели. Здесь же действия над сетью: правка настроек, кабели, команды терминала, показ пути пакета по цели.
+//! State of the "Computer Networks" lab: the learner's network, selection and modes, the last probe with its animation, terminals and
+//! goals. Actions on the network live here too: editing settings, cables, terminal commands, showing a packet's path for a goal.
 //!
-//! Правила, которые держит этот файл:
-//! * любая правка настроек или кабелей — через [`Lab::edit`]/[`Lab::connect`]/…: они считают цели заново, сбрасывают
-//!   «проверено» и отправляют черновик хозяину;
-//! * перетаскивание устройства и кэши симулятора (ARP, таблицы MAC) меняют сеть, но цели не пересчитывают.
+//! Rules this file upholds:
+//! * any edit of settings or cables goes through [`Lab::edit`]/[`Lab::connect`]/…: they recompute goals, reset
+//!   "checked" and send the draft to the host;
+//! * dragging a device and simulator caches (ARP, MAC tables) change the network but do not recompute goals.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -18,14 +18,14 @@ use netlab::{check_goals, NetSpec, Tools};
 
 use super::logic::{self, GoalView, RunView};
 
-/// Строка терминала: введённая команда или вывод.
+/// A terminal line: an entered command or output.
 #[derive(Clone, Debug, PartialEq)]
 pub struct TermLine {
     pub cmd: bool,
     pub text: String,
 }
 
-/// Лаборатория: набор сигналов, копируется в компоненты как есть.
+/// The lab: a set of signals, copied into components as is.
 #[derive(Clone, Copy)]
 pub struct Lab {
     pub net: RwSignal<NetState>,
@@ -33,32 +33,32 @@ pub struct Lab {
     tools: StoredValue<Tools>,
     hint: StoredValue<String>,
     on_draft: Callback<String>,
-    /// выбранное устройство
+    /// selected device
     pub sel: RwSignal<String>,
-    /// включён режим прокладки кабеля
+    /// cable laying mode is on
     pub cable: RwSignal<bool>,
-    /// первое устройство будущего кабеля
+    /// first device of the future cable
     pub cable_from: RwSignal<Option<String>>,
-    /// выбранный кабель (индекс)
+    /// selected cable (index)
     pub sel_link: RwSignal<Option<usize>>,
     pub notice: RwSignal<String>,
     pub hint_open: RwSignal<bool>,
-    /// ученик уже что-то менял: до этого цели показаны номерами, а не отметками
+    /// the learner has already changed something: until then goals are shown as numbers rather than marks
     pub touched: RwSignal<bool>,
-    /// нажали «Проверить»: если не всё выполнено, показать подсказку под целями
+    /// "Check" was pressed: if not everything is met, show a hint under the goals
     pub checked: RwSignal<bool>,
-    /// версия настроек: растёт при каждой правке, по ней пересчитываются цели
+    /// settings version: grows on every edit, goals are recomputed from it
     rev: RwSignal<u64>,
     pub terms: RwSignal<HashMap<String, Vec<TermLine>>>,
     pub run: RwSignal<Option<RunView>>,
-    /// положение анимации в «моментах»
+    /// animation position in "moments"
     pub slot: RwSignal<f64>,
     pub chart: RwSignal<Option<TransferChart>>,
-    /// номер показа: новый показ отменяет предыдущую анимацию
+    /// playback number: a new playback cancels the previous animation
     anim: StoredValue<u64>,
-    /// итоги по целям
+    /// goal results
     pub goals: Memo<Vec<GoalView>>,
-    /// все цели выполнены
+    /// all goals are met
     pub solved_now: Memo<bool>,
 }
 
@@ -107,17 +107,17 @@ impl Lab {
         self.hint.get_value()
     }
 
-    /// Устройство по id (копия).
+    /// Device by id (a copy).
     pub fn device(&self, id: &str) -> Option<Device> {
         self.net.with(|n| n.devices.get(id).cloned())
     }
 
-    /// Название устройства для журнала: имя, а если устройства нет — id.
+    /// Device name for the log: the name, or the id if there is no device.
     pub fn name_of(&self, id: &str) -> String {
         self.net.with(|n| n.devices.get(id).map(|d| d.name.clone())).unwrap_or_else(|| id.to_string())
     }
 
-    /// Состояние сети как JSON решения.
+    /// Network state as the solution JSON.
     pub fn solution_json(&self) -> String {
         self.net.with_untracked(logic::draft_json)
     }
@@ -126,7 +126,7 @@ impl Lab {
         self.on_draft.run(self.solution_json());
     }
 
-    /// Настройки или кабели изменились: пересчитать цели, снять «проверено», сохранить черновик.
+    /// Settings or cables changed: recompute goals, clear "checked", save the draft.
     fn changed(&self) {
         self.rev.update(|r| *r += 1);
         self.touched.set(true);
@@ -134,20 +134,20 @@ impl Lab {
         self.save();
     }
 
-    /// Изменить сеть функцией и вернуть её результат (обычно — текст ошибки).
+    /// Change the network with a function and return its result (usually an error text).
     pub fn edit<T>(&self, f: impl FnOnce(&mut NetState) -> T) -> T {
         let mut out = None;
         self.net.update(|n| out = Some(f(n)));
         self.changed();
-        out.expect("update всегда вызывает замыкание")
+        out.expect("update always calls the closure")
     }
 
-    /// Изменить одно устройство.
+    /// Change a single device.
     pub fn edit_device<T>(&self, id: &str, f: impl FnOnce(&mut Device) -> T) -> Option<T> {
         self.edit(|n| n.devices.get_mut(id).map(f))
     }
 
-    /// Сдвинуть устройство на поле (цели не пересчитываются).
+    /// Move a device on the board (goals are not recomputed).
     pub fn move_device(&self, id: &str, x: f64, y: f64) {
         self.net.update(|n| {
             if let Some(d) = n.devices.get_mut(id) {
@@ -157,21 +157,21 @@ impl Lab {
         });
     }
 
-    /// Конец перетаскивания: сохранить черновик с новым положением.
+    /// End of dragging: save the draft with the new position.
     pub fn moved(&self) {
         self.touched.set(true);
         self.save();
     }
 
-    /* ---- кабели ---- */
+    /* ---- cables ---- */
 
-    /// Выбрать устройство и снять выбор кабеля.
+    /// Select a device and clear the cable selection.
     pub fn select(&self, id: &str) {
         self.sel.set(id.to_string());
         self.sel_link.set(None);
     }
 
-    /// Проложить кабель между первыми свободными портами; ошибка — в «notice».
+    /// Lay a cable between the first free ports; an error goes to "notice".
     pub fn connect(&self, a: &str, b: &str) -> bool {
         let mut res = Ok(());
         self.net.update(|n| res = n.connect(a, b, None));
@@ -201,9 +201,9 @@ impl Lab {
         self.notice.set(String::new());
     }
 
-    /* ---- команды ---- */
+    /* ---- commands ---- */
 
-    /// Команда терминала: вывод в историю устройства, проба — в анимацию, график — под поле.
+    /// Terminal command: output to the device history, probe to the animation, chart under the board.
     pub fn terminal_run(&self, dev: &str, line: &str) {
         let mut res = None;
         self.net.update(|n| res = Some(exec(n, dev, line)));
@@ -230,7 +230,7 @@ impl Lab {
         }
     }
 
-    /// Команда от формы NAT/файрвола/службы: то же, что терминал, но вывод — тут же под формой.
+    /// Command from a NAT/firewall/service form: the same as the terminal, but the output is right here under the form.
     pub fn form_exec(&self, dev: &str, line: &str) -> String {
         let mut res = None;
         self.net.update(|n| res = Some(exec(n, dev, line)));
@@ -241,9 +241,9 @@ impl Lab {
         res.out
     }
 
-    /* ---- анимация ---- */
+    /* ---- animation ---- */
 
-    /// Показать путь пакета: `None` — убрать.
+    /// Show a packet's path: `None` removes it.
     pub fn play(&self, run: Option<RunView>) {
         self.anim.update_value(|a| *a += 1);
         let Some(run) = run else {
@@ -256,7 +256,7 @@ impl Lab {
         self.animate(total);
     }
 
-    /// Запустить бег пакетов; вне браузера (в тестах) показ сразу доходит до конца.
+    /// Start the packets running; outside the browser (in tests) playback goes straight to the end.
     #[cfg(target_arch = "wasm32")]
     fn animate(&self, total: f64) {
         self.tick(self.anim.get_value(), js_sys::Date::now(), total);
@@ -282,12 +282,12 @@ impl Lab {
         });
     }
 
-    /// Остановить анимацию (при уходе со страницы).
+    /// Stop the animation (when leaving the page).
     pub fn stop(&self) {
         self.anim.try_update_value(|a| *a += 1);
     }
 
-    /// Показать путь пакета по цели (кнопка ▶): проба идёт на копии сети, а её кэши (ARP, MAC) остаются в сети.
+    /// Show a packet's path for a goal (the ▶ button): the probe runs on a copy of the network, and its caches (ARP, MAC) stay in the network.
     pub fn play_goal(&self, idx: usize) {
         let spec = self.spec.get_value();
         let Some(goal) = spec.goals.get(idx) else { return };
@@ -312,7 +312,7 @@ impl Lab {
         }
     }
 
-    /// Вернуть исходную сеть и очистить всё, что видно ученику.
+    /// Restore the initial network and clear everything the learner sees.
     pub fn reset(&self) {
         let start = self.spec.with_value(|s| s.start_state());
         self.net.set(start);
@@ -339,9 +339,9 @@ mod tests {
         let mut out = Vec::new();
         let Ok(entries) = std::fs::read_dir(&dir) else { return out };
         for e in entries.filter_map(Result::ok) {
-            let v: Value = serde_json::from_str(&std::fs::read_to_string(e.path()).expect("файл данных")).expect("JSON");
-            for t in v["tasks"].as_array().expect("упражнения") {
-                let spec: NetSpec = serde_json::from_value(t["spec"].clone()).expect("сценарий");
+            let v: Value = serde_json::from_str(&std::fs::read_to_string(e.path()).expect("data file")).expect("JSON");
+            for t in v["tasks"].as_array().expect("exercises") {
+                let spec: NetSpec = serde_json::from_value(t["spec"].clone()).expect("scenario");
                 out.push((t["id"].as_str().unwrap_or("?").to_string(), spec));
             }
         }
@@ -353,30 +353,30 @@ mod tests {
         owner.set();
         let drafts = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let sink = drafts.clone();
-        let on_draft = Callback::new(move |d: String| sink.lock().expect("замок").push(d));
+        let on_draft = Callback::new(move |d: String| sink.lock().expect("lock").push(d));
         let lab = Lab::new(Arc::new(spec.clone()), spec.start_state(), String::new(), on_draft, false);
         (owner, lab, drafts)
     }
 
-    /// У каждого упражнения исходная сеть не решает цели, а эталон решает: решение, собранное лабораторией, принимает
-    /// и серверная проверка.
+    /// For every exercise the initial network does not meet the goals and the reference does: the solution assembled by the lab is accepted
+    /// by the server check too.
     #[test]
     fn every_exercise_goes_from_unsolved_to_solved_and_the_server_accepts_it() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let all = specs();
-        assert!(all.is_empty() || all.len() >= 70, "ожидалось ≈79 упражнений, найдено {}", all.len());
+        assert!(all.is_empty() || all.len() >= 70, "expected ≈79 exercises, found {}", all.len());
         for (id, spec) in all {
             let (_owner, lab, drafts) = lab_of(&spec);
-            assert!(!lab.solved_now.get_untracked(), "{id}: исходная сеть не должна решать цели");
+            assert!(!lab.solved_now.get_untracked(), "{id}: the initial network must not meet the goals");
             let solved = spec.solved_state().unwrap_or_else(|e| panic!("{id}: {e}"));
             lab.net.set(solved);
             lab.edit(|_| ());
-            assert!(lab.solved_now.get_untracked(), "{id}: эталон должен решать цели: {:?}", lab.goals.get_untracked());
+            assert!(lab.solved_now.get_untracked(), "{id}: the reference must meet the goals: {:?}", lab.goals.get_untracked());
             assert!(lab.touched.get_untracked());
-            assert_eq!(drafts.lock().expect("замок").len(), 1, "{id}: правка сохраняет черновик");
+            assert_eq!(drafts.lock().expect("lock").len(), 1, "{id}: an edit saves the draft");
             let verdict = verify_json(&spec, &lab.solution_json());
-            assert!(verdict.ok, "{id}: сервер не принял решение: {verdict:?}");
-            // «Сбросить» возвращает исходную сеть и цели снова не выполнены
+            assert!(verdict.ok, "{id}: the server did not accept the solution: {verdict:?}");
+            // "Reset" restores the initial network and the goals are unmet again
             lab.reset();
             assert!(!lab.solved_now.get_untracked(), "{id}");
             assert!(!lab.touched.get_untracked());
@@ -385,24 +385,24 @@ mod tests {
 
     #[test]
     fn cable_and_terminal_commands_change_the_network_and_goals() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let Some((id, spec)) = specs().into_iter().find(|(_, s)| s.tools.cable) else { return };
         let (_owner, lab, drafts) = lab_of(&spec);
         let before = lab.net.with_untracked(|n| n.links.len());
-        // устройство без свободных портов или с самим собой — ошибка, сеть не меняется
-        let first = lab.net.with_untracked(|n| n.devices.iter().next().map(|d| d.id.clone())).expect("устройство");
+        // a device with no free ports, or with itself, is an error; the network does not change
+        let first = lab.net.with_untracked(|n| n.devices.iter().next().map(|d| d.id.clone())).expect("device");
         assert!(!lab.connect(&first, &first), "{id}");
         assert!(!lab.notice.get_untracked().is_empty());
         assert_eq!(lab.net.with_untracked(|n| n.links.len()), before);
-        assert!(drafts.lock().expect("замок").is_empty());
-        // команда терминала пишет историю устройства
+        assert!(drafts.lock().expect("lock").is_empty());
+        // a terminal command writes the device history
         lab.terminal_run(&first, "hostname");
         let lines = lab.terms.with_untracked(|t| t.get(&first).cloned().unwrap_or_default());
         assert_eq!(lines.len(), 2);
         assert!(lines[0].cmd && !lines[1].cmd);
         lab.terminal_run(&first, "clear");
         assert!(lab.terms.with_untracked(|t| t.get(&first).cloned().unwrap_or_default()).is_empty());
-        // удаление кабеля
+        // removing a cable
         if before > 0 {
             lab.sel_link.set(Some(0));
             lab.remove_link();
@@ -413,12 +413,12 @@ mod tests {
 
     #[test]
     fn ping_goal_plays_a_run_and_keeps_caches() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let Some((_, spec)) = specs().into_iter().find(|(_, s)| s.goals.iter().any(|g| matches!(g.kind, netlab::GoalKind::Ping(_)))) else { return };
         let (_owner, lab, _) = lab_of(&spec);
-        let idx = spec.goals.iter().position(|g| matches!(g.kind, netlab::GoalKind::Ping(_))).expect("цель ping");
+        let idx = spec.goals.iter().position(|g| matches!(g.kind, netlab::GoalKind::Ping(_))).expect("ping goal");
         lab.play_goal(idx);
-        assert!(lab.run.with_untracked(|r| r.is_some()), "путь пакета показан");
+        assert!(lab.run.with_untracked(|r| r.is_some()), "packet path is shown");
         assert!(lab.slot.get_untracked() > 0.0);
         let title = lab.run.with_untracked(|r| r.as_ref().map(|r| r.title.clone())).unwrap_or_default();
         assert_eq!(title, spec.goals[idx].text);

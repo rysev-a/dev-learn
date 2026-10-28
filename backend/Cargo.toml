@@ -1,8 +1,8 @@
-# Параллельный бэкенд «cs-core»: axum + SurrealDB по стандарту lab (web-services/standard.md).
+# Parallel "cs-core" backend: axum + SurrealDB following the lab standard (web-services/standard.md).
 #
-# Версии и features — ТОЛЬКО в [workspace.dependencies], и список общих crates и внешних зависимостей совпадает 1 в 1 со списком в
-# /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (тот же Cargo.lock → те же версии, готовые базовые образы
-# backend.base собираются один раз). Добавлено только то, чего нет в lab: rusqlite (чтение SQL-файлов инициализации), sha2 (ключ кэша проверок).
+# Versions and features live ONLY in [workspace.dependencies], and the list of shared crates and external dependencies matches 1:1 the list in
+# /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (same Cargo.lock -> same versions, the prebuilt base images
+# backend.base are built once). Only what lab lacks is added: rusqlite (reading the SQL init files), sha2 (the check cache key).
 [package]
 name = "cs-core-backend"
 version = "0.1.0"
@@ -14,10 +14,11 @@ resolver = "2"
 members = ["."]
 
 [workspace.dependencies]
-# данные курса (слайды, сцены), общий crate с фронтендом и генераторами: packages/content
+# course data (slides, scenes), a crate shared with the frontend and the generators: packages/content
 i18n = { path = "../packages/i18n" }
+locales = { path = "../packages/locales" }
 content = { path = "../packages/content" }
-# движки лабораторий: сервер перепроверяет присланные решения теми же крейтами, что собираются в wasm для интерфейса
+# lab engines: the server re-verifies submitted solutions with the same crates that are built to wasm for the interface
 sdlab = { path = "../packages/sdlab" }
 virtlab = { path = "../packages/virtlab" }
 weblab = { path = "../packages/weblab" }
@@ -59,6 +60,7 @@ sha2 = "0.11"
 
 [dependencies]
 i18n.workspace = true
+locales.workspace = true
 content.workspace = true
 sdlab.workspace = true
 virtlab.workspace = true

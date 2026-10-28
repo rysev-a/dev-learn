@@ -1,4 +1,4 @@
-//! Цели упражнения: каждая превращается в строку «условие — выполнено / нет — почему».
+//! Exercise goals: each turns into a line "condition — met / not — why".
 
 use crate::engine::{base_units, evaluate};
 use crate::jsfmt;
@@ -9,7 +9,7 @@ fn label(k: Kind) -> String {
     k.label().to_lowercase()
 }
 
-/// Что ломается при отказе, в родительном падеже: «схема переживает отказ …».
+/// What breaks on failure, as a phrase for "the design survives the failure of …".
 pub fn fail_label(f: FailKind) -> &'static str {
     match f {
         FailKind::Zone => i18n::tr("an availability zone"),
@@ -41,7 +41,7 @@ pub fn fail_label(f: FailKind) -> &'static str {
     }
 }
 
-/// Условие цели словами.
+/// The goal's condition in words.
 pub fn describe(g: &Goal) -> String {
     use jsfmt::{num, pct, pct0};
     match g {
@@ -81,7 +81,7 @@ fn cmp(a: &ParamValue, op: Op, b: &ParamValue) -> bool {
     }
 }
 
-/// Есть ли у компонента резерв (для цели `no_spof`).
+/// Whether a component has redundancy (for the `no_spof` goal).
 fn redundant(n: &SdNode) -> bool {
     match n.kind {
         Kind::Lb
@@ -103,7 +103,7 @@ fn redundant(n: &SdNode) -> bool {
     }
 }
 
-/// Проверка целей по схеме. `base` — готовый расчёт без отказов (чтобы не считать дважды).
+/// Checks goals against the design. `base` — a ready evaluation without failures (to avoid computing twice).
 pub fn check_goals(state: &SdState, wl: &Workload, goals: &[Goal], base: Option<&EvalResult>) -> Vec<GoalResult> {
     let computed;
     let r = match base {
@@ -123,7 +123,7 @@ fn check_goal(state: &SdState, wl: &Workload, g: &Goal, r: &EvalResult) -> GoalR
     let count = |k: Kind| state.of_kind(k).count();
     match g {
         Goal::Capacity { max } => {
-            // самый загруженный: при равенстве — первый по порядку узлов
+            // most loaded: on a tie — the first in node order
             let mut worst: Option<(&str, f64)> = None;
             for (id, l) in r.loads.iter() {
                 if l.status == crate::types::NodeStatus::Idle {
@@ -216,7 +216,7 @@ fn check_goal(state: &SdState, wl: &Workload, g: &Goal, r: &EvalResult) -> GoalR
     }
 }
 
-/// Все ли цели выполнены.
+/// Whether all goals are met.
 pub fn all_ok(rs: &[GoalResult]) -> bool {
     rs.iter().all(|r| r.ok)
 }

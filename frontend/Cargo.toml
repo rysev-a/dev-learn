@@ -1,15 +1,15 @@
-# Фронтенд «cs-core» на Leptos (CSR, trunk) по стандарту lab (web-services/standard.md).
+# cs-core frontend on Leptos (CSR, trunk) following the lab standard (web-services/standard.md).
 #
-# Версии и features — ТОЛЬКО здесь, в [workspace.dependencies]; список общих crates и внешних зависимостей совпадает с фронтенд-частью
-# /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (Cargo.lock взят оттуда же, поэтому версии те же). Отличия от lab —
-# только расширенный список features у web-sys (нужны события и ResizeObserver) и свои crates сервиса (scene, api).
+# Versions and features live ONLY here, in [workspace.dependencies]; the list of shared crates and external dependencies matches the frontend part of
+# /Users/rysev-a/Projects/lab/.worktrees/main/web-services/Cargo.toml (Cargo.lock is taken from there, so the versions are the same). Differences from lab are
+# only the extended web-sys feature list (events and ResizeObserver are needed) and the service's own crates (scene, api).
 [workspace]
 resolver = "2"
 members = ["app", "crates/scene", "crates/api"]
 
 [workspace.dependencies]
-# Общие фронтенд-crates lab (auth_client, ui_kit, admin_ui) не подключаем: на 2026-10-22 их нет в индексе реестра `lab`
-# (даже собственные фронтенды lab не резолвятся: «no matching package named auth_client»), поэтому вход и формы написаны здесь.
+# The shared lab frontend crates (auth_client, ui_kit, admin_ui) are not used: as of 2026-10-22 they are missing from the `lab` registry index
+# (even lab's own frontends do not resolve: "no matching package named auth_client"), so sign-in and forms are written here.
 # uniform external dependency set of all frontends (wasm32)
 chrono = { version = "0.4", features = ["serde"] }
 console_error_panic_hook = "0.1"
@@ -27,12 +27,13 @@ web-sys = { version = "0.3", features = [
   "HtmlTextAreaElement", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "Node", "NodeList", "PointerEvent",
   "ResizeObserver", "ResizeObserverEntry", "Storage", "Window", "Navigator", "History", "WheelEvent", "SvgsvgElement",
   "Blob", "BlobPropertyBag", "HtmlAnchorElement", "Url",
+  "BlobEvent", "MediaDevices", "MediaRecorder", "MediaRecorderOptions", "MediaStream", "MediaStreamConstraints", "MediaStreamTrack",
 ] }
 
-# свои crates сервиса
+# the service's own crates
 highlight = { path = "../packages/highlight" }
 content = { path = "../packages/content" }
-# движки лабораторий (общие с бэкендом): расчёт в браузере и перепроверка на сервере — одним кодом
+# lab engines (shared with the backend): computation in the browser and re-verification on the server with the same code
 sdlab = { path = "../packages/sdlab" }
 virtlab = { path = "../packages/virtlab" }
 weblab = { path = "../packages/weblab" }
@@ -42,6 +43,7 @@ netlab = { path = "../packages/netlab" }
 scene = { path = "crates/scene" }
 api = { path = "crates/api" }
 i18n = { path = "../packages/i18n" }
+locales = { path = "../packages/locales" }
 
 [profile.release]
 opt-level = "s"

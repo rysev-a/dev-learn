@@ -1,29 +1,29 @@
-//! Ассемблер «Мини-8»: текст программы → машинные слова. Все ошибки собираются, а не только первая.
-//! Порт `assembler.ts`; сообщения об ошибках совпадают с ним дословно.
+//! The "Mini-8" assembler: program text → machine words. All errors are collected rather than just the first.
+//! Port of `assembler.ts`; error messages match it word for word.
 
 use super::isa::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Одна собранная команда: откуда она, по какому адресу, во что превратилась.
+/// One assembled instruction: where it came from, at which address, what it turned into.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AsmLine {
-    /// Номер строки исходника, с 1.
+    /// Source line number, starting from 1.
     pub line: usize,
     pub addr: usize,
     pub word: u16,
-    /// Исходный текст команды (без метки и комментария).
+    /// Source text of the instruction (without label and comment).
     pub text: String,
 }
 
-/// Ошибка ассемблирования.
+/// Assembly error.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AsmError {
     pub line: usize,
     pub message: String,
 }
 
-/// Результат ассемблирования.
+/// Assembly result.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AsmResult {
     pub words: Vec<u16>,
@@ -48,7 +48,7 @@ fn is_ident(s: &str) -> bool {
     }
 }
 
-/// Убирает комментарий (`;` или `#`), не трогая символы в кавычках.
+/// Strips the comment (`;` or `#`) without touching characters in quotes.
 fn strip_comment(s: &str) -> &str {
     let mut quote = false;
     for (i, c) in s.char_indices() {
@@ -62,7 +62,7 @@ fn strip_comment(s: &str) -> &str {
     s
 }
 
-/// Делит операнды по запятым, не ломая символ `,` в кавычках.
+/// Splits operands by commas without breaking a `,` character in quotes.
 fn split_operands(s: &str) -> Vec<String> {
     let mut parts = Vec::new();
     let mut cur = String::new();
@@ -96,13 +96,13 @@ fn escape(c: char) -> Option<f64> {
     }
 }
 
-/// Число: `42`, `-5`, `0x2A`, `0b101`, `'A'`, `'\n'` или имя из `.equ`. Числа — `f64`, как в JavaScript.
+/// Number: `42`, `-5`, `0x2A`, `0b101`, `'A'`, `'\n'` or a name from `.equ`. Numbers are `f64`, as in JavaScript.
 fn parse_number(token: &str, equ: &HashMap<String, f64>) -> Option<f64> {
     let t = token.trim();
     if let Some(v) = equ.get(t) {
         return Some(*v);
     }
-    // 'x' или '\x': один символ BMP (в JS регулярка без флага u не берёт суррогатные пары)
+    // 'x' or '\x': one BMP character (in JS a regex without the u flag does not take surrogate pairs)
     let chars: Vec<char> = t.chars().collect();
     if chars.len() >= 3 && chars[0] == '\'' && chars[chars.len() - 1] == '\'' {
         let body = &chars[1..chars.len() - 1];
@@ -130,7 +130,7 @@ fn parse_number(token: &str, equ: &HashMap<String, f64>) -> Option<f64> {
     if digits.is_empty() || !digits.chars().all(|c| c.is_digit(base)) {
         return None;
     }
-    // 0b101 — двоичное; но «0b» без бит или с другими цифрами не подходит, как и в регулярке JS
+    // 0b101 is binary; but "0b" without bits or with other digits does not match, same as the JS regex
     if base == 10 && !digits.chars().all(|c| c.is_ascii_digit()) {
         return None;
     }
@@ -150,7 +150,7 @@ fn parse_reg(token: &str) -> Option<u16> {
     }
 }
 
-/// Число как в шаблонной строке JavaScript: целые без дробной части и без «-0».
+/// Number as in a JavaScript template string: integers without a fractional part and without "-0".
 fn show_num(v: f64) -> String {
     if v == 0.0 {
         "0".into()
@@ -169,7 +169,7 @@ fn plural(n: usize) -> &'static str {
     }
 }
 
-/// Ассемблер: текст программы → машинные слова.
+/// Assembler: program text → machine words.
 pub fn assemble(source: &str) -> AsmResult {
     let mut errors: Vec<AsmError> = Vec::new();
     let mut labels: HashMap<String, usize> = HashMap::new();
@@ -177,7 +177,7 @@ pub fn assemble(source: &str) -> AsmResult {
     let mut parsed: Vec<Parsed> = Vec::new();
     let fail = |errors: &mut Vec<AsmError>, line: usize, message: String| errors.push(AsmError { line, message });
 
-    /* ---------- проход 1: метки, константы, разбор строк ---------- */
+    /* ---------- pass 1: labels, constants, line parsing ---------- */
     for (i, raw) in source.split('\n').enumerate() {
         let raw = raw.strip_suffix('\r').unwrap_or(raw);
         let line = i + 1;
@@ -186,7 +186,7 @@ pub fn assemble(source: &str) -> AsmResult {
             continue;
         }
 
-        // метка в начале строки: `имя:` — непустая серия символов без пробелов, `:` и `,`, затем двоеточие
+        // label at the start of the line: `name:` — a non-empty run of characters without spaces, `:` and `,`, then a colon
         let run_end = text.find(|c: char| c.is_whitespace() || c == ':' || c == ',').unwrap_or(text.len());
         if run_end > 0 && text[run_end..].starts_with(':') {
             let name = text[..run_end].to_string();
@@ -229,7 +229,7 @@ pub fn assemble(source: &str) -> AsmResult {
         fail(&mut errors, line, i18n::trf!("Program too long: at most {0} instructions", PROGRAM_MAX));
     }
 
-    /* ---------- проход 2: кодирование ---------- */
+    /* ---------- pass 2: encoding ---------- */
     let mut words = Vec::new();
     let mut lines = Vec::new();
 
@@ -238,7 +238,7 @@ pub fn assemble(source: &str) -> AsmResult {
         let mut mnemonic = p.mnemonic.clone();
         let mut ops = p.operands.clone();
 
-        // псевдокоманды
+        // pseudo-instructions
         let need = |errors: &mut Vec<AsmError>, mnemonic: &str, ops: &[String], n: usize, usage: &str| -> bool {
             if ops.len() != n {
                 errors.push(AsmError { line, message: i18n::trf!("“{0}” takes {1} {2}: {3}", mnemonic, n, plural(n), usage) });
@@ -357,7 +357,7 @@ impl Enc<'_> {
         false
     }
 
-    /// Смещение до метки (или числом) — в командах от самой этой команды.
+    /// Offset to a label (or a number) — in instructions from this very instruction.
     fn target(&self, errors: &mut Vec<AsmError>, token: &str, bits: u32) -> Option<i32> {
         let off: f64 = if let Some(l) = self.labels.get(token) {
             *l as f64 - self.addr as f64
@@ -380,8 +380,8 @@ impl Enc<'_> {
     }
 }
 
-/// Разбор `смещение(регистр)` как регулярка `^(.*)\(\s*([^)]+?)\s*\)$`: последняя `(`, после которой до
-/// конца нет других `)`; в скобках должен быть хотя бы один символ.
+/// Parsing `offset(register)` like the regex `^(.*)\(\s*([^)]+?)\s*\)$`: the last `(` after which there are
+/// no other `)` up to the end; the parentheses must contain at least one character.
 fn split_mem(text: &str) -> Option<(String, String)> {
     let chars: Vec<char> = text.chars().collect();
     if chars.last() != Some(&')') {

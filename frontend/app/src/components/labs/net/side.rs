@@ -1,4 +1,4 @@
-//! Цели упражнения с отметками, итоговая плашка и журнал последнего пакета.
+//! Exercise goals with marks, the summary badge and the log of the last packet.
 
 use leptos::prelude::*;
 use netlab::sim::fmt_ms;
@@ -6,7 +6,7 @@ use netlab::sim::fmt_ms;
 use super::lab::Lab;
 use super::logic;
 
-/// Плашка итога: значок, заголовок, пояснение и (если есть куда) кнопка «Дальше».
+/// Summary badge: icon, heading, explanation and (if there is somewhere to go) the "Next" button.
 #[component]
 fn Alert(ok: bool, title: &'static str, #[prop(into)] text: Signal<String>, #[prop(into)] has_next: Signal<bool>, on_next: Callback<()>) -> impl IntoView {
     view! {
@@ -32,11 +32,11 @@ fn Alert(ok: bool, title: &'static str, #[prop(into)] text: Signal<String>, #[pr
     }
 }
 
-/// Цели: номер до первой правки, потом ✓ или ✗ и пояснение; ▶ показывает путь пакета по цели.
+/// Goals: a number before the first edit, then ✓ or ✗ and an explanation; ▶ shows the packet path for the goal.
 #[component]
 pub fn Goals(
     lab: Lab,
-    /// число целей упражнения
+    /// number of exercise goals
     count: usize,
     solved_before: bool,
     #[prop(into)] solved: Signal<bool>,
@@ -102,11 +102,11 @@ pub fn Goals(
     }
 }
 
-/// Журнал событий последней пробы: время, устройство, что произошло.
+/// Log of the last probe's events: time, device, what happened.
 #[component]
 pub fn Log(lab: Lab) -> impl IntoView {
     let title = move || lab.run.with(|r| r.as_ref().map(|r| r.title.clone()).filter(|t| !t.is_empty()));
-    // номера событий пересчитываются на каждый кадр анимации, а список перерисовывается, только когда они изменились
+    // event indices are recomputed on every animation frame, and the list is redrawn only when they change
     let visible = Memo::new(move |_| lab.run.with(|r| r.as_ref().map(|run| logic::log_indices(run, lab.slot.get())).unwrap_or_default()));
     let lines = move || {
         let idx = visible.get();

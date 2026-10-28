@@ -1,5 +1,5 @@
-//! Геометрия досок: контуры вентилей, прямоугольники блоков с портами и автопроводка.
-//! Порт `gate-shapes.ts`, `block-layout.ts`, `auto-wire.ts` — чистая арифметика без интерфейса.
+//! Board geometry: gate outlines, block rectangles with ports and auto-wiring.
+//! Port of `gate-shapes.ts`, `block-layout.ts`, `auto-wire.ts` — pure arithmetic without the interface.
 
 use crate::blocks::{BlockPort, BusEnd, Dir, TOP};
 use crate::interfaces::{child_fields, slice_of};
@@ -7,10 +7,10 @@ use crate::model::*;
 use std::collections::HashSet;
 
 /* ============================================================
-   Контуры вентилей
+   Gate outlines
    ============================================================ */
 
-/// Контур вентиля (атрибут `d` SVG).
+/// Gate outline (SVG `d` attribute).
 pub fn gate_body_path(ty: GateType) -> &'static str {
     match ty {
         GateType::And | GateType::Nand => "M0 0 H40 A24 24 0 0 1 40 48 H0 Z",
@@ -20,7 +20,7 @@ pub fn gate_body_path(ty: GateType) -> &'static str {
     }
 }
 
-/// Путь второй входной дуги XOR/XNOR или метки такта триггера, если они есть.
+/// Path of the second input arc of XOR/XNOR or the clock mark of a flip-flop, if present.
 pub fn gate_extra_arc(ty: GateType) -> Option<&'static str> {
     match ty {
         GateType::Dff => Some("M0 27 L9 34 L0 41"),
@@ -29,7 +29,7 @@ pub fn gate_extra_arc(ty: GateType) -> Option<&'static str> {
     }
 }
 
-/// `cx` пузырька инверсии, если он есть у этого типа.
+/// `cx` of the inversion bubble, if this type has one.
 pub fn gate_bubble_cx(ty: GateType) -> Option<f64> {
     match ty {
         GateType::Nor | GateType::Nand | GateType::Xnor => Some(GATE_W + 6.0),
@@ -38,7 +38,7 @@ pub fn gate_bubble_cx(ty: GateType) -> Option<f64> {
     }
 }
 
-/// Y входного пина относительно верха вентиля.
+/// Y of an input pin relative to the top of the gate.
 pub fn gate_pin_y(ty: GateType, pin: PinKind) -> f64 {
     if ty == GateType::Not {
         24.0
@@ -50,44 +50,44 @@ pub fn gate_pin_y(ty: GateType, pin: PinKind) -> f64 {
 }
 
 /* ============================================================
-   Блоки на доске
+   Blocks on the board
    ============================================================ */
 
 pub const BLOCK_W: f64 = 176.0;
 pub const HEAD_H: f64 = 28.0;
 pub const ROW_H: f64 = 24.0;
 pub const PAD: f64 = 6.0;
-/// Ширина боковых колонок с портами самого упражнения.
+/// Width of the side columns with the exercise's own ports.
 pub const SIDE_W: f64 = 132.0;
 
-/// С какой стороны прямоугольника пин.
+/// Which side of the rectangle the pin is on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PinSide {
     In,
     Out,
 }
 
-/// Строка порта (или его поля).
+/// Row of a port (or its field).
 #[derive(Debug, Clone)]
 pub struct PinRow {
-    /// Уникальный ключ строки: `узел|порт|поле` — им же помечается раскрытие.
+    /// Unique row key: `node|port|field` — the same key marks expansion.
     pub key: String,
     pub end: BusEnd,
     pub port: BlockPort,
     pub name: String,
     pub ty: crate::interfaces::Iface,
-    /// Глубина вложенности: 0 — порт целиком, 1 — его поле и т. д.
+    /// Nesting depth: 0 — the whole port, 1 — its field, and so on.
     pub depth: usize,
     pub side: PinSide,
-    /// Смещение центра строки от верха прямоугольника.
+    /// Offset of the row center from the top of the rectangle.
     pub y: f64,
     pub expandable: bool,
     pub expanded: bool,
-    /// Узлы схемы, которые несёт эта строка (по порядку бит).
+    /// Circuit nodes carried by this row (in bit order).
     pub nodes: Vec<String>,
 }
 
-/// Вид прямоугольника.
+/// Kind of rectangle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BoxKind {
     TopIn,
@@ -95,7 +95,7 @@ pub enum BoxKind {
     Block,
 }
 
-/// Раскладка прямоугольника с портами.
+/// Layout of a rectangle with ports.
 #[derive(Debug, Clone)]
 pub struct BoxLayout {
     pub node: String,
@@ -108,7 +108,7 @@ pub struct BoxLayout {
     pub rows: Vec<PinRow>,
 }
 
-/// Ключ строки по концу шины.
+/// Row key from a bus end.
 pub fn row_key(end: &BusEnd) -> String {
     format!("{}|{}|{}", end.node, end.port, end.path)
 }
@@ -161,7 +161,7 @@ fn rows_of_port(node: &str, port: &BlockPort, side: PinSide, expanded: &HashSet<
     rows
 }
 
-/// Раскладка прямоугольника с портами: слева — входы, справа — выходы.
+/// Layout of a rectangle with ports: inputs on the left, outputs on the right.
 pub fn layout_box(
     node: &str,
     title: &str,
@@ -174,7 +174,7 @@ pub fn layout_box(
     let mut rows = Vec::new();
     let (mut left_y, mut right_y) = (top, top);
     for port in ports {
-        // порты самого упражнения: вход — источник, поэтому его пин справа; выход — слева
+        // the exercise's own ports: an input is a source, so its pin is on the right; an output — on the left
         let side = match kind {
             BoxKind::TopIn => PinSide::Out,
             BoxKind::TopOut => PinSide::In,
@@ -199,12 +199,12 @@ pub fn layout_box(
     BoxLayout { node: node.into(), title: title.into(), x: at.0, y: at.1, w: at.2, h: left_y.max(right_y) + PAD, kind, rows }
 }
 
-/// Центр пина строки в координатах доски.
+/// Center of a row's pin in board coordinates.
 pub fn pin_center(b: &BoxLayout, row: &PinRow) -> Point {
     Point { x: if row.side == PinSide::In { b.x } else { b.x + b.w }, y: b.y + row.y }
 }
 
-/// Прямоугольники колонок с портами самого упражнения: (входы, выходы).
+/// Rectangles of the columns with the exercise's own ports: (inputs, outputs).
 pub fn side_boxes(ports: &[BlockPort], expanded: &HashSet<String>, board_w: f64, y: f64) -> (BoxLayout, BoxLayout) {
     let ins: Vec<BlockPort> = ports.iter().filter(|p| p.dir == Dir::In).cloned().collect();
     let outs: Vec<BlockPort> = ports.iter().filter(|p| p.dir == Dir::Out).cloned().collect();
@@ -214,7 +214,7 @@ pub fn side_boxes(ports: &[BlockPort], expanded: &HashSet<String>, board_w: f64,
     )
 }
 
-/// Свободное место для нового блока: первая ячейка сетки, не занятая другими.
+/// Free place for a new block: the first grid cell not occupied by others.
 pub fn free_spot(taken: &[(f64, f64)], board_w: f64) -> (f64, f64) {
     let cols = 1.0f64.max(((board_w - 2.0 * (SIDE_W + 30.0)) / (BLOCK_W + 30.0)).floor());
     let x0 = SIDE_W + 30.0;
@@ -229,20 +229,20 @@ pub fn free_spot(taken: &[(f64, f64)], board_w: f64) -> (f64, f64) {
 }
 
 /* ============================================================
-   Автопроводка
+   Auto-wiring
    ============================================================ */
 
-/// Радиус автопроводки: множитель, границы и значение по умолчанию.
+/// Auto-wiring radius: multiplier, bounds and the default value.
 pub const AUTO_WIRE_RADIUS_FACTOR: f64 = 4.0;
 pub const AUTO_WIRE_RADIUS_MIN: f64 = 16.0;
 pub const AUTO_WIRE_RADIUS_MAX: f64 = 108.0;
 pub const AUTO_WIRE_RADIUS_DEFAULT: f64 = 56.0;
-/// На каком расстоянии (в единицах доски) контакты считаются «близкими».
+/// At what distance (in board units) contacts count as "close".
 pub const AUTO_WIRE_RADIUS: f64 = AUTO_WIRE_RADIUS_DEFAULT * AUTO_WIRE_RADIUS_FACTOR;
-/// Насколько уже показанная связь «липнет»: более близкая пара должна выиграть хотя бы на столько.
+/// How much an already shown connection "sticks": a closer pair must win by at least this much.
 pub const AUTO_WIRE_STICK: f64 = 6.0;
 
-/// Предложенная связь: концы провода и их положение на доске (для пунктирного предпросмотра).
+/// Suggested connection: the wire ends and their positions on the board (for the dashed preview).
 #[derive(Debug, Clone, PartialEq)]
 pub struct AutoWire {
     pub from: PinRef,
@@ -251,19 +251,19 @@ pub struct AutoWire {
     pub b: Point,
 }
 
-/// Вход автопроводки.
+/// Auto-wiring input.
 pub struct AutoWireInput<'a> {
-    /// Элемент, который двигают или ставят (его ещё может не быть в `gates`).
+    /// The element being moved or placed (it may not be in `gates` yet).
     pub gate: &'a GateInstance,
-    /// Остальные элементы доски.
+    /// The other elements on the board.
     pub gates: &'a [GateInstance],
     pub wires: &'a [Wire],
     pub input_y: &'a YMap,
     pub output_y: &'a YMap,
-    /// В пошаговом режиме циклы разрешены — это суть защёлок.
+    /// In step mode cycles are allowed — that is the essence of latches.
     pub steps_mode: bool,
     pub radius: Option<f64>,
-    /// Связи, предложенные раньше в этом же перетаскивании: держатся, пока их не перехватит более близкая пара.
+    /// Connections suggested earlier in the same drag: kept until a closer pair takes them over.
     pub keep: &'a [AutoWire],
 }
 
@@ -279,9 +279,9 @@ fn dist(p: Point, q: Point) -> f64 {
     (p.x - q.x).hypot(p.y - q.y)
 }
 
-/// Какие провода стоит подставить для элемента на его месте: каждый свободный вход тянется к ближайшему
-/// выходу (тумблер или другой элемент), а каждый выход — к ближайшему свободному входу (элемента или
-/// выхода схемы). Занятые входы не трогаем.
+/// Which wires are worth suggesting for an element at its place: every free input reaches for the nearest
+/// output (a toggle or another element), and every output — for the nearest free input (of an element or
+/// a circuit output). Occupied inputs are left alone.
 pub fn suggest_wires(input: &AutoWireInput) -> Vec<AutoWire> {
     let gate = input.gate;
     let radius = input.radius.unwrap_or(AUTO_WIRE_RADIUS);
@@ -290,7 +290,7 @@ pub fn suggest_wires(input: &AutoWireInput) -> Vec<AutoWire> {
     let mut all: Vec<GateInstance> = others.iter().map(|g| (*g).clone()).collect();
     all.push(gate.clone());
     let mut result: Vec<AutoWire> = Vec::new();
-    // провода, которые мы уже решили добавить, тоже учитываются при поиске циклов
+    // wires we have already decided to add are also taken into account when looking for cycles
     let mut planned: Vec<Wire> = Vec::new();
 
     let pos_of = |r: &PinRef| pin_pos(r, &all, input.output_y, input.input_y);
@@ -322,7 +322,7 @@ pub fn suggest_wires(input: &AutoWireInput) -> Vec<AutoWire> {
         }
     };
 
-    // источники сигнала: тумблеры входов и выходы других элементов
+    // signal sources: input toggles and outputs of other elements
     let mut sources: Vec<PinRef> = input.input_y.keys().map(PinRef::out).collect();
     sources.extend(others.iter().map(|g| PinRef::out(g.id.clone())));
     for pin in gate.ty.pins() {
@@ -335,7 +335,7 @@ pub fn suggest_wires(input: &AutoWireInput) -> Vec<AutoWire> {
         }
     }
 
-    // приёмники сигнала: свободные входы других элементов и выходы схемы
+    // signal sinks: free inputs of other elements and circuit outputs
     let mut sinks: Vec<PinRef> = others.iter().flat_map(|g| g.ty.pins().iter().map(|p| PinRef::inp(g.id.clone(), *p))).collect();
     sinks.extend(input.output_y.keys().map(|n| PinRef::inp(n, PinKind::In0)));
     let out = PinRef::out(gate.id.clone());
@@ -345,15 +345,15 @@ pub fn suggest_wires(input: &AutoWireInput) -> Vec<AutoWire> {
         }
     }
 
-    // как магнит: берём самые короткие связи, а у уже показанной есть небольшой «залипающий» запас, чтобы
-    // пунктир не дрожал. Если два контакта тянутся к одному и тому же элементу, пунктир остаётся у ближнего,
-    // а второй контакт ищет себе другого соседа
+    // like a magnet: we take the shortest connections, and an already shown one has a small "sticky" margin so
+    // the dashed line does not jitter. If two contacts reach for the same element, the dashed line stays with the nearer one,
+    // and the other contact looks for a different neighbor
     let pull = |c: &Candidate| c.d - if c.held { AUTO_WIRE_STICK } else { 0.0 };
     cands.sort_by(|p, q| pull(p).partial_cmp(&pull(q)).unwrap_or(std::cmp::Ordering::Equal));
     let mut used_groups: HashSet<String> = HashSet::new();
     let mut used_pins: HashSet<String> = HashSet::new();
     for c in &cands {
-        // у выхода — одна связь, у каждого входа — тоже одна
+        // an output has one connection, each input has one too
         let pin_key = if c.from.node == gate.id { "out".to_string() } else { format!("{:?}", c.to.pin) };
         if used_pins.contains(&pin_key) || used_groups.contains(&c.group) {
             continue;

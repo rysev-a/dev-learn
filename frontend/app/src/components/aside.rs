@@ -1,4 +1,4 @@
-//! Левое меню разделов (книг курса).
+//! Left menu of sections (course books).
 
 use api::dto::Book;
 use leptos::prelude::*;
@@ -6,12 +6,12 @@ use leptos_router::hooks::{use_location, use_navigate};
 
 use crate::{player::Player, settings};
 
-/// Номер книги из адреса `/book/<id>/…`.
+/// Book number from the address `/book/<id>/…`.
 pub fn book_in_path(path: &str) -> Option<i64> {
     path.strip_prefix("/book/")?.split('/').next()?.parse().ok()
 }
 
-/// Меню свёрнуто в колонку иконок. Состояние общее: его меняют кнопка над меню и страница настроек.
+/// The menu is collapsed into a column of icons. The state is shared: it is changed by the button above the menu and the settings page.
 #[derive(Clone, Copy)]
 pub struct AsideState {
     collapsed: RwSignal<bool>,
@@ -22,14 +22,14 @@ impl AsideState {
         self.collapsed.get()
     }
 
-    /// Применяет сразу и запоминает в настройках.
+    /// Applies immediately and saves to settings.
     pub fn set(&self, collapsed: bool) {
         self.collapsed.set(collapsed);
         settings::ASIDE_FLAG.write(collapsed);
     }
 }
 
-/// Создаёт состояние меню из сохранённой настройки и кладёт его в контекст.
+/// Creates the menu state from the saved setting and puts it into the context.
 pub fn provide_aside() -> AsideState {
     let state = AsideState { collapsed: RwSignal::new(settings::ASIDE_FLAG.read()) };
     provide_context(state);

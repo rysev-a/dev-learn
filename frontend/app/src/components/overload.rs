@@ -1,19 +1,19 @@
-//! Окно о перегрузке сервера проверки кода: сервис в стадии развития и пока не выдерживает большую нагрузку.
+//! Dialog about code-checking server overload: the service is under development and cannot yet handle a heavy load.
 
 use leptos::prelude::*;
 
-/// Минимум между показами окна, если его закрыли (мс).
+/// Minimum interval between showings of the dialog if it was closed (ms).
 const QUIET_MS: f64 = 60_000.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Overload {
-    /// сервер проверки не отвечает или отказал в постановке (нет воркера, очередь переполнена)
+    /// the checking server does not respond or refused to enqueue (no worker, queue full)
     Unavailable,
-    /// проверка идёт, но очередь длинная
+    /// checking is running, but the queue is long
     Busy,
 }
 
-/// Состояние окна: что показывать и когда его закрыли в последний раз.
+/// Dialog state: what to show and when it was last closed.
 #[derive(Clone, Copy)]
 pub struct OverloadState {
     kind: RwSignal<Option<Overload>>,
@@ -25,7 +25,7 @@ impl OverloadState {
         Self { kind: RwSignal::new(None), closed_at: RwSignal::new(f64::NEG_INFINITY) }
     }
 
-    /// Показать окно (если его не закрывали в последнюю минуту).
+    /// Show the dialog (unless it was closed within the last minute).
     pub fn raise(&self, kind: Overload) {
         if js_sys::Date::now() - self.closed_at.get_untracked() >= QUIET_MS {
             self.kind.set(Some(kind));

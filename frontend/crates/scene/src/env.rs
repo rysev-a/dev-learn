@@ -1,13 +1,13 @@
-//! Среда сцены: время озвучки показанного слайда и режим «без движения». Приложение кладёт её в контекст
-//! ([`provide_env`]), сцены только читают; без контекста сцены идут по собственным таймерам.
+//! Scene environment: the voice-over time of the shown slide and the "no motion" mode. The app puts it into the context
+//! ([`provide_env`]); scenes only read it; without a context scenes run on their own timers.
 
 use leptos::prelude::*;
 
 #[derive(Clone, Copy)]
 pub struct SceneEnv {
-    /// секунды от начала абзаца, пока слайд озвучивается (и на паузе), иначе `None`
+    /// seconds from the start of the paragraph while the slide is being voiced (and on pause), otherwise `None`
     pub audio_time: Signal<Option<f64>>,
-    /// сцены сразу показывают итог без движения (настройка или `prefers-reduced-motion`)
+    /// scenes show the final result at once without motion (setting or `prefers-reduced-motion`)
     pub motion_off: bool,
 }
 
@@ -15,7 +15,7 @@ pub fn provide_env(env: SceneEnv) {
     provide_context(env);
 }
 
-/// Среда текущего слайда; без неё — «звука нет, движение включено».
+/// Environment of the current slide; without it — "no sound, motion on".
 pub fn use_env() -> SceneEnv {
     use_context::<SceneEnv>().unwrap_or(SceneEnv { audio_time: Signal::stored(None), motion_off: false })
 }

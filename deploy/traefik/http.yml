@@ -1,5 +1,5 @@
-# Маршруты Traefik для разработки и доступа по адресу машины, только HTTP (файловый провайдер: сокет Docker не монтируем).
-# /api → бэкенд; всё остальное → frontend (Caddy со статикой Leptos; /internal он отдаёт как 404).
+# Traefik routes for development and access by machine address, HTTP only (file provider: the Docker socket is not mounted).
+# /api -> backend; everything else -> frontend (Caddy with the Leptos static files; it answers /internal with 404).
 http:
   routers:
     api:

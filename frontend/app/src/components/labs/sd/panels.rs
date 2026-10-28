@@ -1,5 +1,5 @@
-//! Панели лаборатории «Системный дизайн» вокруг поля: плавающая карточка параметров компонента, справка, кнопки в углу
-//! поля, панель инструментов (удалить, отказ, подсказка, сбросить), цели и метрики. Все читают общее состояние [`Lab`].
+//! Panels of the "System design" lab around the board: the floating component parameter card, help, buttons in the corner
+//! of the board, the toolbar (delete, failure, hint, reset), goals and metrics. All of them read the shared [`Lab`] state.
 
 use leptos::prelude::*;
 use sdlab::{
@@ -11,9 +11,9 @@ use sdlab::{
 use super::{lab::Lab, logic};
 use crate::components::labs::board_view::js_round;
 
-// --- карточка параметров ------------------------------------------------------------------------
+// --- parameter card ------------------------------------------------------------------------
 
-/// Плавающая карточка выбранного компонента: параметры, отключение для проверки отказа и его нагрузка.
+/// Floating card of the selected component: parameters, disabling for the failure check, and its load.
 #[component]
 pub fn ParamsCard(lab: Lab, id: String) -> impl IntoView {
     let Some(first) = lab.state.with_untracked(|s| s.node(&id).cloned()) else { return ().into_any() };
@@ -61,7 +61,7 @@ pub fn ParamsCard(lab: Lab, id: String) -> impl IntoView {
     .into_any()
 }
 
-/// Состояние узла для класса `sd-load`.
+/// Node state for the `sd-load` class.
 fn load_status(l: &NodeLoad) -> &'static str {
     use sdlab::NodeStatus::*;
     match l.status {
@@ -74,14 +74,14 @@ fn load_status(l: &NodeLoad) -> &'static str {
     }
 }
 
-/// «Нагрузка: 40 · ёмкость: 300 · загрузка 13% · заметка».
+/// "Load: 40 · capacity: 300 · utilization 13% · note".
 fn load_text(l: &NodeLoad) -> String {
     let n = |x: f64| jsfmt::num(js_round(x));
     let note = l.note.as_deref().filter(|s| !s.is_empty()).map(|s| format!(" · {s}")).unwrap_or_default();
     i18n::trf!("Load: {0} · capacity: {1} · utilization {2}%{3}", n(l.load), n(l.cap), n(l.util * 100.0), note)
 }
 
-/// Поле одного параметра: число, список или флаг.
+/// Field of one parameter: number, list or flag.
 #[component]
 fn Field(lab: Lab, id: String, spec: &'static ParamSpec) -> impl IntoView {
     let value = {
@@ -89,7 +89,7 @@ fn Field(lab: Lab, id: String, spec: &'static ParamSpec) -> impl IntoView {
         Memo::new(move |_| lab.state.with(|s| s.node(&id).map(|n| n.param(spec.key).clone())).unwrap_or(ParamValue::Num(0.0)))
     };
     let control = match spec.ty {
-        // число: правка уходит в схему сразу (в пределах), текст поля выравнивается по пределам, когда его покидают
+        // number: an edit goes into the diagram at once (within limits), the field text is aligned to the limits when it loses focus
         ParamType::Int => {
             let (id_input, id_change) = (id.clone(), id.clone());
             let commit = move |id: &str, text: &str| {
@@ -156,9 +156,9 @@ fn Field(lab: Lab, id: String, spec: &'static ParamSpec) -> impl IntoView {
     }
 }
 
-// --- справка и кнопки в углу -----------------------------------------------------------------------
+// --- help and corner buttons -----------------------------------------------------------------------
 
-/// Всплывающая справка: как пользоваться полем и справочник чисел модели.
+/// Popup help: how to use the board and the model number reference.
 #[component]
 pub fn HelpPopup() -> impl IntoView {
     view! {
@@ -172,7 +172,7 @@ pub fn HelpPopup() -> impl IntoView {
     }
 }
 
-/// Кнопки в левом верхнем углу поля: справка и «во весь экран»; справка раскрывается под ними.
+/// Buttons in the board's top-left corner: help and "fullscreen"; the help expands below them.
 #[component]
 pub fn Corner(lab: Lab) -> impl IntoView {
     let (help, fs) = (lab.help_open, lab.fs);
@@ -204,15 +204,15 @@ pub fn Corner(lab: Lab) -> impl IntoView {
     }
 }
 
-/// Карточка параметров выбранного компонента поверх поля.
+/// Card of the selected component's parameters above the board.
 #[component]
 pub fn Overlay(lab: Lab) -> impl IntoView {
     move || lab.selected.get().map(|id| view! { <ParamsCard lab=lab id=id /> })
 }
 
-// --- панель инструментов ---------------------------------------------------------------------------
+// --- toolbar ---------------------------------------------------------------------------
 
-/// «Удалить», выбор отказа, «Подсказка» и «Сбросить».
+/// "Delete", failure choice, "Hint" and "Reset".
 #[component]
 pub fn Toolbar(lab: Lab) -> impl IntoView {
     let current = move || lab.fail.get().map(|f| f.as_str()).unwrap_or_default();
@@ -246,16 +246,16 @@ pub fn Toolbar(lab: Lab) -> impl IntoView {
     }
 }
 
-/// Плашки с нагрузкой упражнения над полем.
+/// Chips with the exercise load above the board.
 #[component]
 pub fn Chips(lab: Lab) -> impl IntoView {
     let chips = logic::workload_chips(&lab.scenario().workload);
     view! { <div class="sd-chips">{chips.into_iter().map(|c| view! { <span>{c}</span> }).collect_view()}</div> }
 }
 
-// --- цели и метрики ---------------------------------------------------------------------------------
+// --- goals and metrics ---------------------------------------------------------------------------------
 
-/// Итог в стиле приложения: значок, заголовок, пояснение и кнопка «дальше».
+/// Outcome in the app's style: icon, title, explanation and a "next" button.
 #[component]
 fn ResultAlert(#[prop(into)] title: String, #[prop(into)] text: Signal<String>, #[prop(into)] has_next: Signal<bool>, on_next: Callback<()>) -> impl IntoView {
     view! {
@@ -281,14 +281,14 @@ fn ResultAlert(#[prop(into)] title: String, #[prop(into)] text: Signal<String>, 
     }
 }
 
-/// Цели упражнения с отметками; когда все выполнены — итог и кнопка перехода дальше.
+/// Exercise goals with marks; once all are met — the outcome and the button to go on.
 #[component]
 pub fn Goals(
     lab: Lab,
-    /// что написать в итоге: упражнение уже было решено, засчитано сейчас или решение ещё проверяется
+    /// what to write as the outcome: the exercise was already solved, accepted now, or the solution is still being checked
     #[prop(into)]
     verdict: Signal<String>,
-    /// есть ли следующее упражнение и как к нему перейти
+    /// whether there is a next exercise and how to get to it
     #[prop(into)]
     has_next: Signal<bool>,
     on_next: Callback<()>,
@@ -317,7 +317,7 @@ pub fn Goals(
     }
 }
 
-/// Одна строка метрик: название и значение (`bad` подсвечивает значение).
+/// One metrics row: name and value (`bad` highlights the value).
 fn metric(name: &'static str, value: String, bad: bool) -> impl IntoView {
     view! {
         <div>
@@ -327,7 +327,7 @@ fn metric(name: &'static str, value: String, bad: bool) -> impl IntoView {
     }
 }
 
-/// Метрики расчёта: задержки, успешные ответы, доступность, стоимость и показатели компонентов, которые есть на схеме.
+/// Calculation metrics: latencies, successful responses, availability, cost and indicators of the components present on the diagram.
 #[component]
 pub fn Metrics(lab: Lab) -> impl IntoView {
     let num = jsfmt::num;
@@ -370,7 +370,7 @@ mod tests {
 
     #[test]
     fn load_line_rounds_numbers_and_appends_the_note() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(load_text(&load(NodeStatus::Ok, None)), "Нагрузка: 40 · ёмкость: 300 · загрузка 13%");
         assert_eq!(load_text(&load(NodeStatus::Hot, Some("упор в базу"))), "Нагрузка: 40 · ёмкость: 300 · загрузка 13% · упор в базу");
         assert_eq!(load_text(&load(NodeStatus::Hot, Some(""))), "Нагрузка: 40 · ёмкость: 300 · загрузка 13%");
@@ -378,7 +378,7 @@ mod tests {
 
     #[test]
     fn load_status_matches_css_classes() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(load_status(&load(NodeStatus::Over, None)), "over");
         assert_eq!(load_status(&load(NodeStatus::Down, None)), "down");
         assert_eq!(load_status(&load(NodeStatus::Idle, None)), "idle");

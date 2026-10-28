@@ -1,12 +1,12 @@
-//! Симулятор схем из вентилей: комбинационный расчёт и пошаговая симуляция с обратными связями
-//! (защёлки) и триггерами. Порт `evaluateCircuit` и `settleCircuit` из `circuit.model.ts` с тем же
-//! порядком вычислений: результаты совпадают с TypeScript бит в бит (в том числе «?» и неустойчивость).
+//! Gate circuit simulator: combinational evaluation and step-by-step simulation with feedback loops
+//! (latches) and flip-flops. Port of `evaluateCircuit` and `settleCircuit` from `circuit.model.ts` with the same
+//! evaluation order: results match TypeScript bit for bit (including "?" and instability).
 
 use crate::model::*;
 use std::collections::{HashMap, HashSet};
 
-/// Двухзначный вентиль: неизвестный вход даёт неизвестный выход (`gateValue`).
-/// У триггера значения нет — он считается только в [`settle_circuit`].
+/// Two-valued gate: an unknown input gives an unknown output (`gateValue`).
+/// A flip-flop has no value — it is evaluated only in [`settle_circuit`].
 pub fn gate_value(ty: GateType, a: NodeValue, b: NodeValue) -> NodeValue {
     let a = a?;
     match ty {
@@ -21,8 +21,8 @@ pub fn gate_value(ty: GateType, a: NodeValue, b: NodeValue) -> NodeValue {
     }
 }
 
-/// Трёхзначная логика (0, 1, «?»): неопределённость не заражает выход, если ответ и так ясен —
-/// И с нулём всегда 0, ИЛИ с единицей всегда 1 (`gateValueX`).
+/// Three-valued logic (0, 1, "?"): uncertainty does not contaminate the output if the answer is clear anyway —
+/// AND with zero is always 0, OR with one is always 1 (`gateValueX`).
 pub fn gate_value_x(ty: GateType, a: NodeValue, b: NodeValue) -> NodeValue {
     let not = |v: NodeValue| v.map(|v| v ^ 1);
     let and = || {
@@ -59,12 +59,12 @@ pub fn gate_value_x(ty: GateType, a: NodeValue, b: NodeValue) -> NodeValue {
     }
 }
 
-/// Ключ скрытого состояния триггера: предыдущий уровень тактового входа (для поиска фронта).
+/// Key of a flip-flop's hidden state: the previous level of the clock input (for edge detection).
 pub fn clk_key(gate_id: &str) -> String {
     format!("{gate_id}#clk")
 }
 
-/// Откуда приходит сигнал на входной пин (последний провод побеждает, как `Map.set`).
+/// Where the signal on an input pin comes from (the last wire wins, like `Map.set`).
 fn source_map(circuit: &Circuit) -> HashMap<(&str, PinKind), &PinRef> {
     let mut sources = HashMap::new();
     for w in &circuit.wires {
@@ -79,7 +79,7 @@ fn put_inputs(values: &mut Values, inputs: &InputState) {
     }
 }
 
-/// Дописывает значения выходных узлов (Y, Q, nQ…): каждый — зеркало подключённого источника.
+/// Appends the values of output nodes (Y, Q, nQ…): each mirrors the connected source.
 fn with_output_nodes(values: &Values, circuit: &Circuit) -> Values {
     let gate_ids: HashSet<&str> = circuit.gates.iter().map(|g| g.id.as_str()).collect();
     let mut res = values.clone();
@@ -106,7 +106,7 @@ impl Calc<'_> {
             return *v;
         }
         if self.in_progress.contains(node) {
-            return None; // защита от цикла
+            return None; // cycle guard
         }
         self.in_progress.insert(node.to_string());
         let mut v = None;
@@ -130,8 +130,8 @@ impl Calc<'_> {
     }
 }
 
-/// Значения всех узлов схемы для заданного состояния входов. Вход вентиля без провода даёт «?»,
-/// и он «протекает» до выхода. Обратные связи и триггеры здесь не поддерживаются (см. [`settle_circuit`]).
+/// Values of all circuit nodes for a given input state. A gate input without a wire gives "?",
+/// and it "leaks" through to the output. Feedback loops and flip-flops are not supported here (see [`settle_circuit`]).
 pub fn evaluate_circuit(circuit: &Circuit, inputs: &InputState) -> Values {
     let mut gates: HashMap<&str, &GateInstance> = HashMap::new();
     for g in &circuit.gates {
@@ -146,17 +146,17 @@ pub fn evaluate_circuit(circuit: &Circuit, inputs: &InputState) -> Values {
     with_output_nodes(&c.values, circuit)
 }
 
-/// Значение одного выхода по имени узла выхода (`Y`, `Q`…): `None`, если выход не подключён.
+/// Value of one output by its output node name (`Y`, `Q`…): `None` if the output is not connected.
 pub fn output_value(circuit: &Circuit, inputs: &InputState, output: &str) -> NodeValue {
     let wire = circuit.wires.iter().find(|w| w.to.node == output)?;
     evaluate_circuit(circuit, inputs).get(&wire.from.node).copied().flatten()
 }
 
-/// Результат пошаговой симуляции.
+/// Result of step-by-step simulation.
 #[derive(Debug, Clone)]
 pub struct SettleResult {
     pub values: Values,
-    /// Схема устоялась (не генерирует).
+    /// The circuit has settled (is not oscillating).
     pub stable: bool,
 }
 
@@ -164,13 +164,13 @@ fn get(values: &Values, key: &str) -> NodeValue {
     values.get(key).copied().flatten()
 }
 
-/// Пошаговая симуляция схемы с обратными связями (защёлки) и триггерами.
+/// Step-by-step simulation of a circuit with feedback loops (latches) and flip-flops.
 ///
-/// На каждом шаге все элементы пересчитываются одновременно из предыдущего состояния; если состояние
-/// перестало меняться — схема устоялась. Всё неизвестное — «?» ([`gate_value_x`]). Триггер `Dff`
-/// запоминает вход D в момент перехода такта 0 → 1; при включении он в нуле. Если из предыдущего
-/// состояния схема не устоялась, пробуем «свежий запуск»; если и это не помогает (генерация) —
-/// возвращаем неопределённые значения.
+/// On each step all elements are recomputed simultaneously from the previous state; once the state
+/// stops changing, the circuit has settled. Everything unknown is "?" ([`gate_value_x`]). The `Dff` flip-flop
+/// captures input D at the clock transition 0 → 1; at power-on it is zero. If the circuit does not settle
+/// from the previous state, we try a "fresh start"; if that does not help either (oscillation) —
+/// undefined values are returned.
 pub fn settle_circuit(circuit: &Circuit, inputs: &InputState, prev: &Values) -> SettleResult {
     let sources = source_map(circuit);
     let dffs: Vec<&GateInstance> = circuit.gates.iter().filter(|g| g.ty == GateType::Dff).collect();
@@ -229,7 +229,7 @@ pub fn settle_circuit(circuit: &Circuit, inputs: &InputState, prev: &Values) -> 
         for _ in 0..60 {
             let key = state_of(&cur);
             if !seen.insert(key.clone()) {
-                return SettleResult { values: cur, stable: false }; // генерация
+                return SettleResult { values: cur, stable: false }; // oscillation
             }
             let next = compute_next(&cur);
             if state_of(&next) == key {

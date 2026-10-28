@@ -1,4 +1,4 @@
-//! Данные упражнений и серверная проверка: самопроверка (порт `net-selfcheck.mjs`), формат файлов, `verify`.
+//! Exercise data and server-side check: self-check (port of `net-selfcheck.mjs`), file format, `verify`.
 
 use netlab::check::{check_goals, Step};
 use netlab::lab::{check_integrity, load_dir, verify, verify_json, LabChapter, Task};
@@ -12,14 +12,14 @@ fn data_dir() -> PathBuf {
 }
 
 fn chapters() -> Vec<LabChapter> {
-    load_dir(&data_dir()).expect("данные упражнений")
+    load_dir(&data_dir()).expect("exercise data")
 }
 
 fn tasks() -> Vec<Task> {
     chapters().into_iter().flat_map(|c| c.tasks).collect()
 }
 
-/// Каноническое состояние → запись прежнего клиента: устройства объектом по id, ключи в camelCase.
+/// Canonical state -> former client form: devices as an object by id, keys in camelCase.
 fn to_ts(v: &Value) -> Value {
     const R: &[(&str, &str)] = &[
         ("drop_private", "dropPrivate"),
@@ -55,7 +55,7 @@ fn to_ts(v: &Value) -> Value {
     }
 }
 
-/// То же, но строкой и с сохранением порядка устройств (объект `Value` ключи сортирует).
+/// Same, but as a string and preserving device order (a `Value` object sorts keys).
 fn state_to_ts_string(s: &NetState) -> String {
     let v = serde_json::to_value(s).unwrap();
     let devs: Vec<String> = v["devices"]
@@ -76,19 +76,19 @@ fn state_to_ts_string(s: &NetState) -> String {
 }
 
 #[test]
-fn данные_полны_и_согласованы() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn data_is_complete_and_consistent() {
+    locales::set_locale(i18n::Locale::Ru);
     let cs = chapters();
-    assert_eq!(cs.len(), 18, "главы с лабораторией: 1–8, 10–13, 15–20");
+    assert_eq!(cs.len(), 18, "chapters with a lab: 1-8, 10-13, 15-20");
     let mut ids = std::collections::HashSet::new();
     let mut n = 0;
     for c in &cs {
         assert_eq!(c.book, 15);
-        assert!(c.chapter != 9 && c.chapter != 14, "главы 9 и 14 — код на Python");
+        assert!(c.chapter != 9 && c.chapter != 14, "chapters 9 and 14 are Python code");
         assert_eq!(c.lab, "net");
         for t in &c.tasks {
-            assert!(ids.insert(t.id.clone()), "повтор id {}", t.id);
-            assert!(t.id.starts_with(&format!("n{}-", c.chapter)), "{}: id не по номеру главы", t.id);
+            assert!(ids.insert(t.id.clone()), "duplicate id {}", t.id);
+            assert!(t.id.starts_with(&format!("n{}-", c.chapter)), "{}: id does not match the chapter number", t.id);
             assert!(!t.spec.goals.is_empty() && !t.spec.solution.is_empty(), "{}", t.id);
             n += 1;
         }
@@ -96,90 +96,90 @@ fn данные_полны_и_согласованы() {
     assert_eq!(n, 79);
 }
 
-/// Самопроверка: в исходной сети хотя бы одна цель не выполнена, эталон проходит.
+/// Self-check: in the initial network at least one goal is not met, the reference solution passes.
 #[test]
-fn самопроверка_заготовка_не_проходит_эталон_проходит() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn self_check_starter_fails_reference_passes() {
+    locales::set_locale(i18n::Locale::Ru);
     for t in tasks() {
         let start = check_goals(&t.spec.start_state(), &t.spec.goals);
-        assert!(!start.iter().all(|r| r.ok), "{}: уже решено в заготовке", t.id);
-        let solved = t.spec.solved_state().unwrap_or_else(|e| panic!("{}: решение упало: {e}", t.id));
+        assert!(!start.iter().all(|r| r.ok), "{}: already solved in the starter", t.id);
+        let solved = t.spec.solved_state().unwrap_or_else(|e| panic!("{}: the solution failed: {e}", t.id));
         let res = check_goals(&solved, &t.spec.goals);
         for r in &res {
-            assert!(r.ok, "{}: эталон не проходит цель «{}»: {}", t.id, r.text, r.detail);
+            assert!(r.ok, "{}: the reference does not meet the goal '{}': {}", t.id, r.text, r.detail);
         }
     }
 }
 
 #[test]
-fn файлы_данных_канонические_и_без_потерь() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn data_files_are_canonical_and_lossless() {
+    locales::set_locale(i18n::Locale::Ru);
     for c in chapters() {
         let path = data_dir().join(c.file_name());
-        let text = std::fs::read_to_string(&path).expect("файл");
-        // файл = сериализация разобранного: в нём нет лишнего и ничего не теряется при разборе
-        let again = serde_json::to_string_pretty(&c).expect("сериализация") + "\n";
-        assert_eq!(text, again, "{} не в каноническом виде (cargo run --release --bin import)", path.display());
+        let text = std::fs::read_to_string(&path).expect("file");
+        // file = serialization of the parsed data: nothing extra in it and nothing lost while parsing
+        let again = serde_json::to_string_pretty(&c).expect("serialization") + "\n";
+        assert_eq!(text, again, "{} is not in canonical form (cargo run --release --bin import)", path.display());
         let v1: Value = serde_json::from_str(&text).expect("json");
-        let c2 = LabChapter::from_json(&text).expect("разбор");
-        assert_eq!(v1, serde_json::to_value(&c2).expect("значение"));
+        let c2 = LabChapter::from_json(&text).expect("parse");
+        assert_eq!(v1, serde_json::to_value(&c2).expect("value"));
     }
 }
 
 #[test]
-fn состояние_туда_и_обратно() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn state_round_trip() {
+    locales::set_locale(i18n::Locale::Ru);
     for t in tasks() {
         let s = t.spec.start_state();
         let j = serde_json::to_string(&s).unwrap();
         let back: NetState = serde_json::from_str(&j).unwrap();
         assert_eq!(j, serde_json::to_string(&back).unwrap(), "{}", t.id);
         assert_eq!(back.devices.len(), s.devices.len());
-        // порядок устройств и ключей сохраняется
+        // device and key order is preserved
         let ids: Vec<&str> = s.devices.iter().map(|d| d.id.as_str()).collect();
         let ids2: Vec<&str> = back.devices.iter().map(|d| d.id.as_str()).collect();
         assert_eq!(ids, ids2);
-        // прежняя запись клиента (camelCase, устройства объектом) читается так же
+        // the former client form (camelCase, devices as an object) is read the same way
         let from_ts = state_from_json(&state_to_ts_string(&s)).unwrap_or_else(|e| panic!("{}: {e}", t.id));
         assert_eq!(serde_json::to_value(&from_ts).unwrap(), serde_json::to_value(&s).unwrap(), "{}", t.id);
     }
 }
 
 #[test]
-fn verify_принимает_эталон_и_отклоняет_заготовку() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn verify_accepts_reference_and_rejects_starter() {
+    locales::set_locale(i18n::Locale::Ru);
     for t in tasks() {
-        let solved = t.spec.solved_state().expect("решение");
+        let solved = t.spec.solved_state().expect("solution");
         let v = verify(&t.spec, &solved);
-        assert!(v.ok, "{}: эталон отклонён: {:?}", t.id, v);
+        assert!(v.ok, "{}: reference rejected: {:?}", t.id, v);
         assert_eq!(v.goals.len(), t.spec.goals.len());
-        // то, что присылает клиент: строка JSON без кэшей (и в прежней записи тоже)
+        // what the client sends: a JSON string without caches (in the former form too)
         let canon = serde_json::to_string(&solved.stripped()).unwrap();
         assert!(verify_json(&t.spec, &canon).ok, "{}", t.id);
         let ts = state_to_ts_string(&solved);
         let v = verify_json(&t.spec, &ts);
-        assert!(v.ok, "{}: прежняя запись клиента: {v:?}", t.id);
+        assert!(v.ok, "{}: previous client format: {v:?}", t.id);
         let bad = verify(&t.spec, &t.spec.start_state());
-        assert!(!bad.ok && bad.error.is_none() && bad.goals.iter().any(|g| !g.ok), "{}: заготовка принята", t.id);
+        assert!(!bad.ok && bad.error.is_none() && bad.goals.iter().any(|g| !g.ok), "{}: starter accepted", t.id);
     }
 }
 
 #[test]
-fn verify_отклоняет_подделки() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn verify_rejects_forgeries() {
+    locales::set_locale(i18n::Locale::Ru);
     let all = tasks();
-    // закрытое устройство
-    let t = all.iter().find(|t| t.spec.start.devices.iter().any(|d| d.locked)).expect("упражнение с закрытым устройством");
+    // locked device
+    let t = all.iter().find(|t| t.spec.start.devices.iter().any(|d| d.locked)).expect("exercise with a locked device");
     let mut s = t.spec.solved_state().unwrap();
     let id = t.spec.start.devices.iter().find(|d| d.locked).unwrap().id.clone();
     s.devices.get_mut(&id).unwrap().forward = !s.devices.get(&id).unwrap().forward;
     let v = verify(&t.spec, &s);
-    assert!(!v.ok && v.error.is_some(), "закрытое устройство изменили: {v:?}");
+    assert!(!v.ok && v.error.is_some(), "a locked device was changed: {v:?}");
 
-    // лишнее и пропавшее устройство
+    // extra and missing device
     let t = &all[0];
     let mut s = t.spec.solved_state().unwrap();
-    s.devices.insert(Device::new("evil", DeviceKind::Host, "Чужой", 0.0, 0.0));
+    s.devices.insert(Device::new("evil", DeviceKind::Host, "Stranger", 0.0, 0.0));
     assert!(verify(&t.spec, &s).error.is_some());
     let mut s = t.spec.solved_state().unwrap();
     let first = s.devices.iter().next().unwrap().id.clone();
@@ -190,7 +190,7 @@ fn verify_отклоняет_подделки() {
     s = kept;
     assert!(verify(&t.spec, &s).error.is_some());
 
-    // кабель к несуществующему порту и два кабеля в один порт
+    // cable to a nonexistent port and two cables into one port
     let mut s = t.spec.solved_state().unwrap();
     s.links.push(Link::new("pc1:nope", "pc2:nope"));
     assert!(verify(&t.spec, &s).error.is_some());
@@ -199,15 +199,15 @@ fn verify_отклоняет_подделки() {
     s.links.push(l);
     assert!(verify(&t.spec, &s).error.is_some());
 
-    // кабели менять нельзя, если инструмент закрыт
-    let t = all.iter().find(|t| !t.spec.tools.cable && !t.spec.start.links.is_empty()).expect("без кабелей");
+    // cables cannot be changed if the tool is locked
+    let t = all.iter().find(|t| !t.spec.tools.cable && !t.spec.start.links.is_empty()).expect("without cables");
     let mut s = t.spec.solved_state().unwrap();
     s.links.remove(0);
     let v = verify(&t.spec, &s);
     assert!(v.error.is_some(), "{v:?}");
 
-    // кабель со «сверхсветовыми» свойствами
-    let t = all.iter().find(|t| t.spec.tools.cable).expect("с кабелем");
+    // cable with "superluminal" properties
+    let t = all.iter().find(|t| t.spec.tools.cable).expect("with a cable");
     let mut s = t.spec.solved_state().unwrap();
     for l in s.links.iter_mut() {
         l.km = 0.0;
@@ -215,15 +215,15 @@ fn verify_отклоняет_подделки() {
     }
     assert!(check_integrity(&t.spec, &s).is_err());
 
-    // мусор вместо состояния
+    // garbage instead of a state
     assert!(verify_json(&t.spec, "{").error.is_some());
     assert!(verify_json(&t.spec, "[]").error.is_some());
     assert!(verify_json(&t.spec, r#"{"devices":{},"links":[]}"#).error.is_some());
 }
 
 #[test]
-fn шаги_решения_в_данных_читаемы() {
-    i18n::set_locale(i18n::Locale::Ru);
+fn solution_steps_in_data_are_readable() {
+    locales::set_locale(i18n::Locale::Ru);
     let all = tasks();
     let cmds = all.iter().flat_map(|t| t.spec.solution.iter()).filter(|s| matches!(s, Step::Cmd { .. })).count();
     let cables = all.iter().flat_map(|t| t.spec.solution.iter()).filter(|s| matches!(s, Step::Cable { .. })).count();

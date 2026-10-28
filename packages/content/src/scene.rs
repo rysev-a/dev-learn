@@ -1,8 +1,8 @@
-//! Сцена: описание ([`SceneSpec`] — это данные, их хранит бэкенд) и компиляция ([`Scene`] — состояние каждого элемента на
-//! каждом шаге, готовое к отрисовке).
+//! Scene: the description ([`SceneSpec`] is the data stored by the backend) and the compilation ([`Scene`] is the state of every element at
+//! every step, ready for rendering).
 //!
-//! `frames[k]` — элементы, видимые на шаге `k`. Элемент с тем же `id` в соседних кадрах — один и тот же объект на экране:
-//! он плавно переезжает, меняет цвет и гаснет (если в кадре его нет); всё это делают CSS-переходы (`.a-t`).
+//! `frames[k]` are the elements visible at step `k`. An element with the same `id` in adjacent frames is the same object on screen:
+//! it smoothly moves, changes color and fades out (if the frame lacks it); all of this is done by CSS transitions (`.a-t`).
 
 use std::collections::HashMap;
 use std::fmt;
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::item::Item;
 
-/// Кадр: список элементов, видимых на шаге.
+/// Frame: the list of elements visible at a step.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Frame(pub Vec<Item>);
@@ -55,24 +55,24 @@ fn is_default_height(v: &f64) -> bool {
     *v == 170.0
 }
 
-/// Описание сцены: так она хранится в базе и приходит клиенту.
+/// Scene description: this is how it is stored in the database and sent to the client.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SceneSpec {
-    /// названия шагов (кнопки над схемой)
+    /// step names (buttons above the diagram)
     pub labels: Vec<String>,
-    /// подпись каждого шага (под схемой)
+    /// caption of each step (below the diagram)
     pub captions: Vec<String>,
     pub frames: Vec<Frame>,
-    /// элементы, которые есть в каждом кадре (если кадр не переопределил их по `id`)
+    /// elements present in every frame (unless a frame overrides them by `id`)
     #[serde(default, skip_serializing_if = "is_empty_frame")]
     pub base: Frame,
-    /// секунды от начала абзаца, когда наступают шаги 1, 2, …; по умолчанию 5, 13, 21 …
+    /// seconds from the start of the paragraph at which steps 1, 2, … begin; defaults to 5, 13, 21 …
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cues: Option<Vec<f64>>,
-    /// длительность шага без озвучки, мс
+    /// step duration without narration, ms
     #[serde(default = "step_ms", skip_serializing_if = "is_default_ms")]
     pub step_ms: u32,
-    /// высота холста (ширина всегда 360)
+    /// canvas height (the width is always 360)
     #[serde(default = "height", skip_serializing_if = "is_default_height")]
     pub height: f64,
 }
@@ -107,7 +107,7 @@ impl SceneSpec {
     }
 }
 
-/// Ошибка в данных сцены — ошибка автора: её находят тесты содержимого и проверка при сиде.
+/// An error in scene data is an author's error: it is caught by the content tests and by the check at seed time.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SceneError(pub String);
 
@@ -119,7 +119,7 @@ impl fmt::Display for SceneError {
 
 impl std::error::Error for SceneError {}
 
-/// Скомпилированная сцена: для каждого шага — состояние каждого элемента (в порядке первого появления).
+/// Compiled scene: for every step, the state of every element (in order of first appearance).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Scene {
     pub labels: Vec<String>,
@@ -127,7 +127,7 @@ pub struct Scene {
     pub cues: Vec<f64>,
     pub step_ms: u32,
     pub height: f64,
-    /// `states[k][i]` — элемент `i` на шаге `k`
+    /// `states[k][i]` is element `i` at step `k`
     pub states: Vec<Vec<Item>>,
 }
 
@@ -136,28 +136,28 @@ fn default_cues(steps: usize) -> Vec<f64> {
 }
 
 impl Scene {
-    /// Компиляция с проверкой данных: число названий и подписей равно числу кадров, у `id` не меняется вид элемента,
-    /// числа конечны, метки шагов возрастают.
+    /// Compilation with data validation: the number of names and captions equals the number of frames, an `id` never changes its element kind,
+    /// numbers are finite, step cues increase.
     pub fn compile(spec: &SceneSpec) -> Result<Scene, SceneError> {
         let name = spec.labels.first().map_or("?", String::as_str);
-        let err = |msg: String| SceneError(format!("сцена «{name}…»: {msg}"));
+        let err = |msg: String| SceneError(format!("scene '{name}…': {msg}"));
         if spec.frames.is_empty() {
-            return Err(err("нет кадров".into()));
+            return Err(err("no frames".into()));
         }
         if spec.labels.len() != spec.frames.len() {
-            return Err(err(format!("названий шагов {}, кадров {}", spec.labels.len(), spec.frames.len())));
+            return Err(err(format!("step labels {}, frames {}", spec.labels.len(), spec.frames.len())));
         }
         if spec.captions.len() != spec.frames.len() {
-            return Err(err(format!("подписей {}, кадров {}", spec.captions.len(), spec.frames.len())));
+            return Err(err(format!("captions {}, frames {}", spec.captions.len(), spec.frames.len())));
         }
         if let Some(c) = &spec.cues {
             if c.len() + 1 < spec.frames.len() || c.windows(2).any(|w| w[0] >= w[1]) {
-                return Err(err(format!("метки шагов {c:?} не подходят к {} кадрам", spec.frames.len())));
+                return Err(err(format!("step cues {c:?} do not fit {} frames", spec.frames.len())));
             }
         }
 
         let in_frame = |f: &Frame| spec.base.0.iter().chain(f.0.iter()).cloned().collect::<Vec<_>>();
-        // кадр = base + элементы кадра; повторный id перекрывает предыдущий
+        // frame = base + the frame's elements; a repeated id overrides the previous one
         let mut full: Vec<HashMap<String, Item>> = Vec::with_capacity(spec.frames.len());
         let mut order: Vec<String> = Vec::new();
         let mut first: HashMap<String, Item> = HashMap::new();
@@ -165,7 +165,7 @@ impl Scene {
             let mut m = HashMap::new();
             for it in in_frame(f) {
                 if let Some((key, v)) = it.numbers().into_iter().find(|(_, v)| !v.is_finite()) {
-                    return Err(err(format!("кадр {k}, элемент {}: {key} = {v}", it.id())));
+                    return Err(err(format!("frame {k}, item {}: {key} = {v}", it.id())));
                 }
                 let id = it.id().to_string();
                 match first.get(&id) {
@@ -174,7 +174,7 @@ impl Scene {
                         order.push(id.clone());
                     }
                     Some(prev) if prev.kind() != it.kind() => {
-                        return Err(err(format!("кадр {k}: у id «{id}» меняется вид элемента ({} → {})", prev.kind(), it.kind())));
+                        return Err(err(format!("frame {k}: id '{id}' changes item kind ({} → {})", prev.kind(), it.kind())));
                     }
                     Some(_) => {}
                 }
@@ -182,7 +182,7 @@ impl Scene {
             }
             full.push(m);
         }
-        // чего нет в кадре: последнее показанное состояние, но невидимое; до первого появления — первое состояние, невидимое
+        // what the frame lacks: the last shown state, but hidden; before the first appearance, the first state, hidden
         let mut last_seen: HashMap<&str, &Item> = HashMap::new();
         let mut states = Vec::with_capacity(full.len());
         for m in &full {
@@ -202,7 +202,7 @@ impl Scene {
         Ok(Scene { labels: spec.labels.clone(), captions: spec.captions.clone(), cues, step_ms: spec.step_ms, height: spec.height, states })
     }
 
-    /// Компиляция для авторов сцен: ошибка в данных — паника с понятным сообщением.
+    /// Compilation for scene authors: an error in the data panics with a clear message.
     pub fn new(spec: SceneSpec) -> Scene {
         Scene::compile(&spec).unwrap_or_else(|e| panic!("{e}"))
     }
@@ -211,34 +211,34 @@ impl Scene {
         self.states.len()
     }
 
-    /// Сколько элементов в сцене (по `id`).
+    /// Number of elements in the scene (by `id`).
     pub fn item_count(&self) -> usize {
         self.states.first().map_or(0, Vec::len)
     }
 }
 
-/// Ширина строки моноширинным шрифтом `size` (приблизительно: 0,6 от кегля на символ).
+/// Width of a line in a monospace font of size `size` (approximately 0.6 of the font size per character).
 fn text_width(text: &str, size: f64) -> f64 {
     text.split('\n').map(|l| l.chars().count()).max().unwrap_or(0) as f64 * size * 0.56
 }
 
 impl Scene {
-    /// Проверка раскладки «текст влезает в ячейки, ничего не за холстом»: приблизительная, по ширине символов.
-    /// Возвращает замечания (пусто — всё в порядке); элементы с нулевой прозрачностью не проверяются.
+    /// Layout check "text fits in cells, nothing is outside the canvas": approximate, based on character widths.
+    /// Returns remarks (empty means all is fine); elements with zero opacity are not checked.
     pub fn lint(&self) -> Vec<String> {
         let mut out = Vec::new();
         let name = self.labels.first().map_or("?", String::as_str);
         for (k, row) in self.states.iter().enumerate() {
             for it in row.iter().filter(|i| i.opacity() > 0.0) {
-                let mut warn = |msg: String| out.push(format!("сцена «{name}…», шаг {k}, «{}»: {msg}", it.id()));
+                let mut warn = |msg: String| out.push(format!("scene '{name}…', step {k}, '{}': {msg}", it.id()));
                 match it {
                     Item::Cell(c) => {
                         let (need, have) = (text_width(&c.text, c.size), c.w);
                         if need > have + 8.0 {
-                            warn(format!("подпись «{}» шире ячейки ({need:.0} > {have:.0})", c.text.replace('\n', "/")));
+                            warn(format!("label '{}' is wider than the cell ({need:.0} > {have:.0})", c.text.replace('\n', "/")));
                         }
                         if c.x - c.w / 2.0 < -2.0 || c.x + c.w / 2.0 > 362.0 || c.y - c.h / 2.0 < -2.0 || c.y + c.h / 2.0 > self.height + 2.0 {
-                            warn("ячейка выходит за холст".into());
+                            warn("cell is off the canvas".into());
                         }
                     }
                     Item::Text(t) => {
@@ -249,20 +249,20 @@ impl Scene {
                             crate::item::Anchor::End => (t.x - w, t.x),
                         };
                         if l < -4.0 || r > 364.0 {
-                            warn(format!("подпись «{}» выходит за холст по ширине ({l:.0}…{r:.0})", t.text.replace('\n', "/")));
+                            warn(format!("label '{}' is off the canvas horizontally ({l:.0}…{r:.0})", t.text.replace('\n', "/")));
                         }
                         if t.y < 0.0 || t.y > self.height + 4.0 {
-                            warn("подпись выходит за холст по высоте".into());
+                            warn("label is off the canvas vertically".into());
                         }
                     }
-                    Item::Dot(d) if d.x - d.r < -2.0 || d.x + d.r > 362.0 || d.y - d.r < -2.0 || d.y + d.r > self.height + 2.0 => warn("круг выходит за холст".into()),
+                    Item::Dot(d) if d.x - d.r < -2.0 || d.x + d.r > 362.0 || d.y - d.r < -2.0 || d.y + d.r > self.height + 2.0 => warn("circle is off the canvas".into()),
                     Item::Code(c) => {
                         let w = c.lines.iter().map(|l| text_width(l, c.size)).fold(0.0, f64::max);
                         if c.x + w > 364.0 {
-                            warn(format!("код шире холста ({:.0})", c.x + w));
+                            warn(format!("code is wider than the canvas ({:.0})", c.x + w));
                         }
                         if c.y + c.lines.len() as f64 * c.lh > self.height + 6.0 {
-                            warn("код ниже холста".into());
+                            warn("code is below the canvas".into());
                         }
                     }
                     _ => {}
@@ -282,10 +282,10 @@ mod tests {
 
     fn two_frames() -> Scene {
         Scene::new(SceneSpec::new(
-            &["раз", "два"],
-            &["первый", "второй"],
+            &["one", "two"],
+            &["first", "second"],
             vec![
-                Frame::new().with(cell("a", 10.0, 10.0, "A")).with(text("t", 5.0, 5.0, "только в первом")),
+                Frame::new().with(cell("a", 10.0, 10.0, "A")).with(text("t", 5.0, 5.0, "first only")),
                 Frame::new().with(cell("a", 50.0, 10.0, "A").tone(G)).with(arrow("e", 0.0, 0.0, 9.0, 9.0)),
             ],
         ))
@@ -295,18 +295,18 @@ mod tests {
     fn same_id_is_one_object_and_missing_ones_fade_in_place() {
         let s = two_frames();
         assert_eq!(s.steps(), 2);
-        assert_eq!(s.item_count(), 3, "a, t и e — по одному разу");
+        assert_eq!(s.item_count(), 3, "a, t and e once each");
         let at = |k: usize, id: &str| s.states[k].iter().find(|i| i.id() == id).cloned().unwrap();
         match at(1, "a") {
             Item::Cell(c) => assert_eq!((c.x, c.tone), (50.0, G)),
             other => panic!("{other:?}"),
         }
-        // «t» нет во втором кадре: остаётся на месте, но невидим
+        // "t" is absent from the second frame: stays in place but hidden
         match at(1, "t") {
             Item::Text(t) => assert_eq!((t.x, t.o), (5.0, 0.0)),
             other => panic!("{other:?}"),
         }
-        // «e» ещё не появилась в первом кадре: невидима
+        // "e" has not yet appeared in the first frame: hidden
         match at(0, "e") {
             Item::Line(l) => assert_eq!(l.o, 0.0),
             other => panic!("{other:?}"),
@@ -340,31 +340,31 @@ mod tests {
 
     #[test]
     fn data_errors_are_reported_not_hidden() {
-        fails(SceneSpec::new(&["a", "b"], &["one"], vec![Frame::new(), Frame::new()]), "подписей 1, кадров 2");
-        fails(SceneSpec::new(&["a", "b"], &["1", "2"], vec![Frame::new().with(cell("x", 0.0, 0.0, "")), Frame::new().with(text("x", 0.0, 0.0, ""))]), "меняется вид элемента");
+        fails(SceneSpec::new(&["a", "b"], &["one"], vec![Frame::new(), Frame::new()]), "captions 1, frames 2");
+        fails(SceneSpec::new(&["a", "b"], &["1", "2"], vec![Frame::new().with(cell("x", 0.0, 0.0, "")), Frame::new().with(text("x", 0.0, 0.0, ""))]), "changes item kind");
         fails(SceneSpec::new(&["a"], &["1"], vec![Frame::new().with(cell("x", f64::NAN, 0.0, ""))]), "x = NaN");
-        fails(SceneSpec::new(&["a", "b"], &["1", "2"], vec![Frame::new(), Frame::new()]).cues(&[]), "метки шагов");
+        fails(SceneSpec::new(&["a", "b"], &["1", "2"], vec![Frame::new(), Frame::new()]).cues(&[]), "step cues");
     }
 
     #[test]
     fn lint_finds_overflowing_text_and_items_off_canvas() {
-        let ok = Scene::new(SceneSpec::new(&["a"], &["1"], vec![Frame::new().with(cell("a", 50.0, 50.0, "ok")).with(text("t", 180.0, 20.0, "коротко"))]));
+        let ok = Scene::new(SceneSpec::new(&["a"], &["1"], vec![Frame::new().with(cell("a", 50.0, 50.0, "ok")).with(text("t", 180.0, 20.0, "short"))]));
         assert!(ok.lint().is_empty(), "{:?}", ok.lint());
         let bad = Scene::new(SceneSpec::new(
             &["a"],
             &["1"],
-            vec![Frame::new().with(cell("w", 50.0, 50.0, "очень длинная подпись")).with(text("t", 5.0, 20.0, "подпись у самого края холста, не влезает")).with(cell("o", 400.0, 50.0, "x"))],
+            vec![Frame::new().with(cell("w", 50.0, 50.0, "very long caption")).with(text("t", 5.0, 20.0, "caption at the edge холста, не влезает")).with(cell("o", 400.0, 50.0, "x"))],
         ));
         let l = bad.lint();
         assert_eq!(l.len(), 3, "{l:?}");
-        assert!(l.iter().any(|m| m.contains("шире ячейки")) && l.iter().any(|m| m.contains("за холст")));
+        assert!(l.iter().any(|m| m.contains("wider than the cell")) && l.iter().any(|m| m.contains("off the canvas")));
     }
 
     #[test]
     fn spec_survives_json() {
-        let spec = SceneSpec::new(&["раз"], &["один"], vec![Frame::new().with(cell("a", 1.0, 2.0, "A").tone(G))]).height(200.0);
+        let spec = SceneSpec::new(&["one"], &["uno"], vec![Frame::new().with(cell("a", 1.0, 2.0, "A").tone(G))]).height(200.0);
         let json = serde_json::to_string(&spec).unwrap();
-        assert!(!json.contains("step_ms"), "умолчания не пишутся: {json}");
+        assert!(!json.contains("step_ms"), "defaults are not written: {json}");
         assert_eq!(serde_json::from_str::<SceneSpec>(&json).unwrap(), spec);
     }
 }

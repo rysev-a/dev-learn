@@ -1,8 +1,8 @@
-//! Упражнения-лаборатории в практике главы: условие и сценарий приходят с бэкенда (`GET /api/labs/{книга}/{глава}`), расчёт —
-//! в крейте движка лаборатории (общем с сервером), а решённое упражнение сервер перепроверяет тем же движком.
+//! Lab exercises in chapter practice: the statement and scenario come from the backend (`GET /api/labs/{book}/{chapter}`), the calculation is
+//! in the lab engine crate (shared with the server), and the server re-checks a solved exercise with the same engine.
 //!
-//! [`LabHost`] загружает сценарии главы, выбирает интерфейс по виду лаборатории и принимает от него решение: `LabProps::report`
-//! отправляет решение на сервер и отмечает упражнение решённым только после его согласия.
+//! [`LabHost`] loads the chapter scenarios, picks the interface by lab kind and accepts a solution from it: `LabProps::report`
+//! sends the solution to the server and marks the exercise solved only after the server agrees.
 
 use api::dto::LabTask;
 use leptos::{prelude::*, task::spawn_local};
@@ -18,26 +18,26 @@ mod sd;
 mod virt;
 mod web;
 
-/// Что получает интерфейс конкретной лаборатории.
+/// What the interface of a particular lab receives.
 #[derive(Clone)]
 pub struct LabProps {
-    /// упражнение: условие, подсказка и сценарий (`spec` — данные лаборатории)
+    /// the exercise: statement, hint and scenario (`spec` is the lab data)
     pub task: LabTask,
-    /// сохранённое состояние ученика (черновик), строка JSON/текст; пусто — начать с исходного
+    /// the learner's saved state (draft), a JSON/text string; empty means start from the initial one
     pub draft: Signal<String>,
-    /// сохранить черновик (отправляется на сервер с паузой)
+    /// save the draft (sent to the server with a pause)
     pub on_draft: Callback<String>,
-    /// упражнение уже решено (раньше или только что)
+    /// the exercise is already solved (earlier or just now)
     pub solved: Signal<bool>,
-    /// сообщить решение: сервер проверит его движком; при отказе под лабораторией появится причина
+    /// report a solution: the server checks it with the engine; on refusal the reason appears under the lab
     pub report: Callback<String>,
-    /// перейти к следующему упражнению
+    /// go to the next exercise
     pub on_next: Callback<()>,
-    /// есть ли следующее упражнение
+    /// whether there is a next exercise
     pub has_next: Signal<bool>,
 }
 
-/// Лаборатория выбранного упражнения.
+/// The lab of the selected exercise.
 #[component]
 pub fn LabHost(
     book: i64,
@@ -46,7 +46,7 @@ pub fn LabHost(
     #[prop(into)] draft: Signal<String>,
     on_draft: Callback<String>,
     #[prop(into)] solved: Signal<bool>,
-    /// упражнение принято сервером
+    /// the exercise was accepted by the server
     on_solved: Callback<()>,
     on_next: Callback<()>,
     #[prop(into)] has_next: Signal<bool>,

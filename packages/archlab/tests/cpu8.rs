@@ -1,5 +1,5 @@
-//! Процессор «Мини-8»: эмулятор и машина на вентилях ведут себя одинаково на случайных программах;
-//! быстрый симулятор ловит петли, память и такт работают.
+//! The "Mini-8" processor: the emulator and the gate-level machine behave identically on random programs;
+//! the fast simulator catches loops, memory and the clock work.
 
 use archlab::asm::isa::*;
 use archlab::asm::{assemble, Machine};
@@ -17,7 +17,7 @@ impl Lcg {
     }
 }
 
-/// Случайная корректная программа из `len` команд: все форматы, переходы только вперёд внутри программы.
+/// Random valid program of `len` instructions: all formats, jumps only forward within the program.
 fn random_program(r: &mut Lcg, len: usize) -> Vec<u16> {
     let mut words = Vec::new();
     for i in 0..len {
@@ -34,12 +34,12 @@ fn random_program(r: &mut Lcg, len: usize) -> Vec<u16> {
             7 => pack(8, a, b, imm6),
             8 => pack(9, a, b, imm6),
             9..=11 => {
-                // условный переход вперёд (но не дальше конца программы), чтобы не зациклиться навсегда
+                // conditional jump forward (but not past the end of the program) so it never loops forever
                 let max_fwd = ((len - 1 - i) as i32).min(31);
                 let off = if max_fwd > 0 { r.below(max_fwd as u64 + 1) as i32 } else { 0 };
                 pack(10 + r.below(4) as u16, a, b, off)
             }
-            _ => (14 << 12) | ((((len - 1 - i) as i32).min(40) as u16).min(r.below(6) as u16 + 1) & 0xfff), // jmp вперёд
+            _ => (14 << 12) | ((((len - 1 - i) as i32).min(40) as u16).min(r.below(6) as u16 + 1) & 0xfff), // jmp forward
         };
         words.push(w);
     }
@@ -49,30 +49,30 @@ fn random_program(r: &mut Lcg, len: usize) -> Vec<u16> {
 
 #[test]
 fn gate_machine_equals_emulator_on_random_programs() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let mut r = Lcg(0x5eed_2026);
     let disk: Vec<u8> = (0..256).map(|i| (i * 37 + 11) as u8).collect();
     for n in 0..40 {
         let program = random_program(&mut r, 8 + (n % 24));
         let mut e = Machine::new(&program, &disk);
-        let mut g = GateMachine::new(&program, &disk).expect("машина");
+        let mut g = GateMachine::new(&program, &disk).expect("machine");
         for step in 0..120 {
             e.step();
             g.step();
-            assert_eq!(e.regs.to_vec(), g.regs(), "программа {n}, шаг {step}: регистры\n{:?}", program.iter().map(|w| disassemble(*w)).collect::<Vec<_>>());
-            assert_eq!(e.pc as u32, g.pc(), "программа {n}, шаг {step}: счётчик команд");
-            assert_eq!(e.halted, g.halted, "программа {n}, шаг {step}: остановка");
-            assert_eq!(e.error, g.error, "программа {n}, шаг {step}: ошибка");
+            assert_eq!(e.regs.to_vec(), g.regs(), "program {n}, step {step}: registers\n{:?}", program.iter().map(|w| disassemble(*w)).collect::<Vec<_>>());
+            assert_eq!(e.pc as u32, g.pc(), "program {n}, step {step}: program counter");
+            assert_eq!(e.halted, g.halted, "program {n}, step {step}: halt");
+            assert_eq!(e.error, g.error, "program {n}, step {step}: error");
         }
-        assert_eq!(e.view().mem, g.view().mem, "программа {n}: диск");
-        assert_eq!(e.view().last_write, g.view().last_write, "программа {n}: последняя запись");
+        assert_eq!(e.view().mem, g.view().mem, "program {n}: disk");
+        assert_eq!(e.view().last_write, g.view().last_write, "program {n}: last write");
     }
 }
 
 #[test]
 fn assembler_and_disassembler_agree() {
-    i18n::set_locale(i18n::Locale::Ru);
-    // каждая команда из таблицы ассемблируется и возвращается тем же текстом (кроме перехода: он показывает смещение)
+    locales::set_locale(i18n::Locale::Ru);
+    // every instruction from the table assembles and comes back as the same text (except the jump: it shows the offset)
     for op in OPS {
         let asm = assemble(op.example.replace("end", "+0").replace("loop", "+0").replace("next", "+0").as_str());
         assert!(asm.errors.is_empty(), "{}: {:?}", op.example, asm.errors);
@@ -89,7 +89,7 @@ fn assembler_and_disassembler_agree() {
 
 #[test]
 fn combinational_loop_is_an_error() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let c = Circuit::new(
         vec![
             GateInstance { id: "a".into(), ty: GateType::Not, x: 0.0, y: 0.0 },
@@ -100,42 +100,42 @@ fn combinational_loop_is_an_error() {
             Wire { id: "2".into(), from: PinRef::out("b"), to: PinRef::inp("a", PinKind::In0) },
         ],
     );
-    let err = CompiledSim::new(&c).expect_err("петля");
+    let err = CompiledSim::new(&c).expect_err("loop");
     assert!(err.to_string().starts_with("В схеме есть петля без триггера"), "{err}");
-    // с триггером в петле — можно
+    // with a flip-flop in the loop — allowed
     let mut c = c;
     c.gates[1] = GateInstance { id: "b".into(), ty: GateType::Dff, x: 0.0, y: 0.0 };
     c.wires.push(Wire { id: "3".into(), from: PinRef::out("clk"), to: PinRef::inp("b", PinKind::In1) });
-    let mut sim = CompiledSim::new(&c).expect("петля через триггер");
-    sim.pulse("clk").expect("такт");
-    assert_eq!(sim.get("b"), Some(1), "NOT от нуля — единица по фронту");
-    sim.pulse("clk").expect("такт");
+    let mut sim = CompiledSim::new(&c).expect("loop through a flip-flop");
+    sim.pulse("clk").expect("clock");
+    assert_eq!(sim.get("b"), Some(1), "NOT of zero is one on the edge");
+    sim.pulse("clk").expect("clock");
     assert_eq!(sim.get("b"), Some(0));
-    assert!(sim.pulse("нет такого").is_err());
+    assert!(sim.pulse("no such").is_err());
 }
 
 #[test]
 fn processor_has_the_documented_size() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let blocks = cpu8_blocks();
     assert_eq!(blocks.all().len(), 29);
-    let cpu = archlab::cpu8::cpu_expansion().expect("процессор");
-    assert_eq!(cpu.circuit.natives.len(), 2, "ПЗУ и диск");
-    let sim = CompiledSim::new(&cpu.circuit).expect("компиляция");
-    // 1254 вентилей в схеме: 1189 комбинационных и 65 триггеров (7 регистров по 8 бит, счётчик команд и триггер остановки)
+    let cpu = archlab::cpu8::cpu_expansion().expect("processor");
+    assert_eq!(cpu.circuit.natives.len(), 2, "ROM and disk");
+    let sim = CompiledSim::new(&cpu.circuit).expect("compilation");
+    // 1254 gates in the circuit: 1189 combinational and 65 flip-flops (7 registers of 8 bits, program counter and the halt flip-flop)
     assert_eq!((sim.gate_count, sim.dff_count), (1189, 65));
 }
 
 #[test]
 fn memory_loading_is_checked() {
-    i18n::set_locale(i18n::Locale::Ru);
-    let cpu = archlab::cpu8::cpu_expansion().expect("процессор");
-    let mut sim = CompiledSim::new(&cpu.circuit).expect("компиляция");
-    assert!(sim.load_rom("нет", &[1]).is_err());
-    assert!(sim.load_ram("rom__mem", &[1]).is_err(), "ПЗУ — не ОЗУ");
-    sim.load_rom("rom__mem", &[0x1234]).expect("ПЗУ");
-    sim.load_ram("ram__mem", &[7, 8, 9]).expect("ОЗУ");
-    assert_eq!(sim.memory("ram__mem").expect("память")[..4], [7, 8, 9, 0]);
-    assert_eq!(sim.memory("rom__mem").expect("память")[0], 0x1234);
+    locales::set_locale(i18n::Locale::Ru);
+    let cpu = archlab::cpu8::cpu_expansion().expect("processor");
+    let mut sim = CompiledSim::new(&cpu.circuit).expect("compilation");
+    assert!(sim.load_rom("none", &[1]).is_err());
+    assert!(sim.load_ram("rom__mem", &[1]).is_err(), "ROM is not RAM");
+    sim.load_rom("rom__mem", &[0x1234]).expect("ROM");
+    sim.load_ram("ram__mem", &[7, 8, 9]).expect("RAM");
+    assert_eq!(sim.memory("ram__mem").expect("memory")[..4], [7, 8, 9, 0]);
+    assert_eq!(sim.memory("rom__mem").expect("memory")[0], 0x1234);
     assert!(sim.has_native("ram__mem") && !sim.has_native("x"));
 }

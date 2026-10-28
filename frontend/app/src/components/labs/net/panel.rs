@@ -1,4 +1,4 @@
-//! Карточка устройства: вкладки «Настройки» (формы по виду устройства и флагам `tools` упражнения) и «Терминал».
+//! Device card: the "Settings" tab (forms by device kind and the exercise `tools` flags) and the "Terminal" tab.
 
 use leptos::prelude::*;
 use netlab::types::DeviceKind;
@@ -17,7 +17,7 @@ enum Tab {
     Term,
 }
 
-/// Карточка выбранного устройства; при смене выбора пересоздаётся (поля форм начинают с чистого листа).
+/// Card of the selected device; recreated when the selection changes (form fields start from a clean slate).
 #[component]
 pub fn DevicePanel(lab: Lab) -> impl IntoView {
     move || {
@@ -51,7 +51,7 @@ fn PanelFor(lab: Lab, id: String) -> impl IntoView {
     .into_any()
 }
 
-/// Какие формы показывать устройству: вид устройства и инструменты упражнения (чистая функция).
+/// Which forms to show for a device: device kind and exercise tools (a pure function).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Sections {
     pub interfaces: bool,
@@ -74,8 +74,8 @@ impl Sections {
         let host = matches!(kind, DeviceKind::Host | DeviceKind::Server);
         let router = matches!(kind, DeviceKind::Router | DeviceKind::Internet);
         let switch = kind == DeviceKind::Switch;
-        // таблица маршрутов у компьютеров открывалась флагом `routes`, но ни одно упражнение его не включает —
-        // в `Tools` флага нет, а маршрутизаторам таблица показывается всегда
+        // the routes table on computers used to be opened by the `routes` flag, but no exercise enables it —
+        // `Tools` has no such flag, and routers always show the table
         Sections {
             interfaces: !switch,
             gateway: host,
@@ -98,7 +98,7 @@ impl Sections {
 fn Config(ctx: Ctx, kind: DeviceKind, tools: Tools) -> impl IntoView {
     let has_ssh_server = ctx.read(|d| d.ssh.is_some()).unwrap_or(false);
     let s = Sections::of(kind, &tools, has_ssh_server);
-    // службы показываются, пока они есть на устройстве (команда терминала может их создать)
+    // services are shown while they exist on the device (a terminal command can create them)
     let has = move |f: fn(&netlab::types::Device) -> bool| move || ctx.read(f).unwrap_or(false);
     let t = tools;
     view! {
@@ -138,14 +138,14 @@ mod tests {
 
     #[test]
     fn host_gets_gateway_but_no_router_forms() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Host, &tools(|t| t.nat = true), false);
         assert!(s.interfaces && s.gateway && !s.routes && !s.nat && !s.forwarding && !s.services);
     }
 
     #[test]
     fn router_forms_follow_tools() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Router, &tools(|t| t.nat = true), false);
         assert!(s.routes && s.forwarding && s.nat && !s.fw && !s.gateway);
         let s = Sections::of(DeviceKind::Internet, &tools(|t| t.fw = true), false);
@@ -154,23 +154,23 @@ mod tests {
 
     #[test]
     fn switch_has_ports_and_no_interfaces() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Switch, &tools(|t| t.ssh = true), true);
         assert!(s.switch && !s.interfaces && !s.ssh && !s.gateway);
     }
 
     #[test]
     fn server_lists_listening_ports_and_ssh_when_open() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = Sections::of(DeviceKind::Server, &tools(|t| t.ssh = true), false);
         assert!(s.services && s.ssh);
-        assert!(!Sections::of(DeviceKind::Router, &tools(|t| t.ssh = true), false).ssh, "роутер без SSH-сервера и не компьютер");
+        assert!(!Sections::of(DeviceKind::Router, &tools(|t| t.ssh = true), false).ssh, "a router has no SSH server and is not a computer");
         assert!(Sections::of(DeviceKind::Router, &tools(|t| t.ssh = true), true).ssh);
     }
 
     #[test]
     fn tcp_dns_tls_forms_are_for_hosts_only() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let all = tools(|t| {
             t.tcp = true;
             t.dns = true;

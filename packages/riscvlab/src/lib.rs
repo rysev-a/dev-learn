@@ -1,16 +1,16 @@
 #![warn(missing_docs)]
 
-//! Лаборатория RISC-V (книга 14 «Архитектура компьютера», главы 16–17).
+//! RISC-V lab (book 14 "Computer Architecture", chapters 16–17).
 //!
-//! * [`isa`] — набор команд RV32IM: кодирование, декодирование, дизассемблер, разбор по полям;
-//! * [`asm`] — ассемблер (метки, директивы, псевдокоманды, сообщения об ошибках на русском);
-//! * [`machine`] — эмулятор «мягкого процессора» с памятью 16 КиБ, UART, светодиодами, переключателями и таймером;
-//! * [`task`] — упражнения как данные (`LabChapter`, `TaskSpec`) и [`task::verify`] — серверная проверка решения;
-//! * [`export`] — перевод выгрузки из TypeScript в файлы данных (бинарь `import`);
-//! * [`project`] — проект для сборки на своём компьютере (Makefile, README, zip).
+//! * [`isa`] — the RV32IM instruction set: encoding, decoding, disassembler, field-level parsing;
+//! * [`asm`] — the assembler (labels, directives, pseudo-instructions, error messages in Russian);
+//! * [`machine`] — emulator of a "soft processor" with 16 KiB of memory, UART, LEDs, switches and a timer;
+//! * [`task`] — exercises as data (`LabChapter`, `TaskSpec`) and [`task::verify`] — server-side solution check;
+//! * [`export`] — conversion of the TypeScript export into data files (the `import` binary);
+//! * [`project`] — a project for building on your own computer (Makefile, README, zip).
 //!
-//! Крейт работает и нативно (бэкенд проверяет присланные решения), и в wasm (интерфейс исполняет программу
-//! пошагово). Зависимости — только `serde`.
+//! The crate works both natively (the backend checks submitted solutions) and in wasm (the UI runs the program
+//! step by step). The only dependency is `serde`.
 
 pub mod asm;
 pub mod export;

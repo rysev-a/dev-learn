@@ -3,10 +3,13 @@ name = "archlab"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Лаборатория «Архитектура компьютера» (книга 14): схемы из вентилей и блоков, симулятор, упражнения главы 6–14 как данные, процессор Мини-8 и его ассемблер (глава 15). Общий крейт: интерфейс (wasm) рисует и считает, бэкенд проверяет присланное решение."
+description = "Laboratory \"Computer Architecture\" (book 14): circuits from gates and blocks, simulator, exercises of chapters 6–14 as data, the Mini-8 processor and its assembler (chapter 15). Shared crate: the interface (wasm) draws and computes, the backend verifies the submitted solution."
 
 [dependencies]
 i18n = { path = "../i18n" }
 serde = { version = "1", features = ["derive"] }
-# float_roundtrip: координаты вентилей читаются и пишутся без потери последнего знака
+# float_roundtrip: gate coordinates are read and written without losing the last digit
 serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[dev-dependencies]
+locales = { path = "../locales" }

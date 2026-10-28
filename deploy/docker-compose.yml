@@ -1,23 +1,23 @@
-# Всё на одной машине, на которой есть только docker compose: traefik (вход), frontend (сервис `proxy`), api, surrealdb, backup.
-# Проверка кода (worker + dind) — отдельный профиль `checks`: `--profile checks`. Инструкция — docs/deploy-agent.md, рассуждения — deploy.md.
-#   cp deploy/.env.example deploy/.env  (заполнить)
+# Everything on one machine that has only docker compose: traefik (entry), frontend (service `proxy`), api, surrealdb, backup.
+# Code checking (worker + dind) is a separate profile `checks`: `--profile checks`. Instructions: docs/deploy-agent.md, rationale: deploy.md.
+#   cp deploy/.env.example deploy/.env  (fill in)
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
-# Вариант без сборки на сервере: образы собираются и публикуются на другой машине (CS_CORE_REGISTRY=ghcr.io/владелец/, CS_CORE_TAG=2026-10-26):
+# Variant without building on the server: images are built and published on another machine (CS_CORE_REGISTRY=ghcr.io/owner/, CS_CORE_TAG=2026-10-26):
 #   LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env build && docker compose … push
-#   на сервере: docker compose … pull && docker compose … up -d --no-build
-#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images   # один раз: образы песочниц
-# Сборка бэкенда идёт с секретом `lab_token` (токен gitness для приватного реестра crates): LAB_TOKEN=… в окружении при сборке.
-# Данные — в томе surreal-data (SurrealDB).
+#   on the server: docker compose … pull && docker compose … up -d --no-build
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images   # once: the sandbox images
+# The backend is built with the secret `lab_token` (a gitness token for the private crate registry): set LAB_TOKEN=… in the environment at build time.
+# Data lives in the surreal-data volume (SurrealDB).
 name: cs-core
 
 services:
-  # единственная точка входа: Traefik принимает 80/443 и раздаёт по маршрутам из traefik/dynamic.yml (сокет Docker не монтируется)
+  # the only entry point: Traefik accepts 80/443 and routes by traefik/dynamic.yml (the Docker socket is not mounted)
   traefik:
     image: traefik:v3.3
     restart: unless-stopped
     command:
       - --providers.file.filename=/etc/traefik/dynamic.yml
-      # сертификаты Let's Encrypt для рабочего режима (traefik/tls.yml); пока ни один роутер резолвер не использует, запросов нет
+      # Let's Encrypt certificates for production mode (traefik/tls.yml); until a router uses the resolver, no requests are made
       - --certificatesresolvers.le.acme.email=${ACME_EMAIL:-}
       - --certificatesresolvers.le.acme.storage=/acme/acme.json
       - --certificatesresolvers.le.acme.tlschallenge=true
@@ -47,7 +47,7 @@ services:
     mem_limit: 256m
     logging: &log { driver: json-file, options: { max-size: "10m", max-file: "3" } }
 
-  # frontend: Caddy со статикой Leptos внутри сети (наружу не опубликован)
+  # frontend: Caddy serving the Leptos static files inside the network (not published outside)
   proxy:
     image: ${CS_CORE_REGISTRY:-}cs-core-proxy:${CS_CORE_TAG:-latest}
     build: { context: .., dockerfile: deploy/proxy.Dockerfile }
@@ -66,20 +66,20 @@ services:
       context: ..
       dockerfile: deploy/backend.Dockerfile
       secrets: [lab_token]
-      # готовый `cargo vendor` вместо реестра lab (если до него нет сети); по умолчанию пусто — работает реестр с токеном
+      # a ready `cargo vendor` instead of the lab registry (if it is unreachable); empty by default, the registry with the token is used
       additional_contexts:
         vendor: ${CS_CORE_VENDOR_DIR:-./no-vendor}
     restart: unless-stopped
     environment:
-      CS_CORE_WORKER_TOKEN: ${CS_CORE_WORKER_TOKEN:?задайте CS_CORE_WORKER_TOKEN в deploy/.env}
-      # потолок очереди проверок: при превышении бэкенд отвечает 503, интерфейс показывает окно о перегрузке
+      CS_CORE_WORKER_TOKEN: ${CS_CORE_WORKER_TOKEN:?set CS_CORE_WORKER_TOKEN in deploy/.env}
+      # check queue limit: beyond it the backend answers 503 and the interface shows an overload notice
       CS_CORE_QUEUE_LIMIT: ${CS_CORE_QUEUE_LIMIT:-300}
       SURREALDB_URL: ws://surrealdb:8000
       SURREAL_USER: root
-      SURREAL_PASS: ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env}
-      DB_STRICT: "1" # без базы не стартуем: молча работать на базе в памяти нельзя
-      ADMIN_EMAIL: ${ADMIN_EMAIL:?задайте ADMIN_EMAIL в deploy/.env}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?задайте ADMIN_PASSWORD в deploy/.env}
+      SURREAL_PASS: ${SURREAL_PASS:?set SURREAL_PASS in deploy/.env}
+      DB_STRICT: "1" # do not start without the database: silently running on an in-memory database is not allowed
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in deploy/.env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in deploy/.env}
       APP_URL: ${CS_CORE_URL:-http://localhost}
       SITE_NAME: ${SITE_NAME:-CS.Core}
       SMTP_HOST: ${SMTP_HOST:-}
@@ -100,14 +100,14 @@ services:
     logging: *log
 
   surrealdb:
-    image: surrealdb/surrealdb:v3.3.4 # версия закреплена: тег v3 плавающий, а запросы бэкенда проверены на 3.3.4
+    image: surrealdb/surrealdb:v3.3.4 # version pinned: the v3 tag floats, and the backend queries are verified on 3.3.4
     restart: unless-stopped
     user: "0:0"
-    command: start --user root --pass ${SURREAL_PASS:?задайте SURREAL_PASS в deploy/.env} surrealkv:/data/database.db
+    command: start --user root --pass ${SURREAL_PASS:?set SURREAL_PASS in deploy/.env} surrealkv:/data/database.db
     volumes:
       - surreal-data:/data
-    # доступ с хоста для разработки (Surrealist, surreal sql): только на 127.0.0.1, наружу порт не выходит.
-    # Сеть back внутренняя (без выхода наружу), поэтому для публикации порта база дополнительно подключена к front.
+    # host access for development (Surrealist, surreal sql): on 127.0.0.1 only, the port is not exposed outside.
+    # The back network is internal (no outbound access), so the database is also attached to front to publish the port.
     ports:
       - "127.0.0.1:${CS_CORE_SURREAL_PORT:-18000}:8000"
     healthcheck:
@@ -119,7 +119,7 @@ services:
     mem_limit: 1g
     logging: *log
 
-  # отдельный Docker-демон только для песочниц: сокет хоста в контейнеры не монтируем
+  # a separate Docker daemon for sandboxes only: the host socket is not mounted into containers
   dind:
     image: docker:29-dind
     profiles: [checks]
@@ -130,7 +130,7 @@ services:
     command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "-H", "unix:///var/run/docker.sock", "--log-opt", "max-size=10m", "--log-opt", "max-file=2"]
     volumes:
       - dind-data:/var/lib/docker
-      # каталог с кодом ученика создаёт воркер, а монтирует в песочницу демон dind — путь должен быть один и тот же
+      # the worker creates the directory with the student's code and the dind daemon mounts it into the sandbox, so the path must be the same
       - sandboxes:/sandboxes
     cpus: ${CS_CORE_SANDBOX_CPUS:-3}
     mem_limit: ${CS_CORE_SANDBOX_MEM:-6g}
@@ -161,7 +161,7 @@ services:
     mem_limit: 256m
     logging: *log
 
-  # разово: заливает образы песочниц в dind (python, rust, node, cs-core-rust-crates)
+  # one-off: loads the sandbox images into dind (python, rust, node, cs-core-rust-crates)
   images:
     image: ${CS_CORE_REGISTRY:-}cs-core-worker:${CS_CORE_TAG:-latest}
     build: { context: .., dockerfile: deploy/worker.Dockerfile }
@@ -173,8 +173,8 @@ services:
       dind: { condition: service_healthy }
     networks: [sandbox]
 
-  # резервная копия SurrealDB: раз в сутки HTTP-экспорт (SurrealQL) в том backups, хранятся последние 14
-  # (в образе surrealdb нет оболочки, поэтому curl; восстановление — `surreal import` в чистую базу)
+  # SurrealDB backup: a daily HTTP export (SurrealQL) into the backups volume, the last 14 are kept
+  # (the surrealdb image has no shell, hence curl; restore with `surreal import` into a clean database)
   backup:
     image: curlimages/curl:8.11.1
     restart: unless-stopped
@@ -186,9 +186,9 @@ services:
         while true; do
           f=/backups/cs-core-$$(date +%Y%m%d-%H%M%S).surql
           if curl -fsS -u "root:$$SURREAL_PASS" -H "surreal-ns: stack" -H "surreal-db: cs-core" -H "Accept: application/octet-stream" -o "$$f" http://surrealdb:8000/export; then
-            echo "копия: $$f"
+            echo "backup: $$f"
           else
-            rm -f "$$f"; echo "ошибка копии"
+            rm -f "$$f"; echo "backup failed"
           fi
           ls -1t /backups/cs-core-*.surql 2>/dev/null | tail -n +15 | xargs -r rm --
           sleep 86400
@@ -210,8 +210,8 @@ secrets:
 networks:
   front:
   back:
-    internal: true # у api и воркера нет выхода в интернет; наружу только proxy
-  sandbox: # dind нужен выход для docker pull при подготовке образов; сами песочницы запускаются с --network none
+    internal: true # the api and the worker have no internet access; only proxy is exposed
+  sandbox: # dind needs outbound access for docker pull while preparing images; the sandboxes themselves run with --network none
 
 volumes:
   surreal-data:

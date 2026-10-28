@@ -1,100 +1,100 @@
-//! Модель живой миграции (глава 10).
+//! Live migration model (chapter 10).
 //!
-//! Единицы: память — МиБ, время — секунды, простой — миллисекунды. Круг pre-copy передаёт остаток, за это время гость
-//! портит `dirty * время` МиБ (не больше всей памяти) — это и есть следующий остаток. Миграция сходится, когда остаток
-//! помещается в допустимый простой.
+//! Units: memory — MiB, time — seconds, downtime — milliseconds. A pre-copy round transfers the remainder; meanwhile the guest
+//! dirties `dirty * time` MiB (at most all memory) — that is the next remainder. The migration converges when the remainder
+//! fits into the allowed downtime.
 //!
-//! Сценарий ([`Scenario`]) задаёт скорость записи гостя и сети и цель (условие [`MigrationGoal`]); остальное подбирает
-//! ученик ([`MigrationInput`]). Цель сценария проверяется по результату запуска.
+//! A scenario ([`Scenario`]) sets the guest dirtying rate, the network rate and the goal (condition [`MigrationGoal`]); the rest is chosen by
+//! the student ([`MigrationInput`]). The scenario goal is checked against the run result.
 
 use serde::{Deserialize, Serialize};
 
 use crate::goal::Goal;
 
-/// Память гостя, МиБ (16 ГиБ).
+/// Guest memory, MiB (16 GiB).
 pub const MEM_MIB: f64 = 16384.0;
-/// Передача состояния процессоров и устройств при остановке, мс.
+/// Transfer of CPU and device state at stop, ms.
 pub const STATE_MS: f64 = 20.0;
-/// Предел кругов pre-copy.
+/// Pre-copy round limit.
 pub const MAX_ROUNDS: u32 = 12;
-/// Условный выигрыш канала от сжатия (нулевые страницы и дельты).
+/// Nominal channel gain from compression (zero pages and deltas).
 pub const COMPRESS_FACTOR: f64 = 1.5;
 
-/// Параметры миграции (формат полей — как в прежнем TypeScript-клиенте: `downtimeMs`, `autoConverge`, `postcopyAfter`).
+/// Migration parameters (field format as in the former TypeScript client: `downtimeMs`, `autoConverge`, `postcopyAfter`).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MigrationInput {
-    /// Скорость записи гостя, МиБ/с.
+    /// Guest dirtying rate, MiB/s.
     pub dirty: f64,
-    /// Пропускная способность сети, МиБ/с.
+    /// Network bandwidth, MiB/s.
     pub bw: f64,
-    /// Допустимый простой, мс.
+    /// Allowed downtime, ms.
     pub downtime_ms: f64,
-    /// Притормаживать vCPU (старт 20%, +10% за круг, не больше 99%).
+    /// Throttle vCPUs (start at 20%, +10% per round, at most 99%).
     #[serde(default)]
     pub auto_converge: bool,
-    /// Сжатие страниц.
+    /// Page compression.
     #[serde(default)]
     pub compress: bool,
-    /// `None` — только pre-copy, иначе число кругов pre-copy до переключения на post-copy.
+    /// `None` — pre-copy only, otherwise the number of pre-copy rounds before switching to post-copy.
     #[serde(default)]
     pub postcopy_after: Option<u32>,
-    /// Память гостя, МиБ (по умолчанию [`MEM_MIB`]).
+    /// Guest memory, MiB (default [`MEM_MIB`]).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mem: Option<f64>,
 }
 
-/// Чем кончилась миграция.
+/// How the migration ended.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Outcome {
-    /// Остаток поместился в простой: обычная pre-copy.
+    /// The remainder fit into the downtime: ordinary pre-copy.
     Precopy,
-    /// Переключились на post-copy.
+    /// Switched to post-copy.
     Postcopy,
-    /// Круги кончились, остановка с большим остатком.
+    /// Ran out of rounds, stopped with a large remainder.
     Failed,
 }
 
-/// Один круг pre-copy.
+/// One pre-copy round.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Round {
-    /// Номер круга (с 1).
+    /// Round number (from 1).
     pub k: u32,
-    /// Передано в этом круге, МиБ.
+    /// Sent in this round, MiB.
     pub sent: f64,
-    /// Длительность круга, с.
+    /// Round duration, s.
     pub secs: f64,
-    /// Замедление vCPU, %.
+    /// vCPU throttling, %.
     pub throttle: f64,
-    /// Остаток после круга, МиБ.
+    /// Remainder after the round, MiB.
     pub next: f64,
 }
 
-/// Результат симуляции.
+/// Simulation result.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Simulation {
-    /// Исход.
+    /// Outcome.
     pub outcome: Outcome,
-    /// Круги pre-copy.
+    /// Pre-copy rounds.
     pub rounds: Vec<Round>,
-    /// Остаток к моменту остановки/переключения, МиБ.
+    /// Remainder at the moment of stop/switch, MiB.
     pub remaining: f64,
-    /// Простой, мс (округлён).
+    /// Downtime, ms (rounded).
     pub downtime: u64,
-    /// Общее время миграции, с (округлено до десятых).
+    /// Total migration time, s (rounded to tenths).
     pub total: f64,
-    /// Условное число ошибок страниц при post-copy.
+    /// Nominal number of page faults during post-copy.
     pub faults: u64,
-    /// Порог остановки: сколько МиБ успевает уйти за допустимый простой.
+    /// Stop threshold: how many MiB can be sent within the allowed downtime.
     pub limit: f64,
 }
 
-/// Симулировать миграцию.
+/// Simulate the migration.
 pub fn simulate(input: &MigrationInput) -> Simulation {
     let mem = input.mem.unwrap_or(MEM_MIB);
     let eff = input.bw * if input.compress { COMPRESS_FACTOR } else { 1.0 };
-    let limit = (eff * input.downtime_ms) / 1000.0; // сколько МиБ можно передать за допустимый простой
+    let limit = (eff * input.downtime_ms) / 1000.0; // how many MiB can be sent within the allowed downtime
     let mut rounds: Vec<Round> = vec![];
     let mut remaining = mem;
     let mut elapsed = 0.0;
@@ -130,13 +130,13 @@ pub fn simulate(input: &MigrationInput) -> Simulation {
         total = elapsed + downtime / 1000.0;
         faults = 0.0;
     } else if switched {
-        // гость уже на цели, страницы подтягиваются по требованию и фоном
+        // the guest is already on the destination, pages are pulled on demand and in the background
         outcome = Outcome::Postcopy;
         downtime = STATE_MS;
         total = elapsed + remaining / eff;
-        faults = (remaining / 64.0).round(); // условно: одна ошибка на 64 МиБ остатка
+        faults = (remaining / 64.0).round(); // nominally: one fault per 64 MiB of remainder
     } else {
-        // предел кругов исчерпан: машину всё равно приходится остановить с большим остатком
+        // round limit exhausted: the machine still has to be stopped with a large remainder
         outcome = Outcome::Failed;
         downtime = (remaining / eff) * 1000.0 + STATE_MS;
         total = elapsed + downtime / 1000.0;
@@ -153,21 +153,21 @@ pub fn simulate(input: &MigrationInput) -> Simulation {
     }
 }
 
-/// Условие достижения цели сценария по результату симуляции (незаданные не проверяются).
+/// Condition for reaching the scenario goal by the simulation result (unspecified ones are not checked).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct MigrationGoal {
-    /// Требуемый исход.
+    /// Required outcome.
     pub outcome: Outcome,
-    /// Простой не больше, мс.
+    /// Downtime at most, ms.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_downtime: Option<u64>,
-    /// Общее время не больше, с.
+    /// Total time at most, s.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_total: Option<f64>,
 }
 
 impl MigrationGoal {
-    /// Достигнута ли цель на результате `r`.
+    /// Whether the goal is reached on result `r`.
     pub fn check(&self, r: &Simulation) -> bool {
         r.outcome == self.outcome
             && self.max_downtime.is_none_or(|d| r.downtime <= d)
@@ -175,32 +175,32 @@ impl MigrationGoal {
     }
 }
 
-/// Сценарий: скорости гостя и сети заданы, остальное подбирает ученик.
+/// Scenario: guest and network rates are given, the rest is chosen by the student.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scenario {
-    /// Идентификатор (он же идентификатор цели).
+    /// Identifier (also the goal identifier).
     pub id: String,
-    /// Название вкладки.
+    /// Tab title.
     pub title: String,
-    /// Скорость записи гостя, МиБ/с.
+    /// Guest dirtying rate, MiB/s.
     pub dirty: f64,
-    /// Пропускная способность сети, МиБ/с.
+    /// Network bandwidth, MiB/s.
     pub bw: f64,
-    /// Текст цели.
+    /// Goal text.
     pub goal: String,
-    /// Подсказка сценария.
+    /// Scenario hint.
     pub hint: String,
-    /// Условие достижения цели.
+    /// Goal condition.
     pub check: MigrationGoal,
 }
 
 impl Scenario {
-    /// Цель упражнения по этому сценарию.
+    /// Exercise goal for this scenario.
     pub fn as_goal(&self) -> Goal {
         Goal::new(self.id.clone(), self.goal.clone())
     }
 
-    /// Параметры запуска: скорости сценария и настройки ученика.
+    /// Run parameters: scenario rates and the student's settings.
     pub fn input(
         &self,
         downtime_ms: f64,
@@ -219,14 +219,14 @@ impl Scenario {
         }
     }
 
-    /// Достигнута ли цель сценария запуском с настройками `input` (скорости берутся из сценария, не из `input`).
+    /// Whether the scenario goal is reached by a run with settings `input` (rates are taken from the scenario, not from `input`).
     pub fn reached(&self, input: &MigrationInput) -> bool {
         let p = MigrationInput { dirty: self.dirty, bw: self.bw, ..input.clone() };
         self.check.check(&simulate(&p))
     }
 }
 
-/// Сценарии по умолчанию (упражнение главы 10).
+/// Default scenarios (chapter 10 exercise).
 pub fn default_scenarios() -> Vec<Scenario> {
     vec![
         Scenario {

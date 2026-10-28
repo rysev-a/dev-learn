@@ -3,7 +3,7 @@ name = "content"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Данные курса: схемы слайдов (сцены из кадров), блоки слайдов, упражнения-лаборатории. Общий crate бэкенда (хранение, проверка) и фронтенда (отрисовка), а также генераторов содержимого."
+description = "Course data: slide diagrams (scenes made of frames), slide blocks, lab exercises. Shared crate of the backend (storage, validation), the frontend (rendering) and the content generators."
 
 [dependencies]
 highlight = { path = "../highlight", features = ["serde"] }

@@ -1,4 +1,4 @@
-//! Структурные проверки разметки.
+//! Structural checks of markup.
 
 use std::collections::HashMap;
 
@@ -7,7 +7,7 @@ use scraper::{ElementRef, Html, Selector};
 
 use crate::spec::{Check, Item};
 
-/// Разобранный документ с порядком узлов.
+/// Parsed document with node order.
 pub struct Doc {
     pub html: Html,
     source: String,
@@ -21,16 +21,16 @@ impl Doc {
         Doc { html, source: source.to_string(), order }
     }
 
-    /// Фрагмент разбирается как документ: `html`, `head`, `body` добавляет сам разбор.
+    /// A fragment is parsed as a document: `html`, `head`, `body` are added by the parser itself.
     pub fn parse_errors(&self) -> Vec<String> {
-        // без doctype разбор всегда жалуется («Unexpected token»): для проверки на ошибки добавляем его сами
+        // without a doctype the parser always complains ("Unexpected token"): for the error check we add it ourselves
         if !self.has_doctype() {
             return Html::parse_document(&format!("<!doctype html>{}", self.source)).errors.iter().map(|e| e.to_string()).collect();
         }
         self.html.errors.iter().map(|e| e.to_string()).collect()
     }
 
-    /// Документ начинается с `<!doctype html>` (регистр не важен).
+    /// The document starts with `<!doctype html>` (case-insensitive).
     pub fn has_doctype(&self) -> bool {
         let t = self.source.trim_start().to_lowercase();
         t.starts_with("<!doctype html")
@@ -41,7 +41,7 @@ impl Doc {
         Ok(self.html.select(&s).collect())
     }
 
-    /// Стили, которые уже есть в документе (`<style>`): исходные правила задания, поверх которых работает ученик.
+    /// Styles already in the document (`<style>`): the task's initial rules, on top of which the student works.
     pub fn style_text(&self) -> String {
         self.select("style").unwrap_or_default().iter().map(|e| e.text().collect::<String>()).collect::<Vec<_>>().join("\n")
     }
@@ -55,7 +55,7 @@ pub fn selector(sel: &str) -> Result<Selector, String> {
     Selector::parse(sel).map_err(|_| i18n::trf!("selector “{0}” could not be parsed", sel))
 }
 
-/// Текст элемента: пробельные символы схлопнуты, края обрезаны.
+/// Element text: whitespace collapsed, edges trimmed.
 pub fn text_of(el: &ElementRef) -> String {
     el.text().collect::<Vec<_>>().join(" ").split_whitespace().collect::<Vec<_>>().join(" ")
 }
@@ -76,7 +76,7 @@ fn plural(n: usize) -> &'static str {
     i18n::plural(n as u64, "element", "elements")
 }
 
-/// Проверка HTML-условия. `None` — условие относится к CSS.
+/// Check an HTML condition. `None` means the condition belongs to CSS.
 pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
     Some(match check {
         Check::Exists { sel, min, max, msg } => {
@@ -184,7 +184,7 @@ pub fn run(doc: &Doc, check: &Check) -> Option<Item> {
         }
         Check::CleanParse => {
             let errs = doc.parse_errors();
-            // эти замечания есть у любого фрагмента без doctype и не говорят об ошибке ученика
+            // these remarks appear for any fragment without a doctype and do not indicate a student error
             let real: Vec<&String> = errs.iter().filter(|e| !e.contains("doctype") && !e.contains("DOCTYPE")).collect();
             item(i18n::tr("Markup without parse errors").into(), real.is_empty(), real.first().map(|s| s.to_string()).unwrap_or_default())
         }
@@ -257,11 +257,11 @@ mod tests {
 
     #[test]
     fn structure_checks() {
-        let page = "<!doctype html><html><body><header><h1>Сайт</h1></header><main><h2>Раздел</h2><ul><li>а</li><li>б</li></ul><a href='/x' class='go'>Дальше</a></main></body></html>";
+        let page = "<!doctype html><html><body><header><h1>Site</h1></header><main><h2>Section</h2><ul><li>a</li><li>b</li></ul><a href='/x' class='go'>Next</a></main></body></html>";
         assert!(all_ok(page, Check::Exists { sel: "main > h2".into(), min: 1, max: None, msg: None }));
         assert!(all_ok(page, Check::Exists { sel: "li".into(), min: 2, max: Some(2), msg: None }));
         assert!(!all_ok(page, Check::Exists { sel: "li".into(), min: 3, max: None, msg: None }));
-        assert!(all_ok(page, Check::Text { sel: "h1".into(), equals: Some("сайт".into()), contains: None, msg: None }));
+        assert!(all_ok(page, Check::Text { sel: "h1".into(), equals: Some("site".into()), contains: None, msg: None }));
         assert!(all_ok(page, Check::Attr { sel: "a".into(), name: "href".into(), present: None, equals: Some("/x".into()), contains: None, all: true, msg: None }));
         assert!(all_ok(page, Check::Child { parent: "main".into(), child: "li".into(), direct: false, msg: None }));
         assert!(!all_ok(page, Check::Child { parent: "main".into(), child: "li".into(), direct: true, msg: None }));
@@ -282,19 +282,19 @@ mod tests {
 
     #[test]
     fn fields_need_labels() {
-        assert!(all_ok("<label for=a>Имя</label><input id=a>", Check::Labels));
-        assert!(all_ok("<label>Имя <input></label>", Check::Labels));
-        assert!(all_ok("<input aria-label='Поиск'>", Check::Labels));
+        assert!(all_ok("<label for=a>Name</label><input id=a>", Check::Labels));
+        assert!(all_ok("<label>Name <input></label>", Check::Labels));
+        assert!(all_ok("<input aria-label='Search'>", Check::Labels));
         assert!(all_ok("<input type=hidden name=t><input type=submit>", Check::Labels));
         assert!(!all_ok("<input name=a>", Check::Labels));
-        assert!(!all_ok("<label for=x>Имя</label><input id=a>", Check::Labels));
+        assert!(!all_ok("<label for=x>Name</label><input id=a>", Check::Labels));
     }
 
     #[test]
     fn doctype_and_clean_parse() {
         assert!(all_ok("<!DOCTYPE html><title>t</title><p>x</p>", Check::Doctype));
         assert!(!all_ok("<p>x</p>", Check::Doctype));
-        // у фрагмента без doctype ошибок разбора нет, пока теги вложены верно
+        // a fragment without a doctype has no parse errors as long as the tags are nested correctly
         assert!(all_ok("<title>t</title><p>x</p>", Check::CleanParse));
         assert!(!all_ok("<div><span></div>", Check::CleanParse));
     }

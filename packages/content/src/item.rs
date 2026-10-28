@@ -1,7 +1,7 @@
-//! Элементы кадра схемы. Каждый вид — своя структура с понятными полями; в данных элемент записывается объектом с полем
-//! `"t"` (вид) и `"id"`. Одинаковый `id` в соседних кадрах — один и тот же объект на экране (он плавно переезжает,
-//! меняет цвет и гаснет, когда его нет в кадре). Координаты — в системе холста 360×(высота сцены), (x, y) — центр,
-//! если не сказано иное. Любой элемент: `o` — прозрачность (0…1), `s` — масштаб.
+//! Elements of a diagram frame. Each kind is its own struct with clear fields; in the data an element is written as an object with a
+//! `"t"` (kind) field and an `"id"`. The same `id` in adjacent frames is the same object on screen (it smoothly moves,
+//! changes color and fades out when the frame lacks it). Coordinates are in the canvas system 360×(scene height), (x, y) is the center
+//! unless stated otherwise. Any element: `o` is opacity (0…1), `s` is scale.
 
 use highlight::Lang;
 use serde::{Deserialize, Serialize};
@@ -56,17 +56,17 @@ defaults! {
 
 macro_rules! common_setters {
     () => {
-        /// Прозрачность (0…1).
+        /// Opacity (0…1).
         pub fn opacity(mut self, o: f64) -> Self {
             self.o = o;
             self
         }
-        /// Масштаб относительно центра элемента.
+        /// Scale relative to the element center.
         pub fn scale(mut self, s: f64) -> Self {
             self.s = s;
             self
         }
-        /// Задержка перехода, мс: элементы кадра появляются по очереди.
+        /// Transition delay, ms: the frame's elements appear one after another.
         pub fn delay(mut self, ms: f64) -> Self {
             self.delay = ms;
             self
@@ -82,7 +82,7 @@ macro_rules! tone_setter {
     };
 }
 
-/// Клетка массива / подписанный прямоугольник.
+/// Array cell / labeled rectangle.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Cell {
     pub id: String,
@@ -92,26 +92,26 @@ pub struct Cell {
     pub w: f64,
     #[serde(default = "cell_h")]
     pub h: f64,
-    /// подпись по центру; `\n` — перенос строки
+    /// centered label; `\n` is a line break
     #[serde(default)]
     pub text: String,
     #[serde(default)]
     pub tone: Tone,
     #[serde(default = "cell_size")]
     pub size: f64,
-    /// подпись под клеткой
+    /// label below the cell
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sub: Option<String>,
     #[serde(default = "sub_size")]
     pub sub_size: f64,
     #[serde(default, skip_serializing_if = "is_false")]
     pub dash: bool,
-    /// цвет подписи (CSS) поверх цвета оттенка
+    /// label color (CSS) overriding the hue color
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text_color: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -136,7 +136,7 @@ impl Cell {
         self.dash = true;
         self
     }
-    /// Подпись под клеткой.
+    /// Label below the cell.
     pub fn under(mut self, text: impl Into<String>) -> Self {
         self.sub = Some(text.into());
         self
@@ -148,7 +148,7 @@ impl Cell {
     common_setters!();
 }
 
-/// Круглый узел с подписью внутри.
+/// Round node with a label inside.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Dot {
     pub id: String,
@@ -170,7 +170,7 @@ pub struct Dot {
     pub text_color: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -187,7 +187,7 @@ impl Dot {
         self.size = size;
         self
     }
-    /// Подпись под кружком.
+    /// Label below the circle.
     pub fn under(mut self, text: impl Into<String>) -> Self {
         self.sub = Some(text.into());
         self
@@ -199,7 +199,7 @@ impl Dot {
     common_setters!();
 }
 
-/// Узел связного списка: значение | ссылка; `nil` — пустая ссылка (перечёркнута).
+/// Linked-list node: value | link; `nil` is an empty link (crossed out).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Lnode {
     pub id: String,
@@ -221,7 +221,7 @@ pub struct Lnode {
     pub sub: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -237,7 +237,7 @@ impl Lnode {
     common_setters!();
 }
 
-/// Выравнивание подписи по горизонтали.
+/// Horizontal alignment of a label.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Anchor {
@@ -257,7 +257,7 @@ impl Anchor {
     }
 }
 
-/// Подпись; `\n` — перенос строки. Цвет — оттенок (`tone`) или своё значение CSS (`color`).
+/// Label; `\n` is a line break. Color is a hue (`tone`) or a custom CSS value (`color`).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Text {
     pub id: String,
@@ -279,7 +279,7 @@ pub struct Text {
     pub anchor: Anchor,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -287,7 +287,7 @@ pub struct Text {
 }
 
 impl Text {
-    /// Цвет подписи в CSS: свой, иначе цвет оттенка.
+    /// Label color in CSS: custom, otherwise the hue color.
     pub fn fill(&self) -> Option<String> {
         self.color.clone().or_else(|| self.tone.and_then(Tone::hue).map(String::from))
     }
@@ -295,7 +295,7 @@ impl Text {
         self.size = size;
         self
     }
-    /// Цвет оттенка.
+    /// Hue color.
     pub fn tone(mut self, tone: Tone) -> Self {
         self.tone = Some(tone);
         self
@@ -319,18 +319,18 @@ impl Text {
     common_setters!();
 }
 
-/// Направление указателя.
+/// Pointer direction.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Dir {
-    /// стрелка идёт вниз к точке (x, y), имя над ней
+    /// the arrow points down at (x, y), the name is above it
     #[default]
     Down,
-    /// стрелка идёт вверх к точке (x, y), имя под ней
+    /// the arrow points up at (x, y), the name is below it
     Up,
 }
 
-/// Указатель: короткая стрелка к точке (x, y) и его имя.
+/// Pointer: a short arrow at (x, y) and its name.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Ptr {
     pub id: String,
@@ -346,7 +346,7 @@ pub struct Ptr {
     pub size: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -362,7 +362,7 @@ impl Ptr {
     common_setters!();
 }
 
-/// Линия или стрелка; движется плавно (CSS-переход свойства `d`).
+/// Line or arrow; moves smoothly (CSS transition of the `d` property).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Line {
     pub id: String,
@@ -372,20 +372,20 @@ pub struct Line {
     pub y2: f64,
     #[serde(default)]
     pub tone: Tone,
-    /// наконечник на конце (x2, y2)
+    /// arrowhead at the end (x2, y2)
     #[serde(default, skip_serializing_if = "is_false")]
     pub arrow: bool,
-    /// штриховка (`stroke-dasharray`): `"3 3"`
+    /// dash pattern (`stroke-dasharray`): `"3 3"`
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dash: Option<String>,
-    /// изгиб дугой: смещение середины перпендикулярно линии
+    /// arc bend: offset of the midpoint perpendicular to the line
     #[serde(default, skip_serializing_if = "is_zero")]
     pub bend: f64,
     #[serde(default = "line_width")]
     pub width: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -394,7 +394,7 @@ pub struct Line {
 
 impl Line {
     tone_setter!();
-    /// Пунктир по умолчанию.
+    /// Default dashing.
     pub fn dash(mut self) -> Self {
         self.dash = Some("3 3".into());
         self
@@ -403,7 +403,7 @@ impl Line {
         self.dash = Some(pattern.into());
         self
     }
-    /// Изгиб дугой: смещение середины перпендикулярно линии.
+    /// Arc bend: offset of the midpoint perpendicular to the line.
     pub fn bend(mut self, bend: f64) -> Self {
         self.bend = bend;
         self
@@ -415,7 +415,7 @@ impl Line {
     common_setters!();
 }
 
-/// Рамка-область с подписью над левым краем.
+/// Outlined area with a label above the left edge.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Zone {
     pub id: String,
@@ -433,7 +433,7 @@ pub struct Zone {
     pub label: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -453,7 +453,7 @@ impl Zone {
     common_setters!();
 }
 
-/// Кривая по пути SVG (`d`); `draw` 0…1 — доля «прорисованной» линии (плавно растёт между кадрами).
+/// Curve along an SVG path (`d`); `draw` 0…1 is the fraction of the line "drawn" (grows smoothly between frames).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Path {
     pub id: String,
@@ -464,19 +464,19 @@ pub struct Path {
     pub width: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dash: Option<String>,
-    /// заливка (CSS)
+    /// fill (CSS)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fill: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fill_opacity: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub draw: Option<f64>,
-    /// наконечник стрелки на конце пути
+    /// arrowhead at the end of the path
     #[serde(default, skip_serializing_if = "is_false")]
     pub arrow: bool,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
 }
@@ -503,14 +503,14 @@ impl Path {
         self.o = o;
         self
     }
-    /// Задержка перехода, мс.
+    /// Transition delay, ms.
     pub fn delay(mut self, ms: f64) -> Self {
         self.delay = ms;
         self
     }
 }
 
-/// Столбик: (x, y) — середина основания, `hh` — высота из `max`; растёт плавно (масштаб по вертикали).
+/// Bar: (x, y) is the middle of the base, `hh` is the height out of `max`; grows smoothly (vertical scale).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Bar {
     pub id: String,
@@ -524,12 +524,12 @@ pub struct Bar {
     pub max: f64,
     #[serde(default)]
     pub tone: Tone,
-    /// подпись под основанием
+    /// label below the base
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
 }
@@ -544,7 +544,7 @@ impl Bar {
         self.max = max;
         self
     }
-    /// Подпись под основанием.
+    /// Label below the base.
     pub fn label(mut self, text: impl Into<String>) -> Self {
         self.text = Some(text.into());
         self
@@ -553,24 +553,24 @@ impl Bar {
         self.o = o;
         self
     }
-    /// Задержка перехода, мс.
+    /// Transition delay, ms.
     pub fn delay(mut self, ms: f64) -> Self {
         self.delay = ms;
         self
     }
 }
 
-/// Строки кода с подсветкой; (x, y) — левый верхний угол первой строки.
+/// Lines of code with syntax highlighting; (x, y) is the top-left corner of the first line.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Code {
     pub id: String,
     pub x: f64,
     pub y: f64,
     pub lines: Vec<String>,
-    /// подсвеченные строки (номера с нуля)
+    /// highlighted lines (zero-based numbers)
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub hl: Vec<usize>,
-    /// ошибочные строки (красные)
+    /// erroneous lines (red)
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub bad: Vec<usize>,
     #[serde(default)]
@@ -583,18 +583,18 @@ pub struct Code {
     pub w: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
 }
 
 impl Code {
-    /// Подсвеченные строки (номера с нуля).
+    /// Highlighted lines (zero-based numbers).
     pub fn hl(mut self, lines: impl IntoIterator<Item = usize>) -> Self {
         self.hl = lines.into_iter().collect();
         self
     }
-    /// Ошибочные строки (красные).
+    /// Erroneous lines (red).
     pub fn bad(mut self, lines: impl IntoIterator<Item = usize>) -> Self {
         self.bad = lines.into_iter().collect();
         self
@@ -615,14 +615,14 @@ impl Code {
         self.o = o;
         self
     }
-    /// Задержка перехода, мс.
+    /// Transition delay, ms.
     pub fn delay(mut self, ms: f64) -> Self {
         self.delay = ms;
         self
     }
 }
 
-/// Логический вентиль.
+/// Logic gate.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GateKind {
@@ -638,21 +638,21 @@ pub enum GateKind {
 }
 
 impl GateKind {
-    /// Один вход (НЕ, повторитель).
+    /// Single input (NOT, buffer).
     pub fn single_input(self) -> bool {
         matches!(self, GateKind::Not | GateKind::Buf)
     }
-    /// Инверсия на выходе: кружок.
+    /// Inverted output: a bubble.
     pub fn bubble(self) -> bool {
         matches!(self, GateKind::Nand | GateKind::Nor | GateKind::Xnor | GateKind::Not)
     }
-    /// «Или»-образное тело (И — прямое).
+    /// OR-shaped body (AND is straight).
     pub fn or_shaped(self) -> bool {
         matches!(self, GateKind::Or | GateKind::Nor | GateKind::Xor | GateKind::Xnor)
     }
 }
 
-/// Вентиль; (x, y) — центр, входы слева (`a` сверху, `b` снизу), выход справа.
+/// Gate; (x, y) is the center, inputs on the left (`a` at the top, `b` at the bottom), output on the right.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Gate {
     pub id: String,
@@ -662,7 +662,7 @@ pub struct Gate {
     pub gate: GateKind,
     #[serde(default)]
     pub tone: Tone,
-    /// подпись внутри
+    /// label inside
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(default = "gate_size")]
@@ -671,7 +671,7 @@ pub struct Gate {
     pub sub: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -683,7 +683,7 @@ impl Gate {
     common_setters!();
 }
 
-/// Тип канала транзистора.
+/// Transistor channel type.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Channel {
@@ -692,7 +692,7 @@ pub enum Channel {
     P,
 }
 
-/// Транзистор (КМОП): `on` — канал открыт.
+/// Transistor (CMOS): `on` means the channel is open.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Transistor {
     pub id: String,
@@ -708,14 +708,14 @@ pub struct Transistor {
     pub sub: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub s: f64,
 }
 
-/// Выключатель: `on` — замкнут.
+/// Switch: `on` means closed.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Switch {
     pub id: String,
@@ -729,14 +729,14 @@ pub struct Switch {
     pub sub: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub s: f64,
 }
 
-/// Лампочка: `on` — горит.
+/// Lamp: `on` means lit.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Lamp {
     pub id: String,
@@ -752,14 +752,14 @@ pub struct Lamp {
     pub sub: Option<String>,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub s: f64,
 }
 
-/// Круг-контур множества или области: рамка цветом оттенка, при `filled` — ещё и лёгкая заливка.
+/// Outlined circle of a set or region: stroke in the hue color, with `filled` also a light fill.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Circle {
     pub id: String,
@@ -770,14 +770,14 @@ pub struct Circle {
     pub tone: Tone,
     #[serde(default, skip_serializing_if = "is_false")]
     pub filled: bool,
-    /// штриховка рамки (`stroke-dasharray`)
+    /// stroke dash pattern (`stroke-dasharray`)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dash: Option<String>,
     #[serde(default = "path_width")]
     pub width: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
@@ -801,7 +801,7 @@ impl Circle {
     common_setters!();
 }
 
-/// Круг без привязки к рисунку: часть описания области ([`Region`]).
+/// A circle not bound to the drawing: part of a region description ([`Region`]).
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Disc {
     pub x: f64,
@@ -809,22 +809,22 @@ pub struct Disc {
     pub r: f64,
 }
 
-/// Как область получается из кругов.
+/// How a region is derived from circles.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RegionOp {
-    /// объединение всех кругов
+    /// union of all circles
     #[default]
     Union,
-    /// пересечение первых двух кругов
+    /// intersection of the first two circles
     Intersect,
-    /// первый круг без остальных
+    /// the first circle minus the rest
     Minus,
-    /// всё внутри рамки `bounds`, кроме кругов (дополнение)
+    /// everything inside the `bounds` rectangle except the circles (complement)
     Outside,
 }
 
-/// Прямоугольник (x, y — левый верхний угол).
+/// Rectangle (x, y is the top-left corner).
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rect {
     pub x: f64,
@@ -840,24 +840,24 @@ fn is_region_opacity(v: &f64) -> bool {
     *v == 0.42
 }
 
-/// Залитая область диаграммы Эйлера — Венна: результат операции над кругами (∪, ∩, \, дополнение). Рисуется заливкой
-/// цветом оттенка с прозрачностью `opacity`; прозрачность элемента `o` включает и гасит область.
+/// Filled region of an Euler–Venn diagram: the result of an operation on circles (∪, ∩, \, complement). Drawn as a fill
+/// in the hue color with opacity `opacity`; the element opacity `o` turns the region on and off.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Region {
     pub id: String,
     pub op: RegionOp,
     pub discs: Vec<Disc>,
-    /// рамка для [`RegionOp::Outside`]
+    /// bounds for [`RegionOp::Outside`]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bounds: Option<Rect>,
     #[serde(default = "path_tone")]
     pub tone: Tone,
-    /// непрозрачность заливки, когда область включена
+    /// fill opacity when the region is on
     #[serde(default = "region_opacity", skip_serializing_if = "is_region_opacity")]
     pub opacity: f64,
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub o: f64,
-    /// задержка перехода, мс (поочерёдное появление элементов)
+    /// transition delay, ms (elements appear one after another)
     #[serde(default, skip_serializing_if = "is_zero")]
     pub delay: f64,
 }
@@ -872,14 +872,14 @@ impl Region {
         self.o = o;
         self
     }
-    /// Задержка перехода, мс.
+    /// Transition delay, ms.
     pub fn delay(mut self, ms: f64) -> Self {
         self.delay = ms;
         self
     }
 }
 
-/// Элемент кадра: у каждого вида — свои поля.
+/// Frame element: each kind has its own fields.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "t", rename_all = "snake_case")]
 pub enum Item {
@@ -933,7 +933,7 @@ impl Item {
         each_item!(self, i => i.id = id)
     }
 
-    /// Вид элемента: у одного `id` он не может меняться от кадра к кадру.
+    /// Element kind: for a given `id` it cannot change from frame to frame.
     pub fn kind(&self) -> &'static str {
         match self {
             Item::Cell(_) => "cell",
@@ -955,19 +955,19 @@ impl Item {
         }
     }
 
-    /// Прозрачность элемента.
+    /// Element opacity.
     pub fn opacity(&self) -> f64 {
         each_item!(self, i => i.o)
     }
 
-    /// Тот же элемент, но невидимый — так он «гаснет» на месте.
+    /// The same element but hidden — this is how it "fades out" in place.
     pub fn hidden(&self) -> Item {
         let mut it = self.clone();
         each_item!(&mut it, i => i.o = 0.0);
         it
     }
 
-    /// Все числа, которые должны быть конечными (проверка данных: координата не может быть NaN).
+    /// All numbers that must be finite (data validation: a coordinate cannot be NaN).
     pub fn numbers(&self) -> Vec<(&'static str, f64)> {
         match self {
             Item::Cell(i) => vec![("x", i.x), ("y", i.y), ("w", i.w), ("h", i.h), ("o", i.o), ("s", i.s)],
@@ -1009,11 +1009,11 @@ mod tests {
     fn items_round_trip_and_omit_defaults() {
         let it: Item = serde_json::from_str(r#"{"t":"cell","id":"a","x":10,"y":20,"text":"7","tone":"green"}"#).unwrap();
         match &it {
-            Item::Cell(c) => assert_eq!((c.w, c.h, c.size, c.o), (30.0, 26.0, 11.0, 1.0), "значения по умолчанию"),
+            Item::Cell(c) => assert_eq!((c.w, c.h, c.size, c.o), (30.0, 26.0, 11.0, 1.0), "default values"),
             other => panic!("{other:?}"),
         }
         let back = serde_json::to_value(&it).unwrap();
-        assert!(back.get("o").is_none() && back.get("dash").is_none(), "умолчания не пишутся: {back}");
+        assert!(back.get("o").is_none() && back.get("dash").is_none(), "defaults are not written: {back}");
         assert_eq!(back["t"], "cell");
         assert_eq!(serde_json::from_value::<Item>(back).unwrap(), it);
     }

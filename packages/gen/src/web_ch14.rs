@@ -1,13 +1,13 @@
-//! Книга 11 «Современный Frontend», глава 14 (раздел «HTML и разметка») — «HTML: изображения, медиа и таблицы»: 13 слайдов,
-//! в каждом схема из четырёх кадров на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈ 14 символов в секунду,
-//! шаги начинаются там, где в тексте урока начинается соответствующая мысль); озвучки пока нет.
+//! Book 11 "Modern Frontend", chapter 14 (section "HTML and markup") — "HTML: images, media and tables": 13 slides,
+//! each with a four-frame diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈ 14 characters per second,
+//! steps begin where the corresponding thought begins in the lesson text); no voice-over yet.
 
 use content::{
     dsl::{arrow, bx, code, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-14.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-14.json`.
 pub fn chapter() -> Chapter {
     Chapter {
         book: 11,
@@ -31,25 +31,25 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, 4 (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, 4 begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен главы ----------------------------------------------------------------------
+// --- chapter scene helpers ---------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр, `tone`, шрифт `size`.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотной таблицы кадров
+/// Rectangle with a label: (x, y) — centre, `tone`, font `size`.
+#[allow(clippy::too_many_arguments)] // short helper for a dense frame table
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись `size` по центру.
+/// Short centred label `size`.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка HTML: (x, y) — база первой строки.
+/// HTML inset: (x, y) — baseline of the first line.
 fn html(id: &str, x: f64, y: f64, lines: &[&str], size: f64, lh: f64) -> content::item::Code {
     code(Lang::Html, id, x, y, lines).size(size).lh(lh).w(230.0)
 }
@@ -58,7 +58,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Картинка как ресурс
+// 1. An image as a resource
 fn v01() -> SceneSpec {
     let img = ["<img", "  src=\"cat.jpg\"", "  alt=\"Рыжий кот на окне\">"];
     spec(
@@ -93,7 +93,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Что писать в alt
+// 2. What to write in alt
 fn v02() -> SceneSpec {
     spec(
         &["Смысл", "Декор", "Действие", "Сложное"],
@@ -126,7 +126,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Размеры без прыжков
+// 3. Sizes without jumps
 fn v03() -> SceneSpec {
     spec(
         &["Без размеров", "Файл пришёл", "Атрибуты", "CSS"],
@@ -164,7 +164,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. srcset и sizes
+// 4. srcset and sizes
 fn v04() -> SceneSpec {
     spec(
         &["Экраны", "srcset", "sizes", "Выбор"],
@@ -197,7 +197,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. picture и source
+// 5. picture and source
 fn v05() -> SceneSpec {
     spec(
         &["picture", "Формат", "Экран", "Запасной img"],
@@ -233,7 +233,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Ленивая загрузка и приоритеты
+// 6. Lazy loading and priorities
 fn v06() -> SceneSpec {
     let column = |hero: Tone, hero_text: &str, i2: Tone, i2_dash: bool| -> Vec<content::item::Cell> {
         let i2c = b("i2", 90.0, 80.0, 130.0, 28.0, "photo-2.jpg", i2, 9.5);
@@ -269,7 +269,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. figure и figcaption
+// 7. figure and figcaption
 fn v07() -> SceneSpec {
     let fig = |tone: Tone| -> Frame {
         Frame::new()
@@ -314,7 +314,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. Видео и звук
+// 8. Video and audio
 fn v08() -> SceneSpec {
     let lines: [&str; 7] = [
         "<video controls poster=\"p.jpg\">",
@@ -387,7 +387,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. SVG: inline или img
+// 10. SVG: inline or img
 fn v10() -> SceneSpec {
     spec(
         &["img", "inline", "Выбор", "Доступность"],
@@ -424,9 +424,9 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Таблицы для данных
+// 11. Tables for data
 fn v11() -> SceneSpec {
-    // (id, x, y, подпись, оттенок)
+    // (id, x, y, label, tone)
     let grid = |hd: Tone, dt: Tone, ft: Tone| -> Vec<content::item::Cell> {
         let xs = [100.0, 168.0, 236.0];
         let rows: [(&str, f64, [&str; 3], Tone); 4] = [("h", 40.0, ["Группа", "Пн", "Вт"], hd), ("a", 66.0, ["А", "10:00", "12:00"], dt), ("b", 92.0, ["Б", "11:00", "—"], dt), ("f", 118.0, ["Всего", "2", "1"], ft)];
@@ -466,7 +466,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Заголовки таблицы
+// 12. Table headers
 fn v12() -> SceneSpec {
     let grid = |ch: [Tone; 2], rh: [Tone; 2], d11: Tone| -> Vec<content::item::Cell> {
         vec![
@@ -504,7 +504,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. details, dialog и чек-лист
+// 13. details, dialog and checklist
 fn v13() -> SceneSpec {
     spec(
         &["Готовое", "details", "dialog", "Чек-лист"],
@@ -543,8 +543,8 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Глава проходит проверку; у каждого слайда одна схема из четырёх шагов, метки шагов возрастают и укладываются в абзац,
-    /// раскладка сцен без замечаний лайнта.
+    /// The chapter passes the check; each slide has one diagram of four steps, step marks increase and fit into the paragraph,
+    /// scene layout has no lint remarks.
     #[test]
     fn every_scene_compiles_lints_and_matches_its_slide() {
         let ch = chapter();

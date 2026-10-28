@@ -1,24 +1,24 @@
-//! Лаборатория книги «Виртуализация» (книга 17): шесть симуляторов как чистые модели на Rust.
+//! Lab for the "Virtualization" book (book 17): six simulators as pure Rust models.
 //!
-//! * [`hv`] — мини-гипервизор: ловушки, виртуальные регистры, команда POPF и двоичная трансляция (глава 2);
-//! * [`ept`] — трансляция адресов гостя: теневые таблицы и EPT/NPT, TLB, стоимость в обращениях к памяти (глава 4);
-//! * [`virtq`] — кольца virtio и подавление оповещений (глава 6);
-//! * [`qcow2`] — цепочка слоёв образа: снимки, запись с копированием, слияние и откат (глава 9);
-//! * [`migration`] — живая миграция: круги pre-copy, auto-converge, сжатие, post-copy (глава 10);
-//! * [`numa`] — размещение машин по узлам NUMA (глава 11).
+//! * [`hv`] — mini-hypervisor: traps, virtual registers, the POPF instruction and binary translation (chapter 2);
+//! * [`ept`] — guest address translation: shadow page tables and EPT/NPT, TLB, cost in memory accesses (chapter 4);
+//! * [`virtq`] — virtio rings and notification suppression (chapter 6);
+//! * [`qcow2`] — image layer chain: snapshots, copy-on-write, merging and rollback (chapter 9);
+//! * [`migration`] — live migration: pre-copy rounds, auto-converge, compression, post-copy (chapter 10);
+//! * [`numa`] — placing machines on NUMA nodes (chapter 11).
 //!
-//! Результаты моделей совпадают с прежними TypeScript-моделями (`frontend/src/virtlab`) бит в бит — это проверяют
-//! дифференциальные тесты по «золотым» данным (`tests/golden/virt.json`, выгрузка `frontend/scripts/virt-export.mjs`).
+//! Model results match the former TypeScript models (`frontend/src/virtlab`) bit for bit — this is checked by
+//! differential tests against "golden" data (`tests/golden/virt.json`, exported by `frontend/scripts/virt-export.mjs`).
 //!
-//! Устройство:
-//! * в каждом модуле — типы состояния (serde), чистые функции модели и **цели** упражнений как данные (`*Goal`/сценарии),
-//!   а где цель зависит от истории действий ученика (hv, virtq, qcow2) — «сессия» (`Session`), повторяющая обработчики
-//!   интерфейса и сообщающая достигнутые цели;
-//! * [`spec::Spec`] — описание упражнения (какой симулятор, сценарии, цели) как данные: лежит в файле главы
-//!   ([`labfile::LabChapter`], `backend/data/labs/virt/17-NN.json`) и приходит клиенту; интерфейс по нему строит симулятор;
-//! * [`verify::verify`] — серверная проверка присланного решения (достигнутые цели с данными), см. [`verify::Verdict`].
+//! Layout:
+//! * each module has state types (serde), pure model functions and exercise **goals** as data (`*Goal`/scenarios),
+//!   and where a goal depends on the student's action history (hv, virtq, qcow2) — a "session" (`Session`) that mirrors
+//!   the UI handlers and reports achieved goals;
+//! * [`spec::Spec`] — exercise description (which simulator, scenarios, goals) as data: lives in the chapter file
+//!   ([`labfile::LabChapter`], `backend/data/labs/virt/17-NN.json`) and is sent to the client; the UI builds the simulator from it;
+//! * [`verify::verify`] — server-side check of a submitted solution (achieved goals with data), see [`verify::Verdict`].
 //!
-//! Зависимости — только `serde`/`serde_json`, wasm-специфики нет: крейт собирается и нативно, и под `wasm32-unknown-unknown`.
+//! Dependencies are only `serde`/`serde_json`, nothing wasm-specific: the crate builds both natively and for `wasm32-unknown-unknown`.
 
 pub mod ept;
 pub mod error;

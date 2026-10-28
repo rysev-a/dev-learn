@@ -1,4 +1,4 @@
-//! Квиз на теорию: ответ проверяется на сервере сразу при выборе; верный ответ и пояснение приходят только после выбора.
+//! Theory quiz: the answer is checked on the server immediately on selection; the correct answer and explanation arrive only after selecting.
 
 use api::dto::{Quiz as QuizData, Reveal};
 use leptos::{prelude::*, task::spawn_local};
@@ -13,7 +13,7 @@ use crate::{
     progress::ProgressStore,
 };
 
-/// Класс варианта после ответа: верный подсвечивается всегда, неверный выбор — красным.
+/// Option class after answering: the correct one is always highlighted, a wrong pick is red.
 pub fn option_class(reveal: Option<&Reveal>, pick: Option<usize>, option: usize) -> &'static str {
     match reveal {
         Some(r) if r.answer == option => "right",
@@ -22,7 +22,7 @@ pub fn option_class(reveal: Option<&Reveal>, pick: Option<usize>, option: usize)
     }
 }
 
-/// Состояние вопроса в дереве полного экрана: без ответа — номер, верный ответ — ✓, неверный — ✗.
+/// Question state in the fullscreen tree: unanswered - number, correct - ✓, wrong - ✗.
 pub fn item_state(reveal: Option<&Reveal>, pick: Option<usize>) -> ItemState {
     match reveal {
         None => ItemState::Open,
@@ -31,7 +31,7 @@ pub fn item_state(reveal: Option<&Reveal>, pick: Option<usize>) -> ItemState {
     }
 }
 
-/// Прокручивает страницу к вопросу.
+/// Scrolls the page to the question.
 fn scroll_to_question(qi: usize) {
     if let Some(el) = web_sys::window().and_then(|w| w.document()).and_then(|d| d.get_element_by_id(&format!("quiz-q-{qi}"))) {
         el.scroll_into_view_with_bool(true);
@@ -69,7 +69,7 @@ fn QuizBody(book: i64, num: i64, quiz: QuizData) -> impl IntoView {
     let score = move || progress.quiz_right(book, num);
     let pick = move |qi: usize, oi: usize| {
         if busy.get_untracked() || reveal.with_untracked(|r| r.get(qi).is_some_and(Option::is_some)) {
-            return; // на вопрос уже ответили
+            return; // already answered
         }
         busy.set(true);
         spawn_local(async move {
@@ -142,7 +142,7 @@ mod tests {
         assert_eq!(item_state(None, None), ItemState::Open);
         assert_eq!(item_state(Some(&r), Some(1)), ItemState::Ok);
         assert_eq!(item_state(Some(&r), Some(0)), ItemState::Bad);
-        assert_eq!(item_state(Some(&r), None), ItemState::Bad, "ответ раскрыт, а выбора в копии прогресса нет — не засчитываем");
+        assert_eq!(item_state(Some(&r), None), ItemState::Bad, "answer revealed, but there is no pick in the progress copy - not counted");
     }
 
     #[test]
@@ -151,6 +151,6 @@ mod tests {
         assert_eq!(option_class(Some(&r), Some(0), 2), "right");
         assert_eq!(option_class(Some(&r), Some(0), 0), "wrong");
         assert_eq!(option_class(Some(&r), Some(0), 1), "");
-        assert_eq!(option_class(None, Some(0), 0), "", "пока не ответили — без подсветки");
+        assert_eq!(option_class(None, Some(0), 0), "", "no highlighting until answered");
     }
 }

@@ -1,5 +1,5 @@
-//! Расчётная часть упражнения со схемой: схема ученика → плоская схема → значения узлов → сверка с целью.
-//! Только сигналы и мемо, без DOM: тот же расчёт крутится в тестах на настоящих сценариях.
+//! Computation part of a circuit exercise: student circuit → flat circuit → node values → comparison with the target.
+//! Only signals and memos, no DOM: the same computation runs in tests on real scenarios.
 
 use std::sync::Arc;
 
@@ -18,7 +18,7 @@ use super::{
     solution::Drawing,
 };
 
-/// Схема ученика и всё, что из неё считается.
+/// Student circuit and everything computed from it.
 #[derive(Clone, Copy)]
 pub struct Model {
     pub gates: RwSignal<Vec<archlab::model::GateInstance>>,
@@ -26,12 +26,12 @@ pub struct Model {
     pub instances: RwSignal<Vec<archlab::blocks::BlockInstance>>,
     pub bus_wires: RwSignal<Vec<archlab::blocks::BusWire>>,
     pub input_state: RwSignal<InputState>,
-    /// плоская схема: вентили как есть, блоки развёрнуты в вентили (при открытии новых блоков — заново)
+    /// flat circuit: gates as they are, blocks expanded into gates (anew when new blocks are opened)
     pub expansion: Memo<Exp>,
     pub circuit: Memo<Circuit>,
-    /// значения узлов: комбинационный расчёт или (в сценарии) пошаговый с обратными связями и триггерами
+    /// node values: combinational computation or (in a scenario) step-by-step with feedback and flip-flops
     pub values: Memo<Values>,
-    /// сверка с таблицей истинности (в сценарии пустая)
+    /// comparison with the truth table (empty in a scenario)
     pub table: Memo<TableCheck>,
     last_stable: StoredValue<Values>,
 }
@@ -72,18 +72,18 @@ impl Model {
         Self { gates, wires, instances, bus_wires, input_state, expansion, circuit, values, table, last_stable }
     }
 
-    /// Схема на доске сейчас.
+    /// Circuit on the board right now.
     pub fn drawing(&self) -> Drawing {
         Drawing { gates: self.gates.get_untracked(), wires: self.wires.get_untracked(), instances: self.instances.get_untracked(), bus_wires: self.bus_wires.get_untracked() }
     }
 
-    /// Выставить тумблер.
+    /// Set a switch.
     #[cfg(test)]
     pub fn set_input(&self, id: archlab::model::InputId, level: u8) {
         self.input_state.update(|s| s.set(id, level));
     }
 
-    /// Очистить доску и забыть устойчивое состояние защёлок.
+    /// Clear the board and forget the latches' stable state.
     pub fn clear(&self) {
         self.gates.set(vec![]);
         self.wires.set(vec![]);
@@ -92,7 +92,7 @@ impl Model {
         self.last_stable.set_value(Values::new());
     }
 
-    /// Значения узлов для досок и проверки.
+    /// Node values for the boards and the check.
     pub fn scope(&self) -> Scope {
         let values = self.values;
         Arc::new(move |node: &str| values.with(|v| value_in(v, node)))
@@ -111,10 +111,10 @@ mod tests {
 
     #[test]
     fn every_table_exercise_is_solved_by_the_reference_drawing_through_the_same_reactive_chain() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        let reference = ArchLab::load_dir(&data_dir()).expect("данные лаборатории");
-        // библиотека блоков — как её собрал бы клиент из решений ученика (здесь — эталонных)
-        let lab = ArchLab::from_chapters(reference.chapters().filter(|c| c.chapter <= 14).map(|c| archlab::exercise::LabChapter { tasks: c.tasks.iter().map(|t| archlab::Task { spec: strip(&t.spec), ..t.clone() }).collect(), ..c.clone() }).collect()).expect("клиентский движок");
+        let _ru = locales::guard(i18n::Locale::Ru);
+        let reference = ArchLab::load_dir(&data_dir()).expect("lab data");
+        // block library — as the client would build it from student solutions (here, reference ones)
+        let lab = ArchLab::from_chapters(reference.chapters().filter(|c| c.chapter <= 14).map(|c| archlab::exercise::LabChapter { tasks: c.tasks.iter().map(|t| archlab::Task { spec: strip(&t.spec), ..t.clone() }).collect(), ..c.clone() }).collect()).expect("client engine");
         let mut drafts = Vec::new();
         for ch in reference.chapters().filter(|c| c.chapter <= 14) {
             for t in &ch.tasks {
@@ -140,15 +140,15 @@ mod tests {
                     let json = serde_json::to_string(sol).expect("JSON");
                     let drawing = restore(&json, spec.build);
                     let model = Model::new(Arc::new(spec.clone()), Arc::new(spec.interface()), library, drawing);
-                    assert!(model.table.with(|t| t.ok), "{}: схема не прошла таблицу ({} из {})", t.id, model.table.with(|t| t.matched), spec.target.len());
+                    assert!(model.table.with(|t| t.ok), "{}: the circuit failed the table ({} of {})", t.id, model.table.with(|t| t.matched), spec.target.len());
                     checked += 1;
                 }
             }
-            assert!(checked > 40, "проверено слишком мало упражнений: {checked}");
+            assert!(checked > 40, "too few exercises checked: {checked}");
         });
     }
 
-    /// Сценарий без эталона — каким его получает клиент.
+    /// Scenario without the reference — as the client receives it.
     fn strip(spec: &Spec) -> Spec {
         let mut s = spec.clone();
         if let Spec::Circuit(c) = &mut s {
@@ -157,8 +157,8 @@ mod tests {
         s
     }
 
-    /// Проходит сценарий так, как это делает ученик у доски: выставляет тумблеры, подаёт такты, смотрит на выходы.
-    /// Возвращает число пройденных шагов.
+    /// Walks a scenario the way a student does at the board: sets switches, applies clocks, looks at the outputs.
+    /// Returns the number of steps passed.
     fn walk_steps(model: &Model, spec: &CircuitSpec) -> usize {
         use crate::components::labs::arch::check::step_met;
         use archlab::model::InputId;
@@ -198,7 +198,7 @@ mod tests {
             }
             model.values.get_untracked();
             if !met(i) {
-                // по одному, в разном порядке — как пробует ученик, возвращая тумблеры на место
+                // one by one, in different order — as a student tries, putting switches back
                 let orders = permutations(&changed);
                 let mut done = false;
                 for order in orders {
@@ -242,9 +242,9 @@ mod tests {
 
     #[test]
     fn every_scenario_exercise_is_passed_step_by_step_on_the_reference_drawing() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        let reference = ArchLab::load_dir(&data_dir()).expect("данные лаборатории");
-        let lab = ArchLab::from_chapters(reference.chapters().filter(|c| c.chapter <= 14).map(|c| archlab::exercise::LabChapter { tasks: c.tasks.iter().map(|t| archlab::Task { spec: strip(&t.spec), ..t.clone() }).collect(), ..c.clone() }).collect()).expect("клиентский движок");
+        let _ru = locales::guard(i18n::Locale::Ru);
+        let reference = ArchLab::load_dir(&data_dir()).expect("lab data");
+        let lab = ArchLab::from_chapters(reference.chapters().filter(|c| c.chapter <= 14).map(|c| archlab::exercise::LabChapter { tasks: c.tasks.iter().map(|t| archlab::Task { spec: strip(&t.spec), ..t.clone() }).collect(), ..c.clone() }).collect()).expect("client engine");
         let drafts: Vec<(u32, String, String)> = reference
             .chapters()
             .filter(|c| c.chapter <= 14)
@@ -265,31 +265,31 @@ mod tests {
                     let drawing = restore(&serde_json::to_string(sol).expect("JSON"), spec.build);
                     let model = Model::new(Arc::new(spec.clone()), Arc::new(spec.interface()), library, drawing);
                     let passed = walk_steps(&model, spec);
-                    assert_eq!(passed, spec.steps.len(), "{}: пройдено шагов {passed} из {}", t.id, spec.steps.len());
+                    assert_eq!(passed, spec.steps.len(), "{}: steps passed {passed} of {}", t.id, spec.steps.len());
                     checked += 1;
                 }
             }
-            assert!(checked >= 10, "проверено слишком мало сценариев: {checked}");
+            assert!(checked >= 10, "too few scenarios checked: {checked}");
         });
     }
 
     #[test]
     fn clearing_the_board_empties_the_drawing_and_the_result() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let chapters = {
-            // без обращения к серверу: данные из файлов в виде, который отдаёт API
+            // without a server call: data from files in the form the API serves
             let dir = data_dir();
-            let text = std::fs::read_to_string(dir.join("14-06.json")).expect("глава 6");
-            let ch: api::dto::LabChapter = serde_json::from_str(&text).expect("глава как её читает клиент");
+            let text = std::fs::read_to_string(dir.join("14-06.json")).expect("chapter 6");
+            let ch: api::dto::LabChapter = serde_json::from_str(&text).expect("chapter as the client reads it");
             vec![(6u32, ch)]
         };
-        let lab = build_lab(chapters).expect("движок");
-        let (_, spec) = lab.circuit_task("simple-circuits", "not").expect("НЕ");
+        let lab = build_lab(chapters).expect("engine");
+        let (_, spec) = lab.circuit_task("simple-circuits", "not").expect("NOT");
         let owner = Owner::new();
         owner.with(|| {
             let library = Signal::stored(Lib(Arc::new(lab.library(&DraftStore::new()))));
             let model = Model::new(Arc::new(spec.clone()), Arc::new(spec.interface()), library, Drawing::default());
-            assert!(!model.table.with(|t| t.ok), "пустая доска не решает упражнение");
+            assert!(!model.table.with(|t| t.ok), "an empty board does not solve the exercise");
             model.clear();
             assert!(model.drawing().gates.is_empty() && model.drawing().wires.is_empty());
         });

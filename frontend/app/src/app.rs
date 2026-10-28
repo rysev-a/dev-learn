@@ -1,4 +1,4 @@
-//! Корень приложения: тема, сессия, прогресс, плеер, маршруты. Без входа приложение закрыто.
+//! App root: theme, session, progress, player, routes. Without signing in the app is closed.
 
 use leptos::prelude::*;
 use leptos_router::{
@@ -41,7 +41,7 @@ pub fn App() -> impl IntoView {
     }
 }
 
-/// Пока узнаём, кто вошёл, — пустой экран; без входа — форма входа.
+/// While we find out who signed in, an empty screen; without sign-in, the sign-in form.
 #[component]
 fn Gate(theme: RwSignal<Theme>) -> impl IntoView {
     let session = expect_context::<Session>();

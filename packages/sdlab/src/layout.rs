@@ -1,6 +1,6 @@
-//! Раскладка схемы по колонкам слева направо: пользователи → CDN → шлюзы → серверы → кэш/очередь → хранилища.
-//! Окно просмотра — `BOARD_W × BOARD_H` единиц (по нему считается масштаб), сама схема шире: колонки стоят через 150,
-//! а при открытии поле «вписывает» схему в окно.
+//! Design layout by columns left to right: users → CDN → gateways → servers → cache/queue → storage.
+//! The viewport is `BOARD_W × BOARD_H` units (the scale is computed from it), the design itself is wider: columns are 150 apart,
+//! and on opening the board "fits" the design into the viewport.
 
 use crate::jsfmt;
 use crate::types::{SdNode, SdState};
@@ -11,7 +11,7 @@ const LAYOUT_H: f64 = 470.0;
 const COL_STEP: f64 = 150.0;
 const COLS: usize = 8;
 
-/// Координата x колонки (за пределами — 70).
+/// X coordinate of a column (out of range — 70).
 pub fn col_x(col: usize) -> f64 {
     if col < COLS {
         70.0 + col as f64 * COL_STEP
@@ -20,7 +20,7 @@ pub fn col_x(col: usize) -> f64 {
     }
 }
 
-/// Расставляет узлы без положения (`x < 0` или `y < 0`) по колонкам своего вида; остальные не трогает.
+/// Places nodes without a position (`x < 0` or `y < 0`) into the column of their kind; leaves the rest untouched.
 pub fn place(state: &SdState) -> SdState {
     let mut seen = [0usize; 16];
     let mut count = [0usize; 16];
@@ -44,13 +44,13 @@ pub fn place(state: &SdState) -> SdState {
     SdState { nodes, edges: state.edges.clone() }
 }
 
-/// Куда ставить новый компонент в колонке: ниже самого нижнего или посередине пустой колонки.
+/// Where to put a new component in a column: below the lowest one or in the middle of an empty column.
 pub fn next_y(state: &SdState, col: usize) -> f64 {
     state.nodes.iter().filter(|n| n.col() == col).map(|n| n.y).fold(None, |m: Option<f64>, y| Some(m.map_or(y, |m| m.max(y)))).map_or(LAYOUT_H / 2.0, |y| y + 80.0)
 }
 
 impl SdNode {
-    /// Колонка раскладки по виду компонента.
+    /// Layout column by component kind.
     pub fn col(&self) -> usize {
         crate::kinds::spec(self.kind).col
     }

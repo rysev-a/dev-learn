@@ -1,6 +1,6 @@
-name: Проверки
+name: Checks
 
-# Тесты общих крейтов и фронтенда. Бэкенд здесь не собирается: он зависит от закрытых библиотек (реестр автора), его проверяют локально и при выкладке на сервере.
+# Tests of the shared crates and the frontend. The backend is not built here: it depends on closed libraries (the author's registry); it is checked locally and on deployment to the server.
 on:
   push:
     branches: [main]
@@ -12,12 +12,12 @@ concurrency:
 
 jobs:
   packages:
-    name: Крейты packages/
+    name: Crates in packages/
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        crate: [i18n, content, highlight, gen, weblab, sdlab, netlab, archlab, riscvlab, virtlab]
+        crate: [i18n, locales, content, highlight, gen, weblab, sdlab, netlab, archlab, riscvlab, virtlab]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -28,7 +28,7 @@ jobs:
         working-directory: packages/${{ matrix.crate }}
 
   slides:
-    name: Проверка слайдов (информационная, в старых главах 90 замечаний вёрстки сцен)
+    name: Slide check (informational, the old chapters have 90 scene layout warnings)
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -41,7 +41,7 @@ jobs:
         working-directory: packages/gen
 
   frontend:
-    name: Фронтенд (Leptos)
+    name: Frontend (Leptos)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

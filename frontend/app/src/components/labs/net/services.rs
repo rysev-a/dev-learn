@@ -1,6 +1,6 @@
-//! Формы служб в карточке устройства: веб-сервер, TLS и хранилище доверия, прокси, балансировщик, обратный прокси, SSH,
-//! VPN, DNS (клиент и сервер) и настройки TCP. Показываются по флагам `tools` упражнения и по тому, какие службы
-//! запущены на устройстве. Меняют сеть командами терминала или напрямую — как и в React-версии.
+//! Service forms in the device card: web server, TLS and trust store, proxy, load balancer, reverse proxy, SSH,
+//! VPN, DNS (client and server) and TCP settings. Shown by the exercise `tools` flags and by which services
+//! run on the device. They change the network by terminal commands or directly, as in the React version.
 
 use leptos::prelude::*;
 use netlab::types::{Cc, HttpProto, LbAlgo};
@@ -9,7 +9,7 @@ use netlab::util::num_str;
 use super::forms::{same, Btn, Check, Cross, Ctx, Msg, Pick, Section, TextIn};
 use super::logic;
 
-/// Адреса и удостоверяющие центры сети (имена для выпадающих списков).
+/// Addresses and certificate authorities of the network (names for dropdown lists).
 fn authorities(ctx: Ctx) -> Vec<String> {
     ctx.lab.net.with(|n| n.pki.as_ref().map(|p| p.cas.keys().cloned().collect()).unwrap_or_default())
 }
@@ -18,7 +18,7 @@ fn options(values: &[String]) -> Vec<(String, String)> {
     values.iter().map(|v| (v.clone(), v.clone())).collect()
 }
 
-/// Веб-сервер: протокол HTTP, маршруты и заголовки.
+/// Web server: HTTP protocol, routes and headers.
 #[component]
 pub fn WebServer(ctx: Ctx) -> impl IntoView {
     let path = RwSignal::new(String::new());
@@ -127,7 +127,7 @@ pub fn WebServer(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// TLS-сертификат сервера: выпуск, цепочка и версии протокола.
+/// Server TLS certificate: issuance, chain and protocol versions.
 #[component]
 pub fn TlsServer(ctx: Ctx) -> impl IntoView {
     let cas = authorities(ctx);
@@ -199,7 +199,7 @@ pub fn TlsServer(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Хранилище доверия (корневые центры сертификации) клиента.
+/// Client trust store (root certificate authorities).
 #[component]
 pub fn TrustStore(ctx: Ctx) -> impl IntoView {
     let cas = authorities(ctx);
@@ -247,7 +247,7 @@ pub fn TrustStore(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// HTTP-прокси: список запрещённых хостов.
+/// HTTP proxy: list of forbidden hosts.
 #[component]
 pub fn ProxyBox(ctx: Ctx) -> impl IntoView {
     let host = RwSignal::new(String::new());
@@ -290,7 +290,7 @@ pub fn ProxyBox(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Балансировщик нагрузки: алгоритм, проверка здоровья и пул серверов.
+/// Load balancer: algorithm, health check and server pool.
 #[component]
 pub fn LbBox(ctx: Ctx) -> impl IntoView {
     let addr = RwSignal::new(String::new());
@@ -369,14 +369,14 @@ pub fn LbBox(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Обратный прокси и кэш: правила «хост и путь → сервер».
+/// Reverse proxy and cache: "host and path → server" rules.
 #[component]
 pub fn RproxyBox(ctx: Ctx) -> impl IntoView {
     let host = RwSignal::new("*".to_string());
     let path = RwSignal::new(String::new());
     let backend = RwSignal::new(String::new());
     let msg = RwSignal::new(String::new());
-    // (что совпадает, куда, кэшируется ли)
+    // (what matches, where to, whether cached)
     let rules = Memo::new(move |_| {
         ctx.read(|d| {
             d.rproxy
@@ -449,7 +449,7 @@ pub fn RproxyBox(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// SSH: ключ хоста и пользователи сервера, ключ клиента.
+/// SSH: host key and server users, client key.
 #[component]
 pub fn SshBox(ctx: Ctx) -> impl IntoView {
     let msg = RwSignal::new(String::new());
@@ -498,7 +498,7 @@ pub fn SshBox(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// VPN-туннели: список и добавление.
+/// VPN tunnels: list and adding.
 #[component]
 pub fn VpnBox(ctx: Ctx) -> impl IntoView {
     let name = RwSignal::new("wg0".to_string());
@@ -506,7 +506,7 @@ pub fn VpnBox(ctx: Ctx) -> impl IntoView {
     let addr = RwSignal::new(String::new());
     let key = RwSignal::new(String::new());
     let msg = RwSignal::new(String::new());
-    // (имя интерфейса, описание)
+    // (interface name, description)
     let tunnels = Memo::new(move |_| {
         ctx.read(|d| {
             d.ifaces
@@ -555,7 +555,7 @@ pub fn VpnBox(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// DNS-клиент: адрес сервера имён (resolv.conf).
+/// DNS client: name server address (resolv.conf).
 #[component]
 pub fn Resolver(ctx: Ctx) -> impl IntoView {
     let value = RwSignal::new(ctx.read(|d| d.resolver.clone()).flatten().unwrap_or_default());
@@ -580,7 +580,7 @@ pub fn Resolver(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// DNS-сервер: записи, делегирование зон, корневой сервер резолвера.
+/// DNS server: records, zone delegation, the resolver's root server.
 #[component]
 pub fn DnsServer(ctx: Ctx) -> impl IntoView {
     let name = RwSignal::new(String::new());
@@ -695,7 +695,7 @@ pub fn DnsServer(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Настройки TCP: окно приёма и алгоритм управления перегрузкой.
+/// TCP settings: receive window and congestion control algorithm.
 #[component]
 pub fn TcpTune(ctx: Ctx) -> impl IntoView {
     let window = RwSignal::new(ctx.read(|d| d.rwnd).flatten().unwrap_or(64).to_string());

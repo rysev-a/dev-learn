@@ -1,6 +1,6 @@
-//! Симулятор живой миграции (глава 10): сценарий задаёт скорость записи гостя и сети, ученик подбирает допустимый простой,
-//! замедление, сжатие и момент перехода на post-copy. Цель каждого сценария проверяется по результату запуска; упражнение
-//! решено, когда достигнуты все. В данных цели — параметры запуска; сервер симулирует заново.
+//! Live migration simulator (chapter 10): the scenario sets the guest write rate and the network speed, the student picks an acceptable downtime,
+//! throttling, compression and the moment of switching to post-copy. Each scenario's goal is checked on the run result; the exercise is
+//! solved when all are reached. The goal data is the run parameters; the server simulates again.
 
 use gloo_timers::future::TimeoutFuture;
 use leptos::{prelude::*, task::spawn_local};
@@ -8,10 +8,10 @@ use virtlab::migration::{MigrationInput, Outcome, Scenario, Simulation, MEM_MIB}
 
 use super::common::{data, fmt_ru, Goals, Tab};
 
-/// Пауза между кругами при показе.
+/// Pause between rounds when displaying.
 const STEP_MS: u32 = 380;
 
-/// Запуск: результат симуляции и сколько кругов уже показано.
+/// Run: simulation result and how many rounds are already shown.
 #[derive(Clone)]
 struct Playing {
     result: Simulation,
@@ -19,21 +19,21 @@ struct Playing {
 }
 
 impl Playing {
-    /// Все круги показаны (и ещё один «тик» на итог), как в React.
+    /// All rounds are shown (and one more "tick" for the result), as in React.
     fn finished(&self) -> bool {
         self.shown > self.result.rounds.len()
     }
 }
 
-/// Настройки ученика.
+/// Student settings.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Settings {
     pub downtime_ms: f64,
     pub auto_converge: bool,
     pub compress: bool,
-    /// включён ли переход на post-copy
+    /// whether the switch to post-copy is on
     pub hybrid: bool,
-    /// после скольких кругов pre-copy
+    /// after how many pre-copy rounds
     pub after: u32,
 }
 
@@ -43,12 +43,12 @@ impl Default for Settings {
     }
 }
 
-/// Параметры запуска сценария с настройками ученика.
+/// Scenario run parameters with the student's settings.
 pub fn params(sc: &Scenario, s: &Settings) -> MigrationInput {
     sc.input(s.downtime_ms, s.auto_converge, s.compress, s.hybrid.then_some(s.after))
 }
 
-/// Имя класса итогового блока по исходу.
+/// Class name of the result block by outcome.
 fn outcome_class(o: Outcome) -> &'static str {
     match o {
         Outcome::Precopy => "precopy",
@@ -57,12 +57,12 @@ fn outcome_class(o: Outcome) -> &'static str {
     }
 }
 
-/// Ширина столбика круга в процентах от всей памяти.
+/// Width of a round's bar as a percentage of all memory.
 pub fn bar_percent(sent: f64) -> f64 {
     sent / MEM_MIB * 100.0
 }
 
-/// Круг «почти вся память» — столбик красится как заполненный.
+/// A round of "almost all memory" — the bar is painted as filled.
 pub fn bar_full(sent: f64) -> bool {
     sent >= MEM_MIB * 0.98
 }
@@ -72,7 +72,7 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
     let sid = RwSignal::new(0usize);
     let settings = RwSignal::new(Settings::default());
     let run: RwSignal<Option<Playing>> = RwSignal::new(None);
-    // «поколение» показа: смена сценария, новый запуск и уход со страницы обрывают прежний цикл кругов
+    // display "generation": changing the scenario, a new run and leaving the page break the previous round loop
     let generation = StoredValue::new(0u64);
     on_cleanup(move || generation.update_value(|g| *g += 1));
     let scenarios = StoredValue::new(scenarios);
@@ -223,7 +223,7 @@ pub fn MigrationLab(scenarios: Vec<Scenario>, goals: Goals) -> impl IntoView {
     }
 }
 
-/// Показанные круги: столбик остатка, размер и время.
+/// Rounds shown: remainder bar, size and time.
 #[component]
 fn Rounds(playing: Playing) -> impl IntoView {
     let rows = playing
@@ -247,7 +247,7 @@ fn Rounds(playing: Playing) -> impl IntoView {
     view! { <ul class="vl-rounds">{rows}</ul> }
 }
 
-/// Итог миграции и вердикт по цели сценария.
+/// Migration result and the verdict on the scenario's goal.
 #[component]
 fn Final(result: Simulation, reached: bool) -> impl IntoView {
     let text = match result.outcome {
@@ -297,31 +297,31 @@ mod tests {
     use super::*;
 
     fn scenario(id: &str) -> Scenario {
-        default_scenarios().into_iter().find(|s| s.id == id).expect("сценарий")
+        default_scenarios().into_iter().find(|s| s.id == id).expect("scenario")
     }
 
     #[test]
     fn params_take_speeds_from_scenario() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario("busy");
         let p = params(&sc, &Settings { downtime_ms: 250.0, auto_converge: true, ..Settings::default() });
         assert_eq!((p.dirty, p.bw, p.downtime_ms), (2000.0, 1250.0, 250.0));
         assert!(p.auto_converge && !p.compress);
-        assert_eq!(p.postcopy_after, None, "гибрид выключен");
+        assert_eq!(p.postcopy_after, None, "hybrid is off");
         let p = params(&sc, &Settings { hybrid: true, after: 2, ..Settings::default() });
         assert_eq!(p.postcopy_after, Some(2));
     }
 
     #[test]
     fn default_settings_reach_calm_goal_only() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        // спокойный гость сходится с настройками по умолчанию и укладывается в 100 мс при малом простое
+        let _ru = locales::guard(i18n::Locale::Ru);
+        // a calm guest converges with the default settings and fits in 100 ms with a small downtime
         let sc = scenario("calm");
         let small = Settings { downtime_ms: 100.0, ..Settings::default() };
         let r = virtlab::migration::simulate(&params(&sc, &small));
         assert_eq!(r.outcome, Outcome::Precopy);
-        assert!(sc.check.check(&r), "простой {} мс", r.downtime);
-        // активный гость без притормаживания не сходится
+        assert!(sc.check.check(&r), "downtime {} ms", r.downtime);
+        // an active guest without throttling does not converge
         let busy = scenario("busy");
         let r = virtlab::migration::simulate(&params(&busy, &Settings::default()));
         assert!(!busy.check.check(&r));
@@ -329,8 +329,8 @@ mod tests {
 
     #[test]
     fn goal_data_is_accepted_by_server() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        // сценарий «wild»: гибрид после первого круга
+        let _ru = locales::guard(i18n::Locale::Ru);
+        // scenario "wild": hybrid after the first round
         let sc = scenario("wild");
         let s = Settings { downtime_ms: 100.0, hybrid: true, after: 1, ..Settings::default() };
         let input = params(&sc, &s);
@@ -344,7 +344,7 @@ mod tests {
 
     #[test]
     fn playback_finishes_one_tick_after_last_round() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario("calm");
         let result = virtlab::migration::simulate(&params(&sc, &Settings::default()));
         let n = result.rounds.len();
@@ -358,7 +358,7 @@ mod tests {
 
     #[test]
     fn bars() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(bar_percent(MEM_MIB), 100.0);
         assert!(bar_full(MEM_MIB) && !bar_full(MEM_MIB / 2.0));
         assert_eq!(outcome_class(Outcome::Failed), "failed");

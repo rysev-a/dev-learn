@@ -1,37 +1,37 @@
-//! Модель трансляции адресов гостя (глава 4, «Память гостя»).
+//! Guest address translation model (chapter 4, "Guest memory").
 //!
-//! Стоимость измеряется в обращениях к памяти. Теневые таблицы: промах TLB стоит обход одной таблицы (уровней столько,
-//! сколько у наименьшей страницы), но каждое изменение отображения — выход ([`EXIT_COST`]). Вложенные EPT/NPT: промах
-//! стоит `(g+1)*(h+1)-1` обращений, изменений гостя гипервизор не видит. Запись TLB описывает страницу наименьшего из двух
-//! размеров: крупная страница гостя на мелкой страничке хозяина «дробится».
+//! Cost is measured in memory accesses. Shadow page tables: a TLB miss costs one table walk (as many levels as
+//! the smallest page has), but every mapping change is an exit ([`EXIT_COST`]). Nested EPT/NPT: a miss
+//! costs `(g+1)*(h+1)-1` accesses, and the hypervisor does not see guest changes. A TLB entry describes a page of the smaller of the two
+//! sizes: a large guest page on a small host page gets "split".
 //!
-//! Нагрузки и цели — данные ([`Workload`], [`EptGoal`]); цель привязана к нагрузке и проверяется по результату запуска
-//! и настройкам.
+//! Workloads and goals are data ([`Workload`], [`EptGoal`]); a goal is bound to a workload and checked against the run result
+//! and settings.
 
 use serde::{Deserialize, Serialize};
 
 use crate::error::SpecError;
 use crate::goal::Goal;
 
-/// Размер страницы.
+/// Page size.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PageSize {
-    /// 4 КиБ.
+    /// 4 KiB.
     #[serde(rename = "4K")]
     K4,
-    /// 2 МиБ.
+    /// 2 MiB.
     #[serde(rename = "2M")]
     M2,
-    /// 1 ГиБ.
+    /// 1 GiB.
     #[serde(rename = "1G")]
     G1,
 }
 
 impl PageSize {
-    /// Все размеры от меньшего к большему.
+    /// All sizes from smallest to largest.
     pub const ALL: [PageSize; 3] = [PageSize::K4, PageSize::M2, PageSize::G1];
 
-    /// Размер страницы в байтах.
+    /// Page size in bytes.
     pub fn bytes(self) -> u64 {
         match self {
             PageSize::K4 => 4096,
@@ -40,7 +40,7 @@ impl PageSize {
         }
     }
 
-    /// Число уровней таблиц при обходе до страницы такого размера.
+    /// Number of table levels walked to reach a page of this size.
     pub fn levels(self) -> u32 {
         match self {
             PageSize::K4 => 4,
@@ -50,19 +50,19 @@ impl PageSize {
     }
 }
 
-/// Режим трансляции.
+/// Translation mode.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Mode {
-    /// Теневые таблицы.
+    /// Shadow page tables.
     Shadow,
-    /// Вложенные таблицы EPT/NPT.
+    /// Nested EPT/NPT tables.
     Ept,
 }
 
-/// Число записей TLB.
+/// Number of TLB entries.
 pub const TLB_ENTRIES: usize = 64;
-/// Стоимость выхода в гипервизор (в обращениях к памяти).
+/// Cost of an exit to the hypervisor (in memory accesses).
 pub const EXIT_COST: u64 = 1000;
 
 fn smaller(a: PageSize, b: PageSize) -> PageSize {
@@ -73,7 +73,7 @@ fn smaller(a: PageSize, b: PageSize) -> PageSize {
     }
 }
 
-/// Цена одного промаха TLB в обращениях к памяти (обход таблиц; без самого обращения к данным).
+/// Cost of one TLB miss in memory accesses (table walk; excluding the data access itself).
 pub fn walk_cost(mode: Mode, guest: PageSize, host: PageSize) -> u32 {
     match mode {
         Mode::Shadow => smaller(guest, host).levels(),
@@ -83,7 +83,7 @@ pub fn walk_cost(mode: Mode, guest: PageSize, host: PageSize) -> u32 {
 
 const MIB: u64 = 1024 * 1024;
 
-/// Линейный конгруэнтный генератор (тот же, что в TypeScript: `Math.imul(x, 1664525) + 1013904223 >>> 0`).
+/// Linear congruential generator (same as in TypeScript: `Math.imul(x, 1664525) + 1013904223 >>> 0`).
 fn lcg(seed: u32) -> impl FnMut() -> u32 {
     let mut x = seed;
     move || {
@@ -97,59 +97,59 @@ fn random_addrs(n: usize, span: u64, seed: u32) -> Vec<u64> {
     (0..n).map(|_| (u64::from(r()) % (span / 8)) * 8).collect()
 }
 
-/// Как строятся адреса обращений нагрузки.
+/// How the workload's access addresses are built.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Access {
-    /// Одно обращение по адресу.
+    /// One access at an address.
     Single {
-        /// Адрес.
+        /// Address.
         addr: u64,
     },
-    /// `count` обращений подряд с шагом `step` байт.
+    /// `count` consecutive accesses with a `step`-byte stride.
     Stride {
-        /// Число обращений.
+        /// Number of accesses.
         count: usize,
-        /// Шаг в байтах.
+        /// Stride in bytes.
         step: u64,
     },
-    /// `count` случайных обращений (по 8 байт) в пределах `span_mib` МиБ; генератор — `seed`.
+    /// `count` random accesses (8 bytes each) within `span_mib` MiB; generator seeded with `seed`.
     Random {
-        /// Число обращений.
+        /// Number of accesses.
         count: usize,
-        /// Размах адресов, МиБ.
+        /// Address span, MiB.
         span_mib: u64,
-        /// Начальное значение генератора.
+        /// Generator seed.
         seed: u32,
     },
 }
 
-/// Нагрузка: обращения гостя к памяти и число изменений отображения гостем.
+/// Workload: guest memory accesses and the number of mapping changes by the guest.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Workload {
-    /// Идентификатор.
+    /// Identifier.
     pub id: String,
-    /// Название.
+    /// Title.
     pub title: String,
-    /// Пояснение под выбором нагрузки.
+    /// Note under the workload selector.
     pub note: String,
-    /// Адреса обращений.
+    /// Access addresses.
     pub access: Access,
-    /// Сколько раз гость меняет отображение (в теневых режимах каждое — выход).
+    /// How many times the guest changes the mapping (in shadow mode each one is an exit).
     pub maps: u64,
 }
 
-/// Развёрнутая нагрузка.
+/// Expanded workload.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Trace {
-    /// Адреса обращений по порядку.
+    /// Access addresses in order.
     pub addrs: Vec<u64>,
-    /// Число изменений отображения.
+    /// Number of mapping changes.
     pub maps: u64,
 }
 
 impl Workload {
-    /// Развернуть нагрузку в список адресов.
+    /// Expand the workload into a list of addresses.
     pub fn make(&self) -> Trace {
         let addrs = match self.access {
             Access::Single { addr } => vec![addr],
@@ -160,39 +160,39 @@ impl Workload {
     }
 }
 
-/// Настройки запуска.
+/// Run settings.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SimInput {
-    /// Режим трансляции.
+    /// Translation mode.
     pub mode: Mode,
-    /// Размер страницы гостя.
+    /// Guest page size.
     pub guest: PageSize,
-    /// Размер страницы хозяина.
+    /// Host page size.
     pub host: PageSize,
-    /// Идентификатор нагрузки.
+    /// Workload identifier.
     pub workload: String,
 }
 
-/// Результат запуска нагрузки.
+/// Result of running a workload.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SimRun {
-    /// Цена одного промаха.
+    /// Cost of one miss.
     pub walk: u32,
-    /// Число обращений гостя.
+    /// Number of guest accesses.
     pub accesses: u64,
-    /// Промахи TLB.
+    /// TLB misses.
     pub misses: u64,
-    /// Попадания в TLB.
+    /// TLB hits.
     pub hits: u64,
-    /// Выходы в гипервизор из-за правок таблиц.
+    /// Exits to the hypervisor due to table edits.
     pub exits: u64,
-    /// Всего обращений к памяти.
+    /// Total memory accesses.
     pub cost: u64,
-    /// Размер страницы, которую описывает запись TLB.
+    /// Size of the page described by a TLB entry.
     pub eff_page: PageSize,
 }
 
-/// Запустить нагрузку `w` с настройками `mode`, `guest`, `host`.
+/// Run workload `w` with settings `mode`, `guest`, `host`.
 pub fn simulate_workload(w: &Workload, mode: Mode, guest: PageSize, host: PageSize) -> SimRun {
     let trace = w.make();
     let eff = smaller(guest, host).bytes();
@@ -220,7 +220,7 @@ pub fn simulate_workload(w: &Workload, mode: Mode, guest: PageSize, host: PageSi
     SimRun { walk, accesses, misses, hits: accesses - misses, exits, cost, eff_page: smaller(guest, host) }
 }
 
-/// Запустить нагрузку из списка по идентификатору.
+/// Run a workload from the list by identifier.
 pub fn simulate(workloads: &[Workload], input: &SimInput) -> Result<SimRun, SpecError> {
     let w = workloads
         .iter()
@@ -229,34 +229,34 @@ pub fn simulate(workloads: &[Workload], input: &SimInput) -> Result<SimRun, Spec
     Ok(simulate_workload(w, input.mode, input.guest, input.host))
 }
 
-/// Цель: на своей нагрузке выполнены все заданные условия (незаданные не проверяются).
+/// Goal: on its workload all specified conditions hold (unspecified ones are not checked).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EptGoal {
-    /// Идентификатор цели.
+    /// Goal identifier.
     pub id: String,
-    /// Текст цели.
+    /// Goal text.
     pub text: String,
-    /// Нагрузка, на которой цель проверяется.
+    /// Workload the goal is checked on.
     pub workload: String,
-    /// Требуемый режим.
+    /// Required mode.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<Mode>,
-    /// Требуемый размер страницы гостя.
+    /// Required guest page size.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub guest: Option<PageSize>,
-    /// Требуемый размер страницы хозяина.
+    /// Required host page size.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<PageSize>,
-    /// Цена промаха не больше.
+    /// Miss cost at most.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_walk: Option<u32>,
-    /// Общая стоимость не больше.
+    /// Total cost at most.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_cost: Option<u64>,
 }
 
 impl EptGoal {
-    /// Достигнута ли цель при запуске `r` с настройками `cfg` (нагрузка не проверяется — см. [`achieved`]).
+    /// Whether the goal is reached by run `r` with settings `cfg` (the workload is not checked — see [`achieved`]).
     pub fn check(&self, r: &SimRun, cfg: &SimInput) -> bool {
         self.mode.is_none_or(|m| m == cfg.mode)
             && self.guest.is_none_or(|g| g == cfg.guest)
@@ -265,19 +265,19 @@ impl EptGoal {
             && self.max_cost.is_none_or(|c| r.cost <= c)
     }
 
-    /// Цель для показа.
+    /// Goal for display.
     pub fn as_goal(&self) -> Goal {
         Goal::new(self.id.clone(), self.text.clone())
     }
 }
 
-/// Цели, достигнутые запуском `input` (то же, что делает кнопка «Запустить нагрузку»).
+/// Goals reached by running `input` (what the "Run workload" button does).
 pub fn achieved(workloads: &[Workload], goals: &[EptGoal], input: &SimInput) -> Result<Vec<String>, SpecError> {
     let r = simulate(workloads, input)?;
     Ok(goals.iter().filter(|g| g.workload == input.workload && g.check(&r, input)).map(|g| g.id.clone()).collect())
 }
 
-/// Нагрузки по умолчанию (упражнение главы 4).
+/// Default workloads (chapter 4 exercise).
 pub fn default_workloads() -> Vec<Workload> {
     let w = |id: &str, title: &str, note: &str, access: Access, maps: u64| Workload {
         id: id.into(),
@@ -312,7 +312,7 @@ pub fn default_workloads() -> Vec<Workload> {
     ]
 }
 
-/// Цели по умолчанию (упражнение главы 4).
+/// Default goals (chapter 4 exercise).
 pub fn default_goals() -> Vec<EptGoal> {
     let g = |id: &str, text: &str, workload: &str| EptGoal {
         id: id.into(),

@@ -1,4 +1,4 @@
-//! Квизы: вопросы без ответов, ответ и пояснение — после выбора варианта (как `quizzes/router.py`).
+//! Quizzes: questions without answers, the answer and explanation come after an option is chosen (like `quizzes/router.py`).
 
 use axum::{
     extract::{Path, State},
@@ -23,7 +23,7 @@ pub fn private() -> Router<AppState> {
     Router::new().route("/api/quizzes/{book_id}/{chapter}", get(get_quiz)).route("/api/quizzes/{book_id}/{chapter}/answer", post(answer))
 }
 
-/// Сколько элементов в каждой главе: `{книга: {глава: число}}` (общий для квизов, ответов и упражнений).
+/// How many items in each chapter: `{book: {chapter: count}}` (shared by quizzes, answers and exercises).
 pub async fn counts(db: &crate::db::Db, table: &str) -> ApiResult<Value> {
     let mut res = db.query(format!("SELECT book, chapter, count() AS n FROM {table} GROUP BY book, chapter")).await?;
     let rows: Vec<Value> = res.take(0)?;
@@ -75,7 +75,7 @@ async fn picks_of(state: &AppState, user: &str, book: i64, chapter: i64) -> ApiR
     Ok(rows.first().and_then(Value::as_array).map(|a| a.iter().map(Value::as_i64).collect()).unwrap_or_default())
 }
 
-/// Вопросы с вариантами. `reveal[i]` — ответ и пояснение для вопросов, на которые пользователь уже ответил.
+/// Questions with options. `reveal[i]` - the answer and explanation for questions the user has already answered.
 async fn get_quiz(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
     let quiz = load(&state, lang, book, chapter).await?.ok_or_else(|| ApiError::not_found("This chapter has no questions"))?;
     let picks = picks_of(&state, &me.user.id, book, chapter).await?;
@@ -98,7 +98,7 @@ struct AnswerIn {
     pick: i64,
 }
 
-/// Записать выбор и вернуть верный ответ. На вопрос отвечают один раз: повторный запрос ничего не меняет.
+/// Records the choice and returns the right answer. A question is answered once: a repeated request changes nothing.
 async fn answer(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>, Json(b): Json<AnswerIn>) -> ApiResult<Json<Value>> {
     crate::progress::check_range("question", b.question, 0, 500)?;
     crate::progress::check_range("pick", b.pick, 0, 50)?;

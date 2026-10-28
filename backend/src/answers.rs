@@ -1,4 +1,4 @@
-//! Задачи с вводом ответа: условия и подсказки без ответов, ответ проверяет сервер (как `answers/router.py`).
+//! Answer-entry tasks: statements and hints without answers; the server checks the answer (like `answers/router.py`).
 
 use axum::{
     extract::{Path, Query, State},
@@ -29,7 +29,7 @@ async fn summary(State(state): State<AppState>) -> ApiResult<Json<Value>> {
     Ok(Json(crate::quizzes::counts(&state.db, "answer_tasks").await?))
 }
 
-/// Пробелы, регистр, запятая как десятичный разделитель (первая запятая перед цифрой).
+/// Whitespace, case, comma as the decimal separator (the first comma before a digit).
 fn normalize(v: &str) -> String {
     let s = v.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase();
     let chars: Vec<char> = s.chars().collect();
@@ -87,7 +87,7 @@ async fn load(state: &AppState, lang: Lang, book: i64, chapter: i64) -> ApiResul
     Ok(Some((s(&head, "title"), res.take(1)?)))
 }
 
-/// Условия и подсказки; `solved` — решённые пользователем задачи с принятым ответом.
+/// Statements and hints; `solved` - the tasks the user has solved with an accepted answer.
 async fn get_set(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>) -> ApiResult<Json<Value>> {
     let (title, tasks) = load(&state, lang, book, chapter).await?.ok_or_else(|| ApiError::not_found("This chapter has no answer-entry exercises"))?;
     let mut res = state
@@ -112,7 +112,7 @@ struct CheckIn {
     value: String,
 }
 
-/// Проверить ответ. Верный записывается как решённый; неверный ничего не меняет и верного ответа не раскрывает.
+/// Check an answer. A correct one is recorded as solved; a wrong one changes nothing and does not reveal the right answer.
 async fn check(State(state): State<AppState>, lang: Lang, Extension(me): Extension<Identity>, Path((book, chapter)): Path<(i64, i64)>, Json(b): Json<CheckIn>) -> ApiResult<Json<Value>> {
     check_range("task", b.task, 0, 500)?;
     if b.value.chars().count() > 200 {
@@ -143,7 +143,7 @@ struct BookChapter {
     chapter: i64,
 }
 
-/// Начать упражнения главы заново.
+/// Start the chapter's exercises over.
 async fn reset(State(state): State<AppState>, Extension(me): Extension<Identity>, Query(q): Query<BookChapter>) -> ApiResult<StatusCode> {
     check_range("book", q.book, 1, 1000)?;
     check_range("chapter", q.chapter, 0, 1000)?;
@@ -158,7 +158,7 @@ mod tests {
     #[test]
     fn compares_ignoring_case_and_spaces() {
         assert!(is_correct(" 3,5 ", &["3.5".into()]));
-        assert!(is_correct("ДА", &["да".into()]));
+        assert!(is_correct("É", &["é".into()]));
         assert!(is_correct("2.0", &["2".into()]));
         assert!(!is_correct("", &["".into()]));
         assert!(!is_correct("12", &["21".into()]));

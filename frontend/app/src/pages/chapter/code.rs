@@ -1,4 +1,4 @@
-//! Вкладка «Практика»: упражнения с кодом (проверка в песочнице через очередь) и, если кода нет, задачи с вводом ответа.
+//! "Practice" tab: code exercises (checked in a sandbox via a queue) and, if there is no code, answer-input tasks.
 
 use std::collections::HashMap;
 
@@ -26,15 +26,15 @@ use crate::{
     settings,
 };
 
-/// Очередь длиннее этого места или ожидание дольше этого (мс) — показываем окно о перегрузке.
+/// A queue longer than this place or a wait longer than this (ms) - show the overload dialog.
 const BUSY_QUEUE_PLACE: i64 = 8;
 const BUSY_WAIT_MS: u32 = 25_000;
 const DRAFT_DELAY_MS: u32 = 700;
 const POLL_MS: u32 = 700;
-/// Дольше этого проверку не ждём (6 минут при опросе раз в 0,7 с).
+/// We do not wait for a check longer than this (6 minutes at polling every 0.7 s).
 const MAX_POLLS: u32 = 6 * 60 * 1000 / POLL_MS;
 
-/// Язык подсветки редактора по режиму задачи (песочница определяет язык решения).
+/// Editor highlight language by task mode (the sandbox determines the solution language).
 pub fn lang_of(mode: &str) -> Lang {
     match mode {
         "rust" => Lang::Rust,
@@ -45,18 +45,18 @@ pub fn lang_of(mode: &str) -> Lang {
     }
 }
 
-/// Номер выбранной задачи по `?task=`: неизвестный id — первая.
+/// Selected task number from `?task=`: an unknown id gives the first.
 pub fn selected(tasks: &[Task], param: Option<&str>) -> usize {
     param.and_then(|p| tasks.iter().position(|t| t.id == p)).unwrap_or(0)
 }
 
-/// Учебная база SQL-задачи (режим `sql`) из наборов главы по ключу `dataset`.
+/// Training SQL database of a task (mode `sql`) from the chapter's datasets by the `dataset` key.
 fn sql_dataset(task: &Task, datasets: &StoredValue<HashMap<String, SqlDataset>>) -> Option<SqlDataset> {
     let key = task.dataset.as_deref().filter(|_| task.mode == "sql")?;
     datasets.with_value(|d| d.get(key).cloned())
 }
 
-/// Подпись справа от полосы прогресса: где выполняются упражнения главы.
+/// Caption to the right of the progress bar: where the chapter's exercises run.
 fn run_label(tasks: &[Task]) -> &'static str {
     if tasks.iter().all(|t| t.mode == "lab") {
         return i18n::tr("interactive · in the browser");
@@ -70,7 +70,7 @@ fn run_label(tasks: &[Task]) -> &'static str {
     }
 }
 
-/// Первая глава книги после `num`, у которой есть код-задачи (id для адреса): по порядку номеров глав.
+/// First chapter of the book after `num` that has code tasks (id for the address): in chapter number order.
 fn next_chapter(course: &[api::dto::Section], counts: &api::dto::Counts, book: i64, num: i64) -> Option<i64> {
     let with_tasks = counts.get(&book.to_string())?;
     let mut chapters: Vec<_> = course.iter().flat_map(|s| s.chapters.iter()).filter(|c| c.num > num).collect();
@@ -78,7 +78,7 @@ fn next_chapter(course: &[api::dto::Section], counts: &api::dto::Counts, book: i
     chapters.into_iter().find(|c| with_tasks.get(&c.num.to_string()).is_some_and(|n| *n > 0)).map(|c| c.id)
 }
 
-/// Сообщение об ожидании: место в очереди.
+/// Waiting message: place in the queue.
 pub fn queue_text(position: Option<i64>) -> String {
     match position {
         Some(p) if p > 1 => i18n::trf!("Queued ({} ahead of you)…", p - 1),
@@ -101,7 +101,7 @@ pub fn Exercises() -> impl IntoView {
 #[component]
 fn CodePractice(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, SqlDataset>) -> impl IntoView {
     let state = use_load(move || Some(()), move |c, _| async move { c.chapter_state(book, num).await });
-    // первая следующая глава книги, где есть код-задачи: после последнего упражнения «Дальше →» ведёт туда
+    // first next chapter of the book with code tasks: after the last exercise "Next ->" leads there
     let course = use_load(move || Some(()), move |c, _| async move { c.course(book).await });
     let counts = use_load(move || Some(()), |c, _| async move { c.code_counts().await });
     let next = Signal::derive(move || {
@@ -148,7 +148,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
     let code_of = move |t: &Task| drafts.with(|d| d.get(&t.id).cloned()).unwrap_or_else(|| t.starter.clone());
     let done = move || status.with(|s| s.values().filter(|v| *v == "ok").count());
 
-    // черновик уходит на сервер через паузу и при уходе со страницы
+    // the draft goes to the server after a pause and when leaving the page
     let pending = StoredValue::new(HashMap::<String, String>::new());
     let timer: StoredValue<Option<Timeout>, LocalStorage> = StoredValue::new_local(None);
     let flush = move || {
@@ -170,7 +170,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
         timer.set_value(Some(Timeout::new(DRAFT_DELAY_MS, flush)));
     };
 
-    // история попыток выбранной задачи
+    // attempt history of the selected task
     Effect::new(move |_| {
         let id = task().id;
         history.set(Vec::new());
@@ -183,7 +183,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
         });
     });
 
-    // после последнего упражнения — к первому упражнению следующей главы с задачами
+    // after the last exercise - to the first exercise of the next chapter with tasks
     let has_next = move || idx.get() + 1 < total || next.get().is_some();
     let go_next = Callback::new(move |()| {
         let i = idx.get_untracked();
@@ -193,6 +193,19 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
             navigate_next(&chapter_href(book, id, "exercises", fullscreen.is_on_untracked()), Default::default());
         }
     });
+    // auto-advance (setting is off by default): a second after an accepted solution, if the student stayed on this task;
+    // same for code tasks and labs
+    let auto_next = move |id: String| {
+        if settings::read(settings::AUTO_NEXT).as_deref() != Some("1") {
+            return;
+        }
+        Timeout::new(1000, move || {
+            if task().id == id {
+                go_next.run(());
+            }
+        })
+        .forget();
+    };
     let accepted = Memo::new(move |_| {
         let t = task();
         let code = code_of(&t);
@@ -221,7 +234,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                         RunState::Done(res) => return Ok(res),
                         RunState::Queued { position } => {
                             phase.set(queue_text(position));
-                            // длинная очередь или долгое ожидание — предложить запустить систему у себя (один раз за проверку)
+                            // long queue or long wait - offer to run the system locally (once per check)
                             if !warned && (position.unwrap_or(0) >= BUSY_QUEUE_PLACE || polls * POLL_MS >= BUSY_WAIT_MS) {
                                 warned = true;
                                 overload.raise(Overload::Busy);
@@ -253,19 +266,12 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                     results.update(|r| {
                         r.insert(id.clone(), res.clone());
                     });
-                    // автопереход (настройка выключена по умолчанию): через секунду, если ученик остался на этой задаче
-                    if res.solved && settings::read(settings::AUTO_NEXT).as_deref() == Some("1") {
-                        let id = id.clone();
-                        Timeout::new(1000, move || {
-                            if task().id == id {
-                                go_next.run(());
-                            }
-                        })
-                        .forget();
+                    if res.solved {
+                        auto_next(id.clone());
                     }
                 }
                 Err(e) => {
-                    // 503: проверка недоступна или очередь переполнена
+                    // 503: checking is unavailable or the queue is full
                     if e.status == 503 {
                         overload.raise(Overload::Unavailable);
                     }
@@ -278,7 +284,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
             phase.set(String::new());
         });
     });
-    // Ctrl/Cmd+Enter: проверить; если принятое решение не менялось — перейти дальше
+    // Ctrl/Cmd+Enter: check; if the accepted solution has not changed - go on
     let primary = Callback::new(move |()| if go_mode() { go_next.run(()) } else { run.run(()) });
 
     let list = move || {
@@ -319,6 +325,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                         s.insert(id.clone(), "ok".to_string());
                     });
                     progress.set_code_status(book, num, &id, "ok");
+                    auto_next(id.clone());
                 }
             });
             let solved = {
@@ -385,7 +392,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
             }
             .into_any()
         };
-        // учебная база SQL-задачи: ERD и данные таблиц
+        // training SQL database of the task: ERD and table data
         let schema = sql_dataset(&t, &datasets).map(|schema| view! { <SqlSchema schema=schema /> });
         view! {
             <div class="pr-main">
@@ -402,7 +409,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
         }
     };
 
-    // упражнения-лаборатории занимают всю ширину: список упражнений — полосой сверху (как `lab-pr` в React)
+    // lab exercises take the full width: the exercise list is a strip on top (like `lab-pr` in React)
     let labs = tasks.with_value(|t| t.iter().all(|x| x.mode == "lab"));
     view! {
         <section class="pr" class:lab-pr=labs>
@@ -451,9 +458,9 @@ mod tests {
         let chapter = |id: i64, num: i64| ChapterRef { id, num, title: String::new(), parts_count: 1 };
         let course = vec![Section { id: 1, title: String::new(), chapters: vec![chapter(11, 1), chapter(12, 2), chapter(13, 3), chapter(14, 4)] }];
         let counts: Counts = [("13".to_string(), [("1".to_string(), 5), ("3".to_string(), 7)].into_iter().collect())].into_iter().collect();
-        assert_eq!(next_chapter(&course, &counts, 13, 1), Some(13), "глава 2 без задач пропускается");
-        assert_eq!(next_chapter(&course, &counts, 13, 3), None, "после последней главы с задачами идти некуда");
-        assert_eq!(next_chapter(&course, &counts, 99, 1), None, "у книги без задач — нет");
+        assert_eq!(next_chapter(&course, &counts, 13, 1), Some(13), "chapter 2 without tasks is skipped");
+        assert_eq!(next_chapter(&course, &counts, 13, 3), None, "after the last chapter with tasks there is nowhere to go");
+        assert_eq!(next_chapter(&course, &counts, 99, 1), None, "a book without tasks has none");
     }
 
     #[test]

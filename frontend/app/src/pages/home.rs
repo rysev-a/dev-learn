@@ -1,4 +1,4 @@
-//! Главная: общий прогресс по слайдам, вопросам и упражнениям и карточки разделов с тремя полосами.
+//! Home: overall progress over slides, questions and exercises and section cards with three bars.
 
 use api::dto::Book;
 use leptos::prelude::*;
@@ -9,18 +9,18 @@ use crate::{
     progress::ProgressStore,
 };
 
-/// Сумма чисел по главам книги в наборе счётчиков `книга → глава → число`.
+/// Sum of numbers over a book's chapters in a counter set `book -> chapter -> number`.
 fn book_total(counts: &api::dto::Counts, book: i64) -> usize {
     counts.get(&book.to_string()).map_or(0, |m| m.values().map(|n| usize::try_from(*n).unwrap_or(0)).sum())
 }
 
-/// Ключи прогресса `книга:глава` этой книги.
+/// Progress keys `book:chapter` of this book.
 fn of_book<V>(map: &std::collections::HashMap<String, V>, book: i64) -> impl Iterator<Item = &V> + '_ {
     let prefix = format!("{book}:");
     map.iter().filter(move |(k, _)| k.starts_with(&prefix)).map(|(_, v)| v)
 }
 
-/// Уровень закраски квадратика главы: 0 — ничего не сделано, 3 — всё, 2 — не меньше половины, 1 — начато.
+/// Fill level of a chapter square: 0 - nothing done, 3 - all, 2 - at least half, 1 - started.
 pub fn level(done: usize, all: usize) -> u8 {
     if done == 0 {
         0
@@ -33,7 +33,7 @@ pub fn level(done: usize, all: usize) -> u8 {
     }
 }
 
-/// Полоса прогресса карточки: подпись, заполнение и «сделано/всего».
+/// Card progress bar: caption, fill and "done/total".
 fn bar(label: &'static str, done: impl Fn() -> usize + Send + Sync + 'static + Copy, total: impl Fn() -> usize + Send + Sync + 'static + Copy) -> impl IntoView {
     view! {
         <div class="dash-bar">
@@ -44,7 +44,7 @@ fn bar(label: &'static str, done: impl Fn() -> usize + Send + Sync + 'static + C
     }
 }
 
-/// Процент `done` от `all` (0, если всего нет).
+/// Percentage `done` of `all` (0 if there is nothing).
 pub fn pct(done: usize, all: usize) -> usize {
     (done * 100 + all / 2).checked_div(all).unwrap_or(0)
 }
@@ -53,20 +53,20 @@ pub fn pct(done: usize, all: usize) -> usize {
 pub fn Home(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
     let progress = expect_context::<ProgressStore>();
     let navigate = use_navigate();
-    // сколько вопросов и упражнений в книгах: счётчики с сервера
+    // how many questions and exercises are in the books: counters from the server
     let quizzes = use_load(|| Some(()), |c, _| async move { c.quiz_counts().await });
     let answers = use_load(|| Some(()), |c, _| async move { c.answer_counts().await });
     let code = use_load(|| Some(()), |c, _| async move { c.code_counts().await });
     let quiz_total = move |book: i64| quizzes.get().ready().map_or(0, |c| book_total(c, book));
     let practice_total = move |book: i64| answers.get().ready().map_or(0, |c| book_total(c, book)) + code.get().ready().map_or(0, |c| book_total(c, book));
-    // отвечено вопросов и решено упражнений (ответы и код)
+    // questions answered and exercises solved (answers and code)
     let quiz_done = move |book: i64| progress.data.with(|d| of_book(&d.quiz, book).map(|picks| picks.iter().flatten().count()).sum::<usize>());
     let practice_done = move |book: i64| {
         progress.data.with(|d| {
             of_book(&d.answers, book).map(|m| m.len()).sum::<usize>() + of_book(&d.code, book).map(|m| m.values().filter(|s| *s == "ok").count()).sum::<usize>()
         })
     };
-    // главы всех книг — для квадратиков на карточках (по одному запросу на книгу, один раз)
+    // chapters of all books - for the squares on the cards (one request per book, once)
     let courses = use_load(
         move || Some(books.get().iter().map(|b| b.id).collect::<Vec<_>>()).filter(|ids| !ids.is_empty()),
         |c, ids| async move {
@@ -77,9 +77,9 @@ pub fn Home(#[prop(into)] books: Signal<Vec<Book>>) -> impl IntoView {
             Ok(out)
         },
     );
-    // просмотрено слайдов в книге: прогресс хранится по (книга:глава), поэтому суммируем по префиксу
+    // slides viewed in a book: progress is stored by (book:chapter), so we sum by prefix
     let viewed = move |book: i64| progress.data.with(|d| d.slides.iter().filter(|(k, _)| k.split(':').next() == Some(&book.to_string())).map(|(_, v)| v.len()).sum::<usize>());
-    // общий итог по трём видам: слайды, вопросы, упражнения
+    // overall total over three kinds: slides, questions, exercises
     let totals = move || {
         let ids: Vec<i64> = books.get().iter().map(|b| b.id).collect();
         let all: usize = books.get().iter().map(|b| b.parts_count as usize).sum::<usize>() + ids.iter().map(|b| quiz_total(*b) + practice_total(*b)).sum::<usize>();
@@ -164,7 +164,7 @@ mod tests {
         assert_eq!(super::level(3, 10), 1);
         assert_eq!(super::level(5, 10), 2);
         assert_eq!(super::level(10, 10), 3);
-        assert_eq!(super::level(0, 0), 0, "у главы без содержимого закраски нет");
+        assert_eq!(super::level(0, 0), 0, "a chapter without content has no fill");
     }
 
     #[test]

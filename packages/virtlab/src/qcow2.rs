@@ -1,12 +1,12 @@
-//! Модель цепочки слоёв qcow2 (глава 9).
+//! qcow2 layer chain model (chapter 9).
 //!
-//! Цепочка — вектор слоёв от верхнего (текущего, в него идут все записи) к базовому. Чтение идёт вниз до первого слоя,
-//! где кластер есть; каждая проверка слоя — обращение к таблицам. Снимок — новый пустой верхний слой. Слияние (commit)
-//! переносит кластеры верхнего слоя в нижний. Откат отбрасывает верхний слой.
+//! The chain is a vector of layers from the top one (current, all writes go there) to the base. A read goes down to the first layer
+//! that has the cluster; each layer check is a table lookup. A snapshot is a new empty top layer. Merging (commit)
+//! moves the top layer's clusters into the one below. Rollback discards the top layer.
 //!
-//! Цели зависят от истории действий ([`Qcow2Rule`]): глубокое чтение, сокращение цепочки, откат записей. Историю ведёт
-//! [`Session`] (то же, что `Qcow2Lab.tsx`); для серверной перепроверки действия записываются как [`Action`]
-//! и воспроизводятся [`replay`].
+//! Goals depend on the action history ([`Qcow2Rule`]): deep read, chain shortening, write rollback. The history is kept by
+//! [`Session`] (same as `Qcow2Lab.tsx`); for server-side re-checking actions are recorded as [`Action`]
+//! and replayed by [`replay`].
 
 use std::collections::BTreeMap;
 
@@ -14,24 +14,24 @@ use serde::{Deserialize, Serialize};
 
 use crate::goal::Goal;
 
-/// Число кластеров в упражнении.
+/// Number of clusters in the exercise.
 pub const CLUSTERS: u32 = 8;
 
-/// Слой: кластеры, которые в нём выделены (номер → данные).
+/// Layer: clusters allocated in it (number → data).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Layer {
-    /// Название слоя.
+    /// Layer name.
     pub name: String,
-    /// Выделенные кластеры.
+    /// Allocated clusters.
     pub data: BTreeMap<u32, String>,
 }
 
-/// Цепочка из одного базового слоя с кластерами `base`.
+/// Chain of a single base layer with clusters `base`.
 pub fn initial_chain(base: &BTreeMap<u32, String>) -> Vec<Layer> {
     vec![Layer { name: i18n::tr("base").into(), data: base.clone() }]
 }
 
-/// Снимок: сверху добавляется пустой слой «слой n».
+/// Snapshot: an empty layer "layer n" is added on top.
 pub fn snapshot(chain: &[Layer], n: u32) -> Vec<Layer> {
     let mut v = Vec::with_capacity(chain.len() + 1);
     v.push(Layer { name: i18n::trf!("layer {0}", n), data: BTreeMap::new() });
@@ -39,7 +39,7 @@ pub fn snapshot(chain: &[Layer], n: u32) -> Vec<Layer> {
     v
 }
 
-/// Запись данных `d` в кластер `c`: идёт в верхний слой; `copy_up` — кластер уже лежал ниже или выше (копирование при записи).
+/// Write data `d` to cluster `c`: goes to the top layer; `copy_up` — the cluster already existed below or above (copy-on-write).
 pub fn write(chain: &[Layer], c: u32, d: &str) -> (Vec<Layer>, bool) {
     let Some((top, rest)) = chain.split_first() else {
         return (vec![], false);
@@ -53,20 +53,20 @@ pub fn write(chain: &[Layer], c: u32, d: &str) -> (Vec<Layer>, bool) {
     (v, below)
 }
 
-/// Результат чтения кластера.
+/// Result of reading a cluster.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReadResult {
-    /// Данные (нет ни в одном слое — читаются нули, `None`).
+    /// Data (absent in every layer — zeros are read, `None`).
     pub value: Option<String>,
-    /// Глубина слоя, где найден кластер (0 — верхний).
+    /// Depth of the layer where the cluster was found (0 — top).
     pub depth: Option<usize>,
-    /// Обращений к таблицам слоёв.
+    /// Layer table lookups.
     pub lookups: usize,
-    /// Название слоя, где найден кластер.
+    /// Name of the layer where the cluster was found.
     pub layer: Option<String>,
 }
 
-/// Прочитать кластер `c` вниз по цепочке.
+/// Read cluster `c` down the chain.
 pub fn read(chain: &[Layer], c: u32) -> ReadResult {
     for (i, l) in chain.iter().enumerate() {
         if let Some(v) = l.data.get(&c) {
@@ -76,7 +76,7 @@ pub fn read(chain: &[Layer], c: u32) -> ReadResult {
     ReadResult { value: None, depth: None, lookups: chain.len(), layer: None }
 }
 
-/// Слияние: кластеры верхнего слоя переносятся в нижний; `None` — слой всего один.
+/// Merge: the top layer's clusters move into the one below; `None` — there is only one layer.
 pub fn commit(chain: &[Layer]) -> Option<Vec<Layer>> {
     if chain.len() < 2 {
         return None;
@@ -91,7 +91,7 @@ pub fn commit(chain: &[Layer]) -> Option<Vec<Layer>> {
     Some(v)
 }
 
-/// Откат: верхний слой отбрасывается; `None` — слой всего один.
+/// Rollback: the top layer is discarded; `None` — there is only one layer.
 pub fn revert(chain: &[Layer]) -> Option<Vec<Layer>> {
     if chain.len() < 2 {
         return None;
@@ -99,96 +99,96 @@ pub fn revert(chain: &[Layer]) -> Option<Vec<Layer>> {
     Some(chain[1..].to_vec())
 }
 
-/// Правило цели.
+/// Goal rule.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Qcow2Rule {
-    /// Прочитать найденный кластер при цепочке не короче `min_chain`, и чтение стоит не меньше `min_lookups` обращений.
+    /// Read a found cluster with a chain at least `min_chain` long, and the read costs at least `min_lookups` lookups.
     Deep {
-        /// Минимальная длина цепочки при чтении.
+        /// Minimum chain length at the time of the read.
         min_chain: usize,
-        /// Минимум обращений к таблицам.
+        /// Minimum table lookups.
         min_lookups: usize,
     },
-    /// Цепочка когда-то была не короче `min_chain`, а после слияния стала не длиннее `max_after`.
+    /// The chain was once at least `min_chain` long, and after merging became at most `max_after`.
     Squash {
-        /// Минимальная наибольшая длина цепочки за сессию.
+        /// Minimum peak chain length during the session.
         min_chain: usize,
-        /// Длина цепочки после слияния не больше.
+        /// Chain length after merging at most.
         max_after: usize,
     },
-    /// Записать кластер в верхний слой, откатить слой и прочитать этот кластер: данные уже другие.
+    /// Write a cluster to the top layer, roll the layer back and read that cluster: the data is now different.
     Rollback,
 }
 
-/// Цель упражнения.
+/// Exercise goal.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Qcow2Goal {
-    /// Идентификатор цели.
+    /// Goal identifier.
     pub id: String,
-    /// Текст цели.
+    /// Goal text.
     pub text: String,
-    /// Правило.
+    /// Rule.
     pub rule: Qcow2Rule,
 }
 
 impl Qcow2Goal {
-    /// Цель для показа.
+    /// Goal for display.
     pub fn as_goal(&self) -> Goal {
         Goal::new(self.id.clone(), self.text.clone())
     }
 }
 
-/// Действие ученика.
+/// Student action.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Action {
-    /// Снимок.
+    /// Snapshot.
     Snapshot,
-    /// Запись данных в кластер.
+    /// Write data to a cluster.
     Write {
-        /// Номер кластера.
+        /// Cluster number.
         cluster: u32,
-        /// Данные.
+        /// Data.
         data: String,
     },
-    /// Чтение кластера.
+    /// Read a cluster.
     Read {
-        /// Номер кластера.
+        /// Cluster number.
         cluster: u32,
     },
-    /// Слить верхний слой.
+    /// Merge the top layer.
     Commit,
-    /// Откатить верхний слой.
+    /// Roll back the top layer.
     Revert,
 }
 
-/// Что произошло на действии (для подписи под схемой).
+/// What happened on the action (for the caption under the diagram).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Note {
-    /// Снимок сделан.
+    /// Snapshot taken.
     Snapshot,
-    /// Запись выполнена; `copy_up` — кластер лежал в какой-то слое (копирование при записи).
+    /// Write done; `copy_up` — the cluster existed in some layer (copy-on-write).
     Write {
-        /// Копирование при записи.
+        /// Copy-on-write.
         copy_up: bool,
     },
-    /// Чтение выполнено.
+    /// Read done.
     Read(ReadResult),
-    /// Слияние выполнено.
+    /// Merge done.
     Committed,
-    /// Слияние невозможно: слой один.
+    /// Merge impossible: only one layer.
     CommitImpossible,
-    /// Откат выполнен; `had_data` — в отброшенном слое были записи.
+    /// Rollback done; `had_data` — the discarded layer had writes.
     Reverted {
-        /// В отброшенном слое были записи.
+        /// The discarded layer had writes.
         had_data: bool,
     },
-    /// Откат невозможен: слой один.
+    /// Rollback impossible: only one layer.
     RevertImpossible,
 }
 
-/// Ход упражнения: цепочка слоёв, служебные счётчики и достигнутые цели — как в `Qcow2Lab.tsx`.
+/// Exercise progress: layer chain, bookkeeping counters and achieved goals — as in `Qcow2Lab.tsx`.
 #[derive(Clone, Debug)]
 pub struct Session {
     goals: Vec<Qcow2Goal>,
@@ -200,27 +200,27 @@ pub struct Session {
 }
 
 impl Session {
-    /// Новое упражнение: базовый слой с кластерами `base`.
+    /// New exercise: base layer with clusters `base`.
     pub fn new(base: &BTreeMap<u32, String>, goals: &[Qcow2Goal]) -> Session {
         Session { goals: goals.to_vec(), chain: initial_chain(base), max_len: 1, snaps: 0, dropped: None, done: vec![] }
     }
 
-    /// Цепочка слоёв (верхний — первый).
+    /// Layer chain (top first).
     pub fn chain(&self) -> &[Layer] {
         &self.chain
     }
 
-    /// Наибольшая длина цепочки за сессию.
+    /// Peak chain length during the session.
     pub fn max_len(&self) -> usize {
         self.max_len
     }
 
-    /// Идентификаторы достигнутых целей (в порядке достижения).
+    /// Identifiers of achieved goals (in order of achievement).
     pub fn done(&self) -> &[String] {
         &self.done
     }
 
-    /// Достигнуты ли все цели.
+    /// Whether all goals are achieved.
     pub fn solved(&self) -> bool {
         self.goals.iter().all(|g| self.done.contains(&g.id))
     }
@@ -238,7 +238,7 @@ impl Session {
         self.chain = c;
     }
 
-    /// Снимок.
+    /// Snapshot.
     pub fn snapshot(&mut self) -> Note {
         self.snaps += 1;
         let c = snapshot(&self.chain, self.snaps);
@@ -246,14 +246,14 @@ impl Session {
         Note::Snapshot
     }
 
-    /// Запись.
+    /// Write.
     pub fn write(&mut self, cluster: u32, data: &str) -> Note {
         let (c, copy_up) = write(&self.chain, cluster, data);
         self.set_chain(c);
         Note::Write { copy_up }
     }
 
-    /// Чтение.
+    /// Read.
     pub fn read(&mut self, cluster: u32) -> Note {
         let r = read(&self.chain, cluster);
         let len = self.chain.len();
@@ -261,7 +261,7 @@ impl Session {
             let lookups = r.lookups;
             self.mark(|rule| matches!(rule, Qcow2Rule::Deep { min_chain, min_lookups } if lookups >= *min_lookups && len >= *min_chain));
         }
-        // откат подтверждён, если кластер, записанный в отброшенный слой, теперь читается иначе (или не читается вовсе)
+        // rollback is confirmed if a cluster written to the discarded layer now reads differently (or not at all)
         if let Some(d) = &self.dropped {
             if let Some(old) = d.get(&cluster) {
                 if r.value.as_ref() != Some(old) {
@@ -273,7 +273,7 @@ impl Session {
         Note::Read(r)
     }
 
-    /// Слияние верхнего слоя.
+    /// Merge the top layer.
     pub fn commit(&mut self) -> Note {
         let Some(c) = commit(&self.chain) else {
             return Note::CommitImpossible;
@@ -284,7 +284,7 @@ impl Session {
         Note::Committed
     }
 
-    /// Откат верхнего слоя.
+    /// Roll back the top layer.
     pub fn revert(&mut self) -> Note {
         let Some(c) = revert(&self.chain) else {
             return Note::RevertImpossible;
@@ -296,7 +296,7 @@ impl Session {
         Note::Reverted { had_data }
     }
 
-    /// Выполнить записанное действие.
+    /// Perform a recorded action.
     pub fn act(&mut self, a: &Action) -> Note {
         match a {
             Action::Snapshot => self.snapshot(),
@@ -308,7 +308,7 @@ impl Session {
     }
 }
 
-/// Воспроизвести записанные действия и вернуть достигнутые цели.
+/// Replay recorded actions and return the achieved goals.
 pub fn replay(base: &BTreeMap<u32, String>, goals: &[Qcow2Goal], actions: &[Action]) -> Vec<String> {
     let mut s = Session::new(base, goals);
     for a in actions {
@@ -317,12 +317,12 @@ pub fn replay(base: &BTreeMap<u32, String>, goals: &[Qcow2Goal], actions: &[Acti
     s.done
 }
 
-/// Базовые кластеры по умолчанию: 0–3 = A–D.
+/// Default base clusters: 0–3 = A–D.
 pub fn default_base() -> BTreeMap<u32, String> {
     [(0, "A"), (1, "B"), (2, "C"), (3, "D")].into_iter().map(|(k, v)| (k, v.to_string())).collect()
 }
 
-/// Цели по умолчанию (упражнение главы 9).
+/// Default goals (chapter 9 exercise).
 pub fn default_goals() -> Vec<Qcow2Goal> {
     vec![
         Qcow2Goal {

@@ -1,5 +1,5 @@
-//! Настройки из окружения. Пути по умолчанию — каталог `data` рядом с бэкендом:
-//! учебники, SQL-файлы упражнений/квизов, слайды, данные лабораторий и аудио.
+//! Settings from the environment. Default paths - the `data` directory next to the backend:
+//! textbooks, SQL files of exercises/quizzes, slides, lab data and audio.
 
 use std::path::PathBuf;
 
@@ -9,11 +9,13 @@ pub struct Config {
     pub surreal_url: String,
     pub data_dir: PathBuf,
     pub audio_dir: PathBuf,
-    /// каталог собранного фронтенда (`frontend/dist`); пусто — API без статики
+    /// voice recordings for slides from the interface (`RECORDS_DIR`): `<book>/<chapter>/<slide>.<extension>`
+    pub records_dir: PathBuf,
+    /// directory of the built frontend (`frontend/dist`); empty - API without static files
     pub static_dir: Option<PathBuf>,
-    /// общий секрет воркеров (`CS_CORE_WORKER_TOKEN`); пусто — внутренний API воркеров недоступен
+    /// shared secret of the workers (`CS_CORE_WORKER_TOKEN`); empty - the internal worker API is unavailable
     pub worker_token: String,
-    /// `auto` — пересеять курс, если исходники изменились; `always`; `off`
+    /// `auto` - reseed the course if the sources changed; `always`; `off`
     pub seed: String,
 }
 
@@ -26,18 +28,21 @@ impl Config {
         let data_dir = PathBuf::from(env_or("DATA_DIR", "data"));
         let audio_dir = std::env::var("AUDIO_DIR").map(PathBuf::from).unwrap_or_else(|_| data_dir.join("audio"));
         let static_dir = std::env::var("STATIC_DIR").ok().filter(|v| !v.is_empty()).map(PathBuf::from);
+        // by default - `media/records` in the repository root (the backend is run from `backend/`)
+        let records_dir = PathBuf::from(env_or("RECORDS_DIR", "../media/records"));
         Self {
             bind: env_or("BIND", "0.0.0.0:8001"),
             surreal_url: env_or("SURREALDB_URL", "ws://127.0.0.1:8123"),
             data_dir,
             audio_dir,
+            records_dir,
             static_dir,
             worker_token: std::env::var("CS_CORE_WORKER_TOKEN").unwrap_or_default(),
             seed: env_or("SEED", "auto"),
         }
     }
 
-    /// Каталог перевода: `data/<язык>/` с той же раскладкой, что и у русского содержимого.
+    /// Translation directory: `data/<language>/` with the same layout as the Russian content.
     pub fn lang_dir(&self, lang: crate::lang::Lang) -> PathBuf {
         self.data_dir.join(lang.code())
     }
@@ -46,12 +51,12 @@ impl Config {
         self.data_dir.join("textbook")
     }
 
-    /// Слайды глав: файлы `<книга>-<глава>.json` (их создают генераторы `packages/gen`).
+    /// Chapter slides: files `<book>-<chapter>.json` (created by the `packages/gen` generators).
     pub fn slides_dir(&self) -> PathBuf {
         self.data_dir.join("slides")
     }
 
-    /// Упражнения-лаборатории: `labs/<вид>/<книга>-<глава>.json` (их создают крейты `packages/*lab`).
+    /// Lab exercises: `labs/<kind>/<book>-<chapter>.json` (created by the `packages/*lab` crates).
     pub fn labs_dir(&self) -> PathBuf {
         self.data_dir.join("labs")
     }

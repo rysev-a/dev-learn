@@ -1,4 +1,4 @@
-//! Общее для тестов: золотые результаты прежней реализации на TypeScript и данные курса.
+//! Shared by the tests: golden results of the previous TypeScript implementation and course data.
 #![allow(dead_code)]
 
 use std::collections::BTreeMap;
@@ -7,30 +7,30 @@ use std::path::PathBuf;
 use riscvlab::task::{chapter_file_name, LabChapter};
 use serde::Deserialize;
 
-/// Каталог данных лабораторий (общий с остальным бэкендом).
+/// Directory of lab data (shared with the rest of the backend).
 pub fn data_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/arch")
 }
 
-/// Загрузить главу из данных курса.
+/// Load a chapter from the course data.
 pub fn load_chapter(chapter: u32) -> LabChapter {
     let path = data_dir().join(chapter_file_name(14, chapter));
-    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("нет файла {}: {e}", path.display()));
+    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("no file {}: {e}", path.display()));
     LabChapter::from_json(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }
 
 pub fn load_golden() -> Golden {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/golden.json");
-    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("нет {}: {e}", path.display()));
+    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("missing {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("golden.json: {e}"))
 }
 
-/// Из hex-строки в байты.
+/// Hex string to bytes.
 pub fn unhex(s: &str) -> Vec<u8> {
     (0..s.len() / 2).map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex")).collect()
 }
 
-/// FNV-1a, как в выгрузке.
+/// FNV-1a, as in the export.
 pub fn fnv(bytes: &[u8]) -> u32 {
     let mut h: u32 = 0x811c_9dc5;
     for b in bytes {

@@ -1,5 +1,5 @@
-//! Левое дерево полноэкранного режима: разделы книги → главы; под текущей главой — слот для пунктов активной вкладки
-//! (см. [`FsItems`](super::fullscreen::FsItems)). Пункт слота — [`FsItem`].
+//! Left tree of fullscreen mode: book sections → chapters; under the current chapter is a slot for the items of the active tab
+//! (see [`FsItems`](super::fullscreen::FsItems)). A slot item is an [`FsItem`].
 
 use api::dto::Section;
 use leptos::{html, prelude::*};
@@ -10,12 +10,12 @@ use crate::{
     pages::book::BookCtx,
 };
 
-/// Раздел, в котором лежит глава `chapter` (по id).
+/// The section containing chapter `chapter` (by id).
 pub fn section_of(sections: &[Section], chapter: i64) -> Option<i64> {
     sections.iter().find(|s| s.chapters.iter().any(|c| c.id == chapter)).map(|s| s.id)
 }
 
-/// Состояние пункта под главой: слайд, вопрос или упражнение.
+/// State of an item under the chapter: slide, question or exercise.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ItemState {
     #[default]
@@ -25,7 +25,7 @@ pub enum ItemState {
 }
 
 impl ItemState {
-    /// Статус код-задачи на сервере: `ok` — решена, `bad` — не пройдена, остальное — не решена.
+    /// Code task status on the server: `ok` is solved, `bad` is failed, anything else is unsolved.
     pub fn from_status(status: &str) -> Self {
         match status {
             "ok" => ItemState::Ok,
@@ -42,7 +42,7 @@ impl ItemState {
         }
     }
 
-    /// Значок вместо номера; у нерешённого пункта — номер.
+    /// Icon instead of a number; an unsolved item shows its number.
     fn mark(self, num: usize) -> String {
         match self {
             ItemState::Open => format!("{num:02}"),
@@ -52,16 +52,16 @@ impl ItemState {
     }
 }
 
-/// Класс кнопки пункта.
+/// Item button class.
 fn item_class(on: bool, state: ItemState) -> String {
     format!("fst-slide {} {}", if on { "on" } else { "" }, state.class())
 }
 
-/// Пункт дерева под текущей главой.
+/// Tree item under the current chapter.
 #[component]
 pub fn FsItem(
     num: usize,
-    /// текущий пункт
+    /// current item
     #[prop(optional, into)]
     on: Signal<bool>,
     #[prop(optional, into)] state: Signal<ItemState>,
@@ -76,7 +76,7 @@ pub fn FsItem(
     }
 }
 
-/// Дерево: разделы книги, у открытого раздела — его главы, у текущей главы — слот `items`.
+/// Tree: book sections, the open section shows its chapters, the current chapter holds the `items` slot.
 #[component]
 pub fn FsTree(chapter: i64, items: NodeRef<html::Div>, on_open: Callback<i64>) -> impl IntoView {
     let ctx = expect_context::<BookCtx>();
@@ -85,7 +85,7 @@ pub fn FsTree(chapter: i64, items: NodeRef<html::Div>, on_open: Callback<i64>) -
         <aside class="slide-fs-toc" aria-label=i18n::tr("Contents")>
             {move || match ctx.course.get() {
                 Load::Ready(sections) if !sections.is_empty() => {
-                    // раздел с текущей главой раскрыт, пока не свернут вручную
+                    // the section with the current chapter is expanded until collapsed manually
                     if let Some(sec) = section_of(&sections, chapter) {
                         fs.open_sections.update(|open| {
                             open.insert(sec);
@@ -99,14 +99,14 @@ pub fn FsTree(chapter: i64, items: NodeRef<html::Div>, on_open: Callback<i64>) -
     }
 }
 
-/// Место под текущей главой, куда вкладка кладёт свои пункты.
+/// The place under the current chapter where the tab puts its items.
 #[component]
 fn ItemsSlot(items: NodeRef<html::Div>) -> impl IntoView {
     view! { <div class="fst-slides" node_ref=items></div> }
 }
 
-/// Раздел: заголовок-переключатель и главы. Главы всегда в DOM (свёрнутый раздел скрыт стилем): слот текущей главы не
-/// пересоздаётся, когда раздел сворачивают.
+/// Section: toggle header and chapters. Chapters are always in the DOM (a collapsed section is hidden by style): the current chapter's slot is
+/// not recreated when the section is collapsed.
 #[component]
 fn Sec(sec: Section, current: i64, on_open: Callback<i64>, items: NodeRef<html::Div>) -> impl IntoView {
     let fs = expect_context::<Fullscreen>();
@@ -154,7 +154,7 @@ mod tests {
     use super::*;
 
     fn section(id: i64, chapters: &[i64]) -> Section {
-        Section { id, title: format!("Раздел {id}"), chapters: chapters.iter().map(|&c| ChapterRef { id: c, num: c, title: String::new(), parts_count: 1 }).collect() }
+        Section { id, title: format!("Section {id}"), chapters: chapters.iter().map(|&c| ChapterRef { id: c, num: c, title: String::new(), parts_count: 1 }).collect() }
     }
 
     #[test]

@@ -1,5 +1,5 @@
-//! Страница главы: заголовок и три вкладки (теория, вопросы, практика), каждая со своим адресом. Данные главы грузятся один раз
-//! и отдаются вкладкам через контекст; при смене главы страница пересоздаётся целиком.
+//! Chapter page: header and three tabs (theory, questions, practice), each with its own address. Chapter data is loaded once
+//! and given to the tabs via context; when the chapter changes the page is recreated entirely.
 
 mod answers;
 mod code;
@@ -29,12 +29,12 @@ pub use practice::Practice;
 pub use quiz::Quiz;
 pub use theory::Theory;
 
-/// Данные открытой главы для вкладок.
+/// Open chapter data for the tabs.
 #[derive(Clone, Copy)]
 pub struct ChapterCtx {
     pub book: i64,
     pub chapter: ReadSignal<Load<Chapter>>,
-    /// код-задачи главы по её номеру (404 — задач нет)
+    /// code tasks of the chapter by its number (404 - no tasks)
     pub tasks: ReadSignal<Load<ChapterTasks>>,
     pub quiz_count: Signal<usize>,
     pub answer_count: Signal<usize>,
@@ -47,10 +47,10 @@ fn count_of(counts: ReadSignal<Load<api::dto::Counts>>, book: i64, num: Option<i
     }
 }
 
-/// Вкладка главы: адрес относительно главы, название, значок.
+/// Chapter tab: address relative to the chapter, title, badge.
 pub type Tab = (&'static str, &'static str, Option<String>);
 
-/// Вкладки главы по её содержимому.
+/// Chapter tabs by its content.
 pub fn tabs(theory: bool, quiz: usize, practice: bool, solved: Option<(usize, usize)>) -> Vec<Tab> {
     let mut out = Vec::new();
     if theory {
@@ -67,12 +67,12 @@ pub fn tabs(theory: bool, quiz: usize, practice: bool, solved: Option<(usize, us
 
 #[component]
 pub fn ChapterLayout() -> impl IntoView {
-    // состояние полного экрана живёт, пока открыта любая глава: смена главы не выводит из полного экрана
+    // the fullscreen state lives while any chapter is open: changing chapter does not leave fullscreen
     provide_fullscreen();
     let params = use_params_map();
     let book = Memo::new(move |_| params.read().get("book").and_then(|b| b.parse::<i64>().ok()).unwrap_or_default());
     let id = Memo::new(move |_| params.read().get("chapter").and_then(|c| c.parse::<i64>().ok()).unwrap_or_default());
-    // пересоздаём всё внутри при смене книги или главы: у вкладок свежее состояние
+    // we recreate everything inside when the book or chapter changes: the tabs get fresh state
     move || {
         let (book, id) = (book.get(), id.get());
         view! { <ChapterInner book=book id=id /> }
@@ -109,7 +109,7 @@ fn ChapterInner(book: i64, id: i64) -> impl IntoView {
     view! {
         {move || {
             if fs.is_on() {
-                // оболочка полного экрана поверх всей страницы, как `createPortal(…, document.body)` в React
+                // fullscreen shell on top of the whole page, like `createPortal(..., document.body)` in React
                 view! { <Portal><FsShell book=book id=id tabs=tab_list /></Portal> }.into_any()
             } else {
                 view! { <PlainChapter book=book id=id tabs=tab_list /> }.into_any()
@@ -118,7 +118,7 @@ fn ChapterInner(book: i64, id: i64) -> impl IntoView {
     }
 }
 
-/// Содержимое открытой вкладки; пока глава грузится — заглушка.
+/// Content of the open tab; while the chapter is loading - a placeholder.
 #[component]
 fn TabBody() -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();
@@ -129,7 +129,7 @@ fn TabBody() -> impl IntoView {
     }
 }
 
-/// Обычный вид: заголовок, вкладки (с кнопкой «Весь экран») и содержимое.
+/// Normal view: header, tabs (with the "Fullscreen" button) and content.
 #[component]
 fn PlainChapter(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();
@@ -151,7 +151,7 @@ fn PlainChapter(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
     }
 }
 
-/// Полный экран: слева дерево содержания, справа шапка (название, вкладки, кнопки вкладки, «Свернуть») и содержимое.
+/// Fullscreen: contents tree on the left, on the right the header (title, tabs, tab buttons, "Collapse") and content.
 #[component]
 fn FsShell(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();
@@ -160,7 +160,7 @@ fn FsShell(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
     let player = expect_context::<Player>();
     let navigate = use_navigate();
     let caption = move || ctx.chapter.get().ready().map(|ch| i18n::trf!("Lesson {}. {}", ch.num, ch.title)).unwrap_or_else(|| "…".to_string());
-    // другая глава открывается с теории
+    // another chapter opens on theory
     let open_chapter = Callback::new(move |target: i64| {
         player.stop();
         navigate(&chapter_href(book, target, "", true), Default::default());
@@ -188,7 +188,7 @@ fn FsShell(book: i64, id: i64, tabs: Memo<Vec<Tab>>) -> impl IntoView {
     }
 }
 
-/// Вкладки главы; ссылки сохраняют полный экран. `expand` — кнопка «Весь экран» (только в обычном виде).
+/// Chapter tabs; links keep fullscreen. `expand` - the "Fullscreen" button (normal view only).
 #[component]
 fn ChapterTabs(book: i64, id: i64, tabs: Memo<Vec<Tab>>, expand: bool) -> impl IntoView {
     let fs = expect_context::<Fullscreen>();
@@ -232,6 +232,6 @@ mod tests {
         assert_eq!(names, ["Theory", "Questions", "Practice"]);
         assert_eq!(all[1].2.as_deref(), Some("5"));
         assert_eq!(all[2].2.as_deref(), Some("2/9"));
-        assert_eq!(tabs(false, 0, true, None)[0].2, None, "у практики без код-задач значка нет");
+        assert_eq!(tabs(false, 0, true, None)[0].2, None, "a practice tab without code tasks has no badge");
     }
 }

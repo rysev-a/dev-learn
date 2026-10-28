@@ -1,4 +1,4 @@
-//! Курс: книги, разделы, главы и аудио уроков (как `books/router.py`).
+//! Course: books, sections, chapters and lesson audio (like `books/router.py`).
 
 use std::collections::HashMap;
 
@@ -37,7 +37,7 @@ async fn books(State(state): State<AppState>, lang: Lang) -> ApiResult<Json<Valu
     let mut res = state.db.query("SELECT bid, title, slug, slides_dir, icon, ord FROM books ORDER BY ord").await?;
     let rows: Vec<Value> = res.take(0)?;
     let (sections, chapters, lessons) = (counts(&state, "sections").await?, counts(&state, "chapters").await?, counts(&state, "lessons").await?);
-    // языки, на которых книга есть целиком: русский всегда, остальные — по таблице переводов
+    // languages in which the book exists in full: Russian always, the rest per the translations table
     let mut res = state.db.query("SELECT bid, lang, title FROM books_i18n").await?;
     let translations: Vec<Value> = res.take(0)?;
     let out: Vec<Value> = rows
@@ -90,7 +90,7 @@ async fn book_course(State(state): State<AppState>, lang: Lang, Path(book_id): P
 }
 
 fn audio_path(state: &AppState, id: &str) -> Option<std::path::PathBuf> {
-    // id урока — hex от uuid5; всё остальное не пропускаем (никаких «../»)
+    // lesson id is a hex of uuid5; let nothing else through (no "../")
     if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric()) {
         return None;
     }
@@ -99,7 +99,7 @@ fn audio_path(state: &AppState, id: &str) -> Option<std::path::PathBuf> {
 }
 
 async fn chapter(State(state): State<AppState>, lang: Lang, Path(chapter_id): Path<i64>) -> ApiResult<Json<Value>> {
-    // книгу главы знает русская строка (id глав общие для всех языков)
+    // the chapter's book is known by the Russian row (chapter ids are shared by all languages)
     let mut res = state.db.query("SELECT VALUE bid FROM chapters WHERE cid = $c").bind(("c", chapter_id)).await?;
     let book: Vec<i64> = res.take(0)?;
     let book = book.first().copied().ok_or_else(|| ApiError::not_found("Chapter not found"))?;
@@ -182,7 +182,7 @@ async fn chapter_download(State(state): State<AppState>, Path(chapter_id): Path<
     let bytes = tokio::task::spawn_blocking(move || wav::concat(&paths))
         .await
         .map_err(|_| ApiError::new(500, "Failed to assemble audio"))?
-        .map_err(|e| ApiError::new(500, if e == "форматы различаются" { "Mismatched audio formats" } else { "Failed to assemble audio" }))?;
+        .map_err(|e| ApiError::new(500, if e == "formats differ" { "Mismatched audio formats" } else { "Failed to assemble audio" }))?;
     let name = format!("Урок {}. {}.wav", i(&ch, "num"), safe_filename(&s(&ch, "title")));
     Ok(wav_response(bytes, Some(&name)))
 }

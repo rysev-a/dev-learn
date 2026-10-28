@@ -1,6 +1,6 @@
-//! Порты и связи на поле схемы (по образцу досок лаборатории «Архитектура компьютера»): у компонента слева —
-//! входной порт, справа — выходной. Связь идёт от выхода к входу; допустимость задаёт [`crate::engine::can_link`].
-//! Автоподстановка: компонент, который двигают или ставят, сам «тянется» к ближайшим подходящим соседям.
+//! Ports and links on the design board (modeled on the "Computer architecture" lab boards): a component has an input
+//! port on the left and an output port on the right. A link goes from an output to an input; validity is defined by [`crate::engine::can_link`].
+//! Auto-linking: a component being moved or placed "reaches" for the nearest suitable neighbours by itself.
 
 use crate::engine::can_link;
 use crate::jsfmt;
@@ -8,24 +8,24 @@ use crate::types::{Kind, SdEdge, SdNode, SdState};
 
 pub const NODE_W: f64 = 124.0;
 pub const NODE_H: f64 = 60.0;
-/// На каком расстоянии (в единицах поля) соседние порты считаются «близкими».
+/// Distance (in board units) at which neighbouring ports count as "close".
 pub const AUTO_RADIUS: f64 = 230.0;
-/// «Залипание» уже показанной связи, чтобы пунктир не дрожал.
+/// "Stickiness" of an already shown link so that the dashed line does not jitter.
 const STICK: f64 = 14.0;
 
-/// Точка на поле.
+/// Point on the board.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pt {
     pub x: f64,
     pub y: f64,
 }
 
-/// Есть ли у вида компонента выходной порт.
+/// Whether a component kind has an output port.
 pub fn has_out(k: Kind) -> bool {
     Kind::ALL.iter().any(|&t| can_link(k, t))
 }
 
-/// Есть ли у вида компонента входной порт.
+/// Whether a component kind has an input port.
 pub fn has_in(k: Kind) -> bool {
     Kind::ALL.iter().any(|&t| can_link(t, k))
 }
@@ -44,14 +44,14 @@ impl SdNode {
     }
 }
 
-/// Кривая связи от точки `a` (выход) к `b` (вход): значение атрибута `d` у SVG-пути.
+/// Link curve from point `a` (output) to `b` (input): the `d` attribute value of an SVG path.
 pub fn wire_path(a: Pt, b: Pt) -> String {
     let dx = f64::max(36.0, (b.x - a.x).abs() / 2.0);
     let n = jsfmt::num;
     format!("M{} {} C{} {} {} {} {} {}", n(a.x), n(a.y), n(a.x + dx), n(a.y), n(b.x - dx), n(b.y), n(b.x), n(b.y))
 }
 
-/// Есть ли путь по связям из `a` в `b`.
+/// Whether there is a path along links from `a` to `b`.
 pub fn reaches(edges: &[SdEdge], a: &str, b: &str) -> bool {
     let mut seen: Vec<&str> = Vec::new();
     let mut stack: Vec<&str> = vec![a];
@@ -72,7 +72,7 @@ pub fn reaches(edges: &[SdEdge], a: &str, b: &str) -> bool {
     false
 }
 
-/// Причина, по которой связь `a → b` поставить нельзя; `None` — можно.
+/// Reason why the link `a → b` cannot be placed; `None` — it can.
 pub fn connect_error(state: &SdState, a: &SdNode, b: &SdNode) -> Option<String> {
     if a.id == b.id {
         return Some(i18n::tr("A component cannot be linked to itself.").into());
@@ -93,9 +93,9 @@ fn dist(p: Pt, q: Pt) -> f64 {
     (p.x - q.x).hypot(p.y - q.y)
 }
 
-/// Какие связи стоит подставить для компонента `node` на его месте: вход тянется к ближайшему подходящему
-/// источнику слева, а выход — к ближайшему подходящему приёмнику справа (по одному на вид компонента).
-/// Уже существующие связи и циклы пропускаются; `keep` — связи, показанные в прошлый раз (чтобы пунктир не дрожал).
+/// Which links to suggest for component `node` at its position: the input reaches for the nearest suitable
+/// source on the left, and the output for the nearest suitable sinks on the right (one per component kind).
+/// Existing links and cycles are skipped; `keep` — links shown last time (so the dashed line does not jitter).
 pub fn suggest_edges(state: &SdState, node: &SdNode, keep: &[SdEdge], radius: f64) -> Vec<SdEdge> {
     let others: Vec<&SdNode> = state.nodes.iter().filter(|n| n.id != node.id).collect();
     let have = |from: &str, to: &str| state.edges.iter().any(|e| e.from == from && e.to == to);
@@ -105,7 +105,7 @@ pub fn suggest_edges(state: &SdState, node: &SdNode, keep: &[SdEdge], radius: f6
     let mut result: Vec<SdEdge> = Vec::new();
     let edges_now = |planned: &[SdEdge]| -> Vec<SdEdge> { state.edges.iter().chain(planned.iter()).cloned().collect() };
 
-    // вход ← ближайший источник
+    // input ← nearest source
     if has_in(node.kind) {
         let mut best: Option<(&SdNode, f64)> = None;
         for &s in &others {
@@ -133,7 +133,7 @@ pub fn suggest_edges(state: &SdState, node: &SdNode, keep: &[SdEdge], radius: f6
         }
     }
 
-    // выход → ближайшие приёмники по одному на вид
+    // output → nearest sinks, one per kind
     if has_out(node.kind) {
         let mut by_kind: Vec<(Kind, &SdNode, f64)> = Vec::new();
         for &t in &others {

@@ -1,4 +1,4 @@
-//! Файл данных главы: `backend/data/labs/virt/<книга>-<глава:02>.json`.
+//! Chapter data file: `backend/data/labs/virt/<book>-<chapter:02>.json`.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -7,48 +7,48 @@ use crate::error::SpecError;
 use crate::spec::Spec;
 use crate::verify::{verify_with, Strictness, Verdict};
 
-/// Упражнение-симулятор.
+/// Simulator exercise.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Task {
-    /// Идентификатор упражнения (`virt-sim-hv`…).
+    /// Exercise identifier (`virt-sim-hv`…).
     pub id: String,
-    /// Название.
+    /// Title.
     pub title: String,
-    /// Условие.
+    /// Statement.
     pub statement: String,
-    /// Подсказка.
+    /// Hint.
     pub hint: String,
-    /// Описание симулятора: модуль, сценарии, цели.
+    /// Simulator description: module, scenarios, goals.
     pub spec: Spec,
 }
 
 impl Task {
-    /// Проверить присланное решение (JSON `{идентификатор цели: данные, …}`), см. [`mod@crate::verify`].
+    /// Check a submitted solution (JSON `{goal id: data, …}`), see [`mod@crate::verify`].
     pub fn verify(&self, submitted: &Value) -> Verdict {
         verify_with(&self.spec, submitted, Strictness::Lenient)
     }
 }
 
-/// Файл главы: упражнения-симуляторы одной главы одной книги.
+/// Chapter file: simulator exercises of one chapter of one book.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LabChapter {
-    /// Номер книги (17).
+    /// Book number (17).
     pub book: u32,
-    /// Номер главы.
+    /// Chapter number.
     pub chapter: u32,
-    /// Вид лаборатории (`"virt"`).
+    /// Lab kind (`"virt"`).
     pub lab: String,
-    /// Упражнения главы по порядку.
+    /// Chapter exercises in order.
     pub tasks: Vec<Task>,
 }
 
 impl LabChapter {
-    /// Разобрать файл главы.
+    /// Parse a chapter file.
     pub fn from_json(text: &str) -> Result<LabChapter, SpecError> {
         serde_json::from_str(text).map_err(|e| SpecError::new(i18n::trf!("parsing the chapter file: {0}", e)))
     }
 
-    /// Канонический JSON файла: отступ 2 пробела, порядок полей как в структурах, перевод строки в конце.
+    /// Canonical JSON of the file: 2-space indent, field order as in the structs, trailing newline.
     pub fn to_canonical_json(&self) -> Result<String, SpecError> {
         let mut s =
             serde_json::to_string_pretty(self).map_err(|e| SpecError::new(i18n::trf!("writing the chapter file: {0}", e)))?;
@@ -56,12 +56,12 @@ impl LabChapter {
         Ok(s)
     }
 
-    /// Имя файла: `17-02.json`.
+    /// File name: `17-02.json`.
     pub fn file_name(&self) -> String {
         format!("{}-{:02}.json", self.book, self.chapter)
     }
 
-    /// Проверка: книга и вид лаборатории верны, упражнения уникальны, описания целы.
+    /// Validation: book and lab kind are correct, exercises are unique, descriptions are intact.
     pub fn validate(&self) -> Result<(), SpecError> {
         if self.lab != "virt" {
             return Err(SpecError::new(i18n::trf!("lab kind “{0}”, expected “virt”", self.lab)));
@@ -80,7 +80,7 @@ impl LabChapter {
     }
 }
 
-/// Определение упражнения из `labs.py` (`data/tasks.json` — снимок определений прежней реализации, фикстура тестов).
+/// Exercise definition from `labs.py` (`data/tasks.json` is a snapshot of the former implementation's definitions, a test fixture).
 #[derive(Clone, Debug, Deserialize)]
 struct Definition {
     chapter: u32,
@@ -90,11 +90,11 @@ struct Definition {
     hint: String,
 }
 
-/// Книга, к которой относятся упражнения.
+/// Book the exercises belong to.
 pub const BOOK: u32 = 17;
 
-/// Собрать файлы глав: определения (id, название, условие, подсказка, глава) из выгрузки `labs.py` плюс описание
-/// симулятора по умолчанию ([`crate::builtin`]). Главы по возрастанию номера.
+/// Build chapter files: definitions (id, title, statement, hint, chapter) from the `labs.py` export plus the default
+/// simulator description ([`crate::builtin`]). Chapters in ascending number order.
 pub fn build_chapters(definitions_json: &str) -> Result<Vec<LabChapter>, SpecError> {
     let defs: Vec<Definition> =
         serde_json::from_str(definitions_json).map_err(|e| SpecError::new(i18n::trf!("parsing definitions: {0}", e)))?;

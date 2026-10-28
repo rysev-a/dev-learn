@@ -1,10 +1,10 @@
-//! Эмулятор процессора «Мини-8»: память команд отдельно, память данных (виртуальный диск) — 256 байт.
-//! Порт `machine.ts`.
+//! Emulator of the "Mini-8" processor: instruction memory is separate, data memory (virtual disk) is 256 bytes.
+//! Port of `machine.ts`.
 
 use super::isa::*;
 use serde::{Deserialize, Serialize};
 
-/// Что видит интерфейс после очередного шага.
+/// What the interface sees after the next step.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MachineView {
     pub regs: Vec<u8>,
@@ -13,17 +13,17 @@ pub struct MachineView {
     pub halted: bool,
     pub error: Option<String>,
     pub steps: u64,
-    /// Адрес памяти, который прочитала/записала последняя команда.
+    /// Memory address read/written by the last instruction.
     pub last_read: Option<usize>,
     pub last_write: Option<usize>,
-    /// Какой регистр изменила последняя команда.
+    /// Which register the last instruction changed.
     pub last_reg: Option<usize>,
 }
 
-/// Лимит шагов по умолчанию (защита от бесконечного цикла).
+/// Default step limit (protection against an infinite loop).
 pub const RUN_LIMIT: u64 = 100_000;
 
-/// Эмулятор.
+/// Emulator.
 #[derive(Debug, Clone)]
 pub struct Machine {
     pub program: Vec<u16>,
@@ -39,7 +39,7 @@ pub struct Machine {
 }
 
 impl Machine {
-    /// Машина с программой и начальным содержимым диска (недостающее — нули).
+    /// Machine with a program and initial disk contents (missing bytes are zeros).
     pub fn new(program: &[u16], disk: &[u8]) -> Machine {
         let mut mem = [0u8; MEM_SIZE];
         for (i, b) in disk.iter().take(MEM_SIZE).enumerate() {
@@ -59,12 +59,12 @@ impl Machine {
         }
     }
 
-    /// Можно выполнять дальше.
+    /// Can continue executing.
     pub fn running(&self) -> bool {
         !self.halted && self.error.is_none()
     }
 
-    /// Выполнить одну команду.
+    /// Execute one instruction.
     pub fn step(&mut self) {
         if !self.running() {
             return;
@@ -145,7 +145,7 @@ impl Machine {
         self.pc = next;
     }
 
-    /// Выполнять до остановки, ошибки или лимита шагов.
+    /// Run until halt, error or the step limit.
     pub fn run(&mut self, max_steps: u64) {
         let mut left = max_steps;
         while self.running() && left > 0 {
@@ -157,7 +157,7 @@ impl Machine {
         }
     }
 
-    /// Состояние для интерфейса.
+    /// State for the interface.
     pub fn view(&self) -> MachineView {
         MachineView {
             regs: self.regs.to_vec(),

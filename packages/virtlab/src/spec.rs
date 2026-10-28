@@ -1,7 +1,7 @@
-//! Описание упражнения как данные: какой симулятор, его сценарии и цели.
+//! Exercise description as data: which simulator, its scenarios and goals.
 //!
-//! [`Spec`] лежит в поле `spec` задачи файла главы ([`crate::LabChapter`]); интерфейс строит по нему симулятор,
-//! а сервер перепроверяет по нему присланное решение ([`mod@crate::verify`]).
+//! [`Spec`] lives in the `spec` field of a task in the chapter file ([`crate::LabChapter`]); the UI builds the simulator from it,
+//! and the server re-checks the submitted solution against it ([`mod@crate::verify`]).
 
 use std::collections::BTreeMap;
 
@@ -11,66 +11,66 @@ use crate::error::SpecError;
 use crate::goal::Goal;
 use crate::{ept, hv, migration, numa, qcow2, virtq};
 
-/// Идентификаторы упражнений книги 17 (они же `Task::id`).
+/// Exercise identifiers of book 17 (also `Task::id`).
 pub const LAB_IDS: [&str; 6] =
     ["virt-sim-hv", "virt-sim-ept", "virt-sim-virtqueue", "virt-sim-qcow2", "virt-sim-migration", "virt-sim-numa"];
 
-/// Кластер базового слоя qcow2 (в данных — списком, а не словарём: ключи-числа в JSON строками не нужны).
+/// Cluster of the qcow2 base layer (stored as a list, not a map: numeric keys as JSON strings are unwanted).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BaseCluster {
-    /// Номер кластера.
+    /// Cluster number.
     pub cluster: u32,
-    /// Данные.
+    /// Data.
     pub data: String,
 }
 
-/// Описание симулятора упражнения (поле `sim` — какой модуль).
+/// Exercise simulator description (the `sim` field selects the module).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "sim", rename_all = "snake_case")]
 pub enum Spec {
-    /// Мини-гипервизор (глава 2): программы гостя.
+    /// Mini-hypervisor (chapter 2): guest programs.
     Hv {
-        /// Программы; цель — пройти каждую.
+        /// Programs; the goal is to pass each one.
         programs: Vec<hv::Program>,
     },
-    /// Трансляция адресов (глава 4): нагрузки и цели.
+    /// Address translation (chapter 4): workloads and goals.
     Ept {
-        /// Нагрузки.
+        /// Workloads.
         workloads: Vec<ept::Workload>,
-        /// Цели.
+        /// Goals.
         goals: Vec<ept::EptGoal>,
     },
-    /// Очередь virtio (глава 6).
+    /// virtio queue (chapter 6).
     Virtq {
-        /// Число дескрипторов.
+        /// Number of descriptors.
         size: u32,
-        /// Цели.
+        /// Goals.
         goals: Vec<virtq::VirtqGoal>,
     },
-    /// Размещение по узлам NUMA (глава 11).
+    /// Placement on NUMA nodes (chapter 11).
     Numa {
-        /// Узлы хоста.
+        /// Host nodes.
         nodes: Vec<numa::Node>,
-        /// Сценарии; цель — принять размещение каждого.
+        /// Scenarios; the goal is to get each placement accepted.
         scenarios: Vec<numa::Scenario>,
     },
-    /// Слои qcow2 (глава 9).
+    /// qcow2 layers (chapter 9).
     Qcow2 {
-        /// Число кластеров.
+        /// Number of clusters.
         clusters: u32,
-        /// Кластеры базового слоя.
+        /// Base layer clusters.
         base: Vec<BaseCluster>,
-        /// Цели.
+        /// Goals.
         goals: Vec<qcow2::Qcow2Goal>,
     },
-    /// Живая миграция (глава 10).
+    /// Live migration (chapter 10).
     Migration {
-        /// Сценарии; цель — достичь условия каждого.
+        /// Scenarios; the goal is to meet the condition of each one.
         scenarios: Vec<migration::Scenario>,
     },
 }
 
-/// Базовый слой qcow2 списком → словарь.
+/// qcow2 base layer as a list → map.
 pub fn base_map(base: &[BaseCluster]) -> BTreeMap<u32, String> {
     base.iter().map(|c| (c.cluster, c.data.clone())).collect()
 }
@@ -89,7 +89,7 @@ fn unique(kind: &str, ids: impl Iterator<Item = String>) -> Result<(), SpecError
 }
 
 impl Spec {
-    /// Имя симулятора (значение поля `sim`).
+    /// Simulator name (value of the `sim` field).
     pub fn sim(&self) -> &'static str {
         match self {
             Spec::Hv { .. } => "hv",
@@ -101,7 +101,7 @@ impl Spec {
         }
     }
 
-    /// Цели упражнения по порядку. Упражнение решено, когда достигнуты все.
+    /// Exercise goals in order. The exercise is solved when all are achieved.
     pub fn goals(&self) -> Vec<Goal> {
         match self {
             Spec::Hv { programs } => programs.iter().map(hv::Program::as_goal).collect(),
@@ -113,7 +113,7 @@ impl Spec {
         }
     }
 
-    /// Проверка целостности данных: идентификаторы уникальны, ссылки на нагрузки есть, команды разбираются.
+    /// Data integrity check: identifiers are unique, workload references exist, instructions parse.
     pub fn validate(&self) -> Result<(), SpecError> {
         unique(i18n::tr("goals"), self.goals().into_iter().map(|g| g.id))?;
         if self.goals().is_empty() {
@@ -166,7 +166,7 @@ impl Spec {
     }
 }
 
-/// Описание упражнения по умолчанию по его идентификатору (`virt-sim-…`).
+/// Default exercise description by its identifier (`virt-sim-…`).
 pub fn builtin(id: &str) -> Option<Spec> {
     Some(match id {
         "virt-sim-hv" => Spec::Hv { programs: hv::default_programs() },

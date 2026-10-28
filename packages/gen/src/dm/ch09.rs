@@ -1,7 +1,7 @@
-//! Дискретная математика, глава 9 («Обходы графов и деревья»): сцены.
-//! Перенос с `frontend/src/slides/anim/C9*.tsx` (React, `kit.tsx`) в данные: граф — `dot` + `line`/`arrow`, группы `G` —
-//! элементы с вычисленными позициями, «серые» плашки — `cell` с оттенком. Задержки появления по очереди (`transitionDelay`)
-//! не переносятся: элементы шага появляются разом.
+//! Discrete mathematics, chapter 9 ("Graph traversals and trees"): scenes.
+//! Port of `frontend/src/slides/anim/C9*.tsx` (React, `kit.tsx`) to data: graph — `dot` + `line`/`arrow`, `G` groups —
+//! elements with computed positions, "grey" plates — `cell` with a tone. Staggered appearance delays (`transitionDelay`)
+//! are not ported: a step's elements appear at once.
 
 use content::{
     dsl::{arrow, bx, circle, dot, line, path, py, text, zone},
@@ -9,16 +9,16 @@ use content::{
     Frame, Item, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-// --- помощники сцен главы ----------------------------------------------------------------------
+// --- chapter scene helpers ---------------------------------------------------------------------
 
-/// Вершина графа: (x, y, подпись).
+/// Graph vertex: (x, y, label).
 type Pt = (f64, f64, &'static str);
-/// Вид элемента на шаге: (оттенок, прозрачность).
+/// Element look at a step: (tone, opacity).
 type Look = (Tone, f64);
 
 const SHOWN: Look = (M, 1.0);
 
-/// Кадры сцены: `f(k)` — кадр шага `k`.
+/// Scene frames: `f(k)` — frame of step `k`.
 fn steps(n: usize, f: impl Fn(usize) -> Frame) -> Vec<Frame> {
     (0..n).map(f).collect()
 }
@@ -27,7 +27,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>, cues: &[f64], ms
     SceneSpec::new(labels, captions, frames).cues(cues).step_ms(ms)
 }
 
-/// Рёбра графа: линии (при `directed` — стрелки), подрезанные по границам вершин радиуса `r`.
+/// Graph edges: lines (arrows when `directed`), trimmed at the borders of vertices of radius `r`.
 fn edge_items(p: &str, ns: &[Pt], es: &[(usize, usize)], r: f64, directed: bool, look: impl Fn(usize) -> Look) -> Vec<Line> {
     es.iter()
         .enumerate()
@@ -53,49 +53,49 @@ fn node_items(p: &str, ns: &[Pt], r: f64, size: f64, look: impl Fn(usize) -> Loo
         .collect()
 }
 
-/// Граф: сначала рёбра (они под вершинами), затем вершины.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотной таблицы кадров
+/// Graph: edges first (they are under the vertices), then vertices.
+#[allow(clippy::too_many_arguments)] // short helper for a dense frame table
 fn graph(p: &str, ns: &[Pt], es: &[(usize, usize)], r: f64, size: f64, directed: bool, nl: impl Fn(usize) -> Look, el: impl Fn(usize) -> Look) -> Vec<Item> {
     let mut v: Vec<Item> = edge_items(p, ns, es, r, directed, el).into_iter().map(Into::into).collect();
     v.extend(node_items(p, ns, r, size, nl).into_iter().map(Item::from));
     v
 }
 
-/// Обычная подпись (приглушённая), `size`.
+/// Regular label (muted), `size`.
 fn tx(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).size(size)
 }
 
-/// Моноширинная подпись; цвет — через `.tone(..)`.
+/// Monospace label; colour — via `.tone(..)`.
 fn mt(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).mono().size(size)
 }
 
-/// Плашка: центр (x, y), оттенок вместо рамки.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотной таблицы кадров
+/// Plate: centre (x, y), tone instead of a frame.
+#[allow(clippy::too_many_arguments)] // short helper for a dense frame table
 fn pill(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Связь «родитель — потомок» между плашками высоты `h`: от низа родителя к верху потомка.
+/// "Parent — child" link between plates of height `h`: from the parent's bottom to the child's top.
 fn tree_link(id: &str, parent: (f64, f64), child: (f64, f64), h: f64) -> Line {
     line(id, parent.0, parent.1 + h / 2.0, child.0, child.1 - h / 2.0).width(1.4)
 }
 
-/// Путь со штриховкой (`stroke-dasharray`).
+/// Dashed path (`stroke-dasharray`).
 fn dashed(mut p: content::item::Path, pattern: &str) -> content::item::Path {
     p.dash = Some(pattern.into());
     p
 }
 
-/// Тон по метке старой сцены: цвет вершины по номеру компоненты, слою и т. п.
+/// Tone by the old scene's mark: vertex colour by component number, layer, etc.
 fn lk(t: Tone) -> Look {
     (t, 1.0)
 }
 
-// --- все сцены главы ---------------------------------------------------------------------------
+// --- all chapter scenes ------------------------------------------------------------------------
 
-/// Пары «имя прежнего компонента — описание сцены» (порядок слайдов главы).
+/// Pairs "former component name — scene description" (chapter slide order).
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     vec![
         ("C9Intro", intro()),
@@ -114,7 +114,7 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// 1. Обходы вокруг нас
+// 1. Traversals around us
 fn intro() -> SceneSpec {
     const N: [Pt; 5] = [(90.0, 40.0, "S"), (180.0, 40.0, "2"), (270.0, 40.0, "3"), (130.0, 110.0, "4"), (230.0, 110.0, "5")];
     const E: [(usize, usize); 5] = [(0, 1), (1, 2), (0, 3), (3, 4), (4, 2)];
@@ -150,7 +150,7 @@ fn intro() -> SceneSpec {
     )
 }
 
-// 2. Постановка задачи
+// 2. Problem statement
 fn task() -> SceneSpec {
     const N: [Pt; 6] = [(70.0, 76.0, "S"), (150.0, 36.0, ""), (150.0, 116.0, ""), (240.0, 76.0, ""), (320.0, 40.0, ""), (320.0, 120.0, "×")];
     const E: [(usize, usize); 5] = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)];
@@ -169,7 +169,7 @@ fn task() -> SceneSpec {
                 2 if [0, 1, 3, 2].contains(&i) => lk(R),
                 _ => SHOWN,
             };
-            // ребро 2 (а = 1) тоже красное: цикл идёт S → 1 → 3 → 2 → S
+            // edge 2 (a = 1) is red too: the cycle goes S → 1 → 3 → 2 → S
             let el = |i: usize| match k {
                 2 if i <= 2 => lk(R),
                 1 => lk(G),
@@ -194,11 +194,11 @@ fn task() -> SceneSpec {
     )
 }
 
-// 3. Обход в глубину
+// 3. Depth-first search
 fn dfs() -> SceneSpec {
     const N: [Pt; 7] = [(180.0, 28.0, "A"), (100.0, 74.0, "B"), (260.0, 74.0, "C"), (60.0, 124.0, "D"), (140.0, 124.0, "E"), (300.0, 124.0, "F"), (200.0, 124.0, "G")];
     const E: [(usize, usize); 6] = [(0, 1), (0, 2), (1, 3), (1, 4), (2, 5), (4, 6)];
-    // порядок посещения: A B D E G C F
+    // visit order: A B D E G C F
     const ORDER: [usize; 7] = [0, 1, 3, 4, 6, 2, 5];
     spec(
         &["Глубина", "Вперёд и назад", "Нитка", "Стек"],
@@ -218,7 +218,7 @@ fn dfs() -> SceneSpec {
                 1 => f.with(mt("t1", 180.0, 152.0, "порядок: A, B, D, E, G, C, F", 11.0).tone(G)),
                 2 => f.with(dashed(path("nit", "M180 28 L100 74 L60 124").tone(Y).width(3.0), "2 5")).with(mt("t2", 180.0, 152.0, "нитка: A → B → D, тупик, назад к B", 11.0).tone(Y)),
                 3 => {
-                    // стек справа: A внизу, G сверху
+                    // stack on the right: A at the bottom, G on top
                     f.with_all(["A", "B", "E", "G"].iter().enumerate().map(|(j, v)| pill(&format!("s{j}"), 342.0, 140.0 - j as f64 * 24.0, 30.0, 20.0, v, B, 10.0)))
                         .with(tx("sh", 342.0, 30.0, "стек", 9.5))
                         .with(mt("st", 342.0, 44.0, "верх: G", 9.5).tone(G))
@@ -232,7 +232,7 @@ fn dfs() -> SceneSpec {
     )
 }
 
-// 4. Рекурсия
+// 4. Recursion
 fn recursion() -> SceneSpec {
     spec(
         &["Рекурсия", "Код", "DOM", "Каталоги", "Всё DFS"],
@@ -271,7 +271,7 @@ fn recursion() -> SceneSpec {
     )
 }
 
-// 5. Обход в ширину
+// 5. Breadth-first search
 fn bfs() -> SceneSpec {
     const N: [Pt; 6] = [(60.0, 76.0, "S"), (130.0, 36.0, "1"), (130.0, 116.0, "1"), (210.0, 36.0, "2"), (210.0, 116.0, "2"), (290.0, 76.0, "3")];
     const E: [(usize, usize); 6] = [(0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 5)];
@@ -288,7 +288,7 @@ fn bfs() -> SceneSpec {
         ],
         steps(4, |k| {
             let wave = (1..=2).contains(&k);
-            // граф бледнеет, когда появляется очередь, и уходит вместе с волной на последнем шаге
+            // the graph fades when the queue appears, and leaves with the wave at the last step
             let o = if k == 2 { 0.35 } else { 1.0 };
             let nl = |i: usize| if wave { (COL[LAYER[i]], o) } else { (M, o) };
             let el = |_: usize| if wave { (G, o) } else { (M, o) };
@@ -320,7 +320,7 @@ fn bfs() -> SceneSpec {
     )
 }
 
-// 6. Кратчайшие пути
+// 6. Shortest paths
 fn shortest() -> SceneSpec {
     const N: [Pt; 6] = [(60.0, 80.0, "0"), (130.0, 40.0, "1"), (130.0, 120.0, "1"), (210.0, 40.0, "2"), (210.0, 120.0, "2"), (290.0, 80.0, "3")];
     const E: [(usize, usize); 6] = [(0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 5)];
@@ -362,7 +362,7 @@ fn shortest() -> SceneSpec {
     )
 }
 
-// 7. Компоненты связности
+// 7. Connected components
 fn components() -> SceneSpec {
     const N: [Pt; 8] = [(46.0, 50.0, "1"), (100.0, 100.0, "2"), (130.0, 44.0, "3"), (218.0, 52.0, "4"), (260.0, 108.0, "5"), (312.0, 54.0, "6"), (180.0, 130.0, "7"), (222.0, 150.0, "8")];
     const E: [(usize, usize); 7] = [(0, 1), (0, 2), (1, 2), (3, 4), (4, 5), (3, 5), (6, 7)];
@@ -399,11 +399,11 @@ fn components() -> SceneSpec {
     )
 }
 
-// 8. Дерево
+// 8. Tree
 fn tree() -> SceneSpec {
     const N: [Pt; 6] = [(180.0, 26.0, "A"), (100.0, 70.0, "B"), (260.0, 70.0, "C"), (60.0, 118.0, "D"), (140.0, 118.0, "E"), (260.0, 118.0, "F")];
     const E: [(usize, usize); 5] = [(0, 1), (0, 2), (1, 3), (1, 4), (2, 5)];
-    // единственный путь D → B → A → C → F: рёбра 2 (B–D), 0 (A–B), 1 (A–C), 4 (C–F)
+    // the only path D → B → A → C → F: edges 2 (B–D), 0 (A–B), 1 (A–C), 4 (C–F)
     const PATH: [usize; 4] = [2, 0, 1, 4];
     spec(
         &["Деревья", "Один путь", "n − 1", "Примеры", "В обе стороны"],
@@ -429,7 +429,7 @@ fn tree() -> SceneSpec {
             let el = |i: usize| if k == 1 && PATH.contains(&i) { lk(G) } else { SHOWN };
             let mut f = Frame::new();
             if k >= 4 {
-                // добавленное ребро D–E: под вершинами, поэтому раньше них
+                // the added edge D–E: under the vertices, hence before them
                 f = f.with(line("ex", 60.0 + 14.0, 118.0, 140.0 - 14.0, 118.0).tone(R).width(2.0));
             }
             f = f.with_all(graph("g", &N, &E, 13.0, 10.5, false, nl, el));
@@ -445,7 +445,7 @@ fn tree() -> SceneSpec {
     )
 }
 
-// 9. Деревья вокруг
+// 9. Trees around us
 fn tree_use() -> SceneSpec {
     spec(
         &["Деревья", "Файлы", "AST", "DOM", "Иерархии", "Рекурсия"],
@@ -494,13 +494,13 @@ fn tree_use() -> SceneSpec {
     )
 }
 
-// 10. Остовное дерево
+// 10. Spanning tree
 fn spanning() -> SceneSpec {
     const N: [Pt; 6] = [(50.0, 46.0, "A"), (160.0, 30.0, "B"), (90.0, 116.0, "C"), (290.0, 40.0, "D"), (200.0, 118.0, "E"), (316.0, 112.0, "F")];
-    // ребро: (от, до, вес)
+    // edge: (from, to, weight)
     const E: [(usize, usize, u32); 8] = [(0, 1, 4), (0, 2, 2), (1, 2, 5), (1, 3, 10), (2, 4, 3), (3, 4, 7), (3, 5, 6), (4, 5, 8)];
     let es: Vec<(usize, usize)> = E.iter().map(|&(a, b, _)| (a, b)).collect();
-    // индексы рёбер: остов (AC, CE, AB, DF, DE) и просто какой-то остов из 5 рёбер на шаге 1
+    // edge indices: the spanning tree (AC, CE, AB, DF, DE) and just some spanning tree of 5 edges at step 1
     const MST: [usize; 5] = [1, 4, 0, 6, 5];
     const SPAN: [usize; 5] = [0, 1, 4, 5, 7];
     spec(
@@ -536,7 +536,7 @@ fn spanning() -> SceneSpec {
     )
 }
 
-/// Дуга-мост между вершинами `a` и `b` радиуса `r`: квадратичная кривая со смещением середины `off`; концы — на границах кругов.
+/// Bridge arc between vertices `a` and `b` of radius `r`: quadratic curve with midpoint offset `off`; ends — on the circle borders.
 fn bridge(a: (f64, f64), b: (f64, f64), off: f64, r: f64) -> String {
     let (mx, my) = ((a.0 + b.0) / 2.0, (a.1 + b.1) / 2.0);
     let (dx, dy) = (b.1 - a.1, a.0 - b.0);
@@ -551,10 +551,10 @@ fn bridge(a: (f64, f64), b: (f64, f64), off: f64, r: f64) -> String {
     format!("M{:.1} {:.1} Q{:.1} {:.1} {:.1} {:.1}", p1.0, p1.1, cx, cy, p2.0, p2.1)
 }
 
-// 11. Кёнигсбергские мосты
+// 11. Königsberg bridges
 fn koenigsberg() -> SceneSpec {
     const V: [(&str, f64, f64, u32); 4] = [("A", 180.0, 24.0, 5), ("B", 64.0, 82.0, 3), ("C", 296.0, 82.0, 3), ("D", 180.0, 136.0, 3)];
-    // (из, в, смещение дуги): кратные рёбра — по две дуги
+    // (from, to, arc offset): multiple edges — two arcs each
     const BR: [(usize, usize, f64); 7] = [(0, 1, -10.0), (0, 1, 10.0), (0, 2, -10.0), (0, 2, 10.0), (0, 3, 0.0), (1, 3, 0.0), (2, 3, 0.0)];
     spec(
         &["Задача", "Семь мостов", "Заход = 2", "Правило", "Кёнигсберг"],
@@ -592,12 +592,12 @@ fn koenigsberg() -> SceneSpec {
     )
 }
 
-// 12. Обходы в продакшне
+// 12. Traversals in production
 fn production() -> SceneSpec {
-    // сборщик мусора: корень и достижимые узлы живы, «×» — мусор (бледный)
+    // garbage collector: the root and reachable nodes are alive, "×" — garbage (pale)
     const GC: [Pt; 6] = [(60.0, 40.0, "root"), (150.0, 40.0, "a"), (240.0, 40.0, "b"), (150.0, 110.0, "c"), (280.0, 110.0, "×"), (320.0, 60.0, "×")];
     const GCE: [(usize, usize); 4] = [(0, 1), (1, 2), (1, 3), (4, 5)];
-    // резолвер зависимостей: a → b → c → a
+    // dependency resolver: a → b → c → a
     const DEP: [Pt; 3] = [(80.0, 80.0, "a"), (180.0, 36.0, "b"), (280.0, 80.0, "c")];
     const DEPE: [(usize, usize); 3] = [(0, 1), (1, 2), (2, 0)];
     let crawl: [(&str, f64, f64); 5] = [("/", 180.0, 34.0), ("/a", 100.0, 84.0), ("/b", 260.0, 84.0), ("/a/1", 60.0, 134.0), ("/a/2", 140.0, 134.0)];
@@ -633,9 +633,9 @@ fn production() -> SceneSpec {
     )
 }
 
-// 13. Итог главы
+// 13. Chapter summary
 fn recap() -> SceneSpec {
-    // (крупная подпись, название, шаг, на котором карточка «говорит»)
+    // (large label, title, step at which the card "speaks")
     const CARDS: [(&str, &str, usize); 4] = [("DFS · BFS", "обходы", 1), ("visited", "компоненты", 2), ("n − 1", "деревья", 3), ("MST · Эйлер", "остов, мосты", 4)];
     spec(
         &["Итог", "Глубина и ширина", "Компоненты", "Деревья", "Остов · мосты", "Дальше"],
@@ -653,7 +653,7 @@ fn recap() -> SceneSpec {
                 let (on, done) = (k == at, k > at);
                 let s = if on { 1.1 } else { 1.0 };
                 let x = 50.0 + i as f64 * 86.0;
-                // подписи масштабируются вокруг центра карточки: их высота умножается на тот же множитель
+                // labels scale around the card centre: their height is multiplied by the same factor
                 f = f
                     .with(bx(format!("c{i}"), x, 62.0, 76.0, 80.0, "").tone(if on || done { G } else { M }).scale(s))
                     .with(mt(&format!("c{i}b"), x, 62.0 + 4.0 * s, big, 10.5).tone(G).scale(s))
@@ -674,7 +674,7 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Имена компонентов в порядке импортов `frontend/src/slides/dm/ch09.tsx`.
+    /// Component names in the import order of `frontend/src/slides/dm/ch09.tsx`.
     const NAMES: [&str; 13] = [
         "C9Intro",
         "C9Task",
@@ -721,7 +721,7 @@ mod tests {
 
     #[test]
     fn no_item_is_visible_but_empty() {
-        // у каждой сцены на каждом шаге есть что показать
+        // every scene has something to show at every step
         for (name, spec) in scenes() {
             let scene = Scene::compile(&spec).unwrap();
             for (k, row) in scene.states.iter().enumerate() {

@@ -1,5 +1,5 @@
-//! Внутренний API воркеров проверки (как `exercises/worker_api.py`): забрать задание, подтвердить жизнь, вернуть результат.
-//! Закрыт токеном `CS_CORE_WORKER_TOKEN` (`Authorization: Bearer …`); без токена в окружении недоступен вовсе (404).
+//! Internal API of the check workers (like `exercises/worker_api.py`): take a job, confirm liveness, return a result.
+//! Protected by the `CS_CORE_WORKER_TOKEN` token (`Authorization: Bearer ...`); without the token in the environment it is unavailable altogether (404).
 
 use std::time::{Duration, Instant};
 
@@ -19,7 +19,7 @@ use crate::{error::ApiError, error::ApiResult, jobs, AppState};
 const MAX_WAIT: u64 = 25;
 
 pub fn routes(state: AppState) -> Router<AppState> {
-    // токен проверяется до разбора тела: без токена в окружении маршруты не существуют (404), с неверным — 401
+    // the token is checked before parsing the body: without a token in the environment the routes do not exist (404), with a wrong one - 401
     Router::new()
         .route("/internal/worker/claim", post(claim))
         .route("/internal/worker/ping", post(ping))
@@ -90,7 +90,7 @@ fn check_name(name: &str) -> ApiResult<()> {
     Ok(())
 }
 
-/// Долгий опрос: до `wait` секунд ждёт задание из полос воркера; пусто — 204.
+/// Long poll: waits up to `wait` seconds for a job from the worker's lanes; empty - 204.
 async fn claim(State(state): State<AppState>, Json(b): Json<ClaimIn>) -> ApiResult<Response> {
     check_name(&b.name)?;
     let deadline = Instant::now() + Duration::from_secs(b.wait.min(MAX_WAIT));

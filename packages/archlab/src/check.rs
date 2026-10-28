@@ -1,10 +1,10 @@
-//! Проверка решения: то, что уходит на `PUT /api/exercises/14/<глава>/<id>/solved`.
+//! Solution check: what goes to `PUT /api/exercises/14/<chapter>/<id>/solved`.
 //!
-//! * схемы — таблица истинности или сценарий по шагам (в интерфейсе их проходит ученик, здесь —
-//!   «идеальный ученик» [`run_steps`]); решение — JSON `{gates, wires}` или `{instances, bus_wires}`;
-//! * программы ассемблера — текст: собирается, выполняется на эмуляторе и сверяется с ожидаемым диском.
+//! * circuits — a truth table or a step-by-step scenario (in the interface the student walks through them, here an
+//!   "ideal student" does, [`run_steps`]); the solution is JSON `{gates, wires}` or `{instances, bus_wires}`;
+//! * assembler programs — text: assembled, run on the emulator and the disk is compared with the expected one.
 //!
-//! [`verify`] принимает присланное решение и возвращает [`Verdict`]; состояние браузера не нужно.
+//! [`verify`] takes the submitted solution and returns a [`Verdict`]; no browser state is needed.
 
 use crate::asm::tasks::compare;
 use crate::asm::{assemble, Machine};
@@ -16,32 +16,32 @@ use crate::model::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-/// Больше вентилей в одном решении принимать не станем (защита сервера).
+/// More gates than this in one solution will not be accepted (server protection).
 pub const MAX_GATES: usize = 600;
-/// Больше проводов.
+/// More wires.
 pub const MAX_WIRES: usize = 2000;
-/// Больше экземпляров блоков.
+/// More block instances.
 pub const MAX_INSTANCES: usize = 64;
-/// Больше шин.
+/// More buses.
 pub const MAX_BUS_WIRES: usize = 512;
-/// Длина текста программы.
+/// Program text length.
 pub const MAX_SOURCE: usize = 64 * 1024;
 
-/// Итог проверки решения.
+/// Solution check verdict.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Verdict {
-    /// Решение принято.
+    /// Solution accepted.
     pub ok: bool,
-    /// Совпавших строк таблицы / пройденных шагов (у программ — 1 или 0).
+    /// Matching table rows / passed steps (for programs — 1 or 0).
     pub passed: usize,
-    /// Строк таблицы / шагов всего.
+    /// Total table rows / steps.
     pub total: usize,
-    /// Что сказать ученику.
+    /// What to tell the student.
     pub message: String,
-    /// Таблица: строки с целью и фактом (только режим таблицы).
+    /// Table: rows with target and actual values (table mode only).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rows: Vec<TableRow>,
-    /// Сценарий: значения выходов на проверенных шагах (последний — на котором остановились).
+    /// Scenario: output values on the checked steps (the last one is where it stopped).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub step_outputs: Vec<Vec<NodeValue>>,
 }
@@ -52,7 +52,7 @@ impl Verdict {
     }
 }
 
-/// Результат сверки с таблицей истинности.
+/// Result of comparison with the truth table.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableCheck {
     pub rows: Vec<TableRow>,
@@ -60,7 +60,7 @@ pub struct TableCheck {
     pub ok: bool,
 }
 
-/// Сверка схемы с целевой таблицей (режим таблицы): по строке на каждую комбинацию входов.
+/// Comparing the circuit with the target table (table mode): one row per input combination.
 pub fn check_table(spec: &CircuitSpec, circuit: &Circuit) -> TableCheck {
     let rows: Vec<TableRow> = spec
         .target
@@ -77,18 +77,18 @@ pub fn check_table(spec: &CircuitSpec, circuit: &Circuit) -> TableCheck {
     TableCheck { ok: !rows.is_empty() && matched == rows.len(), matched, rows }
 }
 
-/// Результат прохождения сценария.
+/// Result of walking through a scenario.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StepsCheck {
     pub ok: bool,
-    /// Сколько шагов пройдено подряд.
+    /// How many steps passed in a row.
     pub passed: usize,
     pub total: usize,
-    /// Значения выходов на каждом проверенном шаге.
+    /// Output values on each checked step.
     pub got: Vec<Vec<NodeValue>>,
 }
 
-/// Перестановки списка в лексикографическом порядке индексов.
+/// Permutations of a list in lexicographic index order.
 fn permutations<T: Clone>(items: &[T]) -> Vec<Vec<T>> {
     if items.len() <= 1 {
         return vec![items.to_vec()];
@@ -105,7 +105,7 @@ fn permutations<T: Clone>(items: &[T]) -> Vec<Vec<T>> {
     out
 }
 
-/// Состояние «стенда»: тумблеры и последнее устойчивое состояние схемы.
+/// "Test bench" state: toggles and the last stable circuit state.
 #[derive(Clone)]
 struct Bench {
     inputs: InputState,
@@ -120,17 +120,17 @@ impl Bench {
     }
 }
 
-/// «Идеальный ученик»: проходит шаги сценария по порядку.
+/// "Ideal student": walks through the scenario steps in order.
 ///
-/// Схема стартует с тумблерами в нуле. На каждом шаге тумблеры выставляются по условию шага.
+/// The circuit starts with toggles at zero. On each step the toggles are set according to the step's condition.
 ///
-/// * С тактом (`ticks`): данные меняются при CLK = 0 (все сразу), затем подаются импульсы: `pulses` (по
-///   умолчанию один), если в шаге CLK = 1, и ни одного, если CLK = 0. Выходы проверяются в момент
-///   последнего фронта (CLK = 1); после шага такт возвращается в 0.
-/// * Без такта: сначала все изменившиеся тумблеры переключаются сразу; если выходы не те, пробуются все порядки
-///   переключения по одному (как это делает ученик мышью; до пяти тумблеров) — шаг пройден, если подошёл любой.
+/// * With a clock (`ticks`): data changes at CLK = 0 (all at once), then pulses are applied: `pulses` (one by
+///   default) if the step has CLK = 1, and none if CLK = 0. Outputs are checked at the moment of the
+///   last edge (CLK = 1); after the step the clock returns to 0.
+/// * Without a clock: first all changed toggles are switched at once; if the outputs are wrong, every order of
+///   switching them one at a time is tried (as the student does with the mouse; up to five toggles) — the step passes if any works.
 ///
-/// Первый непройденный шаг останавливает сценарий.
+/// The first failed step stops the scenario.
 pub fn run_steps(spec: &CircuitSpec, circuit: &Circuit) -> StepsCheck {
     let mut bench = Bench { inputs: InputState::zero(), last: Values::new() };
     bench.settle(circuit);
@@ -210,7 +210,7 @@ pub fn run_steps(spec: &CircuitSpec, circuit: &Circuit) -> StepsCheck {
     StepsCheck { ok: total > 0 && passed == total, passed, total, got }
 }
 
-/// Плоская схема решения: блоки разворачиваются, решение из вентилей берётся как есть (`circuitOf`).
+/// Flat circuit of the solution: blocks are expanded, a solution of gates is taken as is (`circuitOf`).
 pub fn circuit_of(spec: &CircuitSpec, solution: &Solution, lookup: &dyn BlockLookup) -> Circuit {
     match solution {
         Solution::Gate(g) => Circuit::new(g.gates.clone(), g.wires.clone()),
@@ -218,7 +218,7 @@ pub fn circuit_of(spec: &CircuitSpec, solution: &Solution, lookup: &dyn BlockLoo
     }
 }
 
-/// Проверка присланной схемы: форма, допустимые элементы, размеры.
+/// Check of a submitted circuit: form, allowed elements, sizes.
 fn validate(spec: &CircuitSpec, solution: &Solution, lib: &BlockLibrary) -> Result<(), String> {
     match (spec.build, solution) {
         (Build::Gates, Solution::Gate(g)) => validate_gates(spec, g),
@@ -287,7 +287,7 @@ fn validate_blocks(spec: &CircuitSpec, b: &BlockSolution, lib: &BlockLibrary) ->
     Ok(())
 }
 
-/// Проверка схемы, присланной как разобранное решение.
+/// Check of a circuit submitted as a parsed solution.
 pub fn verify_circuit(spec: &CircuitSpec, solution: &Solution, lib: &BlockLibrary) -> Verdict {
     if let Err(e) = validate(spec, solution, lib) {
         return Verdict::fail(e);
@@ -319,7 +319,7 @@ pub fn verify_circuit(spec: &CircuitSpec, solution: &Solution, lib: &BlockLibrar
     }
 }
 
-/// Проверка программы ассемблера: сборка, запуск до остановки, сверка диска.
+/// Check of an assembler program: assemble, run until halt, compare the disk.
 pub fn verify_asm(spec: &AsmSpec, source: &str) -> Verdict {
     if source.len() > MAX_SOURCE {
         return Verdict::fail(i18n::tr("Program too long"));
@@ -341,11 +341,11 @@ pub fn verify_asm(spec: &AsmSpec, source: &str) -> Verdict {
     Verdict { ok: r.ok, passed: r.ok as usize, total: 1, message: r.message, rows: vec![], step_outputs: vec![] }
 }
 
-/// Проверка присланного решения упражнения.
+/// Check of a submitted exercise solution.
 ///
-/// `submitted` — JSON схемы (`{gates, wires}` или `{instances, bus_wires}`; допустимы и `busWires`/`blockId`
-/// прежнего клиента) или текст программы. `lib` — библиотека блоков (для схем из блоков): эталонная
-/// ([`ArchLab::reference_library`]) или собранная из решений ученика ([`ArchLab::library`] с [`crate::data::DraftStore`]).
+/// `submitted` — circuit JSON (`{gates, wires}` or `{instances, bus_wires}`; `busWires`/`blockId` of the
+/// old client are also allowed) or program text. `lib` — block library (for block circuits): the reference one
+/// ([`ArchLab::reference_library`]) or one built from the student's solutions ([`ArchLab::library`] with [`crate::data::DraftStore`]).
 pub fn verify(task: &Task, submitted: &str, lib: &BlockLibrary) -> Verdict {
     match &task.spec {
         Spec::Circuit(c) => match Solution::from_json(submitted) {
@@ -357,7 +357,7 @@ pub fn verify(task: &Task, submitted: &str, lib: &BlockLibrary) -> Verdict {
 }
 
 impl ArchLab {
-    /// Проверка решения упражнения `task_id` главы `chapter`. Без `lib` блоки открыты эталонными решениями.
+    /// Check of the solution of task `task_id` in chapter `chapter`. Without `lib` the blocks are unlocked by reference solutions.
     pub fn verify(&self, chapter: u32, task_id: &str, submitted: &str, lib: Option<&BlockLibrary>) -> Verdict {
         let Some(task) = self.task(chapter, task_id) else {
             return Verdict::fail(i18n::trf!("No exercise “{0}” in chapter {1}", task_id, chapter));
@@ -370,8 +370,8 @@ impl ArchLab {
 }
 
 impl ArchLab {
-    /// Проверка с учётом того, что открыто у ученика: блоки собираются из его решений, а составные вентили (NAND, XOR, XNOR, триггер)
-    /// допускаются только после сборки их вручную — как закрытые элементы в палитре интерфейса.
+    /// Check taking into account what the student has unlocked: blocks are built from their solutions, and composite gates (NAND, XOR, XNOR, flip-flop)
+    /// are allowed only after being built by hand — like locked elements in the interface palette.
     pub fn verify_unlocked(&self, chapter: u32, task_id: &str, submitted: &str, store: &dyn crate::data::SolutionStore) -> Verdict {
         if let Some(Spec::Circuit(c)) = self.task(chapter, task_id).map(|t| &t.spec) {
             if let (Build::Gates, Ok(Solution::Gate(g))) = (c.build, Solution::from_json(submitted)) {
@@ -385,7 +385,7 @@ impl ArchLab {
     }
 }
 
-/// Значения всех узлов схемы (удобно клиенту): комбинационный расчёт без памяти.
+/// Values of all circuit nodes (convenient for the client): combinational evaluation without memory.
 pub fn node_values(circuit: &Circuit, inputs: &InputState) -> Values {
     evaluate_circuit(circuit, inputs)
 }

@@ -1,6 +1,6 @@
-//! HTTP/1.1 в симуляторе: веб-сервер — набор маршрутов (путь → статус, тело, заголовки, редирект), клиент — curl.
-//! Сетевая часть (DNS, TCP-сессия с рукопожатием) идёт через настоящую симуляцию, а разбор запроса и ответа
-//! считается здесь.
+//! HTTP/1.1 in the simulator: a web server is a set of routes (path -> status, body, headers, redirect), the client is curl.
+//! The network part (DNS, TCP session with handshake) goes through the real simulation, while request and response
+//! parsing is computed here.
 
 use crate::ip::*;
 use crate::sim::{delivered_to, fmt_ms, tcp1};
@@ -9,12 +9,12 @@ use crate::tls::tls_fetch;
 use crate::types::*;
 use crate::util::{js_num, to_int, utf16_len, OrdMap};
 
-/// Пустая конфигурация веб-сервера.
+/// Empty web server configuration.
 pub fn new_http() -> HttpConfig {
     HttpConfig::default()
 }
 
-/// Пояснение к коду ответа.
+/// Reason phrase for a status code.
 pub fn reason(status: u32) -> &'static str {
     match status {
         200 => "OK",
@@ -38,7 +38,7 @@ pub fn reason(status: u32) -> &'static str {
     }
 }
 
-/// Запрос к веб-серверу.
+/// Request to a web server.
 #[derive(Clone, Debug, Default)]
 pub struct HttpRequest {
     pub method: String,
@@ -47,7 +47,7 @@ pub struct HttpRequest {
     pub headers: OrdMap<String>,
 }
 
-/// Разобранный адрес.
+/// Parsed URL.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParsedUrl {
     pub scheme: String,
@@ -60,7 +60,7 @@ fn response(status: u32, headers: OrdMap<String>, body: String) -> HttpResponse 
     HttpResponse { status, reason: reason(status).to_string(), headers, body, rtt_us: None, ip: None, via: None, url: None }
 }
 
-/// Ответ веб-сервера на запрос.
+/// Web server response to a request.
 pub fn respond(http: &HttpConfig, req: &HttpRequest) -> HttpResponse {
     let path = req.path.split('?').next().unwrap_or("");
     let Some(r) = http.routes.iter().find(|x| x.path == path) else {
@@ -105,7 +105,7 @@ pub fn respond(http: &HttpConfig, req: &HttpRequest) -> HttpResponse {
     response(status, headers, body)
 }
 
-/// Разбор адреса `http(s)://хост[:порт][/путь][?запрос]`.
+/// Parse the URL `http(s)://host[:port][/path][?query]`.
 pub fn parse_url(u: &str) -> Option<ParsedUrl> {
     let lower = u.to_lowercase();
     let (scheme, rest) = if lower.starts_with("https://") {
@@ -115,7 +115,7 @@ pub fn parse_url(u: &str) -> Option<ParsedUrl> {
     } else {
         return None;
     };
-    // хост: всё до первого «/», «:», «?», «#»
+    // host: everything up to the first "/", ":", "?", "#"
     let host_end = rest.find(['/', ':', '?', '#']).unwrap_or(rest.len());
     let host = &rest[..host_end];
     if host.is_empty() {
@@ -131,7 +131,7 @@ pub fn parse_url(u: &str) -> Option<ParsedUrl> {
         port = digits.parse().ok();
         tail = &after[digits.len()..];
     }
-    // путь [^?#]*, затем запрос [^#]*, затем конец
+    // path [^?#]*, then query [^#]*, then the end
     let path_end = tail.find(['?', '#']).unwrap_or(tail.len());
     let path = &tail[..path_end];
     if !path.is_empty() && !path.starts_with('/') {
@@ -156,7 +156,7 @@ pub fn parse_url(u: &str) -> Option<ParsedUrl> {
     })
 }
 
-/// Параметры запроса с редиректами.
+/// Request parameters with redirects.
 #[derive(Clone, Debug, Default)]
 pub struct FetchOptions {
     pub url: String,
@@ -166,7 +166,7 @@ pub struct FetchOptions {
     pub proxy: Option<String>,
 }
 
-/// Итог: цепочка ответов, ошибка и последняя сетевая проба.
+/// Outcome: chain of responses, error and the last network probe.
 #[derive(Clone, Debug, Default)]
 pub struct FetchResult {
     pub responses: Vec<HttpResponse>,
@@ -174,7 +174,7 @@ pub struct FetchResult {
     pub run: Option<ProbeRun>,
 }
 
-/// Запрос с редиректами (до шести переходов).
+/// Request with redirects (up to six hops).
 pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> FetchResult {
     let mut responses: Vec<HttpResponse> = Vec::new();
     let mut cur = o.url.clone();
@@ -304,7 +304,7 @@ pub fn http_fetch(state: &mut NetState, dev_id: &str, o: &FetchOptions) -> Fetch
     FetchResult { responses, error: None, run }
 }
 
-/// Обратный прокси / CDN-узел: маршрутизация по хосту и пути, кэш.
+/// Reverse proxy / CDN node: routing by host and path, cache.
 fn rproxy_handle(
     state: &mut NetState,
     dev: &Device,
@@ -379,7 +379,7 @@ struct ProxyResult {
     ip: Option<u32>,
 }
 
-/// Запрос через HTTP-прокси ip:порт: клиент → прокси (ACL) → сайт от имени прокси.
+/// Request via an HTTP proxy ip:port: client -> proxy (ACL) -> site on behalf of the proxy.
 fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, method: &str, headers: &OrdMap<String>) -> ProxyResult {
     let mut parts = proxy.split(':');
     let pip = parts.next().unwrap_or("");
@@ -476,7 +476,7 @@ fn via_proxy(state: &mut NetState, dev_id: &str, u: &ParsedUrl, proxy: &str, met
     ProxyResult { response: Some(out), run: Some(run), ip: Some(pr.ip), error: None }
 }
 
-/// Вывод curl: обычный, с заголовками (-I) или подробный (-v).
+/// curl output: plain, with headers (-I) or verbose (-v).
 pub fn fmt_curl(r: &FetchResult, verbose: bool, head: bool, method: &str) -> String {
     if let Some(e) = &r.error {
         return e.clone();

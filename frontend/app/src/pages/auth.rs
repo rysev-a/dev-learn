@@ -1,4 +1,4 @@
-//! Вход и регистрация (по email; имя — для профиля). Без входа приложение закрыто.
+//! Sign-in and registration (by email; the name is for the profile). Without signing in the app is closed.
 
 use leptos::{prelude::*, task::spawn_local};
 
@@ -15,7 +15,7 @@ enum Mode {
     Register,
 }
 
-/// Временные пользователи — только в dev-сборке (`trunk serve`): в релизной сборке ни предзаполнения, ни кнопок.
+/// Temporary users - dev build only (`trunk serve`): the release build has no prefilling and no buttons.
 const DEV: bool = cfg!(debug_assertions);
 const QUICK: [&str; 2] = ["student", "programmer"];
 

@@ -1,5 +1,5 @@
-//! Схема и данные учебной базы SQL-задачи: таблицы, столбцы, ключи, связи и строки (как `exercises/schema_view.py`).
-//! Базу собирает тот же `setup`, что и песочница, но здесь, в памяти: определения задач написаны нами.
+//! Schema and data of a SQL task's teaching database: tables, columns, keys, relations and rows (like `exercises/schema_view.py`).
+//! The database is built by the same `setup` as in the sandbox, but here, in memory: the task definitions are written by us.
 
 use rusqlite::{types::ValueRef, Connection};
 use serde_json::{json, Value};
@@ -24,7 +24,7 @@ fn cell(v: ValueRef) -> Value {
 /// `{tables: [{name, kind, columns: [{name, type, pk, notnull, fk}], rows, total}], relations: [...]}`
 pub fn describe(setup: &str) -> anyhow::Result<Value> {
     let con = Connection::open_in_memory()?;
-    // учебные базы заполняются в порядке «как удобно читать», а не по внешним ключам; песочница (sqlite3) их не проверяет
+    // teaching databases are filled in "easy to read" order, not by foreign keys; the sandbox (sqlite3) does not enforce them
     con.execute_batch("PRAGMA foreign_keys = OFF")?;
     con.execute_batch(setup)?;
     let mut st = con.prepare("SELECT name, type FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY type DESC, rowid")?;

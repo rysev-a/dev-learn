@@ -1,6 +1,6 @@
-//! Числа так, как их печатает JavaScript: тексты целей и подписи должны совпадать с прежней версией до символа.
+//! Numbers formatted as JavaScript prints them: goal texts and labels must match the previous version to the character.
 
-/// `Math.round`: половина округляется к +∞ (у `f64::round` — от нуля, для отрицательных иначе).
+/// `Math.round`: halves round toward +∞ (`f64::round` rounds away from zero, which differs for negatives).
 pub fn round(x: f64) -> f64 {
     if !x.is_finite() {
         return x;
@@ -13,7 +13,7 @@ pub fn round(x: f64) -> f64 {
     }
 }
 
-/// `String(x)` для числа: целые без дробной части, `NaN` и `Infinity` словами.
+/// `String(x)` for a number: integers without a fractional part, `NaN` and `Infinity` as words.
 pub fn num(x: f64) -> String {
     if x.is_nan() {
         "NaN".into()
@@ -26,14 +26,14 @@ pub fn num(x: f64) -> String {
     }
 }
 
-/// `x.toFixed(digits)`: точное десятичное разложение числа, при равенстве двух ближайших вариантов — больший по модулю
-/// (у `format!("{:.1}")` «половинки» округляются к чётному: 98.25 → 98.2, а в JavaScript — 98.3).
+/// `x.toFixed(digits)`: exact decimal expansion of the number; on a tie between the two nearest candidates — the larger by magnitude
+/// (`format!("{:.1}")` rounds "halves" to even: 98.25 → 98.2, while JavaScript gives 98.3).
 pub fn fixed(x: f64, digits: usize) -> String {
     if !x.is_finite() {
         return num(x);
     }
     let neg = x < 0.0;
-    // 60 знаков хватает, чтобы разложение двойного числа такого масштаба было точным
+    // 60 digits suffice for the expansion of a double of this magnitude to be exact
     let exact = format!("{:.60}", x.abs());
     let (int, frac) = exact.split_once('.').unwrap_or((&exact, ""));
     let mut digs: Vec<u8> = int.bytes().chain(frac.bytes().take(digits)).map(|b| b - b'0').collect();
@@ -68,12 +68,12 @@ pub fn fixed(x: f64, digits: usize) -> String {
     out
 }
 
-/// Доля в процентах, как в подписях целей: `99.9%` и `99.950%` для долей от 0,999.
+/// Share as a percentage, as in goal labels: `99.9%` and `99.950%` for shares from 0.999.
 pub fn pct(x: f64) -> String {
     format!("{}%", fixed(x * 100.0, if x >= 0.999 { 3 } else { 1 }))
 }
 
-/// Целое число процентов: `Math.round(x * 100)`.
+/// Integer percentage: `Math.round(x * 100)`.
 pub fn pct0(x: f64) -> String {
     num(round(x * 100.0))
 }
@@ -84,12 +84,12 @@ mod tests {
 
     #[test]
     fn to_fixed_matches_javascript() {
-        // значения, проверенные в Node: (98.25).toFixed(1) === "98.3", (0.5).toFixed(0) === "1", (2.5).toFixed(0) === "3"
+        // values verified in Node: (98.25).toFixed(1) === "98.3", (0.5).toFixed(0) === "1", (2.5).toFixed(0) === "3"
         assert_eq!(fixed(98.25, 1), "98.3");
         assert_eq!(fixed(0.5, 0), "1");
         assert_eq!(fixed(2.5, 0), "3");
         assert_eq!(fixed(99.9, 1), "99.9");
-        assert_eq!(fixed(99.95, 1), "100.0"); // 99.95 в двоичной записи чуть больше половинки
+        assert_eq!(fixed(99.95, 1), "100.0"); // 99.95 in binary is slightly above the half
         assert_eq!(fixed(99.99999, 3), "100.000");
         assert_eq!(fixed(0.0, 1), "0.0");
         assert_eq!(fixed(-0.0, 1), "0.0");

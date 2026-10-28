@@ -1,9 +1,9 @@
-//! Лаборатория «RISC-V» (главы 16 «RISC-V» и 17 «Настоящие программы» книги 14): редактор программы на ассемблере,
-//! листинг машинного кода, пошаговый «мягкий процессор» RV32IM с памятью и периферией.
+//! The "RISC-V" lab (chapters 16 "RISC-V" and 17 "Real programs" of book 14): an assembly program editor,
+//! a machine code listing, a step-by-step "soft processor" RV32IM with memory and peripherals.
 //!
-//! Движок — крейт `riscvlab` (общий с сервером): ассемблер, машина и проверка. Здесь только интерфейс. Когда запуск
-//! выполняет задание, текст программы уходит на сервер (`LabProps::report`), и тот перепроверяет её тем же `riscvlab::verify`.
-//! В отличие от React-версии эталонное решение клиенту не отдаётся, поэтому кнопки «Показать решение» нет.
+//! The engine is the `riscvlab` crate (shared with the server): assembler, machine and checking. Only the interface is here. When a run
+//! completes the task, the program text goes to the server (`LabProps::report`), which re-checks it with the same `riscvlab::verify`.
+//! Unlike the React version, the reference solution is not sent to the client, so there is no "Show solution" button.
 
 use leptos::prelude::*;
 use riscvlab::task::{Profile, TaskSpec};
@@ -22,12 +22,12 @@ use machine::{CpuCard, MemoryCard, OutputCard, PeripheralsCard, ResultAlert};
 use program::{ListingCard, ProgramCard, TaskData};
 use session::Session;
 
-/// Описание упражнения из `spec` задачи (эталона в нём нет, поэтому `reference` пуст).
+/// Exercise description from the task `spec` (it has no reference, so `reference` is empty).
 fn parse_spec(raw: &serde_json::Value) -> Result<TaskSpec, String> {
     serde_json::from_value(raw.clone()).map_err(|e| i18n::trf!("Invalid exercise description: {0}", e))
 }
 
-/// Лаборатория выбранного упражнения.
+/// The lab of the selected exercise.
 #[component]
 pub fn RiscvLab(props: LabProps) -> impl IntoView {
     let spec = match parse_spec(&props.task.spec) {
@@ -37,7 +37,7 @@ pub fn RiscvLab(props: LabProps) -> impl IntoView {
     let real = spec.profile == Profile::Linux;
     let data = spec.data.clone();
     let hint = props.task.hint.clone();
-    // черновик ученика, а если его нет — заготовка
+    // the learner's draft, or the starter if there is none
     let draft = props.draft.get_untracked();
     let initial = if draft.is_empty() { spec.starter.clone() } else { draft };
     let session = Session::new(spec, initial, props.solved, props.report, props.on_draft);
@@ -76,19 +76,19 @@ mod tests {
 
     #[test]
     fn spec_from_server_has_no_reference() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let raw = json!({
             "profile": "linux", "starter": "_start:\n", "data": "msg: .asciz \"x\"\n", "max_steps": 1000,
-            "tests": [{ "check": { "kind": "run", "stdout": "x", "code": 0, "ok": "ок" } }],
+            "tests": [{ "check": { "kind": "run", "stdout": "x", "code": 0, "ok": "ok" } }],
         });
-        let spec = parse_spec(&raw).expect("разбирается без эталона");
+        let spec = parse_spec(&raw).expect("parses without a reference");
         assert_eq!((spec.profile, spec.reference.as_str(), spec.max_steps), (Profile::Linux, "", 1000));
     }
 
     #[test]
     fn broken_spec_is_reported_in_russian() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        let err = parse_spec(&json!({ "profile": "mars" })).expect_err("профиля «mars» нет");
+        let _ru = locales::guard(i18n::Locale::Ru);
+        let err = parse_spec(&json!({ "profile": "mars" })).expect_err("there is no mars profile");
         assert!(err.starts_with("Неверное описание упражнения"), "{err}");
     }
 }

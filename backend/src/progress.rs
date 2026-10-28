@@ -1,4 +1,4 @@
-//! Прогресс пользователя: слайды, вопросы, упражнения (как `accounts/progress.py`). Всё привязано к (книга, номер главы).
+//! User progress: slides, questions, exercises (like `accounts/progress.py`). Everything is tied to (book, chapter number).
 
 use std::collections::HashMap;
 
@@ -117,7 +117,7 @@ struct BookChapter {
     chapter: i64,
 }
 
-/// Пройти квиз заново. Выбранные варианты записывает только POST /api/quizzes/…/answer, здесь их можно лишь стереть.
+/// Retake the quiz. Chosen options are recorded only by POST /api/quizzes/.../answer; here they can only be erased.
 async fn reset_quiz(State(state): State<AppState>, Extension(me): Extension<Identity>, Query(q): Query<BookChapter>) -> ApiResult<StatusCode> {
     check_range("book", q.book, 1, 1000)?;
     check_range("chapter", q.chapter, 0, 1000)?;
@@ -137,7 +137,7 @@ struct Scope {
     scope: String,
 }
 
-/// Сбросить упражнения (статусы, черновики, история) или весь прогресс.
+/// Reset exercises (statuses, drafts, history) or the whole progress.
 async fn reset_progress(State(state): State<AppState>, Extension(me): Extension<Identity>, Query(q): Query<Scope>) -> ApiResult<StatusCode> {
     let mut tables = vec!["code_status", "code_drafts", "code_attempts", "answer_solved"];
     match q.scope.as_str() {

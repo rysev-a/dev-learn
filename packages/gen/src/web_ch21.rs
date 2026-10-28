@@ -1,15 +1,15 @@
-//! Книга 11 «Современный Frontend», глава 21 «CSS: адаптивность, состояния и анимации» (раздел «CSS и вёрстка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 21 "CSS: responsiveness, states and animations" (section "CSS and layout"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bar, bx, code, dot, line, path, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [&[9.6, 19.2, 28.8], &[10.0, 20.0, 30.1], &[10.5, 21.0, 31.4], &[9.5, 19.0, 28.4], &[10.3, 20.6, 31.0], &[10.9, 21.8, 32.6], &[10.5, 21.0, 31.6], &[10.9, 21.8, 32.6], &[10.3, 20.6, 30.9], &[10.6, 21.3, 31.9], &[10.5, 21.1, 31.6], &[14.0, 28.0], &[10.5, 20.9, 31.4]];
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-21.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-21.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Адаптивность", "Один сайт — много экранов", "Телефон — в первую очередь; без мета-тега viewport мобильный браузер показывает десктоп.", v01),
@@ -34,25 +34,25 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись.
+/// Short label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка CSS; (x, y) — начало первой строки (базовая линия).
+/// CSS inset; (x, y) — start of the first line (baseline).
 fn css(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Css, id, x, y, lines).size(9.0).lh(14.0)
 }
@@ -61,7 +61,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Адаптивность
+// 1. Responsiveness
 fn v01() -> SceneSpec {
     spec(
         &["Экраны", "Без viewport", "С viewport", "Мета-тег"],
@@ -96,7 +96,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Медиа-запросы
+// 2. Media queries
 fn v02() -> SceneSpec {
     let axis = || {
         Frame::new()
@@ -138,7 +138,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Другие условия
+// 3. Other conditions
 fn v03() -> SceneSpec {
     spec(
         &["Цветовая схема", "Движение", "Ориентация", "Указатель"],
@@ -173,7 +173,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Контейнерные запросы
+// 4. Container queries
 fn v04() -> SceneSpec {
     let layout = || {
         Frame::new()
@@ -210,7 +210,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Резиновые размеры
+// 5. Fluid sizes
 fn v05() -> SceneSpec {
     let bars = |hs: [f64; 5], tone: Tone| {
         let mut f = Frame::new().with(line("base", 28.0, 140.0, 332.0, 140.0));
@@ -243,7 +243,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Адаптивные картинки
+// 6. Responsive images
 fn v06() -> SceneSpec {
     spec(
         &["Выход за край", "max-width", "object-fit", "srcset"],
@@ -282,7 +282,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Состояния
+// 7. States
 fn v07() -> SceneSpec {
     spec(
         &["hover", "active", "focus-visible", "Сенсор"],
@@ -385,7 +385,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. @keyframes и animation
+// 10. @keyframes and animation
 fn v10() -> SceneSpec {
     spec(
         &["Кадры", "@keyframes", "animation", "fill-mode"],
@@ -422,7 +422,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Производительность
+// 11. Performance
 fn v11() -> SceneSpec {
     let pipe = |lt: Tone, pt: Tone, ct: Tone| {
         Frame::new()
@@ -453,7 +453,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Доступность анимаций
+// 12. Animation accessibility
 fn v12() -> SceneSpec {
     spec(
         &["Настройка", "Запрос", "Что убрать"],
@@ -485,7 +485,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Чек-лист
+// 13. Checklist
 fn v13() -> SceneSpec {
     spec(
         &["Вёрстка", "Состояния и размеры", "Анимация", "DevTools"],

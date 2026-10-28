@@ -1,10 +1,10 @@
-//! Данные курса, общие для бэкенда, фронтенда и генераторов содержимого.
+//! Course data shared by the backend, the frontend and the content generators.
 //!
-//! * [`tone`], [`item`], [`scene`], [`dsl`] — анимированные схемы (покадровые сцены);
-//! * [`slide`] — слайды, главы и блоки тела слайда.
+//! * [`tone`], [`item`], [`scene`], [`dsl`] — animated diagrams (frame-by-frame scenes);
+//! * [`slide`] — slides, chapters and the blocks of a slide body.
 //!
-//! Всё — обычные структуры с `serde`: бэкенд хранит их в базе как документы, клиент рисует, генераторы создают.
-//! Ошибка в данных находится при компиляции сцены ([`Scene::compile`]) и проверке главы ([`slide::Chapter::check`]).
+//! Everything is plain `serde` structs: the backend stores them in the database as documents, the client renders them, the generators create them.
+//! Errors in the data are caught when a scene is compiled ([`Scene::compile`]) and a chapter is checked ([`slide::Chapter::check`]).
 
 pub mod dsl;
 pub mod item;

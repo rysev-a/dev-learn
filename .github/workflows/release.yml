@@ -1,17 +1,17 @@
-name: Выкладка релиза
+name: Release deployment
 
-# Создали релиз на GitHub — сайт обновился. Образы собираются НА СЕРВЕРЕ (бэкенд зависит от закрытых библиотек, которых нет у GitHub-раннера),
+# Create a release on GitHub and the site is updated. The images are built ON THE SERVER (the backend depends on closed libraries that the GitHub runner does not have),
 #
-# Нужно один раз настроить (см. docs/deploy.md, "Release deployment"):
-#   secrets.DEPLOY_SSH_KEY   — закрытый ключ, которому на сервере разрешён только deploy/server/release.sh
-#   vars.DEPLOY_HOST, vars.DEPLOY_USER, vars.DEPLOY_HOST_KEY (строка из known_hosts), vars.SITE_URL
+# One-time setup needed (see docs/deploy.md, "Release deployment"):
+#   secrets.DEPLOY_SSH_KEY   - the private key, which the server only allows to run deploy/server/release.sh
+#   vars.DEPLOY_HOST, vars.DEPLOY_USER, vars.DEPLOY_HOST_KEY (a known_hosts line), vars.SITE_URL
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       tag:
-        description: Тег, который нужно выложить (уже существующий)
+        description: Tag to deploy (must already exist)
         required: true
 
 concurrency:
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Выкладка на сайт
+    name: Deploy to the site
     if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
     runs-on: ubuntu-latest
     environment: production
@@ -34,7 +34,7 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name || inputs.tag }}
 
-      - name: Подготовка SSH
+      - name: Prepare SSH
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
@@ -48,10 +48,10 @@ jobs:
           printf 'Host deploy\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 30\n' \
             "$DEPLOY_HOST" "$DEPLOY_USER" > ~/.ssh/config
 
-      - name: Сборка и запуск на сервере
+      - name: Build and start on the server
         run: git archive --format=tar.gz HEAD | ssh deploy "deploy $TAG"
 
-      - name: Проверка сайта снаружи
+      - name: Check the site from outside
         env:
           SITE_URL: ${{ vars.SITE_URL }}
         run: |

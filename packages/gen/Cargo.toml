@@ -3,7 +3,7 @@ name = "gen"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Генераторы содержимого курса: создают данные (главы, слайды, сцены) для бэкенда."
+description = "Course content generators: produce data (chapters, slides, scenes) for the backend."
 
 [dependencies]
 content = { path = "../content" }

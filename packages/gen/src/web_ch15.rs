@@ -1,13 +1,13 @@
-//! Книга 11, глава 15 (раздел «HTML и разметка»): «HTML: формы и доступность» — 13 слайдов, на каждом схема из 3–4 кадров на общем DSL.
-//! Текст урока — `backend/data/textbook/11-js/js-15.md`: один абзац = один слайд = одна сцена. Метки `cues` посчитаны по доле символов
-//! абзаца (≈ 14 символов в секунду, шаг начинается с предложения, которое он иллюстрирует); озвучки пока нет.
+//! Book 11, chapter 15 (section "HTML and markup"): "HTML: forms and accessibility" — 13 slides, each with a 3–4-frame diagram on the shared DSL.
+//! Lesson text — `backend/data/textbook/11-js/js-15.md`: one paragraph = one slide = one scene. `cues` marks computed by the paragraph's
+//! character share (≈ 14 characters per second, a step begins with the sentence it illustrates); no voice-over yet.
 
 use content::{
     dsl::{arrow, bx, code, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, Y,
 };
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-15.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-15.json`.
 pub fn chapter() -> Chapter {
     Chapter {
         book: 11,
@@ -37,25 +37,25 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен главы ----------------------------------------------------------------------
+// --- chapter scene helpers ---------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотной таблицы кадров
+/// Rectangle with a label: (x, y) — centre.
+#[allow(clippy::too_many_arguments)] // short helper for a dense frame table
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись по центру.
+/// Short centred label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка HTML; (x, y) — левый верхний угол.
+/// HTML inset; (x, y) — top-left corner.
 fn html(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Html, id, x, y, lines).size(9.5).lh(15.0).w(320.0)
 }
@@ -64,7 +64,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Форма как договор
+// 1. A form as a contract
 fn v01() -> SceneSpec {
     spec(
         &["Договор", "От чего зависит", "План главы"],
@@ -129,7 +129,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. name и id
+// 3. name and id
 fn v03() -> SceneSpec {
     let fields = |f: Frame| {
         f.with(b("f1", 90.0, 40.0, 160.0, 28.0, "email · ann@mail.ru", B, 9.0))
@@ -212,7 +212,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Типы полей
+// 5. Field types
 fn v05() -> SceneSpec {
     fn grid(items: &[(&str, &str, Tone)]) -> Vec<content::item::Cell> {
         items.iter().enumerate().map(|(i, (name, sub, tone))| b(&format!("n{i}"), 62.0 + (i % 3) as f64 * 118.0, 50.0 + (i / 3) as f64 * 52.0, 104.0, 38.0, &format!("{name}\n{sub}"), *tone, 9.0)).collect()
@@ -285,7 +285,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Кнопки
+// 7. Buttons
 fn v07() -> SceneSpec {
     spec(
         &["Не div", "Ловушка", "Тип button", "Текст кнопки"],
@@ -320,7 +320,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. fieldset и legend
+// 8. fieldset and legend
 fn v08() -> SceneSpec {
     spec(
         &["Группа", "Контекст", "Общее имя", "Клавиатура"],
@@ -356,7 +356,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. Встроенная проверка
+// 9. Built-in validation
 fn v09() -> SceneSpec {
     let rules: [(&str, &str); 5] = [
         ("required", "не пусто"),
@@ -394,7 +394,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. autocomplete, inputmode, состояния
+// 10. autocomplete, inputmode, states
 fn v10() -> SceneSpec {
     let rows = [("получает фокус", "нет", "да"), ("уходит в запрос", "нет", "да"), ("можно править", "нет", "нет")];
     let tone = |s: &str| if s == "да" { G } else { R };
@@ -438,7 +438,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. ARIA в формах
+// 11. ARIA in forms
 fn v11() -> SceneSpec {
     spec(
         &["describedby", "aria-invalid", "Порядок табуляции", "tabindex"],
@@ -472,7 +472,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Сообщения об ошибках
+// 12. Error messages
 fn v12() -> SceneSpec {
     spec(
         &["Только цвет", "Текст", "Озвучить", "Фокус на ошибку"],
@@ -507,7 +507,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Чек-лист и мост к JavaScript
+// 13. Checklist and a bridge to JavaScript
 fn v13() -> SceneSpec {
     fn item(k: usize, label: &str) -> content::item::Cell {
         b(&format!("k{k}"), 180.0, 20.0 + k as f64 * 22.0, 300.0, 18.0, label, G, 9.0)

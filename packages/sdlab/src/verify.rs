@@ -1,5 +1,5 @@
-//! Серверная проверка решения: схема, присланная учеником, действительно выполняет цели упражнения и не нарушает
-//! его ограничений (палитра, число узлов, допустимые связи и значения параметров). Раньше решению доверял клиент.
+//! Server-side solution verification: the design submitted by the student really meets the exercise goals and does not violate
+//! its constraints (palette, node count, allowed links and parameter values). Previously the client was trusted.
 
 use std::collections::HashSet;
 
@@ -13,34 +13,34 @@ use crate::kinds::{param_spec, ParamType};
 use crate::ports::reaches;
 use crate::types::{EvalOptions, Goal, GoalResult, Kind, ParamValue, Scenario, SdState, Task};
 
-/// Предел размера присланного решения, байт.
+/// Size limit of a submitted solution, bytes.
 pub const MAX_SOLUTION_BYTES: usize = 1 << 20;
 
-/// Нарушение ограничений упражнения.
+/// Exercise constraint violation.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Problem {
-    /// на схеме нет компонента «Пользователи»
+    /// the design has no "Users" component
     NoClients,
-    /// «Пользователей» больше одного
+    /// more than one "Users"
     ManyClients { count: usize },
-    /// на схеме нет ни одного компонента
+    /// the design has no components at all
     Empty,
     DuplicateNode { id: String },
-    /// компонентов больше, чем разрешено упражнением
+    /// more components than the exercise allows
     TooManyNodes { count: usize, max: usize },
-    /// связь ведёт к несуществующему компоненту
+    /// a link leads to a nonexistent component
     UnknownEdgeEnd { from: String, to: String },
-    /// такие компоненты в модели не соединяются
+    /// such components are not connected in the model
     BadLink { from: String, to: String },
     DuplicateEdge { from: String, to: String },
-    /// связь замыкает цикл
+    /// the link closes a cycle
     Cycle { from: String, to: String },
-    /// компонент вне палитры упражнения
+    /// component outside the exercise palette
     OutsidePalette { node: String, kind: Kind },
-    /// значение параметра недопустимо (неизвестный ключ, не из списка, вне диапазона)
+    /// parameter value is invalid (unknown key, not from the list, out of range)
     BadParam { node: String, key: String, reason: String },
-    /// параметр скрыт в этом упражнении, менять его нельзя
+    /// the parameter is hidden in this exercise and cannot be changed
     HiddenParam { node: String, key: String },
 }
 
@@ -63,19 +63,19 @@ impl std::fmt::Display for Problem {
     }
 }
 
-/// Итог проверки решения.
+/// Solution verification outcome.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Verdict {
-    /// решение засчитывается: нет нарушений и выполнены все цели
+    /// the solution is accepted: no violations and all goals met
     pub ok: bool,
-    /// результат по каждой цели, в порядке целей упражнения (пусто, если схему считать не стали)
+    /// result per goal, in the exercise's goal order (empty if the design was not evaluated)
     pub goals: Vec<GoalResult>,
-    /// нарушения ограничений упражнения
+    /// exercise constraint violations
     pub problems: Vec<Problem>,
 }
 
 impl Verdict {
-    /// Сообщение для ответа клиенту: первое нарушение или первая невыполненная цель.
+    /// Message for the client response: the first violation or the first unmet goal.
     pub fn reason(&self) -> Option<String> {
         if let Some(p) = self.problems.first() {
             return Some(p.to_string());
@@ -84,8 +84,8 @@ impl Verdict {
     }
 }
 
-/// Разбор решения, присланного клиентом: JSON-строка состояния схемы (как её хранит черновик) либо уже разобранный
-/// объект; терпимо к обёрткам `{"state": …}` / `{"solution": …}`, двойной сериализации, пропущенным названиям и координатам.
+/// Parses a solution submitted by the client: a JSON string of the design state (as the draft stores it) or an already parsed
+/// object; tolerant of `{"state": …}` / `{"solution": …}` wrappers, double serialization, missing names and coordinates.
 pub fn parse_solution(raw: &str) -> Result<SdState, SdError> {
     if raw.len() > MAX_SOLUTION_BYTES {
         return Err(SdError::new(i18n::tr("the solution is too large")));
@@ -93,7 +93,7 @@ pub fn parse_solution(raw: &str) -> Result<SdState, SdError> {
     state_from_value(serde_json::from_str(raw)?)
 }
 
-/// То же для уже разобранного JSON.
+/// The same for already parsed JSON.
 pub fn state_from_value(v: Value) -> Result<SdState, SdError> {
     let mut v = v;
     for _ in 0..4 {
@@ -117,7 +117,7 @@ pub fn state_from_value(v: Value) -> Result<SdState, SdError> {
     Err(SdError::new(i18n::tr("the solution is nested too deeply")))
 }
 
-/// Нарушения ограничений упражнения (без расчёта).
+/// Exercise constraint violations (without evaluation).
 pub fn problems(sc: &Scenario, s: &SdState) -> Vec<Problem> {
     let mut out = Vec::new();
     if s.nodes.is_empty() {
@@ -138,7 +138,7 @@ pub fn problems(sc: &Scenario, s: &SdState) -> Vec<Problem> {
             out.push(Problem::DuplicateNode { id: n.id.clone() });
         }
     }
-    // связи: по порядку, как их ставит интерфейс (без повторов и циклов)
+    // links: in order, as the UI places them (no duplicates or cycles)
     let mut accepted: Vec<crate::types::SdEdge> = Vec::new();
     for e in &s.edges {
         let (Some(a), Some(b)) = (s.node(&e.from), s.node(&e.to)) else {
@@ -155,14 +155,14 @@ pub fn problems(sc: &Scenario, s: &SdState) -> Vec<Problem> {
             accepted.push(e.clone());
         }
     }
-    // палитра: пользователи, мониторинг и всё, что стояло на исходной схеме, доступны всегда
+    // palette: users, monitoring and everything on the starting design are always available
     for n in &s.nodes {
         let free = matches!(n.kind, Kind::Clients | Kind::Monitor) || sc.palette.contains(&n.kind) || sc.start.nodes.iter().any(|x| x.kind == n.kind);
         if !free {
             out.push(Problem::OutsidePalette { node: n.id.clone(), kind: n.kind });
         }
     }
-    // параметры: только известные, допустимых значений; скрытые в этом упражнении — как на исходной схеме
+    // parameters: only known ones with valid values; those hidden in this exercise — as on the starting design
     for n in &s.nodes {
         for (key, value) in &n.params {
             if let Some(reason) = param_problem(n.kind, key, value) {
@@ -182,7 +182,7 @@ pub fn problems(sc: &Scenario, s: &SdState) -> Vec<Problem> {
     out
 }
 
-/// Ссылается ли на параметр какая-нибудь цель упражнения.
+/// Whether any exercise goal refers to the parameter.
 fn references(sc: &Scenario, kind: Kind, key: &str) -> bool {
     sc.goals.iter().any(|g| matches!(g, Goal::Param { kind: k, key: kk, .. } if *k == kind && kk == key))
 }
@@ -209,8 +209,8 @@ fn param_problem(kind: Kind, key: &str, value: &ParamValue) -> Option<String> {
     }
 }
 
-/// Проверка решения упражнения: нарушения ограничений и цели. Схему считают, только если число узлов в пределах
-/// упражнения (иначе расчёт не нужен, а цена ошибки — время сервера).
+/// Verifies an exercise solution: constraint violations and goals. The design is evaluated only if the node count is within the
+/// exercise limit (otherwise evaluation is pointless, and the cost of a mistake is server time).
 pub fn verify(sc: &Scenario, submitted: &SdState) -> Verdict {
     let mut s = submitted.clone();
     s.normalize();
@@ -225,34 +225,34 @@ pub fn verify(sc: &Scenario, submitted: &SdState) -> Verdict {
     Verdict { ok, goals, problems }
 }
 
-/// Проверка решения, присланного строкой (`PUT …/solved`, поле `solution`).
+/// Verifies a solution submitted as a string (`PUT …/solved`, the `solution` field).
 pub fn verify_raw(sc: &Scenario, raw: &str) -> Result<Verdict, SdError> {
     Ok(verify(sc, &parse_solution(raw)?))
 }
 
-/// Самопроверка упражнения (порт `sd-selfcheck`): исходная схема не решает его, эталон решает, всё в рамках ограничений.
+/// Exercise self-check (port of `sd-selfcheck`): the starting design does not solve it, the reference does, everything within constraints.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SelfCheck {
-    /// сколько целей не выполнено в исходной схеме
+    /// how many goals are unmet in the starting design
     pub start_failed: usize,
-    /// цели исходной схемы
+    /// goals of the starting design
     pub start: Vec<GoalResult>,
-    /// цели эталона
+    /// goals of the reference solution
     pub solution: Vec<GoalResult>,
-    /// компоненты эталона вне палитры (и не стоявшие на исходной схеме)
+    /// reference components outside the palette (and not on the starting design)
     pub outside: Vec<Kind>,
-    /// в эталоне больше узлов, чем разрешено
+    /// the reference has more nodes than allowed
     pub too_many: bool,
 }
 
 impl SelfCheck {
-    /// Всё в порядке: исходная схема не проходит, эталон проходит, ограничения соблюдены.
+    /// All good: the starting design fails, the reference passes, constraints are met.
     pub fn is_ok(&self) -> bool {
         self.start_failed > 0 && all_ok(&self.solution) && self.outside.is_empty() && !self.too_many
     }
 }
 
-/// Самопроверка одного упражнения.
+/// Self-check of one exercise.
 pub fn self_check(task: &Task) -> SelfCheck {
     let sc = &task.spec;
     let start = check_goals(&sc.start, &sc.workload, &sc.goals, None);

@@ -1,15 +1,15 @@
-//! Проект «собрать у себя на компьютере»: файлы программы, Makefile и README, упакованные в zip без сжатия.
+//! The "build on your own computer" project: program files, Makefile and README packed into an uncompressed zip.
 
 use serde::{Deserialize, Serialize};
 
-/// Файл проекта.
+/// Project file.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProjectFile {
-    /// имя файла
+    /// file name
     pub name: String,
-    /// содержимое файла
+    /// file contents
     pub content: String,
-    /// что это за файл — для подписи на странице
+    /// what kind of file it is — for the caption on the page
     pub note: String,
 }
 
@@ -17,7 +17,7 @@ const MAKEFILE: &str = i18n::t!("# Build a RISC-V program (32-bit, RV32IM instru
 
 const README: &str = i18n::t!("# RISC-V program\n\nThe file program.s is your RISC-V assembly program (what you wrote on the site).\nThe entry point is the _start label. Output is the write system call (a7 = 64),\nexit is the exit call (a7 = 93), as in Linux.\n\n## What to install\n\nmacOS:\n  brew install llvm lld qemu\n  export PATH=\"$(brew --prefix llvm)/bin:$(brew --prefix lld)/bin:$PATH\"\n\nUbuntu / Debian:\n  sudo apt install clang lld llvm qemu-user\n\n## Build and run\n\n  make run     # build and run; shows the exit code at the end\n  make dump    # disassemble: see the real 32-bit words\n  make clean\n\nIf you have the GNU toolchain (riscv64-unknown-elf-gcc), build like this:\n  riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -nostdlib -static -o program program.s\n  qemu-riscv32 ./program\n");
 
-/// Файлы проекта, который можно собрать на своём компьютере.
+/// Files of a project that can be built on your own computer.
 pub fn project_files(source: &str) -> Vec<ProjectFile> {
     let program = if source.ends_with('\n') { source.to_string() } else { format!("{source}\n") };
     vec![
@@ -27,16 +27,16 @@ pub fn project_files(source: &str) -> Vec<ProjectFile> {
     ]
 }
 
-/// Запись архива.
+/// Archive entry.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ZipEntry {
-    /// имя файла
+    /// file name
     pub name: String,
-    /// содержимое файла
+    /// file contents
     pub content: String,
 }
 
-/// Файлы проекта как записи архива.
+/// Project files as archive entries.
 pub fn project_zip(files: &[ProjectFile]) -> Vec<ZipEntry> {
     files.iter().map(|f| ZipEntry { name: f.name.clone(), content: f.content.clone() }).collect()
 }
@@ -53,7 +53,7 @@ fn crc_table() -> [u32; 256] {
     t
 }
 
-/// CRC-32 (как в zip).
+/// CRC-32 (as in zip).
 pub fn crc32(data: &[u8]) -> u32 {
     let table = crc_table();
     let mut c = 0xffff_ffffu32;
@@ -63,7 +63,7 @@ pub fn crc32(data: &[u8]) -> u32 {
     c ^ 0xffff_ffff
 }
 
-/// Минимальный zip без сжатия («store») — чтобы отдать проект одним файлом.
+/// Minimal zip without compression ("store") — to hand out the project as a single file.
 pub fn make_zip(entries: &[ZipEntry]) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::new();
     let mut central: Vec<u8> = Vec::new();
@@ -77,11 +77,11 @@ pub fn make_zip(entries: &[ZipEntry]) -> Vec<u8> {
         let offset = out.len() as u32;
 
         u32le(&mut out, 0x0403_4b50);
-        u16le(&mut out, 20); // версия для распаковки
-        u16le(&mut out, 0x0800); // имена в UTF-8
-        u16le(&mut out, 0); // без сжатия
+        u16le(&mut out, 20); // version needed to extract
+        u16le(&mut out, 0x0800); // names in UTF-8
+        u16le(&mut out, 0); // no compression
         u16le(&mut out, 0);
-        u16le(&mut out, 0x21); // дата 1980-01-01
+        u16le(&mut out, 0x21); // date 1980-01-01
         u32le(&mut out, crc);
         u32le(&mut out, data.len() as u32);
         u32le(&mut out, data.len() as u32);
@@ -101,11 +101,11 @@ pub fn make_zip(entries: &[ZipEntry]) -> Vec<u8> {
         u32le(&mut central, data.len() as u32);
         u32le(&mut central, data.len() as u32);
         u16le(&mut central, name.len() as u16);
-        u16le(&mut central, 0); // дополнительное поле
-        u16le(&mut central, 0); // комментарий
-        u16le(&mut central, 0); // номер диска
-        u16le(&mut central, 0); // внутренние атрибуты
-        u32le(&mut central, 0o100644 << 16); // права rw-r--r--
+        u16le(&mut central, 0); // extra field
+        u16le(&mut central, 0); // comment
+        u16le(&mut central, 0); // disk number
+        u16le(&mut central, 0); // internal attributes
+        u32le(&mut central, 0o100644 << 16); // permissions rw-r--r--
         u32le(&mut central, offset);
         central.extend_from_slice(name);
     }

@@ -1,4 +1,4 @@
-//! Вкладка «Практика»: сами упражнения (`code::Exercises`) и их пункты в левом дереве полноэкранного режима.
+//! "Practice" tab: the exercises themselves (`code::Exercises`) and their items in the left tree of fullscreen mode.
 
 use api::dto::{progress_key, Task};
 use leptos::prelude::*;
@@ -16,7 +16,7 @@ use crate::{
     progress::ProgressStore,
 };
 
-/// Адрес с выбранным упражнением: остальные параметры (в том числе `fs`) сохраняются.
+/// Address with the selected exercise: other parameters (including `fs`) are kept.
 pub fn task_href(path: &str, search: &str, task: &str) -> String {
     format!("{path}{}", set_query_param(search, "task", Some(task)))
 }
@@ -29,7 +29,7 @@ pub fn Practice() -> impl IntoView {
     }
 }
 
-/// Упражнения главы со статусами в дереве полного экрана; выбранное — в адресе (`?task=`), как и у самой вкладки.
+/// Chapter exercises with statuses in the fullscreen tree; the selected one is in the address (`?task=`), like the tab itself.
 #[component]
 fn TaskItems() -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();

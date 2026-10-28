@@ -1,4 +1,4 @@
-//! Сетевая часть клиента: JSON поверх `fetch` (gloo-net), токен сессии подставляется из функции приложения.
+//! Network part of the client: JSON over `fetch` (gloo-net), the session token comes from an app-provided function.
 
 use std::sync::Arc;
 
@@ -11,7 +11,14 @@ use crate::{
     error::{message_of, ApiError},
 };
 
-/// Клиент API. Дешёвый в копировании (общий контекст приложения); токен читается при каждом запросе.
+/// Request body: JSON, a file as is (type taken from the `Blob`) or nothing.
+enum Payload<'a> {
+    None,
+    Json(Value),
+    Blob(&'a web_sys::Blob),
+}
+
+/// API client. Cheap to clone (shared app context); the token is read on every request.
 #[derive(Clone)]
 pub struct Client {
     token: Arc<dyn Fn() -> Option<String> + Send + Sync>,
@@ -19,20 +26,21 @@ pub struct Client {
 }
 
 impl Client {
-    /// `token` — текущий токен сессии; `on_unauthorized` вызывается при 401 вне `/api/auth/` (сессия истекла).
+    /// `token` is the current session token; `on_unauthorized` is called on 401 outside `/api/auth/` (session expired).
     pub fn new(token: impl Fn() -> Option<String> + Send + Sync + 'static, on_unauthorized: impl Fn() + Send + Sync + 'static) -> Self {
         Self { token: Arc::new(token), on_unauthorized: Arc::new(on_unauthorized) }
     }
 
-    async fn send(&self, method: Method, path: &str, body: Option<Value>) -> Result<Value, ApiError> {
+    async fn send(&self, method: Method, path: &str, body: Payload<'_>) -> Result<Value, ApiError> {
         let net = |e: gloo_net::Error| ApiError { status: 0, message: i18n::trf!("No connection to the server: {}", e) };
         let mut rb = RequestBuilder::new(path).method(method).header("Accept-Language", i18n::locale().code());
         if let Some(token) = (self.token)() {
             rb = rb.header("Authorization", &format!("Bearer {token}"));
         }
         let resp = match body {
-            Some(b) => rb.json(&b).map_err(net)?.send().await,
-            None => rb.send().await,
+            Payload::Json(b) => rb.json(&b).map_err(net)?.send().await,
+            Payload::Blob(b) => rb.header("Content-Type", &b.type_()).body(b.clone()).map_err(net)?.send().await,
+            Payload::None => rb.send().await,
         }
         .map_err(net)?;
         let status = resp.status();
@@ -47,33 +55,33 @@ impl Client {
         }
     }
 
-    async fn call<T: DeserializeOwned>(&self, method: Method, path: &str, body: Option<Value>) -> Result<T, ApiError> {
+    async fn call<T: DeserializeOwned>(&self, method: Method, path: &str, body: Payload<'_>) -> Result<T, ApiError> {
         let v = self.send(method, path, body).await?;
         serde_json::from_value(v).map_err(|e| ApiError { status: 0, message: i18n::trf!("Unexpected server response ({}): {}", path, e) })
     }
 
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T, ApiError> {
-        self.call(Method::GET, path, None).await
+        self.call(Method::GET, path, Payload::None).await
     }
 
     pub async fn post<T: DeserializeOwned>(&self, path: &str, body: &impl Serialize) -> Result<T, ApiError> {
-        self.call(Method::POST, path, Some(to_value(body))).await
+        self.call(Method::POST, path, Payload::Json(to_value(body))).await
     }
 
-    /// POST без тела в ответе (204).
+    /// POST with no response body (204).
     pub async fn post_empty(&self, path: &str, body: &impl Serialize) -> Result<(), ApiError> {
-        self.send(Method::POST, path, Some(to_value(body))).await.map(|_| ())
+        self.send(Method::POST, path, Payload::Json(to_value(body))).await.map(|_| ())
     }
 
     pub async fn put_empty(&self, path: &str, body: &impl Serialize) -> Result<(), ApiError> {
-        self.send(Method::PUT, path, Some(to_value(body))).await.map(|_| ())
+        self.send(Method::PUT, path, Payload::Json(to_value(body))).await.map(|_| ())
     }
 
     pub async fn delete(&self, path: &str) -> Result<(), ApiError> {
-        self.send(Method::DELETE, path, None).await.map(|_| ())
+        self.send(Method::DELETE, path, Payload::None).await.map(|_| ())
     }
 
-    // --- курс ---------------------------------------------------------------------------------
+    // --- course ---------------------------------------------------------------------------------
 
     pub async fn books(&self) -> Result<Vec<Book>, ApiError> {
         self.get("/api/books").await
@@ -87,9 +95,9 @@ impl Client {
         self.get(&format!("/api/chapters/{id}")).await
     }
 
-    // --- слайды -------------------------------------------------------------------------------
+    // --- slides -------------------------------------------------------------------------------
 
-    /// Главы, у которых есть слайды: `(книга, глава)`.
+    /// Chapters that have slides: `(book, chapter)`.
     pub async fn slide_index(&self) -> Result<Vec<(i64, i64)>, ApiError> {
         #[derive(serde::Deserialize)]
         struct Info {
@@ -100,7 +108,7 @@ impl Client {
         Ok(list.into_iter().map(|i| (i.book, i.chapter)).collect())
     }
 
-    /// Слайды главы (схемы, блоки); `None` — у главы их нет.
+    /// Chapter slides (scenes, blocks); `None` means the chapter has none.
     pub async fn slides(&self, book: i64, chapter: i64) -> Result<Option<content::Chapter>, ApiError> {
         match self.get(&format!("/api/slides/{book}/{chapter}")).await {
             Ok(ch) => Ok(Some(ch)),
@@ -109,7 +117,15 @@ impl Client {
         }
     }
 
-    // --- прогресс -----------------------------------------------------------------------------
+    // --- voice recordings for slides (authoring tool) ---------------------------------------
+
+    /// Upload a slide recording to the server: the body is the file as is, the type comes from the `Blob`; the response is the path on the server disk. Administrators only.
+    pub async fn upload_record(&self, book: i64, chapter: i64, slide: usize, blob: &web_sys::Blob) -> Result<String, ApiError> {
+        let v = self.send(Method::POST, &format!("/api/records/{book}/{chapter}/{slide}"), Payload::Blob(blob)).await?;
+        Ok(v.get("path").and_then(Value::as_str).unwrap_or_default().to_string())
+    }
+
+    // --- progress -----------------------------------------------------------------------------
 
     pub async fn progress(&self) -> Result<Progress, ApiError> {
         self.get("/api/progress").await
@@ -119,7 +135,7 @@ impl Client {
         self.post_empty("/api/progress/slides", &serde_json::json!({ "book": book, "chapter": chapter, "slide": slide })).await
     }
 
-    /// Сбросить упражнения или весь прогресс текущего пользователя.
+    /// Reset the exercises or all progress of the current user.
     pub async fn reset_progress(&self, scope: ResetScope) -> Result<(), ApiError> {
         self.delete(&format!("/api/progress?scope={}", scope.param())).await
     }
@@ -128,9 +144,9 @@ impl Client {
         self.delete(&format!("/api/progress/quiz?book={book}&chapter={chapter}")).await
     }
 
-    // --- квизы и ответы -----------------------------------------------------------------------
+    // --- quizzes and answers -----------------------------------------------------------------------
 
-    /// Сколько вопросов в квизе каждой главы: `{книга: {глава: число}}`.
+    /// Number of questions in each chapter's quiz: `{book: {chapter: count}}`.
     pub async fn quiz_counts(&self) -> Result<Counts, ApiError> {
         self.get("/api/quizzes").await
     }
@@ -160,13 +176,13 @@ impl Client {
         self.delete(&format!("/api/answers?book={book}&chapter={chapter}")).await
     }
 
-    // --- упражнения с кодом -------------------------------------------------------------------
+    // --- code exercises -------------------------------------------------------------------
 
     pub async fn code_counts(&self) -> Result<Counts, ApiError> {
         self.get("/api/exercises").await
     }
 
-    /// Задачи главы (по номеру главы); 404 — упражнений нет.
+    /// Chapter tasks (by chapter number); 404 means no exercises.
     pub async fn code_tasks(&self, book: i64, chapter: i64) -> Result<ChapterTasks, ApiError> {
         self.get(&format!("/api/exercises/{book}/{chapter}")).await
     }
@@ -179,12 +195,12 @@ impl Client {
         self.put_empty(&format!("/api/exercises/{book}/{chapter}/{task}/draft"), &serde_json::json!({ "code": code })).await
     }
 
-    /// Лабораторные упражнения главы с их сценариями (без эталонов).
+    /// Chapter lab exercises with their scenarios (without reference solutions).
     pub async fn lab_chapter(&self, book: i64, chapter: i64) -> Result<LabChapter, ApiError> {
         self.get(&format!("/api/labs/{book}/{chapter}")).await
     }
 
-    /// Решение лаборатории: сервер перепроверяет его движком лаборатории; отказ приходит ошибкой с причиной.
+    /// Lab solution: the server re-checks it with the lab engine; a rejection comes back as an error with the reason.
     pub async fn mark_lab_solved(&self, book: i64, chapter: i64, task: &str, solution: &str) -> Result<(), ApiError> {
         self.put_empty(&format!("/api/exercises/{book}/{chapter}/{task}/solved"), &serde_json::json!({ "solution": solution })).await
     }
@@ -194,7 +210,7 @@ impl Client {
         Ok(r.attempts)
     }
 
-    /// Ставит решение в очередь проверки; ответ — первое состояние задания.
+    /// Queues the solution for checking; the response is the job's first state.
     pub async fn run(&self, book: i64, chapter: i64, task: &str, code: &str) -> Result<(String, RunState), ApiError> {
         let v: Value = self.post("/api/exercises/run", &serde_json::json!({ "book": book, "chapter": chapter, "task": task, "code": code })).await?;
         let id = v.get("id").and_then(Value::as_str).unwrap_or_default().to_string();
@@ -206,9 +222,9 @@ impl Client {
         self.get(&format!("/api/exercises/run/{job}")).await
     }
 
-    // --- вход ---------------------------------------------------------------------------------
+    // --- sign-in ---------------------------------------------------------------------------------
 
-    /// Вход по email и паролю: токен сессии и личность (crates lab: `/api/auth/login`).
+    /// Sign-in by email and password: session token and identity (lab crates: `/api/auth/login`).
     pub async fn login(&self, email: &str, password: &str) -> Result<Identity, ApiError> {
         self.post("/api/auth/login", &serde_json::json!({ "email": email, "password": password })).await
     }

@@ -1,13 +1,13 @@
-"""Docker-песочница: запуск пользовательского кода с тестами.
+"""Docker sandbox: runs user code with tests.
 
-Режимы: func (вызов функции с аргументами), stdout (сравнение вывода) и
-stdout с необязательным скрытым "driver" — код, который выполняется после
-решения ученика в том же пространстве имён (для классов, файлов, генераторов).
+Modes: func (call a function with arguments), stdout (output comparison) and
+stdout with an optional hidden "driver" — code that runs after
+the student's solution in the same namespace (for classes, files, generators).
 
-Код ученика и сгенерированный harness пишутся во временную директорию,
-она монтируется в контейнер read-only. Сеть выключена, лимиты по памяти,
-CPU и числу процессов, общий таймаут. Итог harness печатает одной строкой
-«RESULT_JSON:<json>» — по ней и разбираем результат.
+Student code and the generated harness are written to a temp directory,
+which is mounted into the container read-only. Network is off, with limits on memory,
+CPU and process count, and an overall timeout. The harness prints the result as one line
+"RESULT_JSON:<json>" — that is what we parse the result from.
 """
 
 import json
@@ -20,25 +20,25 @@ from pathlib import Path
 
 IMAGE = "python:3.13-slim"
 RUST_IMAGE = "rust:1.97-slim"
-# Образ с заранее собранными крейтами (tokio, axum, sqlx/SQLite, serde, tower, tungstenite…; docker/rust-crates/Dockerfile);
-# используется задачами с полем `crates` — сети во время проверки нет, rustc получает --extern на готовые rlib
-# из /opt/ext/externs (строка `--extern имя=путь` на каждый прямой крейт).
+# Image with prebuilt crates (tokio, axum, sqlx/SQLite, serde, tower, tungstenite…; docker/rust-crates/Dockerfile);
+# used by tasks with a `crates` field — there is no network during a check, rustc gets --extern for the prebuilt rlibs
+# from /opt/ext/externs (one `--extern name=path` line per direct crate).
 RUST_CRATES_IMAGE = "cs-core-rust-crates:1"
-# Задачи с полем `postgres: True` получают запущенный PostgreSQL: готовый кластер из образа копируется в tmpfs
-# (корневая ФС только для чтения) и стартует от пользователя postgres на 127.0.0.1:5432 (trust, база chat);
-# строка подключения — postgres://postgres@127.0.0.1/chat. Без fsync: данные одноразовые.
+# Tasks with `postgres: True` get a running PostgreSQL: the ready cluster from the image is copied to tmpfs
+# (read-only root FS) and started as the postgres user on 127.0.0.1:5432 (trust, database chat);
+# connection string is postgres://postgres@127.0.0.1/chat. No fsync: the data is disposable.
 PG_START = (
     "cp -a /opt/pgdata /tmp/pgdata && "
     "runuser -u postgres -- /opt/pgbin/pg_ctl -D /tmp/pgdata -w -l /tmp/pg.log "
     "-o '-c listen_addresses=127.0.0.1 -c unix_socket_directories=/tmp -c fsync=off "
     "-c synchronous_commit=off -c full_page_writes=off -c shared_buffers=16MB -c max_connections=40' "
-    "start >/dev/null || { echo COMPILE_ERROR; echo 'не удалось запустить PostgreSQL'; cat /tmp/pg.log; exit 0; }; "
+    "start >/dev/null || { echo COMPILE_ERROR; echo 'failed to start PostgreSQL'; cat /tmp/pg.log; exit 0; }; "
 )
 RUST_TIMEOUT_SEC = 60
 RUST_MEMORY = "1g"
 RUST_CPUS = "2.0"
 RUST_COMPILE_ERR_LIMIT = 3000
-C_IMAGE = RUST_IMAGE  # в образе rust:slim есть gcc 14, libc и санитайзеры
+C_IMAGE = RUST_IMAGE  # the rust:slim image has gcc 14, libc and sanitizers
 C_DEFAULT_FLAGS = "-std=gnu11 -O1 -g0 -Wall"
 JS_IMAGE = "node:22-alpine"
 TIMEOUT_SEC = 25
@@ -48,19 +48,19 @@ PIDS_LIMIT = "64"
 
 MARK = "RESULT_JSON:"
 
-# --- запуск контейнера ---------------------------------------------------------------------
-# Сколько байт stdout/stderr мы готовы принять от программы ученика: остальное отбрасывается,
-# а контейнер, который «заливает» вывод, останавливается (иначе он забьёт память процесса проверки).
+# --- running the container ---------------------------------------------------------------------
+# How many bytes of stdout/stderr we accept from the student's program: the rest is discarded,
+# and a container that floods the output is stopped (otherwise it would fill the checker process's memory).
 OUTPUT_LIMIT = 1_000_000
 CONTAINER_PREFIX = "cs-core-run-"
-# Минимум прав: всё, что нужно компилятору и программе, у процесса есть и без привилегий.
+# Minimal privileges: everything the compiler and the program need is available without them.
 HARDENING = [
     "--cap-drop", "ALL",
     "--security-opt", "no-new-privileges",
     "--ulimit", "core=0",
     "--ulimit", "nofile=1024:1024",
 ]
-# Задачам с PostgreSQL нужен root внутри контейнера, чтобы скопировать кластер и запустить базу от postgres.
+# PostgreSQL tasks need root inside the container to copy the cluster and start the database as postgres.
 PG_CAPS = ["--cap-add", "CHOWN", "--cap-add", "DAC_OVERRIDE", "--cap-add", "FOWNER", "--cap-add", "SETUID", "--cap-add", "SETGID", "--cap-add", "KILL"]
 NOBODY = ["--user", "65534:65534"]
 
@@ -70,7 +70,7 @@ def _remove_container(name: str) -> None:
 
 
 def remove_stale_containers() -> int:
-    """Убирает контейнеры проверки, оставшиеся после падения процесса (вызывается при старте воркера)."""
+    """Removes check containers left over after a process crash (called at worker start)."""
     try:
         ids = subprocess.run(
             ["docker", "ps", "-aq", "--filter", f"name={CONTAINER_PREFIX}"], capture_output=True, text=True, timeout=30
@@ -83,10 +83,10 @@ def remove_stale_containers() -> int:
 
 
 def _run_container(args: list[str], timeout: int) -> subprocess.CompletedProcess:
-    """`docker run` с именем, потолком вывода и гарантированной остановкой контейнера.
+    """`docker run` with a name, an output cap and a guaranteed container stop.
 
-    Если истёк срок, клиент docker убивается, а контейнер сам остался бы работать (бесконечный цикл
-    крутился бы вечно), поэтому контейнер останавливается по имени. Бросает subprocess.TimeoutExpired."""
+    On timeout the docker client is killed while the container itself would keep running (an infinite loop
+    would spin forever), so the container is stopped by name. Raises subprocess.TimeoutExpired."""
     name = CONTAINER_PREFIX + uuid.uuid4().hex[:12]
     proc = subprocess.Popen(
         ["docker", "run", "--rm", "--name", name, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -129,21 +129,21 @@ def _run_container(args: list[str], timeout: int) -> subprocess.CompletedProcess
     out = bufs["out"].decode("utf-8", errors="replace")
     err = bufs["err"].decode("utf-8", errors="replace")
     if flooded.is_set():
-        err = (err + f"\nВывод программы превысил {OUTPUT_LIMIT // 1000} КБ — выполнение остановлено.").strip()
+        err = (err + f"\nThe program output exceeded {OUTPUT_LIMIT // 1000} KB; execution stopped.").strip()
         return subprocess.CompletedProcess(proc.args, 1, out, err)
     return subprocess.CompletedProcess(proc.args, proc.returncode, out, err)
 
 
 def _open_dir(sandbox: Path, files: dict[str, str]) -> None:
-    """Файлы песочницы читаются любым пользователем: контейнер работает от непривилегированного."""
+    """Sandbox files are readable by any user: the container runs unprivileged."""
     os.chmod(sandbox, 0o755)
     for name, text in files.items():
         f = sandbox / name
         f.write_text(text, encoding="utf-8")
         os.chmod(f, 0o644)
 
-# Harness для режима «функция»: импортирует solution.py, вызывает функцию
-# с аргументами из тестов и сравнивает возвращённое значение с ожидаемым.
+# Harness for "function" mode: imports solution.py, calls the function
+# with the test arguments and compares the returned value with the expected one.
 HARNESS_FUNC = r"""\
 import contextlib
 import importlib.util
@@ -173,13 +173,13 @@ except Exception:
 
 if load_error is not None:
     results = [
-        {{"ok": False, "error": "Код падает при запуске:\n" + load_error}}
+        {{"ok": False, "error": "The code crashes on start:\n" + load_error}}
     ] * {n}
 else:
     fn = getattr(mod, {func!r}, None)
     if fn is None:
         results = [
-            {{"ok": False, "error": "Функция {func} не найдена. Проверьте имя и регистр."}}
+            {{"ok": False, "error": "Function {func} not found. Check the name and its case."}}
         ] * {n}
     else:
         tests = _dec(json.loads({tests!r}))
@@ -203,9 +203,9 @@ else:
 print("RESULT_JSON:" + json.dumps(results, ensure_ascii=False))
 """
 
-# Harness для режима «вывод»: запускает solution.py как программу,
-# перехватывает stdout и сравнивает построчно (пробелы в концах строк
-# не учитываются).
+# Harness for "output" mode: runs solution.py as a program,
+# captures stdout and compares line by line (trailing whitespace
+# is ignored).
 HARNESS_STDOUT = r"""\
 import contextlib
 import io
@@ -220,8 +220,8 @@ try:
     code = open("/sandbox/solution.py", encoding="utf-8").read()
     ns = {{"__name__": "__main__"}}
     if driver:
-        # режим «драйвер»: код ученика только описывает классы/функции, а
-        # скрытый драйвер печатает то, что сравнивается с ожидаемым
+        # "driver" mode: the student's code only defines classes/functions, and
+        # the hidden driver prints what is compared with the expected output
         with contextlib.redirect_stdout(pre):
             exec(compile(code, "solution.py", "exec"), ns)
         with contextlib.redirect_stdout(buf):
@@ -245,11 +245,11 @@ print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
 """
 
 
-# Harness для режима «sql»: запрос ученика выполняется в SQLite на подготовленной
-# базе (setup). Сравнивается результат последнего SELECT ученика либо контрольного
-# запроса check (если задан) — как множество строк или по порядку (ordered).
-# contains — подстроки, которые должны встретиться в результате (для планов запросов),
-# forbid — подстроки, которых быть не должно.
+# Harness for "sql" mode: the student's query runs in SQLite on a prepared
+# database (setup). The result of the student's last SELECT or of the check
+# query (if given) is compared — as a set of rows or in order (ordered).
+# contains — substrings that must appear in the result (for query plans),
+# forbid — substrings that must not appear.
 HARNESS_SQL = r"""\
 import json
 import sqlite3
@@ -261,7 +261,7 @@ def fmt(rows):
     return "\n".join(" | ".join("NULL" if v is None else str(v) for v in r) for r in rows)
 
 def table(rows):
-    # столбцы выровнены по ширине: текст влево, числа вправо, последний столбец без хвоста
+    # columns are width-aligned: text left, numbers right, no trailing padding on the last column
     cells = [["NULL" if v is None else str(v) for v in r] for r in rows]
     if not cells:
         return ""
@@ -306,7 +306,7 @@ try:
         cols = [d[0] for d in cur.description]
         got = [tuple(cell(v) for v in r) for r in cur.fetchall()]
     elif last is None:
-        raise ValueError("Запрос ничего не вернул: нужен SELECT")
+        raise ValueError("The query returned nothing: a SELECT is needed")
     else:
         got = last
 except Exception as e:
@@ -316,9 +316,9 @@ exp = [tuple(cell(v) for v in r) for r in EXPECTED]
 if CONTAINS:
     text = fmt(got)
     ok = error is None and all(c in text for c in CONTAINS) and not any(f in text for f in FORBID)
-    shown_expected = "в результате должно встретиться: " + ", ".join(CONTAINS)
+    shown_expected = "the result must contain: " + ", ".join(CONTAINS)
     if FORBID:
-        shown_expected += "; не должно быть: " + ", ".join(FORBID)
+        shown_expected += "; must not contain: " + ", ".join(FORBID)
 else:
     if ORDERED:
         ok = error is None and got == exp
@@ -344,8 +344,8 @@ print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False, default=str))
 
 
 def _enc(x):
-    """Кортежи в тестах (аргументы и ожидаемое) едут через JSON с меткой —
-    harness вернёт их кортежами, поэтому [1, 2] и (1, 2) различаются."""
+    """Tuples in tests (arguments and expected) travel through JSON with a tag —
+    the harness returns them as tuples, so [1, 2] and (1, 2) are distinguished."""
     if isinstance(x, tuple):
         return {"__tuple__": [_enc(i) for i in x]}
     if isinstance(x, list):
@@ -385,9 +385,9 @@ def _docker_failed(msg: str, status: str = "docker_error") -> dict:
 
 
 def wrap_rust_driver(driver: str) -> str:
-    """Драйвер кладётся в собственный модуль: его `use` не конфликтуют с
-    импортами ученика (явные импорты модуля важнее глобального `use super::*`),
-    а имена из решения ученика доступны через `super`."""
+    """The driver goes into its own module: its `use` items do not conflict with
+    the student's imports (explicit module imports win over the glob `use super::*`),
+    and names from the student's solution are available through `super`."""
     if "async fn main(" in driver:
         body = driver.strip("\n").replace("async fn main(", "pub async fn main(", 1)
     else:
@@ -402,8 +402,8 @@ def wrap_rust_driver(driver: str) -> str:
     )
 
 
-# Компилируемые и скриптовые режимы (rust, c, js) проверяются одинаково: исходник кладётся в
-# каталог песочницы, контейнер без сети собирает и запускает программу, сравнивается построчный вывод.
+# Compiled and script modes (rust, c, js) are checked the same way: the source is put in
+# the sandbox directory, a network-less container builds and runs the program, and output is compared line by line.
 _EXIT_TAIL = (
     "timeout 10 {run} 2>/tmp/run_err; code=$?; "
     'if [ $code -ne 0 ]; then echo "__EXIT__$code"; head -c 1500 /tmp/run_err; fi'
@@ -421,9 +421,9 @@ def _run_program(
     script: str,
     image_missing_hint: str | None = None,
 ) -> dict:
-    """Запускает script в контейнере с каталогом песочницы /sandbox (там лежит filename) и
-    сравнивает вывод программы с task["expected"]. Ошибка компиляции, ненулевой код выхода
-    и истечение времени показываются ученику как результат проверки."""
+    """Runs script in a container with the sandbox directory /sandbox (filename lives there) and
+    compares the program output with task["expected"]. A compile error, a non-zero exit code
+    and a timeout are shown to the student as the check result."""
     with tempfile.TemporaryDirectory(prefix=prefix) as td:
         sandbox = Path(td)
         _open_dir(sandbox, {filename: source})
@@ -442,26 +442,26 @@ def _run_program(
         except subprocess.TimeoutExpired:
             return {
                 "status": "timeout", "results": [], "stdout": "",
-                "stderr": f"Превышен лимит времени ({RUST_TIMEOUT_SEC} с).",
+                "stderr": f"Time limit exceeded ({RUST_TIMEOUT_SEC} s).",
             }
         except FileNotFoundError:
             return _docker_failed(
-                "Docker недоступен. Запустите Docker/OrbStack и попробуйте снова."
+                "Docker is unavailable. Start Docker/OrbStack and try again."
             )
     out = proc.stdout
     if proc.returncode != 0 and not out:
         if image_missing_hint and image_missing_hint.split(":")[0] in proc.stderr:
             return _docker_failed(image_missing_hint, "error")
-        return _docker_failed(proc.stderr.strip() or "Docker завершился с ошибкой", "error")
+        return _docker_failed(proc.stderr.strip() or "Docker failed", "error")
     expected = task["expected"]
     if out.startswith("COMPILE_ERROR"):
         err = out[len("COMPILE_ERROR"):].strip()[:RUST_COMPILE_ERR_LIMIT]
-        res = [{"ok": False, "got": "", "expected": "\n".join(expected), "error": "Ошибка компиляции:\n" + err}]
+        res = [{"ok": False, "got": "", "expected": "\n".join(expected), "error": "Compilation error:\n" + err}]
     elif "__EXIT__" in out:
         body, _, rest = out.partition("__EXIT__")
         code_, _, msg = rest.partition("\n")
         res = [{"ok": False, "got": body, "expected": "\n".join(expected),
-                "error": f"Программа завершилась с кодом {code_}.\n{msg.strip()}"}]
+                "error": f"The program exited with code {code_}.\n{msg.strip()}"}]
     else:
         got = [line.rstrip() for line in out.strip("\n").split("\n")] if out.strip() else []
         want = [line.rstrip() for line in expected]
@@ -470,9 +470,9 @@ def _run_program(
 
 
 def run_rust(task: dict, code: str) -> dict:
-    """Режим «rust»: код ученика + скрытый драйвер (fn main) компилируются rustc."""
+    """"rust" mode: student code + hidden driver (fn main) compiled by rustc."""
     if task.get("standalone"):
-        # ученик пишет программу целиком (своя fn main); проверяется только вывод
+        # the student writes the whole program (own fn main); only the output is checked
         source = code.rstrip() + "\n"
     else:
         source = code.rstrip() + "\n\n" + wrap_rust_driver(task["driver"])
@@ -491,7 +491,7 @@ def run_rust(task: dict, code: str) -> dict:
         image=RUST_CRATES_IMAGE if crates else RUST_IMAGE,
         script=script,
         image_missing_hint=(
-            "cs-core-rust-crates:1 не собран. Один раз выполните: "
+            "cs-core-rust-crates:1 is not built. Run once: "
             "docker build -t cs-core-rust-crates:1 backend/docker/rust-crates"
             if crates
             else None
@@ -500,7 +500,7 @@ def run_rust(task: dict, code: str) -> dict:
 
 
 def run_c(task: dict, code: str) -> dict:
-    """Режим «c»: код ученика + скрытый драйвер (int main) собираются в один файл gcc."""
+    """"c" mode: student code + hidden driver (int main) built into one file by gcc."""
     source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
     flags = task.get("flags", C_DEFAULT_FLAGS)
     script = _COMPILE_OR_FAIL.format(
@@ -512,7 +512,7 @@ def run_c(task: dict, code: str) -> dict:
 
 
 def run_js(task: dict, code: str) -> dict:
-    """Режим «js»: код ученика + скрытый драйвер — один модуль (.mjs, Node 22)."""
+    """"js" mode: student code + hidden driver — one module (.mjs, Node 22)."""
     source = code.rstrip() + "\n\n" + task["driver"].strip("\n") + "\n"
     script = _EXIT_TAIL.format(run="node --max-old-space-size=256 /sandbox/main.mjs")
     return _run_program(
@@ -521,7 +521,7 @@ def run_js(task: dict, code: str) -> dict:
 
 
 def run_task(task: dict, code: str) -> dict:
-    """Возвращает {status, results, stdout, stderr}."""
+    """Returns {status, results, stdout, stderr}."""
     if task["mode"] == "rust":
         return run_rust(task, code)
     if task["mode"] == "c":
@@ -566,14 +566,14 @@ def run_task(task: dict, code: str) -> dict:
                 "status": "timeout",
                 "results": [],
                 "stdout": "",
-                "stderr": f"Превышен лимит времени ({TIMEOUT_SEC} с). Возможно, бесконечный цикл.",
+                "stderr": f"Time limit exceeded ({TIMEOUT_SEC} s). The code may contain an infinite loop.",
             }
         except FileNotFoundError:
             return {
                 "status": "docker_error",
                 "results": [],
                 "stdout": "",
-                "stderr": "Docker недоступен. Запустите Docker/OrbStack и попробуйте снова.",
+                "stderr": "Docker is unavailable. Start Docker/OrbStack and try again.",
             }
 
     if proc.returncode != 0:
@@ -582,7 +582,7 @@ def run_task(task: dict, code: str) -> dict:
             "results": [],
             "stdout": proc.stdout,
             "stderr": proc.stderr.strip()
-            or f"Docker завершился с кодом {proc.returncode}",
+            or f"Docker exited with code {proc.returncode}",
         }
 
     out_lines = []
@@ -601,7 +601,7 @@ def run_task(task: dict, code: str) -> dict:
             "status": "error",
             "results": [],
             "stdout": proc.stdout,
-            "stderr": "Песочница не вернула результат проверки.",
+            "stderr": "The sandbox did not return a check result.",
         }
     return {
         "status": "ok",

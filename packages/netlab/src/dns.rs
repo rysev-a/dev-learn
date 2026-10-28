@@ -1,13 +1,13 @@
-//! DNS в симуляторе: авторитативные серверы (записи, делегирования), рекурсивный резолвер (итеративный обход
-//! от корня, CNAME, кэш) и клиентские настройки (resolv.conf, hosts). Запросы и ответы — настоящие
-//! UDP-датаграммы на порт 53, поэтому видны в журнале и в анимации.
+//! DNS in the simulator: authoritative servers (records, delegations), recursive resolver (iterative walk
+//! from the root, CNAME, cache) and client settings (resolv.conf, hosts). Queries and replies are real
+//! UDP datagrams to port 53, so they are visible in the log and in the animation.
 
 use crate::ip::*;
 use crate::sim::Sim;
 use crate::types::*;
 use crate::util::utf16_len;
 
-/// Имя в нижнем регистре без пробелов и без завершающей точки.
+/// Name in lower case without spaces and without the trailing dot.
 pub fn fqdn(s: &str) -> String {
     let t = s.trim().to_lowercase();
     match t.strip_suffix('.') {
@@ -20,12 +20,12 @@ fn in_zone(name: &str, zone: &str) -> bool {
     zone.is_empty() || name == zone || name.ends_with(&format!(".{zone}"))
 }
 
-/// Пустая конфигурация DNS-сервера.
+/// Empty DNS server configuration.
 pub fn new_dns() -> DnsConfig {
     DnsConfig::default()
 }
 
-/// Ответ авторитативного сервера: код, записи и реферал.
+/// Authoritative server reply: code, records and referral.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DnsAnswer {
     pub rcode: Rcode,
@@ -37,7 +37,7 @@ fn rr(r: &DnsRecord) -> DnsRecord {
     DnsRecord { name: fqdn(&r.name), typ: r.typ.clone(), value: r.value.clone(), ttl: Some(r.ttl.unwrap_or(300)) }
 }
 
-/// Самый длинный элемент (при равенстве — первый).
+/// Longest element (on a tie the first one).
 fn longest<T>(items: Vec<T>, len: impl Fn(&T) -> usize) -> Option<T> {
     let mut best: Option<(usize, T)> = None;
     for it in items {
@@ -49,7 +49,7 @@ fn longest<T>(items: Vec<T>, len: impl Fn(&T) -> usize) -> Option<T> {
     best.map(|(_, t)| t)
 }
 
-/// Ответ авторитативного сервера на вопрос `q`.
+/// Authoritative server reply to question `q`.
 pub fn auth_answer(dns: &DnsConfig, q: &DnsQuestion) -> DnsAnswer {
     let name = fqdn(&q.name);
     let here: Vec<&DnsRecord> = dns.records.iter().filter(|r| fqdn(&r.name) == name).collect();
@@ -62,9 +62,9 @@ pub fn auth_answer(dns: &DnsConfig, q: &DnsQuestion) -> DnsAnswer {
             return DnsAnswer { rcode: Rcode::NoError, answers: vec![rr(cn)], referral: None };
         }
     }
-    // делегирование: самая длинная подходящая зона (но своя зона важнее более короткой чужой)
+    // delegation: the longest matching zone (but an own zone beats a shorter foreign one)
     let del = longest(dns.delegations.iter().filter(|d| in_zone(&name, &fqdn(&d.zone))).collect(), |d| utf16_len(&fqdn(&d.zone)));
-    // как в исходной реализации, пустая строка (корневая зона) в проверке «есть своя зона» считается «нет»
+    // as in the original implementation, an empty string (root zone) counts as "no" in the "has own zone" check
     let own = longest(dns.zones.iter().filter(|z| in_zone(&name, &fqdn(z))).collect(), |z| utf16_len(&fqdn(z))).filter(|z| !z.is_empty());
     if let Some(del) = del {
         if own.map(|o| utf16_len(&fqdn(&del.zone)) > utf16_len(&fqdn(o))).unwrap_or(true) {
@@ -81,7 +81,7 @@ pub fn auth_answer(dns: &DnsConfig, q: &DnsQuestion) -> DnsAnswer {
     DnsAnswer { rcode: Rcode::Refused, answers: vec![], referral: None }
 }
 
-/// Клиент, которому резолвер должен ответить.
+/// Client the resolver must reply to.
 #[derive(Clone, Debug)]
 pub struct DnsClient {
     pub id: i64,
@@ -90,7 +90,7 @@ pub struct DnsClient {
     pub dst_ip: u32,
 }
 
-/// Состояние рекурсивного резолвера: клиент и ход обхода.
+/// Recursive resolver state: client and walk progress.
 #[derive(Clone, Debug)]
 pub struct DnsPending {
     pub client: DnsClient,
@@ -105,12 +105,12 @@ fn dns_msg(id: i64, q: DnsQuestion) -> DnsMessage {
 }
 
 impl<'a> Sim<'a> {
-    /// Обработка DNS-пакета на устройстве `d`; `true` — пакет обработан.
+    /// Handle a DNS packet on device `d`; `true` means the packet was handled.
     pub(crate) fn dns_in(&mut self, d: &'a Device, pkt: &Packet, at: f64) -> bool {
         let Some(m) = pkt.dns.as_ref() else { return false };
         if m.response {
             let Some(st) = self.dns_pend.remove(&format!("{}:{}", d.id, m.id)) else {
-                return false; // ответ клиенту-источнику пробы
+                return false; // reply to the client that originated the probe
             };
             self.resolver_step(d, st, m, at);
             return true;
@@ -198,7 +198,7 @@ impl<'a> Sim<'a> {
         p.dns = Some(DnsMessage { id, q: cur, response: false, rd: Some(false), ra: None, rcode: None, answers: None, referral: None });
         self.ip_out(d, p, at + 5.0);
         if let Some(st) = self.dns_pend.remove(&key) {
-            // ответа не будет: резолвер ждёт таймаут и отвечает SERVFAIL
+            // there will be no reply: the resolver waits for the timeout and answers SERVFAIL
             self.log(at + 1_000_000.0, &d.id, EventKind::Dns, i18n::trf!("{0} does not answer — SERVFAIL to the client", server));
             self.dns_finish(d, st, Rcode::ServFail, at + 1_000_000.0, None);
         }
@@ -255,18 +255,18 @@ impl<'a> Sim<'a> {
     }
 }
 
-/// Результат локального разрешения имени на клиенте.
+/// Result of local name resolution on the client.
 #[derive(Clone, Debug, PartialEq)]
 pub enum LocalLookup {
-    /// Адрес известен без запроса (литерал или hosts); `from` — «hosts».
+    /// The address is known without a query (literal or hosts); `from` is "hosts".
     Ip(Option<u32>, Option<&'static str>),
-    /// Разрешить нельзя (нет резолвера).
+    /// Cannot resolve (no resolver).
     Error(String),
-    /// Нужно спросить DNS-сервер по этому адресу.
+    /// Need to ask the DNS server at this address.
     Ask(Option<u32>),
 }
 
-/// Разрешение на клиенте: литерал адреса → hosts → вопрос серверу из resolv.conf.
+/// Resolution on the client: address literal -> hosts -> question to the server from resolv.conf.
 pub fn local_lookup(d: &Device, name: &str) -> LocalLookup {
     let n = fqdn(name);
     if let Some(ip) = parse_ip(&n) {
@@ -281,13 +281,13 @@ pub fn local_lookup(d: &Device, name: &str) -> LocalLookup {
     }
 }
 
-/// Первый адрес A из ответа.
+/// First A address from the reply.
 pub fn answer_ip(dns: Option<&DnsMessage>) -> Option<u32> {
     let a = dns?.answers.as_ref()?.iter().find(|x| x.typ == "A")?;
     parse_ip(&a.value)
 }
 
-/// Ответ в виде вывода `dig`.
+/// Reply in the form of `dig` output.
 pub fn fmt_dns(dns: &DnsMessage) -> String {
     let mut lines = vec![format!(";; status: {}", dns.rcode.map(|r| r.as_str()).unwrap_or("undefined"))];
     for a in dns.answers.iter().flatten() {

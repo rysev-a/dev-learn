@@ -1,7 +1,7 @@
-//! Клиент API курса без UI: типизированные вызовы и DTO (книги, главы, прогресс, квизы, ответы, упражнения, очередь проверок).
+//! Course API client without UI: typed calls and DTOs (books, chapters, progress, quizzes, answers, exercises, check queue).
 //!
-//! Работает с обоими бэкендами (Python и axum): ошибки приходят как `{"detail": …}` или `{"error": …}`, токен сессии — заголовком
-//! `Authorization: Bearer`. Чистые функции (разбор ошибок, DTO) проверяются обычными тестами; сетевая часть — в [`Client`].
+//! Works with both backends (Python and axum): errors arrive as `{"detail": …}` or `{"error": …}`, the session token goes in the
+//! `Authorization: Bearer` header. Pure functions (error parsing, DTOs) are covered by ordinary tests; the network part lives in [`Client`].
 
 mod client;
 pub mod dto;

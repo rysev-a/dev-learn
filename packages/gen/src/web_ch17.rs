@@ -1,15 +1,15 @@
-//! Книга 11 «Современный Frontend», глава 17 «CSS: каскад, наследование, единицы и переменные» (раздел «CSS и вёрстка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 17 "CSS: cascade, inheritance, units and variables" (section "CSS and layout"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bx, code, line, path, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [&[11.9, 29.6], &[9.8, 20.4, 30.7], &[15.2, 26.7], &[5.5, 21.1, 30.3], &[11.1, 21.7, 28.4], &[10.7, 20.7, 28.1], &[7.1, 17.4, 25.1], &[6.6, 17.6, 29.6], &[9.4, 19.4, 32.5], &[9.6, 25.9], &[8.4, 24.9, 32.6], &[8.9, 19.6, 26.1], &[10.4, 21.0, 26.5]];
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-17.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-17.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Каскад", "Откуда берутся стили", "К элементу стили приходят из разных источников; каскад выбирает единственного победителя.", v01),
@@ -34,30 +34,30 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись.
+/// Short label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка CSS; (x, y) — начало первой строки (базовая линия).
+/// CSS inset; (x, y) — start of the first line (baseline).
 fn css(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Css, id, x, y, lines).size(10.0).lh(15.0).w(200.0)
 }
 
-/// Середина строки `i` врезки, начатой на высоте `y0` с шагом `lh`.
+/// Middle of line `i` of an inset started at height `y0` with step `lh`.
 fn ly(y0: f64, lh: f64, i: usize) -> f64 {
     y0 + i as f64 * lh - 3.0
 }
@@ -66,7 +66,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Каскад: откуда берутся стили
+// 1. Cascade: where styles come from
 fn v01() -> SceneSpec {
     let el = |t: &str| b("p", 290.0, 85.0, 100.0, 34.0, t, Y, 9.0);
     let rules = ["p { color: red; }", ".lead { color: blue; }"];
@@ -96,7 +96,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Как браузер решает спор
+// 2. How the browser settles a dispute
 fn v02() -> SceneSpec {
     let rules = ["p { color: red; }", ".lead { color: blue; }", "#intro { color: green; }"];
     let el = |t: &str| b("el", 180.0, 145.0, 170.0, 24.0, t, Y, 9.0);
@@ -137,7 +137,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. !important и @layer
+// 3. !important and @layer
 fn v03() -> SceneSpec {
     spec(
         &["Важность", "Гонка", "Слои"],
@@ -172,7 +172,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Наследование
+// 4. Inheritance
 fn v04() -> SceneSpec {
     let nodes = [("body", 45.0), ("article", 135.0), ("p", 225.0), ("a", 315.0)];
     let tree = || {
@@ -249,7 +249,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Единицы длины
+// 6. Length units
 fn v06() -> SceneSpec {
     let xs = [40.0, 150.0, 280.0];
     let row = |widths: [f64; 3], texts: [&str; 3], unders: [&str; 3], tone: Tone, cap: &str| {
@@ -282,7 +282,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Окно и символы
+// 7. Viewport and characters
 fn v07() -> SceneSpec {
     let zeros = || {
         let mut f = Frame::new();
@@ -324,7 +324,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. Цвета
+// 8. Colours
 fn v08() -> SceneSpec {
     spec(
         &["Записи", "hsl", "Прозрачность", "currentcolor"],
@@ -401,7 +401,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. Пользовательские свойства
+// 10. Custom properties
 fn v10() -> SceneSpec {
     spec(
         &["Объявление и чтение", "Запасное значение", "Область действия"],
@@ -432,7 +432,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Темы оформления
+// 11. Themes
 fn v11() -> SceneSpec {
     spec(
         &["Токены", "Две темы", "Медиа-запрос", "Переключатель"],
@@ -463,7 +463,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Типичные ошибки каскада
+// 12. Typical cascade mistakes
 fn v12() -> SceneSpec {
     spec(
         &["Специфичность", "Опечатка и единица", "Вложенные эм", "Панель разработчика"],
@@ -501,7 +501,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Чек-лист
+// 13. Checklist
 fn v13() -> SceneSpec {
     let row = |i: usize, name: &str, what: &str, tone: Tone| {
         let y = 26.0 + i as f64 * 40.0;

@@ -1,9 +1,9 @@
-//! Полноэкранный режим главы: состояние (флаг в адресе `?fs=1` и нативный полный экран), слоты оболочки, в которые вкладки
-//! кладут свои пункты и кнопки, и чистые помощники адреса.
+//! Chapter fullscreen mode: state (the `?fs=1` flag in the address and native fullscreen), the shell slots into which tabs
+//! put their items and buttons, and pure address helpers.
 //!
-//! Оболочка (дерево, вкладки, «Свернуть») живёт в макете главы; вкладка публикует свои пункты и кнопки через [`FsItems`] и
-//! [`FsHead`]: они монтируются прямо в элементы оболочки (в React — порталы `itemsSlot` и `headSlot`). Вне полного экрана
-//! слотов нет, и эти компоненты ничего не рисуют — вкладка показывает всё сама.
+//! The shell (tree, tabs, "Collapse") lives in the chapter layout; a tab publishes its items and buttons via [`FsItems`] and
+//! [`FsHead`]: they are mounted straight into shell elements (in React, the `itemsSlot` and `headSlot` portals). Outside fullscreen
+//! there are no slots and these components render nothing: the tab shows everything itself.
 
 use std::collections::HashSet;
 
@@ -21,9 +21,9 @@ use crate::dom;
 
 const FS_PARAM: &str = "fs";
 
-// --- адрес --------------------------------------------------------------------------------------
+// --- address ------------------------------------------------------------------------------------
 
-/// Значение параметра из строки запроса (`?a=1&b=2`). Значения здесь — простые идентификаторы, без экранирования.
+/// Value of a query-string parameter (`?a=1&b=2`). Values here are plain identifiers, with no escaping.
 pub fn query_param(search: &str, key: &str) -> Option<String> {
     search.trim_start_matches('?').split('&').find_map(|pair| {
         let (k, v) = pair.split_once('=').unwrap_or((pair, ""));
@@ -31,7 +31,7 @@ pub fn query_param(search: &str, key: &str) -> Option<String> {
     })
 }
 
-/// Строка запроса с заданным параметром (`None` — параметр убран); остальные параметры сохраняются.
+/// Query string with the given parameter set (`None` removes the parameter); other parameters are preserved.
 pub fn set_query_param(search: &str, key: &str, value: Option<&str>) -> String {
     let mut pairs: Vec<String> = search
         .trim_start_matches('?')
@@ -49,33 +49,33 @@ pub fn set_query_param(search: &str, key: &str, value: Option<&str>) -> String {
     }
 }
 
-/// В строке запроса стоит `fs=1`.
+/// The query string contains `fs=1`.
 pub fn fs_in_search(search: &str) -> bool {
     query_param(search, FS_PARAM).as_deref() == Some("1")
 }
 
-/// Адрес главы или её вкладки (`sub` — `""`, `questions` или `exercises`); в полном экране к нему добавляется `?fs=1`.
+/// Address of a chapter or its tab (`sub` is `""`, `questions` or `exercises`); in fullscreen `?fs=1` is appended.
 pub fn chapter_href(book: i64, chapter: i64, sub: &str, fs: bool) -> String {
     let sub = if sub.is_empty() { String::new() } else { format!("/{sub}") };
     format!("/book/{book}/chapter/{chapter}{sub}{}", set_query_param("", FS_PARAM, fs.then_some("1")))
 }
 
-/// Адрес относится к странице главы: только здесь флаг полного экрана живёт в адресе.
+/// The address belongs to a chapter page: only here does the fullscreen flag live in the address.
 fn in_chapter(path: &str) -> bool {
     path.strip_prefix("/book/").is_some_and(|rest| rest.contains("/chapter/"))
 }
 
-// --- нативный полный экран ----------------------------------------------------------------------
+// --- native fullscreen --------------------------------------------------------------------------
 
 mod native {
-    /// Браузер сейчас в полном экране.
+    /// The browser is currently in fullscreen.
     pub fn active() -> bool {
         web_sys::window().and_then(|w| w.document()).is_some_and(|d| d.fullscreen_element().is_some())
     }
 
-    /// Входит в полный экран у корня документа или выходит из него. Берём именно корень, а не оверлей главы: оверлей при
-    /// смене главы пересоздаётся, и браузер вышел бы из режима, когда его элемент исчезает из DOM. Отказ браузера (например,
-    /// без жеста пользователя при открытии по ссылке `?fs=1`) не страшен: оболочка остаётся поверх страницы.
+    /// Enters or leaves fullscreen at the document root. The root is used, not the chapter overlay: the overlay is recreated
+    /// when the chapter changes, and the browser would leave the mode when its element disappears from the DOM. A browser refusal (for example,
+    /// without a user gesture when opened via a `?fs=1` link) is harmless: the shell stays on top of the page.
     pub fn set(on: bool) {
         let Some(doc) = web_sys::window().and_then(|w| w.document()) else { return };
         if on && doc.fullscreen_element().is_none() {
@@ -88,19 +88,19 @@ mod native {
     }
 }
 
-// --- состояние ----------------------------------------------------------------------------------
+// --- state --------------------------------------------------------------------------------------
 
-/// Состояние полного экрана главы; общее для всех глав раздела (создаётся в макете главы, который при смене главы не
-/// пересоздаётся), поэтому раскрытые разделы дерева переживают переход к другой главе.
+/// Chapter fullscreen state; shared by all chapters of a section (created in the chapter layout, which is not recreated when the
+/// chapter changes), so expanded tree sections survive navigation to another chapter.
 #[derive(Clone, Copy)]
 pub struct Fullscreen {
     on: RwSignal<bool>,
-    /// раскрытые разделы дерева содержания
+    /// expanded sections of the table-of-contents tree
     pub open_sections: RwSignal<HashSet<i64>>,
 }
 
 impl Fullscreen {
-    /// Включён ли полный экран (в реактивном контексте — подписка).
+    /// Whether fullscreen is on (in a reactive context, a subscription).
     pub fn is_on(&self) -> bool {
         self.on.get()
     }
@@ -114,9 +114,9 @@ impl Fullscreen {
     }
 }
 
-/// Создаёт состояние и кладёт его в контекст. Состояние — первичное, адрес за ним следует: если вкладка перешла на адрес без
-/// `fs=1` (например, выбрала упражнение), флаг возвращается в адрес. Нативный полный экран включается и выключается вместе
-/// с состоянием; выход из него клавишей Esc (или кнопкой браузера) закрывает и оболочку.
+/// Creates the state and puts it into the context. The state is primary, the address follows it: if a tab navigated to an address without
+/// `fs=1` (for example, selected an exercise), the flag is put back into the address. Native fullscreen is turned on and off together
+/// with the state; leaving it with Esc (or the browser button) also closes the shell.
 pub fn provide_fullscreen() -> Fullscreen {
     let location = use_location();
     let navigate = use_navigate();
@@ -145,9 +145,9 @@ pub fn provide_fullscreen() -> Fullscreen {
     fs
 }
 
-// --- слоты оболочки -----------------------------------------------------------------------------
+// --- shell slots --------------------------------------------------------------------------------
 
-/// Места в оболочке, куда вкладка кладёт свои пункты (левое дерево) и кнопки (шапка). Создаются вместе с главой.
+/// Places in the shell where a tab puts its items (left tree) and buttons (header). Created together with the chapter.
 #[derive(Clone, Copy)]
 pub struct Slots {
     pub items: NodeRef<html::Div>,
@@ -162,26 +162,26 @@ impl Slots {
     }
 }
 
-/// Монтирует `children` внутрь элемента, который назвала `target`; пока элемента нет (или он сменился), вид не показывается.
-/// Без обёртки (в отличие от `Portal`): раскладка слота (`flex`, `gap`) остаётся такой же, как у соседей.
+/// Mounts `children` inside the element named by `target`; while the element is missing (or has changed), the view is not shown.
+/// No wrapper (unlike `Portal`): the slot layout (`flex`, `gap`) stays the same as its neighbors'.
 fn teleport(target: impl Fn() -> Option<web_sys::HtmlElement> + 'static, children: ChildrenFn) {
     Effect::new(move |_| {
         let Some(element) = target() else { return };
         let children = children.clone();
-        // хранилище принадлежит текущему запуску эффекта: при следующем запуске или снятии оно освобождается, и вид уходит из DOM
+        // the storage belongs to the current effect run: on the next run or disposal it is released, and the view leaves the DOM
         let mounted = StoredValue::new_local(None);
         mounted.set_value(Some(mount_to(element, move || untrack(|| children()))));
     });
 }
 
-/// Пункты вкладки в левом дереве полного экрана (слайды, вопросы, упражнения).
+/// Tab items in the left fullscreen tree (slides, questions, exercises).
 #[component]
 pub fn FsItems(children: ChildrenFn) -> impl IntoView {
     let (fs, slots) = (expect_context::<Fullscreen>(), expect_context::<Slots>());
     teleport(move || fs.is_on().then(|| slots.items.get().map(Into::into)).flatten(), children);
 }
 
-/// Кнопки вкладки в шапке оболочки полного экрана.
+/// Tab buttons in the fullscreen shell header.
 #[component]
 pub fn FsHead(children: ChildrenFn) -> impl IntoView {
     let (fs, slots) = (expect_context::<Fullscreen>(), expect_context::<Slots>());
@@ -199,7 +199,7 @@ mod tests {
         assert_eq!(query_param("", "fs"), None);
         assert_eq!(set_query_param("?task=a1", "fs", Some("1")), "?task=a1&fs=1");
         assert_eq!(set_query_param("?fs=1&task=a1", "fs", None), "?task=a1");
-        assert_eq!(set_query_param("?fs=1", "fs", None), "", "последний параметр уходит вместе с «?»");
+        assert_eq!(set_query_param("?fs=1", "fs", None), "", "the last parameter goes away together with the '?'");
         assert_eq!(set_query_param("?task=a1", "task", Some("b2")), "?task=b2");
     }
 

@@ -1,5 +1,5 @@
-//! Решение ученика как данные: чтение сохранённого черновика и запись схемы в JSON, который понимает сервер
-//! (`archlab::verify`). Чистые функции — без интерфейса.
+//! Student solution as data: reading a saved draft and writing the circuit to JSON that the server understands
+//! (`archlab::verify`). Pure functions — no interface.
 
 use archlab::{
     blocks::{BlockInstance, BlockSolution, BusWire, GateSolution, Solution},
@@ -7,7 +7,7 @@ use archlab::{
     model::{GateInstance, UidGen, Wire},
 };
 
-/// Схема ученика: то, что лежит на доске (вентили и провода или блоки и шины).
+/// Student circuit: what is on the board (gates and wires or blocks and buses).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Drawing {
     pub gates: Vec<GateInstance>,
@@ -17,7 +17,7 @@ pub struct Drawing {
 }
 
 impl Drawing {
-    /// Решение для отправки: из вентилей или из блоков — как требует упражнение.
+    /// Solution to submit: from gates or from blocks — as the exercise requires.
     pub fn solution(&self, build: Build) -> Solution {
         match build {
             Build::Gates => Solution::Gate(GateSolution { gates: self.gates.clone(), wires: self.wires.clone() }),
@@ -25,12 +25,12 @@ impl Drawing {
         }
     }
 
-    /// JSON решения (поля `gates`/`wires` или `instances`/`bus_wires`).
+    /// Solution JSON (fields `gates`/`wires` or `instances`/`bus_wires`).
     pub fn json(&self, build: Build) -> String {
         serde_json::to_string(&self.solution(build)).unwrap_or_default()
     }
 
-    /// На доске ничего нет.
+    /// Nothing is on the board.
     #[cfg(test)]
     pub fn is_empty(&self, build: Build) -> bool {
         match build {
@@ -39,14 +39,14 @@ impl Drawing {
         }
     }
 
-    /// Занять уже использованные id, чтобы новые (`g3`, `w7`) не совпали со старыми.
+    /// Take the ids already used so that new ones (`g3`, `w7`) do not collide with old ones.
     pub fn reserve_ids(&self, uid: &mut UidGen) {
         let ids: Vec<&str> = self.gates.iter().map(|g| g.id.as_str()).chain(self.wires.iter().map(|w| w.id.as_str())).collect();
         uid.reserve(&ids);
     }
 }
 
-/// Схема из сохранённого черновика; пусто или чужая форма (не та, что нужна упражнению) — пустая доска.
+/// Circuit from a saved draft; empty or of a foreign shape (not what the exercise needs) — an empty board.
 pub fn restore(draft: &str, build: Build) -> Drawing {
     if draft.trim().is_empty() {
         return Drawing::default();
@@ -58,7 +58,7 @@ pub fn restore(draft: &str, build: Build) -> Drawing {
     }
 }
 
-/// Первый свободный id экземпляра блока вида `i<n>`, начиная с `число блоков + 1`.
+/// First free block instance id of the form `i<n>`, starting from `block count + 1`.
 pub fn next_instance_id(instances: &[BlockInstance]) -> String {
     let mut n = instances.len() + 1;
     while instances.iter().any(|i| i.id == format!("i{n}")) {
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn gate_drawing_round_trips_through_json() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let d = sample();
         let json = d.json(Build::Gates);
         assert!(json.contains("\"gates\"") && json.contains("\"wires\""));
@@ -91,7 +91,7 @@ mod tests {
 
     #[test]
     fn block_drawing_round_trips_and_reads_the_old_camel_case_field() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let d = Drawing {
             instances: vec![BlockInstance { id: "i1".into(), block_id: "rom".into(), x: 10.0, y: 20.0 }],
             bus_wires: vec![],
@@ -106,17 +106,17 @@ mod tests {
 
     #[test]
     fn foreign_or_broken_drafts_give_an_empty_board() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let gates_json = sample().json(Build::Gates);
         assert!(restore(&gates_json, Build::Blocks).is_empty(Build::Blocks));
         assert_eq!(restore("", Build::Gates), Drawing::default());
-        assert_eq!(restore("не json", Build::Gates), Drawing::default());
+        assert_eq!(restore("not json", Build::Gates), Drawing::default());
         assert_eq!(restore("[1,2]", Build::Gates), Drawing::default());
     }
 
     #[test]
     fn new_ids_continue_after_the_saved_ones() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let d = sample();
         let mut uid = UidGen::new();
         d.reserve_ids(&mut uid);
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn instance_ids_skip_the_taken_ones() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mk = |id: &str| BlockInstance { id: id.into(), block_id: "x".into(), x: 0.0, y: 0.0 };
         assert_eq!(next_instance_id(&[]), "i1");
         assert_eq!(next_instance_id(&[mk("i2")]), "i3");

@@ -1,4 +1,4 @@
-/* Симуляторы книги «Виртуализация»: токены приложения, обе темы. */
+/* Simulators of the Virtualization book: app tokens, both themes. */
 .vl {
   container-type: inline-size;
   display: flex;
@@ -169,7 +169,7 @@
   color: var(--muted);
 }
 
-/* общие элементы симуляторов */
+/* shared simulator elements */
 .vl-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -265,7 +265,7 @@
   font-family: var(--mono, ui-monospace, monospace);
 }
 
-/* мини-гипервизор */
+/* mini hypervisor */
 .vl-code {
   list-style: none;
   margin: 0;
@@ -346,7 +346,7 @@
   gap: 2px;
 }
 
-/* слои qcow2 */
+/* qcow2 layers */
 .vl-actions.wrap {
   flex-wrap: wrap;
 }

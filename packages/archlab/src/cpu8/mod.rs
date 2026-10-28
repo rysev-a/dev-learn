@@ -1,9 +1,9 @@
-//! Процессор «Мини-8», собранный из вентилей и блоков.
+//! The "Mini-8" processor built from gates and blocks.
 //!
-//! * [`builders`] — конструкторы схем (вентили и блоки собираются кодом);
-//! * [`blocks`] — каталог блоков: от мультиплексора до процессора;
-//! * [`fast`] — быстрый симулятор (схемы без обратных связей, кроме триггеров);
-//! * [`machine`] — машина на вентилях с тем же интерфейсом, что у эмулятора [`crate::asm::Machine`].
+//! * [`builders`] — circuit constructors (gates and blocks are assembled by code);
+//! * [`blocks`] — block catalog: from a multiplexer up to the processor;
+//! * [`fast`] — fast simulator (circuits without feedback loops, except flip-flops);
+//! * [`machine`] — gate-level machine with the same interface as the emulator [`crate::asm::Machine`].
 
 pub mod blocks;
 pub mod builders;

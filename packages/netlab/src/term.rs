@@ -1,6 +1,6 @@
-//! Мини-терминал Linux для устройств сети: ip, ping, traceroute, curl, iptables, sysctl и т. д.
-//! Команды меняют состояние — так же, как формы в карточке устройства (они зовут те же функции),
-//! поэтому эталонное решение упражнения — просто список команд.
+//! Linux mini-terminal for network devices: ip, ping, traceroute, curl, iptables, sysctl etc.
+//! Commands change the state the same way the forms in the device card do (they call the same functions),
+//! so the reference solution of an exercise is simply a list of commands.
 
 use crate::attacks::background_traffic;
 use crate::capture::capture_lines;
@@ -15,11 +15,11 @@ use crate::transfer::{transfer, TransferChart, TransferResult};
 use crate::types::*;
 use crate::util::{js_num, num_or, num_str, to_int, und, OrdMap};
 
-/// Результат команды терминала: вывод, изменилось ли состояние сети, проба для анимации.
+/// Terminal command result: output, whether the network state changed, probe for animation.
 #[derive(Clone, Debug, Default)]
 pub struct CmdResult {
     pub out: String,
-    /// `Some(false)` — команда не удалась (ошибка в `out`), `Some(true)` — состояние изменено, `None` — только вывод.
+    /// `Some(false)` means the command failed (error in `out`), `Some(true)` means the state changed, `None` means output only.
     pub changed: Option<bool>,
     pub probe: Option<ProbeRun>,
     pub http: Option<FetchResult>,
@@ -40,7 +40,7 @@ fn probe(s: impl Into<String>, p: Option<ProbeRun>) -> CmdResult {
     CmdResult { out: s.into(), probe: p, ..Default::default() }
 }
 
-/// Итог действия: пустая ошибка — успех (`changed: true`), иначе текст ошибки.
+/// Action outcome: empty error is success (`changed: true`), otherwise the error text.
 fn done(err: Option<String>) -> CmdResult {
     CmdResult { changed: Some(err.is_none()), out: err.unwrap_or_default(), ..Default::default() }
 }
@@ -53,12 +53,12 @@ fn no(d: &Device) -> Option<String> {
     }
 }
 
-/// Индекс первого вхождения (−1, если нет), как `Array.prototype.indexOf`.
+/// Index of the first occurrence (-1 if none), like `Array.prototype.indexOf`.
 fn index_of(a: &[&str], x: &str) -> isize {
     a.iter().position(|v| *v == x).map(|i| i as isize).unwrap_or(-1)
 }
 
-/// Элемент после ключа: `a[a.indexOf(key) + 1]` (без ключа — `a[0]`).
+/// Element after the key: `a[a.indexOf(key) + 1]` (without the key `a[0]`).
 fn after<'a>(a: &[&'a str], key: &str) -> Option<&'a str> {
     a.get((index_of(a, key) + 1) as usize).copied()
 }
@@ -69,9 +69,9 @@ fn splice_at<T>(v: &mut Vec<T>, idx: f64, item: T) {
     v.insert(i, item);
 }
 
-/* ---- изменение настроек (общие для форм и терминала) ---- */
+/* ---- settings changes (shared by forms and the terminal) ---- */
 
-/// Назначить адрес «ip/префикс» интерфейсу. Ошибка — текст как у `ip addr add`.
+/// Assign address "ip/prefix" to an interface. Error is text like `ip addr add` gives.
 pub fn set_addr(d: &mut Device, if_name: &str, cidr: &str) -> Option<String> {
     let Some(i) = d.iface_mut(if_name) else { return Some(format!("Cannot find device \"{if_name}\"")) };
     let Some((ip, prefix)) = parse_cidr(cidr) else { return Some(format!("Error: inet prefix is expected rather than \"{cidr}\".")) };
@@ -83,7 +83,7 @@ pub fn set_addr(d: &mut Device, if_name: &str, cidr: &str) -> Option<String> {
     None
 }
 
-/// Убрать адрес интерфейса; маршруты через пропавшую подсеть исчезают вместе с ним.
+/// Remove the interface address; routes via the vanished subnet disappear with it.
 pub fn clear_addr(d: &mut Device, if_name: &str) -> Option<String> {
     let Some(i) = d.iface_mut(if_name) else { return Some(format!("Cannot find device \"{if_name}\"")) };
     i.ip = None;
@@ -100,14 +100,14 @@ pub fn clear_addr(d: &mut Device, if_name: &str) -> Option<String> {
     None
 }
 
-/// Включить или выключить интерфейс.
+/// Bring an interface up or down.
 pub fn set_up(d: &mut Device, if_name: &str, up: bool) -> Option<String> {
     let Some(i) = d.iface_mut(if_name) else { return Some(format!("Cannot find device \"{if_name}\"")) };
     i.up = up;
     None
 }
 
-/// Добавить статический маршрут.
+/// Add a static route.
 pub fn add_route(d: &mut Device, dst: Option<&str>, via: Option<&str>, dev: Option<&str>) -> Option<String> {
     let is_default = dst == Some("default") || dst == Some("0.0.0.0/0");
     let n = if is_default { Some((0, 0)) } else { parse_net(dst) };
@@ -139,7 +139,7 @@ pub fn add_route(d: &mut Device, dst: Option<&str>, via: Option<&str>, dev: Opti
     None
 }
 
-/// Удалить статический маршрут.
+/// Delete a static route.
 pub fn del_route(d: &mut Device, dst: Option<&str>) -> Option<String> {
     let is_default = dst == Some("default") || dst == Some("0.0.0.0/0");
     let n = if is_default { Some((0, 0)) } else { parse_net(dst) };
@@ -150,7 +150,7 @@ pub fn del_route(d: &mut Device, dst: Option<&str>) -> Option<String> {
     None
 }
 
-/// Шлюз по умолчанию; пустая строка — убрать.
+/// Default gateway; empty string removes it.
 pub fn set_gateway(d: &mut Device, gw: Option<&str>) -> Option<String> {
     let old: Vec<Route> = d.routes.iter().filter(|r| r.dst == "0.0.0.0/0").cloned().collect();
     d.routes.retain(|r| r.dst != "0.0.0.0/0");
@@ -162,12 +162,12 @@ pub fn set_gateway(d: &mut Device, gw: Option<&str>) -> Option<String> {
     e
 }
 
-/// Шлюз по умолчанию («» — нет).
+/// Default gateway ("" means none).
 pub fn get_gateway(d: &Device) -> String {
     d.routes.iter().find(|r| r.dst == "0.0.0.0/0").and_then(|r| r.via.clone()).unwrap_or_default()
 }
 
-/* ---- вывод ---- */
+/* ---- output ---- */
 
 fn route_line(r: &RouteEntry, d: &Device) -> String {
     let dst = if r.prefix == 0 { "default".to_string() } else { net_str(Some(r.net), r.prefix) };
@@ -201,7 +201,7 @@ const HELP: &str = i18n::t!("Available commands:\n  ip addr [add|del|flush ...] 
 
 /* ---- iptables ---- */
 
-/// Правило iptables из параметров командной строки.
+/// iptables rule from command-line parameters.
 #[derive(Default, Clone)]
 struct RuleSpec {
     src: Option<String>,
@@ -322,7 +322,7 @@ fn rule_text(r: &RuleSpecView) -> String {
     }
 }
 
-/// Поля правила для вывода (общие у фильтра и nat).
+/// Rule fields for output (shared by filter and nat).
 struct RuleSpecView<'a> {
     iif: &'a Option<String>,
     out: &'a Option<String>,
@@ -510,9 +510,9 @@ fn iptables(d: &mut Device, tokens: &[&str]) -> CmdResult {
     out(i18n::tr("iptables: unknown operation. Example: iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE"))
 }
 
-/* ---- имена: hosts → DNS-запрос к резолверу ---- */
+/* ---- names: hosts → DNS query to the resolver ---- */
 
-/// Разрешённое имя: адрес, источник («hosts») и проба DNS для анимации и журнала.
+/// Resolved name: address, source ("hosts") and DNS probe for animation and log.
 #[derive(Clone, Debug)]
 pub struct Resolved {
     pub ip: u32,
@@ -520,7 +520,7 @@ pub struct Resolved {
     pub run: Option<ProbeRun>,
 }
 
-/// Ошибка разрешения: текст и проба DNS (если она была).
+/// Resolution error: text and DNS probe (if there was one).
 #[derive(Clone, Debug)]
 pub struct ResolveErr {
     pub err: String,
@@ -531,7 +531,7 @@ fn rerr(s: impl Into<String>, run: Option<ProbeRun>) -> ResolveErr {
     ResolveErr { err: s.into(), run }
 }
 
-/// Имя или адрес → адрес (hosts, затем DNS-запрос резолверу устройства).
+/// Name or address -> address (hosts, then a DNS query to the device's resolver).
 pub fn to_ip(state: &mut NetState, dev_id: &str, arg: &str) -> Result<Resolved, ResolveErr> {
     let Some(d) = state.devices.get(dev_id) else { return Err(rerr(i18n::trf!("no device \"{0}\"", dev_id), None)) };
     let l = local_lookup(d, arg);
@@ -704,7 +704,7 @@ fn dns_admin(d: &mut Device, a: &[&str]) -> CmdResult {
     }
 }
 
-/// `echo … > /etc/resolv.conf` и `echo … >> /etc/hosts`; `None` — строка не про эти файлы.
+/// `echo ... > /etc/resolv.conf` and `echo ... >> /etc/hosts`; `None` means the line is not about these files.
 fn file_write(d: &mut Device, line: &str) -> Option<CmdResult> {
     let t = line.trim();
     let after_echo = t.strip_prefix("echo")?;
@@ -1588,9 +1588,9 @@ fn do_udp(state: &mut NetState, dev_id: &str, host: &str, port: f64) -> CmdResul
     probe(msg, Some(r))
 }
 
-/* ---- разбор строки ---- */
+/* ---- line parsing ---- */
 
-/// Показ ARP-кэша.
+/// Show the ARP cache.
 fn arp(state: &NetState, dev_id: &str) -> CmdResult {
     let Some(d) = state.devices.get(dev_id) else { return out("") };
     let mut rows: Vec<String> = d.arp_static.iter().map(|(ip, mac)| i18n::trf!("{0}  {1}  (static)", ip, mac)).collect();
@@ -1609,7 +1609,7 @@ fn arp(state: &NetState, dev_id: &str) -> CmdResult {
     })
 }
 
-/// Выполнить строку терминала на устройстве. Меняет состояние сети (и кэши симулятора).
+/// Execute a terminal line on a device. Changes the network state (and simulator caches).
 pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
     let Some(d0) = state.devices.get(dev_id) else { return out(i18n::trf!("no device \"{0}\"", dev_id)) };
     let (kind, dname) = (d0.kind, d0.name.clone());
@@ -2064,7 +2064,7 @@ pub fn exec(state: &mut NetState, dev_id: &str, line: &str) -> CmdResult {
     out(i18n::trf!("{0}: command not found. Type \"help\".", cmd))
 }
 
-/// Найти `=`, за которым (после пробелов) идёт символ из `ok`; вернуть этот символ.
+/// Find `=` followed (after spaces) by a character from `ok`; return that character.
 fn after_eq(text: &str, ok: impl Fn(char) -> bool) -> Option<char> {
     let b: Vec<char> = text.chars().collect();
     for (i, c) in b.iter().enumerate() {
@@ -2081,7 +2081,7 @@ fn after_eq(text: &str, ok: impl Fn(char) -> bool) -> Option<char> {
     None
 }
 
-/// Слово после `=` (после пробелов): `\w+`.
+/// Word after `=` (after spaces): `\w+`.
 fn word_after_eq(text: &str) -> Option<String> {
     let b: Vec<char> = text.chars().collect();
     for (i, c) in b.iter().enumerate() {
@@ -2099,7 +2099,7 @@ fn word_after_eq(text: &str) -> Option<String> {
     None
 }
 
-/// Числа после `tcp_rmem`: `tcp_rmem\s*=?\s*"?([\d\s,]+)"?`; `None` — шаблон не сработал.
+/// Numbers after `tcp_rmem`: `tcp_rmem\s*=?\s*"?([\d\s,]+)"?`; `None` means the pattern did not match.
 fn rmem_numbers(text: &str) -> Option<Vec<f64>> {
     let mut from = 0;
     while let Some(off) = text[from..].find("tcp_rmem") {

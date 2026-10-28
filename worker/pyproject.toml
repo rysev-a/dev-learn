@@ -1,6 +1,6 @@
 [project]
 name = "cs-core-worker"
 version = "0.1.0"
-description = "Воркер проверки кода: только стандартная библиотека Python и Docker CLI"
+description = "Code-checking worker: Python standard library and Docker CLI only"
 requires-python = ">=3.14"
 dependencies = []

@@ -1,4 +1,4 @@
-//! Разбор таблицы стилей и каскад: какое значение свойства получит элемент (без раскладки: геометрию считает только браузер).
+//! Stylesheet parsing and the cascade: which property value an element gets (no layout: geometry is computed only by a browser).
 
 use std::collections::BTreeMap;
 
@@ -19,9 +19,9 @@ pub struct Decl {
 pub struct Rule {
     pub selectors: Vec<String>,
     pub decls: Vec<Decl>,
-    /// условие внешнего `@media`
+    /// condition of the enclosing `@media`
     pub media: Option<String>,
-    /// условие внешнего `@container` (применяется только если проверка задала ширину контейнера)
+    /// condition of the enclosing `@container` (applies only if the check set a container width)
     pub container: Option<String>,
 }
 
@@ -30,35 +30,35 @@ pub struct Stylesheet {
     pub rules: Vec<Rule>,
     pub errors: Vec<String>,
     pub media: Vec<String>,
-    /// условия `@container`
+    /// `@container` conditions
     pub containers: Vec<String>,
-    /// `@keyframes`: имя и тело
+    /// `@keyframes`: name and body
     pub keyframes: Vec<(String, String)>,
 }
 
-/// Свойства, о существовании которых мы знаем: опечатка вроде `colr` попадает в ошибки разбора.
+/// Properties we know exist: a typo like `colr` ends up among the parse errors.
 const KNOWN: &str = "align-content align-items align-self all animation animation-delay animation-direction animation-duration animation-fill-mode animation-iteration-count animation-name animation-play-state animation-timing-function appearance aspect-ratio backdrop-filter backface-visibility background background-attachment background-clip background-color background-image background-origin background-position background-repeat background-size border border-bottom border-bottom-color border-bottom-left-radius border-bottom-right-radius border-bottom-style border-bottom-width border-collapse border-color border-image border-left border-left-color border-left-style border-left-width border-radius border-right border-right-color border-right-style border-right-width border-spacing border-style border-top border-top-color border-top-left-radius border-top-right-radius border-top-style border-top-width border-width bottom box-shadow box-sizing caption-side caret-color clear clip clip-path color column-count column-gap column-rule column-width columns content counter-increment counter-reset cursor direction display empty-cells fill filter flex flex-basis flex-direction flex-flow flex-grow flex-shrink flex-wrap float font font-family font-feature-settings font-kerning font-size font-size-adjust font-stretch font-style font-variant font-weight gap grid grid-area grid-auto-columns grid-auto-flow grid-auto-rows grid-column grid-column-end grid-column-gap grid-column-start grid-gap grid-row grid-row-end grid-row-gap grid-row-start grid-template grid-template-areas grid-template-columns grid-template-rows height hyphens image-rendering inline-size inset inset-block inset-inline isolation justify-content justify-items justify-self left letter-spacing line-height list-style list-style-image list-style-position list-style-type margin margin-block margin-bottom margin-inline margin-left margin-right margin-top mask max-height max-width max-inline-size min-height min-width min-inline-size mix-blend-mode object-fit object-position opacity order orphans outline outline-color outline-offset outline-style outline-width overflow overflow-wrap overflow-x overflow-y overscroll-behavior padding padding-block padding-bottom padding-inline padding-left padding-right padding-top page-break-after page-break-before page-break-inside perspective place-content place-items place-self pointer-events position quotes resize right rotate row-gap scale scroll-behavior scroll-margin scroll-padding scroll-snap-align scroll-snap-type shape-outside stroke stroke-width tab-size table-layout text-align text-align-last text-decoration text-decoration-color text-decoration-line text-decoration-style text-decoration-thickness text-indent text-overflow text-shadow text-transform text-underline-offset top touch-action transform transform-origin transform-style transition transition-delay transition-duration transition-property transition-timing-function translate unicode-bidi user-select container container-name container-type accent-color color-scheme text-wrap text-underline-position block-size min-block-size max-block-size margin-inline-start margin-inline-end margin-block-start margin-block-end padding-inline-start padding-inline-end padding-block-start padding-block-end inset-inline-start inset-inline-end inset-block-start inset-block-end border-start-start-radius border-start-end-radius border-end-start-radius border-end-end-radius transition-behavior animation-composition animation-timeline view-transition-name scroll-snap-stop overflow-clip-margin vertical-align visibility white-space widows width will-change word-break word-spacing word-wrap writing-mode z-index zoom";
 
-/// Состояния, которые зависят от действий пользователя: правило с таким псевдоклассом применяется, только если проверка запросила состояние (`state`).
+/// States that depend on user actions: a rule with such a pseudo-class applies only if the check requested the state (`state`).
 const DYNAMIC: &[&str] = &[
     "hover", "focus", "focus-visible", "focus-within", "active", "visited", "target", "placeholder-shown", "invalid", "valid", "user-invalid", "user-valid",
     "indeterminate", "in-range", "out-of-range", "default",
 ];
-/// Псевдоклассы, которые определяются разметкой, — заменяются на селекторы атрибутов.
+/// Pseudo-classes determined by the markup are replaced with attribute selectors.
 const STATIC: &[(&str, &str)] = &[
     ("checked", "[checked]"), ("disabled", "[disabled]"), ("enabled", ":not([disabled])"), ("required", "[required]"), ("optional", ":not([required])"),
     ("link", "[href]"), ("any-link", "[href]"),
 ];
 const PSEUDO_ELEMENTS: &[&str] = &["before", "after", "first-line", "first-letter", "marker", "placeholder", "selection", "backdrop", "file-selector-button", "cue"];
 
-/// Селектор правила, разобранный по частям: то, что понимает сопоставление элементов, состояния и псевдоэлемент.
+/// A rule selector split into parts: what element matching understands, the states and the pseudo-element.
 pub struct SelectorParts {
     pub selector: scraper::Selector,
     pub states: Vec<String>,
     pub pseudo: Option<String>,
 }
 
-/// Разбирает селектор CSS: состояния (`:hover`, `:focus`…) и псевдоэлементы (`::before`…) вынимаются отдельно, остальное разбирает движок.
+/// Parses a CSS selector: states (`:hover`, `:focus`…) and pseudo-elements (`::before`…) are extracted separately, the rest is parsed by the engine.
 pub fn parse_selector(raw: &str) -> Result<SelectorParts, String> {
     let chars: Vec<char> = raw.trim().chars().collect();
     let (mut out, mut states, mut pseudo) = (String::new(), Vec::new(), None::<String>);
@@ -136,7 +136,7 @@ pub fn parse_selector(raw: &str) -> Result<SelectorParts, String> {
     Ok(SelectorParts { selector, states, pseudo })
 }
 
-/// Какие состояния считаются включёнными, когда проверка просит `state`.
+/// Which states count as active when the check asks for `state`.
 fn active_states(state: Option<&str>) -> Vec<String> {
     match state {
         None => vec![],
@@ -166,7 +166,7 @@ fn strip_comments(src: &str) -> String {
     out
 }
 
-/// Делит по символу вне скобок и кавычек.
+/// Splits on a character outside brackets and quotes.
 fn split_outside(s: &str, sep: char) -> Vec<String> {
     let (mut out, mut cur, mut depth, mut quote) = (Vec::new(), String::new(), 0i32, None::<char>);
     for c in s.chars() {
@@ -199,7 +199,7 @@ fn split_outside(s: &str, sep: char) -> Vec<String> {
     out
 }
 
-/// Блок `{ … }` с позиции после `{`: возвращает содержимое и позицию после закрывающей скобки.
+/// A `{ … }` block from the position after `{`: returns the contents and the position after the closing brace.
 fn block(chars: &[char], mut i: usize) -> Option<(String, usize)> {
     let (start, mut depth, mut quote) = (i, 1, None::<char>);
     while i < chars.len() {
@@ -300,7 +300,7 @@ impl Stylesheet {
             let head = head.trim().to_string();
             match chars.get(i) {
                 Some(';') => {
-                    // `@import …;` и подобное: игнорируем
+                    // `@import …;` and the like: ignored
                     if !head.starts_with('@') {
                         self.errors.push(i18n::trf!("“{0}” outside a rule", head));
                     }
@@ -375,12 +375,12 @@ impl Stylesheet {
     }
 }
 
-/// Выполняется ли условие `@media` при ширине окна `width`.
+/// Whether the `@media` condition holds at viewport width `width`.
 pub fn media_matches(cond: &str, width: f64) -> bool {
     media_matches_env(cond, width, &BTreeMap::new())
 }
 
-/// Значения признаков среды по умолчанию (светлая схема, обычное движение, мышь, альбомная ориентация).
+/// Default environment feature values (light scheme, normal motion, mouse, landscape orientation).
 fn env_value<'a>(env: &'a BTreeMap<String, String>, key: &str) -> &'a str {
     env.get(key).map(String::as_str).unwrap_or(match key {
         "prefers-color-scheme" => "light",
@@ -392,7 +392,7 @@ fn env_value<'a>(env: &'a BTreeMap<String, String>, key: &str) -> &'a str {
     })
 }
 
-/// То же с заданной средой (`prefers-color-scheme: dark`, `prefers-reduced-motion: reduce`, `hover: none`, `pointer: coarse`, `orientation: portrait`).
+/// The same with a given environment (`prefers-color-scheme: dark`, `prefers-reduced-motion: reduce`, `hover: none`, `pointer: coarse`, `orientation: portrait`).
 pub fn media_matches_env(cond: &str, width: f64, env: &BTreeMap<String, String>) -> bool {
     split_outside(cond, ',').iter().any(|q| {
         let q = q.trim().to_lowercase();
@@ -433,7 +433,7 @@ fn parse_px(v: &str) -> Option<f64> {
     }
 }
 
-// ---------- значения ----------
+// ---------- values ----------
 
 const NAMED: &[(&str, (u8, u8, u8))] = &[
     ("black", (0, 0, 0)), ("white", (255, 255, 255)), ("red", (255, 0, 0)), ("green", (0, 128, 0)), ("blue", (0, 0, 255)),
@@ -477,7 +477,7 @@ fn rgb_string(r: u8, g: u8, b: u8, a: f64) -> String {
     }
 }
 
-/// Цвет в виде `rgb(r, g, b)` / `rgba(…)`, если это цвет.
+/// Color as `rgb(r, g, b)` / `rgba(…)`, if it is a color.
 pub fn color(token: &str) -> Option<String> {
     let t = token.trim().to_lowercase();
     if let Some((r, g, b, a)) = hex(&t) {
@@ -528,14 +528,14 @@ pub fn color(token: &str) -> Option<String> {
 
 #[derive(Clone, Copy)]
 struct Ctx {
-    /// размер шрифта элемента в px (для `em`)
+    /// the element's font size in px (for `em`)
     font: f64,
     viewport: f64,
-    /// свойство без единиц (`order`, `flex-grow`, `z-index`…): `0` остаётся `0`
+    /// unitless property (`order`, `flex-grow`, `z-index`…): `0` stays `0`
     unitless: bool,
 }
 
-/// Свойства, у которых число без единицы — обычное число, а не длина.
+/// Properties where a unitless number is a plain number, not a length.
 fn is_unitless(prop: &str) -> bool {
     matches!(
         prop,
@@ -544,7 +544,7 @@ fn is_unitless(prop: &str) -> bool {
     )
 }
 
-/// Число с единицей → px, если единица известна; иначе исходный токен.
+/// Number with a unit → px if the unit is known; otherwise the original token.
 fn length(token: &str, ctx: &Ctx) -> String {
     let t = token.trim().to_lowercase();
     if t == "0" {
@@ -680,7 +680,7 @@ impl Math<'_> {
             let v = self.sum()?;
             return if self.eat(b')') { Some(v) } else { None };
         }
-        // число с необязательной единицей
+        // number with an optional unit
         let start = self.i;
         if matches!(self.s.get(self.i), Some(b'+') | Some(b'-')) {
             self.i += 1;
@@ -701,12 +701,12 @@ impl Math<'_> {
             "em" => Val::Len(n * self.ctx.font),
             "vw" => Val::Len(n * self.ctx.viewport / 100.0),
             "pt" => Val::Len(n * 96.0 / 72.0),
-            _ => return None, // %, vh, ch… — без раскладки не посчитать
+            _ => return None, // %, vh, ch… cannot be computed without layout
         })
     }
 }
 
-/// Значение `calc()`/`clamp()`/`min()`/`max()` в px (или число), если все слагаемые известны без раскладки.
+/// Value of `calc()`/`clamp()`/`min()`/`max()` in px (or a number) if all terms are known without layout.
 fn math_value(v: &str, ctx: &Ctx) -> Option<String> {
     let t = v.trim().to_lowercase();
     if !["calc(", "clamp(", "min(", "max("].iter().any(|f| t.starts_with(f)) {
@@ -724,14 +724,14 @@ fn math_value(v: &str, ctx: &Ctx) -> Option<String> {
     })
 }
 
-/// Значение в канонической записи: цвета — `rgb(…)`, длины — px, регистр и пробелы выровнены.
+/// Value in canonical form: colors as `rgb(…)`, lengths in px, case and whitespace normalized.
 fn norm(value: &str, ctx: &Ctx) -> String {
     let v = value.trim();
     if let Some(m) = math_value(v, ctx) {
         return m;
     }
     if v.contains('(') && !v.to_lowercase().starts_with("rgb") && !v.to_lowercase().starts_with("hsl") && split_outside(v, ' ').len() == 1 {
-        // функции (calc, var, url, repeat…) — только пробелы выровнены
+        // functions (calc, var, url, repeat…): only whitespace is normalized
         return v.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase();
     }
     let tokens: Vec<String> = split_outside(v, ' ').into_iter().filter(|t| !t.trim().is_empty()).collect();
@@ -754,7 +754,7 @@ fn norm(value: &str, ctx: &Ctx) -> String {
     out.join(" ")
 }
 
-// ---------- каскад ----------
+// ---------- cascade ----------
 
 fn sides(prefix: &str, suffix: &str, value: &str) -> Vec<(String, String)> {
     let v: Vec<&str> = value.split_whitespace().collect();
@@ -782,7 +782,7 @@ fn is_style(t: &str) -> bool {
     matches!(t, "none" | "solid" | "dashed" | "dotted" | "double" | "groove" | "ridge" | "inset" | "outset" | "hidden")
 }
 
-/// Раскрывает сокращённое свойство в составляющие.
+/// Expands a shorthand property into its longhands.
 fn expand(prop: &str, value: &str) -> Vec<(String, String)> {
     let v = value.trim();
     match prop {
@@ -1038,7 +1038,7 @@ fn expand(prop: &str, value: &str) -> Vec<(String, String)> {
     }
 }
 
-/// Какие составляющие входят в сокращение (чтобы проверять `margin` по четырём сторонам).
+/// Which longhands make up a shorthand (to check `margin` on all four sides).
 fn parts_of(prop: &str) -> Option<Vec<String>> {
     let four = |p: &str, s: &str| ["top", "right", "bottom", "left"].iter().map(|x| format!("{p}-{x}{s}")).collect();
     Some(match prop {
@@ -1108,7 +1108,7 @@ fn initial(prop: &str) -> Option<&'static str> {
     })
 }
 
-/// Стили пользовательского агента для тегов, которые встречаются в упражнениях.
+/// User-agent styles for the tags that occur in the exercises.
 fn ua_style(tag: &str) -> Vec<(&'static str, &'static str)> {
     let mut v: Vec<(&str, &str)> = Vec::new();
     let display = match tag {
@@ -1146,24 +1146,24 @@ fn ua_style(tag: &str) -> Vec<(&'static str, &'static str)> {
     v
 }
 
-/// Приоритет объявления: (важное, источник, специфичность, порядок). Источник: 0 — браузер, 1 — автор, 2 — атрибут `style`.
+/// Declaration priority: (important, origin, specificity, order). Origin: 0 — browser, 1 — author, 2 — the `style` attribute.
 type Weight = (bool, u8, [u32; 3], usize);
 
 pub struct Cascade<'a> {
     pub doc: &'a Doc,
     pub sheet: &'a Stylesheet,
     pub viewport: f64,
-    /// состояние, в котором считаются стили: `hover`, `focus`, `active`… (`None` — обычное)
+    /// the state in which styles are computed: `hover`, `focus`, `active`… (`None` — normal)
     pub state: Option<&'a str>,
-    /// ширина контейнера для правил `@container` (`None` — такие правила не применяются)
+    /// container width for `@container` rules (`None` — such rules do not apply)
     pub container: Option<f64>,
-    /// признаки среды для `@media`: `prefers-color-scheme: dark`, `prefers-reduced-motion: reduce`… (пусто — значения по умолчанию)
+    /// environment features for `@media`: `prefers-color-scheme: dark`, `prefers-reduced-motion: reduce`… (empty — default values)
     pub env: &'a BTreeMap<String, String>,
 }
 
 impl Cascade<'_> {
-    /// Объявленные значения элемента после каскада, до наследования и разрешения единиц, и его пользовательские свойства.
-    /// Подходит ли селектор правила элементу в запрошенном состоянии и для запрошенного псевдоэлемента.
+    /// The element's declared values after the cascade, before inheritance and unit resolution, plus its custom properties.
+    /// Whether the rule selector matches the element in the requested state and for the requested pseudo-element.
     fn applies(&self, raw: &str, el: &ElementRef, pseudo: Option<&str>) -> bool {
         let Ok(parts) = parse_selector(raw) else { return false };
         if parts.pseudo.as_deref() != pseudo {
@@ -1193,7 +1193,7 @@ impl Cascade<'_> {
                     continue;
                 }
             }
-            // у правила со списком селекторов работает самый специфичный из совпавших
+            // for a rule with a selector list, the most specific matching selector counts
             let sp = rule.selectors.iter().filter(|s| self.applies(s, el, pseudo)).map(|s| specificity(s)).max();
             let Some(sp) = sp else { continue };
             for d in &rule.decls {
@@ -1208,7 +1208,7 @@ impl Cascade<'_> {
                 raw.push((d.prop.clone(), d.value.clone(), (d.important, 2u8, [0; 3], order)));
             }
         }
-        // пользовательские свойства: свои побеждают по приоритету, остальные наследуются
+        // custom properties: own ones win by priority, the rest are inherited
         let mut customs = parent_customs.clone();
         let mut won: BTreeMap<String, Weight> = BTreeMap::new();
         for (p, v, w) in raw.iter().filter(|(p, _, _)| p.starts_with("--")) {
@@ -1229,12 +1229,12 @@ impl Cascade<'_> {
         (best, customs)
     }
 
-    /// Вычисленные значения всех известных свойств элемента (с наследованием, `var()` и единицами в px).
+    /// Computed values of all known properties of the element (with inheritance, `var()` and units in px).
     pub fn computed(&self, el: &ElementRef) -> BTreeMap<String, String> {
         self.computed_for(el, None)
     }
 
-    /// То же для псевдоэлемента (`before`, `after`…): наследует от самого элемента.
+    /// The same for a pseudo-element (`before`, `after`…): inherits from the element itself.
     pub fn computed_for(&self, el: &ElementRef, pseudo: Option<&str>) -> BTreeMap<String, String> {
         let parent = if pseudo.is_some() { Some(self.computed_for(el, None)) } else { el.parent().and_then(ElementRef::wrap).map(|p| self.computed_for(&p, None)) };
         let parent_customs: BTreeMap<String, String> = parent.as_ref().map(|p| p.iter().filter(|(k, _)| k.starts_with("--")).map(|(k, v)| (k.clone(), v.clone())).collect()).unwrap_or_default();
@@ -1253,7 +1253,7 @@ impl Cascade<'_> {
                     "large" => 18.0,
                     t => {
                         let n = norm(t, &font_ctx);
-                        // проценты считаются от шрифта родителя
+                        // percentages are relative to the parent's font size
                         match n.strip_suffix('%').and_then(|x| x.parse::<f64>().ok()) {
                             Some(p) => parent_font * p / 100.0,
                             None => parse_px(&n).unwrap_or(parent_font),
@@ -1280,7 +1280,7 @@ impl Cascade<'_> {
                 out.insert(prop.clone(), v);
             }
         }
-        // наследуемые свойства, которых нет у элемента
+        // inherited properties the element lacks
         if let Some(p) = &parent {
             for (k, v) in p {
                 if inherited(k) && !out.contains_key(k) {
@@ -1288,7 +1288,7 @@ impl Cascade<'_> {
                 }
             }
         }
-        // `currentcolor` у цвета рамки и фона — цвет текста
+        // `currentcolor` for the border and background color is the text color
         let text = out.get("color").cloned().or_else(|| initial("color").map(String::from)).unwrap_or_default();
         for v in out.values_mut() {
             if v.contains("currentcolor") {
@@ -1306,7 +1306,7 @@ impl Cascade<'_> {
     }
 }
 
-/// Подставляет `var(--x, запасное)`.
+/// Substitutes `var(--x, fallback)`.
 fn substitute(v: &str, vars: &BTreeMap<String, String>, depth: u8) -> String {
     if depth > 8 || !v.contains("var(") {
         return v.to_string();
@@ -1343,7 +1343,7 @@ fn substitute(v: &str, vars: &BTreeMap<String, String>, depth: u8) -> String {
     out
 }
 
-/// Значение свойства у элемента; сокращения (`margin`, `gap`) собираются из составляющих.
+/// Property value on an element; shorthands (`margin`, `gap`) are assembled from their longhands.
 fn value_of(map: &BTreeMap<String, String>, prop: &str) -> Option<String> {
     if let Some(parts) = parts_of(prop) {
         let vals: Vec<String> = parts.iter().filter_map(|p| map.get(p).cloned().or_else(|| initial(p).map(String::from))).collect();
@@ -1361,8 +1361,8 @@ fn plain(prop: &str, v: &str) -> String {
     v.to_string()
 }
 
-/// CSS-условие. `None` — условие относится к HTML.
-/// `sheet` — все правила (из `<style>` задания и ученика) для каскада, `user` — только правила ученика для статических условий.
+/// A CSS condition. `None` means the condition belongs to HTML.
+/// `sheet` is all rules (from the task's `<style>` and the student's) for the cascade, `user` is only the student's rules for static conditions.
 pub fn run(doc: &Doc, sheet: &Stylesheet, user: &Stylesheet, check: &Check, viewport: f64) -> Option<Item> {
     Some(match check {
         Check::CssValid => Item { text: i18n::tr("CSS without errors").into(), ok: user.errors.is_empty(), detail: user.errors.first().cloned().unwrap_or_default() },
@@ -1551,7 +1551,7 @@ mod tests {
         assert_eq!(style_in(html, css, "a", "color", None, None, None, 1024.0).as_deref(), Some("rgb(0, 0, 255)"));
         assert_eq!(style_in(html, css, "a", "color", Some("hover"), None, None, 1024.0).as_deref(), Some("rgb(255, 0, 0)"));
         assert_eq!(style_in(html, css, "a", "outline-width", Some("focus"), None, None, 1024.0).as_deref(), Some("2px"));
-        assert_eq!(style_in(html, css, "a", "outline-width", None, None, None, 1024.0), None, "без фокуса правило не действует");
+        assert_eq!(style_in(html, css, "a", "outline-width", None, None, None, 1024.0), None, "rule does not apply without focus");
     }
 
     #[test]
@@ -1560,7 +1560,7 @@ mod tests {
         assert!(Stylesheet::parse(css).errors.is_empty(), "{:?}", Stylesheet::parse(css).errors);
         let html = "<input type=checkbox checked><label>x</label><div class=card>c</div><a href=y>l</a>";
         assert_eq!(style_in(html, css, "label", "color", None, None, None, 1024.0).as_deref(), Some("rgb(255, 0, 0)"));
-        assert_eq!(style_in(html, css, ".card", "content", None, None, None, 1024.0), None, "псевдоэлемент не красит сам элемент");
+        assert_eq!(style_in(html, css, ".card", "content", None, None, None, 1024.0), None, "pseudo-element does not style the element itself");
         assert_eq!(style_in(html, css, ".card", "content", None, Some("before"), None, 1024.0).as_deref(), Some("\"→\""));
         assert_eq!(style_in(html, css, ".card", "color", None, Some("before"), None, 1024.0).as_deref(), Some("rgb(0, 0, 255)"));
         assert_eq!(style_in(html, css, "a", "color", None, None, None, 1024.0).as_deref(), Some("rgb(0, 128, 0)"));
@@ -1609,7 +1609,7 @@ mod tests {
         assert_eq!(at(".b { font-size: clamp(16px, 2vw, 32px) }", 2000.0).as_deref(), Some("32px"));
         assert_eq!(at(".b { font-size: min(3rem, 40px) }", 1024.0).as_deref(), Some("40px"));
         assert_eq!(at(".b { font-size: max(1rem, calc(10px * 2)) }", 1024.0).as_deref(), Some("20px"));
-        // проценты без раскладки не посчитать — значение остаётся записью
+        // percentages cannot be computed without layout — the value stays as written
         assert_eq!(style_in(html, ".b { width: calc(100% - 20px) }", ".b", "width", None, None, None, 800.0).as_deref(), Some("calc(100% - 20px)"));
     }
 

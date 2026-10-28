@@ -1,15 +1,15 @@
-//! Книга 11 «Современный Frontend», глава 13 «HTML: документ, семантика и доступность» (раздел «HTML и разметка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 13 "HTML: document, semantics and accessibility" (section "HTML and markup"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bx, code, line, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [&[20.1, 23.8], &[10.9, 22.5], &[11.8, 20.6, 27.6], &[13.3, 23.4, 32.2], &[12.4, 21.6, 28.6], &[7.2, 16.4, 24.6], &[10.9, 20.7, 31.9], &[13.6, 21.2, 34.4], &[14.3, 21.2, 29.4], &[9.5, 17.5, 34.2], &[13.0, 23.9, 31.5], &[10.7, 15.6, 27.7], &[11.8, 24.9, 33.1]];
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-13.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-13.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Разметка и смысл", "Что такое HTML", "Разметка отвечает на вопрос «что это», а не «как выглядит»: вид задают стили.", v01),
@@ -34,25 +34,25 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись.
+/// Short label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка HTML; (x, y) — начало первой строки (базовая линия).
+/// HTML inset; (x, y) — start of the first line (baseline).
 fn html(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Html, id, x, y, lines)
 }
@@ -61,7 +61,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Разметка и смысл
+// 1. Markup and meaning
 fn v01() -> SceneSpec {
     let content = |tag: Option<[&str; 4]>| {
         let items = [("a", 28.0, "Кофе", 12.0), ("b", 64.0, "Горячий напиток из зёрен", 9.0), ("c", 100.0, "арабика · робуста", 9.0), ("d", 136.0, "Рецепты", 9.0)];
@@ -93,7 +93,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Каркас документа
+// 2. Document skeleton
 fn v02() -> SceneSpec {
     let lines = ["<!doctype html>", "<html lang=\"ru\">", "  <head>…</head>", "  <body>…</body>", "</html>"];
     spec(
@@ -121,7 +121,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Голова страницы
+// 3. Page head
 fn v03() -> SceneSpec {
     let lines = [
         "<head>",
@@ -163,7 +163,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Элементы и атрибуты
+// 4. Elements and attributes
 fn v04() -> SceneSpec {
     spec(
         &["Устройство", "Атрибуты", "Пустые", "Вложенность"],
@@ -203,7 +203,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Блочные и строчные
+// 5. Block and inline
 fn v05() -> SceneSpec {
     let words: [(&str, f64, Tone, &str); 5] = [("Читайте", 56.0, M, ""), ("ссылку", 56.0, B, "<a>"), ("и", 22.0, M, ""), ("важное", 56.0, Y, "<em>"), ("слово", 48.0, M, "")];
     let mut row = Frame::new().with(zone("zp", 180.0, 80.0, 330.0, 54.0).label("<p>")).with(note("n", 180.0, 140.0, "строчные: ровно по размеру содержимого", 10.0));
@@ -247,7 +247,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Заголовки
+// 6. Headings
 fn v06() -> SceneSpec {
     let outline = |h4: bool| {
         let (c3, c4) = if h4 { ("h4  Арабика", "h4  Робуста") } else { ("h3  Арабика", "h3  Робуста") };
@@ -281,7 +281,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Текст и списки
+// 7. Text and lists
 fn v07() -> SceneSpec {
     spec(
         &["Абзац", "Списки", "Определения и цитаты", "Код"],
@@ -318,7 +318,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. Ссылки
+// 8. Links
 fn v08() -> SceneSpec {
     spec(
         &["Адреса", "Якорь", "Новая вкладка", "Текст ссылки"],
@@ -358,7 +358,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. Семантические контейнеры
+// 9. Semantic containers
 fn v09() -> SceneSpec {
     let base = || {
         Frame::new()
@@ -397,7 +397,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. Div и span
+// 10. Div and span
 fn v10() -> SceneSpec {
     spec(
         &["Выбор", "Контейнеры", "Див-суп", "Кнопка"],
@@ -439,7 +439,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Доступность
+// 11. Accessibility
 fn v11() -> SceneSpec {
     spec(
         &["Дерево", "Ориентиры", "Картинки", "Поля и фокус"],
@@ -486,7 +486,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Ошибки и разбор
+// 12. Errors and parsing
 fn v12() -> SceneSpec {
     spec(
         &["Незакрытый p", "Тег не там", "Дерево DOM", "Проверка"],
@@ -528,7 +528,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Чек-лист
+// 13. Checklist
 fn v13() -> SceneSpec {
     let rows = |id: &str, ys: &[f64], texts: &[&str]| -> Vec<content::item::Cell> {
         texts.iter().zip(ys).enumerate().map(|(i, (t, y))| b(&format!("{id}{i}"), 180.0, *y, 250.0, 26.0, t, G, 9.5)).collect()

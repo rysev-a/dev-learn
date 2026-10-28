@@ -1,4 +1,4 @@
-//! Нижние карточки лаборатории: «Собрать у себя на компьютере» (профиль «настоящая программа») и справочник команд.
+//! Bottom cards of the lab: "Build on your own computer" (the "real program" profile) and the instruction reference.
 
 use leptos::prelude::*;
 use riscvlab::{
@@ -11,10 +11,10 @@ use super::{
     session::Session,
 };
 
-/// Имя архива проекта.
+/// Project archive name.
 const ZIP_NAME: &str = "riscv-program.zip";
 
-/// Проект для сборки на своём компьютере: файлы, просмотр содержимого и скачивание (отдельным файлом и архивом).
+/// Project to build on your own computer: files, content preview and download (as a separate file and as an archive).
 #[component]
 pub fn ProjectCard(session: Session) -> impl IntoView {
     let files = Memo::new(move |_| project_files(&session.source.get()));
@@ -63,7 +63,7 @@ pub fn ProjectCard(session: Session) -> impl IntoView {
     }
 }
 
-/// Справочник: команды RV32IM и псевдокоманды.
+/// Reference: RV32IM instructions and pseudo-instructions.
 #[component]
 pub fn ReferenceCard() -> impl IntoView {
     let ops = OPS

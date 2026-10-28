@@ -1,6 +1,6 @@
-//! Дифференциальные тесты: движок на Rust даёт те же результаты, что прежний TypeScript-движок.
-//! «Золотые» данные — `tests/golden.json` (их строит `frontend/scripts/net-export.mjs`): сводка проверки целей на
-//! исходной и на решённой сети, итоговая решённая сеть и хеши вывода команд терминала.
+//! Differential tests: the Rust engine gives the same results as the former TypeScript engine.
+//! The "golden" data is `tests/golden.json` (built by `frontend/scripts/net-export.mjs`): goal check summary on
+//! the initial and on the solved network, the final solved network and hashes of terminal command output.
 
 use netlab::check::{apply_ops, check_goals, GoalResult};
 use netlab::lab::{load_dir, Task};
@@ -94,7 +94,7 @@ fn compare_summary(id: &str, what: &str, got: &[Value], want: &Value, errs: &mut
 
 #[test]
 fn цели_совпадают_с_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     let all = tasks();
@@ -112,7 +112,7 @@ fn цели_совпадают_с_typescript() {
 
 #[test]
 fn решённая_сеть_совпадает_с_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     for t in &tasks() {
@@ -120,7 +120,7 @@ fn решённая_сеть_совпадает_с_typescript() {
         let solved = t.spec.solved_state().expect("решение");
         let changed: Vec<NetState> = Vec::new();
         let _ = changed;
-        // устройства: изменившиеся берём из золотых данных, остальные — как в исходной сети
+        // devices: changed ones are taken from the golden data, the rest as in the initial network
         let ch = g["solved_changed"].as_array().cloned().unwrap_or_default();
         for d in solved.devices.iter() {
             let want: Value = match ch.iter().find(|x| x["id"] == d.id.as_str()) {
@@ -167,7 +167,7 @@ fn run_cmds(id: &str, label: &str, state: &NetState, cmds: &Value, errs: &mut Ve
 
 #[test]
 fn команды_терминала_совпадают_с_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     let mut total = 0;
@@ -182,7 +182,7 @@ fn команды_терминала_совпадают_с_typescript() {
 
 #[test]
 fn решение_применяется_без_ошибок() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     for t in &tasks() {
         let mut s = t.spec.start_state();
         apply_ops(&mut s, &t.spec.solution).unwrap_or_else(|e| panic!("{}: {e}", t.id));
@@ -191,7 +191,7 @@ fn решение_применяется_без_ошибок() {
 
 #[test]
 fn краевые_команды_совпадают_с_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
@@ -227,7 +227,7 @@ fn краевые_команды_совпадают_с_typescript() {
 
 #[test]
 fn цели_на_промежуточных_и_испорченных_сетях_совпадают_с_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
@@ -235,7 +235,7 @@ fn цели_на_промежуточных_и_испорченных_сетях
     let mut partials = 0;
     for t in &tasks() {
         let g = &gold["scenarios"][&t.id];
-        // промежуточные состояния: после каждого шага решения, кроме последнего
+        // intermediate states: after every solution step except the last
         let mut s = t.spec.start_state();
         let want = g["partial"].as_array().cloned().unwrap_or_default();
         assert_eq!(want.len(), t.spec.solution.len().saturating_sub(1), "{}", t.id);
@@ -244,7 +244,7 @@ fn цели_на_промежуточных_и_испорченных_сетях
             compare_summary(&t.id, &format!("partial{k}"), &summarize(&check_goals(&s, &t.spec.goals)), w, &mut errs);
             partials += 1;
         }
-        // сеть после краевых команд
+        // network after edge-case commands
         let mut e = t.spec.start_state();
         for run in g["edge"].as_array().cloned().unwrap_or_default() {
             let dev = run["dev"].as_str().unwrap_or("");
@@ -263,7 +263,7 @@ fn цели_на_промежуточных_и_испорченных_сетях
 
 #[test]
 fn синтетические_цели_совпадают_с_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let gold = golden();
     let mut errs = Vec::new();
     let mut n = 0;

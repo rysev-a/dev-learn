@@ -20,7 +20,7 @@
   --active-bg: #2b3b58;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   --np-cover-grad: linear-gradient(135deg, #4c8dff, #7b5cff);
-  /* Слайды и меню — тёмная «слайдовая» палитра в dark-теме */
+  /* Slides and menu - dark "slide" palette in the dark theme */
   --s-bg: #0b1217;
   --s-panel: #121e26;
   --s-panel2: #192a33;
@@ -35,11 +35,11 @@
   --s-amber-a45: rgba(241, 190, 114, 0.45);
   --s-amber-bg: #3a2b1d;
   --s-green: #193a32;
-  /* Подсветка синтаксиса Rust на слайдах */
+  /* Rust syntax highlighting on slides */
   --s-blue: #82b8e8;
   --s-violet: #c9a7f0;
   --s-red: #ee8d86;
-  /* «чёрные» узлы схем (красно-чёрные деревья) и текст на них */
+  /* "black" scheme nodes (red-black trees) and the text on them */
   --s-ink: #05090c;
   --s-onink: #f0f5f3;
 }
@@ -64,7 +64,7 @@
   --active-bg: #dfe9ff;
   --shadow: 0 12px 40px rgba(16, 24, 40, 0.14);
   --np-cover-grad: linear-gradient(135deg, #5b95ff, #8f6fff);
-  /* Слайды и меню — светлые значения той же палитры */
+  /* Slides and menu - light values of the same palette */
   --s-bg: #f6f8f7;
   --s-panel: #ffffff;
   --s-panel2: #e9f0ec;
@@ -79,7 +79,7 @@
   --s-amber-a45: rgba(165, 114, 14, 0.4);
   --s-amber-bg: #f8eed9;
   --s-green: #dff0e8;
-  /* Подсветка синтаксиса Rust на слайдах */
+  /* Rust syntax highlighting on slides */
   --s-blue: #2f6bb0;
   --s-violet: #7d4fc9;
   --s-red: #c24842;
@@ -276,7 +276,7 @@ button {
   color: var(--s-accent);
 }
 
-/* переключатель языка (EN / RU) */
+/* language switch (EN / RU) */
 .lang-switch {
   display: inline-flex;
   height: 36px;
@@ -351,8 +351,8 @@ button {
   gap: 0.2rem;
 }
 
-/* пункты меню разделов — по левому краю, номера в один столбец */
-.sidebar:not(.collapsed) .menu /* дерево слева в полноэкранном режиме: разделы → главы → слайды */
+/* section menu items - left-aligned, numbers in one column */
+.sidebar:not(.collapsed) .menu /* tree on the left in fullscreen mode: sections → chapters → slides */
 
 .fst-sec {
   display: flex;
@@ -431,7 +431,7 @@ button {
   opacity: 0.7;
 }
 
-/* плеер остаётся виден и поверх полноэкранных слайдов (см. .np-card) */
+/* the player stays visible above fullscreen slides too (see .np-card) */
 body:has(.np-card) .slide-fs {
   padding-bottom: 112px;
 }
@@ -450,7 +450,7 @@ body:has(.np-card) .slide-fs {
   text-align: left;
 }
 
-/* ---------- home — стилистика слайдов ---------- */
+/* ---------- home - slide styling ---------- */
 
 .home h2 {
   font-family: "IBM Plex Mono", monospace;
@@ -493,7 +493,7 @@ h2 {
   color: var(--muted);
 }
 
-/* ---------- now playing card — стилистика слайдов ---------- */
+/* ---------- now playing card - slide styling ---------- */
 
 .np-card {
   position: fixed;
@@ -961,7 +961,7 @@ h2 {
   border-radius: 8px;
 }
 
-/* ---------- Rust code с подсветкой синтаксиса ---------- */
+/* ---------- Rust code with syntax highlighting ---------- */
 
 .rs-code {
   margin: 0;
@@ -1121,6 +1121,44 @@ h2 {
 .slide-btn:hover {
   color: var(--s-accent);
   border-color: var(--s-accent-a45);
+}
+
+/* "Play + record": red dot by the triangle, while recording the button is red and blinks */
+.slide-btn.slide-rec .rec-dot {
+  fill: var(--s-red);
+}
+
+.slide-btn.slide-rec.on {
+  color: var(--s-red);
+  border-color: var(--s-red);
+}
+
+.slide-btn.slide-rec.on svg {
+  animation: slide-rec-blink 1.2s steps(2, start) infinite;
+}
+
+@keyframes slide-rec-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-btn.slide-rec.on svg {
+    animation: none;
+  }
+}
+
+.slide-rec-status {
+  max-width: 18em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+
+.slide-rec-status:empty {
+  display: none;
 }
 
 .slide-fs {
@@ -1411,7 +1449,7 @@ h2 {
   }
 }
 
-/* ── Квиз ─────────────────────────────────────────────── */
+/* ── Quiz ─────────────────────────────────────────────── */
 
 .quiz {
   margin-top: 18px;
@@ -1504,7 +1542,7 @@ h2 {
   font-weight: 600;
 }
 
-/* Вопросы теоретического квиза */
+/* Theory quiz questions */
 
 .quiz-q {
   display: flex;
@@ -1568,7 +1606,7 @@ h2 {
   color: var(--s-muted);
 }
 
-/* Упражнения с вводом ответа */
+/* Answer-input exercises */
 
 .ex-row {
   display: flex;
@@ -1629,7 +1667,7 @@ h2 {
   color: var(--s-muted);
 }
 
-/* Упражнения с проверкой кода в Docker */
+/* Exercises with code checking in Docker */
 
 .cx-cm {
   box-sizing: border-box;
@@ -1685,7 +1723,7 @@ h2 {
   word-break: break-word;
 }
 
-/* ---------- дашборд на главной ---------- */
+/* ---------- dashboard on the home page ---------- */
 
 .content.home {
   max-width: 1100px;
@@ -1881,7 +1919,7 @@ h2 {
   }
 }
 
-/* ---------- вход и регистрация ---------- */
+/* ---------- sign-in and registration ---------- */
 
 .boot {
   flex: 1;
@@ -2042,7 +2080,7 @@ h2 {
   font-weight: 700;
 }
 
-/* история попыток в упражнении */
+/* attempt history in an exercise */
 
 .pr-hist {
   display: flex;
@@ -2111,7 +2149,7 @@ h2 {
   font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
-/* ---------- страница настроек ---------- */
+/* ---------- settings page ---------- */
 
 .set-page {
   flex: 1;
@@ -2229,7 +2267,7 @@ h2 {
   background: var(--s-accent);
 }
 
-/* ---------- вкладки главы и вкладка «Практика» ---------- */
+/* ---------- chapter tabs and the "Practice" tab ---------- */
 
 .ch-tabs {
   display: flex;
@@ -2550,7 +2588,7 @@ h2 {
   word-break: break-word;
 }
 
-/* ширина считается по самой вкладке, а не по окну: слева ещё два меню */
+/* width is computed from the tab itself, not the window: there are two more menus on the left */
 .pr {
   container-type: inline-size;
 }
@@ -2568,14 +2606,14 @@ h2 {
   }
 }
 
-/* ---------- анимированные схемы на слайдах (slides/anim/*) ---------- */
+/* ---------- animated diagrams on slides (slides/anim/*) ---------- */
 
 .a-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  /* сцена невидима первые кадры и всплывает: прозрачность с задержкой */
+  /* scene is invisible for the first frames and fades in: opacity with delay */
   animation: a-rise 0.5s ease 0.35s both;
 }
 
@@ -2650,7 +2688,7 @@ h2 {
   width: 100%;
   max-width: 520px;
   height: auto;
-  /* схема проявляется чуть позже и медленнее остальной сцены */
+  /* the diagram appears slightly later and slower than the rest of the scene */
   animation: a-fade 0.8s ease 0.5s both;
 }
 
@@ -2834,7 +2872,7 @@ h2 {
   white-space: nowrap;
 }
 
-/* узлы пошаговых схем: всё, что меняется, меняется плавно */
+/* step-diagram nodes: everything that changes, changes smoothly */
 .a-t,
 .a-t * {
   transition:
@@ -2912,7 +2950,7 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* ---------- корень раздела: карточки тем ---------- */
+/* ---------- section root: topic cards ---------- */
 
 .topics-sec {
   margin-bottom: 26px;
@@ -2986,7 +3024,7 @@ html {
   color: var(--s-muted);
 }
 
-/* ---------- текст озвучки: окно снизу (пока звука нет, абзац «читается» по таймеру) ---------- */
+/* ---------- voice-over text: window at the bottom (while there is no sound, the paragraph is "read" by a timer) ---------- */
 
 .voice-pop {
   position: fixed;
@@ -3067,7 +3105,7 @@ html {
   font-weight: 600;
 }
 
-/* плеер встаёт над окном текста, а содержимое страниц не прячется под ними */
+/* the player sits above the text window, and page content does not hide under them */
 body:has(.voice-pop) .np-card {
   bottom: calc(1rem + var(--voice-h, 11rem) + 0.6rem);
 }
@@ -3090,7 +3128,7 @@ body:has(.voice-pop):has(.np-card) .slide-fs {
   }
 }
 
-/* ───── SQL-упражнения: виджет «База данных» (ERD и данные) и сравнение результатов ───── */
+/* ───── SQL exercises: "Database" widget (ERD and data) and result comparison ───── */
 .sx {
   margin: 4px 0 10px;
   border: 1px solid var(--s-border);
@@ -3389,7 +3427,7 @@ g.fk .sx-key {
   background: var(--s-bg);
 }
 
-/* сравнение результата с эталоном */
+/* comparison of the result with the reference */
 .sd {
   margin-top: 6px;
 }

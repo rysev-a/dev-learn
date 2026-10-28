@@ -1,4 +1,4 @@
-//! Дифференциальные тесты: `evaluate` и `check_goals` совпадают с золотыми результатами TypeScript-движка.
+//! Differential tests: `evaluate` and `check_goals` match the golden results of the TypeScript engine.
 
 mod common;
 
@@ -12,8 +12,8 @@ const TOL: f64 = 1e-9;
 fn opt_close(name: &str, a: Option<f64>, b: Option<f64>, ctx: &str) {
     match (a, b) {
         (None, None) => {}
-        (Some(x), Some(y)) => assert!(common::close(x, y, TOL), "{ctx}: {name}: {x} против {y}"),
-        _ => panic!("{ctx}: {name}: {a:?} против {b:?}"),
+        (Some(x), Some(y)) => assert!(common::close(x, y, TOL), "{ctx}: {name}: {x} vs {y}"),
+        _ => panic!("{ctx}: {name}: {a:?} vs {b:?}"),
     }
 }
 
@@ -25,7 +25,7 @@ fn compare(got: &EvalResult, want: &EvalResult, ctx: &str) {
         ("availability", got.availability, want.availability),
         ("cost", got.cost, want.cost),
     ] {
-        assert!(common::close(a, b, TOL), "{ctx}: {name}: {a} против {b}");
+        assert!(common::close(a, b, TOL), "{ctx}: {name}: {a} vs {b}");
     }
     opt_close("hit", got.hit, want.hit, ctx);
     opt_close("cdn_hit", got.cdn_hit, want.cdn_hit, ctx);
@@ -35,10 +35,10 @@ fn compare(got: &EvalResult, want: &EvalResult, ctx: &str) {
     assert_eq!(got.entry, want.entry, "{ctx}: entry");
     assert_eq!(got.warnings, want.warnings, "{ctx}: warnings");
     let ids = |r: &EvalResult| r.loads.iter().map(|(id, _)| id.to_owned()).collect::<Vec<_>>();
-    assert_eq!(ids(got), ids(want), "{ctx}: порядок и состав loads");
+    assert_eq!(ids(got), ids(want), "{ctx}: order and set of loads");
     for ((id, a), (_, b)) in got.loads.iter().zip(want.loads.iter()) {
         for (name, x, y) in [("load", a.load, b.load), ("cap", a.cap, b.cap), ("util", a.util, b.util), ("units", a.units, b.units)] {
-            assert!(common::close(x, y, TOL), "{ctx}: loads[{id}].{name}: {x} против {y}");
+            assert!(common::close(x, y, TOL), "{ctx}: loads[{id}].{name}: {x} vs {y}");
         }
         assert_eq!(a.status, b.status, "{ctx}: loads[{id}].status");
         assert_eq!(a.note, b.note, "{ctx}: loads[{id}].note");
@@ -50,7 +50,7 @@ fn run_case(task: &Task, c: &Case, count: &mut usize) {
     let state = match &c.state {
         CaseState::Ref(r) if r == "start" => task.spec.start.clone(),
         CaseState::Ref(r) if r == "solution" => task.spec.solution.clone(),
-        CaseState::Ref(r) => panic!("{ctx}: неизвестная ссылка {r}"),
+        CaseState::Ref(r) => panic!("{ctx}: unknown reference {r}"),
         CaseState::Inline(s) => {
             let mut s = s.clone();
             s.normalize();
@@ -62,9 +62,9 @@ fn run_case(task: &Task, c: &Case, count: &mut usize) {
     compare(&got, &c.result, &ctx);
     if let Some(goals) = &c.goals {
         let got_goals = check_goals(&state, wl, &task.spec.goals, None);
-        assert_eq!(got_goals.len(), goals.len(), "{ctx}: число целей");
+        assert_eq!(got_goals.len(), goals.len(), "{ctx}: goal count");
         for (i, (g, w)) in got_goals.iter().zip(goals).enumerate() {
-            assert_eq!(g, w, "{ctx}: цель {i}");
+            assert_eq!(g, w, "{ctx}: goal {i}");
         }
     }
     *count += 1;
@@ -72,7 +72,7 @@ fn run_case(task: &Task, c: &Case, count: &mut usize) {
 
 #[test]
 fn evaluate_and_goals_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let chapters = common::chapters();
     let golden = common::golden();
     assert_eq!(chapters.len(), golden.len());
@@ -87,18 +87,18 @@ fn evaluate_and_goals_match_typescript() {
             }
         }
     }
-    assert!(count > 2000, "золотых случаев: {count}");
-    eprintln!("совпало золотых случаев: {count}");
+    assert!(count > 2000, "golden cases: {count}");
+    eprintln!("golden cases matched: {count}");
 }
 
-/// Положения узлов исходных схем в данных получены TypeScript-версией `place`; Rust-версия должна дать то же.
+/// Node positions of the starting designs in the data were produced by the TypeScript `place`; the Rust version must give the same.
 #[test]
 fn layout_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     for ch in common::chapters() {
         for t in &ch.tasks {
             for (name, s) in [("start", &t.spec.start), ("solution", &t.spec.solution)] {
-                // нет положений — расставляем; а те, что были, не должны сдвинуться при повторной расстановке
+                // no positions — lay out; those that existed must not move on a repeated layout
                 let mut blank = s.clone();
                 for n in &mut blank.nodes {
                     n.x = -1.0;
@@ -106,10 +106,10 @@ fn layout_matches_typescript() {
                 }
                 let placed = place(&blank);
                 for (a, b) in placed.nodes.iter().zip(&s.nodes) {
-                    // положения в данных могли быть сдвинуты вручную в сценарии; сверяем только расставленные автоматически
-                    assert!(common::close(a.x, b.x, 0.0) && common::close(a.y, b.y, 0.0), "{} {name}: узел {}: ({}, {}) против ({}, {})", t.id, a.id, a.x, a.y, b.x, b.y);
+                    // positions in the data may have been shifted by hand in the scenario; compare only the auto-placed ones
+                    assert!(common::close(a.x, b.x, 0.0) && common::close(a.y, b.y, 0.0), "{} {name}: node {}: ({}, {}) vs ({}, {})", t.id, a.id, a.x, a.y, b.x, b.y);
                 }
-                assert_eq!(&place(s), s, "{} {name}: повторная расстановка меняет схему", t.id);
+                assert_eq!(&place(s), s, "{} {name}: re-placing changes the diagram", t.id);
             }
         }
     }
@@ -117,23 +117,23 @@ fn layout_matches_typescript() {
 
 #[test]
 fn suggest_edges_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let chapters = common::chapters();
     let golden = common::golden();
     let mut count = 0;
     for (ch, g) in chapters.iter().zip(&golden) {
         for (task, gt) in ch.tasks.iter().zip(&g.tasks) {
             for s in &gt.suggest {
-                let n = task.spec.solution.node(&s.node).expect("узел эталона");
+                let n = task.spec.solution.node(&s.node).expect("reference node");
                 let stripped = sdlab::SdState {
                     nodes: task.spec.solution.nodes.clone(),
                     edges: task.spec.solution.edges.iter().filter(|e| e.from != n.id && e.to != n.id).cloned().collect(),
                 };
                 let got = suggest_edges(&stripped, n, &[], AUTO_RADIUS);
-                assert_eq!(got, s.edges, "{} / автосвязи узла {}", task.id, s.node);
+                assert_eq!(got, s.edges, "{} / auto-links of node {}", task.id, s.node);
                 count += 1;
             }
         }
     }
-    assert!(count > 300, "случаев автосвязей: {count}");
+    assert!(count > 300, "auto-link cases: {count}");
 }

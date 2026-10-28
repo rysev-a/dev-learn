@@ -1,5 +1,5 @@
-//! Проверка упражнения: цели сценария прогоняются на чистой копии сети (без кэшей ARP и MAC), чтобы результат
-//! не зависел от того, что ученик успел «нащупать» пингами. Цели и шаги эталонного решения — данные.
+//! Exercise check: the scenario goals are run on a clean copy of the network (without ARP and MAC caches) so the result
+//! does not depend on what the student managed to "feel out" with pings. Goals and reference solution steps are data.
 
 use crate::http::{http_fetch, FetchOptions, FetchResult};
 use crate::ip::*;
@@ -13,9 +13,9 @@ use crate::types::*;
 use crate::util::{num_str, to_fixed, OrdMap};
 use serde::{Deserialize, Serialize};
 
-/* ---- цели ---- */
+/* ---- goals ---- */
 
-/// Ожидание от пробы: получится или должно быть запрещено.
+/// Expectation of a probe: it succeeds or it must be blocked.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Expect {
@@ -23,7 +23,7 @@ pub enum Expect {
     Fail,
 }
 
-/// Цель-проба: ping, TCP или UDP от устройства `from` к `to` (адрес, «@устройство» или имя).
+/// Probe goal: ping, TCP or UDP from device `from` to `to` (address, "@device" or name).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ProbeGoal {
     pub from: String,
@@ -58,7 +58,7 @@ pub struct ProbeGoal {
 pub struct DnsGoal {
     pub from: String,
     pub name: String,
-    /// Ожидаемый адрес, «NXDOMAIN» или «ошибка».
+    /// Expected address, "NXDOMAIN" or "error".
     pub expect: String,
 }
 
@@ -96,10 +96,10 @@ pub struct SshGoal {
     pub via: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pass: Option<String>,
-    /// «key» или «password».
+    /// "key" or "password".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub auth: Option<String>,
-    /// «fail» — вход должен быть закрыт.
+    /// "fail" means login must be denied.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub expect: Option<String>,
 }
@@ -114,7 +114,7 @@ pub struct PageGoal {
     pub max_s: f64,
 }
 
-/// Ожидание от заголовка ответа: он есть (`true`) или содержит подстроку.
+/// Expectation of a response header: it exists (`true`) or contains a substring.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum HeaderWant {
@@ -168,7 +168,7 @@ pub struct XferGoal {
     pub max_loaded_rtt_ms: Option<f64>,
 }
 
-/// Вид цели: ровно одна проверка.
+/// Goal kind: exactly one check.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GoalKind {
@@ -184,7 +184,7 @@ pub enum GoalKind {
     Xfer(XferGoal),
 }
 
-/// Цель упражнения.
+/// Exercise goal.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Goal {
     pub id: String,
@@ -193,7 +193,7 @@ pub struct Goal {
     pub kind: GoalKind,
 }
 
-/// Что показывает панель результата: переходы кадров, события и (для передачи файла) график.
+/// What the result panel shows: frame hops, events and (for file transfer) a chart.
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct GoalRun {
     pub hops: Vec<Hop>,
@@ -210,7 +210,7 @@ impl From<&ProbeRun> for GoalRun {
     }
 }
 
-/// Результат проверки одной цели.
+/// Result of checking one goal.
 #[derive(Clone, Debug, Serialize)]
 pub struct GoalResult {
     pub id: String,
@@ -224,7 +224,7 @@ fn from_run(r: Option<&ProbeRun>) -> GoalRun {
     r.map(GoalRun::from).unwrap_or_default()
 }
 
-/// «10.0.0.5» | «@srv» | «@r1.eth1» → адрес.
+/// "10.0.0.5" | "@srv" | "@r1.eth1" -> address.
 pub fn resolve_target(state: &NetState, spec: &str) -> Option<u32> {
     if let Some(rest) = spec.strip_prefix('@') {
         let mut parts = rest.split('.');
@@ -240,7 +240,7 @@ pub fn resolve_target(state: &NetState, spec: &str) -> Option<u32> {
     parse_ip(spec)
 }
 
-/// Цель пробы: адрес, «@устройство» или имя (через hosts и DNS-резолвер устройства-источника).
+/// Probe target: address, "@device" or name (via hosts and the DNS resolver of the source device).
 pub fn resolve_from(state: &mut NetState, spec: &str, from_id: &str) -> Result<crate::term::Resolved, crate::term::ResolveErr> {
     if spec.starts_with('@') {
         return match resolve_target(state, spec) {
@@ -254,7 +254,7 @@ pub fn resolve_from(state: &mut NetState, spec: &str, from_id: &str) -> Result<c
     to_ip(state, from_id, spec)
 }
 
-/// Итог пробы цели: статус и то, что нужно панели результата.
+/// Outcome of a goal probe: status and what the result panel needs.
 #[derive(Clone, Debug)]
 pub struct ProbeOutcome {
     pub status: ProbeStatus,
@@ -280,8 +280,8 @@ impl ProbeOutcome {
     }
 }
 
-/// Прогнать цель-пробу (ping, TCP или UDP) на состоянии `state` (кэши состояния при этом меняются).
-/// Для целей других видов вернёт `Noaddr` с пояснением.
+/// Run a probe goal (ping, TCP or UDP) on state `state` (the state caches change in the process).
+/// For goals of other kinds returns `Noaddr` with an explanation.
 pub fn run_probe(state: &mut NetState, goal: &Goal) -> ProbeOutcome {
     let (p, which) = match &goal.kind {
         GoalKind::Ping(p) => (p, 0),
@@ -342,7 +342,7 @@ pub fn run_probe(state: &mut NetState, goal: &Goal) -> ProbeOutcome {
         }
     };
     if p.warm {
-        once(state); // «прогрев»: ARP и таблицы коммутаторов уже выучены
+        once(state); // "warm-up": ARP and switch tables are already learned
     }
     let r = once(state);
     ProbeOutcome {
@@ -370,7 +370,7 @@ fn status_text(s: ProbeStatus) -> &'static str {
     }
 }
 
-/// Пакет действительно прошёл через устройство: оно его отправляло или он был адресован его интерфейсу.
+/// The packet really passed through the device: it sent it or it was addressed to its interface.
 fn touches(run: &GoalRun, state: &NetState, id: &str) -> bool {
     run.hops.iter().any(|h| {
         let Payload::Ip(_) = &h.frame.body else { return false };
@@ -404,7 +404,7 @@ fn proto_name(p: HttpProto) -> &'static str {
     p.name()
 }
 
-/// Проверить все цели на чистой копии сети.
+/// Check all goals on a clean copy of the network.
 pub fn check_goals(state: &NetState, goals: &[Goal]) -> Vec<GoalResult> {
     goals.iter().map(|g| check_goal(state, g)).collect()
 }
@@ -730,28 +730,28 @@ fn check_probe(state: &NetState, g: &Goal, p: &ProbeGoal) -> GoalResult {
     res(g, ok, detail, run)
 }
 
-/* ---- шаги эталонного решения ---- */
+/* ---- reference solution steps ---- */
 
-/// Шаг решения: действие над кабелями или команда терминала.
+/// Solution step: a cable action or a terminal command.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Step {
-    /// Убрать кабель между двумя устройствами.
+    /// Remove the cable between two devices.
     Unlink { a: String, b: String },
-    /// Убрать все кабели устройства.
+    /// Remove all cables of a device.
     Drop { dev: String },
-    /// Проложить кабель между первыми свободными портами.
+    /// Lay a cable between the first free ports.
     Cable {
         a: String,
         b: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         extra: Option<LinkExtra>,
     },
-    /// Выполнить команду терминала на устройстве.
+    /// Execute a terminal command on a device.
     Cmd { dev: String, line: String },
 }
 
-/// Применить шаги эталонного решения. Ошибка — шаг не удался (нет кабеля, нет портов, команда отвергнута).
+/// Apply the reference solution steps. Error means a step failed (no cable, no ports, command rejected).
 pub fn apply_ops(state: &mut NetState, ops: &[Step]) -> Result<(), String> {
     for op in ops {
         match op {

@@ -1,6 +1,6 @@
-//! Дискретная математика, глава 5 «Логика высказываний»: сцены.
-//! Перенос с `frontend/src/slides/anim/C5*.tsx` (ручной SVG на `kit.tsx`) в данные. Таблицы истинности — сетка клеток
-//! (`table`), выделенные клетки красятся оттенком, остальные — только рамка; метки шагов и длительность шага — как в `useSteps`.
+//! Discrete mathematics, chapter 5 "Propositional logic": scenes.
+//! Port of `frontend/src/slides/anim/C5*.tsx` (hand-written SVG on `kit.tsx`) to data. Truth tables — a grid of cells
+//! (`table`), highlighted cells are painted with a tone, the rest — frame only; step marks and step duration — as in `useSteps`.
 
 use content::{
     dsl::{bx, c_code, cell, arrow, line, py, text},
@@ -26,20 +26,20 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники ---------------------------------------------------------------------------------
+// --- helpers -----------------------------------------------------------------------------------
 
-/// Плашка с подписью: (x, y) — центр, оттенок и размер шрифта.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотных таблиц кадров
+/// Plate with a label: (x, y) — centre, tone and font size.
+#[allow(clippy::too_many_arguments)] // short helper for dense frame tables
 fn pill(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Обычная подпись (приглушённая).
+/// Regular label (muted).
 fn cap(id: &str, x: f64, y: f64, label: &str, size: f64) -> Text {
     text(id, x, y, label).size(size)
 }
 
-/// Моноширинная подпись; цвет — оттенком (`tone`), без оттенка — обычный цвет текста.
+/// Monospace label; colour — by tone (`tone`), without a tone — the regular text colour.
 fn mono(id: &str, x: f64, y: f64, label: &str, size: f64) -> Text {
     text(id, x, y, label).mono().size(size)
 }
@@ -48,13 +48,13 @@ fn mono_t(id: &str, x: f64, y: f64, label: &str, size: f64, tone: Tone) -> Text 
     mono(id, x, y, label, size).tone(tone)
 }
 
-/// Строки таблицы значений из срезов `0/1`.
+/// Value table rows from `0/1` slices.
 fn rows(a: &[&[u8]]) -> Vec<Vec<u8>> {
     a.iter().map(|r| r.to_vec()).collect()
 }
 
-/// Таблица истинности: заголовки зелёным, линия под ними, клетки с 0/1 (1 — зелёные, 0 — красные); `hl(r, c)` красит клетку.
-/// (x, y) — левый верхний угол сетки (под линией заголовка).
+/// Truth table: headers in green, a line under them, cells with 0/1 (1 — green, 0 — red); `hl(r, c)` paints a cell.
+/// (x, y) — top-left corner of the grid (under the header line).
 #[allow(clippy::too_many_arguments)]
 fn table(id: &str, x: f64, y: f64, head: &[&str], data: &[Vec<u8>], cw: f64, rh: f64, hl: &dyn Fn(usize, usize) -> Option<Tone>) -> Vec<Item> {
     let mut v: Vec<Item> = Vec::new();
@@ -87,7 +87,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>, cues: &[f64], ms
     SceneSpec::new(labels, captions, frames).cues(cues).step_ms(ms)
 }
 
-// --- 1. Логика высказываний ---------------------------------------------------------------------
+// --- 1. Propositional logic ---------------------------------------------------------------------
 
 fn intro() -> SceneSpec {
     let lines: [(&str, &str, Tone); 3] = [("!(!a || !b)", "запутанная инверсия", R), ("a || b && c", "а какой приоритет?", Y), ("✓ ✓ ✓ …", "внезапно зелёный тест", B)];
@@ -124,7 +124,7 @@ fn intro() -> SceneSpec {
     )
 }
 
-// --- 2. Высказывание ----------------------------------------------------------------------------
+// --- 2. Proposition -----------------------------------------------------------------------------
 
 fn statement() -> SceneSpec {
     let f0 = Frame::new().with(content::dsl::dot("p", 180.0, 80.0, "p").r(34.0).size(22.0).tone(G));
@@ -168,7 +168,7 @@ fn statement() -> SceneSpec {
     )
 }
 
-// --- 3. Три операции ----------------------------------------------------------------------------
+// --- 3. Three operations ------------------------------------------------------------------------
 
 fn ops() -> SceneSpec {
     let f0 = Frame::new().with_all([("¬", "не"), ("∧", "и"), ("∨", "или")].iter().enumerate().flat_map(|(i, (s, n))| {
@@ -215,9 +215,9 @@ fn ops() -> SceneSpec {
     )
 }
 
-// --- 4. Таблицы истинности ----------------------------------------------------------------------
+// --- 4. Truth tables ----------------------------------------------------------------------------
 
-/// Все строки таблицы истинности для `n` переменных (1 — истина), в порядке 11, 10, 01, 00.
+/// All truth table rows for `n` variables (1 — true), in the order 11, 10, 01, 00.
 fn inputs(n: usize) -> Vec<Vec<u8>> {
     (0..1usize << n).map(|i| (0..n).map(|k| ((i >> (n - 1 - k)) & 1) as u8).collect()).collect()
 }
@@ -243,7 +243,7 @@ fn truth() -> SceneSpec {
     )
 }
 
-// --- 5. Импликация ------------------------------------------------------------------------------
+// --- 5. Implication -----------------------------------------------------------------------------
 
 fn implication() -> SceneSpec {
     let f0 = Frame::new().with(mono_t("big", 180.0, 86.0, "p → q", 34.0, G));
@@ -290,7 +290,7 @@ fn implication() -> SceneSpec {
     )
 }
 
-// --- 6. Ложная посылка --------------------------------------------------------------------------
+// --- 6. False premise ---------------------------------------------------------------------------
 
 fn vacuous() -> SceneSpec {
     let f0 = Frame::new().with(mono_t("big", 180.0, 86.0, "0 → q = 1", 22.0, Y));
@@ -337,7 +337,7 @@ fn vacuous() -> SceneSpec {
     )
 }
 
-// --- 7. Эквивалентность -------------------------------------------------------------------------
+// --- 7. Equivalence -----------------------------------------------------------------------------
 
 fn equiv() -> SceneSpec {
     let f0 = Frame::new().with(mono_t("big", 180.0, 86.0, "p ↔ q", 34.0, G));
@@ -387,7 +387,7 @@ fn equiv() -> SceneSpec {
     )
 }
 
-// --- 8. Классы формул ---------------------------------------------------------------------------
+// --- 8. Formula classes -------------------------------------------------------------------------
 
 fn classes() -> SceneSpec {
     let f0 = Frame::new()
@@ -425,7 +425,7 @@ fn classes() -> SceneSpec {
     )
 }
 
-// --- 9. Законы логики ---------------------------------------------------------------------------
+// --- 9. Laws of logic ---------------------------------------------------------------------------
 
 fn laws() -> SceneSpec {
     let f0 = Frame::new().with_all(["∧", "∨", "¬", "·(·)"].iter().enumerate().map(|(i, t)| pill(&format!("law{i}"), 60.0 + i as f64 * 80.0, 80.0, 50.0, 44.0, t, G, 16.0)));
@@ -474,7 +474,7 @@ fn laws() -> SceneSpec {
     )
 }
 
-// --- 10. Законы де Моргана ----------------------------------------------------------------------
+// --- 10. De Morgan's laws -----------------------------------------------------------------------
 
 fn de_morgan() -> SceneSpec {
     let f0 = Frame::new().with(pill("law", 180.0, 80.0, 200.0, 44.0, "¬(a ∧ b) ↔ ¬a ∨ ¬b", G, 13.0));
@@ -521,7 +521,7 @@ fn de_morgan() -> SceneSpec {
     )
 }
 
-// --- 11. Короткое замыкание ---------------------------------------------------------------------
+// --- 11. Short-circuit evaluation ---------------------------------------------------------------
 
 fn short() -> SceneSpec {
     let f0 = Frame::new().with(mono_t("big", 180.0, 86.0, "left and right", 22.0, G));
@@ -561,7 +561,7 @@ fn short() -> SceneSpec {
     )
 }
 
-// --- 12. Как применять --------------------------------------------------------------------------
+// --- 12. How to apply ---------------------------------------------------------------------------
 
 fn daily() -> SceneSpec {
     let f0 = Frame::new().with_all(["упростить", "тестировать", "читать вслух"].iter().enumerate().map(|(i, t)| pill(&format!("h{i}"), 180.0, 34.0 + i as f64 * 40.0, 180.0, 30.0, &format!("{}. {t}", i + 1), G, 11.0)));
@@ -597,7 +597,7 @@ fn daily() -> SceneSpec {
     )
 }
 
-// --- 13. Итог -----------------------------------------------------------------------------------
+// --- 13. Summary --------------------------------------------------------------------------------
 
 fn recap() -> SceneSpec {
     let words = ["p", "¬", "∧", "∨", "→", "↔", "таблицы", "p ∨ ¬p", "де Морган", "замыкание"];

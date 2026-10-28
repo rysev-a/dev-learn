@@ -1,4 +1,4 @@
-//! Упражнения с кодом в кабинете: статусы, черновики и история попыток (как `accounts/practice.py`).
+//! Code exercises in the cabinet: statuses, drafts and attempt history (like `accounts/practice.py`).
 
 use serde_json::{json, Value};
 
@@ -13,8 +13,8 @@ fn key(user: &str, book: i64, chapter: i64, task: &str) -> String {
     format!("{user}:{book}:{chapter}:{task}")
 }
 
-/// Записывает попытку и обновляет статус. Решённое остаётся решённым навсегда: неудачная попытка статус «ok» не снимает.
-/// Что записывается в историю: чей код, по какой задаче, сколько тестов пройдено.
+/// Records an attempt and updates the status. Solved stays solved forever: a failed attempt does not clear status "ok".
+/// What goes into the history: whose code, for which task, how many tests passed.
 pub struct Attempt<'a> {
     pub user: &'a str,
     pub book: i64,
@@ -59,7 +59,7 @@ pub async fn record_attempt(db: &Db, a: Attempt<'_>) -> ApiResult<Value> {
     .bind(("at", created.clone()))
     .await?
     .check()?;
-    // хранится не больше HISTORY_LIMIT последних попыток по задаче
+    // at most HISTORY_LIMIT latest attempts per task are stored
     let mut res = db
         .query("SELECT VALUE n FROM code_attempts WHERE user = $u AND book = $b AND chapter = $c AND tid = $t ORDER BY n DESC LIMIT 1 START $lim")
         .bind(("u", user.to_string()))
@@ -96,7 +96,7 @@ pub async fn save_draft(db: &Db, user: &str, book: i64, chapter: i64, task: &str
     Ok(())
 }
 
-/// Статусы и черновики пользователя по задачам главы.
+/// The user's statuses and drafts for the chapter's tasks.
 pub async fn chapter_state(db: &Db, user: &str, book: i64, chapter: i64) -> ApiResult<Value> {
     let mut res = db
         .query("SELECT tid, status FROM code_status WHERE user = $u AND book = $b AND chapter = $c")
@@ -112,7 +112,7 @@ pub async fn chapter_state(db: &Db, user: &str, book: i64, chapter: i64) -> ApiR
     Ok(json!({ "status": status, "drafts": drafts }))
 }
 
-/// История попыток: от новых к старым, с кодом.
+/// Attempt history: newest first, with code.
 pub async fn attempts(db: &Db, user: &str, book: i64, chapter: i64, task: &str) -> ApiResult<Vec<Value>> {
     let mut res = db
         .query("SELECT n, code, status, passed, total, created_at FROM code_attempts WHERE user = $u AND book = $b AND chapter = $c AND tid = $t ORDER BY n DESC LIMIT $lim")

@@ -1,6 +1,6 @@
-//! Процессор «Мини-8», собранный из вентилей, с тем же интерфейсом, что у эмулятора:
-//! шаг, запуск до остановки, текущее состояние. Один шаг — один такт: целая команда.
-//! Порт `cpu8/gate-machine.ts`.
+//! The "Mini-8" processor built from gates, with the same interface as the emulator:
+//! step, run until halt, current state. One step — one clock cycle: a whole instruction.
+//! Port of `cpu8/gate-machine.ts`.
 
 use super::blocks::cpu8_blocks;
 use super::builders::nodes_of;
@@ -15,7 +15,7 @@ const ROM: &str = "rom__mem";
 const RAM: &str = "ram__mem";
 const CLK: &str = "clk";
 
-/// Процессор в виде схемы разворачивается один раз — это самая дорогая часть, дальше можно запускать сколько угодно.
+/// The processor circuit is expanded once — that is the most expensive part; after that it can be run any number of times.
 pub fn cpu_expansion() -> Option<&'static Expansion> {
     static CACHED: OnceLock<Option<Expansion>> = OnceLock::new();
     CACHED
@@ -27,7 +27,7 @@ pub fn cpu_expansion() -> Option<&'static Expansion> {
         .as_ref()
 }
 
-/// Скомпилированный процессор (пустой, без программы); копируется для каждой машины.
+/// Compiled processor (empty, without a program); copied for every machine.
 fn template() -> Result<&'static CompiledSim, String> {
     static TEMPLATE: OnceLock<Result<CompiledSim, String>> = OnceLock::new();
     TEMPLATE
@@ -49,7 +49,7 @@ fn pc_nodes() -> &'static [String] {
     NODES.get_or_init(|| nodes_of("pc", Iface::Byte))
 }
 
-/// Машина на вентилях.
+/// Gate-level machine.
 #[derive(Debug, Clone)]
 pub struct GateMachine {
     pub sim: CompiledSim,
@@ -63,7 +63,7 @@ pub struct GateMachine {
 }
 
 impl GateMachine {
-    /// Машина с программой и начальным содержимым диска.
+    /// Machine with a program and initial disk contents.
     pub fn new(program: &[u16], disk: &[u8]) -> Result<GateMachine, String> {
         let mut sim = template()?.clone();
         let rom: Vec<u16> = program.iter().copied().take(PROGRAM_MAX).collect();
@@ -81,17 +81,17 @@ impl GateMachine {
         })
     }
 
-    /// Можно выполнять дальше.
+    /// Can continue executing.
     pub fn running(&self) -> bool {
         !self.halted && self.error.is_none()
     }
 
-    /// Счётчик команд.
+    /// Program counter.
     pub fn pc(&self) -> u32 {
         self.sim.read(pc_nodes()).unwrap_or(0)
     }
 
-    /// Регистры r0…r7: нулевой всегда ноль.
+    /// Registers r0…r7: the zero register is always zero.
     pub fn regs(&self) -> Vec<u8> {
         let mut v = vec![0u8];
         v.extend(reg_nodes().iter().map(|nodes| self.sim.read(nodes).unwrap_or(0) as u8));
@@ -102,7 +102,7 @@ impl GateMachine {
         self.sim.memory(RAM).unwrap_or_default()
     }
 
-    /// Выполнить одну команду (один такт).
+    /// Execute one instruction (one clock cycle).
     pub fn step(&mut self) {
         if !self.running() {
             return;
@@ -120,7 +120,7 @@ impl GateMachine {
         self.steps += 1;
         self.halted = self.sim.get("halted") == Some(1);
 
-        // что изменила команда — для подсветки на диске и у регистров
+        // what the instruction changed — for highlighting on the disk and at the registers
         let regs_after = self.regs();
         let mem_after = self.memory();
         self.last_reg = regs_after.iter().zip(&regs_before).position(|(a, b)| a != b);
@@ -134,7 +134,7 @@ impl GateMachine {
         self.last_read = None;
     }
 
-    /// Выполнять до остановки, ошибки или лимита шагов.
+    /// Run until halt, error or the step limit.
     pub fn run(&mut self, max_steps: u64) {
         let mut left = max_steps;
         while self.running() && left > 0 {
@@ -146,7 +146,7 @@ impl GateMachine {
         }
     }
 
-    /// Состояние для интерфейса.
+    /// State for the interface.
     pub fn view(&self) -> MachineView {
         MachineView {
             regs: self.regs(),

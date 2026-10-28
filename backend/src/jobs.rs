@@ -1,9 +1,9 @@
-//! Очередь проверок кода: API кладёт решение в таблицу `exec_jobs`, воркер забирает его, запускает
-//! в песочнице и возвращает результат. Сам бэкенд контейнеры не запускает — выполняет внешний воркер (`backend/worker.py`).
+//! Code-check queue: the API puts a solution into the `exec_jobs` table, a worker takes it, runs it
+//! in a sandbox and returns the result. The backend itself starts no containers - an external worker does (`backend/worker.py`).
 //!
-//! Жизнь задания: queued → running (аренда `lease_until`, продлевается сердцебиением воркера; не продлилась — задание
-//! возвращается в очередь, после `MAX_ATTEMPTS` попыток завершается ошибкой) → done (результат и попытка записаны).
-//! Изменения очереди идут под одним замком процесса (`AppState::queue`): бэкенд работает одним экземпляром.
+//! Job life: queued -> running (lease `lease_until`, extended by the worker heartbeat; if not extended the job
+//! returns to the queue, after `MAX_ATTEMPTS` attempts it ends with an error) -> done (result and attempt recorded).
+//! Queue changes go under a single process lock (`AppState::queue`): the backend runs as one instance.
 
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -17,7 +17,7 @@ use crate::{
 pub const LIGHT: &str = "light";
 pub const HEAVY: &str = "heavy";
 const LANES: [&str; 2] = [LIGHT, HEAVY];
-/// Потолок очереди по умолчанию; меняется переменной `CS_CORE_QUEUE_LIMIT` (при превышении `POST /run` отвечает 503, интерфейс показывает окно о перегрузке).
+/// Default queue limit; changed by the `CS_CORE_QUEUE_LIMIT` variable (when exceeded `POST /run` answers 503, the interface shows an overload window).
 const DEFAULT_QUEUE_LIMIT: i64 = 300;
 
 fn queue_limit() -> i64 {
@@ -32,7 +32,7 @@ const WORKER_ALIVE_SEC: f64 = 30.0;
 const MAX_RESULT_BYTES: usize = 600_000;
 const MAX_TEXT: usize = 20_000;
 
-/// Ошибка постановки в очередь: HTTP-статус и текст для пользователя.
+/// Queueing error: HTTP status and text for the user.
 pub struct JobError(pub u16, pub String);
 
 fn lane_of(task: &Value) -> &'static str {
@@ -58,9 +58,9 @@ async fn count_where(db: &Db, cond: &str) -> ApiResult<i64> {
     Ok(rows.first().map_or(0, |r| i(r, "n")))
 }
 
-// --- постановка ----------------------------------------------------------------------------
+// --- queueing ----------------------------------------------------------------------------
 
-/// Ставит решение в очередь (или сразу отдаёт кэшированный результат); возвращает id задания.
+/// Puts a solution in the queue (or returns the cached result at once); returns the job id.
 pub async fn submit(state: &AppState, user: &str, book: i64, chapter: i64, task: &Value, code: &str, runner_ok: bool) -> Result<String, JobError> {
     let _guard = state.queue.lock().await;
     let db = &state.db;
@@ -109,7 +109,7 @@ pub async fn submit(state: &AppState, user: &str, book: i64, chapter: i64, task:
     Ok(job_id)
 }
 
-/// Результат от воркера: только известные поля и разумные размеры.
+/// Result from a worker: only known fields and sane sizes.
 fn normalize(result: &Value) -> Value {
     let cut = |k: &str| result.get(k).and_then(Value::as_str).unwrap_or("").chars().take(MAX_TEXT).collect::<String>();
     let items: Vec<Value> = result.get("results").and_then(Value::as_array).map(|a| a.iter().filter(|r| r.is_object()).take(100).cloned().collect()).unwrap_or_default();
@@ -120,7 +120,7 @@ fn normalize(result: &Value) -> Value {
     out
 }
 
-/// Записывает попытку и итог; успешные проверки кладёт в кэш.
+/// Records the attempt and the outcome; successful checks go to the cache.
 pub async fn finish(db: &Db, job_id: &str, result: Value, cache: bool) -> ApiResult<Value> {
     let mut res = db.query("SELECT user, book, chapter, tid, code, key FROM exec_jobs WHERE jid = $j").bind(("j", job_id.to_string())).await?;
     let job = res.take::<Vec<Value>>(0)?.into_iter().next();
@@ -132,7 +132,7 @@ pub async fn finish(db: &Db, job_id: &str, result: Value, cache: bool) -> ApiRes
     let (user, tid, code) = (s(&job, "user"), s(&job, "tid"), s(&job, "code"));
     let attempt = practice::record_attempt(db, practice::Attempt { user: &user, book: i(&job, "book"), chapter: i(&job, "chapter"), task: &tid, code: &code, passed, total, solved }).await?;
     let mut payload = result.clone();
-    let obj = payload.as_object_mut().expect("результат — объект");
+    let obj = payload.as_object_mut().expect("result is an object");
     obj.insert("passed".into(), json!(passed));
     obj.insert("total".into(), json!(total));
     obj.insert("solved".into(), json!(solved));
@@ -150,7 +150,7 @@ pub async fn finish(db: &Db, job_id: &str, result: Value, cache: bool) -> ApiRes
     Ok(payload)
 }
 
-/// Состояние задания для клиента: queued (с местом в очереди), running или done (с результатом).
+/// Job state for the client: queued (with queue position), running or done (with the result).
 pub async fn get_for_user(db: &Db, job_id: &str, user: &str) -> ApiResult<Option<Value>> {
     let mut res = db.query("SELECT status, lane, created_at, result FROM exec_jobs WHERE jid = $j AND user = $u").bind(("j", job_id.to_string())).bind(("u", user.to_string())).await?;
     let Some(job) = res.take::<Vec<Value>>(0)?.into_iter().next() else { return Ok(None) };
@@ -169,9 +169,9 @@ pub async fn get_for_user(db: &Db, job_id: &str, user: &str) -> ApiResult<Option
     }
 }
 
-// --- воркеры -------------------------------------------------------------------------------
+// --- workers -------------------------------------------------------------------------------
 
-/// Отдаёт воркеру самое старое задание из его полос или `None`; аренда выдаётся под замком очереди.
+/// Gives a worker the oldest job from its lanes or `None`; the lease is issued under the queue lock.
 pub async fn claim(state: &AppState, worker: &str, lanes: &[String]) -> ApiResult<Option<Value>> {
     let lanes: Vec<String> = lanes.iter().filter(|l| LANES.contains(&l.as_str())).cloned().collect();
     if lanes.is_empty() {
@@ -198,7 +198,7 @@ pub async fn claim(state: &AppState, worker: &str, lanes: &[String]) -> ApiResul
     Ok(Some(json!({ "id": jid, "lane": s(&job, "lane"), "task": task, "code": s(&job, "code"), "lease": LEASE_SEC as i64 })))
 }
 
-/// Принимает результат от воркера, которому задание выдано; чужой или просроченный ответ отклоняется.
+/// Accepts a result from the worker the job was issued to; a foreign or expired reply is rejected.
 pub async fn complete(state: &AppState, job_id: &str, worker: &str, result: Value) -> ApiResult<bool> {
     let _guard = state.queue.lock().await;
     let mut res = state.db.query("SELECT status, worker FROM exec_jobs WHERE jid = $j").bind(("j", job_id.to_string())).await?;
@@ -210,9 +210,9 @@ pub async fn complete(state: &AppState, job_id: &str, worker: &str, result: Valu
     Ok(true)
 }
 
-/// Сердцебиение воркера: отмечает, что он жив, и продлевает аренду выполняющихся заданий.
+/// Worker heartbeat: marks it alive and extends the leases of running jobs.
 pub async fn ping(state: &AppState, name: &str, lanes: &[String], slots: i64, jobs: &[String]) -> ApiResult<()> {
-    // запись одной и той же строки воркера из нескольких долгих опросов сразу даёт конфликт транзакций SurrealDB — идём под замком очереди
+    // writing the same worker row from several long polls at once causes a SurrealDB transaction conflict - go under the queue lock
     let _guard = state.queue.lock().await;
     let t = now_secs();
     state
@@ -237,7 +237,7 @@ pub async fn ping(state: &AppState, name: &str, lanes: &[String], slots: i64, jo
     Ok(())
 }
 
-/// Возвращает в очередь задания с просроченной арендой (воркер пропал) и чистит старые записи.
+/// Returns jobs with an expired lease (the worker vanished) to the queue and cleans old records.
 pub async fn reap(db: &Db, t: f64) -> ApiResult<()> {
     let mut res = db.query("SELECT jid, attempts FROM exec_jobs WHERE status = 'running' AND lease_until < $t").bind(("t", t)).await?;
     for job in res.take::<Vec<Value>>(0)? {
@@ -259,10 +259,10 @@ pub async fn reap(db: &Db, t: f64) -> ApiResult<()> {
     Ok(())
 }
 
-/// То же, но не чаще раза в секунду (воркеры опрашивают очередь каждые 0,4 с).
+/// The same, but at most once a second (workers poll the queue every 0.4 s).
 async fn reap_throttled(state: &AppState, t: f64) -> ApiResult<()> {
     {
-        let mut last = state.last_reap.lock().expect("замок last_reap");
+        let mut last = state.last_reap.lock().expect("last_reap lock");
         if t - *last < 1.0 {
             return Ok(());
         }

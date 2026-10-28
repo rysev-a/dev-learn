@@ -1,16 +1,16 @@
-//! Лаборатория «Системный дизайн» (книга 18): схема высоконагруженного сервиса из компонентов и расчёт под заданной
-//! нагрузкой. Общий crate: фронтенд (wasm) рисует поле и считает метрики на лету, бэкенд хранит упражнения как данные
-//! и сам проверяет присланные решения ([`verify`]).
+//! "System design" lab (book 18): a design of a high-load service built from components and its evaluation under a given
+//! workload. Shared crate: the frontend (wasm) draws the board and computes metrics on the fly, the backend stores exercises as data
+//! and verifies submitted solutions itself ([`verify`]).
 //!
-//! * [`types`] — схема, нагрузка, результат расчёта, цели, упражнения и файлы данных;
-//! * [`kinds`] — справочник компонентов и параметров, [`reference`] — числа модели (ёмкость, цены, задержки);
-//! * [`engine`] — детерминированный расчёт ([`evaluate`]), точный порт TypeScript-версии;
-//! * [`checks`] — цели упражнения ([`check_goals`], [`describe`]);
-//! * [`layout`], [`ports`] — раскладка по колонкам, порты, допустимость связей и автосвязи (для поля схемы);
-//! * [`verify`] — серверная проверка решения;
-//! * [`data`] — чтение файлов данных глав.
+//! * [`types`] — design, workload, evaluation result, goals, exercises and data files;
+//! * [`kinds`] — catalog of components and parameters, [`reference`] — model numbers (capacity, prices, latencies);
+//! * [`engine`] — deterministic evaluation ([`evaluate`]), an exact port of the TypeScript version;
+//! * [`checks`] — exercise goals ([`check_goals`], [`describe`]);
+//! * [`layout`], [`ports`] — column layout, ports, link validity and auto-links (for the design board);
+//! * [`verify`] — server-side solution verification;
+//! * [`data`] — reading chapter data files.
 //!
-//! Зависимости — только `serde`; собирается нативно и под `wasm32-unknown-unknown`.
+//! The only dependency is `serde`; builds natively and for `wasm32-unknown-unknown`.
 
 pub mod checks;
 pub mod data;

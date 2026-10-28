@@ -1,5 +1,5 @@
-//! Файлы данных (`backend/data/labs/virt`) и serde-круг: данные читаются, пишутся обратно без потерь и совпадают
-//! с тем, что строит `import` из `labs.py` и описаний симуляторов.
+//! Data files (`backend/data/labs/virt`) and the serde round trip: data is read, written back losslessly and matches
+//! what `import` builds from `labs.py` and the simulator descriptions.
 
 use std::path::PathBuf;
 
@@ -24,29 +24,29 @@ fn round_trip<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(x: 
 
 #[test]
 fn data_files_are_canonical_and_up_to_date() {
-    i18n::set_locale(i18n::Locale::Ru);
-    let built = build_chapters(include_str!("../data/tasks.json")).unwrap();
+    // the scenario text inside `spec` is English; only title/statement/hint are Russian
+    let built = i18n::with_locale(i18n::Locale::En, || build_chapters(include_str!("../data/tasks.json")).unwrap());
     assert_eq!(built.iter().map(|c| c.chapter).collect::<Vec<_>>(), [2, 4, 6, 9, 10, 11]);
     let mut files: Vec<_> =
-        std::fs::read_dir(data_dir()).expect("каталог данных есть").map(|e| e.unwrap().file_name()).collect();
+        std::fs::read_dir(data_dir()).expect("data dir exists").map(|e| e.unwrap().file_name()).collect();
     files.sort();
     let want: Vec<_> = built.iter().map(|c| std::ffi::OsString::from(c.file_name())).collect();
-    assert_eq!(files, want, "набор файлов: запустите import");
+    assert_eq!(files, want, "file set: run import");
     for c in &built {
         let text = std::fs::read_to_string(data_dir().join(c.file_name())).unwrap();
         let parsed = LabChapter::from_json(&text).unwrap();
         parsed.validate().unwrap();
-        assert_eq!(&parsed, c, "{}: файл отстал от определений, запустите import", c.file_name());
-        assert_eq!(parsed.to_canonical_json().unwrap(), text, "{}: файл не канонический", c.file_name());
+        assert_eq!(&parsed, c, "{}: file is stale relative to definitions, run import", c.file_name());
+        assert_eq!(parsed.to_canonical_json().unwrap(), text, "{}: file is not canonical", c.file_name());
         assert_eq!((parsed.book, parsed.lab.as_str()), (17, "virt"));
-        // порядок глав и id совпадают с labs.py
+        // chapter order and ids match labs.py
         assert!(parsed.tasks.iter().all(|t| t.id.starts_with("virt-sim-")));
     }
 }
 
 #[test]
 fn spec_files_serialize_with_sim_tag() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     for c in build_chapters(include_str!("../data/tasks.json")).unwrap() {
         for t in &c.tasks {
             let v = serde_json::to_value(&t.spec).unwrap();
@@ -60,7 +60,7 @@ fn spec_files_serialize_with_sim_tag() {
 
 #[test]
 fn model_types_round_trip() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     for id in virtlab::LAB_IDS {
         round_trip(&virtlab::builtin(id).unwrap());
     }
@@ -120,8 +120,8 @@ fn model_types_round_trip() {
 
 #[test]
 fn wire_formats_match_the_old_ts_client() {
-    i18n::set_locale(i18n::Locale::Ru);
-    // так прежний клиент присылает параметры миграции и настройки трансляции
+    locales::set_locale(i18n::Locale::Ru);
+    // this is how the former client sends migration parameters and translation settings
     let m: migration::MigrationInput = serde_json::from_str(
         r#"{"dirty":300,"bw":1250,"downtimeMs":300,"autoConverge":false,"compress":false,"postcopyAfter":null}"#,
     )
@@ -132,7 +132,7 @@ fn wire_formats_match_the_old_ts_client() {
     )
     .unwrap();
     assert_eq!(m.postcopy_after, Some(2));
-    // обратно — те же имена полей
+    // back again — the same field names
     let v = serde_json::to_value(&m).unwrap();
     assert_eq!(v["downtimeMs"], 100.0);
     assert_eq!(v["postcopyAfter"], 2);
@@ -148,10 +148,10 @@ fn wire_formats_match_the_old_ts_client() {
 
 #[test]
 fn validation_catches_broken_data() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let mut spec = virtlab::builtin("virt-sim-ept").unwrap();
     if let Spec::Ept { goals, .. } = &mut spec {
-        goals[0].workload = "нет такой".into();
+        goals[0].workload = "no such".into();
     }
     assert!(spec.validate().is_err());
     let mut spec = virtlab::builtin("virt-sim-hv").unwrap();

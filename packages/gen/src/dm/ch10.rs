@@ -1,6 +1,6 @@
-//! Дискретная математика, глава 10 «Вероятность и теорема Байеса»: 13 сцен.
-//! Перенос с `slides/anim/C10*.tsx` (React, `kit.tsx`) на данные. Цвета — только оттенки `Tone`; прежние «столбики»
-//! (прямоугольники растущей ширины) заменены линиями толщиной в столбик: линия плавно растёт по `d`.
+//! Discrete mathematics, chapter 10 "Probability and Bayes' theorem": 13 scenes.
+//! Port of `slides/anim/C10*.tsx` (React, `kit.tsx`) to data. Colours — only `Tone` tones; the former "bars"
+//! (rectangles of growing width) are replaced by lines as thick as a bar: a line grows smoothly along `d`.
 
 use content::{
     dsl::{arrow, bx, circle, dot, disc, intersect, line, path, text, union},
@@ -26,38 +26,38 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники ----------------------------------------------------------------------------------
+// --- helpers ------------------------------------------------------------------------------------
 
 const ACCENT: &str = "var(--s-accent)";
 const INK: &str = "var(--s-text)";
 
-/// Моноширинная подпись по центру (y — базовая линия).
+/// Centred monospace label (y — baseline).
 fn mono(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).mono().size(size)
 }
 
-/// Моноширинная подпись от левого края.
+/// Monospace label from the left edge.
 fn mono_l(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     mono(id, x, y, s, size).anchor(Anchor::Start)
 }
 
-/// Обычная подпись (шрифт `a-cap`).
+/// Regular label (font `a-cap`).
 fn cap(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).size(size)
 }
 
-/// Плашка с рамкой цвета `tone`.
+/// Plate with a frame of colour `tone`.
 fn pill(id: &str, x: f64, y: f64, w: f64, h: f64, s: &str, tone: Tone, size: f64) -> Cell {
     bx(id, x, y, w, h, s).tone(tone).size(size)
 }
 
-/// Плашка-акцент: зелёная заливка и подпись цветом акцента.
+/// Accent plate: green fill and a label in the accent colour.
 fn hot(id: &str, x: f64, y: f64, w: f64, h: f64, s: &str, size: f64) -> Cell {
     pill(id, x, y, w, h, s, G, size).text_color(ACCENT)
 }
 
-/// Горизонтальный столбик из `x` длиной `len`, толщиной `thick`; `on = false` — нулевая длина и невидим
-/// (кадр перед появлением: столбик плавно вырастает).
+/// Horizontal bar from `x` of length `len`, thickness `thick`; `on = false` — zero length and invisible
+/// (the frame before appearance: the bar grows smoothly).
 fn hbar(id: &str, x: f64, y: f64, len: f64, thick: f64, tone: Tone, on: bool) -> Line {
     if on {
         line(id, x, y, x + len, y).width(thick).tone(tone).opacity(0.45)
@@ -66,7 +66,7 @@ fn hbar(id: &str, x: f64, y: f64, len: f64, thick: f64, tone: Tone, on: bool) ->
     }
 }
 
-// --- 1. Вступление ------------------------------------------------------------------------------
+// --- 1. Introduction ----------------------------------------------------------------------------
 
 fn intro() -> SceneSpec {
     let rows = [("кэш", "попал", "промах"), ("фича", "выиграла", "нет"), ("алерт", "настоящий", "ложный")];
@@ -105,7 +105,7 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 2. Классическая вероятность ----------------------------------------------------------------
+// --- 2. Classical probability -------------------------------------------------------------------
 
 fn classic() -> SceneSpec {
     let grid = (0..12).map(|i| {
@@ -145,7 +145,7 @@ fn classic() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 3. Комбинаторика ---------------------------------------------------------------------------
+// --- 3. Combinatorics ---------------------------------------------------------------------------
 
 fn counting() -> SceneSpec {
     let coins = (0..32).map(|i| {
@@ -185,11 +185,11 @@ fn counting() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 4. События ---------------------------------------------------------------------------------
+// --- 4. Events ----------------------------------------------------------------------------------
 
 fn events() -> SceneSpec {
     let (a, b) = (disc(150.0, 70.0, 46.0), disc(210.0, 70.0, 46.0));
-    // кружки A и B с областями «или» (шаг 1) и «и» (шаги 1–2)
+    // circles A and B with the "or" region (step 1) and "and" region (steps 1–2)
     let venn = |or_on: f64, and_on: f64, tag: &str, formula: Text| {
         Frame::new()
             .with(union("or", &[a, b]).tone(G).fill_opacity(0.25).shown(or_on))
@@ -236,7 +236,7 @@ fn events() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 5. Независимость ---------------------------------------------------------------------------
+// --- 5. Independence ----------------------------------------------------------------------------
 
 fn independent() -> SceneSpec {
     let grid = |hit: bool| {
@@ -291,7 +291,7 @@ fn independent() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 6. Условная вероятность --------------------------------------------------------------------
+// --- 6. Conditional probability -----------------------------------------------------------------
 
 fn conditional() -> SceneSpec {
     let rows = [("P(дождь) = 20 %", 20.0, B, 38.0), ("P(дождь | пасмурно) = 60 %", 60.0, R, 84.0)];
@@ -325,7 +325,7 @@ fn conditional() -> SceneSpec {
             "Почти всё, что вы говорите о будущем, — условные вероятности; просто условие обычно не проговаривают",
         ],
         vec![
-            // шаг 0: столбики на месте будущих, нулевой длины — вырастут на шаге 2 (перекрытие с текстом невозможно: они невидимы)
+            // step 0: bars in place of the future ones, zero length — they grow at step 2 (no overlap with text possible: they are invisible)
             Frame::new().with(mono("t0", 180.0, 80.0, "P ( A | B )", 26.0).tone(G)).with_all([hbar("rb0", 30.0, 50.0, 90.0, 16.0, B, false), hbar("rb1", 30.0, 96.0, 270.0, 16.0, R, false)]),
             Frame::new()
                 .with(bx("world", 105.0, 70.0, 130.0, 100.0, "весь мир").size(12.0))
@@ -342,7 +342,7 @@ fn conditional() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 7. Формула Байеса --------------------------------------------------------------------------
+// --- 7. Bayes' formula --------------------------------------------------------------------------
 
 fn bayes() -> SceneSpec {
     let rows = [("падал раньше", "P(упал) 5 %", B), ("мониторинг сработал", "новые данные", Y), ("теперь", "P(упал | сработал) 70 %", G)];
@@ -388,10 +388,10 @@ fn bayes() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 8. Ловушка базовой частоты -----------------------------------------------------------------
+// --- 8. Base rate trap --------------------------------------------------------------------------
 
 fn trap() -> SceneSpec {
-    // условная выборка: одна красная точка среди 200 (подписи говорят «1 из 1000»)
+    // conditional sample: one red point among 200 (the labels say "1 in 1000")
     let crowd = || {
         (0..200).map(|i| {
             let (c, r) = ((i % 25) as f64, (i / 25) as f64);
@@ -439,7 +439,7 @@ fn trap() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 9. Спам-фильтр -----------------------------------------------------------------------------
+// --- 9. Spam filter -----------------------------------------------------------------------------
 
 fn spam() -> SceneSpec {
     let mails = (0..12).map(|i| bx(format!("m{i}"), 55.0 + (i % 6) as f64 * 48.0, 42.0 + (i / 6) as f64 * 38.0, 38.0, 28.0, "").tone(if i % 3 == 0 { R } else { M }));
@@ -494,7 +494,7 @@ fn spam() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 10. Пренебрежение базовой частотой ---------------------------------------------------------
+// --- 10. Base rate neglect ----------------------------------------------------------------------
 
 fn base_rate() -> SceneSpec {
     let cascade = [("100 000", "грубый фильтр", 160.0, B), ("1 000", "точнее", 100.0, Y), ("100", "дорогой анализ", 56.0, G)];
@@ -533,7 +533,7 @@ fn base_rate() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 11. Вероятность в инженерии ----------------------------------------------------------------
+// --- 11. Probability in engineering -------------------------------------------------------------
 
 fn engineering() -> SceneSpec {
     let curve = "M40 120 C100 118 140 100 180 80 C230 56 280 44 322 38";
@@ -588,7 +588,7 @@ fn engineering() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 12. Диагностика ----------------------------------------------------------------------------
+// --- 12. Diagnostics ----------------------------------------------------------------------------
 
 fn diagnostics() -> SceneSpec {
     let causes = [("деплой", 55.0, G), ("база", 30.0, Y), ("сеть", 10.0, B), ("диск", 5.0, M)];
@@ -642,11 +642,11 @@ fn diagnostics() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 13. Итог -----------------------------------------------------------------------------------
+// --- 13. Summary --------------------------------------------------------------------------------
 
 fn finale() -> SceneSpec {
     let cards = [("∈  ×  C", "язык"), ("∀  ∃  ⇒", "логика"), ("V, E", "графы"), ("P(A|B)", "вероятность")];
-    // карточка `at` подсвечена на шаге `at`, после неё остаётся залитой
+    // card `at` is highlighted at step `at`, and stays filled afterwards
     let frame = |step: usize| {
         let f = Frame::new().with_all(cards.iter().enumerate().map(|(i, (big, name))| {
             let at = i + 1;

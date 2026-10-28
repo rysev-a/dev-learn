@@ -1,9 +1,9 @@
-# Образ песочницы для Rust-упражнений с крейтами: rust:1.97-slim + заранее собранные tokio, axum, sqlx (PostgreSQL),
-# serde, tower, tungstenite, argon2 и др., а также сервер PostgreSQL с готовым кластером /opt/pgdata
-# (его запускает раннер перед проверкой: см. PG_START в app/exercises/runner.py). Сборка (нужна сеть один раз):
+# Sandbox image for Rust exercises with crates: rust:1.97-slim + prebuilt tokio, axum, sqlx (PostgreSQL),
+# serde, tower, tungstenite, argon2, etc., plus a PostgreSQL server with a ready cluster at /opt/pgdata
+# (the runner starts it before a check: see PG_START in worker/runner.py). Build (network needed once):
 #   docker build -t cs-core-rust-crates:1 backend/docker/rust-crates
-# Во время проверки сеть отключена: код ученика собирается напрямую rustc, а --extern на все готовые rlib
-# лежат в /opt/ext/externs (по одной строке `--extern имя=путь`).
+# During a check the network is off: student code is built directly with rustc, and --extern for all prebuilt rlibs
+# is in /opt/ext/externs (one `--extern name=path` line each).
 FROM rust:1.97-slim
 
 RUN cargo new --lib /opt/deps \
@@ -27,8 +27,8 @@ RUN cargo new --lib /opt/deps \
 COPY mkext.sh /tmp/mkext.sh
 RUN sh /tmp/mkext.sh
 
-# PostgreSQL: кластер инициализируется один раз при сборке (trust-доступ с 127.0.0.1, база chat);
-# при проверке (корневая ФС только для чтения) раннер копирует его в /tmp и запускает от пользователя postgres.
+# PostgreSQL: the cluster is initialised once at build time (trust access from 127.0.0.1, database chat);
+# during a check (read-only root FS) the runner copies it to /tmp and starts it as the postgres user.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends postgresql \
  && rm -rf /var/lib/apt/lists/* \

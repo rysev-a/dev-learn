@@ -1,6 +1,6 @@
-//! Дискретная математика, глава 1 — «Множества: язык математики»: сцены 13 слайдов.
-//! Перенос с `frontend/src/slides/dm/ch01.tsx` и `anim/*.tsx` (ручная отрисовка на `kit.tsx`) на данные: названия шагов, подписи
-//! и метки `cues` взяты из прежних сцен как есть. Что упрощено — см. примечания у сцен («Венн», «Взрыв», «Контракты»).
+//! Discrete mathematics, chapter 1 — "Sets: the language of mathematics": scenes of 13 slides.
+//! Port of `frontend/src/slides/dm/ch01.tsx` and `anim/*.tsx` (manual rendering on `kit.tsx`) to data: step names, captions
+//! and `cues` marks are taken from the former scenes as is. What was simplified — see the notes at the scenes ("Venn", "Explosion", "Contracts").
 
 use content::{
     dsl::{bx, cell, circle, disc, dot, intersect, line, minus, outside, path, py, rect, text, union, zone},
@@ -8,7 +8,7 @@ use content::{
     Frame, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-/// Сцены главы: имя прежнего компонента — описание.
+/// Chapter scenes: former component name — description.
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     vec![
         ("ShapesIntro", shapes_intro()),
@@ -27,9 +27,9 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники ---------------------------------------------------------------------------------
+// --- helpers -----------------------------------------------------------------------------------
 
-/// Прозрачность по условию: показан или погашен.
+/// Opacity by condition: shown or dimmed.
 fn op(on: bool) -> f64 {
     if on {
         1.0
@@ -38,27 +38,27 @@ fn op(on: bool) -> f64 {
     }
 }
 
-/// Подпись обычным шрифтом (9,5), приглушённая.
+/// Label in regular font (9.5), muted.
 fn cap(id: &str, x: f64, y: f64, t: &str) -> Text {
     text(id, x, y, t).size(9.5)
 }
 
-/// Моноширинная подпись (по умолчанию 11).
+/// Monospace label (11 by default).
 fn mono(id: &str, x: f64, y: f64, t: &str) -> Text {
     text(id, x, y, t).mono().size(11.0)
 }
 
-/// Подпись, прижатая к левой точке.
+/// Label anchored to the left point.
 fn left(id: &str, x: f64, y: f64, t: &str) -> Text {
     cap(id, x, y, t).anchor(Anchor::Start)
 }
 
-/// Плашка высотой 20 с моноширинной подписью.
+/// Plate of height 20 with a monospace label.
 fn pill(id: &str, x: f64, y: f64, w: f64, t: &str, tone: Tone) -> Cell {
     bx(id, x, y, w, 20.0, t).tone(tone).size(10.5)
 }
 
-/// Контур со скруглёнными углами (без заливки): `(x, y, w, h)` — левый верхний угол и размеры; пунктир `5 4`.
+/// Rounded-corner outline (no fill): `(x, y, w, h)` — top-left corner and size; dash `5 4`.
 fn hull(id: &str, (x, y, w, h): (f64, f64, f64, f64), r: f64, tone: Tone, dashed: bool) -> Path {
     let d = format!(
         "M{} {y} H{} A{r} {r} 0 0 1 {} {} V{} A{r} {r} 0 0 1 {} {} H{} A{r} {r} 0 0 1 {x} {} V{} A{r} {r} 0 0 1 {} {y} Z",
@@ -81,9 +81,9 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// --- 1. Фигуры и группы ------------------------------------------------------------------------
+// --- 1. Shapes and groups ----------------------------------------------------------------------
 
-/// Фигура: (кружок?, цвет, место в «двух группах», место в «трёх группах»).
+/// Shape: (circle?, colour, place in "two groups", place in "three groups").
 type Shape = (bool, Tone, (f64, f64), (f64, f64));
 
 const SHAPES: [Shape; 10] = [
@@ -98,13 +98,13 @@ const SHAPES: [Shape; 10] = [
     (false, G, (245.0, 108.0), (300.0, 112.0)),
     (false, B, (285.0, 108.0), (80.0, 112.0)),
 ];
-/// Обводка двух групп: (x, y, ширина, высота).
+/// Outline of two groups: (x, y, width, height).
 const HULLS_A: [(f64, f64, f64, f64); 2] = [(30.0, 38.0, 130.0, 96.0), (200.0, 38.0, 130.0, 96.0)];
-/// Обводка трёх групп: рамка, подпись, цвет.
+/// Outline of three groups: frame, label, colour.
 const HULLS_G: [((f64, f64, f64, f64), &str, Tone); 3] =
     [((18.0, 44.0, 84.0, 92.0), "синие", B), ((138.0, 44.0, 84.0, 92.0), "красные", R), ((258.0, 44.0, 84.0, 92.0), "зелёные", G)];
 
-/// Пять кружков и пять квадратов: две группы по форме, затем цвета и три группы по цвету. Те же фигуры переезжают (один `id`).
+/// Five circles and five squares: two groups by shape, then colours and three groups by colour. The same shapes move (one `id`).
 fn shapes_intro() -> SceneSpec {
     let frames = (0..4)
         .map(|step| {
@@ -142,14 +142,14 @@ fn shapes_intro() -> SceneSpec {
     .cues(&[4.9, 14.3, 19.2])
 }
 
-// --- 2. Множество и список ---------------------------------------------------------------------
+// --- 2. Set and list ---------------------------------------------------------------------------
 
 const SET_SLOTS: [(f64, f64); 3] = [(270.0, 62.0), (270.0, 88.0), (270.0, 114.0)];
 const GUESTS: [&str; 3] = ["Аня", "Борис", "Вера"];
-/// Список гостей: имя и место в списке до и после перестановки (при перестановке плашки едут, а не пересоздаются).
+/// Guest list: name and position in the list before and after the reorder (on reorder the plates move rather than get recreated).
 const LIST: [(&str, [usize; 2]); 4] = [("Аня", [0, 1]), ("Борис", [1, 2]), ("Аня", [2, 3]), ("Вера", [3, 0])];
 
-/// Множество гостей (кольцо) и список: вторая «Аня» сливается, порядок списка меняется, а множество то же.
+/// Guest set (ring) and list: the second "Anya" merges, the list order changes, but the set is the same.
 fn list_vs_set() -> SceneSpec {
     let shift = |s: usize| [0, 0, 1, 1, 2][s];
     let frames = (0..5)
@@ -159,14 +159,14 @@ fn list_vs_set() -> SceneSpec {
                 let (x, y) = SET_SLOTS[(i + shift(step)) % 3];
                 f = f.with(pill(&format!("g{i}"), x, y, 56.0, name, G).opacity(op(step >= 1)));
             }
-            // повторная «Аня»: стучится снаружи и сливается с настоящей
+            // repeated "Anya": knocks from outside and merges with the real one
             let (dx, dy) = if step >= 2 { SET_SLOTS[shift(step) % 3] } else { (180.0, 40.0) };
             f = f.with(pill("dup", dx, dy, 56.0, "Аня", Y).opacity(if step == 1 { 0.9 } else { 0.0 }));
             f = f.with(cap("dup-ask", 180.0, 22.0, "ещё одна «Аня»?").tone(Y).opacity(op(step == 1)));
             let outsider = (1..=2).contains(&step);
             f = f.with(pill("outsider", 336.0, 22.0, 40.0, "Глеб", M).opacity(if outsider { 0.55 } else { 0.0 }));
             f = f.with(cap("outsider-no", 336.0, 42.0, "∉ гостей").opacity(op(outsider)));
-            // список
+            // list
             f = f.with(hull("list-box", (14.0, 26.0, 118.0, 116.0), 10.0, Y, false).opacity(op(step >= 3)));
             f = f.with(cap("list-title", 73.0, 164.0, "список гостей").opacity(op(step >= 3)));
             for k in 0..4 {
@@ -195,9 +195,9 @@ fn list_vs_set() -> SceneSpec {
     .cues(&[1.8, 8.5, 13.4, 20.4])
 }
 
-// --- 3. Равенство и пустое множество -----------------------------------------------------------
+// --- 3. Equality and the empty set -------------------------------------------------------------
 
-/// {1, 2} и {2, 1, 1}: повтор сливается, множества равны; затем появляется ∅.
+/// {1, 2} and {2, 1, 1}: the repeat merges, the sets are equal; then ∅ appears.
 fn equality() -> SceneSpec {
     let frames = (0..4)
         .map(|step| {
@@ -212,7 +212,7 @@ fn equality() -> SceneSpec {
                 .with(dot("a2", 102.0, 70.0, "2").r(11.0).opacity(dim))
                 .with(dot("b2", 252.0, 70.0, "2").r(11.0).opacity(dim))
                 .with(dot("b1", 288.0, 55.0, "1").r(11.0).opacity(dim))
-                // лишняя «1» сливается с настоящей
+                // the extra "1" merges with the real one
                 .with(dot("b1-dup", 288.0, if step >= 1 { 55.0 } else { 87.0 }, "1").r(11.0).tone(Y).opacity(op(step < 1)))
                 .with(mono("eq", 180.0, 76.0, "=").size(22.0).tone(G).opacity(op(step == 1)))
                 .with(circle("empty", 180.0, 72.0, 38.0).tone(Y).dash().opacity(op(grown)).scale(if grown { 1.0 } else { 0.5 }))
@@ -235,9 +235,9 @@ fn equality() -> SceneSpec {
     .cues(&[5.9, 11.5, 18.4])
 }
 
-// --- 4. Три операции (диаграмма Венна) ---------------------------------------------------------
+// --- 4. Three operations (Venn diagram) --------------------------------------------------------
 
-/// Элемент диаграммы: число, к каким множествам относится, дубль общего элемента, место «врозь» и «вместе».
+/// Diagram element: number, which sets it belongs to, duplicate of a shared element, place "apart" and "together".
 struct VDot {
     n: u8,
     set: &'static str,
@@ -257,16 +257,16 @@ const VDOTS: [VDot; 8] = [
     VDot { n: 6, set: "b", dup: false, apart: (320.0, 104.0), joined: (248.0, 104.0) },
 ];
 
-/// Круги плывут навстречу, общие элементы 3 и 4 сливаются, затем по очереди заливаются A ∪ B, A ∩ B и A \ B.
-/// Шаги: 0 — врозь, 1 — сближение, 2 — слияние, 3–5 — операции (формула и результат — в подписи шага).
-/// Упрощено: кнопки шагов — названия шагов (раньше были только три операции), «пульс» слившихся элементов — увеличенные кружки.
+/// Circles drift towards each other, shared elements 3 and 4 merge, then A ∪ B, A ∩ B and A \ B are filled in turn.
+/// Steps: 0 — apart, 1 — approach, 2 — merge, 3–5 — operations (formula and result — in the step caption).
+/// Simplified: step buttons are step names (formerly only the three operations), the "pulse" of merged elements — enlarged circles.
 fn venn_ops() -> SceneSpec {
     let (da, db) = (disc(140.0, 85.0, 62.0), disc(220.0, 85.0, 62.0));
     let frames = (0..6usize)
         .map(|step| {
             let joined = step >= 1;
             let merged = step >= 2;
-            // операция на шаге: 0 — объединение, 1 — пересечение, 2 — разность
+            // operation at the step: 0 — union, 1 — intersection, 2 — difference
             let mode = step.checked_sub(3);
             let mut f = Frame::new()
                 .with(circle("ring-a", if joined { 140.0 } else { 70.0 }, 85.0, 62.0).tone(G))
@@ -315,10 +315,10 @@ fn venn_ops() -> SceneSpec {
     .step_ms(2600)
 }
 
-// --- 5. Универсум и дополнение -----------------------------------------------------------------
+// --- 5. Universe and complement ----------------------------------------------------------------
 
-/// Пользователи системы, администраторы A и дополнение ¬A; затем универсум меняется на «людей планеты» — дополнение растёт, A прежнее.
-/// Рамка универсума при смене меняется не плавным ростом, а перекрёстным появлением двух рамок.
+/// System users, administrators A and complement ¬A; then the universe changes to "people of the planet" — the complement grows, A stays.
+/// On the change the universe frame does not grow smoothly but cross-fades between two frames.
 fn complement() -> SceneSpec {
     const ADMIN: [usize; 4] = [0, 1, 4, 5];
     let extra: Vec<(f64, f64)> = [16.0, 30.0, 44.0, 318.0, 332.0, 346.0].iter().flat_map(|&x| (0..6).map(move |k| (x, 28.0 + k as f64 * 20.0))).collect();
@@ -364,9 +364,9 @@ fn complement() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 6. Законы де Моргана ----------------------------------------------------------------------
+// --- 6. De Morgan's laws -----------------------------------------------------------------------
 
-/// Категория точки: a — только A, b — только B, ab — оба, n — ни там ни там.
+/// Point category: a — only A, b — only B, ab — both, n — neither.
 const MORGAN_DOTS: [(&str, &str, f64, f64); 8] = [
     ("a1", "a", 126.0, 56.0),
     ("a2", "a", 124.0, 92.0),
@@ -378,10 +378,10 @@ const MORGAN_DOTS: [(&str, &str, f64, f64); 8] = [
     ("n3", "n", 66.0, 112.0),
 ];
 
-/// Подписи кругов по шагам: (номер набора, левый, правый).
+/// Circle labels by step: (set number, left, right).
 const CIRCLE_NAMES: [(usize, &str, &str); 4] = [(0, "A", "B"), (4, "дешёвый", "старый"), (5, "тесты ✓", "ревью ✓"), (6, "админ", "редактор")];
 
-/// Подпись внизу: (шаг, текст, цвет, кегль).
+/// Bottom caption: (step, text, colour, font size).
 const MORGAN_LINES: [(usize, &str, Tone, f64); 7] = [
     (1, "¬(A ∪ B) = ¬A ∩ ¬B", G, 12.0),
     (2, "¬(A ∩ B) = ¬A ∪ ¬B", Y, 12.0),
@@ -392,7 +392,7 @@ const MORGAN_LINES: [(usize, &str, Tone, f64); 7] = [
     (7, "не админ И не редактор = не (админ или редактор)", G, 10.5),
 ];
 
-/// Какой набор подписей кругов показан на шаге.
+/// Which set of circle labels is shown at the step.
 fn name_set(step: usize) -> usize {
     match step {
         6 | 7 => 6,
@@ -402,7 +402,7 @@ fn name_set(step: usize) -> usize {
     }
 }
 
-/// Цвет подсвеченной точки на шаге.
+/// Colour of the highlighted point at the step.
 fn morgan_mark(step: usize, cat: &str) -> Option<Tone> {
     match step {
         4 | 7 if cat == "n" => Some(G),
@@ -412,11 +412,11 @@ fn morgan_mark(step: usize, cat: &str) -> Option<Tone> {
     }
 }
 
-/// Заливка на диаграмме Венна показывает ¬(A ∪ B) и ¬(A ∩ B); затем доказательство на одном элементе, примеры, частая ошибка и SQL.
-/// ¬(A ∩ B) — прямоугольник с «дыркой» в линзе пересечения (контур с противоположным обходом), два контура: жёлтый и красный.
+/// The fill on the Venn diagram shows ¬(A ∪ B) and ¬(A ∩ B); then a proof on one element, examples, a common mistake and SQL.
+/// ¬(A ∩ B) — a rectangle with a "hole" in the intersection lens (outline with the opposite winding), two outlines: yellow and red.
 fn de_morgan() -> SceneSpec {
     let (da, db) = (disc(150.0, 72.0, 46.0), disc(210.0, 72.0, 46.0));
-    // линза A ∩ B: дуги кругов через точки (180, 72 ± √(46² − 30²))
+    // lens A ∩ B: circle arcs through the points (180, 72 ± √(46² − 30²))
     let (top, bottom) = (72.0 - 34.871, 72.0 + 34.871);
     let not_lens = format!(
         "M50 10 H310 A10 10 0 0 1 320 20 V124 A10 10 0 0 1 310 134 H50 A10 10 0 0 1 40 124 V20 A10 10 0 0 1 50 10 Z M180 {top} A46 46 0 0 0 180 {bottom} A46 46 0 0 0 180 {top} Z"
@@ -424,7 +424,7 @@ fn de_morgan() -> SceneSpec {
     let lens = |id: &str, hue: &str, o: f64| Path { fill: Some(hue.to_string()), fill_opacity: Some(0.35), width: 0.0, ..path(id, not_lens.clone()).opacity(o) };
     let frames = (0..10)
         .map(|step| {
-            // диаграмма гаснет, когда на экране код и итог
+            // the diagram fades when the code and the summary are on screen
             let venn = if step <= 7 { 1.0 } else { 0.06 };
             let out_o = match step {
                 1 => 1.0,
@@ -496,9 +496,9 @@ fn de_morgan() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 7. Мощность и двойной счёт ----------------------------------------------------------------
+// --- 7. Cardinality and double counting --------------------------------------------------------
 
-/// Два множества по 20 точек (EN и DE); 5 общих точек при сближении кругов сливаются: 20 + 20 = 40 превращается в честные 35.
+/// Two sets of 20 points (EN and DE); 5 shared points merge as the circles approach: 20 + 20 = 40 turns into an honest 35.
 fn overlap() -> SceneSpec {
     const ROWS: [f64; 5] = [-28.0, -14.0, 0.0, 14.0, 28.0];
     const OWN: [f64; 3] = [-34.0, -18.0, -2.0];
@@ -509,7 +509,7 @@ fn overlap() -> SceneSpec {
             let both = if step >= 4 { R } else { Y };
             let de_on = op(step >= 1);
             let mut f = Frame::new().with(circle("ring-en", xa, 84.0, 50.0).tone(G));
-            // EN: свои точки слева, общие — справа
+            // EN: own points on the left, shared — on the right
             for (xi, &x) in OWN.iter().enumerate() {
                 for (yi, &y) in ROWS.iter().enumerate() {
                     f = f.with(dot(format!("en{xi}{yi}"), xa + x, 84.0 + y, "").r(3.4).tone(M));
@@ -519,7 +519,7 @@ fn overlap() -> SceneSpec {
                 f = f.with(dot(format!("enb{yi}"), xa + 35.0, 84.0 + y, "").r(3.4).tone(both));
             }
             f = f.with(cap("name-en", xa - 34.0, 26.0, "EN"));
-            // DE: свои точки справа, общие — слева; при слиянии общие точки DE исчезают (остаются точки EN)
+            // DE: own points on the right, shared — on the left; on merge the shared DE points vanish (the EN points stay)
             f = f.with(circle("ring-de", xb, 84.0, 50.0).tone(B).opacity(de_on));
             for (xi, &x) in OWN.iter().enumerate() {
                 for (yi, &y) in ROWS.iter().enumerate() {
@@ -555,13 +555,13 @@ fn overlap() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 8. Подмножества ---------------------------------------------------------------------------
+// --- 8. Subsets --------------------------------------------------------------------------------
 
-/// Внутри большого множества B живёт меньшее A; подписи меняются с абстрактных на числа и права ролей; в конце — проверка A ∩ B = A.
+/// A smaller A lives inside the big set B; labels change from abstract to numbers and role permissions; at the end — the check A ∩ B = A.
 fn subset() -> SceneSpec {
     const INSIDE: [(f64, f64); 4] = [(122.0, 76.0), (158.0, 76.0), (122.0, 108.0), (158.0, 108.0)];
     const OUTSIDE: [(f64, f64); 4] = [(205.0, 52.0), (236.0, 72.0), (236.0, 104.0), (205.0, 124.0)];
-    // наборы подписей: внутри A, снаружи A (но в B), название B, название A
+    // label sets: inside A, outside A (but in B), name of B, name of A
     const WORDS: [([&str; 4], [&str; 4], &str, &str); 3] = [
         (["a", "b", "c", "d"], ["e", "f", "g", "h"], "B", "A"),
         (["2", "4", "6", "8"], ["1", "3", "5", "7"], "ℤ · целые", "чётные"),
@@ -604,7 +604,7 @@ fn subset() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 9. Булеан ---------------------------------------------------------------------------------
+// --- 9. Power set ------------------------------------------------------------------------------
 
 const TREE_X: [f64; 4] = [36.0, 106.0, 176.0, 246.0];
 
@@ -612,13 +612,13 @@ fn leaf_y(i: usize) -> f64 {
     24.0 + i as f64 * 17.5
 }
 
-/// Высота узла уровня `l` с номером `j`: посередине между листьями его поддерева.
+/// Height of the node at level `l` with number `j`: midway between the leaves of its subtree.
 fn node_y(l: usize, j: usize) -> f64 {
     let span = 1usize << (3 - l);
     (leaf_y(j * span) + leaf_y(j * span + span - 1)) / 2.0
 }
 
-/// Подмножество с номером `i` (старший бит — элемент a): `∅`, `{c}`, `{b}`, `{b, c}`, …
+/// Subset number `i` (the high bit is element a): `∅`, `{c}`, `{b}`, `{b, c}`, …
 fn subset_name(i: usize) -> String {
     if i == 0 {
         return "∅".into();
@@ -627,7 +627,7 @@ fn subset_name(i: usize) -> String {
     format!("{{{}}}", items.join(", "))
 }
 
-/// Дерево решений «взять / не взять» для трёх элементов: 8 листьев — 8 подмножеств; затем подписи листьев становятся битовыми масками.
+/// Decision tree "take / skip" for three elements: 8 leaves — 8 subsets; then the leaf labels become bit masks.
 fn powerset() -> SceneSpec {
     let frames = (0..5)
         .map(|step| {
@@ -687,15 +687,15 @@ fn powerset() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 10. Цена перебора -------------------------------------------------------------------------
+// --- 10. The cost of brute force ---------------------------------------------------------------
 
-/// Кривая 2ⁿ: почти плоская до самого конца, потом взлетает; метка n = 30 и «бюджет времени».
-/// Упрощено: прежняя кривая рисовалась по таймеру целиком в первом шаге; теперь на шаге «Рост» она доходит до n = 28,
-/// а взлёт к n = 30 дорисовывается на шаге «n = 30» — рисование идёт вместе со словами.
+/// Curve 2ⁿ: almost flat until the very end, then shoots up; mark n = 30 and "time budget".
+/// Simplified: the former curve was drawn whole by a timer in the first step; now at the "Growth" step it reaches n = 28,
+/// and the rise to n = 30 is drawn at the "n = 30" step — drawing goes along with the words.
 fn explosion() -> SceneSpec {
     let pts: Vec<(f64, f64)> = (0..=30).map(|n| (30.0 + n as f64 * 10.0, 140.0 - 118.0 * 2f64.powi(n - 30))).collect();
     let d = format!("M{}", pts.iter().map(|(x, y)| format!("{x:.1} {y:.1}")).collect::<Vec<_>>().join(" L"));
-    // доля длины кривой до точки n
+    // share of the curve length up to point n
     let len = |upto: usize| pts[..=upto].windows(2).map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1)).sum::<f64>();
     let share28 = len(28) / len(30);
     let mut base = Frame::new().with(line("axis", 30.0, 140.0, 336.0, 140.0).tone(Tone::Outline).width(1.2));
@@ -744,9 +744,9 @@ fn explosion() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 11. Множества в работе --------------------------------------------------------------------
+// --- 11. Sets at work --------------------------------------------------------------------------
 
-/// Список → хеш-сет (дедупликация), операции SQL, теги и сегменты, цикл с флагом против одной операции.
+/// List → hash set (deduplication), SQL operations, tags and segments, loop with a flag vs a single operation.
 fn sets_in_use() -> SceneSpec {
     const VALS: [u8; 5] = [3, 1, 3, 2, 1];
     let bucket = |v: u8| match v {
@@ -757,7 +757,7 @@ fn sets_in_use() -> SceneSpec {
     let frames = (0..5)
         .map(|step| {
             let mut f = Frame::new();
-            // список → хеш-сет; к шагу 2 всё гаснет
+            // list → hash set; everything fades by step 2
             if step <= 1 {
                 for b in 0..3 {
                     f = f.with(hull(&format!("bucket{b}"), (110.0 + b as f64 * 50.0, 102.0, 40.0, 36.0), 8.0, G, true).opacity(op(step >= 1)));
@@ -784,7 +784,7 @@ fn sets_in_use() -> SceneSpec {
                 }
                 f = f.with(cap("rows", 180.0, 150.0, "миллионы строк за один запрос").tone(Y));
             }
-            // теги и сегменты
+            // tags and segments
             if step == 3 {
                 f = f
                     .with(pill("tag0", 70.0, 50.0, 78.0, "python", B))
@@ -795,7 +795,7 @@ fn sets_in_use() -> SceneSpec {
                     .with(mono("down", 180.0, 92.0, "↓").size(14.0).tone(G))
                     .with(pill("articles", 180.0, 116.0, 210.0, "статьи со всеми тремя тегами", G));
             }
-            // цикл с флагом против одной операции
+            // loop with a flag vs a single operation
             if step >= 4 {
                 f = f
                     .with(py("loop", 40.0, 40.0, &["found = False", "for x in a:", "    if x in b: found = True"]).w(214.0).size(11.0).lh(16.0).opacity(0.45))
@@ -821,10 +821,10 @@ fn sets_in_use() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 12. Список или множество ------------------------------------------------------------------
+// --- 12. List or set ---------------------------------------------------------------------------
 
-/// Список помнит порядок и повторы, множество мгновенно отвечает «есть ли такой»; поиск в цикле по списку — множество в маске списка.
-/// Упрощено: прежняя «бегущая подсветка» клеток при переборе заменена вспышкой всего ряда на шаге «Поиск».
+/// A list remembers order and repeats, a set instantly answers "is it there"; a loop search over a list — a set in the mask of a list.
+/// Simplified: the former "running highlight" of cells during the scan is replaced by a flash of the whole row at the "Search" step.
 fn contracts() -> SceneSpec {
     let frames = (0..5)
         .map(|step| {
@@ -833,7 +833,7 @@ fn contracts() -> SceneSpec {
                 .with(mono("st", 270.0, 16.0, "Множество").size(12.0).tone(G))
                 .with(cap("lsub", 90.0, 30.0, "порядок и повторы").opacity(op(step == 0)))
                 .with(cap("ssub", 270.0, 30.0, "только принадлежность").opacity(op(step == 0)));
-            // список
+            // list
             for (i, v) in ["A", "B", "A", "C"].iter().enumerate() {
                 let x = 30.0 + i as f64 * 40.0;
                 f = f.with(pill(&format!("li{i}"), x, 56.0, 34.0, v, Y).opacity(op(step >= 1)));
@@ -850,7 +850,7 @@ fn contracts() -> SceneSpec {
             f = f.with(cap("lscan", 90.0, 150.0, "в цикле: смотрим всех подряд").tone(Y).opacity(op(step == 3)));
             f = f.with(hull("mask", (14.0, 104.0, 152.0, 38.0), 10.0, G, true).opacity(op(step >= 4)));
             f = f.with(cap("lmask", 90.0, 158.0, "это множество в маске списка").tone(G).opacity(op(step >= 4)));
-            // множество
+            // set
             f = f.with(circle("ring", 270.0, 66.0, 38.0).tone(G).opacity(op(step >= 2)));
             for &(x, y, v) in &[(252.0, 56.0, 3), (286.0, 56.0, 1), (252.0, 82.0, 4), (286.0, 82.0, 7)] {
                 f = f.with(dot(format!("s{v}"), x, y, v.to_string()).r(10.0).tone(if v == 7 { G } else { M }).opacity(op(step >= 2)));
@@ -875,9 +875,9 @@ fn contracts() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 13. Итог ----------------------------------------------------------------------------------
+// --- 13. Summary -------------------------------------------------------------------------------
 
-/// Карточки тем по очереди загораются, затем — где это применялось и что дальше.
+/// Topic cards light up in turn, then — where it was applied and what comes next.
 fn recap() -> SceneSpec {
     const CARDS: [(&str, &str); 5] = [("∈", "элементы"), ("∪ ∩", "операции"), ("¬", "де Морган"), ("|A|", "мощность"), ("2ⁿ", "булеан")];
     let frames = (0..8)
@@ -922,7 +922,7 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Компоненты из импортов `slides/dm/ch01.tsx`.
+    /// Components from the imports of `slides/dm/ch01.tsx`.
     const IMPORTS: [&str; 13] = [
         "ShapesIntro",
         "ListVsSet",

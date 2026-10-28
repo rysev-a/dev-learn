@@ -1,4 +1,4 @@
-//! Общие помощники тестов: пути к данным и золотым файлам.
+//! Shared test helpers: paths to data and golden files.
 #![allow(dead_code)]
 
 use std::path::PathBuf;
@@ -15,19 +15,19 @@ pub fn golden_dir() -> PathBuf {
 }
 
 pub fn chapters() -> Vec<LabChapter> {
-    sdlab::data::read_dir(&data_dir()).expect("файлы данных читаются")
+    sdlab::data::read_dir(&data_dir()).expect("data files are readable")
 }
 
 pub fn golden() -> Vec<GoldenChapter> {
-    let mut paths: Vec<PathBuf> = std::fs::read_dir(golden_dir()).expect("каталог golden").filter_map(|e| e.ok().map(|e| e.path())).collect();
+    let mut paths: Vec<PathBuf> = std::fs::read_dir(golden_dir()).expect("golden directory").filter_map(|e| e.ok().map(|e| e.path())).collect();
     paths.sort();
     paths
         .iter()
-        .map(|p| serde_json::from_str(&std::fs::read_to_string(p).expect("чтение")).unwrap_or_else(|e| panic!("{}: {e}", p.display())))
+        .map(|p| serde_json::from_str(&std::fs::read_to_string(p).expect("read")).unwrap_or_else(|e| panic!("{}: {e}", p.display())))
         .collect()
 }
 
-/// Равенство чисел с относительным допуском; нечисловые значения считаются равными друг другу.
+/// Number equality with a relative tolerance; non-numeric values are considered equal to each other.
 pub fn close(a: f64, b: f64, tol: f64) -> bool {
     if !a.is_finite() || !b.is_finite() {
         return !a.is_finite() && !b.is_finite();

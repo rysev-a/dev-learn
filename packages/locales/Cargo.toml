@@ -1,0 +1,12 @@
+[package]
+name = "locales"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Dictionaries of cs-core: Russian translations of the interface, labs and server messages (JSON in `ru/`), loaded into the shared `i18n` crate."
+
+[dependencies]
+i18n = { path = "../i18n" }
+
+[dev-dependencies]
+serde_json = "1"

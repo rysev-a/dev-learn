@@ -1,8 +1,8 @@
-//! Точечная смена цвета у отдельных фигур поверх оттенка ([`content::Tone`]) — для сцен со своей отрисовкой.
+//! Per-shape color override on top of the tone ([`content::Tone`]) — for scenes with custom rendering.
 
 use content::tone::Look;
 
-// Цвета-переменные темы для подписей и точечных переопределений.
+// Theme color variables for labels and per-shape overrides.
 pub const ACC: &str = "var(--s-accent)";
 pub const AMB: &str = "var(--s-amber)";
 pub const RED: &str = "var(--s-red)";
@@ -10,7 +10,7 @@ pub const BLU: &str = "var(--s-blue)";
 pub const MUTED: &str = "var(--s-muted)";
 pub const PANEL: &str = "var(--s-panel2)";
 
-/// Точечное переопределение краски поверх [`Tone`]: `None` — взять из оттенка (как необязательные `stroke`/`fill` у плашек старых сцен).
+/// Per-shape paint override on top of [`Tone`]: `None` means take it from the tone (like the optional `stroke`/`fill` of old scenes' plates).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Paint {
     pub stroke: Option<&'static str>,
@@ -20,7 +20,7 @@ pub struct Paint {
 }
 
 impl Paint {
-    /// Рамка и заливка одним цветом с прозрачностью заливки `fill_opacity` (как «подсвеченный» элемент).
+    /// Stroke and fill in one color with fill opacity `fill_opacity` (like a "highlighted" element).
     pub fn tint(color: &'static str, fill_opacity: f64) -> Self {
         Self { stroke: Some(color), fill: Some(color), fill_opacity: Some(fill_opacity), text: None }
     }

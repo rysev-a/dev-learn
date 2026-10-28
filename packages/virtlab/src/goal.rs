@@ -1,18 +1,18 @@
-//! Цель упражнения: идентификатор и текст для показа ученику.
+//! Exercise goal: identifier and text shown to the student.
 
 use serde::{Deserialize, Serialize};
 
-/// Цель упражнения. `id` — ключ в присылаемом решении (JSON `{id: данные, …}`), `text` — условие цели.
+/// Exercise goal. `id` is the key in the submitted solution (JSON `{id: data, …}`), `text` is the goal statement.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Goal {
-    /// Идентификатор цели (в hv, numa и migration совпадает с id программы или сценария).
+    /// Goal identifier (in hv, numa and migration it equals the program or scenario id).
     pub id: String,
-    /// Текст цели.
+    /// Goal text.
     pub text: String,
 }
 
 impl Goal {
-    /// Цель из идентификатора и текста.
+    /// Goal from an identifier and text.
     pub fn new(id: impl Into<String>, text: impl Into<String>) -> Self {
         Goal { id: id.into(), text: text.into() }
     }

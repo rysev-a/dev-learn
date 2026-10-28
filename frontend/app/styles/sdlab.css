@@ -1,4 +1,4 @@
-/* Лаборатория «Системный дизайн»: поле схемы, панель компонента, цели и метрики. Токены приложения, обе темы. */
+/* "System Design" lab: diagram board, component panel, goals and metrics. App tokens, both themes. */
 .sd {
   container-type: inline-size;
   display: flex;
@@ -397,7 +397,7 @@
   color: var(--s-amber);
 }
 
-/* На весь экран: поле слева на всю высоту, справа прокручиваемая колонка с целями и метриками */
+/* On full screen: board on the left at full height, on the right a scrollable column with goals and metrics */
 .sd.fs {
   position: fixed;
   inset: 0;
@@ -454,7 +454,7 @@
   }
 }
 
-/* Кнопки в углу поля, справка и плавающая карточка параметров */
+/* Buttons in the board corner, help and the floating parameter card */
 .sd-corner {
   position: absolute;
   top: 8px;
@@ -541,7 +541,7 @@
   padding-right: 24px;
 }
 
-/* Лапка внизу поля: потянуть — изменить высоту */
+/* Handle at the bottom of the board: drag - change the height */
 .sd-resize {
   position: absolute;
   left: 50%;

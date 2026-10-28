@@ -1,16 +1,16 @@
-//! Что открывается решением: составные элементы (XOR, XNOR…) закрыты, пока не собраны вручную.
-//! Порт чистой части `exercise-progress.ts`; «решено ли» знает вызывающий (браузер или кабинет).
+//! What a solution unlocks: composite elements (XOR, XNOR…) stay locked until built by hand.
+//! Port of the pure part of `exercise-progress.ts`; "is it solved" is known by the caller (browser or account).
 
 use crate::model::GateType;
 use crate::registry::composite_requirement;
 
-/// Составной ли элемент (NAND, XOR, XNOR, DFF).
+/// Is the element composite (NAND, XOR, XNOR, DFF).
 pub fn is_composite(ty: GateType) -> bool {
     composite_requirement(ty).is_some()
 }
 
-/// Открыт ли элемент: составные открываются после сборки их вручную. `solved(раздел, упражнение)`
-/// говорит, решено ли упражнение.
+/// Is the element unlocked: composite ones unlock after being built by hand. `solved(section, exercise)`
+/// tells whether the exercise is solved.
 pub fn is_gate_unlocked(ty: GateType, solved: &dyn Fn(&str, &str) -> bool) -> bool {
     match composite_requirement(ty) {
         None => true,

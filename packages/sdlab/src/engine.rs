@@ -1,12 +1,12 @@
-//! Расчёт схемы под нагрузкой. Запросы трёх классов — статика, чтение, запись — проходят по схеме по
-//! «деревьям решений» (кэш: попал/промахнулся, очередь: запись уходит в буфер, CDN: отдаёт статику).
-//! Для каждого пути известны вероятность и список узлов. Из путей считаются нагрузка узлов, затем
-//! задержка, доля успешных ответов и доступность. Всё — формулы, без случайности.
+//! Evaluates a design under a workload. Requests of three classes — static, read, write — travel through the design along
+//! "decision trees" (cache: hit/miss, queue: a write goes to the buffer, CDN: serves static content).
+//! Each path has a known probability and list of nodes. The paths yield node loads, then
+//! latency, success rate and availability. All formulas, no randomness.
 //!
-//! Это точный порт `engine.ts`: те же формулы и порядок операций над `f64`, поэтому результаты совпадают с
-//! прежней версией (проверяется дифференциальными тестами на «золотых» результатах TypeScript).
-//! Единственное расхождение — схема с циклом: лишняя связь, замыкающая цикл, отбрасывается с предупреждением
-//! (в TypeScript такая схема уходила в бесконечную рекурсию; интерфейс циклы не допускает).
+//! This is an exact port of `engine.ts`: the same formulas and order of `f64` operations, so the results match
+//! the previous version (verified by differential tests against the TypeScript "golden" results).
+//! The only divergence is a design with a cycle: the extra link closing the cycle is dropped with a warning
+//! (in TypeScript such a design went into infinite recursion; the UI does not allow cycles).
 
 use std::collections::{HashMap, HashSet};
 
@@ -15,10 +15,10 @@ use crate::reference as r;
 use crate::reference::Size;
 use crate::types::{DepKind, EvalOptions, EvalResult, FailKind, Kind, Loads, NodeLoad, NodeStatus, SdNode, SdState, Workload};
 
-/// Сервисы-зависимости в порядке обхода.
+/// Dependency services in traversal order.
 pub const DEPS: [DepKind; 4] = DepKind::ALL;
 
-/// Допустима ли связь `a → b` в этой модели.
+/// Whether the link `a → b` is allowed in this model.
 pub fn can_link(a: Kind, b: Kind) -> bool {
     use Kind::*;
     match a {
@@ -36,7 +36,7 @@ pub fn can_link(a: Kind, b: Kind) -> bool {
     }
 }
 
-/// Сколько экземпляров заявлено на схеме.
+/// How many instances are declared on the design.
 pub fn base_units(n: &SdNode) -> f64 {
     match n.kind {
         Kind::App | Kind::Lb | Kind::Gateway | Kind::Worker | Kind::Ws | Kind::Auth | Kind::Geo | Kind::Ml | Kind::Pay | Kind::Notify | Kind::Analytics => {
@@ -48,7 +48,7 @@ pub fn base_units(n: &SdNode) -> f64 {
     }
 }
 
-/// Сколько экземпляров работает при заданных отказах.
+/// How many instances are running under the given failures.
 fn working_units(n: &SdNode, opts: &EvalOptions) -> f64 {
     if opts.down.contains(&n.id) {
         return 0.0;
@@ -123,9 +123,9 @@ fn working_units(n: &SdNode, opts: &EvalOptions) -> f64 {
     }
 }
 
-/* ---------- кэш и CDN ---------- */
+/* ---------- cache and CDN ---------- */
 
-/// Доля попаданий CDN по TTL.
+/// CDN hit rate by TTL.
 pub fn cdn_hit(n: &SdNode) -> f64 {
     let ttl = n.num("ttl");
     if ttl <= 30.0 {
@@ -137,7 +137,7 @@ pub fn cdn_hit(n: &SdNode) -> f64 {
     }
 }
 
-/// Доля попаданий кэша: размер относительно рабочего набора, TTL и доля записей.
+/// Cache hit rate: size relative to the working set, TTL and write share.
 pub fn cache_hit(n: &SdNode, wl: &Workload) -> f64 {
     let reads = wl.read_rps;
     if reads <= 0.0 {
@@ -158,13 +158,13 @@ pub fn cache_hit(n: &SdNode, wl: &Workload) -> f64 {
     jsfmt::round(h * 1000.0) / 1000.0
 }
 
-/* ---------- ёмкость и цена ---------- */
+/* ---------- capacity and price ---------- */
 
 fn node_size(n: &SdNode) -> Size {
     Size::parse(&n.text("size"))
 }
 
-/// Цена компонента, $ в месяц.
+/// Component price, $ per month.
 fn node_cost(n: &SdNode, wl: &Workload) -> f64 {
     match n.kind {
         Kind::App => {
@@ -196,7 +196,7 @@ fn node_cost(n: &SdNode, wl: &Workload) -> f64 {
     }
 }
 
-/// Доступность узла: n экземпляров дают `1 − (1 − a)ⁿ`.
+/// Node availability: n instances give `1 − (1 − a)ⁿ`.
 fn tier_avail(n: &SdNode) -> f64 {
     let redundant = |a: f64, k: f64| 1.0 - (1.0 - a).powf(k.max(1.0));
     match n.kind {
@@ -236,7 +236,7 @@ fn tier_avail(n: &SdNode) -> f64 {
     }
 }
 
-/* ---------- расчёт ---------- */
+/* ---------- evaluation ---------- */
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Cls {
@@ -250,7 +250,7 @@ struct Path {
     cls: Cls,
     nodes: Vec<usize>,
     ok: bool,
-    /// отброшено ограничителем: для доступности схема исправна
+    /// dropped by the rate limiter: for availability the design is healthy
     rej: bool,
 }
 
@@ -262,14 +262,14 @@ struct Acc {
     writes: f64,
     conn: f64,
     msgs: f64,
-    /// запросы, обработанные приложением как статика
+    /// requests served by the application as static content
     static_self: f64,
-    /// то, что пришло в очередь
+    /// what arrived at the queue
     queued: f64,
-    /// асинхронная запись в БД из обработчиков
+    /// asynchronous DB writes from workers
     async_writes: f64,
     reads: f64,
-    /// дополнительные чтения из-за ленты pull/гибрид
+    /// extra reads due to the pull/hybrid feed
     extra: f64,
 }
 
@@ -278,7 +278,7 @@ struct RunState {
     paths: Vec<Path>,
 }
 
-/// Параметры одного прохода: пропуск ограничителей, скорость разбора очереди, повторы к базе.
+/// Parameters of one pass: skipping rate limiters, queue drain rate, retries to the database.
 struct RunIn<'a> {
     pass_limiter: &'a HashMap<usize, f64>,
     drain: f64,
@@ -290,7 +290,7 @@ const WEB: [Kind; 4] = [Kind::Limiter, Kind::Gateway, Kind::Lb, Kind::App];
 struct Model<'a> {
     nodes: &'a [SdNode],
     wl: &'a Workload,
-    /// исходящие связи по индексу узла (только допустимые и не замыкающие цикл)
+    /// outgoing links by node index (only valid ones that do not close a cycle)
     out: Vec<Vec<usize>>,
     units: Vec<f64>,
     entries: Vec<usize>,
@@ -317,7 +317,7 @@ impl Model<'_> {
         self.kids(app, &[Kind::Cache]).into_iter().find(|&c| self.units[c] > 0.0)
     }
 
-    /// Деление потока между узлами: живые поровну (или по весу приложений).
+    /// Splits a flow between nodes: live ones equally (or by application weight).
     fn split(&self, list: &[usize]) -> Vec<(usize, f64)> {
         let live: Vec<usize> = list.iter().copied().filter(|&i| self.units[i] > 0.0 || self.kind(i) == Kind::Limiter).collect();
         let pool: &[usize] = if live.is_empty() { list } else { &live };
@@ -353,7 +353,7 @@ impl Model<'_> {
         }
     }
 
-    /// Нагрузка потребителям очереди или потока: уведомления и аналитика получают копию.
+    /// Load on queue or stream consumers: notifications and analytics get a copy.
     fn fan_consumers(&self, st: &mut RunState, queue: usize, rate: f64) {
         for k in [Kind::Notify, Kind::Analytics] {
             for (c, share) in self.split(&self.kids(queue, &[k])) {
@@ -377,7 +377,7 @@ impl Model<'_> {
         }
     }
 
-    /// Продолжение пути от узла для класса `cls`; `seq` — уже пройденные узлы.
+    /// Continuation of the path from a node for class `cls`; `seq` — nodes already visited.
     #[allow(clippy::too_many_arguments)]
     fn walk(&self, st: &mut RunState, inp: &RunIn, n: usize, cls: Cls, prob: f64, rate: f64, seq: &[usize]) {
         if prob <= 1e-9 {
@@ -493,7 +493,7 @@ impl Model<'_> {
             }
             return;
         }
-        // запись
+        // write
         let queue = self.kids(n, &[Kind::Queue]).first().copied();
         let stream = self.kids(n, &[Kind::Stream]).first().copied();
         let cache = self.has_cache(n);
@@ -501,7 +501,7 @@ impl Model<'_> {
             st.acc[c].rps += rr * 0.5;
             st.acc[c].writes += rr;
         }
-        // поток событий — побочная копия записи: потребители получают событие, путь запроса не меняется
+        // event stream — a side copy of the write: consumers get the event, the request path does not change
         if let Some(sm) = stream {
             st.acc[sm].queued += rr;
             st.acc[sm].rps += rr;
@@ -511,7 +511,7 @@ impl Model<'_> {
             st.acc[q].queued += rr;
             st.acc[q].rps += rr;
             st.paths.push(Path { p: prob, cls, nodes: with(here, q), ok: true, rej: false });
-            // асинхронное продолжение: обработчики → БД (по схеме, только нагрузка)
+            // asynchronous continuation: workers → DB (by the design, load only)
             self.fan_consumers(st, q, rr);
             let workers = self.kids(q, &[Kind::Worker]);
             let amp = self.feed_write(n);
@@ -557,7 +557,7 @@ impl Model<'_> {
             }
         }
 
-        // соединения WebSocket и сообщения
+        // WebSocket connections and messages
         let ws_entries: Vec<usize> = self.entries.iter().copied().filter(|&i| self.kind(i) == Kind::Ws).collect();
         let mut ws_all = ws_entries;
         for &e in &self.entries {
@@ -590,7 +590,7 @@ impl Model<'_> {
                 }
             }
         }
-        // обновления геопозиций идут прямо в сервисы геопоиска, подключённые к приложению
+        // geo-position updates go straight to the geo-search services connected to the application
         let geo_updates = wl.geo_updates.unwrap_or(0.0);
         if geo_updates > 0.0 {
             let geos: Vec<usize> = (0..self.nodes.len())
@@ -604,7 +604,7 @@ impl Model<'_> {
     }
 }
 
-/// Строит исходящие связи: только допустимые по видам и не замыкающие цикл.
+/// Builds outgoing links: only those valid by kind and not closing a cycle.
 fn build_links(state: &SdState, warnings: &mut Vec<String>) -> Vec<Vec<usize>> {
     let mut idx: HashMap<&str, usize> = HashMap::new();
     for (i, n) in state.nodes.iter().enumerate() {
@@ -642,7 +642,7 @@ fn reaches(out: &[Vec<usize>], from: usize, to: usize) -> bool {
     false
 }
 
-/// Расчёт схемы под нагрузкой: загрузка узлов, задержки p50/p99, доля успешных запросов, доступность, стоимость.
+/// Evaluates a design under a workload: node utilization, p50/p99 latencies, success rate, availability, cost.
 pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResult {
     let nodes = &state.nodes;
     let mut warnings: Vec<String> = Vec::new();
@@ -653,7 +653,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
     let m = Model { nodes, wl, out, units, entries, clients };
     let size_of = |i: usize| node_size(&nodes[i]);
 
-    /* --- первая итерация: ёмкость узлов, пропуск ограничителей и скорость разбора очереди --- */
+    /* --- first pass: node capacity, rate-limiter pass-through and queue drain rate --- */
     let mut pass_limiter: HashMap<usize, f64> = HashMap::new();
     let mut drain = 1.0;
     let mut retry_mul: HashMap<usize, f64> = HashMap::new();
@@ -680,7 +680,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
     }
     r1 = m.run(&RunIn { pass_limiter: &pass_limiter, drain, retry_mul: &retry_mul });
 
-    /* повторы: если база перегружена, каждая неудача возвращается ещё r раз — нагрузка растёт (если нет автомата разрыва) */
+    /* retries: if the database is overloaded, every failure comes back r more times — the load grows (unless there is a circuit breaker) */
     let dbs: Vec<usize> = (0..nodes.len()).filter(|&i| nodes[i].kind == Kind::Db).collect();
     let apps: Vec<usize> = (0..nodes.len()).filter(|&i| nodes[i].kind == Kind::App).collect();
     let retry_util = |db: usize, acc: &[Acc]| -> f64 {
@@ -740,7 +740,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
     }
     let RunState { acc, paths } = r1;
 
-    /* --- загрузка узлов --- */
+    /* --- node utilization --- */
     let mut loads = Loads::default();
     let mut util: Vec<f64> = vec![0.0; nodes.len()];
     let mut max_shard_share: Option<f64> = None;
@@ -904,7 +904,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
         loads.push(n.id.clone(), NodeLoad { load, cap, util: ut, units: u, status, note: if nt.is_empty() { None } else { Some(nt) } });
     }
 
-    /* очередь: отставание */
+    /* queue: lag */
     let mut lag_sec: Option<f64> = None;
     let queue = nodes.iter().position(|n| n.kind == Kind::Queue).or_else(|| nodes.iter().position(|n| n.kind == Kind::Stream));
     if let Some(q) = queue {
@@ -926,7 +926,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
         });
     }
 
-    /* --- метрики по путям --- */
+    /* --- per-path metrics --- */
     let own_lat = |i: usize, cls: Cls| -> f64 {
         let n = &nodes[i];
         let base = match n.kind {
@@ -1015,7 +1015,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
             touch(id, &mut touched);
             l += own_lat(id, p.cls);
             if n.kind == Kind::App && p.cls != Cls::Static {
-                // вызовы сервисов: на долю f запросов добавляются задержка, потери и риск сервиса; нет связи — эти запросы не выполняются
+                // service calls: a share f of requests gets the service's latency, losses and risk added; no link — those requests fail
                 for k in DEPS {
                     let f = wl.calls_of(k).clamp(0.0, 1.0);
                     if f <= 0.0 {
@@ -1054,7 +1054,7 @@ pub fn evaluate(state: &SdState, wl: &Workload, opts: &EvalOptions) -> EvalResul
             let ut = util[id];
             let served = if ut > 1.0 { 1.0 / ut } else { 1.0 };
             if n.kind == Kind::Limiter {
-                // пропуск уже учтён отдельными путями
+                // the skip is already accounted for by separate paths
             } else {
                 s *= if m.units[id] > 0.0 || matches!(n.kind, Kind::Cache | Kind::Cdn | Kind::Monitor) { served } else { 0.0 };
             }

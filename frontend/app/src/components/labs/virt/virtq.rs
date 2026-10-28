@@ -1,6 +1,6 @@
-//! Симулятор виртуальной очереди virtio (глава 6): гость кладёт буферы, устройство их обрабатывает, гость забирает результат.
-//! Считаются оповещения — выходы в гипервизор. В данных цели — `{trace}`: записанные действия, по ним сервер воспроизводит
-//! сессию.
+//! Simulator of a virtio virtqueue (chapter 6): the guest puts buffers, the device processes them, the guest collects the result.
+//! Notifications (exits to the hypervisor) are counted. The goal data is `{trace}`: the recorded actions, from which the server replays
+//! the session.
 
 use leptos::prelude::*;
 use serde_json::Value;
@@ -8,14 +8,14 @@ use virtlab::virtq::{free, Action, Note, QueueState, Session, VirtqGoal};
 
 use super::common::{trace_data, GoalItem, GoalList, Goals};
 
-/// Клетка дескриптора на схеме.
+/// Descriptor cell in the diagram.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Cell {
-    /// Свободен.
+    /// Free.
     Free,
-    /// Ждёт устройство (доступное кольцо).
+    /// Waiting for the device (available ring).
     Avail,
-    /// Обработан, ждёт гостя (использованное кольцо).
+    /// Processed, waiting for the guest (used ring).
     Used,
 }
 
@@ -37,7 +37,7 @@ impl Cell {
     }
 }
 
-/// Клетки очереди: сначала обработанные, затем ждущие устройство, остальные свободны.
+/// Queue cells: processed first, then those waiting for the device, the rest are free.
 pub fn cells(size: u32, s: &QueueState) -> Vec<Cell> {
     (0..size)
         .map(|i| {
@@ -52,7 +52,7 @@ pub fn cells(size: u32, s: &QueueState) -> Vec<Cell> {
         .collect()
 }
 
-/// Подпись под схемой по тому, что произошло (`None` — подпись не меняется).
+/// Caption under the diagram for what happened (`None` - the caption does not change).
 pub fn note_text(n: &Note) -> Option<String> {
     Some(match n {
         Note::Overflow { need, free } => {
@@ -68,13 +68,13 @@ pub fn note_text(n: &Note) -> Option<String> {
     })
 }
 
-/// Ход упражнения: сессия модели, запись действий и подпись.
+/// Exercise step: model session, action record and caption.
 #[derive(Clone)]
 pub struct VirtqRun {
     session: Session,
     trace: Vec<Action>,
     note: String,
-    /// сколько целей из `session.done()` уже передано наружу
+    /// how many goals from `session.done()` have already been passed out
     seen: usize,
 }
 
@@ -100,10 +100,10 @@ impl VirtqRun {
         &self.note
     }
 
-    /// Выполнить действие. Возвращает цели, достигнутые только что, с данными для сервера (запись действий на этот момент).
+    /// Perform an action. Returns the goals reached just now, with data for the server (the action record up to this moment).
     pub fn act(&mut self, a: Action) -> Vec<(String, Value)> {
         let note = self.session.act(&a);
-        // «устройство спит» ничего не меняет: в запись не попадает (воспроизведение дало бы то же)
+        // "the device is asleep" changes nothing: it is not recorded (replaying would give the same)
         if note != Note::DeviceIdle {
             self.trace.push(a);
         }
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn cells_layout() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = QueueState { avail: 2, used: 1, ..QueueState::default() };
         let c = cells(4, &s);
         assert_eq!(c, [Cell::Used, Cell::Avail, Cell::Avail, Cell::Free]);
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn overflow_goal_and_note() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         for _ in 0..2 {
             r.act(Action::Post { n: 3 });
@@ -218,13 +218,13 @@ mod tests {
 
     #[test]
     fn batch_goal_trace_replays_on_server() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Post { n: 3 });
         let got = r.act(Action::Post { n: 3 });
         assert_eq!(ids(got.clone()), ["batch"]);
-        // данные цели — запись действий до этого момента
-        let (_, info) = got.into_iter().next().expect("цель");
+        // goal data - the action record up to this moment
+        let (_, info) = got.into_iter().next().expect("goal");
         assert_eq!(info, json!({"trace": [{"op": "post", "n": 3}, {"op": "post", "n": 3}]}));
         let spec = virtlab::Spec::Virtq { size: SIZE, goals: default_goals() };
         let mut solution = serde_json::Map::new();
@@ -235,15 +235,15 @@ mod tests {
 
     #[test]
     fn idle_device_is_not_traced_and_goals_are_reported_once() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Device);
         assert_eq!(r.note(), "Устройство спит: пока гость не оповестит, оно ничего не обрабатывает.");
         assert!(r.trace.is_empty());
         r.act(Action::Suppress { on: true });
-        assert_eq!(r.note(), "Устройство спит: пока гость не оповестит, оно ничего не обрабатывает.", "подпись не меняется");
+        assert_eq!(r.note(), "Устройство спит: пока гость не оповестит, оно ничего не обрабатывает.", "caption does not change");
         assert!(r.suppress());
-        // два раза: пачка, ещё пачка (устройство занято — без оповещения), устройство разбирает всё, гость забирает
+        // twice: a batch, another batch (device busy - no notification), the device handles everything, the guest collects
         let mut all = vec![];
         for _ in 0..2 {
             all.extend(ids(r.act(Action::Post { n: 3 })));
@@ -256,12 +256,12 @@ mod tests {
         assert_eq!((r.state().posted, r.state().notifies), (12, 2));
         all.sort();
         all.dedup();
-        assert_eq!(all, ["suppress"], "цель достигнута и сообщена один раз");
+        assert_eq!(all, ["suppress"], "goal reached and reported once");
     }
 
     #[test]
     fn reset_clears_queue_but_keeps_suppress() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Suppress { on: true });
         r.act(Action::Post { n: 3 });

@@ -1,6 +1,6 @@
-//! Формы карточки устройства: общие кирпичики (поле, список, флажок, кнопка) и основные настройки — интерфейсы, шлюз,
-//! маршруты, NAT, файрвол, слушающие порты, порты коммутатора и таблица MAC. Формы меняют сеть теми же функциями
-//! крейта, что и терминал, поэтому результат одинаков. Закрытые устройства (`locked`) показываются только для чтения.
+//! Device card forms: shared building blocks (field, list, checkbox, button) and the main settings: interfaces, gateway,
+//! routes, NAT, firewall, listening ports, switch ports and the MAC table. The forms change the network with the same crate functions
+//! as the terminal, so the result is identical. Locked devices (`locked`) are shown read-only.
 
 use leptos::prelude::*;
 use netlab::term::{add_route, del_route, get_gateway, set_gateway, set_up};
@@ -9,12 +9,12 @@ use netlab::types::{Device, FwAction, NatAction, Proto, Service};
 use super::lab::Lab;
 use super::logic;
 
-/// Устройство, которое настраивает форма: выбранное в карточке. Копируется как набор сигналов.
+/// The device a form configures: the one selected in the card. Copied as a set of signals.
 #[derive(Clone, Copy)]
 pub struct Ctx {
     pub lab: Lab,
     id: StoredValue<String>,
-    /// устройство закрыто: формы только показывают настройки
+    /// the device is locked: forms only display the settings
     pub ro: bool,
 }
 
@@ -28,13 +28,13 @@ impl Ctx {
         self.id.get_value()
     }
 
-    /// Прочитать устройство (в реактивном контексте — подписка на сеть).
+    /// Read the device (in a reactive context, a subscription to the network).
     pub fn read<R>(&self, f: impl FnOnce(&Device) -> R) -> Option<R> {
         let id = self.id.get_value();
         self.lab.net.with(|n| n.devices.get(&id).map(f))
     }
 
-    /// Изменить устройство: цели пересчитываются, черновик сохраняется.
+    /// Change the device: goals are recalculated, the draft is saved.
     pub fn edit<R>(&self, f: impl FnOnce(&mut Device) -> R) -> Option<R> {
         if self.ro {
             return None;
@@ -42,15 +42,15 @@ impl Ctx {
         self.lab.edit_device(&self.id.get_value(), f)
     }
 
-    /// Выполнить команду терминала на этом устройстве; вернуть её вывод.
+    /// Run a terminal command on this device; return its output.
     pub fn exec(&self, line: &str) -> String {
         self.lab.form_exec(&self.id.get_value(), line)
     }
 }
 
-/* ---- кирпичики ---- */
+/* ---- building blocks ---- */
 
-/// Однострочное поле; `digits > 0` — только цифры, не больше столько знаков; `on_commit` — на потерю фокуса и Enter.
+/// Single-line field; `digits > 0` means digits only, at most that many; `on_commit` fires on focus loss and Enter.
 #[component]
 pub fn TextIn(
     value: RwSignal<String>,
@@ -61,7 +61,7 @@ pub fn TextIn(
     #[prop(optional)] digits: usize,
     #[prop(optional, into)] on_commit: Option<Callback<()>>,
 ) -> impl IntoView {
-    // blur приходит, когда форма уже уничтожена (смена устройства при фокусе в поле): тогда сигнал формы мёртв — фиксировать нечего
+    // blur arrives when the form is already destroyed (device switched while a field had focus): the form signal is dead then, nothing to commit
     let commit = move || {
         if let (Some(c), true) = (on_commit, value.try_get_untracked().is_some()) {
             c.run(());
@@ -97,7 +97,7 @@ pub fn TextIn(
     }
 }
 
-/// Выпадающий список: пары «значение — подпись».
+/// Dropdown list: "value — label" pairs.
 #[component]
 pub fn Pick(
     options: Vec<(String, String)>,
@@ -118,12 +118,12 @@ pub fn Pick(
     }
 }
 
-/// Варианты списка, у которых подпись равна значению.
+/// List options whose label equals the value.
 pub fn same(values: &[&str]) -> Vec<(String, String)> {
     values.iter().map(|v| (v.to_string(), v.to_string())).collect()
 }
 
-/// Флажок с подписью.
+/// Checkbox with a label.
 #[component]
 pub fn Check(
     #[prop(into)] checked: Signal<bool>,
@@ -140,7 +140,7 @@ pub fn Check(
     }
 }
 
-/// Сообщение (ошибка или ответ терминала) под формой.
+/// Message (an error or terminal reply) under the form.
 #[component]
 pub fn Msg(msg: RwSignal<String>) -> impl IntoView {
     move || {
@@ -149,31 +149,31 @@ pub fn Msg(msg: RwSignal<String>) -> impl IntoView {
     }
 }
 
-/// Кнопка «×» в строке списка.
+/// "×" button in a list row.
 #[component]
 pub fn Cross(label: &'static str, on_click: Callback<()>) -> impl IntoView {
     view! { <button type="button" class="nl-x" aria-label=label on:click=move |_| on_click.run(())>"×"</button> }
 }
 
-/// Небольшая кнопка действия.
+/// A small action button.
 #[component]
 pub fn Btn(#[prop(into)] label: Signal<String>, on_click: Callback<()>, #[prop(optional)] disabled: bool) -> impl IntoView {
     view! { <button type="button" class="quiz-btn ghost" disabled=disabled on:click=move |_| on_click.run(())>{move || label.get()}</button> }
 }
 
-/// Раздел формы с заголовком.
+/// A form section with a heading.
 #[component]
 pub fn Section(title: &'static str, children: Children) -> impl IntoView {
     view! { <div class="nl-sec"><h4>{title}</h4>{children()}</div> }
 }
 
-/* ---- интерфейсы ---- */
+/* ---- interfaces ---- */
 
-/// Интерфейсы устройства: адрес, маска, «вкл» и (если открыт инструмент) длина очереди.
+/// Device interfaces: address, mask, "on" and (if the tool is open) queue length.
 #[component]
 pub fn Interfaces(ctx: Ctx, queue: bool) -> impl IntoView {
-    // строка живёт, пока есть интерфейс: при вводе адреса и маски она не пересоздаётся и фокус не теряется;
-    // если сеть меняет что-то снаружи (терминал, «Сбросить»), поля подтягивают записанное (см. `IfaceRow`)
+    // a row lives as long as the interface: it is not recreated while typing the address and mask, so focus is not lost;
+    // if the network changes something from outside (terminal, "Reset"), the fields pull in what was written (see `IfaceRow`)
     let keys = Memo::new(move |_| ctx.read(|d| d.ifaces.iter().map(|i| (i.name.clone(), i.ip.clone(), i.prefix)).collect::<Vec<_>>()).unwrap_or_default());
     view! {
         <div class="nl-sec">
@@ -193,7 +193,7 @@ fn IfaceRow(ctx: Ctx, name: String, ip: Option<String>, prefix: u8, queue: bool)
     let pre = RwSignal::new(prefix.to_string());
     let err = RwSignal::new(String::new());
     let queue_len = RwSignal::new(ctx.read(|d| d.iface(&name).and_then(|i| i.txqueuelen)).flatten().unwrap_or(1000).to_string());
-    // записанные в сети адрес и маска; когда они меняются, поля показывают новое (то, что ввели сами, уже совпадает)
+    // address and mask written in the network; when they change, the fields show the new value (what was typed by hand already matches)
     let stored = {
         let name = name.clone();
         Memo::new(move |_| ctx.read(|d| d.iface(&name).map(|i| (i.ip.clone().unwrap_or_default(), i.prefix.to_string()))).flatten())
@@ -286,7 +286,7 @@ fn IfaceRow(ctx: Ctx, name: String, ip: Option<String>, prefix: u8, queue: bool)
     }
 }
 
-/// Шлюз по умолчанию (компьютеры и серверы).
+/// Default gateway (computers and servers).
 #[component]
 pub fn Gateway(ctx: Ctx) -> impl IntoView {
     let gw = RwSignal::new(ctx.read(get_gateway).unwrap_or_default());
@@ -311,7 +311,7 @@ pub fn Gateway(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Пересылка пакетов между интерфейсами (ip_forward) у маршрутизаторов.
+/// Packet forwarding between interfaces (ip_forward) on routers.
 #[component]
 pub fn Forwarding(ctx: Ctx) -> impl IntoView {
     view! {
@@ -328,7 +328,7 @@ pub fn Forwarding(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Таблица маршрутов с добавлением и удалением статических.
+/// Routing table with adding and removing static routes.
 #[component]
 pub fn Routes(ctx: Ctx) -> impl IntoView {
     let dst = RwSignal::new(String::new());
@@ -390,7 +390,7 @@ fn iface_names(ctx: Ctx) -> Vec<String> {
     ctx.read(|d| d.ifaces.iter().map(|i| i.name.clone()).collect()).unwrap_or_default()
 }
 
-/// NAT: MASQUERADE на внешнем интерфейсе и проброс порта.
+/// NAT: MASQUERADE on the outer interface and port forwarding.
 #[component]
 pub fn Nat(ctx: Ctx) -> impl IntoView {
     let names = iface_names(ctx);
@@ -488,9 +488,9 @@ pub fn Nat(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/* ---- файрвол ---- */
+/* ---- firewall ---- */
 
-/// Файрвол: политика цепочки FORWARD и правила.
+/// Firewall: FORWARD chain policy and rules.
 #[component]
 pub fn Firewall(ctx: Ctx) -> impl IntoView {
     let action = RwSignal::new("ACCEPT".to_string());
@@ -600,14 +600,14 @@ pub fn Firewall(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/* ---- серверы и коммутаторы ---- */
+/* ---- servers and switches ---- */
 
-/// Слушающие порты сервера.
+/// Server listening ports.
 #[component]
 pub fn Services(ctx: Ctx) -> impl IntoView {
     let port = RwSignal::new(String::new());
     let proto = RwSignal::new("tcp".to_string());
-    // (описание, привязан ли только к одному адресу)
+    // (description, whether bound to a single address only)
     let rows = Memo::new(move |_| {
         ctx.read(|d| {
             d.services
@@ -667,7 +667,7 @@ pub fn Services(ctx: Ctx) -> impl IntoView {
     }
 }
 
-/// Порты коммутатора: включение, VLAN и trunk.
+/// Switch ports: enabling, VLAN and trunk.
 #[component]
 pub fn SwitchPorts(ctx: Ctx) -> impl IntoView {
     let names = Memo::new(move |_| iface_names(ctx));
@@ -732,7 +732,7 @@ fn SwitchPort(ctx: Ctx, name: String) -> impl IntoView {
                                     }
                                 });
                             }
-                            // поле показывает то, что записано в сети (пустое и нулевое значение не принимаются)
+                            // the field shows what is written in the network (empty and zero values are not accepted)
                             event_target::<web_sys::HtmlInputElement>(&e).set_value(&vlan_text());
                         }
                     />
@@ -756,7 +756,7 @@ fn SwitchPort(ctx: Ctx, name: String) -> impl IntoView {
     }
 }
 
-/// Таблица MAC-адресов коммутатора (то, чему он научился на проходящих кадрах).
+/// Switch MAC address table (what it has learned from passing frames).
 #[component]
 pub fn MacTable(ctx: Ctx) -> impl IntoView {
     let rows = Memo::new(move |_| {

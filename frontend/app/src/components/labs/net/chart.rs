@@ -1,4 +1,4 @@
-//! График окна перегрузки (cwnd) по времени передачи: «пила», уровни BDP и окна приёма.
+//! Congestion window (cwnd) chart over transfer time: the "sawtooth", BDP levels and receive window.
 
 use leptos::prelude::*;
 use netlab::transfer::TransferChart;
@@ -10,7 +10,7 @@ const L: f64 = 60.0;
 const B: f64 = 22.0;
 const T: f64 = 10.0;
 
-/// Разметка графика: подготовленные числа и подписи (чистая функция — легко проверить).
+/// Chart layout: prepared numbers and labels (a pure function, easy to test).
 #[derive(Clone, Debug, PartialEq)]
 pub struct ChartLayout {
     pub points: String,
@@ -80,26 +80,26 @@ mod tests {
 
     #[test]
     fn layout_scales_to_the_largest_value() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let l = ChartLayout::new(&chart(1000.0));
         assert_eq!(l.max_t, 100.0);
-        assert_eq!(l.max_y, 150.0, "окно приёма урезано до тройного BDP");
-        assert_eq!(l.rwnd_y, None, "окно приёма вышло за пределы графика");
+        assert_eq!(l.max_y, 150.0, "receive window clipped to triple BDP");
+        assert_eq!(l.rwnd_y, None, "receive window is outside the chart");
         assert!(l.points.starts_with("60.0,"), "{}", l.points);
         assert!(l.points.contains(" 632.0,"), "{}", l.points);
     }
 
     #[test]
     fn small_receive_window_gets_its_own_line() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let l = ChartLayout::new(&chart(32.0));
         assert!(l.rwnd_y.is_some());
-        assert!(l.rwnd_y.unwrap_or(0.0) > l.bdp_y, "окно приёма ниже уровня BDP");
+        assert!(l.rwnd_y.unwrap_or(0.0) > l.bdp_y, "receive window is below the BDP level");
     }
 
     #[test]
     fn empty_trace_does_not_divide_by_zero() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut c = chart(32.0);
         c.trace.clear();
         let l = ChartLayout::new(&c);

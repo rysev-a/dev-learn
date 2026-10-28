@@ -1,9 +1,9 @@
-//! Доска со схемой из вентилей: элементы, провода, входы-тумблеры и выходы упражнения (`GateBoard.tsx`).
+//! Board with a circuit of gates: elements, wires, switch inputs and exercise outputs (`GateBoard.tsx`).
 //!
-//! Всё, что касается мыши и холста: перенос элементов, провода (клик по контакту, затем по другому, или протянуть),
-//! автоподстановка связей, сдвиг и масштаб. Схему (`gates`, `wires`) хозяйничает упражнение; доска меняет её через
-//! сигналы и сообщает `on_edited`. Глобальные обработчики мыши висят на окне (как `document` в React), а чистые
-//! решения — функции из `gate_logic.rs`.
+//! Everything about the mouse and canvas: moving elements, wires (click a pin, then another, or drag),
+//! auto-wiring, pan and zoom. The circuit (`gates`, `wires`) is managed by the exercise; the board changes it via
+//! signals and reports `on_edited`. Global mouse handlers hang on the window (like `document` in React), and the pure
+//! decisions are functions from `gate_logic.rs`.
 
 use std::sync::Arc;
 
@@ -27,11 +27,11 @@ use crate::{
     dom, settings,
 };
 
-/// Ключ настройки: высота доски (px), выбранная «лапкой».
+/// Setting key: board height (px) chosen with the handle.
 const HEIGHT_KEY: &str = "cs-core-lab-board-height";
 const HEIGHT_MIN: f64 = 220.0;
 const HEIGHT_MAX: f64 = 1400.0;
-/// Сдвиг (единицы доски), с которого перенос элемента считается настоящим (включает автопроводку).
+/// Shift (board units) from which an element move counts as real (turns on auto-wiring).
 const MOVE_SLOP: f64 = 6.0;
 
 fn clamp_height(h: f64) -> f64 {
@@ -50,7 +50,7 @@ fn client(e: &web_sys::PointerEvent) -> Point {
     Point::new(f64::from(e.client_x()), f64::from(e.client_y()))
 }
 
-/// Элемент палитры: тип вентиля, закрыт ли он ещё (составные открываются сборкой вручную), подписи.
+/// Palette element: gate type, whether it is still locked (composite ones unlock by hand-building), labels.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PaletteItem {
     pub ty: GateType,
@@ -59,14 +59,14 @@ pub struct PaletteItem {
     pub label: String,
 }
 
-/// Перетаскиваемый элемент и точка нажатия на контакт.
+/// Dragged element and the point where a pin was pressed.
 #[derive(Clone, Copy, Default)]
 struct DragInfo {
     item: ItemDrag,
     pin_down: Option<Point>,
 }
 
-/// Значения сигналов на доске: по узлу и по входному контакту (значение провода, который в него идёт).
+/// Signal values on the board: by node and by input pin (the value of the wire going into it).
 #[derive(Clone, Copy)]
 struct Vals {
     values: Memo<Values>,
@@ -87,7 +87,7 @@ impl Vals {
     }
 }
 
-/// Состояние указателя на доске: что несут, что двигают, откуда тянут провод и какие связи предлагает автопроводка.
+/// Pointer state on the board: what is carried, what is moved, where a wire is dragged from and which links auto-wiring suggests.
 #[derive(Clone, Copy)]
 struct Ix {
     gates: RwSignal<Vec<GateInstance>>,
@@ -99,15 +99,15 @@ struct Ix {
     uid: StoredValue<UidGen>,
     in_y: StoredValue<YMap>,
     out_y: StoredValue<YMap>,
-    /// тип элемента, который несут из палитры
+    /// type of the element carried from the palette
     placing: RwSignal<Option<GateType>>,
-    /// положение курсора на экране, пока несут
+    /// cursor position on screen while carrying
     cursor: RwSignal<Option<Point>>,
     moving: RwSignal<Option<String>>,
     moved_far: RwSignal<bool>,
-    /// откуда тянется провод
+    /// where the wire is dragged from
     pending: RwSignal<Option<PinRef>>,
-    /// провод «прилип» к курсору после щелчка по контакту
+    /// the wire "stuck" to the cursor after a click on a pin
     sticky: RwSignal<bool>,
     hover: RwSignal<Option<PinRef>>,
     cursor_board: RwSignal<Option<Point>>,
@@ -118,7 +118,7 @@ struct Ix {
     on_locked_pick: Callback<GateType>,
 }
 
-/// Связи автопроводки для элемента на его месте.
+/// Auto-wiring links for an element in its place.
 fn suggest(gate: &GateInstance, gates: &[GateInstance], wires: &[Wire], in_y: &YMap, out_y: &YMap, steps_mode: bool, keep: &[AutoWire]) -> Vec<AutoWire> {
     suggest_wires(&AutoWireInput {
         gate,
@@ -153,7 +153,7 @@ impl Ix {
         self.on_edited.run(());
     }
 
-    /// Ставит элемент `ty` с центром в `at`; `held` — связи, которые автопроводка предлагала для «призрака».
+    /// Places element `ty` centered at `at`; `held` are the links auto-wiring suggested for the "ghost".
     fn place(&self, ty: GateType, at: Point, held: Option<Vec<AutoWire>>) {
         let o = gate_origin(at);
         let id = self.uid.try_update_value(|u| u.next("g")).unwrap_or_default();
@@ -351,7 +351,7 @@ impl Ix {
     }
 }
 
-/// Доска вентилей упражнения.
+/// Exercise gate board.
 #[component]
 pub fn GateBoard(
     gates: RwSignal<Vec<GateInstance>>,
@@ -372,7 +372,7 @@ pub fn GateBoard(
     let width = Memo::new(move |_| size.get().0);
     let board_h = RwSignal::new(saved_height());
     let resize = RwSignal::new(None::<(f64, f64)>);
-    // высота меняется без смены масштаба: видимое окно мира растёт вместе с высотой
+    // height changes without changing the scale: the visible window of the world grows with the height
     let fullscreen = use_fullscreen();
     let manual = Memo::new(move |_| board_h.get().filter(|_| !fullscreen()).and_then(|h| world_height_for(h, width.get(), BOARD_W)));
     let world = Signal::derive(move || (BOARD_W, manual.get().unwrap_or(BOARD_H)));
@@ -460,7 +460,7 @@ pub fn GateBoard(
         }
     });
 
-    // «лапка» под полем: потянуть вверх или вниз — доска меняет высоту
+    // "handle" under the field: drag up or down — the board changes height
     let start_resize = move |e: web_sys::PointerEvent| {
         if e.button() != 0 {
             return;
@@ -599,7 +599,7 @@ pub fn GateBoard(
     }
 }
 
-/// Провод: линия, цвет которой зависит от сигнала, и широкая полоса для щелчка (клик — удалить).
+/// Wire: a line whose color depends on the signal, and a wide strip for clicking (click deletes).
 fn wire_view(ix: Ix, vals: Vals, id: String) -> impl IntoView {
     let wire = Memo::new({
         let id = id.clone();
@@ -630,7 +630,7 @@ fn wire_view(ix: Ix, vals: Vals, id: String) -> impl IntoView {
     }
 }
 
-/// Контакт: невидимый круг для мыши и цветная точка сигнала.
+/// Pin: an invisible circle for the mouse and a colored signal dot.
 fn pin_view(ix: Ix, node: String, pin: PinKind, value: impl Fn() -> NodeValue + Send + Sync + 'static, cx: f64, cy: f64) -> impl IntoView {
     let (n1, n2, n3) = (node.clone(), node.clone(), node);
     view! {
@@ -641,7 +641,7 @@ fn pin_view(ix: Ix, node: String, pin: PinKind, value: impl Fn() -> NodeValue + 
     }
 }
 
-/// Вход-тумблер на левом краю: клик переключает, от точки справа тянут провод.
+/// Switch input on the left edge: a click toggles it, a wire is dragged from the dot on the right.
 fn input_node(ix: Ix, vals: Vals, input_state: RwSignal<InputState>, spec: &CircuitSpec, id: InputId, toggle: Callback<InputId>) -> impl IntoView {
     let y = ix.in_y.with_value(|m| m.get(id.as_str())).unwrap_or(200.0);
     let label = spec.label_of(id);
@@ -670,7 +670,7 @@ fn input_node(ix: Ix, vals: Vals, input_state: RwSignal<InputState>, spec: &Circ
     }
 }
 
-/// Выход упражнения на правом краю: значение и контакт, к которому подводят провод.
+/// Exercise output on the right edge: a value and the pin a wire is brought to.
 fn output_node(ix: Ix, vals: Vals, name: String) -> impl IntoView {
     let y = ix.out_y.with_value(|m| m.get(&name)).unwrap_or(200.0);
     let (n_chip, n_text, n_pin) = (name.clone(), name.clone(), name.clone());
@@ -685,7 +685,7 @@ fn output_node(ix: Ix, vals: Vals, name: String) -> impl IntoView {
     }
 }
 
-/// Вентиль: контур, контакты, кнопка удаления и «щуп» со значением выхода.
+/// Gate: outline, pins, delete button and an output-value "probe".
 fn gate_view(ix: Ix, vals: Vals, id: String, ty: GateType) -> impl IntoView {
     let at = Memo::new({
         let id = id.clone();

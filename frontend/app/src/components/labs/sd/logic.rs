@@ -1,6 +1,6 @@
-//! Чистая логика лаборатории «Системный дизайн»: черновик, добавление и удаление компонентов, провода на поле, вписывание
-//! схемы в окно и подписи. Без сигналов и DOM — всё проверяется обычными тестами; интерфейс (`board.rs`, `panels.rs`, `lab.rs`)
-//! только вызывает эти функции, а расчёт и допустимость связей берёт из крейта `sdlab`.
+//! Pure logic of the "System design" lab: draft, adding and removing components, wires on the board, fitting the
+//! diagram into the viewport and labels. No signals or DOM — everything is checked by ordinary tests; the interface (`board.rs`, `panels.rs`, `lab.rs`)
+//! only calls these functions, and takes the calculation and link validity from the `sdlab` crate.
 
 use std::collections::BTreeMap;
 
@@ -14,25 +14,25 @@ use serde_json::{json, Value};
 
 use crate::components::labs::board_view::{js_round, BoardConfig, Bounds, Point, View};
 
-/// Идентификатор «призрачного» компонента из палитры в списках связей, пока он ещё не поставлен на поле.
+/// Identifier of the "ghost" palette component in link lists before it is placed on the board.
 pub const GHOST: &str = "__new__";
-/// Насколько далеко от начала координат можно унести компонент.
+/// How far from the origin a component may be carried.
 pub const WORLD: f64 = 2600.0;
-/// Сдвиг и масштаб доски: 30–300 %, целый сдвиг, компоненты не дальше `WORLD` от начала координат.
+/// Board pan and zoom: 30–300 %, integer pan, components no farther than `WORLD` from the origin.
 pub const BOARD: BoardConfig = BoardConfig { items: Bounds::symmetric(WORLD), ..BoardConfig::DEFAULT };
-/// Пределы высоты поля, которую выбирают «лапкой» (px).
+/// Limits of the board height chosen with the grip (px).
 pub const MIN_H: f64 = 240.0;
 pub const MAX_H: f64 = 1600.0;
-/// Сдвиг компонента (единиц поля), меньше которого нажатие остаётся выбором, а не перетаскиванием.
+/// Component shift (board units) below which a press stays a selection rather than a drag.
 pub const MOVE_SLOP: f64 = 6.0;
 
 fn pt(p: Point) -> Pt {
     Pt { x: p.x, y: p.y }
 }
 
-// --- упражнение и черновик ----------------------------------------------------------------------
+// --- exercise and draft ----------------------------------------------------------------------
 
-/// Разбирает данные упражнения. Эталонного решения сервер не присылает — ключ `solution` при необходимости дописывается пустым.
+/// Parses the exercise data. The server does not send the reference solution — the `solution` key is added empty if needed.
 pub fn parse_scenario(spec: &Value) -> Result<Scenario, String> {
     let mut value = spec.clone();
     if let Some(obj) = value.as_object_mut() {
@@ -41,18 +41,18 @@ pub fn parse_scenario(spec: &Value) -> Result<Scenario, String> {
     serde_json::from_value(value).map_err(|e| i18n::trf!("Failed to parse the exercise: {0}", e))
 }
 
-/// Схема с расставленными компонентами и названиями.
+/// Diagram with components and names laid out.
 fn prepared(mut state: SdState) -> SdState {
     state.normalize();
     layout::place(&state)
 }
 
-/// Исходная схема упражнения.
+/// Initial diagram of the exercise.
 pub fn initial_state(sc: &Scenario) -> SdState {
     prepared(sc.start.clone())
 }
 
-/// Старый черновик с налезающими друг на друга узлами: расставляем по колонкам заново.
+/// Old draft with overlapping nodes: lay out by columns again.
 fn tidy(state: SdState) -> SdState {
     let crowded = state.nodes.iter().enumerate().any(|(i, a)| state.nodes.iter().skip(i + 1).any(|b| (a.x - b.x).abs() < NODE_W && (a.y - b.y).abs() < NODE_H));
     if !crowded {
@@ -62,7 +62,7 @@ fn tidy(state: SdState) -> SdState {
     layout::place(&reset)
 }
 
-/// Схема из черновика; пустой, повреждённый или без пользователей — исходная схема упражнения.
+/// Diagram from a draft; empty, corrupt or without users — the exercise's initial diagram.
 pub fn restore(sc: &Scenario, draft: &str) -> SdState {
     if draft.trim().is_empty() {
         return initial_state(sc);
@@ -73,20 +73,20 @@ pub fn restore(sc: &Scenario, draft: &str) -> SdState {
     }
 }
 
-/// Строка JSON схемы: и черновик в кабинете, и решение, которое сервер перепроверяет.
+/// JSON string of the diagram: both the draft in the cabinet and the solution the server re-checks.
 pub fn draft_json(state: &SdState) -> String {
     serde_json::to_string(state).unwrap_or_default()
 }
 
-// --- правки схемы -------------------------------------------------------------------------------
+// --- diagram edits -------------------------------------------------------------------------------
 
-/// Свободный идентификатор нового компонента: `<вид><номер>`.
+/// Free identifier for a new component: `<kind><number>`.
 pub fn new_node_id(state: &SdState, kind: Kind) -> String {
     (1..).map(|i| format!("{}{i}", kind.as_str())).find(|id| state.node(id).is_none()).unwrap_or_default()
 }
 
-/// Ставит компонент: в точку `at` или на свободное место его колонки, вместе со связями `edges` (концом `GHOST` служит
-/// сам новый компонент). Возвращает идентификатор нового компонента.
+/// Places a component: at point `at` or in a free spot of its column, together with links `edges` (the end `GHOST` stands for
+/// the new component itself). Returns the new component's identifier.
 pub fn add_node(state: &mut SdState, kind: Kind, at: Option<Point>, edges: &[SdEdge]) -> String {
     let id = new_node_id(state, kind);
     let spec = kinds::spec(kind);
@@ -105,33 +105,33 @@ pub fn add_node(state: &mut SdState, kind: Kind, at: Option<Point>, edges: &[SdE
     id
 }
 
-/// Добавляет связь, если такой ещё нет.
+/// Adds a link if there is none yet.
 pub fn add_edge(state: &mut SdState, edge: SdEdge) {
     if !state.edges.contains(&edge) {
         state.edges.push(edge);
     }
 }
 
-/// Убирает компонент вместе с его связями.
+/// Removes a component together with its links.
 pub fn remove_node(state: &mut SdState, id: &str) {
     state.nodes.retain(|n| n.id != id);
     state.edges.retain(|e| e.from != id && e.to != id);
 }
 
-/// Можно ли удалить компонент: пользователей со схемы убирать нельзя.
+/// Whether a component can be deleted: users cannot be removed from the diagram.
 pub fn deletable(state: &SdState, id: &str) -> bool {
     state.node(id).is_some_and(|n| n.kind != Kind::Clients)
 }
 
-/// Значение целого параметра в пределах, как в панели компонента (по умолчанию от 0 до 1e9); `None` — не число.
+/// Value of an integer parameter within limits, as in the component panel (0 to 1e9 by default); `None` — not a number.
 pub fn clamp_int(text: &str, min: Option<f64>, max: Option<f64>) -> Option<f64> {
     let x = js_round(text.trim().parse::<f64>().ok().filter(|x| x.is_finite())?);
     Some(x.min(max.unwrap_or(1e9)).max(min.unwrap_or(0.0)))
 }
 
-// --- поле: вписывание, провода --------------------------------------------------------------------
+// --- board: fitting, wires --------------------------------------------------------------------
 
-/// Высота окна на доску: на весь экран и при выбранной высоте — по пропорциям окна, иначе как у обычного поля.
+/// Window height for the board: fullscreen and with a chosen height — by viewport proportions, otherwise as the regular board.
 pub fn world_height(sized: bool, width_px: f64, height_px: f64) -> f64 {
     if sized && width_px > 0.0 && height_px > 0.0 {
         BOARD_W * height_px / width_px
@@ -140,7 +140,7 @@ pub fn world_height(sized: bool, width_px: f64, height_px: f64) -> f64 {
     }
 }
 
-/// Сдвиг и масштаб, при которых вся схема видна в окне высотой `world_h` с полями; пустая схема — исходный вид.
+/// Pan and zoom that make the whole diagram visible in a window of height `world_h` with margins; an empty diagram — the initial view.
 pub fn fit_view(nodes: &[Point], world_h: f64) -> View {
     if nodes.is_empty() {
         return BOARD.home_view();
@@ -156,21 +156,21 @@ pub fn fit_view(nodes: &[Point], world_h: f64) -> View {
     View { zoom, pan: Point::new(js_round(min_x + bw / 2.0 - BOARD_W / zoom / 2.0), js_round(min_y + bh / 2.0 - world_h / zoom / 2.0)) }
 }
 
-/// Откуда тянут провод: от выходного порта или от входного.
+/// Where a wire is dragged from: an output port or an input port.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Pin {
     In,
     Out,
 }
 
-/// Провод, который тянут от порта компонента `id`.
+/// Wire dragged from a port of component `id`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Pending {
     pub id: String,
     pub pin: Pin,
 }
 
-/// Как выглядит порт при протянутом проводе.
+/// How a port looks while a wire is being dragged.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PortState {
     Idle,
@@ -188,7 +188,7 @@ impl PortState {
     }
 }
 
-/// Связь `от → к` по проводу от `pend` к компоненту `other`.
+/// Link `from → to` for a wire from `pend` to component `other`.
 pub fn pin_edge(pend: &Pending, other: &str) -> (String, String) {
     match pend.pin {
         Pin::Out => (pend.id.clone(), other.to_owned()),
@@ -196,7 +196,7 @@ pub fn pin_edge(pend: &Pending, other: &str) -> (String, String) {
     }
 }
 
-/// Причина, по которой провод от `pend` нельзя соединить с `other`; `None` — можно (или компонентов нет).
+/// Reason why a wire from `pend` cannot be connected to `other`; `None` — it can (or there are no components).
 pub fn link_error(state: &SdState, pend: &Pending, other: &str) -> Option<String> {
     let (me, other) = (state.node(&pend.id)?, state.node(other)?);
     match pend.pin {
@@ -205,7 +205,7 @@ pub fn link_error(state: &SdState, pend: &Pending, other: &str) -> Option<String
     }
 }
 
-/// Компонент под точкой `p` (рамка с запасом 10): ближайший к ней, кроме того, от которого тянут провод.
+/// Component under point `p` (frame with a margin of 10): the nearest one, other than the one the wire is dragged from.
 pub fn node_at(state: &SdState, from: &str, p: Point) -> Option<String> {
     let dist = |n: &SdNode| (p.x - n.x).hypot(p.y - n.y);
     state
@@ -216,7 +216,7 @@ pub fn node_at(state: &SdState, from: &str, p: Point) -> Option<String> {
         .map(|n| n.id.clone())
 }
 
-/// Можно ли соединить порт `pin` компонента `node` с тем, от которого тянется провод.
+/// Whether port `pin` of component `node` can be connected to the one the wire is dragged from.
 pub fn port_state(state: &SdState, pend: Option<&Pending>, node: &str, pin: Pin) -> PortState {
     let Some(p) = pend else { return PortState::Idle };
     if node == p.id {
@@ -228,7 +228,7 @@ pub fn port_state(state: &SdState, pend: Option<&Pending>, node: &str, pin: Pin)
     PortState::Ok
 }
 
-/// Подсветка компонента под концом провода.
+/// Highlight of the component under the end of the wire.
 pub fn hover_class(state: &SdState, pend: Option<&Pending>, hover: &str) -> &'static str {
     match pend.and_then(|p| link_error(state, p, hover)) {
         Some(_) => "hover-bad",
@@ -236,7 +236,7 @@ pub fn hover_class(state: &SdState, pend: Option<&Pending>, hover: &str) -> &'st
     }
 }
 
-/// Провод, который тянут сейчас: путь и тон («ok» — можно соединить, «bad» — нельзя, пусто — конец у курсора).
+/// The wire being dragged now: path and tone ("ok" — can connect, "bad" — cannot, empty — end at the cursor).
 pub fn pending_wire(state: &SdState, pend: &Pending, hover: Option<&str>, cursor: Option<Point>) -> Option<(String, &'static str)> {
     let own_node = state.node(&pend.id)?;
     let hover_node = hover.and_then(|h| state.node(h));
@@ -263,20 +263,20 @@ pub fn pending_wire(state: &SdState, pend: &Pending, hover: Option<&str>, cursor
     Some((d, tone))
 }
 
-/// Путь связи между двумя компонентами.
+/// Path of a link between two components.
 pub fn edge_path(state: &SdState, e: &SdEdge) -> Option<String> {
     Some(wire_path(out_pos(state.node(&e.from)?.pt()), in_pos(state.node(&e.to)?.pt())))
 }
 
-/// Путь автоподставленной связи; концом `GHOST` служит призрачный компонент.
+/// Path of an auto-wired link; the end `GHOST` stands for the ghost component.
 pub fn auto_edge_path(state: &SdState, ghost: Option<&SdNode>, e: &SdEdge) -> Option<String> {
     let find = |id: &str| if id == GHOST { ghost } else { state.node(id) };
     Some(wire_path(out_pos(find(&e.from)?.pt()), in_pos(find(&e.to)?.pt())))
 }
 
-// --- подписи --------------------------------------------------------------------------------------
+// --- labels --------------------------------------------------------------------------------------
 
-/// Название компонента в одну-две строки: в рамку умещается около 17 знаков в строке.
+/// Component name in one or two lines: about 17 characters fit in a frame line.
 pub fn name_lines(name: &str) -> Vec<String> {
     const MAX: usize = 17;
     let cut = |s: &str| format!("{}…", s.chars().take(MAX - 1).collect::<String>());
@@ -307,7 +307,7 @@ pub fn name_lines(name: &str) -> Vec<String> {
     }
 }
 
-/// Краткие параметры под названием компонента.
+/// Short parameters under the component name.
 pub fn summary(n: &SdNode) -> String {
     let t = |k: &str| n.text(k).into_owned();
     let replicas = |k: &str| if n.num(k) > 0.0 { i18n::trf!(" +{0}r", t(k)) } else { String::new() };
@@ -329,7 +329,7 @@ pub fn summary(n: &SdNode) -> String {
     }
 }
 
-/// Полная подпись компонента для всплывающей подсказки: название и все параметры.
+/// Full component label for the tooltip: the name and all parameters.
 pub fn describe_node(n: &SdNode) -> String {
     let parts = kinds::spec(n.kind).params.iter().map(|p| {
         let v = n.params.get(p.key).unwrap_or(&p.default);
@@ -342,12 +342,12 @@ pub fn describe_node(n: &SdNode) -> String {
     std::iter::once(n.name.clone()).chain(parts).collect::<Vec<_>>().join("\n")
 }
 
-/// Что показывать по числу, как это делает JavaScript: `0` и пустое — «ложь».
+/// What to show for a number, as JavaScript does: `0` and empty are "false".
 fn truthy(x: f64) -> bool {
     x != 0.0 && !x.is_nan()
 }
 
-/// Нагрузка упражнения короткими плашками над полем.
+/// Exercise load as short chips above the board.
 pub fn workload_chips(w: &Workload) -> Vec<String> {
     let n = jsfmt::num;
     let mut out = Vec::new();
@@ -381,7 +381,7 @@ pub fn workload_chips(w: &Workload) -> Vec<String> {
     out
 }
 
-/// Доля в процентах для метрик: чем ближе к 100 %, тем больше знаков.
+/// Percentage for metrics: the closer to 100 %, the more digits.
 pub fn fmt_pct(x: f64) -> String {
     let digits = if x >= 0.9999 {
         4
@@ -393,7 +393,7 @@ pub fn fmt_pct(x: f64) -> String {
     format!("{}%", jsfmt::fixed(x * 100.0, digits))
 }
 
-/// Что ломается, словами для выбора отказа; `None` — для такого вида отказ не предлагается.
+/// What breaks, in words for choosing a failure; `None` — no failure is offered for this kind.
 pub fn fail_text(f: FailKind) -> Option<&'static str> {
     Some(match f {
         FailKind::Zone => i18n::tr("availability zone failure"),
@@ -422,7 +422,7 @@ pub fn fail_text(f: FailKind) -> Option<&'static str> {
     })
 }
 
-/// Отказы по видам компонентов, которые есть на схеме, в порядке появления на ней.
+/// Failures by the component kinds present on the diagram, in the order they appear on it.
 pub fn fail_kinds(state: &SdState) -> Vec<FailKind> {
     let mut out: Vec<FailKind> = Vec::new();
     for n in &state.nodes {
@@ -434,7 +434,7 @@ pub fn fail_kinds(state: &SdState) -> Vec<FailKind> {
     out
 }
 
-/// Строки справочника чисел модели (число запросов, цены и доступность).
+/// Rows of the model number reference (request counts, prices and availability).
 pub fn reference_lines() -> Vec<String> {
     let n = jsfmt::num;
     let by = |b: r::BySize| format!("{}/{}/{}", n(b.s), n(b.m), n(b.l));
@@ -449,12 +449,12 @@ pub fn reference_lines() -> Vec<String> {
     ]
 }
 
-/// Значение параметра по тексту выбранного варианта списка.
+/// Parameter value from the text of the selected list option.
 pub fn option_value(p: &kinds::ParamSpec, text: &str) -> Option<ParamValue> {
     p.options.iter().find(|o| o.value.as_text() == text).map(|o| o.value.clone())
 }
 
-/// Параметры нового компонента без значений (призрак из палитры).
+/// Parameters of a new component without values (palette ghost).
 pub fn ghost_node(kind: Kind, at: Point) -> SdNode {
     SdNode { id: GHOST.to_owned(), kind, name: kinds::spec(kind).label.to_owned(), x: js_round(at.x), y: js_round(at.y), params: BTreeMap::new() }
 }
@@ -480,14 +480,14 @@ mod tests {
 
     #[test]
     fn spec_without_solution_still_parses() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let spec = json!({
             "workload": { "static_rps": 0, "read_rps": 50, "write_rps": 10, "data_gb": 5, "hot_set": 0.2 },
             "palette": ["app", "db"],
             "start": { "nodes": [{ "id": "users", "kind": "clients", "x": 70, "y": 235, "params": {} }], "edges": [] },
             "goals": [{ "type": "link", "from": "clients", "to": "app" }]
         });
-        let sc = parse_scenario(&spec).expect("упражнение без эталона разбирается");
+        let sc = parse_scenario(&spec).expect("exercise without the reference parses");
         assert_eq!(sc.palette, vec![Kind::App, Kind::Db]);
         assert_eq!(sc.max_nodes(), 14);
         assert!(sc.solution.nodes.is_empty());
@@ -496,30 +496,30 @@ mod tests {
 
     #[test]
     fn draft_restores_the_schema_or_falls_back_to_the_start() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario(sample());
         let mut changed = sample();
         changed.nodes[1].x = 400.0;
         let restored = restore(&sc, &draft_json(&changed));
         assert_eq!(restored.nodes[1].x, 400.0);
-        // пусто, мусор и схема без пользователей — исходная схема
-        for bad in ["", "  ", "не json", "{}", r#"{"nodes":[{"id":"a","kind":"app"}],"edges":[]}"#] {
-            assert_eq!(restore(&sc, bad), initial_state(&sc), "черновик {bad:?}");
+        // empty, garbage and a diagram without users — the initial diagram
+        for bad in ["", "  ", "not json", "{}", r#"{"nodes":[{"id":"a","kind":"app"}],"edges":[]}"#] {
+            assert_eq!(restore(&sc, bad), initial_state(&sc), "draft {bad:?}");
         }
     }
 
     #[test]
     fn unplaced_nodes_are_laid_out_into_columns() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let start = SdState { nodes: vec![SdNode::new("users", Kind::Clients, &[]), SdNode::new("app", Kind::App, &[])], edges: vec![] };
         let s = initial_state(&scenario(start));
         assert!(s.nodes.iter().all(|n| n.x >= 0.0 && n.y >= 0.0));
-        assert!(s.nodes[0].x < s.nodes[1].x, "пользователи левее серверов");
+        assert!(s.nodes[0].x < s.nodes[1].x, "users are left of the servers");
     }
 
     #[test]
     fn crowded_draft_is_tidied_and_loose_one_is_kept() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut crowded = sample();
         crowded.nodes[1].x = 80.0;
         crowded.nodes[1].y = 240.0;
@@ -531,10 +531,10 @@ mod tests {
 
     #[test]
     fn new_nodes_get_free_ids_numbered_names_and_default_params() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut s = sample();
         let id = add_node(&mut s, Kind::App, Some(Point::new(500.0, 300.0)), &[]);
-        assert_eq!(id, "app1", "id по виду и номеру, «app» занят прежним узлом с другим id");
+        assert_eq!(id, "app1", "id from kind and number, \"app\" is taken by an earlier node with a different id");
         let second = add_node(&mut s, Kind::App, None, &[]);
         assert_eq!(second, "app2");
         let names: Vec<&str> = s.nodes.iter().filter(|n| n.kind == Kind::App).map(|n| n.name.as_str()).collect();
@@ -545,7 +545,7 @@ mod tests {
 
     #[test]
     fn placed_node_takes_the_suggested_edges_without_duplicates() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut s = sample();
         let edges = [SdEdge::new("users", GHOST), SdEdge::new(GHOST, "db"), SdEdge::new("users", GHOST)];
         let id = add_node(&mut s, Kind::Cache, None, &edges);
@@ -555,7 +555,7 @@ mod tests {
 
     #[test]
     fn removing_a_node_drops_its_edges_and_clients_are_not_deletable() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut s = sample();
         add_edge(&mut s, SdEdge::new("app", "db"));
         add_edge(&mut s, SdEdge::new("app", "db"));
@@ -567,7 +567,7 @@ mod tests {
 
     #[test]
     fn int_parameters_are_rounded_and_clamped() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(clamp_int("5", Some(1.0), Some(40.0)), Some(5.0));
         assert_eq!(clamp_int("0", Some(1.0), Some(40.0)), Some(1.0));
         assert_eq!(clamp_int("99", Some(1.0), Some(40.0)), Some(40.0));
@@ -581,7 +581,7 @@ mod tests {
 
     #[test]
     fn board_height_follows_the_window_only_when_sized() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(world_height(false, 1000.0, 400.0), layout::BOARD_H);
         assert_eq!(world_height(true, 0.0, 400.0), layout::BOARD_H);
         assert_eq!(world_height(true, 780.0, 390.0), 390.0);
@@ -590,28 +590,28 @@ mod tests {
 
     #[test]
     fn fit_shows_every_node_with_margins() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(fit_view(&[], 560.0), BOARD.home_view());
         let pts = [Point::new(70.0, 235.0), Point::new(1120.0, 235.0)];
         let v = fit_view(&pts, 560.0);
-        // ширина схемы 1050 + 124 + 60 = 1234 → масштаб 780/1234
+        // diagram width 1050 + 124 + 60 = 1234 → scale 780/1234
         assert!((v.zoom - 780.0 / 1234.0).abs() < 1e-9);
         let (w, h) = (780.0 / v.zoom, 560.0 / v.zoom);
         for p in pts {
             assert!(p.x - NODE_W / 2.0 >= v.pan.x - 1.0 && p.x + NODE_W / 2.0 <= v.pan.x + w + 1.0);
             assert!(p.y - NODE_H / 2.0 >= v.pan.y && p.y + NODE_H / 2.0 <= v.pan.y + h);
         }
-        // один компонент — не крупнее 160 % и по центру окна
+        // one component — at most 160 % and centered in the window
         let one = fit_view(&[Point::new(300.0, 200.0)], 560.0);
         assert_eq!(one.zoom, 1.6);
         assert!((one.pan.x + 780.0 / 1.6 / 2.0 - 300.0).abs() <= 1.0);
-        // очень широкая схема — не мельче 30 %
+        // a very wide diagram — at least 30 %
         assert_eq!(fit_view(&[Point::new(0.0, 0.0), Point::new(9000.0, 0.0)], 560.0).zoom, 0.3);
     }
 
     #[test]
     fn wire_ends_are_resolved_for_both_pins() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let out = Pending { id: "app".into(), pin: Pin::Out };
         let inn = Pending { id: "app".into(), pin: Pin::In };
         assert_eq!(pin_edge(&out, "db"), ("app".to_owned(), "db".to_owned()));
@@ -620,59 +620,59 @@ mod tests {
 
     #[test]
     fn node_under_the_cursor_is_the_nearest_other_one() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = sample();
         assert_eq!(node_at(&s, "users", Point::new(680.0, 240.0)).as_deref(), Some("app"));
-        assert_eq!(node_at(&s, "app", Point::new(680.0, 240.0)), None, "сам компонент не считается");
+        assert_eq!(node_at(&s, "app", Point::new(680.0, 240.0)), None, "the component itself does not count");
         assert_eq!(node_at(&s, "users", Point::new(900.0, 100.0)), None);
-        // запас в 10 единиц за рамкой
+        // margin of 10 units beyond the frame
         assert_eq!(node_at(&s, "users", Point::new(670.0 + NODE_W / 2.0 + 10.0, 235.0)).as_deref(), Some("app"));
         assert_eq!(node_at(&s, "users", Point::new(670.0 + NODE_W / 2.0 + 11.0, 235.0)), None);
     }
 
     #[test]
     fn ports_light_up_by_what_can_be_connected() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = sample();
         let from_app = Pending { id: "app".into(), pin: Pin::Out };
-        // от выхода сервера: вход базы подходит, вход пользователей — нет (так в модели не устроено)
+        // from the server's output: the database input fits, the users input does not (the model has no such link)
         assert_eq!(port_state(&s, Some(&from_app), "db", Pin::In), PortState::Ok);
         assert_eq!(port_state(&s, Some(&from_app), "users", Pin::In), PortState::Bad);
-        // выход к выходу — нельзя
+        // output to output — not allowed
         assert_eq!(port_state(&s, Some(&from_app), "db", Pin::Out), PortState::Bad);
-        // свой компонент и отсутствие провода — без подсветки
+        // the component itself and no wire — no highlight
         assert_eq!(port_state(&s, Some(&from_app), "app", Pin::In), PortState::Idle);
         assert_eq!(port_state(&s, None, "db", Pin::In), PortState::Idle);
-        // уже есть связь — нельзя
+        // a link already exists — not allowed
         let from_users = Pending { id: "users".into(), pin: Pin::Out };
         assert_eq!(port_state(&s, Some(&from_users), "app", Pin::In), PortState::Bad);
-        // провод от входа: источником может быть пользователь, но не база
+        // wire from an input: the source may be a user but not the database
         let to_app = Pending { id: "db".into(), pin: Pin::In };
         assert_eq!(port_state(&s, Some(&to_app), "app", Pin::Out), PortState::Ok);
     }
 
     #[test]
     fn hover_and_pending_wire_tones() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = sample();
         let p = Pending { id: "app".into(), pin: Pin::Out };
         assert_eq!(hover_class(&s, Some(&p), "db"), "hover-ok");
         assert_eq!(hover_class(&s, Some(&p), "users"), "hover-bad");
-        let (d, tone) = pending_wire(&s, &p, Some("db"), None).expect("провод к компоненту");
+        let (d, tone) = pending_wire(&s, &p, Some("db"), None).expect("wire to a component");
         assert_eq!(tone, "ok");
-        assert!(d.starts_with("M732 235"), "от выхода сервера: {d}");
+        assert!(d.starts_with("M732 235"), "from the server's output: {d}");
         assert_eq!(pending_wire(&s, &p, Some("users"), None).map(|w| w.1), Some("bad"));
         assert_eq!(pending_wire(&s, &p, None, Some(Point::new(900.0, 300.0))).map(|w| w.1), Some(""));
-        assert_eq!(pending_wire(&s, &p, None, None), None, "без курсора и цели провода нет");
-        // провод от входа рисуется от цели к порту
+        assert_eq!(pending_wire(&s, &p, None, None), None, "no wire without a cursor and a target");
+        // a wire from an input is drawn from the target to the port
         let inn = Pending { id: "db".into(), pin: Pin::In };
-        let (d, _) = pending_wire(&s, &inn, Some("app"), None).expect("провод от входа");
+        let (d, _) = pending_wire(&s, &inn, Some("app"), None).expect("wire from an input");
         assert!(d.starts_with("M732 235") && d.ends_with("1058 235"), "{d}");
     }
 
     #[test]
     fn edge_paths_follow_the_nodes_and_the_ghost() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = sample();
         assert!(edge_path(&s, &SdEdge::new("users", "app")).is_some());
         assert_eq!(edge_path(&s, &SdEdge::new("users", "zzz")), None);
@@ -684,7 +684,7 @@ mod tests {
 
     #[test]
     fn long_names_wrap_into_two_lines() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(name_lines("Кэш"), ["Кэш"]);
         assert_eq!(name_lines("Сервер приложения"), ["Сервер приложения"]);
         assert_eq!(name_lines("Сервер приложения 2"), ["Сервер приложения", "2"]);
@@ -701,7 +701,7 @@ mod tests {
 
     #[test]
     fn node_summary_reads_the_main_parameters() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let app = SdNode::new("a", Kind::App, &[("instances", 3.into()), ("size", "M".into())]);
         assert_eq!(summary(&app), "×3 · M");
         let cache = SdNode::new("c", Kind::Cache, &[("size_gb", 8.into()), ("replicas", 1.into())]);
@@ -722,7 +722,7 @@ mod tests {
 
     #[test]
     fn node_tooltip_lists_name_and_every_parameter() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let app = SdNode::new("a", Kind::App, &[("size", "L".into()), ("breaker", true.into())]);
         let text = describe_node(&app);
         let lines: Vec<&str> = text.lines().collect();
@@ -735,14 +735,14 @@ mod tests {
 
     #[test]
     fn workload_chips_skip_zero_values() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let w = Workload { search_share: Some(0.25), hot_key: Some(0.0), connections: Some(5000.0), ..Workload::new(0.0, 50.0, 10.0) };
         assert_eq!(workload_chips(&w), ["чтения 50/с", "записи 10/с", "данные 10 ГБ", "рабочий набор 20%", "поиск 25% чтений", "соединений 5000"]);
     }
 
     #[test]
     fn percentages_gain_digits_near_one() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(fmt_pct(0.5), "50.0%");
         assert_eq!(fmt_pct(0.9995), "99.950%");
         assert_eq!(fmt_pct(0.99995), "99.9950%");
@@ -752,7 +752,7 @@ mod tests {
 
     #[test]
     fn failures_offered_for_kinds_on_the_schema_only() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut s = sample();
         add_node(&mut s, Kind::Monitor, None, &[]);
         add_node(&mut s, Kind::Blob, None, &[]);
@@ -761,7 +761,7 @@ mod tests {
         assert_eq!(fail_text(FailKind::Zone), Some("отказ зоны доступности"));
         assert_eq!(fail_text(FailKind::Component(Kind::Db)), Some("падает лидер базы"));
         assert_eq!(fail_text(FailKind::Component(Kind::Clients)), None);
-        // у каждого вида с отказом и подписью проходит разбор значения select
+        // for every kind with a failure and a label, the select value parses
         for k in Kind::ALL {
             let f = FailKind::Component(k);
             assert_eq!(f.as_str().parse::<FailKind>(), Ok(f));
@@ -770,7 +770,7 @@ mod tests {
 
     #[test]
     fn reference_lists_the_model_numbers() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let lines = reference_lines();
         assert_eq!(lines.len(), 7);
         assert_eq!(lines[0], "Сервер приложения: S/M/L = 300/700/1500 запр/с, $60/120/240; статика — 0.1 запроса.");
@@ -779,66 +779,66 @@ mod tests {
         assert!(lines[5].contains("15000 соединений"), "{}", lines[5]);
     }
 
-    /// Настоящие данные глав: каждое упражнение разбирается, его начало непустое, а эталон через черновик проходит все цели.
+    /// Real chapter data: each exercise parses, its start is non-empty, and the reference passes all goals through a draft.
     #[test]
     fn every_real_exercise_loads_and_its_solution_survives_the_draft_round_trip() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd");
         let Ok(files) = std::fs::read_dir(&dir) else { return };
         let mut tasks = 0;
         for file in files.flatten().filter(|f| f.path().extension().is_some_and(|e| e == "json")) {
-            let chapter: Value = serde_json::from_str(&std::fs::read_to_string(file.path()).expect("файл читается")).expect("файл — JSON");
-            for task in chapter["tasks"].as_array().expect("список упражнений") {
+            let chapter: Value = serde_json::from_str(&std::fs::read_to_string(file.path()).expect("file is readable")).expect("file is JSON");
+            for task in chapter["tasks"].as_array().expect("exercise list") {
                 let id = task["id"].as_str().unwrap_or("?");
                 let sc = parse_scenario(&task["spec"]).unwrap_or_else(|e| panic!("{id}: {e}"));
-                assert!(!initial_state(&sc).nodes.is_empty(), "{id}: пустая исходная схема");
+                assert!(!initial_state(&sc).nodes.is_empty(), "{id}: empty initial diagram");
                 let solved = restore(&sc, &draft_json(&sc.solution));
                 assert_eq!(solved.nodes.len(), sc.solution.nodes.len(), "{id}");
                 let goals = sdlab::check_goals(&solved, &sc.workload, &sc.goals, None);
-                assert!(sdlab::all_ok(&goals), "{id}: эталон не проходит цели после черновика: {goals:?}");
+                assert!(sdlab::all_ok(&goals), "{id}: reference does not pass the goals after a draft: {goals:?}");
                 tasks += 1;
             }
         }
-        assert!(tasks == 0 || tasks > 100, "прочитано упражнений: {tasks}");
+        assert!(tasks == 0 || tasks > 100, "exercises read: {tasks}");
     }
 
-    /// Вписывание — по границам узлов, как `Board.fit` в React: `max(0.3, min(1.6, BOARD_W / bw, wh / bh))`, поля 30.
-    /// Для начальной схемы «Вертикального роста» (пользователи 70, сервер 670, база 1120, все на y = 235) ширина границ
-    /// 1120 + 62 + 30 − (70 − 62 − 30) = 1234, поэтому масштаб 780 / 1234 ≈ 0,632 — и в React, и здесь.
+    /// Fitting is by node bounds, like `Board.fit` in React: `max(0.3, min(1.6, BOARD_W / bw, wh / bh))`, margins 30.
+    /// For the initial diagram of "Vertical growth" (users 70, server 670, database 1120, all at y = 235) the bounds width is
+    /// 1120 + 62 + 30 − (70 − 62 − 30) = 1234, so the scale is 780 / 1234 ≈ 0.632 — both in React and here.
     #[test]
     fn fit_of_the_vertical_growth_start_matches_the_react_formula() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd/18-02.json");
         let Ok(text) = std::fs::read_to_string(path) else { return };
-        let chapter: Value = serde_json::from_str(&text).expect("файл — JSON");
-        let task = chapter["tasks"].as_array().and_then(|t| t.iter().find(|t| t["id"] == "sd02-vertical")).expect("упражнение есть");
-        let sc = parse_scenario(&task["spec"]).expect("разбирается");
+        let chapter: Value = serde_json::from_str(&text).expect("file is JSON");
+        let task = chapter["tasks"].as_array().and_then(|t| t.iter().find(|t| t["id"] == "sd02-vertical")).expect("exercise exists");
+        let sc = parse_scenario(&task["spec"]).expect("parses");
         let nodes: Vec<Point> = initial_state(&sc).nodes.iter().map(|n| Point::new(n.x, n.y)).collect();
         assert_eq!(nodes, [Point::new(70.0, 235.0), Point::new(670.0, 235.0), Point::new(1120.0, 235.0)]);
         let v = fit_view(&nodes, 560.0);
         assert!((v.zoom - 780.0 / 1234.0).abs() < 1e-12, "{}", v.zoom);
-        // окно на всю высоту экрана (1400×1000 → высота окна 780·1000/1400 ≈ 557): ширина по-прежнему ограничивает масштаб
+        // window at full screen height (1400×1000 → window height 780·1000/1400 ≈ 557): the width still limits the scale
         assert!((fit_view(&nodes, 780.0 * 1000.0 / 1400.0).zoom - v.zoom).abs() < 1e-12);
         assert_eq!(v.pan, Point::new(-22.0, js_round(235.0 - 560.0 / v.zoom / 2.0)));
     }
 
-    /// Для всех настоящих упражнений: вписывание не выходит за пределы масштаба и показывает все узлы.
+    /// For all real exercises: fitting stays within the scale limits and shows all nodes.
     #[test]
     fn fit_shows_every_node_of_every_real_start_scheme() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend/data/labs/sd");
         let Ok(files) = std::fs::read_dir(&dir) else { return };
         for file in files.flatten().filter(|f| f.path().extension().is_some_and(|e| e == "json")) {
-            let chapter: Value = serde_json::from_str(&std::fs::read_to_string(file.path()).expect("файл читается")).expect("файл — JSON");
-            for task in chapter["tasks"].as_array().expect("список упражнений") {
+            let chapter: Value = serde_json::from_str(&std::fs::read_to_string(file.path()).expect("file is readable")).expect("file is JSON");
+            for task in chapter["tasks"].as_array().expect("exercise list") {
                 let id = task["id"].as_str().unwrap_or("?");
-                let sc = parse_scenario(&task["spec"]).expect("разбирается");
+                let sc = parse_scenario(&task["spec"]).expect("parses");
                 let nodes: Vec<Point> = initial_state(&sc).nodes.iter().map(|n| Point::new(n.x, n.y)).collect();
                 for world_h in [560.0, 400.0, 900.0] {
                     let v = fit_view(&nodes, world_h);
-                    assert!((0.3..=1.6).contains(&v.zoom), "{id}: масштаб {}", v.zoom);
+                    assert!((0.3..=1.6).contains(&v.zoom), "{id}: zoom {}", v.zoom);
                     let (w, h) = (780.0 / v.zoom, world_h / v.zoom);
-                    // схема целиком в окне, если масштаб не упёрся в нижний предел
+                    // the whole diagram is in the window unless the scale hit the lower limit
                     if v.zoom > 0.3 {
                         for p in &nodes {
                             assert!(p.x - NODE_W / 2.0 >= v.pan.x - 1.0 && p.x + NODE_W / 2.0 <= v.pan.x + w + 1.0, "{id}: x");
@@ -850,10 +850,10 @@ mod tests {
         }
     }
 
-    /// Черновик в том виде, в каком его сохраняет React (`JSON.stringify` схемы), читается без потерь.
+    /// A draft in the form React saves it (`JSON.stringify` of the diagram) is read without loss.
     #[test]
     fn draft_written_by_react_is_restored_with_positions() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario(sample());
         let react = r#"{"nodes":[{"id":"users","kind":"clients","name":"Пользователи","x":70,"y":235,"params":{}},
             {"id":"app","kind":"app","name":"Сервер приложения","x":220,"y":235,"params":{"instances":1,"size":"L","sessions":"local","zone":"single","weight":1,"idempotency":false,"retries":0,"breaker":false,"feed":"pull","deploy":"all","pricing":"ondemand"}},
@@ -862,15 +862,15 @@ mod tests {
         let s = restore(&sc, react);
         assert_eq!(s.nodes.len(), 3);
         assert_eq!((s.nodes[1].x, s.nodes[1].y), (220.0, 235.0));
-        assert_eq!(s.node("cache1").map(|n| n.num("size_gb")), Some(8.0), "sizeGB из React читается как size_gb");
+        assert_eq!(s.node("cache1").map(|n| n.num("size_gb")), Some(8.0), "sizeGB from React is read as size_gb");
     }
 
     #[test]
     fn select_option_text_maps_back_to_a_typed_value() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        let ttl = kinds::param_spec(Kind::Cdn, "ttl").expect("параметр ttl");
-        assert_eq!(option_value(ttl, "300"), Some(ParamValue::Num(300.0)), "число остаётся числом");
-        let size = kinds::param_spec(Kind::App, "size").expect("параметр size");
+        let _ru = locales::guard(i18n::Locale::Ru);
+        let ttl = kinds::param_spec(Kind::Cdn, "ttl").expect("ttl parameter");
+        assert_eq!(option_value(ttl, "300"), Some(ParamValue::Num(300.0)), "a number stays a number");
+        let size = kinds::param_spec(Kind::App, "size").expect("size parameter");
         assert_eq!(option_value(size, "M"), Some(ParamValue::Str("M".into())));
         assert_eq!(option_value(size, "XL"), None);
     }

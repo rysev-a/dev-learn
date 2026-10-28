@@ -1,5 +1,5 @@
-//! Генераторы содержимого: `cargo run --release --bin generate -- <каталог данных>` (обычно `backend/data/slides`).
-//! Пишут главы, у которых источник — код на Rust; перекрывают одноимённые файлы из переноса TypeScript.
+//! Content generators: `cargo run --release --bin generate -- <data directory>` (usually `backend/data/slides`).
+//! Write the chapters whose source is Rust code; they override the same-named files from the TypeScript port.
 
 use std::path::PathBuf;
 

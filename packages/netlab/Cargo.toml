@@ -3,9 +3,12 @@ name = "netlab"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Лаборатория «Компьютерные сети» (книга 15): модель сети, симулятор, мини-терминал, проверка целей и данные упражнений. Общий crate интерфейса (wasm) и бэкенда (проверка решений)."
+description = "\"Computer Networks\" lab (book 15): network model, simulator, mini-terminal, goal checking and exercise data. Shared crate of the interface (wasm) and the backend (solution checking)."
 
 [dependencies]
 i18n = { path = "../i18n" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["raw_value"] }
+
+[dev-dependencies]
+locales = { path = "../locales" }

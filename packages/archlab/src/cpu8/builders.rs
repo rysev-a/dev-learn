@@ -1,5 +1,5 @@
-//! Конструкторы схем процессора: вентили, провода и блоки собираются кодом, а не рисуются руками.
-//! Порт `cpu8/builders.ts`: порядок создания вентилей и их имена (`and12`, `or7`…) совпадают с TS.
+//! Processor circuit constructors: gates, wires and blocks are assembled by code rather than drawn by hand.
+//! Port of `cpu8/builders.ts`: the order of gate creation and their names (`and12`, `or7`…) match TS.
 
 use crate::blocks::*;
 use crate::interfaces::{leaf_paths, Iface};
@@ -7,12 +7,12 @@ use crate::model::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-/// Типы, у которых узлы называются по номерам бит: `Byte` → `a7…a0`.
+/// Types whose nodes are named by bit numbers: `Byte` → `a7…a0`.
 fn numbered(ty: Iface) -> bool {
     matches!(ty, Iface::Byte | Iface::Reg3 | Iface::Op4 | Iface::Imm6 | Iface::Instr16 | Iface::Word2 | Iface::Addr2 | Iface::Op2)
 }
 
-/// Имена узлов порта по порядку бит (старший первым).
+/// Node names of a port in bit order (most significant first).
 pub fn nodes_of(name: &str, ty: Iface) -> Vec<String> {
     let leaves = leaf_paths(ty, "");
     if leaves.len() == 1 {
@@ -24,30 +24,30 @@ pub fn nodes_of(name: &str, ty: Iface) -> Vec<String> {
     leaves.iter().map(|p| format!("{name}_{}", p.replace('.', "_"))).collect()
 }
 
-/// Узел бита с номером `i` (0 — младший) числового порта.
+/// Node of bit number `i` (0 — least significant) of a numeric port.
 pub fn bit(name: &str, i: usize) -> String {
     format!("{name}{i}")
 }
 
-/// Узел поля нечислового порта (`Ctrl`, `Oh8`): `field("ctl", "isBeq")`.
+/// Field node of a non-numeric port (`Ctrl`, `Oh8`): `field("ctl", "isBeq")`.
 pub fn field(name: &str, f: &str) -> String {
     format!("{name}_{f}")
 }
 
-/// Описание порта: имя, тип, направление.
+/// Port description: name, type, direction.
 pub type PortSpec = (String, Iface, Dir);
 
-/// Входной порт.
+/// Input port.
 pub fn pin(name: impl Into<String>, ty: Iface) -> PortSpec {
     (name.into(), ty, Dir::In)
 }
 
-/// Выходной порт.
+/// Output port.
 pub fn pout(name: impl Into<String>, ty: Iface) -> PortSpec {
     (name.into(), ty, Dir::Out)
 }
 
-/// Описание блока по портам.
+/// Block description by ports.
 pub fn make_def(id: &str, title: &str, specs: &[PortSpec]) -> BlockDef {
     let ports: Vec<BlockPort> = specs
         .iter()
@@ -66,7 +66,7 @@ pub fn make_def(id: &str, title: &str, specs: &[PortSpec]) -> BlockDef {
     }
 }
 
-/// Блок с содержимым.
+/// Block with contents.
 #[derive(Debug, Clone)]
 pub struct GeneratedBlock {
     pub def: BlockDef,
@@ -85,8 +85,8 @@ struct GbInner {
     depth: HashMap<String, usize>,
 }
 
-/// Конструктор схемы из вентилей: каждый метод создаёт вентиль и возвращает его имя как источник.
-/// Методы берут `&self` (состояние во внутренней ячейке), чтобы вызовы можно было вкладывать:
+/// Gate circuit constructor: each method creates a gate and returns its name as a source.
+/// Methods take `&self` (state in an interior cell) so that calls can be nested:
 /// `g.or(g.and(a, b), g.and(c, d))`.
 #[derive(Default)]
 pub struct GateBuilder {
@@ -134,17 +134,17 @@ impl GateBuilder {
         self.add(GateType::Xnor, a.as_ref(), Some(b.as_ref()), None)
     }
 
-    /// Триггер с заранее заданным именем — чтобы схема могла сослаться на его выход раньше, чем он создан.
+    /// Flip-flop with a predefined name — so the circuit can refer to its output before it is created.
     pub fn dff_at(&self, id: &str, d: impl AsRef<str>, clk: impl AsRef<str>) -> String {
         self.add(GateType::Dff, d.as_ref(), Some(clk.as_ref()), Some(id))
     }
 
-    /// И нескольких сигналов — деревом из двухвходовых вентилей.
+    /// AND of several signals — a tree of two-input gates.
     pub fn and_all<S: AsRef<str>>(&self, xs: &[S]) -> String {
         self.tree(xs, |a, b| self.and(a, b))
     }
 
-    /// ИЛИ нескольких сигналов — деревом из двухвходовых вентилей.
+    /// OR of several signals — a tree of two-input gates.
     pub fn or_all<S: AsRef<str>>(&self, xs: &[S]) -> String {
         self.tree(xs, |a, b| self.or(a, b))
     }
@@ -160,16 +160,16 @@ impl GateBuilder {
             }
             layer = next;
         }
-        layer.pop().unwrap_or_default() // пустое дерево не создаётся: списки в каталоге фиксированы
+        layer.pop().unwrap_or_default() // an empty tree is never created: the lists in the catalog are fixed
     }
 
-    /// Вывести источник на выходной узел блока.
+    /// Route a source to an output node of the block.
     pub fn out(&self, node: impl AsRef<str>, src: impl AsRef<str>) {
         let node = node.as_ref();
         self.inner.borrow_mut().wires.push(wire(format!("out_{node}"), src.as_ref(), node, PinKind::In0));
     }
 
-    /// Раскладка по слоям: чем дальше от входа, тем правее.
+    /// Layout by layers: the farther from the input, the further right.
     pub fn build(self) -> GateSolution {
         let GbInner { mut gates, wires, depth, .. } = self.inner.into_inner();
         let mut columns: Vec<(usize, Vec<usize>)> = Vec::new();
@@ -192,7 +192,7 @@ impl GateBuilder {
     }
 }
 
-/// Блок из вентилей: описание портов и функция сборки.
+/// Block made of gates: port description and a build function.
 pub fn gate_block(id: &str, title: &str, specs: &[PortSpec], make: impl FnOnce(&GateBuilder)) -> GeneratedBlock {
     let def = make_def(id, title, specs);
     let g = GateBuilder::new();
@@ -200,21 +200,21 @@ pub fn gate_block(id: &str, title: &str, specs: &[PortSpec], make: impl FnOnce(&
     GeneratedBlock { def, solution: Solution::Gate(g.build()) }
 }
 
-/// Блок из одних проводов (переименование, раскладка полей, расширение знака).
+/// Block made of wires only (renaming, field layout, sign extension).
 pub fn wire_block(id: &str, title: &str, specs: &[PortSpec], links: &[(String, String)]) -> GeneratedBlock {
     let def = make_def(id, title, specs);
     let wires = links.iter().enumerate().map(|(i, (f, t))| wire(format!("w{i}"), f, t, PinKind::In0)).collect();
     GeneratedBlock { def, solution: Solution::Gate(GateSolution { gates: vec![], wires }) }
 }
 
-/// Встроенная память.
+/// Built-in memory.
 pub fn native_block(id: &str, title: &str, specs: &[PortSpec], make: impl FnOnce(&BlockDef) -> NativeSolution) -> GeneratedBlock {
     let def = make_def(id, title, specs);
     let solution = Solution::Native(make(&def));
     GeneratedBlock { def, solution }
 }
 
-/// Конструктор схемы из блоков: ставим экземпляры и тянем шины.
+/// Block circuit constructor: place instances and run buses.
 #[derive(Default)]
 pub struct HierBuilder {
     instances: Vec<BlockInstance>,
@@ -227,19 +227,19 @@ impl HierBuilder {
         Self::default()
     }
 
-    /// Поставить блок; без координат — по сетке в три колонки сверху вниз.
+    /// Place a block; without coordinates — on a three-column grid, top to bottom.
     pub fn inst(&mut self, id: &str, block_id: &str) -> &mut Self {
         let i = self.instances.len();
         self.inst_at(id, block_id, 150.0 + (i % 3) as f64 * 196.0, 20.0 + (i / 3) as f64 * 190.0)
     }
 
-    /// Поставить блок на заданное место.
+    /// Place a block at the given position.
     pub fn inst_at(&mut self, id: &str, block_id: &str, x: f64, y: f64) -> &mut Self {
         self.instances.push(BlockInstance { id: id.into(), block_id: block_id.into(), x, y });
         self
     }
 
-    /// Провод: `link("alu.res", "wb.d0")`, `link("$.clk", "pc.clk")`, с полем: `link("rom.word.op", "dec.op")`.
+    /// Wire: `link("alu.res", "wb.d0")`, `link("$.clk", "pc.clk")`, with a field: `link("rom.word.op", "dec.op")`.
     pub fn link(&mut self, from: &str, to: &str) -> &mut Self {
         self.n += 1;
         let id = format!("b{}", self.n);
@@ -252,8 +252,8 @@ impl HierBuilder {
     }
 }
 
-/// Конец шины из записи `узел.порт[.поле…]`; `$` — порты самого блока. Некорректная запись
-/// (без порта) — ошибка программиста каталога: получится пустое имя порта, и шина не соединится.
+/// Bus end from the notation `node.port[.field…]`; `$` — the ports of the block itself. Malformed notation
+/// (no port) is a catalog programmer's error: the port name comes out empty and the bus will not connect.
 fn end(r: &str) -> BusEnd {
     let mut it = r.split('.');
     let node = it.next().unwrap_or("");
@@ -262,7 +262,7 @@ fn end(r: &str) -> BusEnd {
     BusEnd { node: if node == "$" { TOP.to_string() } else { node.to_string() }, port: port.to_string(), path: path.join(".") }
 }
 
-/// Блок из блоков.
+/// Block made of blocks.
 pub fn hier_block(id: &str, title: &str, specs: &[PortSpec], make: impl FnOnce(&mut HierBuilder)) -> GeneratedBlock {
     let def = make_def(id, title, specs);
     let mut h = HierBuilder::new();

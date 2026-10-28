@@ -1,5 +1,5 @@
-//! Перевод выгрузки из TypeScript (`frontend/scripts/sd-export.mjs`) в канонические файлы данных и «золотые» файлы
-//! для дифференциальных тестов. Нужен один раз (и при изменении исходных сценариев): рабочие данные дальше правят в JSON.
+//! Converts the TypeScript export (`frontend/scripts/sd-export.mjs`) into canonical data files and "golden" files
+//! for differential tests. Needed once (and when the source scenarios change): working data is edited in JSON afterwards.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -8,7 +8,7 @@ use crate::data::LAB;
 use crate::error::SdError;
 use crate::types::{EvalOptions, EvalResult, Goal, GoalResult, Kind, LabChapter, Scenario, SdEdge, SdState, Task, Workload};
 
-/// Сценарий в выгрузке: поля прежнего `SdScenario` (названия — как в TypeScript).
+/// Scenario in the export: fields of the former `SdScenario` (names as in TypeScript).
 #[derive(Debug, Deserialize)]
 struct RawTask {
     id: String,
@@ -34,7 +34,7 @@ struct RawChapter {
     tasks: Vec<RawTask>,
 }
 
-/// Состояние в золотом случае: ссылка на схему упражнения (`"start"`, `"solution"`) или схема целиком.
+/// State in a golden case: a reference to the exercise design (`"start"`, `"solution"`) or the whole design.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum CaseState {
@@ -42,30 +42,30 @@ pub enum CaseState {
     Inline(SdState),
 }
 
-/// Золотой случай: результат TypeScript-движка на схеме при нагрузке и отказах.
+/// Golden case: the TypeScript engine's result on a design under a workload and failures.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Case {
     pub label: String,
     pub state: CaseState,
-    /// нагрузка (если не задана — нагрузка упражнения)
+    /// workload (if not set — the exercise workload)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub workload: Option<Workload>,
     #[serde(default)]
     pub opts: EvalOptions,
     pub result: EvalResult,
-    /// результаты `checkGoals` по целям упражнения (если выгружены)
+    /// `checkGoals` results for the exercise goals (if exported)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub goals: Option<Vec<GoalResult>>,
 }
 
-/// Автосвязи: какие связи подставило поле TypeScript для узла эталона, у которого убрали все связи.
+/// Auto-links: which links the TypeScript board suggested for a reference-solution node with all links removed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SuggestCase {
     pub node: String,
     pub edges: Vec<SdEdge>,
 }
 
-/// Золотые результаты одного упражнения.
+/// Golden results of one exercise.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Golden {
     pub cases: Vec<Case>,
@@ -73,7 +73,7 @@ pub struct Golden {
     pub suggest: Vec<SuggestCase>,
 }
 
-/// Золотой файл главы (`tests/golden/18-NN.json`).
+/// Golden file of a chapter (`tests/golden/18-NN.json`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoldenChapter {
     pub book: u32,
@@ -89,7 +89,7 @@ pub struct GoldenTask {
     pub suggest: Vec<SuggestCase>,
 }
 
-/// Цель из выгрузки: поле `k` называется теперь `type`.
+/// Goal from the export: the `k` field is now called `type`.
 fn goal(mut v: Value) -> Result<Goal, SdError> {
     if let Some(m) = v.as_object_mut() {
         if let Some(k) = m.remove("k") {
@@ -99,7 +99,7 @@ fn goal(mut v: Value) -> Result<Goal, SdError> {
     Ok(serde_json::from_value(v)?)
 }
 
-/// Разбирает файл выгрузки одной главы: канонические данные и золотые случаи.
+/// Parses one chapter's export file: canonical data and golden cases.
 pub fn convert(json: &str) -> Result<(LabChapter, GoldenChapter), SdError> {
     let raw: RawChapter = serde_json::from_str(json)?;
     let mut tasks = Vec::new();

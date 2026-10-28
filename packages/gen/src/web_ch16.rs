@@ -1,15 +1,15 @@
-//! Книга 11 «Современный Frontend», глава 16 «CSS: селекторы, состояния и специфичность» (раздел «CSS и вёрстка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 16 "CSS: selectors, states and specificity" (section "CSS and layout"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bx, code, line, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [&[8.9, 15.6, 25.4], &[12.4, 20.5, 28.8], &[8.4, 19.1, 31.2], &[6.0, 22.9, 36.1], &[11.1, 23.1, 29.6], &[10.9, 14.7, 29.7], &[12.1, 21.2, 27.9], &[9.1, 25.2, 34.2], &[15.7, 25.6, 30.0], &[8.8, 24.9, 36.0], &[7.9, 21.5, 29.8], &[7.6, 21.4, 34.4], &[16.0, 27.3]];
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-16.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-16.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Правило CSS", "Селектор и объявления", "Правило = селектор («к чему») + объявления «свойство: значение» («что сделать»).", v01),
@@ -34,30 +34,30 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись.
+/// Short label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка CSS; (x, y) — начало первой строки (базовая линия).
+/// CSS inset; (x, y) — start of the first line (baseline).
 fn css(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Css, id, x, y, lines)
 }
 
-/// Врезка HTML.
+/// HTML inset.
 fn html(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Html, id, x, y, lines)
 }
@@ -66,7 +66,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-/// Выбран / не выбран: зелёный или приглушённый.
+/// Selected / not selected: green or muted.
 fn pick(on: bool) -> Tone {
     if on {
         G
@@ -75,7 +75,7 @@ fn pick(on: bool) -> Tone {
     }
 }
 
-// 1. Правило CSS
+// 1. A CSS rule
 fn v01() -> SceneSpec {
     let lines = ["h1 {", "  color: navy;", "  font-size: 2rem;", "}"];
     let c = || css("c", 14.0, 40.0, &lines).size(11.0).lh(18.0).w(150.0);
@@ -100,7 +100,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Подключение стилей
+// 2. Attaching styles
 fn v02() -> SceneSpec {
     spec(
         &["link", "style", "Атрибут style", "Блокировка"],
@@ -134,7 +134,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Синтаксис и ошибки
+// 3. Syntax and errors
 fn v03() -> SceneSpec {
     let ok = ["p {", "  color: red;", "  font-size: 20px;", "  margin: 8px;", "}"];
     let typo = ["p {", "  color: red;", "  font-sise: 20px;", "  margin: 8px;", "}"];
@@ -164,7 +164,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Простые селекторы
+// 4. Simple selectors
 fn v04() -> SceneSpec {
     let els = |sel: [bool; 3]| {
         let rows = [("e1", 36.0, "<p>"), ("e2", 76.0, "<p class=\"lead\">"), ("e3", 116.0, "<p id=\"intro\">")];
@@ -196,7 +196,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Комбинаторы
+// 5. Combinators
 fn v05() -> SceneSpec {
     let tree = |sel: [bool; 5]| {
         let items = [("p1", 90.0, 78.0, "p"), ("p2", 160.0, 78.0, "p"), ("h", 25.0, 78.0, "h2"), ("p3", 285.0, 128.0, "p")];
@@ -230,7 +230,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Селекторы атрибутов
+// 6. Attribute selectors
 fn v06() -> SceneSpec {
     let links = |sel: [bool; 4]| {
         let rows = [("r1", 36.0, "href=\"https://a.ru/doc.pdf\""), ("r2", 68.0, "href=\"/about.html\""), ("r3", 100.0, "href=\"https://b.ru/page\""), ("r4", 132.0, "href=\"mailto:me@a.ru\"")];
@@ -266,7 +266,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Структурные псевдоклассы
+// 7. Structural pseudo-classes
 fn v07() -> SceneSpec {
     let row = |sel: [bool; 6]| {
         let mut f = Frame::new();
@@ -335,7 +335,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. Состояния
+// 9. States
 fn v09() -> SceneSpec {
     spec(
         &["hover", "focus-visible", "focus-within", "Поля формы"],
@@ -372,7 +372,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. Псевдоэлементы
+// 10. Pseudo-elements
 fn v10() -> SceneSpec {
     spec(
         &["before и after", "marker", "placeholder и selection", "first-line"],
@@ -407,7 +407,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Специфичность
+// 11. Specificity
 fn v11() -> SceneSpec {
     spec(
         &["Три числа", "Сравнение", "Исключения", "Лестница"],
@@ -448,7 +448,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Устойчивые селекторы
+// 12. Robust selectors
 fn v12() -> SceneSpec {
     spec(
         &["Хрупкий и плоский", "Гонка вооружений", "БЭМ", "Равный вес"],
@@ -484,7 +484,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Чек-лист
+// 13. Checklist
 fn v13() -> SceneSpec {
     let rows = [("c1", "стили в голове страницы"), ("c2", "классы, а не id и теги"), ("c3", "без длинных цепочек"), ("c4", "без !important"), ("c5", "заметный :focus-visible"), ("c6", "смысл не в ::before")];
     let list = |n: usize| {

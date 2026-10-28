@@ -1,5 +1,5 @@
-//! «Устройство процессора»: схема процессора Мини-8 из блоков, в которую можно спускаться вплоть до отдельных
-//! вентилей. Значения на проводах — живые, по текущему такту (`CpuInspector.tsx`).
+//! "Processor internals": the Mini-8 processor circuit made of blocks, which can be descended into down to individual
+//! gates. Wire values are live, for the current clock (`CpuInspector.tsx`).
 
 use std::sync::{Arc, OnceLock};
 
@@ -12,16 +12,16 @@ use super::{
     inspector::Inspector,
 };
 
-/// Блок процессора верхнего уровня.
+/// Top-level processor block.
 const CPU_BLOCK: &str = "c8-cpu";
 
-/// Библиотека блоков процессора (только просмотр); собирается один раз.
+/// Processor block library (view only); built once.
 fn cpu_library() -> Lib {
     static LIB: OnceLock<Lib> = OnceLock::new();
     LIB.get_or_init(|| Lib(Arc::new(cpu8_blocks().library()))).clone()
 }
 
-/// Верхний уровень просмотра: схема процессора со значениями из машины на вентилях; `None` — каталога блоков нет.
+/// Top view level: the processor circuit with values from the gate-level machine; `None` means there is no block catalog.
 fn top_level(scope: Scope) -> Option<Level> {
     let cpu = cpu8_blocks().get(CPU_BLOCK)?;
     let expansion = cpu_expansion()?;
@@ -34,7 +34,7 @@ fn top_level(scope: Scope) -> Option<Level> {
     })
 }
 
-/// Просмотр устройства процессора; значения узлов читает у машины на вентилях `sim`.
+/// Processor internals view; node values are read from the gate-level machine `sim`.
 #[component]
 pub fn CpuInspector(sim: RwSignal<Option<Sim>>) -> impl IntoView {
     let path = RwSignal::new(Vec::<String>::new());

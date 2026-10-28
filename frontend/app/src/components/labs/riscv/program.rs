@@ -1,4 +1,4 @@
-//! Левая колонка лаборатории: карточка «Программа» (редактор, подсказка, ошибки ассемблера) и листинг «Машинный код».
+//! Left column of the lab: the "Program" card (editor, hint, assembler errors) and the "Machine code" listing.
 
 use highlight::Lang;
 use leptos::prelude::*;
@@ -9,7 +9,7 @@ use super::{
 };
 use crate::components::code_editor::CodeEditor;
 
-/// Данные задания (секция `.data`): доступны по меткам, менять нельзя.
+/// Task data (`.data` section): available by labels, cannot be changed.
 #[component]
 pub fn TaskData(data: String) -> impl IntoView {
     (!data.trim().is_empty()).then(|| {
@@ -22,7 +22,7 @@ pub fn TaskData(data: String) -> impl IntoView {
     })
 }
 
-/// Карточка «Программа»: кнопки, подсказка, редактор с подсветкой и ошибки по строкам.
+/// "Program" card: buttons, hint, highlighted editor and per-line errors.
 #[component]
 pub fn ProgramCard(session: Session, hint: String, #[prop(into)] solved: Signal<bool>) -> impl IntoView {
     let has_hint = !hint.is_empty();
@@ -66,7 +66,7 @@ pub fn ProgramCard(session: Session, hint: String, #[prop(into)] solved: Signal<
     }
 }
 
-/// Листинг: что ассемблер сделал из программы — по настоящему 32-битному слову на команду, поля раскрашены.
+/// Listing: what the assembler made of the program — a real 32-bit word per instruction, fields colored.
 #[component]
 pub fn ListingCard(session: Session) -> impl IntoView {
     let rows = Memo::new(move |_| session.asm.with(|a| listing_rows(&a.lines)));
@@ -110,7 +110,7 @@ pub fn ListingCard(session: Session) -> impl IntoView {
     }
 }
 
-/// Строка листинга; по клику под ней раскрывается легенда полей.
+/// Listing row; clicking it expands the field legend below it.
 #[component]
 fn ListingLine(row: ListingRow, session: Session, pc: Memo<Option<u32>>) -> impl IntoView {
     let addr = row.addr;

@@ -1,4 +1,4 @@
-/* Лаборатория «Компьютерные сети»: поле, карточка устройства, цели и журнал. Токены приложения, обе темы. */
+/* "Computer Networks" lab: board, device card, goals and log. App tokens, both themes. */
 .nl {
   container-type: inline-size;
   display: flex;

@@ -1,7 +1,7 @@
-//! Подсветка кода по строкам: лексер без зависимостей. Виды токенов отображаются в цвета темы (`--s-*`) там, где их рисуют:
-//! в схемах слайдов (`scene`) и в редакторе упражнений.
+//! Line-by-line syntax highlighting: a lexer with no dependencies. Token kinds are mapped to theme colors (`--s-*`) where they are drawn:
+//! in slide diagrams (`scene`) and in the exercise editor.
 
-/// Язык врезки кода. В данных слайдов записывается строчными буквами (`"rust"`, `"python"`, `"sql"` …).
+/// Language of a code callout. Written in lowercase in slide data (`"rust"`, `"python"`, `"sql"` …).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize), serde(rename_all = "lowercase"))]
 pub enum Lang {
@@ -24,9 +24,9 @@ pub enum Kind {
     Str,
     Number,
     Keyword,
-    /// встроенные функции, типы, регистры
+    /// built-in functions, types, registers
     Builtin,
-    /// вызываемые имена, директивы, метки
+    /// called names, directives, labels
     Accent,
 }
 
@@ -37,7 +37,7 @@ pub struct Token {
 }
 
 impl Kind {
-    /// Цвет токена (`None` — обычный цвет строки).
+    /// Token color (`None` is the regular line color).
     pub fn css(self) -> Option<&'static str> {
         match self {
             Kind::Plain => None,
@@ -74,7 +74,7 @@ fn is_word(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '_'
 }
 
-/// Курсор по символам строки.
+/// Cursor over the characters of a line.
 struct Scan<'a> {
     chars: Vec<char>,
     pos: usize,
@@ -108,7 +108,7 @@ impl<'a> Scan<'a> {
         if text.is_empty() {
             return;
         }
-        // подряд идущие обычные куски склеиваются: меньше узлов в SVG
+        // consecutive plain chunks are merged: fewer SVG nodes
         if kind == Kind::Plain {
             if let Some(last) = self.out.last_mut().filter(|t| t.kind == Kind::Plain) {
                 last.text.push_str(&text);
@@ -117,7 +117,7 @@ impl<'a> Scan<'a> {
         }
         self.out.push(Token { text, kind });
     }
-    /// Строка в кавычках `q` с экранированием; незакрытая тянется до конца строки.
+    /// String in `q` quotes with escaping; an unterminated one runs to the end of the line.
     fn quoted(&mut self, prefix: String, q: char) -> String {
         let mut s = prefix;
         s.push(q);
@@ -136,7 +136,7 @@ impl<'a> Scan<'a> {
         }
         s
     }
-    /// Число: десятичное или `0x…`, затем суффиксы (если указаны); следом не должно идти слово (иначе это не число).
+    /// Number: decimal or `0x…`, then suffixes (if given); must not be followed by a word (otherwise it is not a number).
     fn number(&mut self, allow_dot: bool, hex: bool, suffix: &str, underscores: bool) -> Option<String> {
         let start = self.pos;
         if hex && self.peek(0) == Some('0') && matches!(self.peek(1), Some('x' | 'X')) && self.peek(2).is_some_and(|c| c.is_ascii_hexdigit()) {
@@ -202,7 +202,7 @@ fn python(src: &str) -> Vec<Token> {
     sc.out
 }
 
-/// Rust: ключевые слова, типы (и любые имена с заглавной), макросы `name!`, времена жизни `'a`.
+/// Rust: keywords, types (and any capitalized names), `name!` macros, lifetimes `'a`.
 fn rust(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
     while !sc.done() {
@@ -215,7 +215,7 @@ fn rust(src: &str) -> Vec<Token> {
             let s = sc.quoted(String::new(), c);
             sc.push(s, Kind::Str);
         } else if c == '\'' && sc.peek(1).is_some_and(is_word_start) && !prev_word {
-            // время жизни `'a`, но не символ `'a'`
+            // lifetime `'a`, but not the char `'a'`
             let start = sc.pos;
             sc.pos += 1;
             sc.take_while(is_word);
@@ -262,7 +262,7 @@ fn rust(src: &str) -> Vec<Token> {
 
 fn c_lang(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
-    // директива препроцессора: в начале строки `#include`, `#define` …
+    // preprocessor directive: `#include`, `#define` … at the start of the line
     let indent = src.chars().take_while(|c| c.is_whitespace()).count();
     if src.chars().nth(indent) == Some('#') {
         sc.pos = indent;
@@ -334,11 +334,11 @@ fn is_asm_register(w: &str) -> bool {
         }
 }
 
-/// Ассемблер RISC-V: первое слово строки — инструкция, регистры, директивы `.name`, метки `name:`.
+/// RISC-V assembly: the first word of a line is an instruction; registers, `.name` directives, `name:` labels.
 fn asm(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
     let indent = src.chars().take_while(|c| c.is_whitespace()).count();
-    // метка в начале строки: `loop:` / `.L1:`
+    // label at the start of the line: `loop:` / `.L1:`
     let label_len = src[src.char_indices().nth(indent).map_or(src.len(), |(i, _)| i)..].find(':').filter(|n| {
         let head = &src[src.char_indices().nth(indent).map_or(src.len(), |(i, _)| i)..][..*n];
         !head.is_empty() && head.chars().all(|c| is_word(c) || c == '.' || c == '$')
@@ -351,7 +351,7 @@ fn asm(src: &str) -> Vec<Token> {
         let (lead, label) = head.split_at(indent);
         sc.push(lead.to_string(), Kind::Plain);
         sc.push(label.to_string(), Kind::Accent);
-        sc.pos = upto; // после метки на той же строке может идти инструкция: `first` остаётся истинным
+        sc.pos = upto; // an instruction may follow the label on the same line: `first` stays true
     }
     while !sc.done() {
         let c = sc.peek(0).unwrap_or(' ');
@@ -395,7 +395,7 @@ fn asm(src: &str) -> Vec<Token> {
     sc.out
 }
 
-/// SQL: ключевые слова (без учёта регистра) и функции; комментарии `--`, строки `'…'` с удвоенной кавычкой.
+/// SQL: keywords (case-insensitive) and functions; `--` comments, `'…'` strings with a doubled quote.
 fn sql(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
     while !sc.done() {
@@ -405,7 +405,7 @@ fn sql(src: &str) -> Vec<Token> {
             let t = sc.rest();
             sc.push(t, Kind::Comment);
         } else if c == '\'' {
-            // `''` внутри строки — одна кавычка
+            // `''` inside a string is a single quote
             let mut t = String::from("'");
             sc.pos += 1;
             while let Some(ch) = sc.peek(0) {
@@ -448,7 +448,7 @@ fn sql(src: &str) -> Vec<Token> {
     sc.out
 }
 
-/// JavaScript: ключевые слова, литералы (цветом чисел), имена с заглавной (классы), стрелка `=>`.
+/// JavaScript: keywords, literals (in the number color), capitalized names (classes), the `=>` arrow.
 fn js(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
     while !sc.done() {
@@ -491,7 +491,7 @@ fn js(src: &str) -> Vec<Token> {
     sc.out
 }
 
-/// CSS: комментарии, строки, числа с единицами и `#цвета`, `--переменные`, `@правила`, имена свойств (слово перед `:`).
+/// CSS: comments, strings, numbers with units and `#colors`, `--variables`, `@rules`, property names (the word before `:`).
 fn css(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
     let is_css_word = |ch: char| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-';
@@ -529,7 +529,7 @@ fn css(src: &str) -> Vec<Token> {
                 sc.pos += 1;
             }
             sc.take_while(|d| d.is_ascii_digit() || d == '.');
-            // единицы измерения
+            // units
             sc.take_while(|d| d.is_ascii_alphabetic() || d == '%');
             let t: String = sc.chars[start..sc.pos].iter().collect();
             sc.push(t, Kind::Number);
@@ -549,7 +549,7 @@ fn css(src: &str) -> Vec<Token> {
     sc.out
 }
 
-/// HTML (по строкам): комментарии, `<!doctype>`, имена тегов, атрибуты, значения в кавычках, `&сущности;`.
+/// HTML (line by line): comments, `<!doctype>`, tag names, attributes, quoted values, `&entities;`.
 fn html(src: &str) -> Vec<Token> {
     let mut sc = Scan::new(src);
     let is_name = |ch: char| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == ':';
@@ -583,7 +583,7 @@ fn html(src: &str) -> Vec<Token> {
             sc.push(format!("<{slash}"), Kind::Plain);
             let name = sc.take_while(is_name);
             sc.push(name, Kind::Keyword);
-            // атрибуты до `>` или конца строки
+            // attributes up to `>` or the end of the line
             while !sc.done() && sc.peek(0) != Some('>') {
                 let d = sc.peek(0).unwrap_or(' ');
                 if d.is_whitespace() {
@@ -626,7 +626,7 @@ fn html(src: &str) -> Vec<Token> {
     sc.out
 }
 
-/// Токены одной строки кода.
+/// Tokens of a single line of code.
 pub fn highlight(lang: Lang, line: &str) -> Vec<Token> {
     match lang {
         Lang::Plain => vec![Token { text: line.to_string(), kind: Kind::Plain }],
@@ -661,25 +661,25 @@ mod tests {
     #[test]
     fn tokens_always_rebuild_the_source() {
         for (lang, src) in [
-            (Lang::Python, "def area(r):  # круг"),
+            (Lang::Python, "def area(r):  # circle"),
             (Lang::Python, "    return 3.14 * r * r"),
-            (Lang::Python, "s = f\"привет {x}\" + 'a\\'b'"),
+            (Lang::Python, "s = f\"hello {x}\" + 'a\\'b'"),
             (Lang::C, "#include <stdio.h>"),
             (Lang::C, "  int count = 0x1F; /* c */ // end"),
-            (Lang::Asm, "loop: addi a0, a0, -1   # шаг"),
+            (Lang::Asm, "loop: addi a0, a0, -1   # step"),
             (Lang::Asm, "    .text"),
             (Lang::Rust, "let s: &'a str = println!(\"x\"); // c"),
-            (Lang::Sql, "SELECT name, COUNT(*) FROM t WHERE n > 10 -- итог"),
+            (Lang::Sql, "SELECT name, COUNT(*) FROM t WHERE n > 10 -- total"),
             (Lang::Sql, "WHERE s = 'it''s' AND x IS NULL"),
             (Lang::Js, "const f = (a) => a * 2n; // c"),
             (Lang::Js, "return `x ${y}` + \"s\" + new Map()"),
             (Lang::Css, "  --gap: 8px; color: #1a2b3c; /* c */ margin: -4px 1.5rem;"),
             (Lang::Css, "@media (min-width: 600px) { a:hover { top: 0 } }"),
             (Lang::Html, "<!doctype html>"),
-            (Lang::Html, "<a href=\"/x\" class='b' data-n=3 hidden>Текст &amp; ещё</a>"),
+            (Lang::Html, "<a href=\"/x\" class='b' data-n=3 hidden>Text &amp; more</a>"),
             (Lang::Html, "  <img src=a.png alt=\"\"/> <!-- c --> <p"),
-            (Lang::Html, "a < b и </"),
-            (Lang::Plain, "что угодно"),
+            (Lang::Html, "a < b and </"),
+            (Lang::Plain, "anything"),
         ] {
             let joined: String = highlight(lang, src).into_iter().map(|t| t.text).collect();
             assert_eq!(joined, src, "{lang:?}");
@@ -688,16 +688,16 @@ mod tests {
 
     #[test]
     fn python_keywords_builtins_calls_numbers_strings_comments() {
-        let k = kinds(Lang::Python, "if x > 10: print(len(name), 'ok')  # конец");
+        let k = kinds(Lang::Python, "if x > 10: print(len(name), 'ok')  # end");
         let get = |t: &str| k.iter().find(|(s, _)| s == t).map(|(_, k)| *k);
         assert_eq!(get("if"), Some(Kind::Keyword));
         assert_eq!(get("print"), Some(Kind::Builtin));
         assert_eq!(get("10"), Some(Kind::Number));
         assert_eq!(get("'ok'"), Some(Kind::Str));
-        assert_eq!(get("# конец"), Some(Kind::Comment));
+        assert_eq!(get("# end"), Some(Kind::Comment));
         assert!(k.iter().any(|(s, kind)| *kind == Kind::Plain && s.contains('x')));
         let call = kinds(Lang::Python, "area(5)");
-        assert_eq!(call[0], ("area".into(), Kind::Accent), "имя перед скобкой — вызов");
+        assert_eq!(call[0], ("area".into(), Kind::Accent), "a name before a parenthesis is a call");
     }
 
     #[test]
@@ -714,9 +714,9 @@ mod tests {
         let k = kinds(Lang::C, "uint8_t n = 5UL;");
         assert!(k.contains(&("uint8_t".into(), Kind::Builtin)));
         assert!(k.contains(&("5UL".into(), Kind::Number)));
-        let k = kinds(Lang::C, "size_t len; // длина");
+        let k = kinds(Lang::C, "size_t len; // length");
         assert!(k.contains(&("size_t".into(), Kind::Builtin)));
-        assert!(k.contains(&("// длина".into(), Kind::Comment)));
+        assert!(k.contains(&("// length".into(), Kind::Comment)));
     }
 
     #[test]
@@ -745,13 +745,13 @@ mod tests {
     fn sql_js_css_kinds() {
         let k = kinds(Lang::Sql, "select Count(*) from t");
         assert!(k.contains(&("select".into(), Kind::Keyword)));
-        assert!(k.contains(&("Count".into(), Kind::Builtin)), "функции без учёта регистра");
+        assert!(k.contains(&("Count".into(), Kind::Builtin)), "functions are case-insensitive");
         let k = kinds(Lang::Js, "const x = null; class A {}");
         assert!(k.contains(&("const".into(), Kind::Keyword)));
         assert!(k.contains(&("null".into(), Kind::Number)));
         assert!(k.contains(&("A".into(), Kind::Builtin)));
         let k = kinds(Lang::Css, "a { color: #fff; --x: 1 }");
-        assert!(k.contains(&("color".into(), Kind::Keyword)), "свойство — слово перед двоеточием");
+        assert!(k.contains(&("color".into(), Kind::Keyword)), "a property is the word before a colon");
         assert!(k.contains(&("#fff".into(), Kind::Number)));
         assert!(k.contains(&("--x".into(), Kind::Builtin)));
     }

@@ -1,8 +1,8 @@
-//! Одно упражнение со схемой: доска из вентилей или блоков, таблица истинности или сценарий по шагам, такт и временная
-//! диаграмма (`CircuitLab.tsx`). Состояние — сигналы, расчёт — в крейте `archlab`, тот же код проверяет решение на сервере.
+//! One circuit exercise: a board of gates or blocks, truth table or step-by-step scenario, clock and timing
+//! diagram (`CircuitLab.tsx`). State is signals, computation is in the `archlab` crate, the same code verifies the solution on the server.
 //!
-//! Схема ученика сохраняется черновиком: пока упражнение не решено — любая; решённое упражнение черновик не затирает
-//! неверной схемой (из решённых упражнений собираются блоки других упражнений).
+//! The student's circuit is saved as a draft: while the exercise is unsolved, any circuit; a solved exercise's draft is not overwritten
+//! with an incorrect circuit (blocks of other exercises are built from solved exercises).
 
 use std::{collections::BTreeMap, sync::Arc};
 
@@ -33,10 +33,10 @@ use super::{
 };
 use crate::components::labs::LabProps;
 
-/// Сколько миллисекунд висит всплывающее сообщение под доской.
+/// How many milliseconds the pop-up message under the board stays.
 const FLASH_MS: u32 = 2800;
 
-/// Подсказка над доской.
+/// Hint above the board.
 pub fn board_hint(blocks_mode: bool, steps_mode: bool) -> String {
     let what = if blocks_mode { i18n::tr("Connect the blocks with buses") } else { i18n::tr("Build the circuit") };
     if steps_mode {
@@ -47,7 +47,7 @@ pub fn board_hint(blocks_mode: bool, steps_mode: bool) -> String {
     }
 }
 
-/// Заголовок плашки об успехе (без формулы).
+/// Title of the success banner (without the formula).
 pub fn solved_title(steps_mode: bool, matched: usize, total: usize) -> String {
     if steps_mode {
         i18n::tr("The circuit works as it should!").to_string()
@@ -56,7 +56,7 @@ pub fn solved_title(steps_mode: bool, matched: usize, total: usize) -> String {
     }
 }
 
-/// Снимок сигналов после очередного изменения — один столбец временной диаграммы.
+/// Signal snapshot after each change — one column of the timing diagram.
 pub fn sample_of(spec: &CircuitSpec, inputs: &InputState, values: &Values) -> Sample {
     Sample {
         inputs: spec.inputs.iter().map(|id| (*id, inputs.get(*id))).collect::<BTreeMap<_, _>>(),
@@ -64,7 +64,7 @@ pub fn sample_of(spec: &CircuitSpec, inputs: &InputState, values: &Values) -> Sa
     }
 }
 
-/// Добавляет столбец к истории (хранятся последние `HISTORY_MAX`) или заменяет последний, если тумблеры не менялись.
+/// Appends a column to the history (the last `HISTORY_MAX` are kept) or replaces the last one if the switches did not change.
 pub fn record_sample(history: &mut Vec<Sample>, sample: Sample, inputs_changed: bool) {
     if inputs_changed {
         history.push(sample);
@@ -76,7 +76,7 @@ pub fn record_sample(history: &mut Vec<Sample>, sample: Sample, inputs_changed: 
     }
 }
 
-/// Блок в палитре: название, открыт ли, подсказка о том, что собрать, и краткая сводка портов.
+/// Block in the palette: name, whether it is open, a hint about what to build, and a short port summary.
 #[derive(Clone, Debug, PartialEq)]
 struct BlockItem {
     id: String,
@@ -86,7 +86,7 @@ struct BlockItem {
     summary: String,
 }
 
-/// Упражнение со схемой из вентилей или блоков.
+/// Exercise with a circuit of gates or blocks.
 #[component]
 pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> impl IntoView {
     let LabProps { task, draft, on_draft, solved: props_solved, report, on_next, has_next } = props;
@@ -98,7 +98,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
     let task_id = StoredValue::new(task.id.clone());
     let task_title = task.title.clone();
 
-    // схема: сохранённое решение или пустая доска
+    // circuit: the saved solution or an empty board
     let init = restore(&draft.get_untracked(), build);
     let uid = StoredValue::new({
         let mut u = UidGen::new();
@@ -127,12 +127,12 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         })));
     });
 
-    // --- расчёт: значения узлов и сверка с целью — в `Model` ---------------------------------------
+    // --- computation: node values and comparison with the target — in `Model` ----------------------
     let scope: Scope = model.scope();
     let total_steps = spec.steps.len();
     let solved_now = Memo::new(move |_| if steps_mode { total_steps > 0 && passed.get() == total_steps } else { table.with(|t| t.ok) });
 
-    // сценарий: если стоят нужные тумблеры и выходы верны — шаг пройден, проверяется следующий
+    // scenario: if the required switches are set and the outputs are correct, the step is passed and the next one is checked
     {
         let spec = spec.clone();
         Effect::new(move |_| {
@@ -146,7 +146,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         });
     }
 
-    // временная диаграмма: новый столбец — после каждого изменения тумблеров, иначе последний обновляется
+    // timing diagram: a new column after every switch change, otherwise the last one is updated
     {
         let spec = spec.clone();
         let last_inputs = StoredValue::new(None::<InputState>);
@@ -166,8 +166,8 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         Memo::new(move |_| history.with(|h| build_wave(h, &spec)))
     };
 
-    // --- сохранение и отчёт о решении -----------------------------------------------------------
-    // верна ли схема сейчас: так её проверит сервер (для сценария — «идеальным учеником»)
+    // --- saving and solution report -------------------------------------------------------------
+    // whether the circuit is correct now: this is how the server will check it (for a scenario, with an "ideal student")
     let valid_now = {
         let spec = spec.clone();
         move || if steps_mode { circuit.with_untracked(|c| run_steps(&spec, c).ok) } else { table.with_untracked(|t| t.ok) }
@@ -177,10 +177,10 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         Callback::new(move |()| {
             let json = model.drawing().json(build);
             let solved_before = props_solved.get_untracked();
-            // верность считаем, только когда она что-то решает (дорого для сценариев)
+            // correctness is computed only when it decides something (expensive for scenarios)
             let ok = (solved_before || reported.get_value()) && valid_now();
             if solved_before && !ok {
-                return; // решённое не затираем: из него собираются блоки других упражнений
+                return; // a solved one is not overwritten: blocks of other exercises are built from it
             }
             if ok && reported.get_value() {
                 data.mark_solved(chapter, &slug.get_value(), &task_id.get_value(), &json);
@@ -190,7 +190,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
     };
     Effect::new(move |_| {
         if !solved_now.get() {
-            // схему сломали, а сервер её ещё не принимал (или отказал) — следующее решение уйдёт заново
+            // the circuit was broken and the server has not accepted it yet (or rejected it) — the next solution will be sent again
             if !props_solved.get_untracked() {
                 reported.set_value(false);
             }
@@ -206,7 +206,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         report.run(json);
     });
 
-    // --- действия -------------------------------------------------------------------------------
+    // --- actions --------------------------------------------------------------------------------
     let reset = move |_| {
         clock.stop();
         model.clear();
@@ -223,7 +223,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         }
     });
 
-    // --- палитры --------------------------------------------------------------------------------
+    // --- palettes -------------------------------------------------------------------------------
     let palette = {
         let spec = spec.clone();
         Memo::new(move |_| {
@@ -273,7 +273,7 @@ pub fn CircuitLab(props: LabProps, spec: Arc<CircuitSpec>, data: ArchData) -> im
         persist.run(());
     };
 
-    // --- вид ------------------------------------------------------------------------------------
+    // --- view -----------------------------------------------------------------------------------
     let board = {
         let (spec, iface, scope) = (spec.clone(), iface.clone(), scope.clone());
         move || -> AnyView {
@@ -477,7 +477,7 @@ mod tests {
 
     #[test]
     fn hints_follow_the_kind_of_exercise() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(board_hint(false, false), "Соберите схему так, чтобы столбцы «Схема» совпали со столбцами «Цель»");
         assert_eq!(board_hint(false, true), "Соберите схему и выполняйте шаги сценария — сигналы меняются тумблерами");
         assert_eq!(board_hint(true, true), "Соедините блоки шинами и выполняйте шаги сценария — на вход подаётся такт");
@@ -486,14 +486,14 @@ mod tests {
 
     #[test]
     fn success_title_counts_rows_only_for_tables() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(solved_title(false, 4, 4), "Схема работает — 4 из 4!");
         assert_eq!(solved_title(true, 0, 0), "Схема работает как надо!");
     }
 
     #[test]
     fn sample_holds_active_inputs_and_outputs() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut inputs = InputState::zero();
         inputs.set(InputId::B, 1);
         let values = Values::from([("Q".to_string(), Some(1))]);
@@ -501,23 +501,23 @@ mod tests {
         assert_eq!(s.inputs.get(&InputId::A), Some(&0));
         assert_eq!(s.inputs.get(&InputId::B), Some(&1));
         assert_eq!(s.outputs.get("Q"), Some(&Some(1)));
-        // выход, которого нет в значениях, — «?»
+        // an output that is not in the values is "?"
         assert_eq!(sample_of(&spec(), &inputs, &Values::new()).outputs.get("Q"), Some(&None));
     }
 
     #[test]
     fn history_adds_a_column_per_input_change_and_keeps_the_latest_ones() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut h = Vec::new();
         let s = |q: u8| Sample { inputs: BTreeMap::new(), outputs: BTreeMap::from([("Q".to_string(), Some(q))]) };
         record_sample(&mut h, s(0), true);
         record_sample(&mut h, s(1), false);
-        assert_eq!(h, vec![s(1)], "без смены тумблеров столбец обновляется");
+        assert_eq!(h, vec![s(1)], "without a switch change the column is updated");
         for _ in 0..40 {
             record_sample(&mut h, s(0), true);
         }
         assert_eq!(h.len(), HISTORY_MAX);
-        // на пустой истории обновлять нечего
+        // on an empty history there is nothing to update
         let mut empty = Vec::new();
         record_sample(&mut empty, s(1), false);
         assert!(empty.is_empty());

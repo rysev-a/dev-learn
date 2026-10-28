@@ -1,13 +1,13 @@
-//! Ошибки описания упражнения и разбора данных.
+//! Errors in the exercise description and data parsing.
 
 use std::fmt;
 
-/// Ошибка в описании упражнения (`Spec`) или во входных данных модели.
+/// Error in the exercise description (`Spec`) or in the model input data.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SpecError(pub String);
 
 impl SpecError {
-    /// Ошибка с сообщением.
+    /// Error with a message.
     pub fn new(msg: impl Into<String>) -> Self {
         SpecError(msg.into())
     }

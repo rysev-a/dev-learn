@@ -1,6 +1,6 @@
-//! Состояние лаборатории «Системный дизайн»: схема ученика, выбор, отказы, расчёт и цели, а также действия над схемой
-//! (поставить, соединить, удалить, изменить параметр, сбросить). Это набор сигналов, который копируется в компоненты
-//! целиком; логика правок лежит в `logic.rs`, расчёт — в крейте `sdlab`.
+//! State of the "System design" lab: the student's diagram, selection, failures, calculation and goals, plus the diagram actions
+//! (place, connect, delete, change a parameter, reset). It is a set of signals copied into components
+//! as a whole; the edit logic lives in `logic.rs`, the calculation in the `sdlab` crate.
 
 use std::sync::Arc;
 
@@ -13,33 +13,33 @@ use crate::components::labs::board_view::Point;
 #[derive(Clone, Copy)]
 pub struct Lab {
     scenario: StoredValue<Arc<Scenario>>,
-    /// подсказка упражнения
+    /// exercise hint
     pub hint: StoredValue<String>,
-    /// схема ученика: она же черновик и решение
+    /// student's diagram: both the draft and the solution
     pub state: RwSignal<SdState>,
-    /// выбранный компонент (его параметры — в плавающей карточке)
+    /// selected component (its parameters are in the floating card)
     pub sel: RwSignal<Option<String>>,
-    /// выбранная связь
+    /// selected link
     pub sel_edge: RwSignal<Option<SdEdge>>,
-    /// сообщение под полем (почему связь не поставилась и т. п.)
+    /// message under the board (why a link was not placed, etc.)
     pub notice: RwSignal<String>,
-    /// компоненты, отключённые вручную
+    /// components disabled by hand
     pub down: RwSignal<Vec<String>>,
-    /// проверяемый отказ
+    /// failure being checked
     pub fail: RwSignal<Option<FailKind>>,
     pub hint_open: RwSignal<bool>,
     pub help_open: RwSignal<bool>,
-    /// схема на весь экран
+    /// diagram in fullscreen
     pub fs: RwSignal<bool>,
-    /// расчёт с отказом и отключёнными узлами (для метрик и загрузки узлов)
+    /// calculation with the failure and disabled nodes (for metrics and node load)
     pub result: Memo<EvalResult>,
-    /// цели по схеме без отказов
+    /// goals for the diagram without failures
     pub goals: Memo<Vec<GoalResult>>,
-    /// выполнены все цели
+    /// all goals are met
     pub solved_now: Memo<bool>,
-    /// выбранный компонент, если он есть на схеме
+    /// selected component, if it is on the diagram
     pub selected: Memo<Option<String>>,
-    /// отказы по видам компонентов, которые есть на схеме
+    /// failures by the component kinds present on the diagram
     pub fail_kinds: Memo<Vec<FailKind>>,
     on_draft: Callback<String>,
 }
@@ -62,7 +62,7 @@ impl Lab {
         let selected = Memo::new(move |_| sel.get().filter(|id| state.with(|s| s.node(id).is_some())));
         let fail_kinds = Memo::new(move |_| state.with(logic::fail_kinds));
 
-        // отказ вида, которого на схеме больше нет, не предлагается в списке — и не считается
+        // a failure of a kind no longer on the diagram is not offered in the list — and is not counted
         Effect::new(move |_| {
             if let Some(f @ FailKind::Component(_)) = fail.get() {
                 if !fail_kinds.with(|k| k.contains(&f)) {
@@ -96,7 +96,7 @@ impl Lab {
         self.scenario.get_value()
     }
 
-    /// Правит схему; `save` — записать черновик (при перетаскивании пишется только в конце).
+    /// Edits the diagram; `save` — write the draft (while dragging it is written only at the end).
     fn update(&self, f: impl FnOnce(&mut SdState), save: bool) {
         self.state.update(f);
         if save {
@@ -104,7 +104,7 @@ impl Lab {
         }
     }
 
-    /// Отдаёт черновик хозяину (он отправит его на сервер с паузой).
+    /// Hands the draft to the owner (who will send it to the server after a pause).
     pub fn persist(&self) {
         self.on_draft.run(self.state.with_untracked(logic::draft_json));
     }
@@ -121,7 +121,7 @@ impl Lab {
         self.sel_edge.set(edge);
     }
 
-    /// Ставит компонент (`at` — точка поля, иначе свободное место колонки) со связями `edges`; `false` — на схеме уже предел.
+    /// Places a component (`at` — a board point, otherwise a free spot in its column) with links `edges`; `false` — the diagram is already at the limit.
     pub fn add(&self, kind: Kind, at: Option<Point>, edges: &[SdEdge]) -> bool {
         let max = self.scenario().max_nodes();
         if self.state.with_untracked(|s| s.nodes.len()) >= max {
@@ -147,7 +147,7 @@ impl Lab {
         );
     }
 
-    /// Соединяет `from → to`; причина отказа попадает в сообщение под полем.
+    /// Connects `from → to`; the rejection reason goes to the message under the board.
     pub fn connect(&self, from: &str, to: &str) {
         let error = self.state.with_untracked(|s| match (s.node(from), s.node(to)) {
             (Some(a), Some(b)) => sdlab::ports::connect_error(s, a, b),
@@ -162,17 +162,17 @@ impl Lab {
         }
     }
 
-    /// Добавляет связи, подставленные после перетаскивания существующего компонента.
+    /// Adds links suggested after dragging an existing component.
     pub fn apply_edges(&self, edges: &[SdEdge]) {
         self.update(|s| edges.iter().cloned().for_each(|e| logic::add_edge(s, e)), true);
     }
 
-    /// Можно ли «Удалить»: выбрана связь или компонент, кроме пользователей.
+    /// Whether "Delete" is available: a link or a component other than users is selected.
     pub fn can_delete(&self) -> bool {
         self.sel_edge.with(Option::is_some) || self.selected.get().is_some_and(|id| self.state.with(|s| logic::deletable(s, &id)))
     }
 
-    /// Удаляет выбранную связь или компонент (без подписки на сигналы: вызывается из обработчиков событий).
+    /// Deletes the selected link or component (no signal subscription: called from event handlers).
     pub fn remove_selected(&self) {
         if let Some(edge) = self.sel_edge.get_untracked() {
             self.update(|s| s.edges.retain(|e| *e != edge), true);
@@ -199,7 +199,7 @@ impl Lab {
         );
     }
 
-    /// Отключает или включает компонент (проверка отказа вручную).
+    /// Disables or enables a component (manual failure check).
     pub fn set_down(&self, id: &str, on: bool) {
         self.down.update(|d| {
             d.retain(|x| x != id);
@@ -209,7 +209,7 @@ impl Lab {
         });
     }
 
-    /// Возвращает исходную схему упражнения.
+    /// Returns the exercise's initial diagram.
     pub fn reset(&self) {
         let start = logic::initial_state(&self.scenario());
         self.state.set(start);

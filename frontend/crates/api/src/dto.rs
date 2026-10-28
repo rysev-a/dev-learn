@@ -1,11 +1,11 @@
-//! DTO ответов API. Поля повторяют JSON бэкенда; всё, что может отсутствовать, — `Option` или `#[serde(default)]`.
+//! API response DTOs. Fields mirror the backend JSON; anything that may be missing is `Option` or `#[serde(default)]`.
 
 use std::collections::HashMap;
 
 use serde::Deserialize;
 use serde_json::Value;
 
-/// `{книга: {глава: число}}` — сколько квизов/задач в каждой главе.
+/// `{book: {chapter: count}}` — how many quizzes/tasks each chapter has.
 pub type Counts = HashMap<String, HashMap<String, i64>>;
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -18,13 +18,13 @@ pub struct Book {
     pub sections_count: i64,
     pub lessons_count: i64,
     pub parts_count: i64,
-    /// Языки, на которых книга есть целиком (русский — всегда); у старого сервера поля нет.
+    /// Languages the book is fully available in (Russian is always there); an old server lacks the field.
     #[serde(default)]
     pub langs: Vec<String>,
 }
 
 impl Book {
-    /// Есть ли книга на языке `code` (`ru`, `en`); без списка языков считаем, что есть.
+    /// Whether the book exists in language `code` (`ru`, `en`); without a language list we assume it does.
     pub fn in_language(&self, code: &str) -> bool {
         self.langs.is_empty() || self.langs.iter().any(|l| l == code)
     }
@@ -45,14 +45,14 @@ pub struct ChapterRef {
     pub parts_count: i64,
 }
 
-/// Часть главы: один абзац урока (= один слайд).
+/// Chapter part: one lesson paragraph (= one slide).
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Lesson {
     pub id: String,
     pub ord: usize,
     pub text: String,
     pub audio: String,
-    /// длительность озвучки, секунды (0 — файла нет)
+    /// voice-over duration, seconds (0 — no file)
     pub dur: f64,
 }
 
@@ -65,9 +65,9 @@ pub struct Chapter {
     pub lessons: Vec<Lesson>,
 }
 
-// --- прогресс -----------------------------------------------------------------------------------
+// --- progress -----------------------------------------------------------------------------------
 
-/// Весь прогресс пользователя; ключи — `"книга:глава"`.
+/// All of a user's progress; keys are `"book:chapter"`.
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 pub struct Progress {
     #[serde(default)]
@@ -86,7 +86,7 @@ pub fn progress_key(book: i64, chapter: i64) -> String {
     format!("{book}:{chapter}")
 }
 
-/// Что стирает `DELETE /api/progress`: упражнения (статусы, черновики, попытки, ответы) или весь прогресс.
+/// What `DELETE /api/progress` erases: exercises (statuses, drafts, attempts, answers) or all progress.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ResetScope {
     Practice,
@@ -94,7 +94,7 @@ pub enum ResetScope {
 }
 
 impl ResetScope {
-    /// Значение параметра `scope` в адресе запроса.
+    /// Value of the `scope` parameter in the request URL.
     pub fn param(self) -> &'static str {
         match self {
             ResetScope::Practice => "practice",
@@ -103,7 +103,7 @@ impl ResetScope {
     }
 }
 
-// --- квизы и ответы -----------------------------------------------------------------------------
+// --- quizzes and answers -----------------------------------------------------------------------------
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Question {
@@ -123,7 +123,7 @@ pub struct Quiz {
     pub kind: String,
     pub title: String,
     pub questions: Vec<Question>,
-    /// ответ и пояснение для вопросов, на которые пользователь уже ответил
+    /// answer and explanation for questions the user has already answered
     pub reveal: Vec<Option<Reveal>>,
 }
 
@@ -147,7 +147,7 @@ pub struct AnswerTask {
 pub struct PracticeSet {
     pub title: String,
     pub tasks: Vec<AnswerTask>,
-    /// решённые задачи: номер → принятый ответ
+    /// solved tasks: number → accepted answer
     #[serde(default)]
     pub solved: HashMap<String, String>,
 }
@@ -157,7 +157,7 @@ pub(crate) struct Verdict {
     pub ok: bool,
 }
 
-// --- упражнения с кодом -------------------------------------------------------------------------
+// --- code exercises -------------------------------------------------------------------------
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Task {
@@ -179,14 +179,14 @@ pub struct Task {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct ChapterTasks {
     pub tasks: Vec<Task>,
-    /// схемы и данные учебных баз SQL-задач (рисуют ERD); ключ — `Task::dataset`
+    /// schemas and data of the SQL tasks' sample databases (used to draw the ERD); key is `Task::dataset`
     #[serde(default)]
     pub datasets: HashMap<String, SqlDataset>,
 }
 
-// --- учебные базы SQL-задач ---------------------------------------------------------------------
+// --- SQL task sample databases ---------------------------------------------------------------------
 
-/// Внешний ключ столбца: на какой столбец какой таблицы он ссылается.
+/// A column's foreign key: which column of which table it references.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct SqlForeignKey {
     pub table: String,
@@ -196,7 +196,7 @@ pub struct SqlForeignKey {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct SqlColumn {
     pub name: String,
-    /// объявленный тип столбца (`INTEGER`, `TEXT`, …; у представлений бывает пустым)
+    /// declared column type (`INTEGER`, `TEXT`, …; may be empty for views)
     #[serde(default, rename = "type", deserialize_with = "null_default")]
     pub data_type: String,
     #[serde(default)]
@@ -207,11 +207,11 @@ pub struct SqlColumn {
     pub fk: Option<SqlForeignKey>,
 }
 
-/// Таблица или представление: столбцы и первые строки (`total` — сколько строк всего).
+/// Table or view: columns and the first rows (`total` is the total row count).
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct SqlTable {
     pub name: String,
-    /// `table` или `view`
+    /// `table` or `view`
     #[serde(default)]
     pub kind: String,
     pub columns: Vec<SqlColumn>,
@@ -227,7 +227,7 @@ impl SqlTable {
     }
 }
 
-/// Связь «внешний ключ → родитель».
+/// A "foreign key → parent" relation.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct SqlRelation {
     pub from: String,
@@ -244,7 +244,7 @@ pub struct SqlDataset {
     pub relations: Vec<SqlRelation>,
 }
 
-/// Отсутствующее и `null` — значение по умолчанию (песочница отдаёт `null`, если у запроса не было столбцов).
+/// Missing and `null` both give the default value (the sandbox returns `null` when the query had no columns).
 fn null_default<'de, D, T>(de: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -276,10 +276,10 @@ pub(crate) struct Attempts {
     pub attempts: Vec<Attempt>,
 }
 
-/// Таблицы результата SQL-задачи: полученная ученицей (`got_*`) и верная (`exp_*`); `*_rows` — только первые строки, `*_total` — сколько их всего.
+/// Result tables of an SQL task: the learner's (`got_*`) and the correct one (`exp_*`); `*_rows` are only the first rows, `*_total` is how many there are in all.
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 pub struct RowsView {
-    /// порядок строк важен для проверки
+    /// row order matters for checking
     #[serde(default, deserialize_with = "null_default")]
     pub ordered: bool,
     #[serde(default, deserialize_with = "null_default")]
@@ -296,7 +296,7 @@ pub struct RowsView {
     pub exp_total: Option<usize>,
 }
 
-/// Один тест проверки.
+/// A single check test.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct TestResult {
     #[serde(default)]
@@ -309,7 +309,7 @@ pub struct TestResult {
     pub expected: Value,
     #[serde(default)]
     pub error: Option<String>,
-    /// вид результата: `rows` — таблицы SQL-запроса (см. `rows`), `text` — текст (планы запросов)
+    /// result kind: `rows` — SQL query tables (see `rows`), `text` — text (query plans)
     #[serde(default)]
     pub kind: Option<String>,
     #[serde(flatten)]
@@ -317,7 +317,7 @@ pub struct TestResult {
 }
 
 impl TestResult {
-    /// Результат SQL-запроса, который показывают двумя таблицами.
+    /// SQL query result shown as two tables.
     pub fn is_rows(&self) -> bool {
         self.kind.as_deref() == Some("rows")
     }
@@ -349,7 +349,7 @@ pub struct RunResult {
     pub attempt: Option<AttemptInfo>,
 }
 
-/// Состояние задания в очереди проверок.
+/// State of a job in the check queue.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(tag = "state", rename_all = "lowercase")]
 pub enum RunState {
@@ -361,7 +361,7 @@ pub enum RunState {
     Done(RunResult),
 }
 
-// --- вход ---------------------------------------------------------------------------------------
+// --- sign-in ---------------------------------------------------------------------------------------
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct User {
@@ -372,13 +372,13 @@ pub struct User {
 }
 
 impl User {
-    /// Имя из профиля, иначе часть email до «@».
+    /// Name from the profile, otherwise the part of the email before "@".
     pub fn display(&self) -> String {
         self.profile.get("name").and_then(Value::as_str).filter(|n| !n.trim().is_empty()).map(String::from).unwrap_or_else(|| self.email.split('@').next().unwrap_or(&self.email).to_string())
     }
 }
 
-/// Личность: пользователь, роли и (при входе) токен сессии.
+/// Identity: user, roles and (on sign-in) the session token.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Identity {
     pub user: User,
@@ -439,7 +439,7 @@ mod tests {
             "tasks": [{ "id": "s01-1", "mode": "sql", "dataset": "k" }],
             "datasets": { "k": {
                 "tables": [
-                    { "name": "customers", "kind": "table", "total": 1, "rows": [[1, "Аня"]],
+                    { "name": "customers", "kind": "table", "total": 1, "rows": [[1, "Ann"]],
                       "columns": [{ "name": "id", "type": "INTEGER", "pk": true, "notnull": true, "fk": null }, { "name": "name", "type": "TEXT", "pk": false, "notnull": false }] },
                     { "name": "orders", "kind": "view", "total": 0, "rows": [],
                       "columns": [{ "name": "customer_id", "type": "INTEGER", "pk": false, "notnull": false, "fk": { "table": "customers", "column": "id" } }] }
@@ -467,14 +467,14 @@ mod tests {
 
     #[test]
     fn user_display_falls_back_to_the_email_name() {
-        let named: User = serde_json::from_value(json!({ "id": "1", "email": "a@b.c", "profile": { "name": "Аня" } })).unwrap();
+        let named: User = serde_json::from_value(json!({ "id": "1", "email": "a@b.c", "profile": { "name": "Ann" } })).unwrap();
         let bare: User = serde_json::from_value(json!({ "id": "2", "email": "student@mail.com", "profile": {} })).unwrap();
-        assert_eq!(named.display(), "Аня");
+        assert_eq!(named.display(), "Ann");
         assert_eq!(bare.display(), "student");
     }
 }
 
-/// Упражнение-лаборатория: условие и сценарий (`spec` — данные лаборатории; эталонного решения в нём нет).
+/// Lab exercise: statement and scenario (`spec` is the lab data; it has no reference solution).
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct LabTask {
     pub id: String,
@@ -486,7 +486,7 @@ pub struct LabTask {
     pub spec: serde_json::Value,
 }
 
-/// Лабораторные упражнения главы: вид лаборатории (`sd`, `net`, `arch`, `riscv`, `virt`) и упражнения по порядку.
+/// Chapter lab exercises: lab kind (`sd`, `net`, `arch`, `riscv`, `virt`) and the exercises in order.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct LabChapter {
     pub lab: String,

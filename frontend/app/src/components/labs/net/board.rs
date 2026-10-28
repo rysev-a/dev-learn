@@ -1,6 +1,6 @@
-//! Поле сети: устройства (перетаскиваются), кабели с портами и характеристиками, бегущие по ним пакеты, пометки о потерях,
-//! прокладка кабеля мышью от устройства к устройству, сдвиг и масштаб окна. Сдвиг и масштаб — общий `board_view.rs`,
-//! геометрия — в `geom.rs`, состояние — в `lab.rs`.
+//! The network board: devices (draggable), cables with ports and characteristics, packets running along them, loss marks,
+//! laying a cable with the mouse from device to device, window pan and zoom. Pan and zoom are the shared `board_view.rs`,
+//! geometry is in `geom.rs`, state is in `lab.rs`.
 
 use leptos::{ev, prelude::*, svg};
 use netlab::model::split_ref;
@@ -14,27 +14,27 @@ use crate::{
     dom,
 };
 
-/// Что делает указатель, пока кнопка нажата.
+/// What the pointer does while the button is held.
 #[derive(Clone, Debug, PartialEq)]
 enum Drag {
-    /// тянут устройство (`item` — где схватили относительно его центра, в координатах поля)
+    /// dragging a device (`item` is where it was grabbed relative to its center, in board coordinates)
     Device { id: String, item: ItemDrag, down: Point, moved: bool },
-    /// тянут кабель от устройства
+    /// dragging a cable from a device
     Cable { from: String, down: Point, moved: bool },
 }
 
-/// Всё, что нужно нарисовать про кабель.
+/// Everything needed to draw a cable.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinkInfo {
     pub geom: geom::LinkGeom,
     pub port_a: String,
     pub port_b: String,
-    /// один из концов выключен
+    /// one of the ends is down
     pub down: bool,
     pub km: f64,
 }
 
-/// Описание кабеля номер `idx`; `None`, если такого кабеля или одного из его устройств нет.
+/// Description of cable number `idx`; `None` if there is no such cable or one of its devices.
 pub fn link_info(state: &NetState, idx: usize) -> Option<LinkInfo> {
     let l = state.links.get(idx)?;
     let (da, pa) = split_ref(&l.a);
@@ -51,7 +51,7 @@ pub fn link_info(state: &NetState, idx: usize) -> Option<LinkInfo> {
     })
 }
 
-/// Центры устройств по порядку добавления (для поиска под курсором).
+/// Device centers in order of addition (for lookup under the cursor).
 fn centers(state: &NetState) -> Vec<(String, Point)> {
     state.devices.iter().map(|d| (d.id.clone(), Point::new(d.x, d.y))).collect()
 }
@@ -60,7 +60,7 @@ fn client(e: &web_sys::PointerEvent) -> Point {
     Point::new(f64::from(e.client_x()), f64::from(e.client_y()))
 }
 
-/// Значок устройства (24×24, контур).
+/// Device icon (24×24, outline).
 fn icon(kind: DeviceKind) -> AnyView {
     match kind {
         DeviceKind::Host => view! { <rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path> }.into_any(),
@@ -89,13 +89,13 @@ fn icon(kind: DeviceKind) -> AnyView {
     }
 }
 
-/// Поле сети с кнопками масштаба.
+/// The network board with zoom buttons.
 #[component]
 pub fn Board(lab: Lab) -> impl IntoView {
     let svg_ref = NodeRef::<svg::Svg>::new();
     let view = BoardView::new(svg_ref, BOARD, Signal::stored(WORLD));
     let drag = StoredValue::new(None::<Drag>);
-    // свободный конец тянущегося кабеля (в координатах поля)
+    // free end of the cable being dragged (in board coordinates)
     let rubber = RwSignal::new(None::<Point>);
     let cable_tool = lab.tools().cable;
 
@@ -104,7 +104,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
     let ids = Memo::new(move |_| lab.net.with(|n| n.devices.iter().map(|d| d.id.clone()).collect::<Vec<_>>()));
     let links = Memo::new(move |_| lab.net.with(|n| n.links.iter().enumerate().map(|(i, l)| (i, l.a.clone(), l.b.clone())).collect::<Vec<_>>()));
 
-    // нажатие на устройство: выбрать и начать перетаскивание, а в режиме кабеля — начать (или закончить) кабель
+    // press on a device: select and start dragging, and in cable mode start (or finish) a cable
     let device_down = move |e: web_sys::PointerEvent, id: String| {
         if e.button() != 0 {
             return;
@@ -177,7 +177,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
                         lab.connect(&from, &t);
                         lab.cable_from.set(None);
                     }
-                    // отпустили над своим устройством без движения — щелчок: ждём второго устройства
+                    // released over the same device without movement: a click, wait for the second device
                     Some(_) if !moved => {}
                     _ => lab.cable_from.set(None),
                 }
@@ -187,7 +187,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
 
     view! {
         <div class="lab-board-wrap">
-            // «100 %» сохраняет середину окна (а не его угол)
+            // "100 %" keeps the window midpoint (not its corner)
             <ZoomControls view=view on_actual=Callback::new(move |()| view.zoom_to(1.0)) />
             <svg
                 node_ref=svg_ref
@@ -258,7 +258,7 @@ pub fn Board(lab: Lab) -> impl IntoView {
     }
 }
 
-/// Кабель: линия, подписи портов и длина.
+/// A cable: line, port labels and length.
 #[component]
 fn LinkView(lab: Lab, idx: usize, cable_tool: bool) -> impl IntoView {
     let info = move || lab.net.with(|n| link_info(n, idx));
@@ -296,7 +296,7 @@ fn LinkView(lab: Lab, idx: usize, cable_tool: bool) -> impl IntoView {
     }
 }
 
-/// Устройство на поле: рамка, значок, имя и до трёх адресов.
+/// A device on the board: frame, icon, name and up to three addresses.
 #[component]
 fn DeviceView(lab: Lab, id: String, on_down: Callback<(web_sys::PointerEvent, String)>) -> impl IntoView {
     let Some(dev) = lab.device(&id) else { return ().into_any() };
@@ -340,9 +340,9 @@ mod tests {
 
     fn state() -> NetState {
         let mut s = NetState::default();
-        let mut a = Device::new("a", DeviceKind::Host, "А", 0.0, 0.0);
+        let mut a = Device::new("a", DeviceKind::Host, "A", 0.0, 0.0);
         a.ifaces.push(Iface::new("eth0", "28:28:00:00:00:01"));
-        let mut b = Device::new("b", DeviceKind::Host, "Б", 200.0, 0.0);
+        let mut b = Device::new("b", DeviceKind::Host, "B", 200.0, 0.0);
         b.ifaces.push(Iface::new("eth0", "28:28:00:00:00:02"));
         s.devices.insert(a);
         s.devices.insert(b);
@@ -354,9 +354,9 @@ mod tests {
 
     #[test]
     fn link_info_has_geometry_ports_and_length() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let s = state();
-        let i = link_info(&s, 0).expect("кабель");
+        let i = link_info(&s, 0).expect("cable");
         assert_eq!((i.port_a.as_str(), i.port_b.as_str()), ("eth0", "eth0"));
         assert_eq!(i.geom.a, Point::new(0.0, 0.0));
         assert_eq!(i.geom.b, Point::new(200.0, 0.0));
@@ -367,15 +367,15 @@ mod tests {
 
     #[test]
     fn a_disabled_port_marks_the_cable_down() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut s = state();
-        s.devices.get_mut("b").and_then(|d| d.iface_mut("eth0")).expect("порт").up = false;
-        assert!(link_info(&s, 0).expect("кабель").down);
+        s.devices.get_mut("b").and_then(|d| d.iface_mut("eth0")).expect("port").up = false;
+        assert!(link_info(&s, 0).expect("cable").down);
     }
 
     #[test]
     fn cable_to_a_missing_device_is_skipped() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut s = state();
         s.links.push(Link::new("a:eth0", "ghost:eth0"));
         assert!(link_info(&s, 1).is_none());
@@ -383,7 +383,7 @@ mod tests {
 
     #[test]
     fn centers_follow_the_order_of_devices() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let c = centers(&state());
         assert_eq!(c.iter().map(|(id, _)| id.as_str()).collect::<Vec<_>>(), vec!["a", "b"]);
         assert_eq!(c[1].1, Point::new(200.0, 0.0));

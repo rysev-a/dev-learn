@@ -1,7 +1,7 @@
-//! Подключение к SurrealDB и схема таблиц курса, прогресса и очереди проверок.
+//! SurrealDB connection and the schema of the course, progress and check-queue tables.
 //!
-//! Dev: один контейнер SurrealDB (`ws://127.0.0.1:8123`, root/devpass), ns `stack`, db `cs-core`. Если адрес недоступен, а
-//! `DB_STRICT` не задан, приложение работает на базе в памяти (данные пересеваются при каждом запуске).
+//! Dev: one SurrealDB container (`ws://127.0.0.1:8123`, root/devpass), ns `stack`, db `cs-core`. If the address is unreachable and
+//! `DB_STRICT` is not set, the application runs on an in-memory database (data is reseeded on every start).
 
 use std::sync::Arc;
 
@@ -18,7 +18,7 @@ pub const DB: &str = "cs-core";
 
 async fn connect_to(url: &str) -> anyhow::Result<Surreal<Any>> {
     let surreal = any::connect(url).await?;
-    // у базы в памяти входа нет; у сервера — root-пользователь из окружения (dev: root/devpass)
+    // the in-memory database has no sign-in; for the server - the root user from the environment (dev: root/devpass)
     if url != "memory" {
         if let (Ok(user), Ok(pass)) = (std::env::var("SURREAL_USER"), std::env::var("SURREAL_PASS")) {
             surreal.signin(Root { username: user, password: pass }).await?;
@@ -30,26 +30,26 @@ async fn connect_to(url: &str) -> anyhow::Result<Surreal<Any>> {
     Ok(surreal)
 }
 
-/// Подключение к `url` или (без `DB_STRICT`) к базе в памяти. Возвращает общий дескриптор и признак «в памяти».
-/// `Surreal` не клонируем: каждый клон открывает новую сессию, которую сервер v3 отвергает — все делят один `Arc`.
+/// Connect to `url` or (without `DB_STRICT`) to an in-memory database. Returns the shared handle and an "in memory" flag.
+/// `Surreal` is not cloned: every clone opens a new session, which the v3 server rejects - everyone shares one `Arc`.
 pub async fn connect(url: &str) -> anyhow::Result<(Db, bool)> {
     match connect_to(url).await {
         Ok(db) => {
-            tracing::info!("surrealdb подключена: {url}");
+            tracing::info!("surrealdb connected: {url}");
             Ok((Arc::new(db), false))
         }
         Err(e) => {
             if std::env::var("DB_STRICT").is_ok() {
-                anyhow::bail!("surrealdb {url} обязательна (задан DB_STRICT), память не используем: {e}");
+                anyhow::bail!("surrealdb {url} is required (DB_STRICT is set), not falling back to memory: {e}");
             }
-            tracing::warn!("surrealdb {url} недоступна ({e}); работаем на базе в памяти");
+            tracing::warn!("surrealdb {url} is unavailable ({e}); running on an in-memory database");
             let db = connect_to("memory").await?;
             Ok((Arc::new(db), true))
         }
     }
 }
 
-/// База в памяти для тестов.
+/// In-memory database for tests.
 pub async fn memory() -> anyhow::Result<Db> {
     Ok(Arc::new(connect_to("memory").await?))
 }
@@ -89,7 +89,7 @@ DEFINE INDEX IF NOT EXISTS answer_sets_key ON answer_sets FIELDS book, chapter U
 DEFINE TABLE IF NOT EXISTS answer_tasks SCHEMALESS;
 DEFINE INDEX IF NOT EXISTS answer_tasks_chapter ON answer_tasks FIELDS book, chapter;
 
--- переводы содержимого: те же таблицы с суффиксом _i18n и полем lang; ключи (cid, sid, номера глав) общие с русскими строками
+-- content translations: the same tables with the _i18n suffix and a lang field; keys (cid, sid, chapter numbers) are shared with the Russian rows
 DEFINE TABLE IF NOT EXISTS books_i18n SCHEMALESS;
 DEFINE INDEX IF NOT EXISTS books_i18n_key ON books_i18n FIELDS bid, lang UNIQUE;
 DEFINE TABLE IF NOT EXISTS sections_i18n SCHEMALESS;
@@ -139,7 +139,7 @@ DEFINE TABLE IF NOT EXISTS exec_workers SCHEMALESS;
 DEFINE INDEX IF NOT EXISTS exec_workers_name ON exec_workers FIELDS name UNIQUE;
 ";
 
-/// Идемпотентная схема: таблицы и индексы (`IF NOT EXISTS`).
+/// Idempotent schema: tables and indexes (`IF NOT EXISTS`).
 pub async fn init_schema(db: &Db) -> anyhow::Result<()> {
     db.query(SCHEMA).await?.check()?;
     Ok(())

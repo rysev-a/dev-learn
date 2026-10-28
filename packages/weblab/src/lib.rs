@@ -1,12 +1,12 @@
-//! Лаборатория «HTML и CSS» (книга 11, «Современный Frontend»).
+//! The "HTML and CSS" lab (book 11, "Modern Frontend").
 //!
-//! Ученик пишет разметку или стили; решение проверяется **без браузера**, тем же кодом в интерфейсе (wasm) и на сервере:
-//! * [`html`] — структурные проверки разметки (элементы, вложенность, атрибуты, текст, заголовки, подписи полей, `alt`);
-//! * [`css`] — разбор таблицы стилей, каскад (специфичность, порядок, `!important`, `@media`), наследование, `var()` и вычисленные значения;
-//! * [`selector`] — специфичность и задачи «напишите селектор»;
-//! * [`verify`] — задание целиком: данные ([`spec::Task`]) + решение ([`spec::Solution`]) → отчёт ([`spec::Report`]).
+//! The student writes markup or styles; the solution is checked **without a browser**, by the same code in the UI (wasm) and on the server:
+//! * [`html`] — structural checks of markup (elements, nesting, attributes, text, headings, field labels, `alt`);
+//! * [`css`] — stylesheet parsing, the cascade (specificity, order, `!important`, `@media`), inheritance, `var()` and computed values;
+//! * [`selector`] — specificity and "write a selector" tasks;
+//! * [`verify`] — the whole task: data ([`spec::Task`]) + solution ([`spec::Solution`]) → report ([`spec::Report`]).
 //!
-//! Геометрия и пиксели (раскладка flex/grid, скриншоты) здесь не считаются: для них нужен настоящий движок.
+//! Geometry and pixels (flex/grid layout, screenshots) are not computed here: they need a real engine.
 
 pub mod css;
 pub mod html;

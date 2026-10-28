@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-/// Ошибка вызова API: статус (0 — нет связи) и текст для пользователя.
+/// API call error: status (0 — no connection) and a user-facing message.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ApiError {
     pub status: u16,
@@ -15,7 +15,7 @@ impl std::fmt::Display for ApiError {
 
 impl std::error::Error for ApiError {}
 
-/// Сообщение о неверном поле формы: ключи `email`, `login`, `password` в ответе валидации.
+/// Message about an invalid form field: keys `email`, `login`, `password` in the validation response.
 fn field_message(field: &str) -> Option<&'static str> {
     Some(match field {
         "email" => i18n::tr("Enter a valid email"),
@@ -25,7 +25,7 @@ fn field_message(field: &str) -> Option<&'static str> {
     })
 }
 
-/// Человекочитаемое сообщение из тела ошибки: `detail` — строка или список ошибок валидации FastAPI, `error` — строка (crates lab).
+/// Human-readable message from the error body: `detail` is a string or a list of FastAPI validation errors, `error` is a string (lab crates).
 pub fn message_of(body: &Value, status: u16) -> String {
     let fallback = || i18n::trf!("Error {}", status);
     let detail = body.get("detail").or_else(|| body.get("error"));
@@ -50,10 +50,10 @@ mod tests {
 
     #[test]
     fn reads_detail_string_error_string_and_validation_lists() {
-        assert_eq!(message_of(&json!({ "detail": "Нужно войти" }), 401), "Нужно войти");
+        assert_eq!(message_of(&json!({ "detail": "Login required" }), 401), "Login required");
         assert_eq!(message_of(&json!({ "error": "invalid email or password" }), 401), "invalid email or password");
         assert_eq!(message_of(&json!({ "detail": [{ "loc": ["body", "email"], "msg": "bad" }] }), 422), "Enter a valid email");
-        assert_eq!(message_of(&json!({ "detail": [{ "loc": ["body", "zzz"], "msg": "странно" }] }), 422), "странно");
+        assert_eq!(message_of(&json!({ "detail": [{ "loc": ["body", "zzz"], "msg": "odd" }] }), 422), "odd");
         assert_eq!(message_of(&json!({}), 500), "Error 500");
         assert_eq!(message_of(&json!(null), 502), "Error 502");
     }

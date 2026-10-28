@@ -1,7 +1,7 @@
-//! Справочник чисел модели: ёмкость, цены, доступность и задержки компонентов (его же показывает справка в лаборатории).
-//! Единицы: ёмкость — условных запросов в секунду на экземпляр, цена — $ в месяц, задержка — мс.
+//! Model number catalog: capacity, prices, availability and latencies of components (also shown by the lab help).
+//! Units: capacity — conventional requests per second per instance, price — $ per month, latency — ms.
 
-/// Размер экземпляра.
+/// Instance size.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Size {
     S,
@@ -10,7 +10,7 @@ pub enum Size {
 }
 
 impl Size {
-    /// Размер из значения параметра `size`; пустое или неизвестное — `S`.
+    /// Size from the `size` parameter value; empty or unknown — `S`.
     pub fn parse(s: &str) -> Size {
         match s {
             "M" => Size::M,
@@ -20,7 +20,7 @@ impl Size {
     }
 }
 
-/// Значение по размерам S/M/L.
+/// Value by size S/M/L.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BySize {
     pub s: f64,
@@ -41,16 +41,16 @@ impl BySize {
     }
 }
 
-/// Класс хранения объектов.
+/// Object storage tier.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Tier {
-    /// цена за ТБ в месяц
+    /// price per TB per month
     pub price: f64,
-    /// задержка доступа, мс
+    /// access latency, ms
     pub lat: f64,
 }
 
-/// Ёмкость, цена и доступность простого компонента.
+/// Capacity, price and availability of a simple component.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Basic {
     pub cap: f64,
@@ -58,7 +58,7 @@ pub struct Basic {
     pub avail: f64,
 }
 
-/// Задержки узлов, мс.
+/// Node latencies, ms.
 pub mod lat {
     pub const CDN: f64 = 12.0;
     pub const LIMITER: f64 = 1.0;
@@ -87,14 +87,14 @@ pub const LB: Basic = Basic { cap: 20000.0, cost: 25.0, avail: 0.9995 };
 pub const GATEWAY: Basic = Basic { cap: 8000.0, cost: 40.0, avail: 0.999 };
 pub const LIMITER: Basic = Basic { cap: 100000.0, cost: 15.0, avail: 0.9995 };
 pub const CDN: Basic = Basic { cap: 1000000.0, cost: 60.0, avail: 0.9999 };
-/// Кэш: ёмкость узла, цена за ГБ, доступность.
+/// Cache: node capacity, price per GB, availability.
 pub const CACHE_CAP: f64 = 60000.0;
 pub const CACHE_COST_PER_GB: f64 = 12.0;
 pub const DB_READ: BySize = BySize::new(1000.0, 3000.0, 8000.0);
 pub const DB_WRITE: BySize = BySize::new(200.0, 600.0, 1500.0);
 pub const DB_COST: BySize = BySize::new(100.0, 250.0, 600.0);
 pub const DB_AVAIL: f64 = 0.999;
-/// Во сколько раз NoSQL быстрее SQL.
+/// How many times NoSQL is faster than SQL.
 pub const DB_NOSQL: f64 = 1.8;
 pub const QUEUE_CAP_PER_PARTITION: f64 = 20000.0;
 pub const QUEUE_COST: f64 = 60.0;
@@ -120,14 +120,14 @@ pub const SEARCH_MAX_GB_PER_SHARD: f64 = 40.0;
 pub const SEARCH_AVAIL: f64 = 0.999;
 pub const WS: Basic = Basic { cap: 15000.0, cost: 90.0, avail: 0.995 };
 pub const MONITOR_COST: f64 = 40.0;
-/// Вес статического запроса, обслуженного самим приложением.
+/// Weight of a static request served by the application itself.
 pub const STATIC_WEIGHT: f64 = 0.1;
-/// Во сколько раз тяжелее запрос «поиск» в базе без индекса.
+/// How many times heavier a "search" query is in a database without an index.
 pub const HEAVY_SEARCH: f64 = 5.0;
-/// Какую долю записей оставляет в БД write-back кэш.
+/// What share of writes a write-back cache leaves to the DB.
 pub const WRITE_BACK: f64 = 0.4;
 
-/// Класс хранения объектов по значению параметра `tier` (`hot`, `mix`, `cold`).
+/// Object storage tier by the `tier` parameter value (`hot`, `mix`, `cold`).
 pub fn blob_tier(tier: &str) -> Option<Tier> {
     match tier {
         "hot" => Some(Tier { price: 23.0, lat: 45.0 }),
@@ -137,7 +137,7 @@ pub fn blob_tier(tier: &str) -> Option<Tier> {
     }
 }
 
-/// Множитель цены тарифа (`ondemand`, `reserved`, `spot`); неизвестный — 1.
+/// Pricing plan multiplier (`ondemand`, `reserved`, `spot`); unknown — 1.
 pub fn price_factor(pricing: &str) -> f64 {
     match pricing {
         "reserved" => 0.6,

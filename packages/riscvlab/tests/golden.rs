@@ -1,4 +1,4 @@
-//! Дифференциальные тесты: результаты Rust совпадают с «золотыми» результатами прежней реализации на TypeScript.
+//! Differential tests: Rust results match the "golden" results of the previous TypeScript implementation.
 
 mod common;
 
@@ -26,7 +26,7 @@ fn fmt_name(f: Fmt) -> &'static str {
 
 #[test]
 fn isa_tables_match_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden().isa;
     assert_eq!(g.abi, isa::ABI_NAMES.to_vec());
     assert_eq!(g.ops.len(), isa::OPS.len());
@@ -59,7 +59,7 @@ fn isa_tables_match_ts() {
 
 #[test]
 fn decode_disassemble_and_fields_match_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     assert!(g.decode.len() > 2000);
     for d in &g.decode {
@@ -83,7 +83,7 @@ fn decode_disassemble_and_fields_match_ts() {
 
 #[test]
 fn assembler_matches_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     let mut with_errors = 0;
     for a in &g.asm {
@@ -144,7 +144,7 @@ fn final_of(m: &Machine) -> GFinal {
 
 #[test]
 fn execution_and_traces_match_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     let (mut traced, mut faulted, mut halted) = (0, 0, 0);
     for r in &g.runs {
@@ -188,8 +188,8 @@ fn execution_and_traces_match_ts() {
 
 #[test]
 fn run_traced_equals_run() {
-    i18n::set_locale(i18n::Locale::Ru);
-    // трасса не меняет исход: то же состояние, что и у обычного run
+    locales::set_locale(i18n::Locale::Ru);
+    // tracing does not change the outcome: same state as a plain run
     let g = load_golden();
     for r in g.runs.iter().filter(|r| r.name.starts_with("task:") || r.name.starts_with("limit:")) {
         let mut a = machine_for(r);
@@ -202,7 +202,7 @@ fn run_traced_equals_run() {
 
 #[test]
 fn alu_table_matches_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     assert!(g.alu.len() > 4000);
     for (mn, a, b, want) in &g.alu {
@@ -243,7 +243,7 @@ fn mutate(program: &str, mutation: &str, line: Option<usize>) -> String {
 
 #[test]
 fn verdicts_match_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden();
     let chapters = [load_chapter(16), load_chapter(17)];
     let mut stats = std::collections::BTreeMap::<String, usize>::new();
@@ -264,15 +264,22 @@ fn verdicts_match_ts() {
         assert_eq!(outcome.as_str(), Some(want.outcome.as_str()), "{ctx}: исход");
         if v.outcome == Outcome::AsmErrors {
             let got: Vec<(u32, &str)> = v.errors.iter().map(|e| (e.line, e.message.as_str())).collect();
-            let w: Vec<(u32, &str)> = want.errors.iter().flatten().map(|e| (e.line, e.message.as_str())).collect();
+            // labels in the reference programs were renamed to Latin; map the golden messages the same way
+            let renamed: Vec<(u32, String)> = want.errors.iter().flatten().map(|e| (e.line, rename_labels(&e.message))).collect();
+            let w: Vec<(u32, &str)> = renamed.iter().map(|(l, m)| (*l, m.as_str())).collect();
             assert_eq!(got, w, "{ctx}: ошибки ассемблера");
         } else {
-            assert_eq!(Some(&v.message), want.message.as_ref(), "{ctx}: сообщение");
+            // success messages are task data (now English); the rest comes from the engine in the Ru locale
+            // (explanations after " — " also come from task data, so only the engine part is compared)
+            if v.outcome != Outcome::Passed {
+                let head = |m: &str| m.split(" — ").next().unwrap_or("").to_string();
+                assert_eq!(Some(head(&v.message)), want.message.as_deref().map(head), "{ctx}: сообщение");
+            }
             assert_eq!(v.tests.first().map(|t| t.steps), want.steps, "{ctx}: число шагов");
         }
         *stats.entry(want.outcome.clone()).or_default() += 1;
     }
-    // выборка должна задевать все исходы
+    // the sample must cover every outcome
     for k in ["passed", "wrong", "fault", "asm_errors"] {
         assert!(stats.get(k).copied().unwrap_or(0) >= 5, "мало примеров исхода {k}: {stats:?}");
     }
@@ -280,7 +287,7 @@ fn verdicts_match_ts() {
 
 #[test]
 fn project_and_zip_match_ts() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = load_golden().project;
     let files = project_files(&g.source);
     assert_eq!(files.len(), g.files.len());
@@ -299,4 +306,18 @@ fn project_and_zip_match_ts() {
 
 fn hex(b: &[u8]) -> String {
     b.iter().map(|x| format!("{x:02x}")).collect()
+}
+
+fn rename_labels(msg: &str) -> String {
+    const L: [(&str, &str); 16] = [
+        ("база", "base"), ("без_переноса", "no_carry"), ("взять", "take"), ("внешний", "outer"), ("внутренний", "inner"),
+        ("выход", "leave"), ("готово", "done"), ("дальше", "next"), ("ждём", "wait"), ("конец", "end"),
+        ("меняем", "swapping"), ("обмен", "swap"), ("проход", "pass"), ("сравнить", "compare"), ("считаем", "count"),
+        ("цикл", "loop"),
+    ];
+    let mut out = msg.to_string();
+    for (ru, en) in L {
+        out = out.replace(&format!("«{ru}»"), &format!("«{en}»"));
+    }
+    out
 }

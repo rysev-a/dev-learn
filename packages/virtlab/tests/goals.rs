@@ -1,5 +1,5 @@
-//! Цели достижимы: для каждого упражнения есть последовательность действий, достигающая всех целей, и сервер её принимает.
-//! Плюс отрицательные случаи проверки (`verify`): подделанные данные отклоняются.
+//! Goals are reachable: for every exercise there is an action sequence that reaches all goals, and the server accepts it.
+//! Plus negative verification cases (`verify`): forged data is rejected.
 
 use serde_json::{json, Value};
 use virtlab::labfile::build_chapters;
@@ -9,11 +9,11 @@ const DEFINITIONS: &str = include_str!("../data/tasks.json");
 
 fn task(id: &str) -> Task {
     build_chapters(DEFINITIONS)
-        .expect("главы собираются")
+        .expect("chapters build")
         .into_iter()
         .flat_map(|c| c.tasks)
         .find(|t| t.id == id)
-        .unwrap_or_else(|| panic!("нет упражнения {id}"))
+        .unwrap_or_else(|| panic!("no task {id}"))
 }
 
 fn statuses(t: &Task, submitted: &Value) -> Vec<(String, GoalStatus)> {
@@ -24,7 +24,7 @@ fn all_verified(t: &Task, submitted: &Value) {
     let v = t.verify(submitted);
     assert!(v.solved, "{}: {:?}", t.id, v);
     assert!(v.goals.iter().all(|g| g.status == GoalStatus::Verified), "{}: {:?}", t.id, v);
-    // и в строгом режиме
+    // and in strict mode
     assert!(verify_with(&t.spec, submitted, Strictness::Strict).solved);
 }
 
@@ -41,13 +41,13 @@ fn is_rejected(s: &GoalStatus) -> bool {
 fn programs(t: &Task) -> Vec<hv::Program> {
     match &t.spec {
         Spec::Hv { programs } => programs.clone(),
-        _ => panic!("не hv"),
+        _ => panic!("not hv"),
     }
 }
 
 #[test]
 fn hv_ideal_runs_reach_every_goal() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-hv");
     let mut submitted = serde_json::Map::new();
     for p in programs(&t) {
@@ -57,7 +57,7 @@ fn hv_ideal_runs_reach_every_goal() {
         assert!(fin.ok && fin.mistakes == 0, "{}", p.id);
         submitted.insert(p.id.clone(), json!({ "translate": translate, "mistakes": 0, "trace": run.steps }));
     }
-    // POPF нужна трансляция, остальным — нет
+    // POPF needs translation, the others do not
     assert!(hv::needs_translation(&programs(&t)[2]).unwrap());
     assert!(!hv::needs_translation(&programs(&t)[0]).unwrap());
     all_verified(&t, &Value::Object(submitted));
@@ -65,35 +65,35 @@ fn hv_ideal_runs_reach_every_goal() {
 
 #[test]
 fn hv_popf_without_translation_fails_and_silent_is_counted() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-hv");
     let p = programs(&t).into_iter().find(|p| p.id == "popf").unwrap();
     let run = hv::ideal_run(&p, false).unwrap();
     assert!(run.steps.contains(&hv::Step::Silent));
     let fin = hv::replay(&p, &run).unwrap();
     assert!(!fin.ok && fin.state.silent && fin.state.vif == 0);
-    // сервер отклоняет такой прогон, даже если клиент заявил «успех»
+    // the server rejects such a run even if the client claimed "success"
     let sub = json!({ "popf": { "translate": false, "mistakes": 0, "trace": run.steps } });
     assert!(is_rejected(&status_of(&t, &sub, "popf")));
 }
 
 #[test]
 fn hv_session_behaves_like_the_react_lab() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let p = programs(&task("virt-sim-hv")).into_iter().find(|p| p.id == "irq").unwrap();
     let mut s = hv::Session::new(&p.code, false).unwrap();
     assert!(!s.started());
     assert!(s.set_translate(true));
-    // CLI — ловушка: шаг заблокирован, неверный выбор — ошибка, состояние не меняется
+    // CLI is a trap: step is blocked, a wrong choice is a mistake, the state does not change
     assert_eq!(s.step(), hv::Stepped::Blocked);
     assert!(matches!(s.choose("vif ← 1"), hv::Choice::Wrong { .. }));
     assert_eq!(s.state().mistakes, 1);
     assert_eq!(s.state().pc, 0);
-    assert_eq!(s.choose("несуществующий вариант"), hv::Choice::Invalid);
+    assert_eq!(s.choose("nonexistent option"), hv::Choice::Invalid);
     assert_eq!(s.choose("виртуальный флаг vif ← 0"), hv::Choice::Applied);
     assert!(s.started());
-    assert!(!s.set_translate(false), "после запуска трансляцию менять нельзя");
-    // IRQ при vif = 0: верно только «поставить в очередь»
+    assert!(!s.set_translate(false), "translation cannot change after start");
+    // IRQ with vif = 0: only "put in the queue" is correct
     assert!(matches!(s.choose("доставить гостю сейчас"), hv::Choice::Wrong { .. }));
     assert_eq!(s.choose("поставить в очередь"), hv::Choice::Applied);
     assert_eq!(s.choose("поставить в очередь"), hv::Choice::Applied);
@@ -102,7 +102,7 @@ fn hv_session_behaves_like_the_react_lab() {
     assert_eq!(s.state().delivered, vec![1, 2]);
     let hv::Choice::Finished(f) = s.choose("остановить виртуальный процессор гостя")
     else {
-        panic!("ожидалась остановка")
+        panic!("expected a halt")
     };
     assert!(f.ok);
     assert_eq!(f.mistakes, 2);
@@ -112,25 +112,25 @@ fn hv_session_behaves_like_the_react_lab() {
 
 #[test]
 fn hv_verify_rejects_forged_data() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-hv");
     let ps = programs(&t);
     let base = ps.iter().find(|p| p.id == "base").unwrap();
     let run = hv::ideal_run(base, false).unwrap();
-    // число ошибок не совпадает с записью
+    // the number of mistakes does not match the trace
     let sub = json!({ "base": { "translate": false, "mistakes": 3, "trace": run.steps } });
     assert!(is_rejected(&status_of(&t, &sub, "base")));
-    // неполная запись: гость не остановлен
+    // incomplete trace: the guest is not halted
     let short: Vec<_> = run.steps[..run.steps.len() - 1].to_vec();
     let sub = json!({ "base": { "translate": false, "mistakes": 0, "trace": short } });
     assert!(is_rejected(&status_of(&t, &sub, "base")));
-    // действие, невозможное на этой команде (первая команда — ADD, а не ловушка)
+    // an action impossible on this instruction (the first instruction is ADD, not a trap)
     let sub = json!({ "base": { "translate": false, "mistakes": 0, "trace": [{"step": "silent"}] } });
     assert!(is_rejected(&status_of(&t, &sub, "base")));
-    // неверная форма
+    // invalid shape
     let sub = json!({ "base": { "translate": "yes" } });
     assert!(is_rejected(&status_of(&t, &sub, "base")));
-    // прежний клиент: POPF без трансляции — отказ; остальное — без перепроверки
+    // former client: POPF without translation is rejected; the rest is accepted without re-checking
     let legacy = json!({
         "base": { "translate": false, "mistakes": 0 },
         "irq": { "translate": false, "mistakes": 1 },
@@ -144,7 +144,7 @@ fn hv_verify_rejects_forged_data() {
         "irq": { "translate": false, "mistakes": 1 },
         "popf": { "translate": true, "mistakes": 0 },
     });
-    assert!(t.verify(&legacy_ok).solved, "прежний клиент принимается по структуре");
+    assert!(t.verify(&legacy_ok).solved, "legacy client is accepted by structure");
     assert!(!verify_with(&t.spec, &legacy_ok, Strictness::Strict).solved);
 }
 
@@ -152,7 +152,7 @@ fn hv_verify_rejects_forged_data() {
 
 #[test]
 fn ept_solutions_reach_every_goal() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-ept");
     let sub = json!({
         "walk": { "mode": "ept", "guest": "1G", "host": "1G", "workload": "one" },
@@ -165,31 +165,31 @@ fn ept_solutions_reach_every_goal() {
 
 #[test]
 fn ept_verify_rejects_wrong_configs() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-ept");
-    // 4K/4K в EPT — 24 обращения на промах: цель «не больше 15» не выполнена
+    // 4K/4K in EPT is 24 accesses per miss: the "at most 15" goal is not met
     let sub = json!({ "walk": { "mode": "ept", "guest": "4K", "host": "4K", "workload": "one" } });
     assert!(is_rejected(&status_of(&t, &sub, "walk")));
-    // режим «теневые» не засчитывает цель про вложенные таблицы
+    // "shadow" mode does not count toward the nested tables goal
     let sub = json!({ "walk": { "mode": "shadow", "guest": "1G", "host": "1G", "workload": "one" } });
     assert!(is_rejected(&status_of(&t, &sub, "walk")));
-    // сканирование в EPT дороже 15 000?  4K/4K: 2048 × (24 + 1) = 51 200
+    // is scanning in EPT more expensive than 15 000?  4K/4K: 2048 × (24 + 1) = 51 200
     let sub = json!({ "scan": { "mode": "ept", "guest": "4K", "host": "4K", "workload": "scan" } });
     assert!(is_rejected(&status_of(&t, &sub, "scan")));
-    // запуск на чужой нагрузке не засчитывается
+    // a run on a different workload does not count
     let sub = json!({ "fork": { "mode": "ept", "guest": "1G", "host": "1G", "workload": "random" } });
     assert!(is_rejected(&status_of(&t, &sub, "fork")));
-    // теневые таблицы на «fork»: 500 выходов по 1000
+    // shadow tables on "fork": 500 exits at 1000 each
     let sub = json!({ "fork": { "mode": "shadow", "guest": "1G", "host": "1G", "workload": "fork" } });
     assert!(is_rejected(&status_of(&t, &sub, "fork")));
-    // мусор и неизвестная нагрузка
+    // garbage and an unknown workload
     assert!(is_rejected(&status_of(&t, &json!({ "fork": { "mode": "x" } }), "fork")));
     assert!(is_rejected(&status_of(
         &t,
         &json!({ "fork": { "mode": "ept", "guest": "4K", "host": "4K", "workload": "nope" } }),
         "fork"
     )));
-    // нет целей — нет решения
+    // no goals — no solution
     let v = t.verify(&json!({}));
     assert!(!v.solved && v.goals.iter().all(|g| g.status == GoalStatus::Missing));
     assert!(!t.verify(&json!(null)).solved);
@@ -201,12 +201,12 @@ fn ept_verify_rejects_wrong_configs() {
 fn virtq_actions() -> Vec<virtq::Action> {
     use virtq::Action::*;
     vec![
-        // batch: две пачки по 3 без подавления — 6 буферов, 2 оповещения
+        // batch: two batches of 3 without suppression — 6 buffers, 2 notifications
         Post { n: 3 },
         Post { n: 3 },
-        // overflow: свободно 2, а кладём 3
+        // overflow: 2 free, but posting 3
         Post { n: 3 },
-        // suppress: сбросили очередь, включили подавление, 10 буферов одним оповещением
+        // suppress: reset the queue, enabled suppression, 10 buffers with a single notification
         Reset,
         Suppress { on: true },
         Post { n: 3 },
@@ -223,7 +223,7 @@ fn virtq_actions() -> Vec<virtq::Action> {
 
 #[test]
 fn virtq_trace_reaches_every_goal() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-virtqueue");
     let Spec::Virtq { size, goals } = &t.spec else { panic!() };
     let mut s = virtq::Session::new(*size, goals);
@@ -238,15 +238,15 @@ fn virtq_trace_reaches_every_goal() {
 
 #[test]
 fn virtq_model_rules() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-virtqueue");
     let Spec::Virtq { size, goals } = &t.spec else { panic!() };
     let mut s = virtq::Session::new(*size, goals);
     assert_eq!(s.device(), virtq::Note::DeviceIdle);
     assert_eq!(s.post(3), virtq::Note::Notified { n: 3 });
-    assert_eq!(s.post(1), virtq::Note::Notified { n: 1 }, "без подавления звонят после каждой отправки");
+    assert_eq!(s.post(1), virtq::Note::Notified { n: 1 }, "without suppression every post notifies");
     s.set_suppress(true);
-    assert_eq!(s.post(1), virtq::Note::Quiet { n: 1 }, "устройство занято — звонок не нужен");
+    assert_eq!(s.post(1), virtq::Note::Quiet { n: 1 }, "device is busy — no notification needed");
     assert_eq!(s.post(4), virtq::Note::Overflow { need: 4, free: 3 });
     assert!(s.state().overflow);
     assert_eq!(s.post(3), virtq::Note::Quiet { n: 3 });
@@ -255,34 +255,34 @@ fn virtq_model_rules() {
     for _ in 0..8 {
         assert_eq!(s.device(), virtq::Note::Processed);
     }
-    assert!(!s.state().busy, "доступное кольцо опустело — устройство заснуло");
+    assert!(!s.state().busy, "avail ring is empty — device went to sleep");
     assert_eq!(s.device(), virtq::Note::DeviceIdle);
     s.reap();
     assert_eq!(s.state().used, 0);
-    // с подавлением, но при спящем устройстве — звонят
+    // with suppression, but with the device asleep — a kick is sent
     assert_eq!(s.post(1), virtq::Note::Notified { n: 1 });
 }
 
 #[test]
 fn virtq_verify_traces_and_legacy() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-virtqueue");
-    // запись, в которой цель «suppress» не достигается
+    // a trace in which the "suppress" goal is not reached
     let sub = json!({ "suppress": { "trace": [{"op": "post", "n": 3}] } });
     assert!(is_rejected(&status_of(&t, &sub, "suppress")));
-    // неизвестное действие
+    // unknown action
     let sub = json!({ "batch": { "trace": [{"op": "explode"}] } });
     assert!(is_rejected(&status_of(&t, &sub, "batch")));
-    // слишком длинная запись
+    // trace too long
     let long: Vec<_> = (0..virtlab::verify::MAX_TRACE + 1).map(|_| json!({"op": "device"})).collect();
     assert!(is_rejected(&status_of(&t, &json!({ "batch": { "trace": long } }), "batch")));
-    // прежний клиент присылает true: принимается по структуре, но не проверен
+    // the former client sends true: accepted by structure, but not verified
     let legacy = json!({ "batch": true, "overflow": true, "suppress": true });
     let v = t.verify(&legacy);
     assert!(v.solved);
     assert!(v.goals.iter().all(|g| g.status == GoalStatus::Unverified));
     assert!(!verify_with(&t.spec, &legacy, Strictness::Strict).solved);
-    // false — «цели нет», как в JavaScript
+    // false means "no goal", as in JavaScript
     assert_eq!(status_of(&t, &json!({ "batch": false }), "batch"), GoalStatus::Missing);
 }
 
@@ -291,15 +291,15 @@ fn virtq_verify_traces_and_legacy() {
 fn qcow2_actions() -> Vec<qcow2::Action> {
     use qcow2::Action::*;
     vec![
-        // deep: цепочка из 4 слоёв, кластер 0 лежит в базе — 4 обращения
+        // deep: a chain of 4 layers, cluster 0 is in the base — 4 lookups
         Snapshot,
         Snapshot,
         Snapshot,
         Read { cluster: 0 },
-        // squash: две склейки — из 4 слоёв остаётся 2
+        // squash: two merges — 4 layers become 2
         Commit,
         Commit,
-        // rollback: запись в верхний слой, откат, чтение — данные прежние
+        // rollback: write to the top layer, roll back, read — the data is the old one
         Snapshot,
         Write { cluster: 0, data: "E".into() },
         Revert,
@@ -309,7 +309,7 @@ fn qcow2_actions() -> Vec<qcow2::Action> {
 
 #[test]
 fn qcow2_trace_reaches_every_goal() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-qcow2");
     let Spec::Qcow2 { base, goals, .. } = &t.spec else { panic!() };
     let mut s = qcow2::Session::new(&virtlab::spec::base_map(base), goals);
@@ -325,12 +325,12 @@ fn qcow2_trace_reaches_every_goal() {
 
 #[test]
 fn qcow2_model_rules() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let base = qcow2::default_base();
     let chain = qcow2::initial_chain(&base);
     let c = qcow2::snapshot(&chain, 1);
     let (c, copy_up) = qcow2::write(&c, 0, "Z");
-    assert!(copy_up, "кластер 0 лежал в базе — копирование при записи");
+    assert!(copy_up, "cluster 0 was in the base — copy on write");
     let (c, copy_up) = qcow2::write(&c, 7, "Y");
     assert!(!copy_up);
     let r = qcow2::read(&c, 0);
@@ -350,12 +350,12 @@ fn qcow2_model_rules() {
 
 #[test]
 fn qcow2_verify_traces_and_legacy() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-qcow2");
-    // чтение из базы при цепочке в 2 слоя — «deep» не достигается
+    // reading from the base with a 2-layer chain — "deep" is not reached
     let sub = json!({ "deep": { "trace": [{"op": "snapshot"}, {"op": "read", "cluster": 0}] } });
     assert!(is_rejected(&status_of(&t, &sub, "deep")));
-    // откат без чтения не подтверждает «rollback»
+    // a rollback without a read does not confirm "rollback"
     let sub = json!({ "rollback": { "trace": [{"op": "snapshot"}, {"op": "write", "cluster": 0, "data": "E"}, {"op": "revert"}] } });
     assert!(is_rejected(&status_of(&t, &sub, "rollback")));
     let legacy = json!({ "deep": true, "squash": true, "rollback": true });
@@ -367,7 +367,7 @@ fn qcow2_verify_traces_and_legacy() {
 
 #[test]
 fn numa_plans_reach_every_goal() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-numa");
     let sub = json!({
         "small": {
@@ -384,26 +384,26 @@ fn numa_plans_reach_every_goal() {
 
 #[test]
 fn numa_verify_rejects_bad_plans() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-numa");
-    // всё на узле 0 не помещается (16 ядер на 8)
+    // everything on node 0 does not fit (16 cores on 8)
     let all0: Value = json!({"A": {"cpu": "0", "mem": "0", "vnuma": false}, "B": {"cpu": "0", "mem": "0", "vnuma": false},
         "C": {"cpu": "0", "mem": "0", "vnuma": false}, "D": {"cpu": "0", "mem": "0", "vnuma": false}});
     assert!(is_rejected(&status_of(&t, &json!({ "small": all0 }), "small")));
-    // помещается, но память и процессоры на разных узлах: удалённых 25% при пороге 0
+    // fits, but memory and CPUs are on different nodes: 25% remote with a threshold of 0
     let remote = json!({"A": {"cpu": "0", "mem": "1", "vnuma": false}, "B": {"cpu": "0", "mem": "0", "vnuma": false},
         "C": {"cpu": "1", "mem": "1", "vnuma": false}, "D": {"cpu": "1", "mem": "1", "vnuma": false}});
     assert!(is_rejected(&status_of(&t, &json!({ "small": remote }), "small")));
-    // большая машина без виртуальной топологии: 0,5 × 12 / 16 = 37,5% > 20%
+    // a large machine without a virtual topology: 0.5 × 12 / 16 = 37.5% > 20%
     let novnuma = json!({"E": {"cpu": "wide", "mem": "wide", "vnuma": false},
         "F": {"cpu": "0", "mem": "0", "vnuma": false}, "G": {"cpu": "1", "mem": "1", "vnuma": false}});
     assert!(is_rejected(&status_of(&t, &json!({ "wide": novnuma }), "wide")));
-    // не хватает машины в плане, несуществующий узел
+    // a machine missing from the plan, a nonexistent node
     assert!(is_rejected(&status_of(&t, &json!({ "small": {"A": {"cpu": "0", "mem": "0", "vnuma": false}} }), "small")));
     let ghost = json!({"A": {"cpu": "5", "mem": "0", "vnuma": false}, "B": {"cpu": "0", "mem": "0", "vnuma": false},
         "C": {"cpu": "1", "mem": "1", "vnuma": false}, "D": {"cpu": "1", "mem": "1", "vnuma": false}});
     assert!(is_rejected(&status_of(&t, &json!({ "small": ghost }), "small")));
-    // размещение, не прошедшее вторую цель, не засчитывает всё упражнение
+    // a placement that fails the second goal does not count the whole exercise
     let ok_small = json!({
         "A": {"cpu": "0", "mem": "0", "vnuma": false}, "B": {"cpu": "0", "mem": "0", "vnuma": false},
         "C": {"cpu": "1", "mem": "1", "vnuma": false}, "D": {"cpu": "1", "mem": "1", "vnuma": false},
@@ -416,8 +416,8 @@ fn numa_verify_rejects_bad_plans() {
 
 #[test]
 fn numa_threshold_boundary() {
-    i18n::set_locale(i18n::Locale::Ru);
-    // граница: средняя доля ровно 0,1875 (vnuma) проходит порог 0,2, а 0,375 — нет
+    locales::set_locale(i18n::Locale::Ru);
+    // boundary: an average share of exactly 0.1875 (vnuma) passes the 0.2 threshold, 0.375 does not
     let nodes = numa::default_nodes();
     let sc = numa::default_scenarios().remove(1);
     let mut plan = numa::default_plan(&sc.vms);
@@ -441,10 +441,10 @@ fn migration_sub() -> Value {
 
 #[test]
 fn migration_params_reach_every_goal() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-migration");
     all_verified(&t, &migration_sub());
-    // и сами симуляции дают нужные исходы
+    // and the simulations themselves yield the required outcomes
     let scs = migration::default_scenarios();
     let r = migration::simulate(&scs[0].input(100.0, false, false, None));
     assert_eq!(r.outcome, migration::Outcome::Precopy);
@@ -455,50 +455,50 @@ fn migration_params_reach_every_goal() {
 
 #[test]
 fn migration_verify_rejects_cheating() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let t = task("virt-sim-migration");
     let mut sub = migration_sub();
-    // «активный гость» без замедления не сходится
+    // "active guest" without throttling does not converge
     sub["busy"] = json!({ "dirty": 2000, "bw": 1250, "downtimeMs": 600, "autoConverge": false, "compress": false, "postcopyAfter": null });
     assert!(is_rejected(&status_of(&t, &sub, "busy")));
-    // подмена скоростей сценария: гость почти не пишет
+    // tampered scenario rates: the guest barely writes
     sub["busy"] = json!({ "dirty": 1, "bw": 1250, "downtimeMs": 100, "autoConverge": false, "compress": false, "postcopyAfter": null });
     assert!(is_rejected(&status_of(&t, &sub, "busy")));
-    // допустимый простой вне слайдера: огромный порог «решает» любую цель
+    // allowed downtime outside the slider: a huge threshold "solves" any goal
     sub["calm"] = json!({ "dirty": 300, "bw": 1250, "downtimeMs": 1.0e9, "autoConverge": false, "compress": false, "postcopyAfter": null });
     assert!(is_rejected(&status_of(&t, &sub, "calm")));
     sub["calm"] = json!({ "dirty": 300, "bw": 1250, "downtimeMs": 5, "autoConverge": false, "compress": false, "postcopyAfter": null });
     assert!(is_rejected(&status_of(&t, &sub, "calm")));
-    // post-copy после 0 или 99 кругов
+    // post-copy after 0 or 99 rounds
     sub["wild"] = json!({ "dirty": 6000, "bw": 1250, "downtimeMs": 100, "autoConverge": false, "compress": false, "postcopyAfter": 0 });
     assert!(is_rejected(&status_of(&t, &sub, "wild")));
     sub["wild"] = json!({ "dirty": 6000, "bw": 1250, "downtimeMs": 100, "autoConverge": false, "compress": false, "postcopyAfter": 99 });
     assert!(is_rejected(&status_of(&t, &sub, "wild")));
-    // меньше памяти — легче мигрировать
+    // less memory — easier to migrate
     sub["wild"] = json!({ "dirty": 6000, "bw": 1250, "downtimeMs": 100, "postcopyAfter": 1, "mem": 1024 });
     assert!(is_rejected(&status_of(&t, &sub, "wild")));
-    // необязательные поля прежнего клиента можно опустить
+    // optional fields of the former client may be omitted
     sub["calm"] = json!({ "dirty": 300, "bw": 1250, "downtimeMs": 100 });
     assert_eq!(status_of(&t, &sub, "calm"), GoalStatus::Verified);
-    // отрицательные и нечисловые значения
+    // negative and non-numeric values
     sub["calm"] = json!({ "dirty": 300, "bw": 1250, "downtimeMs": -100 });
     assert!(is_rejected(&status_of(&t, &sub, "calm")));
     sub["calm"] = json!({ "dirty": "300" });
     assert!(is_rejected(&status_of(&t, &sub, "calm")));
 }
 
-// ---------------------------------------------------------------- общее
+// ---------------------------------------------------------------- common
 
 #[test]
 fn every_spec_has_goals_and_is_valid() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     for c in build_chapters(DEFINITIONS).unwrap() {
         for t in &c.tasks {
             t.spec.validate().unwrap();
             let goals = t.spec.goals();
             assert!(goals.len() >= 2, "{}", t.id);
             assert!(goals.iter().all(|g| !g.text.is_empty()));
-            // пустое решение — не решено, ни одна цель не засчитана
+            // an empty solution is unsolved, no goal counts
             let v = t.verify(&json!({}));
             assert!(!v.solved);
             assert_eq!(v.goals.len(), goals.len());

@@ -1,4 +1,4 @@
-//! Шапка: логотип, переключатель темы, пользователь и выход.
+//! Header: logo, theme switch, user and sign out.
 
 use leptos::prelude::*;
 use leptos_router::hooks::{use_location, use_navigate};
@@ -10,7 +10,7 @@ use crate::{
     settings::{self, Theme},
 };
 
-/// Адрес страницы настроек.
+/// Settings page address.
 pub const SETTINGS_PATH: &str = "/settings";
 
 #[component]
@@ -36,7 +36,7 @@ pub fn ThemeButton(theme: RwSignal<Theme>) -> impl IntoView {
     }
 }
 
-/// Переключатель языка интерфейса: перезагружает страницу, потому что тексты строятся один раз.
+/// Interface language switch: reloads the page because the texts are built once.
 #[component]
 pub fn LangSwitch() -> impl IntoView {
     let current = i18n::locale();

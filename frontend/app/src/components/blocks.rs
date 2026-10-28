@@ -1,4 +1,4 @@
-//! Блоки тела слайда из данных ([`content::Block`]) и рамка слайда: один общий компонент на все главы.
+//! Slide body blocks from data ([`content::Block`]) and the slide frame: one shared component for all chapters.
 
 use content::{
     slide::{Card, Cell, Topic},
@@ -8,7 +8,7 @@ use highlight::{highlight, Kind};
 use leptos::prelude::*;
 use scene::SceneView;
 
-/// Класс подсветки из `App.css` (`rs-*`) для токена.
+/// Highlight class from `App.css` (`rs-*`) for a token.
 fn token_class(lang: Lang, kind: Kind, text: &str) -> Option<&'static str> {
     Some(match kind {
         Kind::Plain => return None,
@@ -37,7 +37,7 @@ fn token_class(lang: Lang, kind: Kind, text: &str) -> Option<&'static str> {
     })
 }
 
-/// Врезка кода: строки подсвечиваются по языку.
+/// Code inset: lines are highlighted by language.
 #[component]
 fn CodeBlock(lang: Lang, text: String) -> impl IntoView {
     let lines = text
@@ -60,7 +60,7 @@ fn CodeBlock(lang: Lang, text: String) -> impl IntoView {
     }
 }
 
-/// Текст с вставками кода: `` `код` `` — моноширинная вставка.
+/// Text with code insets: `` `code` `` is a monospace inset.
 pub fn inline(text: &str) -> impl IntoView {
     text.split('`')
         .enumerate()
@@ -89,7 +89,7 @@ fn topic_view(t: Topic) -> impl IntoView {
     }
 }
 
-/// Один блок тела слайда.
+/// One slide body block.
 #[component]
 pub fn BlockView(block: Block) -> impl IntoView {
     match block {
@@ -119,7 +119,7 @@ pub fn BlockView(block: Block) -> impl IntoView {
     }
 }
 
-/// Рамка слайда: рубрика с номером, заголовок, подзаголовок, тело (блоки) и блок «ГЛАВНОЕ».
+/// Slide frame: numbered rubric, title, subtitle, body (blocks) and the "KEY POINT" block.
 #[component]
 pub fn DataSlide(rubric: String, n: usize, total: usize, slide: Slide) -> impl IntoView {
     let body = slide.body.into_iter().map(|block| view! { <BlockView block=block /> }).collect_view();

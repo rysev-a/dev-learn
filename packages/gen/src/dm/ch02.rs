@@ -1,6 +1,6 @@
-//! Дискретная математика, глава 2 («Отношения и функции»): сцены.
-//! Перенос с `frontend/src/slides/anim/C2*.tsx` (`kit.tsx`, сырой SVG) на данные: те же шаги, подписи, метки `cues`.
-//! Объекты, которые «переезжают» между шагами, имеют один и тот же `id`; чего нет в кадре — гаснет на месте.
+//! Discrete mathematics, chapter 2 ("Relations and functions"): scenes.
+//! Port of `frontend/src/slides/anim/C2*.tsx` (`kit.tsx`, raw SVG) to data: the same steps, captions, `cues` marks.
+//! Objects that "move" between steps share the same `id`; whatever is absent from a frame fades in place.
 
 use content::{
     dsl::{arrow, bx, dot, line, path, text, zone},
@@ -8,32 +8,32 @@ use content::{
     Frame, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-/// Добавить элементы в кадр: `put!(f; cell(..), text(..))`.
+/// Add elements to a frame: `put!(f; cell(..), text(..))`.
 macro_rules! put {
     ($f:ident; $($e:expr),+ $(,)?) => {{ $( $f.0.push(($e).into()); )+ }};
 }
 
-/// Плашка высотой 20 с моноширинной подписью (бывший `Pill`).
+/// Plate of height 20 with a monospace label (former `Pill`).
 fn pill(id: impl Into<String>, x: f64, y: f64, w: f64, t: &str, tone: Tone) -> Cell {
     bx(id, x, y, w, 20.0, t).size(10.5).tone(tone)
 }
 
-/// Приглушённая подпись (`a-cap`).
+/// Muted label (`a-cap`).
 fn cap(id: impl Into<String>, x: f64, y: f64, t: &str) -> Text {
     text(id, x, y, t)
 }
 
-/// Подпись цветом оттенка.
+/// Label in the tone colour.
 fn capc(id: impl Into<String>, x: f64, y: f64, t: &str, tone: Tone) -> Text {
     text(id, x, y, t).tone(tone)
 }
 
-/// Моноширинная подпись цветом оттенка.
+/// Monospace label in the tone colour.
 fn mono(id: impl Into<String>, x: f64, y: f64, t: &str, tone: Tone, size: f64) -> Text {
     text(id, x, y, t).mono().tone(tone).size(size)
 }
 
-/// Моноширинная подпись обычным цветом текста.
+/// Monospace label in the regular text colour.
 fn plain(id: impl Into<String>, x: f64, y: f64, t: &str, size: f64) -> Text {
     text(id, x, y, t).mono().size(size)
 }
@@ -42,17 +42,17 @@ fn arr(id: impl Into<String>, x1: f64, y1: f64, x2: f64, y2: f64, tone: Tone) ->
     arrow(id, x1, y1, x2, y2).tone(tone)
 }
 
-/// Штриховка кривой (у `Path` нет своего метода).
+/// Dashing of a curve (`Path` has no method of its own).
 fn dashed(p: content::item::Path, pattern: &str) -> content::item::Path {
     content::item::Path { dash: Some(pattern.into()), ..p }
 }
 
-/// Кадры по номеру шага.
+/// Frames by step number.
 fn frames(n: usize, f: impl Fn(usize) -> Frame) -> Vec<Frame> {
     (0..n).map(f).collect()
 }
 
-/// Таблица-матрица отношения: клетки `rows × cols` с левым верхним углом (x, y); `mark` — цвет клетки или `None`.
+/// Relation matrix table: cells `rows × cols` with top-left corner (x, y); `mark` — cell colour or `None`.
 fn grid(f: &mut Frame, pfx: &str, (x, y): (f64, f64), rows: usize, cols: usize, size: f64, mark: impl Fn(usize, usize) -> Option<Tone>) {
     for r in 0..rows {
         for c in 0..cols {
@@ -79,7 +79,7 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// 1. Отношения в базе, функции в модуле, один словарь
+// 1. Relations in a database, functions in a module, one dictionary
 fn intro() -> SceneSpec {
     const ORDERS: [(&str, f64); 3] = [("#1", 36.0), ("#2", 64.0), ("#3", 92.0)];
     const LINKS: [usize; 3] = [0, 0, 1];
@@ -132,7 +132,7 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// 2. Упорядоченная пара
+// 2. Ordered pair
 fn pair() -> SceneSpec {
     let fr = frames(4, |step| {
         let mut f = Frame::new();
@@ -197,14 +197,14 @@ fn pair() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 3. Прямое произведение
+// 3. Cartesian product
 fn product() -> SceneSpec {
     const SHIRTS: [&str; 3] = ["красная", "синяя", "белая"];
     const PANTS: [&str; 2] = ["чёрные", "серые"];
     let fr = frames(4, |step| {
         let mut f = Frame::new();
         if step <= 2 {
-            // футболки уезжают влево, освобождая место таблице
+            // the t-shirts move left, making room for the table
             let x = if step == 0 { 90.0 } else { 50.0 };
             put!(f; cap("sh-t", x, 18.0, "футболки A"));
             for (i, t) in SHIRTS.iter().enumerate() {
@@ -263,12 +263,12 @@ fn product() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 4. Отношение — подмножество A × B
+// 4. A relation is a subset of A × B
 fn relation() -> SceneSpec {
     const ORD: [&str; 4] = ["#1", "#2", "#3", "#4"];
     const CLI: [&str; 3] = ["Аня", "Борис", "Вера"];
     const PPL: [&str; 4] = ["А", "Б", "В", "Г"];
-    const FK: [usize; 4] = [0, 0, 1, 2]; // клиент каждого заказа
+    const FK: [usize; 4] = [0, 0, 1, 2]; // customer of each order
     const FR: [(usize, usize); 6] = [(0, 1), (1, 0), (1, 2), (2, 1), (2, 3), (3, 2)];
     const SUB: [(usize, usize); 4] = [(0, 0), (1, 2), (2, 1), (0, 2)];
     let (x0, y0, size) = (146.0, 40.0, 32.0);
@@ -319,7 +319,7 @@ fn relation() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 5. Рефлексивность
+// 5. Reflexivity
 fn reflexive() -> SceneSpec {
     let (x0, y0, size) = (130.0, 34.0, 26.0);
     let fr = frames(4, |step| {
@@ -374,23 +374,23 @@ fn reflexive() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 6. Симметричность
+// 6. Symmetry
 fn symmetric() -> SceneSpec {
     let fr = frames(4, |step| {
         let mut f = Frame::new();
         if step <= 2 {
             put!(f; pill("anya", 60.0, 74.0, 56.0, "Аня", B), pill("boris", 180.0, 34.0, 56.0, "Борис", Y), pill("vera", 300.0, 74.0, 56.0, "Вера", G));
             match step {
-                // «туда» сплошной, «обратно» пунктиром
+                // "forward" solid, "back" dashed
                 0 => put!(f; arr("ab", 86.0, 64.0, 150.0, 42.0, G), arr("ba", 150.0, 46.0, 90.0, 68.0, G).dash_pattern("4 3")),
-                // обе половины: стрелки с наконечниками в обе стороны
+                // both halves: arrows with heads at both ends
                 1 => put!(f;
                     arr("ab", 86.0, 64.0, 150.0, 42.0, G),
                     arr("ba", 150.0, 42.0, 86.0, 64.0, G),
                     arr("bv", 210.0, 42.0, 274.0, 64.0, G),
                     arr("vb", 274.0, 64.0, 210.0, 42.0, G),
                 ),
-                // подписки в одну сторону, обратных стрелок нет
+                // one-way subscriptions, no reverse arrows
                 _ => put!(f;
                     arr("ab", 86.0, 64.0, 150.0, 42.0, Y),
                     arr("vb", 274.0, 68.0, 210.0, 46.0, Y),
@@ -436,7 +436,7 @@ fn symmetric() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 7. Транзитивность
+// 7. Transitivity
 fn transitive() -> SceneSpec {
     let fr = frames(4, |step| {
         let mut f = Frame::new();
@@ -447,7 +447,7 @@ fn transitive() -> SceneSpec {
             }
             let col = if step == 2 { Y } else { G };
             put!(f; arr("e0", 110.0, 96.0, 142.0, 96.0, col), arr("e1", 220.0, 96.0, 252.0, 96.0, col));
-            // вывод: дуга a → c
+            // conclusion: arc a → c
             if step >= 1 {
                 put!(f; dashed(path("arc", "M70 82 C100 28 250 28 290 82").tone(if step == 2 { R } else { G }).width(1.8).arrow(), "6 4"));
             }
@@ -461,7 +461,7 @@ fn transitive() -> SceneSpec {
                 put!(f; cap("n", 180.0, 140.0, "соцсеть показывает его как рекомендацию"));
             }
         } else {
-            // те же плашки и стрелки превращаются в цепочку пакетов
+            // the same plates and arrows turn into a package chain
             for (i, n) in ["app", "lib-a", "lib-b", "lib-c"].iter().enumerate() {
                 put!(f; pill(format!("p{i}"), 46.0 + i as f64 * 90.0, 90.0, 62.0, n, if i == 0 { G } else { M }));
             }
@@ -490,7 +490,7 @@ fn transitive() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 8. Отношение эквивалентности
+// 8. Equivalence relation
 fn equivalence() -> SceneSpec {
     const COL: [Tone; 3] = [B, Y, G];
     let fr = frames(4, |step| {
@@ -506,7 +506,7 @@ fn equivalence() -> SceneSpec {
             }
         }
         if step >= 1 {
-            // числа: ряд → классы по остатку
+            // numbers: row → classes by remainder
             for i in 0..9usize {
                 let (x, y) = if step >= 2 { (66.0 + (i % 3) as f64 * 124.0 + ((i / 3) as f64 - 1.0) * 30.0, 62.0) } else { (24.0 + i as f64 * 38.0, 70.0) };
                 put!(f; dot(format!("n{i}"), x, y, (i + 1).to_string()).r(13.0).size(11.0).tone(COL[i % 3]));
@@ -540,9 +540,9 @@ fn equivalence() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 9. Частичный порядок
+// 9. Partial order
 fn partial() -> SceneSpec {
-    // пакеты: имя, (x, y) в графе, x в линии сборки
+    // packages: name, (x, y) in the graph, x in the build line
     const PK: [(&str, f64, f64, f64); 4] = [("core", 180.0, 120.0, 40.0), ("utils", 100.0, 70.0, 130.0), ("net", 260.0, 70.0, 220.0), ("app", 180.0, 24.0, 310.0)];
     const EDGES: [(usize, usize); 4] = [(0, 1), (0, 2), (1, 3), (2, 3)];
     let fr = frames(4, |step| {
@@ -608,7 +608,7 @@ fn partial() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 10. Функция — отношение с контрактом
+// 10. A function is a relation with a contract
 fn function() -> SceneSpec {
     let (lx, rx) = (90.0, 270.0);
     let ys = [36.0, 80.0, 124.0];
@@ -620,7 +620,7 @@ fn function() -> SceneSpec {
                 put!(f; dot(format!("l{i}"), lx, *y, ["a", "b", "c"][i]).tone(B), dot(format!("r{i}"), rx, *y, (i + 1).to_string()).tone(Y));
             }
             let (x1, x2) = (lx + 14.0, rx - 14.0);
-            // a → 2 и b → 3 есть всегда; c → 1 — только у функции; у нарушения a → 2 краснеет, a → 1 добавляется
+            // a → 2 and b → 3 are always there; c → 1 — only for the function; on violation a → 2 turns red, a → 1 is added
             put!(f; arr("f1", x1, ys[0], x2, ys[1], if step == 2 { R } else { G }), arr("f2", x1, ys[1], x2, ys[2], G));
             if step <= 1 {
                 put!(f; arr("f3", x1, ys[2], x2, ys[0], G));
@@ -665,11 +665,11 @@ fn function() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 11. Инъекция, сюръекция, биекция
+// 11. Injection, surjection, bijection
 fn mapping() -> SceneSpec {
     let (lx, rx) = (100.0, 260.0);
     let slot = [28.0, 64.0, 100.0, 136.0];
-    // (число входов, число выходов, пары вход → выход, цвет стрелок) для видов 1–3
+    // (number of inputs, number of outputs, input → output pairs, arrow colour) for kinds 1–3
     let kinds: [(usize, usize, &[(usize, usize)], Tone); 3] = [
         (3, 4, &[(0, 0), (1, 1), (2, 3)], G),
         (4, 3, &[(0, 0), (1, 0), (2, 1), (3, 2)], Y),
@@ -677,7 +677,7 @@ fn mapping() -> SceneSpec {
     ];
     let fr = frames(5, |step| {
         let mut f = Frame::new();
-        // шаг 0 показывает раскладку биекции, шаг 4 — её же, развёрнутую
+        // step 0 shows the bijection layout, step 4 — the same, expanded
         let k = if step == 0 || step == 4 { 3 } else { step };
         let (nl, nr, pairs, tone) = kinds[k - 1];
         for i in 0..nl {
@@ -720,7 +720,7 @@ fn mapping() -> SceneSpec {
     .step_ms(3200)
 }
 
-// 12. Чистая функция
+// 12. Pure function
 fn pure() -> SceneSpec {
     let fr = frames(4, |step| {
         let mut f = Frame::new();
@@ -735,7 +735,7 @@ fn pure() -> SceneSpec {
             if step == 0 {
                 put!(f; capc("n", 180.0, 152.0, "результат зависит только от аргументов", G));
             } else {
-                // побочные каналы, которых у чистой функции нет
+                // side channels that a pure function lacks
                 for (i, t) in ["время", "global", "база"].iter().enumerate() {
                     let x = 100.0 + i as f64 * 80.0;
                     let off = [20.0, 0.0, -20.0][i];
@@ -778,9 +778,9 @@ fn pure() -> SceneSpec {
     .step_ms(3000)
 }
 
-// 13. Итог главы
+// 13. Chapter summary
 fn recap() -> SceneSpec {
-    // (крупная подпись, название, шаг, на котором карточка загорается)
+    // (large label, title, step at which the card lights up)
     const CARDS: [(&str, &str, usize); 5] = [("(a, b)", "пары", 1), ("A × B", "произв.", 1), ("R", "отношение", 1), ("≡  ≼", "свойства", 2), ("f", "функции", 3)];
     let fr = frames(6, |step| {
         let mut f = Frame::new();
@@ -817,7 +817,7 @@ fn recap() -> SceneSpec {
         ],
         fr,
     )
-    // в React меток было четыре на шесть шагов (шаг «Дальше» достижим только кнопкой); пятая — по доле символов
+    // in React there were four marks for six steps (the "Next" step reachable only by button); the fifth — by character share
     .cues(&[1.5, 10.8, 19.5, 25.7, 31.5])
     .step_ms(2600)
 }

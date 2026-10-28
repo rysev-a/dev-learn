@@ -1,14 +1,14 @@
-//! Лаборатория «Системный дизайн» (книга 18): схема высоконагруженного сервиса на поле, расчёт под заданной нагрузкой и
-//! цели упражнения. Расчёт, цели и допустимость связей — крейт `sdlab` (общий с сервером, он же перепроверяет решение);
-//! здесь только интерфейс.
+//! "System design" lab (book 18): a high-load service diagram on the board, a calculation under a given load and
+//! the exercise goals. The calculation, goals and link validity come from the `sdlab` crate (shared with the server, which also re-checks the solution);
+//! this module is the interface only.
 //!
-//! * `lab.rs` — состояние: схема, выбор, отказы, расчёт и действия над схемой;
-//! * `logic.rs` — чистая логика (черновик, правки, провода, вписывание, подписи) с тестами;
-//! * `board.rs` — поле: палитра, компоненты, связи, порты, автоподстановка, сдвиг и масштаб (`board_view.rs`);
-//! * `panels.rs` — карточка параметров, справка, инструменты, цели и метрики;
-//! * `icons.rs` — значки компонентов.
+//! * `lab.rs` — state: the diagram, selection, failures, calculation and diagram actions;
+//! * `logic.rs` — pure logic (draft, edits, wires, fitting, labels) with tests;
+//! * `board.rs` — the board: palette, components, links, ports, auto-wiring, pan and zoom (`board_view.rs`);
+//! * `panels.rs` — parameter card, help, tools, goals and metrics;
+//! * `icons.rs` — component icons.
 //!
-//! Черновик (схема) уходит хозяину при каждой правке, а когда выполнены все цели, решение отправляется на сервер один раз.
+//! The draft (diagram) goes to the owner on every edit, and once all goals are met the solution is sent to the server exactly once.
 
 use std::sync::Arc;
 
@@ -27,7 +27,7 @@ use panels::{Chips, Corner, Goals, Metrics, Overlay, Toolbar};
 use super::LabProps;
 use crate::dom;
 
-/// Что написать в итоге: решено раньше, засчитано только что или решение ещё проверяется на сервере.
+/// What to write as the outcome: solved earlier, accepted just now, or the solution is still being checked on the server.
 fn verdict_text(solved_before: bool, solved: bool) -> &'static str {
     if solved_before {
         i18n::tr("The exercise was already solved.")
@@ -38,7 +38,7 @@ fn verdict_text(solved_before: bool, solved: bool) -> &'static str {
     }
 }
 
-/// Лаборатория выбранного упражнения.
+/// Lab of the selected exercise.
 #[component]
 pub fn SdLab(props: LabProps) -> impl IntoView {
     let scenario = match logic::parse_scenario(&props.task.spec) {
@@ -48,7 +48,7 @@ pub fn SdLab(props: LabProps) -> impl IntoView {
     let initial = logic::restore(&scenario, &props.draft.get_untracked());
     let lab = Lab::new(Arc::new(scenario), initial, props.task.hint.clone(), props.on_draft);
 
-    // решение отправляется один раз, когда выполнены все цели; если сервер отказал, повтор — после новых правок
+    // the solution is sent once, when all goals are met; if the server rejects it, a retry happens after new edits
     let solved_before = props.solved.get_untracked();
     let reported = StoredValue::new(false);
     let (solved, report) = (props.solved, props.report);
@@ -65,7 +65,7 @@ pub fn SdLab(props: LabProps) -> impl IntoView {
         }
     });
 
-    // во весь экран: страница под схемой не прокручивается, Esc закрывает
+    // fullscreen: the page under the diagram does not scroll, Esc closes
     let page_overflow = StoredValue::new_local(None::<String>);
     Effect::new(move |_| {
         let Some(body) = web_sys::window().and_then(|w| w.document()).and_then(|d| d.body()) else { return };
@@ -94,7 +94,7 @@ pub fn SdLab(props: LabProps) -> impl IntoView {
     view! {
         {move || {
             if lab.fs.get() {
-                // на весь экран — поверх страницы, вне её вёрстки
+                // fullscreen — above the page, outside its layout
                 view! {
                     <Portal>
                         <div class="sd fs">
@@ -122,7 +122,7 @@ pub fn SdLab(props: LabProps) -> impl IntoView {
     .into_any()
 }
 
-/// Карточка поля: нагрузка, инструменты, подсказка, само поле и сообщения под ним.
+/// Board card: load, tools, hint, the board itself and messages under it.
 #[component]
 fn BoardCard(lab: Lab, fullscreen: bool) -> impl IntoView {
     let edge_hint = move || {
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn verdict_distinguishes_old_new_and_pending_solutions() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(verdict_text(true, true), "Упражнение уже было решено.");
         assert_eq!(verdict_text(false, true), "Упражнение засчитано.");
         assert_eq!(verdict_text(false, false), "Проверяю решение на сервере…");

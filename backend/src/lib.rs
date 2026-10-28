@@ -1,6 +1,6 @@
-//! Бэкенд «cs-core»: axum + SurrealDB. Auth:
-//! вход, регистрация и админка — общие crates lab (`auth`, `auth_api`, `admin_api`, `system_tasks`, `mail`).
-//! Проверка кода выполняется внешним воркером (`worker/worker.py`): бэкенд ведёт очередь и отдаёт задания по `/internal/worker/*`.
+//! The "cs-core" backend: axum + SurrealDB. Auth:
+//! sign-in, registration and admin - shared lab crates (`auth`, `auth_api`, `admin_api`, `system_tasks`, `mail`).
+//! Code checking is done by an external worker (`worker/worker.py`): the backend keeps the queue and hands out jobs via `/internal/worker/*`.
 
 pub mod answers;
 pub mod config;
@@ -14,6 +14,7 @@ pub mod labs;
 pub mod practice;
 pub mod progress;
 pub mod quizzes;
+pub mod records;
 pub mod schema_view;
 pub mod seed;
 pub mod slides;
@@ -42,19 +43,19 @@ use crate::{config::Config, db::Db};
 pub struct AppState {
     pub db: Db,
     pub cfg: Arc<Config>,
-    /// замок очереди проверок: бэкенд работает одним экземпляром (см. `jobs.rs`)
+    /// lock of the check queue: the backend runs as one instance (see `jobs.rs`)
     pub queue: Arc<tokio::sync::Mutex<()>>,
     pub last_reap: Arc<Mutex<f64>>,
-    /// описания учебных баз SQL-задач: ключ набора → схема и данные
+    /// descriptions of the teaching SQL databases of tasks: set key -> schema and data
     pub datasets: Arc<Mutex<HashMap<String, Value>>>,
-    /// движок лаборатории «Архитектура компьютера» (главы 6–15), загруженный из файлов данных
+    /// engine of the "Computer Architecture" lab (chapters 6-15), loaded from the data files
     pub arch: Arc<archlab::ArchLab>,
 }
 
 impl AppState {
     pub fn new(db: Db, cfg: Config) -> Self {
         let arch = archlab::ArchLab::load_dir(&cfg.labs_dir().join("arch")).unwrap_or_else(|e| {
-            tracing::error!("лаборатория архитектуры не загружена: {e}");
+            tracing::error!("architecture lab not loaded: {e}");
             archlab::ArchLab::default()
         });
         Self { db, cfg: Arc::new(cfg), queue: Arc::new(tokio::sync::Mutex::new(())), last_reap: Arc::new(Mutex::new(0.0)), datasets: Arc::new(Mutex::new(HashMap::new())), arch: Arc::new(arch) }
@@ -68,7 +69,7 @@ async fn api_not_found() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, Json(json!({ "detail": "Not Found" })))
 }
 
-/// Роутер всего бэкенда: общие маршруты, защищённые сессией (`Bearer`) и публичные, `/api/auth`, `/api/admin`, воркеры, статика.
+/// Router of the whole backend: shared routes protected by a session (`Bearer`) and public ones, `/api/auth`, `/api/admin`, workers, static files.
 pub fn router(state: AppState, auth: Auth, tasks: Tasks) -> Router {
     let require = from_fn_with_state(auth::guard::Require::authenticated(auth.clone()), auth::guard::require::<Any>);
     let private = Router::new()
@@ -76,6 +77,7 @@ pub fn router(state: AppState, auth: Auth, tasks: Tasks) -> Router {
         .merge(quizzes::private())
         .merge(answers::private())
         .merge(exercises::private())
+        .merge(records::private())
         .layer(require);
     let public = Router::new().merge(courses::routes()).merge(slides::routes()).merge(labs::routes()).merge(quizzes::public()).merge(answers::public()).merge(exercises::public()).merge(worker_api::routes(state.clone()));
 
@@ -90,17 +92,18 @@ pub fn router(state: AppState, auth: Auth, tasks: Tasks) -> Router {
         .nest("/api/admin", admin)
         .route("/api/{*rest}", any(api_not_found));
     if let Some(dir) = &state.cfg.static_dir {
-        // собранный фронтенд: файлы как есть, остальные пути — index.html (клиентская маршрутизация)
+        // built frontend: files as is, other paths - index.html (client-side routing)
         app = app.fallback_service(ServeDir::new(dir).fallback(ServeFile::new(dir.join("index.html"))));
     }
     app
 }
 
-/// Схема, сид содержимого, auth, фоновые задачи; возвращает готовый роутер.
+/// Schema, content seed, auth, background tasks; returns the ready router.
 pub async fn build(db: Db, cfg: Config) -> anyhow::Result<(Router, AppState)> {
+    locales::install(); // Russian lab engine messages (checking solutions in the request language)
     db::init_schema(&db).await?;
     if let Err(e) = seed::run(&db, &cfg).await {
-        tracing::error!("сид содержимого не удался: {e:#}");
+        tracing::error!("content seed failed: {e:#}");
         if std::env::var("DB_STRICT").is_ok() {
             return Err(e);
         }
@@ -112,22 +115,22 @@ pub async fn build(db: Db, cfg: Config) -> anyhow::Result<(Router, AppState)> {
     let email = std::env::var("ADMIN_EMAIL").unwrap_or_default();
     let password = std::env::var("ADMIN_PASSWORD").unwrap_or_default();
     if email.trim().is_empty() || password.is_empty() {
-        tracing::warn!("ADMIN_EMAIL / ADMIN_PASSWORD не заданы: начального администратора нет");
+        tracing::warn!("ADMIN_EMAIL / ADMIN_PASSWORD not set: no initial administrator");
     } else {
         auth.ensure_admin(&email, &password).await?;
-        tracing::info!("администратор {email} готов");
+        tracing::info!("administrator {email} ready");
     }
-    // демо-пользователь с коротким известным паролем — только для локальной проверки, на сервере не задавать
+    // demo user with a short well-known password - for local checks only, do not set on the server
     let (demo_email, demo_password) = (std::env::var("DEMO_USER_EMAIL").unwrap_or_default(), std::env::var("DEMO_USER_PASSWORD").unwrap_or_default());
     if !demo_email.trim().is_empty() && !demo_password.is_empty() {
         auth.ensure_demo_user(&demo_email, &demo_password).await?;
-        tracing::warn!("демо-пользователь {demo_email} готов (DEMO_USER_*): на рабочем сервере не задавать");
+        tracing::warn!("demo user {demo_email} ready (DEMO_USER_*): do not set on a production server");
     }
 
     let (demo_admin, demo_admin_password) = (std::env::var("DEMO_ADMIN_EMAIL").unwrap_or_default(), std::env::var("DEMO_ADMIN_PASSWORD").unwrap_or_default());
     if !demo_admin.trim().is_empty() && !demo_admin_password.is_empty() {
         auth.ensure_demo_admin(&demo_admin, &demo_admin_password).await?;
-        tracing::warn!("демо-администратор {demo_admin} готов (DEMO_ADMIN_*): на рабочем сервере не задавать");
+        tracing::warn!("demo administrator {demo_admin} ready (DEMO_ADMIN_*): do not set on a production server");
     }
 
     let tasks = Tasks::new(db.clone());
@@ -151,7 +154,7 @@ pub async fn build(db: Db, cfg: Config) -> anyhow::Result<(Router, AppState)> {
     Ok((router(state.clone(), auth, tasks), state))
 }
 
-/// Ежечасная чистка: просроченные сессии, старые попытки входа, использованные токены и письма.
+/// Hourly cleanup: expired sessions, old sign-in attempts, used tokens and emails.
 fn register_cleanup(tasks: &Tasks, auth: &Auth) {
     let (auth, tasks_for_mail) = (auth.clone(), tasks.clone());
     tasks.register("sessions.cleanup", "Cleanup: expired sessions, old login attempts, used tokens, old emails", move |ctx| {

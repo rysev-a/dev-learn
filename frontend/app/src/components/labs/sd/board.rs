@@ -1,11 +1,11 @@
-//! Поле схемы (по мотивам досок лаборатории «Архитектура компьютера»):
-//! — у компонента порты: вход слева, выход справа; связь тянут от выхода ко входу (или кликают по двум портам);
-//! — компоненты перетаскиваются, из палитры их можно перетащить прямо на поле;
-//! — подходящие соседи соединяются сами (пунктир-подсказка, пока компонент двигают);
-//! — поле можно сдвигать (пустое место, средняя кнопка) и масштабировать (Ctrl + колесо, кнопки).
+//! Diagram board (modeled on the boards of the "Computer architecture" lab):
+//! — a component has ports: input on the left, output on the right; a link is dragged from output to input (or by clicking two ports);
+//! — components can be dragged, and also dragged from the palette straight onto the board;
+//! — suitable neighbours connect themselves (dashed hint while a component is being moved);
+//! — the board can be panned (empty space, middle button) and zoomed (Ctrl + wheel, buttons).
 //!
-//! Состояние указателя — сигналы в [`Ix`]; глобальные обработчики мыши висят на окне (как `document` в React), а чистые
-//! решения («что под курсором», «можно ли соединить», «как вписать схему») — функции из `logic.rs`.
+//! Pointer state is signals in [`Ix`]; global mouse handlers hang on the window (like `document` in React), and the pure
+//! decisions ("what is under the cursor", "can it be connected", "how to fit the diagram") are functions from `logic.rs`.
 
 use leptos::{ev, prelude::*, svg};
 use sdlab::{
@@ -26,10 +26,10 @@ use crate::{
     dom, settings,
 };
 
-/// Ключ настройки: высота поля (px), выбранная «лапкой».
+/// Setting key: board height (px) chosen with the grip.
 const BOARD_H_KEY: &str = "cs-core-sd-board-h";
 
-/// Высота поля из настроек; вне допустимых пределов — не задана.
+/// Board height from settings; outside the allowed limits — not set.
 fn saved_height() -> Option<f64> {
     settings::read(BOARD_H_KEY).and_then(|v| v.parse::<f64>().ok()).filter(|h| (MIN_H..=MAX_H).contains(h))
 }
@@ -42,7 +42,7 @@ fn client(e: &web_sys::PointerEvent) -> Point {
     Point::new(f64::from(e.client_x()), f64::from(e.client_y()))
 }
 
-/// Класс узла по состоянию нагрузки.
+/// Node class by load state.
 fn status_class(s: NodeStatus) -> &'static str {
     match s {
         NodeStatus::Idle => "idle",
@@ -54,7 +54,7 @@ fn status_class(s: NodeStatus) -> &'static str {
     }
 }
 
-/// Ширина полоски загрузки узла (px внутри рамки): не уже 2.
+/// Width of a node's load bar (px inside the frame): at least 2.
 fn bar_width(util: f64) -> f64 {
     (util.min(1.0) * (NODE_W - 16.0)).max(2.0)
 }
@@ -63,41 +63,41 @@ fn target_element(target: Option<web_sys::EventTarget>) -> Option<web_sys::Eleme
     target.and_then(|t| t.dyn_into::<web_sys::Element>().ok())
 }
 
-/// Фокус в поле ввода: клавиши Delete и Backspace там работают как обычно.
+/// Focus in an input field: Delete and Backspace work there as usual.
 fn typing_in_field(target: Option<web_sys::EventTarget>) -> bool {
     target_element(target).is_some_and(|el| ["INPUT", "SELECT", "TEXTAREA"].contains(&el.tag_name().to_ascii_uppercase().as_str()))
 }
 
-/// Перетаскиваемый компонент и точка нажатия на порт (экранная).
+/// The component being dragged and the press point on a port (screen).
 #[derive(Clone, Copy, Default)]
 struct DragInfo {
     item: ItemDrag,
     pin_down: Option<Point>,
 }
 
-/// Состояние указателя на поле: что тянут, куда целятся и какие связи предлагают.
+/// Pointer state on the board: what is dragged, what is aimed at and which links are suggested.
 #[derive(Clone, Copy)]
 struct Ix {
     lab: Lab,
     view: BoardView,
-    /// вид компонента, который тащат из палитры
+    /// kind of the component dragged from the palette
     placing: RwSignal<Option<Kind>>,
-    /// положение курсора на экране, пока тащат из палитры
+    /// cursor position on screen while dragging from the palette
     cursor: RwSignal<Option<Point>>,
-    /// компонент, который двигают
+    /// component being moved
     moving: RwSignal<Option<String>>,
     moved_far: RwSignal<bool>,
-    /// провод, который тянут от порта
+    /// wire dragged from a port
     pending: RwSignal<Option<Pending>>,
-    /// провод «приклеился» к курсору после щелчка по порту
+    /// wire "stuck" to the cursor after clicking a port
     sticky: RwSignal<bool>,
     cursor_board: RwSignal<Option<Point>>,
-    /// компонент под концом провода
+    /// component under the end of the wire
     hover: RwSignal<Option<String>>,
     drag: StoredValue<DragInfo>,
-    /// призрак компонента из палитры под курсором
+    /// ghost of a palette component under the cursor
     ghost: Memo<Option<SdNode>>,
-    /// связи, которые предлагает автоподстановка
+    /// links suggested by auto-wiring
     auto_edges: Memo<Vec<SdEdge>>,
 }
 
@@ -115,7 +115,7 @@ impl Ix {
             }
             Some(logic::ghost_node(kind, view.to_board(at.x, at.y)))
         });
-        // автоподстановка: включена по настройке (читается при открытии доски); прежний результат нужен, чтобы пунктир не дрожал
+        // auto-wiring: enabled by a setting (read when the board opens); the previous result is needed so the dashed line does not jitter
         let auto_on = settings::AUTOWIRE_SD_FLAG.read();
         let auto_edges = Memo::new(move |keep: Option<&Vec<SdEdge>>| {
             if !auto_on {
@@ -158,7 +158,7 @@ impl Ix {
         self.lab.connect(&from, &to);
     }
 
-    /// Нажатие на компонент: либо завершает «приклеенный» провод, либо начинает перетаскивание.
+    /// Press on a component: either finishes a "stuck" wire or starts a drag.
     fn node_down(&self, e: &web_sys::PointerEvent, id: &str) {
         if e.button() != 0 {
             return;
@@ -178,7 +178,7 @@ impl Ix {
         self.moving.set(Some(id.to_owned()));
     }
 
-    /// Нажатие на порт: начало провода или соединение с «приклеенным» проводом.
+    /// Press on a port: start of a wire or connection with a "stuck" wire.
     fn pin_down(&self, e: &web_sys::PointerEvent, id: &str, pin: Pin) {
         if e.button() != 0 {
             return;
@@ -199,7 +199,7 @@ impl Ix {
         self.cursor_board.set(Some(self.view.to_board(f64::from(e.client_x()), f64::from(e.client_y()))));
     }
 
-    /// Нажатие на фон поля: отменяет провод, снимает выбор и начинает сдвиг; средняя кнопка двигает поле везде.
+    /// Press on the board background: cancels the wire, clears the selection and starts panning; the middle button pans anywhere.
     fn board_down(&self, e: &web_sys::PointerEvent) {
         if e.button() == 1 {
             self.view.on_pointer_down(e, false);
@@ -300,22 +300,22 @@ impl Ix {
     }
 }
 
-/// Палитра, поле и подсказка под ним.
+/// Palette, board and the hint under it.
 #[component]
 pub fn Board(
     lab: Lab,
-    /// поле занимает весь экран: высота окна берётся из размеров на экране
+    /// the board takes the whole screen: the window height comes from the on-screen size
     fullscreen: bool,
-    /// кнопки в левом верхнем углу поля (справка, во весь экран)
+    /// buttons in the board's top-left corner (help, fullscreen)
     #[prop(into)]
     corner: ViewFn,
-    /// плавающая карточка поверх поля (параметры выбранного компонента)
+    /// floating card above the board (parameters of the selected component)
     #[prop(into)]
     overlay: ViewFn,
 ) -> impl IntoView {
     let svg_ref = NodeRef::<svg::Svg>::new();
     let size = use_element_size(svg_ref);
-    // высота поля, выбранная «лапкой» (px); пока не трогали — поле держит пропорции окна просмотра
+    // board height chosen with the grip (px); until touched, the board keeps the viewport proportions
     let board_h = RwSignal::new(saved_height());
     let resize = RwSignal::new(None::<(f64, f64)>);
     let sized = move || fullscreen || board_h.get().is_some();
@@ -326,7 +326,7 @@ pub fn Board(
     let view = BoardView::new(svg_ref, BOARD, Signal::derive(move || (BOARD_W, world_h.get())));
     let ix = Ix::new(lab, view);
 
-    // вписать всю схему в окно просмотра
+    // fit the whole diagram into the viewport
     let fitted = RwSignal::new(None::<View>);
     let fit = Callback::new(move |()| {
         let points: Vec<Point> = lab.state.with_untracked(|s| s.nodes.iter().map(|n| Point::new(n.x, n.y)).collect());
@@ -360,7 +360,7 @@ pub fn Board(
     });
     dom::on_window(ev::keydown, move |e| ix.on_key(&e));
 
-    // «лапка» под полем: потянуть вверх или вниз — поле меняет высоту
+    // grip under the board: drag up or down to change the board height
     let start_resize = move |e: web_sys::PointerEvent| {
         if e.button() != 0 {
             return;
@@ -395,7 +395,7 @@ pub fn Board(
                         ix.cursor.set(Some(client(&e)));
                     }
                     on:click=move |_| {
-                        // после клика схема вписывается заново: новый компонент не должен оказаться за краем
+                        // after a click the diagram is fitted again: a new component must not end up beyond the edge
                         if lab.add(kind, None, &[]) {
                             fit.run(());
                         }
@@ -490,21 +490,21 @@ pub fn Board(
     }
 }
 
-/// Пунктир автоподставленной связи.
+/// Dashed line of an auto-wired link.
 fn auto_edge_view(ix: Ix, edge: SdEdge) -> impl IntoView {
     let lab = ix.lab;
     let d = move || lab.state.with(|s| ix.ghost.with(|g| logic::auto_edge_path(s, g.as_ref(), &edge))).unwrap_or_default();
     view! { <path class="sd-auto" d=d></path> }
 }
 
-/// Компонент схемы с идентификатором `id`: следит за своим узлом в состоянии.
+/// Diagram component with identifier `id`: follows its own node in the state.
 fn real_node_view(ix: Ix, id: String) -> impl IntoView {
     let lab = ix.lab;
     let node = Memo::new(move |_| lab.state.with(|s| s.node(&id).cloned()));
     view! { <NodeView ix=ix node=node.into() ghost=false /> }
 }
 
-/// Связь между двумя компонентами: линия и широкая невидимая полоса для клика.
+/// Link between two components: a line and a wide invisible strip for clicking.
 #[component]
 fn EdgeView(ix: Ix, edge: SdEdge) -> impl IntoView {
     let lab = ix.lab;
@@ -537,7 +537,7 @@ fn EdgeView(ix: Ix, edge: SdEdge) -> impl IntoView {
     }
 }
 
-/// Компонент на поле: рамка, значок, название, краткие параметры, полоска загрузки и порты. `ghost` — призрак из палитры.
+/// Component on the board: frame, icon, name, short parameters, load bar and ports. `ghost` — a ghost from the palette.
 #[component]
 fn NodeView(ix: Ix, node: Signal<Option<SdNode>>, ghost: bool) -> impl IntoView {
     let Some(first) = node.get_untracked() else { return ().into_any() };
@@ -650,7 +650,7 @@ mod tests {
 
     #[test]
     fn height_from_settings_must_be_within_limits() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(clamp_height(100.0), MIN_H);
         assert_eq!(clamp_height(5000.0), MAX_H);
         assert_eq!(clamp_height(400.4), 400.0);
@@ -658,7 +658,7 @@ mod tests {
 
     #[test]
     fn load_bar_is_never_thinner_than_two_and_never_overflows() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(bar_width(0.0), 2.0);
         assert_eq!(bar_width(0.5), (NODE_W - 16.0) / 2.0);
         assert_eq!(bar_width(3.0), NODE_W - 16.0);
@@ -666,7 +666,7 @@ mod tests {
 
     #[test]
     fn node_status_has_a_css_class_for_every_state() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         for (s, c) in [(NodeStatus::Idle, "idle"), (NodeStatus::Ok, "ok"), (NodeStatus::Warm, "warm"), (NodeStatus::Hot, "hot"), (NodeStatus::Over, "over"), (NodeStatus::Down, "down")] {
             assert_eq!(status_class(s), c);
         }

@@ -1,9 +1,9 @@
-//! Доменные типы лаборатории: состояние сети (устройства, интерфейсы, кабели, службы), кадры и пакеты,
-//! события симуляции, служебные кэши.
+//! Domain types of the lab: network state (devices, interfaces, cables, services), frames and packets,
+//! simulation events, runtime caches.
 //!
-//! Состояние сети — обычные данные с `serde`: его можно сохранить строкой, отправить на сервер и повторить
-//! проверку на чистой копии. Каноническая запись — snake_case, устройства — массивом; читается и прежняя запись
-//! клиента на TypeScript (camelCase, устройства — объектом по id): за это отвечают `alias`.
+//! The network state is plain `serde` data: it can be saved as a string, sent to the server and the check
+//! replayed on a clean copy. The canonical form is snake_case with devices as an array; the former TypeScript
+//! client form (camelCase, devices as an object keyed by id) is read too: that is what the `alias`es are for.
 
 use crate::util::OrdMap;
 use serde::de::{SeqAccess, Visitor};
@@ -11,9 +11,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
 
-/* ---- перечисления ---- */
+/* ---- enums ---- */
 
-/// Вид устройства.
+/// Device kind.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DeviceKind {
@@ -22,11 +22,11 @@ pub enum DeviceKind {
     Router,
     Switch,
     Hub,
-    /// Маршрутизатор провайдера: не маршрутизирует частные адреса.
+    /// Provider router: does not route private addresses.
     Internet,
 }
 
-/// Транспортный протокол пакета или службы.
+/// Transport protocol of a packet or service.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Proto {
@@ -45,7 +45,7 @@ impl Proto {
     }
 }
 
-/// Флаги TCP-сегмента (в той степени, в какой их различает симулятор).
+/// TCP segment flags (to the extent the simulator distinguishes them).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TcpFlags {
     #[serde(rename = "SYN")]
@@ -73,13 +73,13 @@ impl TcpFlags {
             TcpFlags::Rst => "RST",
         }
     }
-    /// Есть ли в сегменте подтверждение (подстрока «ACK»).
+    /// Whether the segment carries an acknowledgement (substring "ACK").
     pub fn has_ack(self) -> bool {
         matches!(self, TcpFlags::SynAck | TcpFlags::Ack | TcpFlags::PshAck | TcpFlags::FinAck)
     }
 }
 
-/// Вид ICMP-сообщения.
+/// ICMP message kind.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum IcmpType {
     #[serde(rename = "echo-req")]
@@ -92,7 +92,7 @@ pub enum IcmpType {
     Unreach,
 }
 
-/// Уточнение «недоступно»: порт закрыт или нужна фрагментация.
+/// Refinement of "unreachable": port closed or fragmentation needed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum IcmpCode {
@@ -100,7 +100,7 @@ pub enum IcmpCode {
     Frag,
 }
 
-/// Действие правила файрвола.
+/// Firewall rule action.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FwAction {
     #[serde(rename = "ACCEPT")]
@@ -129,7 +129,7 @@ impl FwAction {
     }
 }
 
-/// Цепочка таблицы nat.
+/// Chain of the nat table.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NatChain {
     #[serde(rename = "PREROUTING")]
@@ -147,7 +147,7 @@ impl NatChain {
     }
 }
 
-/// Цель правила nat.
+/// Target of a nat rule.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NatAction {
     #[serde(rename = "DNAT")]
@@ -165,7 +165,7 @@ impl NatAction {
     }
 }
 
-/// Состояние соединения в правиле файрвола.
+/// Connection state in a firewall rule.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnState {
@@ -173,17 +173,17 @@ pub enum ConnState {
     New,
 }
 
-/// Алгоритм балансировщика.
+/// Load balancer algorithm.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LbAlgo {
-    /// По кругу.
+    /// Round robin.
     Rr,
-    /// Хеш по адресу клиента.
+    /// Hash by client address.
     Hash,
 }
 
-/// Версия HTTP, которую предлагает сервер.
+/// HTTP version offered by the server.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HttpProto {
@@ -209,7 +209,7 @@ impl HttpProto {
     }
 }
 
-/// Алгоритм управления перегрузкой TCP.
+/// TCP congestion control algorithm.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Cc {
@@ -228,7 +228,7 @@ impl Cc {
     }
 }
 
-/// Вид атаки у устройства-нарушителя.
+/// Attack kind of the attacker device.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AttackKind {
@@ -237,7 +237,7 @@ pub enum AttackKind {
     Scan,
 }
 
-/// Код ответа DNS.
+/// DNS response code.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Rcode {
     #[serde(rename = "NOERROR")]
@@ -261,7 +261,7 @@ impl Rcode {
     }
 }
 
-/// Вид события журнала.
+/// Log event kind.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum EventKind {
@@ -282,7 +282,7 @@ pub enum EventKind {
     Info,
 }
 
-/// Вид кадра на кабеле.
+/// Kind of a frame on a cable.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum FrameKind {
@@ -292,7 +292,7 @@ pub enum FrameKind {
     Icmp,
 }
 
-/// Итог пробы.
+/// Probe outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProbeStatus {
@@ -303,7 +303,7 @@ pub enum ProbeStatus {
     Ttl,
     Unreach,
     Toolong,
-    /// Цель не удалось разрешить в адрес (имя без записи, нет резолвера).
+    /// The target could not be resolved to an address (name without a record, no resolver).
     Noaddr,
 }
 
@@ -322,7 +322,7 @@ impl ProbeStatus {
     }
 }
 
-/* ---- состояние сети ---- */
+/* ---- network state ---- */
 
 fn yes() -> bool {
     true
@@ -334,7 +334,7 @@ fn prefix24() -> u8 {
     24
 }
 
-/// Число в JSON: целые значения без «.0» (координаты, длины кабелей).
+/// Number in JSON: integer values without ".0" (coordinates, cable lengths).
 fn ser_num<S: Serializer>(v: &f64, s: S) -> Result<S::Ok, S::Error> {
     if v.fract() == 0.0 && v.abs() < 1e15 {
         s.serialize_i64(*v as i64)
@@ -343,7 +343,7 @@ fn ser_num<S: Serializer>(v: &f64, s: S) -> Result<S::Ok, S::Error> {
     }
 }
 
-/// Туннель (VPN) на интерфейсе: внешний адрес пира, UDP-порт и общий секрет.
+/// Tunnel (VPN) on an interface: peer's external address, UDP port and shared secret.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Tun {
     pub peer: String,
@@ -351,7 +351,7 @@ pub struct Tun {
     pub key: String,
 }
 
-/// Сетевой интерфейс устройства (у коммутатора — порт).
+/// Network interface of a device (a port on a switch).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Iface {
     pub name: String,
@@ -375,7 +375,7 @@ pub struct Iface {
 }
 
 impl Iface {
-    /// Интерфейс без адреса: `up`, префикс 24.
+    /// Interface without an address: `up`, prefix 24.
     pub fn new(name: &str, mac: &str) -> Iface {
         Iface {
             name: name.into(),
@@ -390,7 +390,7 @@ impl Iface {
             txqueuelen: None,
         }
     }
-    /// Интерфейс с адресом.
+    /// Interface with an address.
     pub fn with_ip(mut self, ip: &str, prefix: u8) -> Iface {
         self.ip = Some(ip.into());
         self.prefix = prefix;
@@ -398,7 +398,7 @@ impl Iface {
     }
 }
 
-/// Маршрут: `dst` — «10.0.0.0/24», `via` — шлюз или `None` (напрямую), `dev` — интерфейс.
+/// Route: `dst` is "10.0.0.0/24", `via` is the gateway or `None` (directly), `dev` is the interface.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Route {
     pub dst: String,
@@ -408,7 +408,7 @@ pub struct Route {
     pub dev: Option<String>,
 }
 
-/// Правило таблицы nat.
+/// Rule of the nat table.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NatRule {
     pub chain: NatChain,
@@ -433,7 +433,7 @@ pub struct NatRule {
     pub state: Option<ConnState>,
 }
 
-/// Правило фильтра FORWARD.
+/// FORWARD filter rule.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct FwRule {
     pub action: FwAction,
@@ -457,7 +457,7 @@ pub struct FwRule {
     pub to: Option<String>,
 }
 
-/// Цепочка FORWARD: политика по умолчанию и правила.
+/// FORWARD chain: default policy and rules.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Firewall {
     pub policy: FwAction,
@@ -471,7 +471,7 @@ impl Default for Firewall {
     }
 }
 
-/// Слушающий порт.
+/// Listening port.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub proto: Proto,
@@ -482,9 +482,9 @@ pub struct Service {
     pub name: Option<String>,
 }
 
-/* ---- прикладные службы ---- */
+/* ---- application services ---- */
 
-/// Запись DNS.
+/// DNS record.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DnsRecord {
     pub name: String,
@@ -495,14 +495,14 @@ pub struct DnsRecord {
     pub ttl: Option<u32>,
 }
 
-/// Делегирование зоны: сервер имён по адресу `ns`.
+/// Zone delegation: name server at address `ns`.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DnsDelegation {
     pub zone: String,
     pub ns: String,
 }
 
-/// Настройки DNS-сервера устройства.
+/// DNS server settings of a device.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct DnsConfig {
     #[serde(default)]
@@ -517,7 +517,7 @@ pub struct DnsConfig {
     pub roots: Vec<String>,
 }
 
-/// Маршрут веб-сервера.
+/// Web server route.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct HttpRoute {
     pub path: String,
@@ -535,14 +535,14 @@ pub struct HttpRoute {
     pub etag: Option<String>,
 }
 
-/// Страница для измерения загрузки: число ресурсов и размер каждого (КБ).
+/// Page for load measurement: number of resources and size of each (KB).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PageSpec {
     pub count: f64,
     pub kb: f64,
 }
 
-/// Настройки веб-сервера.
+/// Web server settings.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct HttpConfig {
     #[serde(default)]
@@ -553,7 +553,7 @@ pub struct HttpConfig {
     pub page: Option<PageSpec>,
 }
 
-/// Правило обратного прокси.
+/// Reverse proxy rule.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RProxyRule {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -571,7 +571,7 @@ pub struct RProxyConfig {
     pub rules: Vec<RProxyRule>,
 }
 
-/// Прямой HTTP-прокси.
+/// Forward HTTP proxy.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ProxyConfig {
     #[serde(default)]
@@ -580,7 +580,7 @@ pub struct ProxyConfig {
     pub port: Option<i64>,
 }
 
-/// Сертификат сервера.
+/// Server certificate.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TlsCert {
     pub cn: String,
@@ -600,14 +600,14 @@ pub struct TlsConfig {
     pub versions: Vec<String>,
 }
 
-/// Центр сертификации: издатель (`None` — корневой).
+/// Certificate authority: issuer (`None` for a root).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Ca {
     #[serde(default)]
     pub issuer: Option<String>,
 }
 
-/// Инфраструктура открытых ключей сети.
+/// Public key infrastructure of the network.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Pki {
     #[serde(default)]
@@ -640,7 +640,7 @@ pub struct LbBackend {
     pub port: i64,
 }
 
-/// Балансировщик L4: виртуальный адрес и пул серверов.
+/// L4 load balancer: virtual address and server pool.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LbConfig {
     pub vip: String,
@@ -653,7 +653,7 @@ pub struct LbConfig {
     pub backends: Vec<LbBackend>,
 }
 
-/// Поведение нарушителя (атака на фоне).
+/// Attacker behaviour (background attack).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AttackConfig {
     #[serde(rename = "type")]
@@ -670,7 +670,7 @@ pub struct AttackConfig {
     pub ports: Vec<i64>,
 }
 
-/// Устройство: расширения (`dns`, `http`, `tls`, …) есть только у тех, кто запускает соответствующую службу.
+/// Device: extensions (`dns`, `http`, `tls`, ...) exist only on those that run the corresponding service.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,
@@ -737,7 +737,7 @@ pub struct Device {
 }
 
 impl Device {
-    /// Новое устройство без интерфейсов; пересылка включена у маршрутизаторов, частные адреса режет «интернет».
+    /// New device without interfaces; forwarding is on for routers, private addresses are dropped by "internet".
     pub fn new(id: &str, kind: DeviceKind, name: &str, x: f64, y: f64) -> Device {
         Device {
             id: id.into(),
@@ -784,7 +784,7 @@ impl Device {
     }
 }
 
-/// Кабель между «устройство:порт» и «устройство:порт».
+/// Cable between "device:port" and "device:port".
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Link {
     pub a: String,
@@ -807,13 +807,13 @@ fn default_mbps() -> f64 {
 }
 
 impl Link {
-    /// Кабель по умолчанию: 10 м, 1 Гбит/с.
+    /// Default cable: 10 m, 1 Gbit/s.
     pub fn new(a: &str, b: &str) -> Link {
         Link { a: a.into(), b: b.into(), km: 0.01, mbps: 1000.0, mtu: None, loss: None }
     }
 }
 
-/// Устройства сети в порядке добавления. В JSON — массив; читается и объект «id → устройство».
+/// Network devices in insertion order. In JSON an array; an "id -> device" object is read too.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Devices {
     list: Vec<Device>,
@@ -841,7 +841,7 @@ impl Devices {
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
-    /// Добавить устройство (с тем же id — заменить).
+    /// Add a device (replace one with the same id).
     pub fn insert(&mut self, d: Device) {
         match self.list.iter().position(|x| x.id == d.id) {
             Some(i) => self.list[i] = d,
@@ -883,9 +883,9 @@ impl<'de> Deserialize<'de> for Devices {
     }
 }
 
-/* ---- кадры и пакеты ---- */
+/* ---- frames and packets ---- */
 
-/// Кортеж соединения (для conntrack и ICMP-ошибок). Для ICMP «порты» — идентификатор запроса.
+/// Connection tuple (for conntrack and ICMP errors). For ICMP the "ports" are the request identifier.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Tuple {
     pub proto: Proto,
@@ -921,7 +921,7 @@ pub struct Referral {
     pub ns: String,
 }
 
-/// DNS-сообщение внутри UDP-датаграммы.
+/// DNS message inside a UDP datagram.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DnsMessage {
     pub id: i64,
@@ -939,7 +939,7 @@ pub struct DnsMessage {
     pub referral: Option<Referral>,
 }
 
-/// Туннельная упаковка: внутренний пакет, общий ключ и имя интерфейса.
+/// Tunnel encapsulation: inner packet, shared key and interface name.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Wrapped {
     pub inner: Packet,
@@ -947,7 +947,7 @@ pub struct Wrapped {
     pub name: String,
 }
 
-/// IP-пакет. Адреса — числа, `src == None` — «ещё не выбран исходящий интерфейс».
+/// IP packet. Addresses are numbers, `src == None` means "outgoing interface not chosen yet".
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Packet {
     pub src: Option<u32>,
@@ -983,7 +983,7 @@ pub struct Packet {
 }
 
 impl Packet {
-    /// Пакет без заполненных полей: отправитель не выбран, TTL 64.
+    /// Packet with unfilled fields: no sender chosen, TTL 64.
     pub fn new(proto: Proto, dst: u32) -> Packet {
         Packet {
             src: None,
@@ -1023,7 +1023,7 @@ pub struct ArpInfo {
     pub tmac: Option<String>,
 }
 
-/// Содержимое кадра: ARP или IP-пакет.
+/// Frame payload: ARP or IP packet.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Payload {
@@ -1031,7 +1031,7 @@ pub enum Payload {
     Ip(Packet),
 }
 
-/// Кадр Ethernet на кабеле.
+/// Ethernet frame on a cable.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Frame {
     pub size: u32,
@@ -1044,7 +1044,7 @@ pub struct Frame {
     pub body: Payload,
 }
 
-/// Событие журнала симуляции: время в микросекундах, устройство, вид и текст.
+/// Simulation log event: time in microseconds, device, kind and text.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NetEvent {
     pub t: f64,
@@ -1053,7 +1053,7 @@ pub struct NetEvent {
     pub text: String,
 }
 
-/// Переход кадра по кабелю (для анимации и перехвата).
+/// Frame hop over a cable (for animation and capture).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Hop {
     pub from: String,
@@ -1067,7 +1067,7 @@ pub struct Hop {
     pub frame: Frame,
 }
 
-/// Пакет, доставленный устройству (локально).
+/// Packet delivered to a device (locally).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Delivered {
     pub dev: String,
@@ -1078,7 +1078,7 @@ pub struct Delivered {
     pub sport: Option<i64>,
 }
 
-/// Итог пробы (ping, TCP, UDP, DNS).
+/// Probe outcome (ping, TCP, UDP, DNS).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProbeRun {
     pub status: ProbeStatus,
@@ -1093,15 +1093,15 @@ pub struct ProbeRun {
 }
 
 impl ProbeRun {
-    /// Пустая проба (нет связи, имя не разрешилось).
+    /// Empty probe (no connectivity, name not resolved).
     pub fn empty(status: ProbeStatus) -> ProbeRun {
         ProbeRun { status, from: None, code: None, mtu: None, dns: None, rtt_us: None, events: vec![], hops: vec![], delivered: vec![] }
     }
 }
 
-/* ---- служебные кэши ---- */
+/* ---- internal caches ---- */
 
-/// Запись ARP-кэша: MAC, время и номер симуляции, которая её выучила (−1 — подмена).
+/// ARP cache entry: MAC, time and number of the simulation that learned it (-1 means spoofed).
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArpEntry {
     pub mac: String,
@@ -1109,7 +1109,7 @@ pub struct ArpEntry {
     pub sim: i64,
 }
 
-/// Запись conntrack.
+/// Conntrack entry.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConnEntry {
     pub orig: Tuple,
@@ -1117,16 +1117,16 @@ pub struct ConnEntry {
     pub replied: bool,
 }
 
-/// Строка перехвата пакетов.
+/// Packet capture line.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CapRow {
     pub t: f64,
-    /// `true` — кадр вошёл («In»), `false` — вышел («Out»).
+    /// `true` means the frame came in ("In"), `false` means it went out ("Out").
     pub inbound: bool,
     pub frame: Frame,
 }
 
-/// Ответ HTTP.
+/// HTTP response.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct HttpResponse {
     pub status: u32,
@@ -1143,14 +1143,14 @@ pub struct HttpResponse {
     pub url: Option<String>,
 }
 
-/// Адрес партнёра по туннелю, выученный из последнего пакета.
+/// Tunnel peer address learned from the last packet.
 #[derive(Clone, Debug, PartialEq)]
 pub struct TunPeer {
     pub ip: Option<u32>,
     pub port: Option<i64>,
 }
 
-/// Служебные кэши симулятора: ARP, таблицы MAC, conntrack, кэш DNS, перехват пакетов. В JSON не сохраняются.
+/// Runtime caches of the simulator: ARP, MAC tables, conntrack, DNS cache, packet capture. Not saved in JSON.
 #[derive(Clone, Debug, Default)]
 pub struct Runtime {
     pub arp: HashMap<String, BTreeMap<u32, ArpEntry>>,
@@ -1166,7 +1166,7 @@ pub struct Runtime {
     pub sim_seq: i64,
 }
 
-/// Состояние сети: устройства и кабели (+ PKI, если в сети есть TLS). Кэши симулятора — в `rt`.
+/// Network state: devices and cables (+ PKI if the network has TLS). Simulator caches are in `rt`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct NetState {
     #[serde(default)]
@@ -1181,7 +1181,7 @@ pub struct NetState {
     pub busy: bool,
 }
 
-/// Текст-ссылка на порт «устройство:порт».
+/// Port reference text "device:port".
 pub fn port_ref(dev: &str, port: &str) -> String {
     format!("{dev}:{port}")
 }

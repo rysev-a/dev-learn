@@ -1,20 +1,20 @@
-//! Геометрия поля сети: размеры карточки устройства, настройки окна на поле, положение подписей кабелей и поиск
-//! устройства под курсором. Чистая арифметика с тестами; сдвиг и масштаб — общий `board_view.rs`, DOM — в `board.rs`.
+//! Network board geometry: device card sizes, window settings on the board, cable label positions and finding the
+//! device under the cursor. Pure arithmetic with tests; pan and zoom are the shared `board_view.rs`, the DOM is in `board.rs`.
 //!
-//! Поле — плоскость, на которой устройства стоят в координатах упражнения (обычно 0…640 × 0…360). `<svg>` показывает
-//! окно на эту плоскость (`viewBox`): чем крупнее масштаб, тем меньше окно.
+//! The board is a plane on which devices stand at exercise coordinates (usually 0…640 × 0…360). `<svg>` shows
+//! a window onto this plane (`viewBox`): the larger the zoom, the smaller the window.
 
 use crate::components::labs::board_view::{BoardConfig, Bounds, Point};
 
-/// Размеры карточки устройства на поле.
+/// Device card size on the board.
 pub const DEV_W: f64 = 104.0;
 pub const DEV_H: f64 = 58.0;
 
-/// Окно на поле при масштабе 100 %: поле 640×360 с запасом слева, чтобы влезали подписи.
+/// Window onto the board at 100 % zoom: a 640×360 board with spare room on the left so labels fit.
 pub const WORLD: (f64, f64) = (704.0, 360.0);
 
-/// Сдвиг и масштаб поля: 40–400 %, сдвиг не округляется, левый верхний угол окна в исходном виде — (−24, 0); центр окна
-/// нельзя унести дальше пределов (поле не теряется совсем), а устройство — за пределы поля. Порог щелчка — 4 px.
+/// Board pan and zoom: 40–400 %, pan is not rounded, the window's top-left corner in the initial view is (−24, 0); the window center
+/// cannot be carried past the limits (the board is never lost entirely), nor a device out of the board. Click threshold is 4 px.
 pub const BOARD: BoardConfig = BoardConfig {
     zoom_min: 0.4,
     zoom_max: 4.0,
@@ -25,7 +25,7 @@ pub const BOARD: BoardConfig = BoardConfig {
     click_slop: 4.0,
 };
 
-/// Кабель на поле: концы у центров устройств, подписи портов вблизи концов.
+/// A cable on the board: ends at device centers, port labels near the ends.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct LinkGeom {
     pub a: Point,
@@ -35,8 +35,8 @@ pub struct LinkGeom {
     pub mid: Point,
 }
 
-/// Положение кабеля между центрами устройств `a` и `b`: подписи портов отступают от центра на 74 единицы
-/// (не дальше 0,42 длины).
+/// Position of a cable between device centers `a` and `b`: port labels step back from the center by 74 units
+/// (no further than 0.42 of the length).
 pub fn link_geom(a: Point, b: Point) -> LinkGeom {
     let len = (b.x - a.x).hypot(b.y - a.y);
     let len = if len == 0.0 { 1.0 } else { len };
@@ -50,12 +50,12 @@ pub fn link_geom(a: Point, b: Point) -> LinkGeom {
     }
 }
 
-/// Точка на отрезке `a`–`b` на доле пути `p`.
+/// A point on segment `a`–`b` at path fraction `p`.
 pub fn lerp(a: Point, b: Point, p: f64) -> Point {
     Point::new(a.x + (b.x - a.x) * p, a.y + (b.y - a.y) * p)
 }
 
-/// Устройство под точкой поля: карточка `DEV_W × DEV_H` вокруг центра; при наложении — верхнее (нарисованное позже).
+/// Device under a board point: a `DEV_W × DEV_H` card around the center; when overlapping, the top one (drawn later).
 pub fn device_at<'a>(devices: impl DoubleEndedIterator<Item = (&'a str, Point)>, p: Point) -> Option<&'a str> {
     devices.rev().find(|(_, c)| (p.x - c.x).abs() <= DEV_W / 2.0 && (p.y - c.y).abs() <= DEV_H / 2.0).map(|(id, _)| id)
 }
@@ -66,15 +66,15 @@ mod tests {
 
     #[test]
     fn port_labels_sit_near_the_ends() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let g = link_geom(Point::new(0.0, 0.0), Point::new(200.0, 0.0));
         assert_eq!(g.label_a, Point::new(74.0, 0.0));
         assert_eq!(g.label_b, Point::new(126.0, 0.0));
         assert_eq!(g.mid, Point::new(100.0, 0.0));
-        // у короткого кабеля подписи не заходят дальше 0,42 длины
+        // on a short cable labels do not go past 0.42 of the length
         let short = link_geom(Point::new(0.0, 0.0), Point::new(100.0, 0.0));
         assert!((short.label_a.x - 42.0).abs() < 1e-9);
-        // кабель нулевой длины не даёт NaN
+        // a zero-length cable gives no NaN
         let zero = link_geom(Point::new(5.0, 5.0), Point::new(5.0, 5.0));
         assert!(zero.label_a.x.is_finite());
         assert_eq!(lerp(Point::new(0.0, 0.0), Point::new(10.0, 20.0), 0.5), Point::new(5.0, 10.0));
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn topmost_device_wins_under_the_cursor() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let devs = [("a", Point::new(100.0, 100.0)), ("b", Point::new(130.0, 110.0)), ("c", Point::new(400.0, 100.0))];
         assert_eq!(device_at(devs.iter().copied(), Point::new(120.0, 105.0)), Some("b"));
         assert_eq!(device_at(devs.iter().copied(), Point::new(60.0, 100.0)), Some("a"));
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn the_home_window_shows_the_whole_field_with_room_for_labels() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         use crate::components::labs::board_view::view_box;
         assert_eq!(view_box(BOARD.home_view(), WORLD.0, WORLD.1), "-24 0 704 360");
     }

@@ -1,20 +1,20 @@
-//! Симулятор размещения по узлам NUMA (глава 11): для каждой машины выбирают узлы процессоров и памяти. Показаны загрузка
-//! узлов и доля удалённых обращений. Цель сценария проверяется по кнопке «Принять размещение»; решено, когда приняты все
-//! сценарии. В данных цели — размещение `{машина: {cpu, mem, vnuma}}`; сервер оценивает его заново.
+//! NUMA placement simulator (chapter 11): for each machine the processor and memory nodes are chosen. Node load
+//! and the share of remote accesses are shown. A scenario's goal is checked by the "Accept placement" button; solved when all
+//! scenarios are accepted. The goal data is the placement `{machine: {cpu, mem, vnuma}}`; the server evaluates it again.
 
 use leptos::prelude::*;
 use virtlab::numa::{self, Accept, Evaluation, Node, Place, Plan, Scenario};
 
 use super::common::{data, pct, Goals, Tab};
 
-/// Сообщение под таблицей: красное — отказ, зелёное — принято.
+/// Message under the table: red — rejection, green — accepted.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Msg {
     pub bad: bool,
     pub text: String,
 }
 
-/// Варианты размещения: каждый узел и «растянуть» (значение — как в данных: номер узла или `wide`).
+/// Placement options: each node and "stretch" (the value is as in the data: a node number or `wide`).
 pub fn place_options(nodes: usize) -> Vec<(String, String)> {
     let mut v: Vec<(String, String)> = (0..nodes).map(|i| (i.to_string(), i18n::trf!("node {0}", i))).collect();
     v.push(("wide".to_string(), i18n::tr("span").to_string()));
@@ -25,7 +25,7 @@ fn parse_place(s: &str) -> Option<Place> {
     Place::try_from(s.to_string()).ok()
 }
 
-/// Исход кнопки «Принять размещение»: сообщение и, если принято, данные цели.
+/// Outcome of the "Accept placement" button: a message and, if accepted, the goal data.
 pub fn accept_outcome(nodes: &[Node], sc: &Scenario, plan: &Plan) -> (Msg, bool) {
     match numa::accept(nodes, sc, plan) {
         Ok(Accept::Over) => (
@@ -41,7 +41,7 @@ pub fn accept_outcome(nodes: &[Node], sc: &Scenario, plan: &Plan) -> (Msg, bool)
     }
 }
 
-/// Доля заполнения шкалы в процентах (не больше 100).
+/// Scale fill percentage (at most 100).
 pub fn fill_percent(used: f64, max: u32) -> f64 {
     if max == 0 {
         return 100.0;
@@ -49,7 +49,7 @@ pub fn fill_percent(used: f64, max: u32) -> f64 {
     (used / f64::from(max) * 100.0).min(100.0)
 }
 
-/// Изменение одного поля размещения машины.
+/// Change of one field of a machine's placement.
 fn set_place(plan: &mut Plan, vm: &str, cpu: bool, place: Place) {
     if let Some(p) = plan.get_mut(vm) {
         if cpu {
@@ -226,7 +226,7 @@ pub fn NumaLab(nodes: Vec<Node>, scenarios: Vec<Scenario>, goals: Goals) -> impl
     }
 }
 
-/// Шкала загрузки узла.
+/// Node load scale.
 #[component]
 fn Meter(label: &'static str, used: f64, max: u32) -> impl IntoView {
     let over = used > f64::from(max);
@@ -247,7 +247,7 @@ mod tests {
     use super::*;
 
     fn scenario(id: &str) -> Scenario {
-        default_scenarios().into_iter().find(|s| s.id == id).expect("сценарий")
+        default_scenarios().into_iter().find(|s| s.id == id).expect("scenario")
     }
 
     fn at(cpu: u8, mem: u8) -> Placement {
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn options_cover_nodes_and_wide() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let o = place_options(2);
         assert_eq!(o.iter().map(|(v, _)| v.as_str()).collect::<Vec<_>>(), ["0", "1", "wide"]);
         assert_eq!(o[2].1, "растянуть");
@@ -268,7 +268,7 @@ mod tests {
 
     #[test]
     fn default_plan_does_not_fit() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario("small");
         let (m, ok) = accept_outcome(&default_nodes(), &sc, &default_plan(&sc.vms));
         assert!(!ok && m.bad);
@@ -277,10 +277,10 @@ mod tests {
 
     #[test]
     fn too_remote_and_accepted_messages() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let nodes = default_nodes();
         let sc = scenario("small");
-        // всё помещается, но у A и C память на чужом узле: удалённых обращений половина
+        // everything fits, but A and C have memory on a foreign node: half of the accesses are remote
         let mut plan = default_plan(&sc.vms);
         plan.insert("A".into(), at(0, 1));
         plan.insert("B".into(), at(0, 0));
@@ -291,7 +291,7 @@ mod tests {
         assert_eq!(m.text, "Удалённых обращений 50% — больше допустимых 0%.");
         plan.insert("A".into(), at(0, 0));
         plan.insert("C".into(), at(1, 1));
-        // A(16)+B(12) = 28 ГиБ на узле 0, C(16)+D(12) = 28 ГиБ на узле 1
+        // A(16)+B(12) = 28 GiB on node 0, C(16)+D(12) = 28 GiB on node 1
         let (m, ok) = accept_outcome(&nodes, &sc, &plan);
         assert!(ok && !m.bad, "{}", m.text);
         assert_eq!(m.text, "✓ Принято: удалённых обращений 0%.");
@@ -299,7 +299,7 @@ mod tests {
 
     #[test]
     fn accepted_plan_is_verified_by_server_model() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let (nodes, sc) = (default_nodes(), scenario("small"));
         let mut plan = default_plan(&sc.vms);
         for (name, node) in [("A", 0), ("B", 0), ("C", 1), ("D", 1)] {
@@ -314,7 +314,7 @@ mod tests {
 
     #[test]
     fn set_place_edits_one_field() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario("small");
         let mut plan = default_plan(&sc.vms);
         set_place(&mut plan, "B", true, Place::Node(1));
@@ -322,12 +322,12 @@ mod tests {
         assert_eq!(plan["B"].cpu, Place::Node(1));
         assert_eq!(plan["B"].mem, Place::Wide);
         assert_eq!(plan["A"], at(0, 0));
-        set_place(&mut plan, "нет такой", true, Place::Wide); // не падает
+        set_place(&mut plan, "no such", true, Place::Wide); // does not panic
     }
 
     #[test]
     fn meter_fill_is_capped() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(fill_percent(4.0, 8), 50.0);
         assert_eq!(fill_percent(12.0, 8), 100.0);
         assert_eq!(fill_percent(1.0, 0), 100.0);

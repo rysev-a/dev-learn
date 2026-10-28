@@ -1,17 +1,17 @@
-//! Лаборатория «Компьютерные сети» (книга 15): симулятор сети в браузере. Ученик соединяет устройства кабелями, настраивает
-//! адреса, маршруты, VLAN, NAT, файрвол, DNS, HTTP, TLS, SSH, VPN, балансировщики и запускает команды Linux в
-//! мини-терминале; пакеты бегут по схеме, рядом журнал. Движок — крейт `netlab` (общий с сервером, он же перепроверяет
-//! присланное решение); здесь только интерфейс.
+//! The "Computer Networks" lab (book 15): a network simulator in the browser. The learner connects devices with cables, configures
+//! addresses, routes, VLAN, NAT, firewall, DNS, HTTP, TLS, SSH, VPN, load balancers and runs Linux commands in a
+//! mini terminal; packets run along the diagram with a log beside it. The engine is the `netlab` crate (shared with the server, which also re-checks
+//! the submitted solution); only the interface is here.
 //!
-//! * `lab.rs` — состояние: сеть, выбор, проба с анимацией, терминалы, цели и действия над сетью;
-//! * `logic.rs` — чистая логика (сценарий, черновик, «моменты» анимации, правки форм, история терминала);
-//! * `geom.rs` — геометрия поля (настройки окна, кабели, устройство под курсором) без DOM; сдвиг и масштаб — общий `board_view.rs`;
-//! * `board.rs` — поле: устройства, кабели, пакеты, пометки, перетаскивание, сдвиг и масштаб;
-//! * `panel.rs`, `forms.rs`, `services.rs` — карточка устройства и её формы; `terminal.rs` — мини-терминал;
-//! * `side.rs` — цели и журнал; `chart.rs` — график передачи файла.
+//! * `lab.rs` — state: network, selection, animated probe, terminals, goals and actions on the network;
+//! * `logic.rs` — pure logic (scenario, draft, animation "moments", form edits, terminal history);
+//! * `geom.rs` — board geometry (window settings, cables, device under the cursor) without DOM; pan and zoom are the shared `board_view.rs`;
+//! * `board.rs` — the board: devices, cables, packets, marks, dragging, pan and zoom;
+//! * `panel.rs`, `forms.rs`, `services.rs` — the device card and its forms; `terminal.rs` — the mini terminal;
+//! * `side.rs` — goals and log; `chart.rs` — the file transfer chart.
 //!
-//! Черновик (состояние сети) уходит хозяину при каждой правке, а когда выполнены все цели, решение отправляется на
-//! сервер один раз.
+//! The draft (network state) goes to the host on every edit, and when all goals are met, the solution is sent to the
+//! server once.
 
 use std::sync::Arc;
 
@@ -35,7 +35,7 @@ use lab::Lab;
 use panel::DevicePanel;
 use side::{Goals, Log};
 
-/// Лаборатория выбранного упражнения.
+/// The lab of the selected exercise.
 #[component]
 pub fn NetLab(props: LabProps) -> impl IntoView {
     let spec = match logic::parse_spec(&props.task.spec) {
@@ -49,7 +49,7 @@ pub fn NetLab(props: LabProps) -> impl IntoView {
     let lab = Lab::new(Arc::new(spec), initial, props.task.hint.clone(), props.on_draft, touched);
     on_cleanup(move || lab.stop());
 
-    // решение отправляется один раз, когда выполнены все цели; если сервер отказал, повтор — после новых правок
+    // the solution is sent once, when all goals are met; if the server refused, a retry comes after new edits
     let reported = StoredValue::new(false);
     let (solved, report) = (props.solved, props.report);
     Effect::new(move |_| {
@@ -90,7 +90,7 @@ pub fn NetLab(props: LabProps) -> impl IntoView {
     .into_any()
 }
 
-/// Панель над полем: кабель (если открыт инструмент), подсказка и «Сбросить».
+/// The panel above the board: the cable (if the tool is open), a hint and "Reset".
 #[component]
 fn Toolbar(lab: Lab) -> impl IntoView {
     let cable_tool = lab.tools().cable;

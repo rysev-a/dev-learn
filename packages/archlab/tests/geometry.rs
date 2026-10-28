@@ -1,5 +1,5 @@
-//! Геометрия и вспомогательное для интерфейса: те же числа и строки, что у TypeScript
-//! (`inputYs`, `pinPos`, `wirePath`, `createsCycle`, раскладка блоков, автопроводка, временная диаграмма).
+//! Geometry and interface helpers: the same numbers and strings as in TypeScript
+//! (`inputYs`, `pinPos`, `wirePath`, `createsCycle`, block layout, auto-wiring, timing diagram).
 
 mod common;
 
@@ -12,7 +12,7 @@ use serde_json::{json, Value};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 fn ymap(v: &Value) -> YMap {
-    YMap(v.as_array().expect("карта").iter().map(|p| (p[0].as_str().expect("имя").to_string(), p[1].as_f64().expect("y"))).collect())
+    YMap(v.as_array().expect("map").iter().map(|p| (p[0].as_str().expect("name").to_string(), p[1].as_f64().expect("y"))).collect())
 }
 
 fn ymap_json(m: &YMap) -> Value {
@@ -25,7 +25,7 @@ fn point(p: &Point) -> Value {
 
 #[test]
 fn board_geometry_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let geo = &g["geometry"];
     for e in geo["input_ys"].as_array().expect("input_ys") {
@@ -54,8 +54,8 @@ fn board_geometry_matches_typescript() {
     let lib = lab.reference_library();
     for e in geo["cycles"].as_array().expect("cycles") {
         let (section, id) = (e["section"].as_str().expect("s"), e["id"].as_str().expect("id"));
-        let (_, spec) = lab.circuit_task(section, id).expect("упражнение");
-        let c = archlab::check::circuit_of(spec, spec.solution.as_ref().expect("эталон"), &lib);
+        let (_, spec) = lab.circuit_task(section, id).expect("exercise");
+        let c = archlab::check::circuit_of(spec, spec.solution.as_ref().expect("reference"), &lib);
         for (p, want) in e["proposals"].as_array().expect("proposals").iter().zip(e["result"].as_array().expect("result")) {
             let from: PinRef = serde_json::from_value(p["from"].clone()).expect("from");
             let to: PinRef = serde_json::from_value(p["to"].clone()).expect("to");
@@ -83,7 +83,7 @@ fn side_name(s: PinSide) -> &'static str {
 
 #[test]
 fn block_layout_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let geo = &g["geometry"];
     let defs = defs_by_id();
@@ -92,7 +92,7 @@ fn block_layout_matches_typescript() {
         let def = &defs[id];
         let open: HashSet<String> = e["expanded"].as_array().expect("expanded").iter().map(|k| k.as_str().expect("k").to_string()).collect();
         let b = layout_box("x", &def.title, &def.iface.ports, &open, (150.0, 30.0, BLOCK_W), BoxKind::Block);
-        assert!(json_eq(&json!(b.h), &e["h"]), "{id}: высота");
+        assert!(json_eq(&json!(b.h), &e["h"]), "{id}: height");
         let rows: Vec<Value> = b
             .rows
             .iter()
@@ -101,16 +101,16 @@ fn block_layout_matches_typescript() {
                        "y": r.y, "expandable": r.expandable, "expanded": r.expanded, "nodes": r.nodes})
             })
             .collect();
-        assert!(json_eq(&json!(rows), &e["rows"]), "{id}: строки портов");
+        assert!(json_eq(&json!(rows), &e["rows"]), "{id}: port rows");
         let pins: Vec<Value> = b.rows.iter().map(|r| point(&pin_center(&b, r))).collect();
-        assert!(json_eq(&json!(pins), &e["pins"]), "{id}: пины");
+        assert!(json_eq(&json!(pins), &e["pins"]), "{id}: pins");
     }
     for e in geo["side_boxes"].as_array().expect("side_boxes") {
         let id = e["id"].as_str().expect("id");
         let (i, o) = side_boxes(&defs[id].iface.ports, &HashSet::new(), 880.0, 16.0);
-        assert!(json_eq(&json!(i.h), &e["in_h"]) && json_eq(&json!(o.h), &e["out_h"]), "{id}: высоты колонок");
+        assert!(json_eq(&json!(i.h), &e["in_h"]) && json_eq(&json!(o.h), &e["out_h"]), "{id}: column heights");
         let rows = |b: &BoxLayout| json!(b.rows.iter().map(|r| json!([r.key, r.y, side_name(r.side)])).collect::<Vec<_>>());
-        assert!(json_eq(&rows(&i), &e["in_rows"]) && json_eq(&rows(&o), &e["out_rows"]), "{id}: строки колонок");
+        assert!(json_eq(&rows(&i), &e["in_rows"]) && json_eq(&rows(&o), &e["out_rows"]), "{id}: column rows");
     }
     for e in geo["free_spot"].as_array().expect("free_spot") {
         let taken: Vec<(f64, f64)> = e["taken"].as_array().expect("taken").iter().map(|p| (p["x"].as_f64().expect("x"), p["y"].as_f64().expect("y"))).collect();
@@ -125,7 +125,7 @@ fn auto_json(list: &[AutoWire]) -> Value {
 
 fn auto_from_json(v: &Value) -> Vec<AutoWire> {
     v.as_array()
-        .expect("список")
+        .expect("list")
         .iter()
         .map(|a| AutoWire {
             from: serde_json::from_value(a["from"].clone()).expect("from"),
@@ -138,13 +138,13 @@ fn auto_from_json(v: &Value) -> Vec<AutoWire> {
 
 #[test]
 fn auto_wire_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let list = g["geometry"]["auto_wire"].as_array().expect("auto_wire");
     assert!(list.len() > 100);
     let mut nonempty = 0;
     for e in list {
-        let label = format!("{}/{} радиус {}", e["section"], e["id"], e["radius"]);
+        let label = format!("{}/{} radius {}", e["section"], e["id"], e["radius"]);
         let gate: GateInstance = serde_json::from_value(e["gate"].clone()).expect("gate");
         let gates: Vec<GateInstance> = serde_json::from_value(e["gates"].clone()).expect("gates");
         let wires: Vec<Wire> = serde_json::from_value(e["wires"].clone()).expect("wires");
@@ -152,25 +152,25 @@ fn auto_wire_matches_typescript() {
         let radius = e["radius"].as_f64();
         let steps_mode = e["steps_mode"].as_bool().expect("steps_mode");
         let first = suggest_wires(&AutoWireInput { gate: &gate, gates: &gates, wires: &wires, input_y: &input_y, output_y: &output_y, steps_mode, radius, keep: &[] });
-        assert!(json_eq(&auto_json(&first), &e["first"]), "{label}: первая подстановка\nrust: {}\nts:   {}", auto_json(&first), e["first"]);
+        assert!(json_eq(&auto_json(&first), &e["first"]), "{label}: first substitution\nrust: {}\nts:   {}", auto_json(&first), e["first"]);
         nonempty += !first.is_empty() as usize;
         let moved: GateInstance = serde_json::from_value(e["again_gate"].clone()).expect("again_gate");
         let again = suggest_wires(&AutoWireInput { gate: &moved, gates: &gates, wires: &wires, input_y: &input_y, output_y: &output_y, steps_mode, radius, keep: &auto_from_json(&e["first"]) });
-        assert!(json_eq(&auto_json(&again), &e["again"]), "{label}: повторная подстановка");
+        assert!(json_eq(&auto_json(&again), &e["again"]), "{label}: repeated substitution");
     }
-    assert!(nonempty > 100, "непустых подстановок: {nonempty}");
+    assert!(nonempty > 100, "non-empty substitutions: {nonempty}");
 }
 
 #[test]
 fn wave_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let lab = lab();
     let list = g["geometry"]["wave"].as_array().expect("wave");
     assert!(list.len() >= 10);
     for e in list {
         let (section, id) = (e["section"].as_str().expect("s"), e["id"].as_str().expect("id"));
-        let (_, spec) = lab.circuit_task(section, id).expect("упражнение");
+        let (_, spec) = lab.circuit_task(section, id).expect("exercise");
         let samples: Vec<Sample> = e["samples"]
             .as_array()
             .expect("samples")
@@ -182,8 +182,8 @@ fn wave_matches_typescript() {
             .collect();
         let w = build_wave(&samples, spec);
         let want = &e["wave"];
-        assert!(json_eq(&json!(w.height), &want["height"]), "{section}/{id}: высота");
-        assert!(json_eq(&json!(w.cols), &want["cols"]), "{section}/{id}: колонки");
+        assert!(json_eq(&json!(w.height), &want["height"]), "{section}/{id}: height");
+        assert!(json_eq(&json!(w.cols), &want["cols"]), "{section}/{id}: columns");
         assert!(json_eq(&json!(w.last_x), &want["lastX"]), "{section}/{id}: lastX");
         let rows = want["rows"].as_array().expect("rows");
         assert_eq!(w.rows.len(), rows.len());
@@ -199,9 +199,9 @@ fn wave_matches_typescript() {
 
 #[test]
 fn small_pieces() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     use archlab::interfaces::*;
-    // типы совместимы только по имени
+    // types are compatible by name only
     assert!(!can_connect(Iface::Word2, Iface::Addr2));
     assert!(can_connect(Iface::Word2, Iface::Word2));
     assert_eq!(Iface::Instr.width(), 4);
@@ -209,21 +209,21 @@ fn small_pieces() {
     assert_eq!(Iface::Instr16.width(), 16);
     assert_eq!(leaf_paths(Iface::Instr, ""), ["op.Op1", "op.Op0", "k.D1", "k.D0"]);
     assert_eq!(leaf_paths(Iface::Bit, ""), [""]);
-    let s = slice_of(Iface::Instr16, "c.I3").expect("поле");
+    let s = slice_of(Iface::Instr16, "c.I3").expect("field");
     assert_eq!((s.ty, s.offset, s.length), (Iface::Bit, 12, 1));
-    let s = slice_of(Iface::Instr, "k").expect("поле");
+    let s = slice_of(Iface::Instr, "k").expect("field");
     assert_eq!((s.ty, s.offset, s.length), (Iface::Word2, 2, 2));
     assert!(slice_of(Iface::Instr, "zzz").is_none());
     assert_eq!(child_fields(Iface::Instr, "k").iter().map(|f| f.path.as_str()).collect::<Vec<_>>(), ["k.D1", "k.D0"]);
     assert_eq!(bus_text(&[Some(1), None, Some(0)]), "1?0");
     assert_eq!(Iface::parse("Phases"), Some(Iface::Phases));
     assert_eq!(Iface::parse("Nope"), None);
-    // выдача id
+    // id allocation
     let mut u = UidGen::new();
     u.reserve(&["g3", "w7", "x"]);
     assert_eq!(u.next("g"), "g8");
     assert_eq!(u.next("w"), "w9");
-    // тумблеры
+    // toggles
     let mut st = InputState::zero();
     st.set(InputId::A, 1);
     st.set(InputId::C, 1);

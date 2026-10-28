@@ -1,9 +1,9 @@
-//! Сравнение результата SQL-запроса с эталоном: слева результат ученика, справа верный. Отличающиеся значения подсвечены в обеих
-//! таблицах, лишние и недостающие строки помечены, у лишних и недостающих столбцов подсвечены заголовки.
+//! Comparison of an SQL query result with the reference: the student's result on the left, the correct one on the right. Differing values are highlighted in both
+//! tables, extra and missing rows are marked, and the headers of extra and missing columns are highlighted.
 //!
-//! Проверка на сервере сравнивает значения по позициям (имена столбцов не важны), поэтому и здесь строки и столбцы сопоставляются
-//! по позициям; различие имён показано мягкой заметкой. Сравнение — чистые функции (`align`, `compare`) с тестами,
-//! компоненты только рисуют готовую модель.
+//! The server check compares values by position (column names do not matter), so here rows and columns are matched
+//! by position too; a name difference is shown as a soft note. The comparison is pure functions (`align`, `compare`) with tests,
+//! the components only draw the ready model.
 
 use std::collections::{HashMap, VecDeque};
 
@@ -15,7 +15,7 @@ use super::sql_schema::cell_text;
 
 type Row = Vec<Value>;
 
-/// Чья таблица: ученика (`Got`) или эталона (`Exp`).
+/// Whose table: the student's (`Got`) or the reference (`Exp`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Side {
     Got,
@@ -30,7 +30,7 @@ impl Side {
         }
     }
 
-    /// Подсветка «чужого» значения: у ученика — лишнее (`extra`), у эталона — недостающее (`missing`).
+    /// Highlight of the "other side's" value: for the student - extra (`extra`), for the reference - missing (`missing`).
     fn mark(self) -> Mark {
         match self {
             Side::Got => Mark::Extra,
@@ -39,7 +39,7 @@ impl Side {
     }
 }
 
-/// Подсветка ячейки или заголовка (CSS-классы `extra` и `missing`).
+/// Highlight of a cell or header (CSS classes `extra` and `missing`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mark {
     None,
@@ -60,11 +60,11 @@ impl Mark {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum RowState {
     Ok,
-    /// строка есть с обеих сторон, но значения отличаются
+    /// the row exists on both sides, but the values differ
     Diff,
-    /// лишняя строка (есть у ученика, в эталоне нет)
+    /// extra row (the student has it, the reference does not)
     Extra,
-    /// недостающая строка (есть в эталоне, у ученика нет)
+    /// missing row (the reference has it, the student does not)
     Missing,
 }
 
@@ -79,7 +79,7 @@ impl RowState {
     }
 }
 
-/// Итог сопоставления строки: состояние и «пара» — номер строки на другой стороне, с которой её сравнивают по ячейкам.
+/// Result of matching a row: state and "pair" - the row number on the other side it is compared with cell by cell.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Aligned {
     state: RowState,
@@ -88,7 +88,7 @@ struct Aligned {
 
 const OK: Aligned = Aligned { state: RowState::Ok, pair: None };
 
-/// Значения равны: числа — по значению (`1` и `1.0`), пустое — с пустым.
+/// Values are equal: numbers by value (`1` and `1.0`), empty with empty.
 fn same(a: Option<&Value>, b: Option<&Value>) -> bool {
     match (a.unwrap_or(&Value::Null), b.unwrap_or(&Value::Null)) {
         (Value::Number(x), Value::Number(y)) => x.as_f64() == y.as_f64(),
@@ -96,7 +96,7 @@ fn same(a: Option<&Value>, b: Option<&Value>) -> bool {
     }
 }
 
-/// Ключ строки для поиска совпадений: числа нормализованы, как в `same`.
+/// Row key for finding matches: numbers are normalized, as in `same`.
 fn row_key(row: &Row) -> String {
     row.iter()
         .map(|v| match v {
@@ -111,10 +111,10 @@ fn rows_equal(a: &Row, b: &Row) -> bool {
     a.len() == b.len() && a.iter().zip(b).all(|(x, y)| same(Some(x), Some(y)))
 }
 
-/// Сопоставление строк: для каждой строки результата и эталона — состояние и пара для поячеечной подсветки.
+/// Row matching: for each row of the result and the reference - state and pair for per-cell highlighting.
 ///
-/// С порядком строки сравниваются по номерам, остаток — лишние или недостающие. Без порядка сначала убираются совпавшие строки
-/// (с учётом повторов), а оставшиеся лишние и недостающие спариваются по очереди.
+/// With order, rows are compared by index, the remainder is extra or missing. Without order, matching rows are removed first
+/// (taking duplicates into account), and the remaining extra and missing ones are paired in turn.
 fn align(got: &[Row], exp: &[Row], ordered: bool) -> (Vec<Aligned>, Vec<Aligned>) {
     let mut gs = vec![OK; got.len()];
     let mut es = vec![OK; exp.len()];
@@ -135,7 +135,7 @@ fn align(got: &[Row], exp: &[Row], ordered: bool) -> (Vec<Aligned>, Vec<Aligned>
         missing.sort_unstable();
         (extra, missing)
     };
-    // и в упорядоченном режиме остаток — это хвост без пары; без порядка лишние и недостающие спариваются по очереди
+    // in ordered mode too the remainder is an unpaired tail; without order extra and missing ones are paired in turn
     let paired = if ordered { 0 } else { extra.len().min(missing.len()) };
     for (&g, &e) in extra.iter().zip(&missing).take(paired) {
         gs[g] = Aligned { state: RowState::Diff, pair: Some(e) };
@@ -150,7 +150,7 @@ fn align(got: &[Row], exp: &[Row], ordered: bool) -> (Vec<Aligned>, Vec<Aligned>
     (gs, es)
 }
 
-// --- модель таблиц ------------------------------------------------------------------------------
+// --- table model --------------------------------------------------------------------------------
 
 #[derive(Clone, Debug, PartialEq)]
 struct Header {
@@ -162,7 +162,7 @@ struct Header {
 #[derive(Clone, Debug, PartialEq)]
 struct CellModel {
     text: String,
-    /// `extra`/`missing`, плюс `num` для чисел
+    /// `extra`/`missing`, plus `num` for numbers
     class: String,
 }
 
@@ -172,7 +172,7 @@ struct RowModel {
     cells: Vec<CellModel>,
 }
 
-/// Одна таблица сравнения, готовая к показу.
+/// One comparison table, ready to display.
 #[derive(Clone, Debug, PartialEq)]
 struct TableModel {
     side: Side,
@@ -183,7 +183,7 @@ struct TableModel {
     rows: Vec<RowModel>,
 }
 
-/// Исходные данные одной стороны и её «собеседника».
+/// Source data of one side and its "counterpart".
 struct SideInput<'a> {
     side: Side,
     cols: &'a [String],
@@ -217,7 +217,7 @@ fn table_model(width: usize, input: SideInput) -> TableModel {
     let SideInput { side, cols, rows, total, status, other_rows, other_width } = input;
     let headers = (0..width)
         .map(|j| {
-            // столбец, которого нет на другой стороне: у ученика лишний, у эталона недостающий
+            // a column absent on the other side: extra for the student, missing for the reference
             let lacking = j >= other_width;
             Header {
                 name: cols.get(j).cloned().unwrap_or_else(|| format!("col{}", j + 1)),
@@ -250,7 +250,7 @@ fn table_model(width: usize, input: SideInput) -> TableModel {
     }
 }
 
-/// Всё, что рисует виджет: сводка различий, две таблицы и заметка о переименованных столбцах.
+/// Everything the widget draws: difference summary, two tables and a note about renamed columns.
 #[derive(Clone, Debug, PartialEq)]
 struct Comparison {
     summary: Vec<String>,
@@ -283,9 +283,9 @@ fn compare(r: &RowsView) -> Comparison {
         summary.push(i18n::tr("row order matters").to_string());
     }
 
-    // проверка имён столбцов не делает, но ученику полезно увидеть расхождение
+    // the server does not check column names, but it is useful for the student to see the mismatch
     let renamed = !r.exp_cols.is_empty() && r.got_cols.len() == r.exp_cols.len() && r.got_cols.iter().zip(&r.exp_cols).any(|(g, e)| g.to_lowercase() != e.to_lowercase());
-    // у эталона без имён столбцов берём имена ученика
+    // if the reference has no column names, take the student's
     let exp_cols = if r.exp_cols.is_empty() { &r.got_cols } else { &r.exp_cols };
     Comparison {
         summary,
@@ -295,7 +295,7 @@ fn compare(r: &RowsView) -> Comparison {
     }
 }
 
-// --- компоненты ---------------------------------------------------------------------------------
+// --- components ---------------------------------------------------------------------------------
 
 fn row_view(row: RowModel, n: usize) -> impl IntoView {
     let cells = row.cells.into_iter().map(|c| view! { <td class=c.class>{c.text}</td> }).collect_view();
@@ -329,7 +329,7 @@ fn SideTable(model: TableModel) -> impl IntoView {
     }
 }
 
-/// Две таблицы рядом — результат ученика и верный — с подсветкой различий и сводкой над ними.
+/// Two tables side by side - the student's result and the correct one - with differences highlighted and a summary above them.
 #[component]
 pub fn SqlDiff(rows: RowsView) -> impl IntoView {
     let Comparison { summary, got, exp, renamed } = compare(&rows);
@@ -382,7 +382,7 @@ mod tests {
         let (g, e) = align(&rows(json!([[2], [1], [1]])), &rows(json!([[1], [1], [2]])), false);
         assert_eq!(states(&g), [RowState::Ok; 3]);
         assert_eq!(states(&e), [RowState::Ok; 3]);
-        // лишнее повторение — лишняя строка, а не совпадение
+        // an extra repetition is an extra row, not a match
         let (g, e) = align(&rows(json!([[1], [1], [1]])), &rows(json!([[1], [1]])), false);
         assert_eq!(states(&g), [RowState::Ok, RowState::Ok, RowState::Extra]);
         assert_eq!(states(&e), [RowState::Ok; 2]);
@@ -447,7 +447,7 @@ mod tests {
         v.got_cols = vec!["id".into()];
         v.exp_cols = vec!["id".into(), "name".into()];
         let c = compare(&v);
-        // у ученика второго столбца нет: заголовок позиционный, а помечен недостающий столбец у эталона
+        // the student has no second column: the header is positional, and the missing column of the reference is marked
         assert_eq!(c.got.headers.len(), 2);
         assert_eq!(c.got.headers[1].name, "col2");
         assert_eq!(c.exp.headers[1].mark, Mark::Missing);
@@ -455,7 +455,7 @@ mod tests {
         assert_eq!(c.got.headers[0].mark, Mark::None);
         assert_eq!(c.got.rows[0].cells[1].text, "");
         assert!(c.summary.contains(&"missing columns: 1 instead of 2".to_string()));
-        // столбец, лишний у ученика
+        // a column that is extra for the student
         let c = compare(&view(json!([[1, 2]]), json!([[1]]), false));
         assert_eq!(c.got.headers[1].mark, Mark::Extra);
         assert_eq!(c.got.headers[1].title, Some("extra column"));
@@ -487,7 +487,7 @@ mod tests {
         assert!(!compare(&v).renamed);
         v.got_cols = vec!["number".into()];
         assert!(compare(&v).renamed);
-        // эталон без имён — нечего сравнивать, заголовки берутся у ученика
+        // reference without names - nothing to compare, headers are taken from the student
         v.exp_cols.clear();
         let c = compare(&v);
         assert!(!c.renamed);

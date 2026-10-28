@@ -1,4 +1,4 @@
-//! Мелкие помощники для DOM.
+//! Small DOM helpers.
 
 use leptos::{
     ev::EventDescriptor,
@@ -7,7 +7,7 @@ use leptos::{
 };
 use wasm_bindgen::{closure::Closure, JsCast};
 
-/// Слушатель события окна на время жизни владельца (компонента): снимается при очистке.
+/// Window event listener for the lifetime of the owner (component): removed on cleanup.
 pub fn on_window<E>(event: E, handler: impl Fn(E::EventType) + 'static)
 where
     E: EventDescriptor + 'static,
@@ -17,13 +17,13 @@ where
     on_cleanup(move || handle.remove());
 }
 
-/// То же для события, которого нет среди типизированных (например, `fullscreenchange`).
+/// Same for an event that is not among the typed ones (for example `fullscreenchange`).
 pub fn on_window_untyped(event: &str, handler: impl Fn() + 'static) {
     let handle = window_event_listener_untyped(event, move |_| handler());
     on_cleanup(move || handle.remove());
 }
 
-/// Наблюдатель за размером элемента: пока значение живо, `on_resize` вызывается при каждом изменении размера.
+/// Element size observer: while the value is alive, `on_resize` is called on every size change.
 pub struct ResizeGuard {
     observer: web_sys::ResizeObserver,
     _callback: Closure<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>,
@@ -44,7 +44,7 @@ pub fn observe_resize(elements: &[web_sys::Element], on_resize: impl Fn() + 'sta
     Some(ResizeGuard { observer, _callback: callback })
 }
 
-/// Корневой элемент документа как `HtmlElement` (для CSS-переменных и полного экрана).
+/// Document root element as `HtmlElement` (for CSS variables and fullscreen).
 pub fn root() -> Option<web_sys::HtmlElement> {
     web_sys::window()?.document()?.document_element()?.dyn_into().ok()
 }

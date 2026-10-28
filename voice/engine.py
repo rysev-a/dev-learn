@@ -15,7 +15,7 @@ import torch
 from pathlib import Path
 
 MODEL_DIR = Path(__file__).resolve().parent / "models" / "kokoro-ru"
-# wav раскладываются туда, откуда их отдаёт бэкенд (`AUDIO_DIR`, по умолчанию `backend/data/audio`)
+# wavs are placed where the backend serves them from (`AUDIO_DIR`, default `backend/data/audio`)
 AUDIO_DIR = Path(__file__).resolve().parent.parent / "backend" / "data" / "audio"
 
 SAMPLE_RATE = 24000

@@ -1,33 +1,33 @@
-//! Временная диаграмма по истории изменений сигналов (порт `lab/wave.ts`).
+//! Timing diagram from the history of signal changes (port of `lab/wave.ts`).
 
 use crate::exercise::CircuitSpec;
 use crate::model::{Bit, InputId, NodeValue};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// Сколько последних изменений хранит временная диаграмма.
+/// How many latest changes the timing diagram keeps.
 pub const HISTORY_MAX: usize = 24;
 
-/// Размеры диаграммы.
+/// Diagram dimensions.
 pub const LABEL_W: f64 = 56.0;
 pub const STEP: f64 = 26.0;
 pub const ROW_H: f64 = 30.0;
 pub const HI: f64 = 8.0;
 pub const LO: f64 = 22.0;
 
-/// Ширина всей диаграммы.
+/// Width of the whole diagram.
 pub const fn wave_width() -> f64 {
     LABEL_W + HISTORY_MAX as f64 * STEP
 }
 
-/// Снимок сигналов после очередного изменения — один столбец временной диаграммы.
+/// Snapshot of signals after the next change — one column of the timing diagram.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Sample {
     pub inputs: BTreeMap<InputId, Bit>,
     pub outputs: BTreeMap<String, NodeValue>,
 }
 
-/// Вид строки диаграммы.
+/// Kind of a diagram row.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RowKind {
@@ -36,19 +36,19 @@ pub enum RowKind {
     Out,
 }
 
-/// Строка диаграммы: подпись и пути SVG.
+/// Diagram row: label and SVG paths.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WaveRow {
     pub label: String,
     pub kind: RowKind,
     pub top: f64,
-    /// Определённые участки сигнала.
+    /// Defined segments of the signal.
     pub d: String,
-    /// Неопределённые («?») участки — пунктиром посередине.
+    /// Undefined ("?") segments — dashed through the middle.
     pub dx: String,
 }
 
-/// Готовая диаграмма.
+/// Finished diagram.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Wave {
     pub rows: Vec<WaveRow>,
@@ -83,7 +83,7 @@ fn wave_row(label: String, kind: RowKind, top: f64, values: &[NodeValue]) -> Wav
     WaveRow { label, kind, top, d, dx }
 }
 
-/// Временная диаграмма по истории изменений: по строке на каждый вход и выход упражнения.
+/// Timing diagram from the change history: one row per exercise input and output.
 pub fn build_wave(samples: &[Sample], spec: &CircuitSpec) -> Wave {
     let mut rows: Vec<(String, RowKind, Vec<NodeValue>)> = Vec::new();
     for id in &spec.inputs {

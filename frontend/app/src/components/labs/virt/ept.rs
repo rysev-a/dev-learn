@@ -1,6 +1,6 @@
-//! Симулятор трансляции адресов (глава 4): режим (теневые таблицы или EPT), размеры страниц гостя и хозяина, нагрузка.
-//! Показывает цену обхода (двумерная сетка обращений), промахи TLB и общую стоимость в обращениях к памяти. Решено, когда
-//! достигнуты все цели. В данных цели — настройки запуска; сервер заново запускает модель.
+//! Address translation simulator (chapter 4): mode (shadow tables or EPT), guest and host page sizes, workload.
+//! Shows the walk cost (a two-dimensional access grid), TLB misses and the total cost in memory accesses. Solved when
+//! all goals are reached. The goal data holds the run settings; the server runs the model again.
 
 use leptos::prelude::*;
 use virtlab::ept::{
@@ -9,7 +9,7 @@ use virtlab::ept::{
 
 use super::common::{data, fmt_ru, GoalItem, GoalList, Goals};
 
-/// Подпись размера страницы в списке выбора.
+/// Page size label in the choice list.
 fn size_text(p: PageSize) -> &'static str {
     match p {
         PageSize::K4 => i18n::tr("4 KiB"),
@@ -18,7 +18,7 @@ fn size_text(p: PageSize) -> &'static str {
     }
 }
 
-/// Короткое имя размера (как в данных: `4K`, `2M`, `1G`).
+/// Short size name (as in the data: `4K`, `2M`, `1G`).
 fn size_key(p: PageSize) -> &'static str {
     match p {
         PageSize::K4 => "4K",
@@ -31,15 +31,15 @@ fn parse_size(s: &str) -> Option<PageSize> {
     PageSize::ALL.into_iter().find(|p| size_key(*p) == s)
 }
 
-/// Сетка обращений одного промаха: число столбцов и клетки (`true` — сами данные).
+/// Access grid of one miss: number of columns and cells (`true` — the data itself).
 #[derive(Debug, PartialEq, Eq)]
 pub struct WalkGrid {
     pub cols: u32,
     pub cells: Vec<bool>,
 }
 
-/// Двумерная сетка обхода: теневые таблицы — ряд из `walk_cost` уровней (запись TLB описывает меньшую из двух страниц);
-/// EPT — `(g+1)×(h+1)` клеток, последняя — данные.
+/// Two-dimensional walk grid: shadow tables — a row of `walk_cost` levels (the TLB entry describes the smaller of the two pages);
+/// EPT — `(g+1)×(h+1)` cells, the last one is the data.
 pub fn walk_grid(mode: Mode, guest: PageSize, host: PageSize) -> WalkGrid {
     match mode {
         Mode::Shadow => {
@@ -57,7 +57,7 @@ pub fn walk_grid(mode: Mode, guest: PageSize, host: PageSize) -> WalkGrid {
     }
 }
 
-/// Формула цены промаха над сеткой.
+/// Miss cost formula above the grid.
 pub fn walk_formula(mode: Mode, guest: PageSize, host: PageSize) -> String {
     match mode {
         Mode::Ept => format!("({}+1)×({}+1)−1", guest.levels(), host.levels()),
@@ -65,7 +65,7 @@ pub fn walk_formula(mode: Mode, guest: PageSize, host: PageSize) -> String {
     }
 }
 
-/// Цели, достигнутые запуском: те, что привязаны к этой нагрузке и выполнены на результате `r`.
+/// Goals reached by a run: those tied to this workload and met on the result `r`.
 pub fn reached<'a>(goals: &'a [EptGoal], r: &SimRun, cfg: &SimInput) -> Vec<&'a EptGoal> {
     goals.iter().filter(|g| g.workload == cfg.workload && g.check(r, cfg)).collect()
 }
@@ -153,7 +153,7 @@ pub fn EptLab(workloads: Vec<Workload>, targets: Vec<EptGoal>, goals: Goals) -> 
     }
 }
 
-/// Кнопка переключателя режима.
+/// Mode switch button.
 #[component]
 fn ModeButton(mode: RwSignal<Mode>, value: Mode, title: &'static str) -> impl IntoView {
     view! {
@@ -163,7 +163,7 @@ fn ModeButton(mode: RwSignal<Mode>, value: Mode, title: &'static str) -> impl In
     }
 }
 
-/// Выбор размера страницы.
+/// Page size choice.
 #[component]
 fn SizeSelect(label: &'static str, value: RwSignal<PageSize>) -> impl IntoView {
     let options = PageSize::ALL
@@ -182,7 +182,7 @@ fn SizeSelect(label: &'static str, value: RwSignal<PageSize>) -> impl IntoView {
     }
 }
 
-/// Сетка обращений одного промаха.
+/// Access grid of one miss.
 #[component]
 fn Grid(mode: RwSignal<Mode>, guest: RwSignal<PageSize>, host: RwSignal<PageSize>) -> impl IntoView {
     move || {
@@ -195,7 +195,7 @@ fn Grid(mode: RwSignal<Mode>, guest: RwSignal<PageSize>, host: RwSignal<PageSize
     }
 }
 
-/// Итог последнего запуска.
+/// Result of the last run.
 #[component]
 fn RunResult(run: SimRun) -> impl IntoView {
     view! {
@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn grid_for_ept_has_data_cell_last() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let g = walk_grid(Mode::Ept, PageSize::K4, PageSize::K4);
         assert_eq!(g.cols, 5);
         assert_eq!(g.cells.len(), 25);
@@ -242,13 +242,13 @@ mod tests {
 
     #[test]
     fn grid_for_shadow_is_one_row_of_min_levels() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        // обход идёт по таблицам меньшей из двух страниц, то есть по большему числу уровней
+        let _ru = locales::guard(i18n::Locale::Ru);
+        // the walk goes through the tables of the smaller of the two pages, i.e. through more levels
         let g = walk_grid(Mode::Shadow, PageSize::K4, PageSize::M2);
         assert_eq!(g, WalkGrid { cols: 4, cells: vec![false; 4] });
         let g = walk_grid(Mode::Shadow, PageSize::M2, PageSize::G1);
         assert_eq!(g, WalkGrid { cols: 3, cells: vec![false; 3] });
-        // число клеток сетки совпадает с ценой обхода модели
+        // the number of grid cells matches the model's walk cost
         for mode in [Mode::Shadow, Mode::Ept] {
             for g in PageSize::ALL {
                 for h in PageSize::ALL {
@@ -262,14 +262,14 @@ mod tests {
 
     #[test]
     fn formula_matches_mode() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(walk_formula(Mode::Ept, PageSize::K4, PageSize::K4), "(4+1)×(4+1)−1");
         assert_eq!(walk_formula(Mode::Shadow, PageSize::M2, PageSize::G1), "3 уровня");
     }
 
     #[test]
     fn size_keys_roundtrip() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         for p in PageSize::ALL {
             assert_eq!(parse_size(size_key(p)), Some(p));
         }
@@ -278,19 +278,19 @@ mod tests {
 
     #[test]
     fn default_walk_goal_is_reached_with_ept() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let (ws, gs) = (default_workloads(), default_goals());
-        // 4 КиБ × 4 КиБ: промах стоит 24 обращения — цель «не больше 15» не достигается; 2 МиБ × 2 МиБ — ровно 15
+        // 4 KiB × 4 KiB: a miss costs 24 accesses — the goal "at most 15" is not reached; 2 MiB × 2 MiB — exactly 15
         let cfg = SimInput { mode: Mode::Ept, guest: PageSize::K4, host: PageSize::K4, workload: "one".into() };
-        let r = ept::simulate(&ws, &cfg).expect("запуск");
+        let r = ept::simulate(&ws, &cfg).expect("run");
         assert!(reached(&gs, &r, &cfg).is_empty());
         let cfg = SimInput { guest: PageSize::M2, host: PageSize::M2, ..cfg };
-        let r = ept::simulate(&ws, &cfg).expect("запуск");
+        let r = ept::simulate(&ws, &cfg).expect("run");
         let ids: Vec<&str> = reached(&gs, &r, &cfg).iter().map(|g| g.id.as_str()).collect();
         assert_eq!(ids, ["walk"]);
-        // цели других нагрузок не засчитываются
+        // goals of other workloads are not counted
         let cfg = SimInput { workload: "scan".into(), ..cfg };
-        let r = ept::simulate(&ws, &cfg).expect("запуск");
+        let r = ept::simulate(&ws, &cfg).expect("run");
         assert!(reached(&gs, &r, &cfg).iter().all(|g| g.workload == "scan"));
     }
 }

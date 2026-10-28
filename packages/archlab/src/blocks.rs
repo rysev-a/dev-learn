@@ -1,6 +1,6 @@
-//! Блоки: решённое упражнение становится блоком, у которого есть порты типов интерфейсов.
-//! Блоки соединяются шинами; перед симуляцией схема из блоков разворачивается в плоскую схему из
-//! вентилей — поэтому симулятор [`crate::eval`] работает без изменений. Порт `blocks.ts`.
+//! Blocks: a solved exercise becomes a block that has ports of interface types.
+//! Blocks are connected by buses; before simulation a block circuit is expanded into a flat circuit of
+//! gates — so the simulator [`crate::eval`] works unchanged. Port of `blocks.ts`.
 
 use crate::interfaces::{can_connect, slice_of, Iface};
 use crate::model::*;
@@ -9,13 +9,13 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 /* ============================================================
-   Модель
+   Model
    ============================================================ */
 
-/// Узел шин для портов самого упражнения (вместо id экземпляра блока).
+/// Bus node for the ports of the exercise itself (instead of a block instance id).
 pub const TOP: &str = "$";
 
-/// Экземпляр блока на доске блоков.
+/// Block instance on the block board.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlockInstance {
     pub id: String,
@@ -27,8 +27,8 @@ pub struct BlockInstance {
     pub y: f64,
 }
 
-/// Конец шины: `node` — id экземпляра блока либо [`TOP`]; `path` — путь к полю внутри типа порта
-/// (`""` — весь порт, `"op"`, `"k.D1"`).
+/// Bus end: `node` — block instance id or [`TOP`]; `path` — path to a field inside the port type
+/// (`""` — the whole port, `"op"`, `"k.D1"`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BusEnd {
     pub node: String,
@@ -38,13 +38,13 @@ pub struct BusEnd {
 }
 
 impl BusEnd {
-    /// Конец шины: `BusEnd::new("rom", "instr", "op")`.
+    /// Bus end: `BusEnd::new("rom", "instr", "op")`.
     pub fn new(node: &str, port: &str, path: &str) -> Self {
         BusEnd { node: node.into(), port: port.into(), path: path.into() }
     }
 }
 
-/// Шина — провод на целый интерфейс или его поле.
+/// Bus — a wire for a whole interface or its field.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BusWire {
     pub id: String,
@@ -52,14 +52,14 @@ pub struct BusWire {
     pub to: BusEnd,
 }
 
-/// Решение из вентилей.
+/// Solution made of gates.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GateSolution {
     pub gates: Vec<GateInstance>,
     pub wires: Vec<Wire>,
 }
 
-/// Решение из блоков.
+/// Solution made of blocks.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlockSolution {
     pub instances: Vec<BlockInstance>,
@@ -67,11 +67,11 @@ pub struct BlockSolution {
     pub bus_wires: Vec<BusWire>,
 }
 
-/// Встроенная память: в схеме это «чёрный ящик» с адресом и данными, ячейки не из вентилей.
+/// Built-in memory: in the circuit it is a "black box" with address and data, cells are not made of gates.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NativeSolution {
     pub native: NativeKind,
-    /// Узлы адреса, старший бит первым.
+    /// Address nodes, most significant bit first.
     pub addr: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub din: Option<Vec<String>>,
@@ -82,8 +82,8 @@ pub struct NativeSolution {
     pub dout: Vec<String>,
 }
 
-/// Решение упражнения или содержимое блока: вентили, блоки или встроенная память.
-/// В JSON — одна из трёх форм: `{gates, wires}`, `{instances, bus_wires}` (также `busWires`), `{native, …}`.
+/// Exercise solution or block contents: gates, blocks or built-in memory.
+/// In JSON — one of three forms: `{gates, wires}`, `{instances, bus_wires}` (also `busWires`), `{native, …}`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Solution {
@@ -93,7 +93,7 @@ pub enum Solution {
 }
 
 impl Solution {
-    /// Разбор присланного решения с понятной ошибкой (TS: `isSolution` + `JSON.parse`).
+    /// Parse a submitted solution with a clear error (TS: `isSolution` + `JSON.parse`).
     pub fn from_json(text: &str) -> Result<Solution, String> {
         let v: serde_json::Value = serde_json::from_str(text).map_err(|e| i18n::trf!("not JSON: {0}", e))?;
         let Some(o) = v.as_object() else {
@@ -106,23 +106,23 @@ impl Solution {
         serde_json::from_value(v).map_err(|e| i18n::trf!("circuit could not be parsed: {0}", e))
     }
 
-    /// Схема из блоков?
+    /// Is it a block circuit?
     pub fn is_block(&self) -> bool {
         matches!(self, Solution::Block(_))
     }
 }
 
-/// Направление порта.
+/// Port direction.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Dir {
-    /// Порт принимает сигнал.
+    /// The port receives a signal.
     In,
-    /// Порт выдаёт сигнал.
+    /// The port emits a signal.
     Out,
 }
 
-/// Порт блока: имя, тип интерфейса и узлы схемы по порядку бит (старший — первый).
+/// Block port: name, interface type and circuit nodes in bit order (most significant first).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlockPort {
     pub name: String,
@@ -132,40 +132,40 @@ pub struct BlockPort {
     pub nodes: Vec<String>,
 }
 
-/// Внешняя «розетка» схемы — те узлы, которыми она торчит наружу.
+/// External "socket" of a circuit — the nodes it exposes to the outside.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct BlockInterface {
     pub inputs: Vec<String>,
     pub outputs: Vec<String>,
-    /// Подписи входов по порядку `inputs`.
+    /// Input labels in `inputs` order.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<String>>,
     pub ports: Vec<BlockPort>,
 }
 
-/// Откуда блок взят: упражнение, чьё решение лежит внутри.
+/// Where the block comes from: the exercise whose solution is inside.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlockSource {
     pub section_slug: String,
     pub exercise_id: String,
 }
 
-/// Описание блока.
+/// Block description.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlockDef {
     pub id: String,
     pub title: String,
     #[serde(flatten)]
     pub iface: BlockInterface,
-    /// У встроенных блоков — `None`.
+    /// `None` for built-in blocks.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<BlockSource>,
 }
 
-/// Блок вместе с содержимым.
+/// Block together with its contents.
 pub type BlockEntry = (Arc<BlockDef>, Arc<Solution>);
 
-/// Поиск блока по id: то, чем [`expand`] достаёт содержимое вложенных блоков.
+/// Block lookup by id: what [`expand`] uses to fetch the contents of nested blocks.
 pub trait BlockLookup {
     fn lookup(&self, id: &str) -> Option<BlockEntry>;
 }
@@ -180,7 +180,7 @@ fn simple_wire(id: String, from: &str, to: &str) -> Wire {
     Wire { id, from: PinRef::out(from), to: PinRef::inp(to, PinKind::In0) }
 }
 
-/// Переходник между типами: схема из одних проводов (D1 → A1, D0 → A0).
+/// Adapter between types: a circuit made of wires only (D1 → A1, D0 → A0).
 fn adapter(id: &str, title: &str, in_ty: Iface, out_ty: Iface, in_nodes: [&str; 2], out_nodes: [&str; 2]) -> (BlockDef, Solution) {
     let nodes = |n: [&str; 2]| n.iter().map(|s| s.to_string()).collect::<Vec<_>>();
     let def = BlockDef {
@@ -201,7 +201,7 @@ fn adapter(id: &str, title: &str, in_ty: Iface, out_ty: Iface, in_nodes: [&str; 
     (def, Solution::Gate(GateSolution { gates: vec![], wires }))
 }
 
-/// Библиотека блоков: определения, их содержимое (если блок «открыт») и подсказки для закрытых.
+/// Block library: definitions, their contents (if the block is "unlocked") and hints for locked ones.
 #[derive(Debug, Clone, Default)]
 pub struct BlockLibrary {
     order: Vec<String>,
@@ -211,7 +211,7 @@ pub struct BlockLibrary {
 }
 
 impl BlockLibrary {
-    /// Библиотека со встроенными блоками (переходники слово ↔ адрес — доступны сразу).
+    /// Library with built-in blocks (word ↔ address adapters are available right away).
     pub fn builtin() -> Self {
         let mut lib = BlockLibrary::default();
         for (def, sol) in [
@@ -223,7 +223,7 @@ impl BlockLibrary {
         lib
     }
 
-    /// Добавить блок; `solution = None` — блок ещё закрыт (упражнение не решено).
+    /// Add a block; `solution = None` — the block is still locked (exercise not solved).
     pub fn insert(&mut self, def: BlockDef, solution: Option<Solution>, lock_hint: String) {
         let id = def.id.clone();
         if !self.defs.contains_key(&id) {
@@ -241,27 +241,27 @@ impl BlockLibrary {
         self.hints.insert(id, lock_hint);
     }
 
-    /// Описание блока.
+    /// Block description.
     pub fn def(&self, id: &str) -> Option<&Arc<BlockDef>> {
         self.defs.get(id)
     }
 
-    /// Все блоки в порядке добавления.
+    /// All blocks in insertion order.
     pub fn defs(&self) -> impl Iterator<Item = &Arc<BlockDef>> {
         self.order.iter().filter_map(|id| self.defs.get(id))
     }
 
-    /// Схема внутри блока; у ещё не решённого блока — `None`.
+    /// Circuit inside the block; `None` for a block not yet solved.
     pub fn solution(&self, id: &str) -> Option<&Arc<Solution>> {
         self.solutions.get(id)
     }
 
-    /// Блок открыт?
+    /// Is the block unlocked?
     pub fn available(&self, id: &str) -> bool {
         self.solutions.contains_key(id)
     }
 
-    /// Что нужно сделать, чтобы блок открылся.
+    /// What must be done for the block to unlock.
     pub fn lock_hint(&self, id: &str) -> &str {
         self.hints.get(id).map_or("", String::as_str)
     }
@@ -274,30 +274,30 @@ impl BlockLookup for BlockLibrary {
 }
 
 /* ============================================================
-   Концы шин: порты и срезы
+   Bus ends: ports and slices
    ============================================================ */
 
-/// Порты узла схемы: у [`TOP`] — порты самого упражнения, у экземпляра — порты его блока.
+/// Ports of a circuit node: for [`TOP`] — the exercise's own ports, for an instance — its block's ports.
 pub type PortsOf<'a> = dyn Fn(&str) -> Option<&'a [BlockPort]> + 'a;
 
-/// Конец шины, разобранный по портам.
+/// Bus end resolved to ports.
 #[derive(Debug, Clone, Copy)]
 pub struct EndInfo<'a> {
     pub port: &'a BlockPort,
-    /// Тип выбранного поля и его положение внутри порта.
+    /// Type of the selected field and its position inside the port.
     pub ty: Iface,
     pub offset: usize,
     pub length: usize,
 }
 
-/// Порт и поле, на которые указывает конец шины.
+/// Port and field a bus end points to.
 pub fn end_info<'a>(end: &BusEnd, ports_of: &PortsOf<'a>) -> Option<EndInfo<'a>> {
     let port = ports_of(&end.node)?.iter().find(|p| p.name == end.port)?;
     let s = slice_of(port.ty, &end.path)?;
     Some(EndInfo { port, ty: s.ty, offset: s.offset, length: s.length })
 }
 
-/// Узлы схемы, соответствующие выбранному полю порта.
+/// Circuit nodes corresponding to the selected port field.
 pub fn end_nodes<'a>(info: &EndInfo<'a>) -> &'a [String] {
     let nodes: &'a [String] = &info.port.nodes;
     let start = info.offset.min(nodes.len());
@@ -305,7 +305,7 @@ pub fn end_nodes<'a>(info: &EndInfo<'a>) -> &'a [String] {
     &nodes[start..end]
 }
 
-/// Откуда идёт сигнал: у [`TOP`] — вход упражнения (`In`), у блока — его выход (`Out`).
+/// Where the signal comes from: for [`TOP`] — an exercise input (`In`), for a block — its output (`Out`).
 pub fn is_source_end(end: &BusEnd, info: &EndInfo) -> bool {
     if end.node == TOP {
         info.port.dir == Dir::In
@@ -314,7 +314,7 @@ pub fn is_source_end(end: &BusEnd, info: &EndInfo) -> bool {
     }
 }
 
-/// Можно ли соединить: возвращает причину отказа.
+/// Can they be connected: returns the reason for refusal.
 pub fn connection_error(from: &BusEnd, to: &BusEnd, ports_of: &PortsOf) -> Option<String> {
     let (Some(a), Some(b)) = (end_info(from, ports_of), end_info(to, ports_of)) else {
         return Some(i18n::tr("No such port").into());
@@ -334,7 +334,7 @@ pub fn connection_error(from: &BusEnd, to: &BusEnd, ports_of: &PortsOf) -> Optio
     None
 }
 
-/// Добавляет шину; старые шины, занимающие те же биты входа, заменяются.
+/// Adds a bus; old buses occupying the same input bits are replaced.
 pub fn add_bus_wire(wires: &[BusWire], next: BusWire, ports_of: &PortsOf) -> Vec<BusWire> {
     let Some(target) = end_info(&next.to, ports_of) else {
         return wires.to_vec();
@@ -358,13 +358,13 @@ pub fn add_bus_wire(wires: &[BusWire], next: BusWire, ports_of: &PortsOf) -> Vec
 }
 
 /* ============================================================
-   Разворачивание в плоскую схему
+   Expansion into a flat circuit
    ============================================================ */
 
-/// Значение узла плоской схемы по его имени.
+/// Value of a flat-circuit node by its name.
 pub type ValueScope<'a> = &'a dyn Fn(&str) -> NodeValue;
 
-/// Вложенный блок после разворачивания.
+/// Nested block after expansion.
 #[derive(Debug, Clone)]
 pub struct SubExpansion {
     pub def: Arc<BlockDef>,
@@ -372,18 +372,18 @@ pub struct SubExpansion {
     pub expansion: Expansion,
 }
 
-/// Развёрнутое решение: плоская схема и сведения, откуда в ней берутся сигналы блоков.
+/// Expanded solution: the flat circuit and information on where the block signals in it come from.
 #[derive(Debug, Clone)]
 pub struct Expansion {
-    /// Плоская схема: вентили (у вложенных блоков — с префиксами `экземпляр__`) и провода.
+    /// Flat circuit: gates (for nested blocks — prefixed with `instance__`) and wires.
     pub circuit: Circuit,
     subs: Vec<(String, SubExpansion)>,
     sub_index: HashMap<String, usize>,
-    /// Кто подаёт сигнал на лист `экземпляр|узел`.
+    /// Who drives the leaf `instance|node`.
     driver: HashMap<String, (String, String)>,
-    /// «Внутренние источники» каждого блока: его вентили и выходы встроенной памяти.
+    /// "Internal sources" of each block: its gates and the outputs of built-in memory.
     is_gate_of: HashMap<String, HashSet<String>>,
-    /// У решения из вентилей и памяти источники не вычисляются (всегда `None`).
+    /// For a solution of gates or memory, sources are not computed (always `None`).
     resolving: bool,
 }
 
@@ -399,17 +399,17 @@ impl Expansion {
         }
     }
 
-    /// Вложенные блоки в порядке экземпляров.
+    /// Nested blocks in instance order.
     pub fn subs(&self) -> &[(String, SubExpansion)] {
         &self.subs
     }
 
-    /// Вложенный блок по id экземпляра.
+    /// Nested block by instance id.
     pub fn sub(&self, id: &str) -> Option<&SubExpansion> {
         self.sub_index.get(id).map(|i| &self.subs[*i].1)
     }
 
-    /// Узел плоской схемы, чьё значение выходит на выходной узел экземпляра блока.
+    /// Flat-circuit node whose value goes to the output node of a block instance.
     pub fn out_source(&self, inst: &str, out_node: &str) -> Option<String> {
         if !self.resolving {
             return None;
@@ -417,7 +417,7 @@ impl Expansion {
         self.resolve_out(inst, out_node, &mut HashSet::new())
     }
 
-    /// Узел плоской схемы, который подаёт сигнал на входной узел экземпляра блока.
+    /// Flat-circuit node that drives the input node of a block instance.
     pub fn in_source(&self, inst: &str, in_node: &str) -> Option<String> {
         if !self.resolving {
             return None;
@@ -427,37 +427,37 @@ impl Expansion {
 
     fn resolve_out(&self, inst: &str, out_node: &str, seen: &mut HashSet<String>) -> Option<String> {
         if inst == TOP {
-            return Some(out_node.to_string()); // вход самого упражнения
+            return Some(out_node.to_string()); // input of the exercise itself
         }
         let sub = self.sub(inst)?;
         let w = sub.expansion.circuit.wires.iter().find(|x| x.to.node == out_node)?;
         if self.is_gate_of.get(inst).is_some_and(|s| s.contains(&w.from.node)) {
             return Some(format!("{inst}__{}", w.from.node));
         }
-        self.resolve_in(inst, &w.from.node, seen) // выход прямо повторяет вход
+        self.resolve_in(inst, &w.from.node, seen) // the output simply repeats the input
     }
 
     fn resolve_in(&self, inst: &str, in_node: &str, seen: &mut HashSet<String>) -> Option<String> {
         let key = format!("{inst}|{in_node}");
         if !seen.insert(key.clone()) {
-            return None; // комбинационная петля из одних проводов
+            return None; // combinational loop made of wires only
         }
         let (node, leaf) = self.driver.get(&key)?;
         self.resolve_out(node, leaf, seen)
     }
 }
 
-/// Все вентили и выходы памяти внутри плоской схемы.
+/// All gates and memory outputs inside the flat circuit.
 fn internal_sources(c: &Circuit) -> HashSet<String> {
     c.gates.iter().map(|g| g.id.clone()).chain(c.natives.iter().flat_map(|n| n.dout.iter().cloned())).collect()
 }
 
-/// Разворачивает решение в плоскую схему с теми же внешними узлами (входы A–F, имена выходов).
-/// Решение из вентилей возвращается как есть.
+/// Expands a solution into a flat circuit with the same external nodes (inputs A–F, output names).
+/// A solution made of gates is returned as is.
 pub fn expand(solution: &Solution, iface: &BlockInterface, lookup: &dyn BlockLookup) -> Expansion {
     let sol = match solution {
         Solution::Native(n) => {
-            // выходные узлы блока — выходы памяти; внутри блока одна «микросхема»
+            // the block's output nodes are the memory outputs; inside the block there is a single "chip"
             let id = "mem";
             let dout: Vec<String> = n.dout.iter().map(|d| format!("{id}.{d}")).collect();
             let wires = n.dout.iter().enumerate().map(|(i, d)| simple_wire(format!("w{i}"), &dout[i], d)).collect();
@@ -522,7 +522,7 @@ pub fn expand(solution: &Solution, iface: &BlockInterface, lookup: &dyn BlockLoo
     let is_gate_of: HashMap<String, HashSet<String>> =
         subs.iter().map(|(id, s)| (id.clone(), internal_sources(&s.expansion.circuit))).collect();
 
-    // Дальше нужны методы разрешения источников: собираем «черновое» развёртывание.
+    // Next we need the source-resolution methods: build a "draft" expansion.
     let mut exp = Expansion {
         circuit: Circuit::default(),
         subs,
@@ -539,7 +539,7 @@ pub fn expand(solution: &Solution, iface: &BlockInterface, lookup: &dyn BlockLoo
     for (inst, sub) in &exp.subs {
         let outs: HashSet<&String> = sub.def.iface.outputs.iter().collect();
         let internal = &exp.is_gate_of[inst];
-        // узел внутри блока → узел плоской схемы (свой источник — с префиксом, вход блока — его драйвер)
+        // node inside the block → flat-circuit node (own source — prefixed, block input — its driver)
         let map = |node: &str| -> Option<String> {
             if internal.contains(node) {
                 Some(format!("{inst}__{node}"))
@@ -563,10 +563,10 @@ pub fn expand(solution: &Solution, iface: &BlockInterface, lookup: &dyn BlockLoo
         }
         for w in &sub.expansion.circuit.wires {
             if outs.contains(&w.to.node) {
-                continue; // питание выходных узлов — это внутренность блока
+                continue; // driving the output nodes is the block's internals
             }
             let Some(from) = map(&w.from.node) else {
-                continue; // вход блока ни к чему не подключён
+                continue; // the block input is not connected to anything
             };
             wires.push(Wire {
                 id: format!("{inst}__{}", w.id),
@@ -590,7 +590,7 @@ pub fn expand(solution: &Solution, iface: &BlockInterface, lookup: &dyn BlockLoo
     exp
 }
 
-/// Значения внутри экземпляра блока по значениям родительской схемы.
+/// Values inside a block instance from the values of the parent circuit.
 pub fn child_scope<'a>(
     scope: ValueScope<'a>,
     parent: &'a Expansion,
@@ -609,7 +609,7 @@ pub fn child_scope<'a>(
     }
 }
 
-/// Значения порта (или его поля) по порядку бит.
+/// Values of a port (or its field) in bit order.
 pub fn port_values(scope: ValueScope, expansion: &Expansion, end: &BusEnd, ports_of: &PortsOf) -> Vec<NodeValue> {
     let Some(info) = end_info(end, ports_of) else {
         return Vec::new();

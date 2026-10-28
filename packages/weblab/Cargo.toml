@@ -3,12 +3,15 @@ name = "weblab"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Лаборатория HTML и CSS (книга 11): структурные проверки разметки, каскад и вычисленные стили, селекторы и специфичность. Общий crate интерфейса (wasm) и бэкенда (нативно)."
+description = "HTML and CSS lab (book 11): structural checks of markup, cascade and computed styles, selectors and specificity. Shared crate of the UI (wasm) and the backend (native)."
 
 [dependencies]
 i18n = { path = "../i18n" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
-# разбор HTML (html5ever) и сопоставление селекторов; без «main»-фич — только то, что нужно
+# HTML parsing (html5ever) and selector matching; without the "main" features — only what is needed
 scraper = { version = "0.25", default-features = false, features = ["errors"] }
 ego-tree = "0.10"
+
+[dev-dependencies]
+locales = { path = "../locales" }

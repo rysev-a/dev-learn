@@ -3,10 +3,13 @@ name = "virtlab"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Лаборатория книги «Виртуализация» (книга 17): модели шести симуляторов, цели упражнений и серверная проверка решений. Общий crate интерфейса (wasm) и бэкенда (нативно)."
+description = "Lab for the Virtualization book (book 17): models of six simulators, exercise goals and server-side solution checking. Shared crate for the UI (wasm) and the backend (native)."
 
 [dependencies]
 i18n = { path = "../i18n" }
 serde = { version = "1", features = ["derive"] }
-# float_roundtrip: числа из JSON читаются точно (иначе возможна разница в последнем бите с JavaScript)
+# float_roundtrip: numbers from JSON are read exactly (otherwise the last bit may differ from JavaScript)
 serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[dev-dependencies]
+locales = { path = "../locales" }

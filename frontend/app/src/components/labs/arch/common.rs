@@ -1,5 +1,5 @@
-//! Общие типы и мелкие компоненты лаборатории «Архитектура компьютера»: значения узлов, обёртки над данными движка
-//! (чтобы их можно было держать в `Memo`), контур вентиля и плашка итога.
+//! Shared types and small components of the "Computer Architecture" lab: node values, wrappers over engine data
+//! (so they can be held in a `Memo`), the gate outline and the result banner.
 
 use std::sync::Arc;
 
@@ -12,13 +12,13 @@ use leptos::prelude::*;
 
 use crate::components::labs::board_view::{BoardConfig, Bounds};
 
-/// Сдвиг и масштаб досок лаборатории: 30–300 %, целый сдвиг; элементы — в пределах «мира» 8000×6000 вокруг начала координат.
+/// Pan and zoom of the lab boards: 30–300 %, integer pan; elements stay within the 8000×6000 "world" around the origin.
 pub const BOARD: BoardConfig = BoardConfig { items: Bounds::new((-4000.0, 4000.0), (-3000.0, 3000.0)), ..BoardConfig::DEFAULT };
 
-/// Значение узла схемы по его имени (чтение подписывает вызывающего на изменения значений).
+/// Circuit node value by its name (reading subscribes the caller to value changes).
 pub type Scope = Arc<dyn Fn(&str) -> NodeValue + Send + Sync>;
 
-/// Библиотека блоков; сравнивается по указателю: новая библиотека — новое значение.
+/// Block library; compared by pointer: a new library is a new value.
 #[derive(Clone)]
 pub struct Lib(pub Arc<BlockLibrary>);
 
@@ -28,7 +28,7 @@ impl PartialEq for Lib {
     }
 }
 
-/// Развёрнутая схема из блоков; сравнивается по указателю.
+/// Expanded circuit of blocks; compared by pointer.
 #[derive(Clone)]
 pub struct Exp(pub Arc<Expansion>);
 
@@ -38,7 +38,7 @@ impl PartialEq for Exp {
     }
 }
 
-/// Класс по значению сигнала: `v1`, `v0` или `vx` («?»).
+/// Class by signal value: `v1`, `v0` or `vx` ("?").
 pub fn node_class(v: NodeValue) -> &'static str {
     match v {
         Some(1) => "v1",
@@ -47,13 +47,13 @@ pub fn node_class(v: NodeValue) -> &'static str {
     }
 }
 
-/// Значение сигнала текстом: `0`, `1` или `?`.
+/// Signal value as text: `0`, `1` or `?`.
 pub fn node_text(v: NodeValue) -> String {
     v.map_or_else(|| "?".to_string(), |b| b.to_string())
 }
 
-/// Значения внутри экземпляра блока по значениям родительской схемы: свой вход берёт у родителя, а узлы
-/// внутри блока лежат в плоской схеме с префиксом `экземпляр__`. Владеющий вариант `archlab::blocks::child_scope`.
+/// Values inside a block instance from the parent circuit's values: its inputs come from the parent, and the nodes
+/// inside the block live in the flat circuit with the prefix `instance__`. The owning variant is `archlab::blocks::child_scope`.
 pub fn child_scope(parent_scope: Scope, parent: Arc<Expansion>, inst: String, def: Arc<BlockDef>) -> Scope {
     Arc::new(move |node: &str| {
         let iface = &def.iface;
@@ -68,7 +68,7 @@ pub fn child_scope(parent_scope: Scope, parent: Arc<Expansion>, inst: String, de
     })
 }
 
-/// Один уровень просмотра: схема упражнения или блок, в который «заглянули».
+/// One view level: the exercise circuit or a block that was "looked into".
 #[derive(Clone)]
 pub struct Level {
     pub title: String,
@@ -79,7 +79,7 @@ pub struct Level {
 }
 
 impl Level {
-    /// Уровень вложенного блока `inst` (по развёрнутой схеме этого уровня).
+    /// Level of the nested block `inst` (by this level's expanded circuit).
     pub fn descend(&self, inst: &str, with_id: bool) -> Option<Level> {
         let sub = self.expansion.sub(inst)?;
         let title = if with_id { format!("{} ({inst})", sub.def.title) } else { sub.def.title.clone() };
@@ -93,7 +93,7 @@ impl Level {
     }
 }
 
-/// Уровни спуска по пути из id экземпляров: от верхнего до самого глубокого достижимого.
+/// Descent levels along a path of instance ids: from the top to the deepest reachable one.
 pub fn levels_along(top: Level, path: &[String], with_id: bool) -> Vec<Level> {
     let mut out = vec![top];
     for id in path {
@@ -106,7 +106,7 @@ pub fn levels_along(top: Level, path: &[String], with_id: bool) -> Vec<Level> {
     out
 }
 
-/// Контур вентиля: тело, дополнительная дуга (XOR), кружок инверсии и (по умолчанию) подпись типа.
+/// Gate outline: body, extra arc (XOR), inversion bubble and (by default) the type label.
 #[component]
 pub fn GateShape(ty: GateType, #[prop(default = true)] label: bool) -> impl IntoView {
     let arc = gate_extra_arc(ty);
@@ -122,7 +122,7 @@ pub fn GateShape(ty: GateType, #[prop(default = true)] label: bool) -> impl Into
     }
 }
 
-/// Итог проверки в стиле приложения: компактная плашка — значок, заголовок, пояснение, кнопка «дальше».
+/// Check result in the app's style: a compact banner — icon, title, explanation, "next" button.
 #[component]
 pub fn ResultAlert(
     #[prop(default = true)] ok: bool,
@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn signal_value_classes_and_text() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!((node_class(Some(1)), node_class(Some(0)), node_class(None)), ("v1", "v0", "vx"));
         assert_eq!((node_text(Some(1)), node_text(Some(0)), node_text(None)), ("1".to_string(), "0".to_string(), "?".to_string()));
     }

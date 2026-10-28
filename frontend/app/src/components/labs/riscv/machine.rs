@@ -1,4 +1,4 @@
-//! Правая колонка лаборатории: процессор, итог проверки, периферия или вывод программы, окно памяти.
+//! Right column of the lab: processor, check result, peripherals or program output, memory window.
 
 use leptos::prelude::*;
 use riscvlab::machine::MMIO_MAP;
@@ -8,7 +8,7 @@ use super::{
     session::Session,
 };
 
-/// Карточка «Процессор RV32IM»: кнопки, 32 регистра и строка состояния.
+/// "RV32IM processor" card: buttons, 32 registers and the status line.
 #[component]
 pub fn CpuCard(session: Session) -> impl IntoView {
     let can_step = Memo::new(move |_| session.status.with(|s| s.as_ref().is_some_and(Status::can_step)));
@@ -55,7 +55,7 @@ pub fn CpuCard(session: Session) -> impl IntoView {
     }
 }
 
-/// Итог проверки: плашка видна, только когда программа остановилась.
+/// Check result: the badge is visible only once the program has stopped.
 #[component]
 pub fn ResultAlert(#[prop(into)] result: Signal<Option<RunResult>>, on_next: Callback<()>, #[prop(into)] has_next: Signal<bool>) -> impl IntoView {
     move || {
@@ -80,7 +80,7 @@ pub fn ResultAlert(#[prop(into)] result: Signal<Option<RunResult>>, on_next: Cal
     }
 }
 
-/// Консоль: всё, что программа вывела, и мигающий курсор.
+/// Console: everything the program printed, plus a blinking cursor.
 #[component]
 fn Console(session: Session) -> impl IntoView {
     view! {
@@ -91,7 +91,7 @@ fn Console(session: Session) -> impl IntoView {
     }
 }
 
-/// Ряд из восьми «лампочек» (светодиоды или переключатели): номер и горит ли.
+/// Row of eight "lamps" (LEDs or switches): number and whether it is lit.
 #[component]
 fn Lamps(label: &'static str, prefix: &'static str, #[prop(into)] bits: Signal<u8>, switch: bool) -> impl IntoView {
     view! {
@@ -106,7 +106,7 @@ fn Lamps(label: &'static str, prefix: &'static str, #[prop(into)] bits: Signal<u
     }
 }
 
-/// Карточка «Периферия» (профиль «плата»): светодиоды, переключатели, таймер, консоль UART и карта адресов.
+/// "Peripherals" card ("board" profile): LEDs, switches, timer, UART console and address map.
 #[component]
 pub fn PeripheralsCard(session: Session) -> impl IntoView {
     let leds = Memo::new(move |_| session.status.with(|s| s.as_ref().map_or(0, |s| s.leds)));
@@ -152,7 +152,7 @@ pub fn PeripheralsCard(session: Session) -> impl IntoView {
     }
 }
 
-/// Карточка «Вывод программы» (профиль «настоящая программа»): стандартный вывод и код возврата.
+/// "Program output" card ("real program" profile): standard output and exit code.
 #[component]
 pub fn OutputCard(session: Session) -> impl IntoView {
     let exit = move || session.status.with(|s| s.as_ref().and_then(|s| s.exit_code));
@@ -172,7 +172,7 @@ pub fn OutputCard(session: Session) -> impl IntoView {
     }
 }
 
-/// Карточка «Память»: три окна по 256 байт; зелёным — последний записанный байт, синим — прочитанный.
+/// "Memory" card: three 256-byte windows; green — the last written byte, blue — the one read.
 #[component]
 pub fn MemoryCard(session: Session) -> impl IntoView {
     let rows = Memo::new(move |_| {
@@ -198,7 +198,7 @@ pub fn MemoryCard(session: Session) -> impl IntoView {
     }
 }
 
-/// Сетка памяти: адрес строки, шестнадцатеричные байты и текстовое представление.
+/// Memory grid: row address, hexadecimal bytes and text representation.
 #[component]
 fn MemoryGrid(rows: Memo<Vec<MemRow>>) -> impl IntoView {
     let heads = (0..16).map(|i| view! { <span>{format!("{i:X}")}</span> }).collect_view();

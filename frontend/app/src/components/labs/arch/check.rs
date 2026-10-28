@@ -1,4 +1,4 @@
-//! Проверка решения на экране: таблица истинности или сценарий по шагам и временная диаграмма
+//! Solution check on screen: truth table or step-by-step scenario and timing diagram
 //! (`CheckPanel.tsx`, `WaveDiagram.tsx`).
 
 use std::sync::Arc;
@@ -11,24 +11,24 @@ use archlab::{
 };
 use leptos::prelude::*;
 
-/// Значение узла по имени в таблице значений (`None` — «?» или узла нет).
+/// Node value by name in the value table (`None` is "?" or no such node).
 pub fn value_in(values: &Values, node: &str) -> Option<u8> {
     values.get(node).copied().flatten()
 }
 
-/// Шаг сценария выполнен: тумблеры стоят как в условии шага, а выходы, которые шаг проверяет, равны ожидаемым.
+/// Scenario step is done: the switches are set as in the step's condition, and the outputs the step checks equal the expected ones.
 pub fn step_met(spec: &CircuitSpec, index: usize, inputs: &InputState, values: &Values) -> bool {
     let Some(step) = spec.steps.get(index) else { return false };
     spec.inputs.iter().all(|id| step.inputs.get(id) == Some(&inputs.get(*id)))
         && spec.outputs.iter().all(|o| step.expect.get(o).is_none_or(|e| value_in(values, o) == Some(*e)))
 }
 
-/// Номер шага, который показывается как текущий: не дальше последнего.
+/// Step number shown as current: no further than the last one.
 pub fn shown_step(passed: usize, total: usize) -> usize {
     (passed + 1).min(total)
 }
 
-/// Карточка проверки: сценарий по шагам или таблица истинности.
+/// Check card: step-by-step scenario or truth table.
 #[component]
 pub fn CheckPanel(
     spec: Arc<CircuitSpec>,
@@ -175,7 +175,7 @@ fn TableCard(spec: Arc<CircuitSpec>, input_state: RwSignal<InputState>, table: M
     }
 }
 
-/// Временная диаграмма: история сигналов в упражнениях с защёлками и регистрами.
+/// Timing diagram: signal history in exercises with latches and registers.
 #[component]
 pub fn WaveDiagram(wave: Memo<Wave>, on_clear: Callback<()>) -> impl IntoView {
     let width = wave_width();
@@ -254,20 +254,20 @@ mod tests {
 
     #[test]
     fn step_is_met_only_with_the_right_switches_and_outputs() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let sp = spec();
         let mut on = InputState::zero();
         on.set(InputId::A, 1);
         assert!(step_met(&sp, 0, &on, &values(Some(1))));
-        assert!(!step_met(&sp, 0, &on, &values(Some(0))), "выход не тот");
-        assert!(!step_met(&sp, 0, &on, &values(None)), "«?» не равно ожидаемому");
-        assert!(!step_met(&sp, 0, &InputState::zero(), &values(Some(1))), "тумблер не тот");
-        assert!(!step_met(&sp, 5, &on, &values(Some(1))), "шага нет");
+        assert!(!step_met(&sp, 0, &on, &values(Some(0))), "wrong output");
+        assert!(!step_met(&sp, 0, &on, &values(None)), "'?' does not equal the expected value");
+        assert!(!step_met(&sp, 0, &InputState::zero(), &values(Some(1))), "wrong switch");
+        assert!(!step_met(&sp, 5, &on, &values(Some(1))), "no such step");
     }
 
     #[test]
     fn unchecked_output_does_not_block_a_step() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut sp = spec();
         sp.steps[0].expect.clear();
         let mut on = InputState::zero();
@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn shown_step_never_runs_past_the_last() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(shown_step(0, 3), 1);
         assert_eq!(shown_step(2, 3), 3);
         assert_eq!(shown_step(3, 3), 3);

@@ -1,4 +1,4 @@
-/* Лаборатория «Архитектура компьютера»: доски, таблицы и редакторы. Цвета — токены приложения (обе темы). */
+/* "Computer Architecture" lab: boards, tables and editors. Colors are app tokens (both themes). */
 .lab,
 .lab-board {
   --l-card: var(--panel);
@@ -105,7 +105,7 @@
   box-shadow: var(--shadow);
 }
 
-/* ---------- доска: контейнер, палитра, масштаб ---------- */
+/* ---------- board: container, palette, scale ---------- */
 .lab-board {
   position: relative;
   display: block;
@@ -227,7 +227,7 @@
   stroke-width: 2;
 }
 
-/* ---------- палитра блоков ---------- */
+/* ---------- block palette ---------- */
 .lab-blocks {
   display: flex;
   flex-wrap: wrap;
@@ -264,7 +264,7 @@
   color: var(--muted);
 }
 
-/* ---------- заглянуть внутрь блока ---------- */
+/* ---------- look inside a block ---------- */
 .lab-inspector {
   display: flex;
   flex-direction: column;
@@ -302,7 +302,7 @@
   margin: 0 0 8px;
 }
 
-/* ---------- таблица истинности ---------- */
+/* ---------- truth table ---------- */
 .lab-badge {
   padding: 3px 10px;
   border-radius: 999px;
@@ -364,7 +364,7 @@
   color: var(--error);
 }
 
-/* ---------- сценарий ---------- */
+/* ---------- scenario ---------- */
 .lab-steps {
   display: flex;
   flex-direction: column;
@@ -430,7 +430,7 @@
   color: var(--muted);
 }
 
-/* ---------- временная диаграмма ---------- */
+/* ---------- timing diagram ---------- */
 .lab-wave {
   width: 100%;
   height: auto;
@@ -464,7 +464,7 @@
   stroke-dasharray: 3 3;
 }
 
-/* ===== из lab/gate-board.css ===== */
+/* ===== from lab/gate-board.css ===== */
 .lab-board {
   position: relative;
   display: block;
@@ -743,7 +743,7 @@
   outline-offset: -2px;
 }
 
-/* ===== из block-board.css ===== */
+/* ===== from block-board.css ===== */
 .lab-board {
   display: block;
   position: relative;
@@ -985,11 +985,11 @@
   outline: 2px solid color-mix(in srgb, var(--l-primary) 35%, transparent);
   outline-offset: -2px;
 }
-/* ---------- страница упражнения: список — полосой сверху, чтобы доске хватало ширины ---------- */
+/* ---------- exercise page: list as a strip on top so the board has enough width ---------- */
 .lab-pr .pr-body:not(.single) {
   display: flex;
   flex-direction: column;
-  /* .pr-body задаёт align-items: start для сетки; в колонке это сжимало карточку по ширине содержимого */
+  /* .pr-body sets align-items: start for the grid; in a column this shrank the card to the content width */
   align-items: stretch;
   gap: 10px;
 }
@@ -1014,7 +1014,7 @@
   display: none;
 }
 
-/* ====================== ассемблер Мини-8 и RISC-V ====================== */
+/* ====================== Mini-8 and RISC-V assembler ====================== */
 .lab-asm-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1255,7 +1255,7 @@
   color: var(--text);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
 }
-/* итог проверки: компактная плашка в духе приложения — квадратные значок и кнопка, моноширинный шрифт */
+/* check result: a compact badge in the app's spirit - square icon and button, monospace font */
 .lab-alert {
   --alert-c: var(--amber);
   display: grid;
@@ -1526,7 +1526,7 @@
   font-size: 13px;
 }
 
-/* узкая страница (три колонки меню) — программа и машина друг под другом */
+/* narrow page (three menu columns) - program and machine one under another */
 .lab-asm {
   container-type: inline-size;
 }
@@ -1536,7 +1536,7 @@
   }
 }
 
-/* ручка под доской: за неё тянут, чтобы менять высоту, масштаб не меняется */
+/* handle under the board: drag it to change the height, the scale does not change */
 .lab-resize-grip {
   position: absolute;
   left: 50%;
@@ -1570,7 +1570,7 @@
   outline: none;
 }
 
-/* кнопки лаборатории — как в остальном приложении: квадратные, моноширинные, мельче */
+/* lab buttons - like in the rest of the app: square, monospace, smaller */
 .lab .quiz-btn {
   height: 26px;
   padding: 0 10px;

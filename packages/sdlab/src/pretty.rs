@@ -1,15 +1,15 @@
-//! Запись JSON для файлов данных: верхние уровни — по строке на поле, «листья» (узлы, цели, связи, нагрузка) — одной
-//! строкой, целые числа без `.0`. Читаемо в диффах и компактно.
+//! JSON writer for data files: top levels — one line per field, "leaves" (nodes, goals, links, workload) — on a single
+//! line, integers without `.0`. Readable in diffs and compact.
 
 use std::io;
 
 use serde::Serialize;
 use serde_json::ser::{CompactFormatter, Formatter};
 
-/// Форматировщик: развёрнуты контейнеры до глубины 4 и контейнеры с ключами `start`, `solution`, `nodes`, `goals`.
+/// Formatter: containers are expanded down to depth 4, as are containers under the keys `start`, `solution`, `nodes`, `goals`.
 struct Layout {
     depth: usize,
-    /// глубина контейнера, с которого всё пишется в одну строку
+    /// container depth from which everything is written on one line
     compact_from: Option<usize>,
     frames: Vec<Frame>,
     in_key: bool,
@@ -121,7 +121,7 @@ impl Formatter for Layout {
     }
 }
 
-/// Значение в виде текста файла данных (с переводом строки в конце).
+/// Value as data-file text (with a trailing newline).
 pub fn to_string<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
     let mut buf = Vec::new();
     let mut ser = serde_json::Serializer::with_formatter(&mut buf, Layout::new());

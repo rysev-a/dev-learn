@@ -1,10 +1,10 @@
-//! Быстрый симулятор схем без обратных связей, кроме триггеров. Порт `cpu8/sim.ts`.
+//! Fast simulator for circuits without feedback loops, except flip-flops. Port of `cpu8/sim.ts`.
 //!
-//! Схема «компилируется» один раз: вентили упорядочиваются по зависимостям, и каждый расчёт — один проход
-//! по массиву. Это в сотни раз быстрее общего симулятора ([`crate::eval`]) и нужно для процессора на ~1000
-//! вентилей, который за программу делает тысячи тактов.
+//! The circuit is "compiled" once: gates are sorted by dependencies, and each evaluation is a single pass
+//! over the array. This is hundreds of times faster than the general simulator ([`crate::eval`]) and is needed for the processor of ~1000
+//! gates, which runs thousands of clock cycles per program.
 //!
-//! Значения: 0, 1 и «неизвестно» (X = −1), как в общем симуляторе.
+//! Values: 0, 1 and "unknown" (X = −1), as in the general simulator.
 
 use crate::model::*;
 use std::collections::HashMap;
@@ -12,7 +12,7 @@ use std::fmt;
 
 const X: i8 = -1;
 
-/// В схеме есть петля без триггера.
+/// The circuit has a loop without a flip-flop.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CombinationalLoopError {
     pub nodes: Vec<String>,
@@ -31,7 +31,7 @@ impl std::error::Error for CombinationalLoopError {}
 struct Cell {
     ty: GateType,
     out: usize,
-    /// Индекс источника входа 0 (−1 — не подключён).
+    /// Index of the source of input 0 (−1 — not connected).
     a: i32,
     b: i32,
 }
@@ -54,7 +54,7 @@ struct Native {
     we: i32,
     clk: i32,
     prev: i8,
-    /// Содержимое: слова (rom: 16 бит) или байты (ram).
+    /// Contents: words (rom: 16 bits) or bytes (ram).
     data: Vec<u16>,
 }
 
@@ -64,10 +64,10 @@ enum Element {
     Native(usize),
 }
 
-/// Скомпилированная схема.
+/// Compiled circuit.
 #[derive(Debug, Clone)]
 pub struct CompiledSim {
-    /// Значения всех узлов; индекс — по таблице `index`.
+    /// Values of all nodes; index — by the `index` table.
     v: Vec<i8>,
     index: HashMap<String, usize>,
     cells: Vec<Cell>,
@@ -75,9 +75,9 @@ pub struct CompiledSim {
     dffs: Vec<Dff>,
     natives: Vec<Native>,
     aliases: Vec<(usize, usize)>,
-    /// Сколько вентилей в схеме (без триггеров).
+    /// How many gates are in the circuit (excluding flip-flops).
     pub gate_count: usize,
-    /// Сколько триггеров.
+    /// How many flip-flops.
     pub dff_count: usize,
 }
 
@@ -165,7 +165,7 @@ fn eval_gate(ty: GateType, a: i8, b: i8) -> i8 {
 }
 
 impl CompiledSim {
-    /// Компилирует схему; петля без триггера — ошибка.
+    /// Compiles the circuit; a loop without a flip-flop is an error.
     pub fn new(circuit: &Circuit) -> Result<CompiledSim, CombinationalLoopError> {
         let mut ix = Indexer::default();
 
@@ -173,7 +173,7 @@ impl CompiledSim {
         let native_outs: std::collections::HashSet<&str> =
             circuit.natives.iter().flat_map(|n| n.dout.iter().map(String::as_str)).collect();
 
-        // источник входа: wire.to → wire.from
+        // input source: wire.to → wire.from
         let mut source: HashMap<(&str, PinKind), &str> = HashMap::new();
         for w in &circuit.wires {
             source.insert((w.to.node.as_str(), w.to.pin), w.from.node.as_str());
@@ -188,7 +188,7 @@ impl CompiledSim {
             }
         }
 
-        // выходные узлы упражнения (не вентиль и не вход) — просто повторяют источник
+        // exercise output nodes (neither a gate nor an input) simply repeat their source
         let mut aliases = Vec::new();
         for w in &circuit.wires {
             if !gate_ids.contains(w.to.node.as_str()) && !native_outs.contains(w.to.node.as_str()) {
@@ -227,10 +227,10 @@ impl CompiledSim {
             });
         }
 
-        // все узлы, на которые что-то ссылается, должны существовать до создания массива значений
+        // all nodes referenced by anything must exist before the value array is created
         let index = ix.map;
         let mut v = vec![X; index.len() + 1];
-        // узлы-входы (источники без вентиля) стартуют с нуля, а не с «неизвестно»
+        // input nodes (sources without a gate) start at zero, not at "unknown"
         for w in &circuit.wires {
             let n = w.from.node.as_str();
             if !gate_ids.contains(n) && !native_outs.contains(n) {
@@ -240,7 +240,7 @@ impl CompiledSim {
             }
         }
         for d in &dffs {
-            v[d.out] = 0; // при включении триггеры в нуле
+            v[d.out] = 0; // at power-on the flip-flops are zero
         }
 
         let gate_count = cells.len();
@@ -251,7 +251,7 @@ impl CompiledSim {
         Ok(sim)
     }
 
-    /// Упорядочивание по зависимостям; петля без триггера — ошибка.
+    /// Ordering by dependencies; a loop without a flip-flop is an error.
     fn sort(&self) -> Result<Vec<Element>, CombinationalLoopError> {
         let elements: Vec<Element> = (0..self.cells.len())
             .map(Element::Gate)
@@ -285,10 +285,10 @@ impl CompiledSim {
             names
         };
 
-        let mut state = vec![0u8; elements.len()]; // 0 — не видели, 1 — внутри, 2 — готово
+        let mut state = vec![0u8; elements.len()]; // 0 — not seen, 1 — in progress, 2 — done
         let mut result = Vec::with_capacity(elements.len());
 
-        // обход в глубину без рекурсии: схема может быть глубиной в сотни уровней
+        // depth-first traversal without recursion: the circuit may be hundreds of levels deep
         struct Frame {
             i: usize,
             next: usize,
@@ -332,14 +332,14 @@ impl CompiledSim {
         Ok(result)
     }
 
-    /* ---------- значения ---------- */
+    /* ---------- values ---------- */
 
-    /// Есть ли такой узел.
+    /// Does such a node exist.
     pub fn has(&self, node: &str) -> bool {
         self.index.contains_key(node)
     }
 
-    /// Значение узла; `None` — «неизвестно» или узла нет.
+    /// Node value; `None` — "unknown" or no such node.
     pub fn get(&self, node: &str) -> NodeValue {
         let i = *self.index.get(node)?;
         match self.v[i] {
@@ -348,14 +348,14 @@ impl CompiledSim {
         }
     }
 
-    /// Задать значение входа: любое ненулевое число — единица.
+    /// Set an input value: any non-zero number — one.
     pub fn set(&mut self, node: &str, value: i32) {
         if let Some(i) = self.index.get(node) {
             self.v[*i] = (value != 0) as i8;
         }
     }
 
-    /// Расчёт всей комбинационной части: один проход.
+    /// Evaluation of the whole combinational part: a single pass.
     pub fn settle(&mut self) {
         for k in 0..self.order.len() {
             match self.order[k] {
@@ -381,8 +381,8 @@ impl CompiledSim {
         }
     }
 
-    /// Один период такта: CLK = 0, затем фронт 0 → 1 и снова 0. Триггеры и запись в память берут
-    /// значения, посчитанные ДО фронта. Нет узла такта — ошибка с понятным текстом.
+    /// One clock period: CLK = 0, then the edge 0 → 1 and back to 0. Flip-flops and memory writes take
+    /// the values computed BEFORE the edge. No clock node — an error with a clear message.
     pub fn pulse(&mut self, clk_node: &str) -> Result<(), String> {
         let c = *self.index.get(clk_node).ok_or_else(|| i18n::trf!("No clock node “{0}”", clk_node))?;
         self.v[c] = 0;
@@ -395,9 +395,9 @@ impl CompiledSim {
         }
 
         self.v[c] = 1;
-        self.settle(); // такт поднялся: вентили на пути такта (если есть) пересчитались
+        self.settle(); // the clock has risen: gates on the clock path (if any) have been recomputed
 
-        // что нужно «защёлкнуть» — выбираем, пока ничего не изменилось
+        // what needs to be "latched" — choose while nothing has changed yet
         let mut latched: Vec<(usize, i8)> = Vec::new();
         for d in &self.dffs {
             if d.prev == 0 && d.clk >= 0 && get_v(&self.v, d.clk) == 1 {
@@ -430,7 +430,7 @@ impl CompiledSim {
         Ok(())
     }
 
-    /* ---------- память ---------- */
+    /* ---------- memory ---------- */
 
     fn native_mut(&mut self, id: &str, kind: NativeKind) -> Result<&mut Native, String> {
         match self.natives.iter_mut().find(|n| n.id == id && n.kind == kind) {
@@ -439,7 +439,7 @@ impl CompiledSim {
         }
     }
 
-    /// Загрузить программу в ПЗУ (слова по 16 бит).
+    /// Load a program into ROM (16-bit words).
     pub fn load_rom(&mut self, id: &str, words: &[u16]) -> Result<(), String> {
         let n = self.native_mut(id, NativeKind::Rom)?;
         n.data.fill(0);
@@ -452,7 +452,7 @@ impl CompiledSim {
         Ok(())
     }
 
-    /// Загрузить диск в ОЗУ (байты).
+    /// Load a disk into RAM (bytes).
     pub fn load_ram(&mut self, id: &str, bytes: &[u8]) -> Result<(), String> {
         let n = self.native_mut(id, NativeKind::Ram)?;
         n.data.fill(0);
@@ -465,17 +465,17 @@ impl CompiledSim {
         Ok(())
     }
 
-    /// Копия содержимого памяти.
+    /// Copy of memory contents.
     pub fn memory(&self, id: &str) -> Result<Vec<u16>, String> {
         self.natives.iter().find(|n| n.id == id).map(|n| n.data.clone()).ok_or_else(|| i18n::trf!("No memory “{0}”", id))
     }
 
-    /// Есть ли память с таким id.
+    /// Is there a memory with this id.
     pub fn has_native(&self, id: &str) -> bool {
         self.natives.iter().any(|n| n.id == id)
     }
 
-    /// Число из значений узлов (старший первым); `None`, если где-то «неизвестно».
+    /// Number from node values (most significant first); `None` if something is "unknown".
     pub fn read(&self, nodes: &[String]) -> Option<u32> {
         let mut r = 0u32;
         for n in nodes {
@@ -485,7 +485,7 @@ impl CompiledSim {
     }
 }
 
-/// Нумерация узлов по именам.
+/// Numbering of nodes by name.
 #[derive(Default)]
 struct Indexer {
     map: HashMap<String, usize>,
@@ -497,7 +497,7 @@ impl Indexer {
         *self.map.entry(name.to_string()).or_insert(n)
     }
 
-    /// Ссылка на узел: индекс или −1, если узел не задан.
+    /// Reference to a node: index or −1 if the node is not given.
     fn reference(&mut self, node: Option<&str>) -> i32 {
         match node {
             Some(n) => self.idx(n) as i32,

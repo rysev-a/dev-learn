@@ -1,10 +1,10 @@
-//! «Дискретная математика»: схемы глав 1–10, переписанные с ручной отрисовки React (`slides/anim/C<n>*.tsx`, `kit.tsx`) на данные.
-//! Каждая глава — файл `chNN.rs` с функцией `scenes()`: пары «имя прежнего компонента — описание сцены». Остальное в слайдах
-//! (заголовки, «ГЛАВНОЕ», врезки) переносится из TypeScript автоматически.
+//! "Discrete mathematics": diagrams of chapters 1–10, rewritten from manual React rendering (`slides/anim/C<n>*.tsx`, `kit.tsx`) to data.
+//! Each chapter is a file `chNN.rs` with a `scenes()` function: pairs "former component name — scene description". The rest of the slides
+//! (titles, "KEY POINTS", insets) is ported from TypeScript automatically.
 
 use content::SceneSpec;
 
-/// Все переписанные сцены.
+/// All rewritten scenes.
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     let mut all = Vec::new();
     all.extend(ch01::scenes());

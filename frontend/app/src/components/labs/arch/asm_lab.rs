@@ -1,5 +1,5 @@
-//! Ассемблер процессора «Мини-8»: пишем программу, смотрим машинный код и запускаем её на виртуальном диске в
-//! эмуляторе или на процессоре, собранном из вентилей (`AsmLab.tsx`, `AsmShared.tsx`).
+//! Assembler of the Mini-8 processor: write a program, look at the machine code and run it on a virtual disk in an
+//! emulator or on a processor built from gates (`AsmLab.tsx`, `AsmShared.tsx`).
 
 use std::sync::Arc;
 
@@ -19,26 +19,26 @@ use leptos::prelude::*;
 use super::{common::ResultAlert, cpu::CpuInspector};
 use crate::components::labs::LabProps;
 
-/// Ячеек памяти в строке сетки.
+/// Memory cells per grid row.
 const ROW_LEN: usize = 16;
 
-/// Чем выполняется программа.
+/// What runs the program.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Engine {
-    /// быстрая программа-эмулятор
+    /// fast emulator program
     Emu,
-    /// тот же процессор, собранный из вентилей
+    /// the same processor built from gates
     Gates,
 }
 
-/// Машина выбранного вида.
+/// Machine of the selected kind.
 pub enum Sim {
     Emu(Box<Machine>),
     Gates(Box<GateMachine>),
 }
 
 impl Sim {
-    /// Новая машина с программой и диском; процессор на вентилях может не собраться — тогда причина.
+    /// New machine with a program and disk; the gate-level processor may fail to build — then the reason.
     pub fn build(engine: Engine, asm: &AsmResult, disk: &[u8]) -> Result<Option<Sim>, String> {
         if !asm.errors.is_empty() {
             return Ok(None);
@@ -71,7 +71,7 @@ impl Sim {
     }
 }
 
-/// Итог задания по состоянию машины: ошибка, «ещё работает» (`None`) или сверка диска с ожидаемым.
+/// Task outcome from the machine state: an error, "still running" (`None`) or a comparison of the disk with the expected one.
 pub fn task_result(view: &MachineView, expected: &[u8]) -> Option<(bool, String)> {
     if let Some(err) = &view.error {
         return Some((false, err.clone()));
@@ -82,26 +82,26 @@ pub fn task_result(view: &MachineView, expected: &[u8]) -> Option<(bool, String)
     })
 }
 
-/// Ячейка сетки памяти.
+/// Memory grid cell.
 #[derive(Clone, Debug, PartialEq)]
 pub struct MemCell {
     pub addr: usize,
     pub hex: String,
     pub ch: char,
-    /// байт отличается от исходного содержимого диска
+    /// the byte differs from the original disk contents
     pub changed: bool,
     pub read: bool,
     pub written: bool,
-    /// номер области диска; `None` — вне областей
+    /// disk region number; `None` means outside any region
     pub region: Option<usize>,
 }
 
-/// Номер области диска, в которую попал адрес.
+/// Number of the disk region containing the address.
 pub fn region_of(regions: &[DiskRegion], addr: usize) -> Option<usize> {
     regions.iter().position(|r| addr >= r.from && addr < r.from + r.length)
 }
 
-/// Сетка памяти из строк по 16 байт: что изменила программа, что прочла и что записала последним.
+/// Memory grid of 16-byte rows: what the program changed, what it read and what it wrote last.
 pub fn memory_rows(mem: &[u8], disk: &[u8], view: Option<&MachineView>, regions: &[DiskRegion], rows: usize) -> Vec<(usize, Vec<MemCell>)> {
     (0..rows)
         .map(|row| {
@@ -125,7 +125,7 @@ pub fn memory_rows(mem: &[u8], disk: &[u8], view: Option<&MachineView>, regions:
         .collect()
 }
 
-/// Класс ячейки сетки.
+/// Grid cell class.
 pub fn cell_class(c: &MemCell) -> String {
     let mut out = String::from("lab-cell");
     if let Some(r) = c.region {
@@ -140,7 +140,7 @@ pub fn cell_class(c: &MemCell) -> String {
     out
 }
 
-/// Сетка памяти: адрес строки, шестнадцатеричные байты и текстовое представление.
+/// Memory grid: row address, hexadecimal bytes and text representation.
 #[component]
 pub fn MemoryGrid(#[prop(into)] rows: Signal<Vec<(usize, Vec<MemCell>)>>) -> impl IntoView {
     view! {
@@ -161,7 +161,7 @@ pub fn MemoryGrid(#[prop(into)] rows: Signal<Vec<(usize, Vec<MemCell>)>>) -> imp
     }
 }
 
-/// Ассемблер Мини-8: упражнение главы 15.
+/// Mini-8 assembler: chapter 15 exercise.
 #[component]
 pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
     let LabProps { task, draft, on_draft, solved, report, on_next, has_next } = props;
@@ -173,7 +173,7 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
     let selected = RwSignal::new(None::<usize>);
     let asm = Memo::new(move |_| source.with(|s| assemble(s)));
 
-    // машина создаётся заново при изменении программы, смене процессора и «Сбросить»
+    // the machine is recreated when the program changes, the processor changes, and on "Reset"
     let disk_bytes = spec.disk.0.clone();
     let build = {
         let disk = disk_bytes.clone();
@@ -220,7 +220,7 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
         let starter = spec.starter.clone();
         move |_| edit(starter.clone())
     };
-    // Tab в редакторе — два пробела, а не уход фокуса
+    // Tab in the editor is two spaces, not a focus change
     let on_key = move |e: web_sys::KeyboardEvent| {
         if e.key() != "Tab" {
             return;
@@ -252,7 +252,7 @@ pub fn AsmLab(props: LabProps, spec: Arc<AsmSpec>) -> impl IntoView {
         })
     };
 
-    // листинг машинного кода
+    // machine code listing
     let listing = move || {
         let pc = view.with(|v| v.as_ref().map(|v| v.pc));
         asm.with(|a| {
@@ -486,10 +486,10 @@ mod tests {
         DiskRegion { name: name.into(), from, length }
     }
 
-    /// Машина после `n` шагов (подсветка чтения и записи относится к последней выполненной команде).
+    /// Machine after `n` steps (the read and write highlighting refers to the last executed instruction).
     fn after_steps(source: &str, disk: &[u8], n: usize) -> MachineView {
         let asm = assemble(source);
-        let mut sim = Sim::build(Engine::Emu, &asm, disk).expect("эмулятор собирается").expect("программа без ошибок");
+        let mut sim = Sim::build(Engine::Emu, &asm, disk).expect("emulator builds").expect("program has no errors");
         for _ in 0..n {
             sim.step();
         }
@@ -498,14 +498,14 @@ mod tests {
 
     fn run_to_end(source: &str, disk: &[u8]) -> MachineView {
         let asm = assemble(source);
-        let mut sim = Sim::build(Engine::Emu, &asm, disk).expect("эмулятор собирается").expect("программа без ошибок");
+        let mut sim = Sim::build(Engine::Emu, &asm, disk).expect("emulator builds").expect("program has no errors");
         sim.run(RUN_LIMIT);
         sim.view()
     }
 
     #[test]
     fn broken_program_has_no_machine() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let asm = assemble("zzz r1");
         assert!(!asm.errors.is_empty());
         assert!(matches!(Sim::build(Engine::Emu, &asm, &[0; 256]), Ok(None)));
@@ -513,27 +513,27 @@ mod tests {
 
     #[test]
     fn result_is_known_only_after_halt_or_error() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut expected = vec![0u8; 256];
         expected[0] = 7;
         let running = MachineView { regs: vec![0; 8], pc: 0, mem: vec![0; 256], halted: false, error: None, steps: 0, last_read: None, last_write: None, last_reg: None };
         assert_eq!(task_result(&running, &expected), None);
-        let err = MachineView { error: Some("сломалось".into()), ..running.clone() };
-        assert_eq!(task_result(&err, &expected), Some((false, "сломалось".to_string())));
+        let err = MachineView { error: Some("broke".into()), ..running.clone() };
+        assert_eq!(task_result(&err, &expected), Some((false, "broke".to_string())));
         let done = run_to_end("li r1, 7\nsb r1, 0(r0)\nhlt", &[0; 256]);
         assert_eq!(task_result(&done, &expected).map(|r| r.0), Some(true));
         let wrong = run_to_end("li r1, 8\nsb r1, 0(r0)\nhlt", &[0; 256]);
-        let r = task_result(&wrong, &expected).expect("остановилась");
+        let r = task_result(&wrong, &expected).expect("stopped");
         assert!(!r.0 && r.1.contains("0x00"), "{}", r.1);
     }
 
     #[test]
     fn memory_grid_marks_changes_reads_writes_and_regions() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let disk = vec![0u8; 256];
-        // li, sb — записали 65 по адресу 3
+        // li, sb — wrote 65 to address 3
         let wrote = after_steps("li r1, 65\nsb r1, 3(r0)\nlb r2, 4(r0)\nhlt", &disk, 2);
-        let regions = [region("вход", 0, 4), region("выход", 4, 4)];
+        let regions = [region("input", 0, 4), region("output", 4, 4)];
         let rows = memory_rows(&wrote.mem, &disk, Some(&wrote), &regions, 16);
         assert_eq!(rows.len(), 16);
         let cells = &rows[0].1;
@@ -544,7 +544,7 @@ mod tests {
         assert_eq!(cells[0].ch, '·');
         assert_eq!(rows[1].0, 16);
         assert_eq!(cell_class(&cells[3]), "lab-cell rg0 changed written");
-        // lb — прочли адрес 4
+        // lb — read address 4
         let read = after_steps("li r1, 65\nsb r1, 3(r0)\nlb r2, 4(r0)\nhlt", &disk, 3);
         let cell = &memory_rows(&read.mem, &disk, Some(&read), &regions, 1)[0].1[4];
         assert!(!cell.changed && cell.read && !cell.written);
@@ -553,16 +553,16 @@ mod tests {
 
     #[test]
     fn region_lookup_is_half_open() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let regions = [region("a", 0, 4), region("b", 4, 4)];
         assert_eq!((region_of(&regions, 3), region_of(&regions, 4), region_of(&regions, 8)), (Some(0), Some(1), None));
     }
 
     #[test]
     fn gate_machine_runs_the_same_program_as_the_emulator() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let asm = assemble("li r1, 5\nli r2, 3\nadd r3, r1, r2\nsb r3, 0(r0)\nhlt");
-        let mut gates = Sim::build(Engine::Gates, &asm, &[0; 256]).expect("процессор собирается").expect("без ошибок");
+        let mut gates = Sim::build(Engine::Gates, &asm, &[0; 256]).expect("processor builds").expect("no errors");
         gates.run(RUN_LIMIT);
         let emu = run_to_end("li r1, 5\nli r2, 3\nadd r3, r1, r2\nsb r3, 0(r0)\nhlt", &[0; 256]);
         assert_eq!(gates.view().mem, emu.mem);

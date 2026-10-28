@@ -1,14 +1,14 @@
-//! Лаборатория «Компьютерные сети» (книга 15): модель сети, симулятор, мини-терминал Linux, проверка целей и
-//! данные упражнений. Общий крейт интерфейса (wasm) и бэкенда (серверная проверка присланного решения).
+//! "Computer Networks" lab (book 15): network model, simulator, Linux mini-terminal, goal checking and
+//! exercise data. Shared crate of the interface (wasm) and the backend (server-side check of a submitted solution).
 //!
-//! * [`types`], [`model`], [`ip`] — состояние сети (устройства, интерфейсы, кабели, службы) и операции над ним;
-//! * [`sim`] — кадры, ARP, коммутаторы и VLAN, маршрутизация, TCP/UDP/ICMP, NAT, файрвол, MTU, туннели,
-//!   балансировщик; [`dns`], [`http`], [`tls`], [`ssh`], [`transfer`], [`pageload`], [`capture`], [`attacks`] — службы
-//!   и модели поверх неё;
-//! * [`term`] — мини-терминал (`exec`) и общие для форм функции настройки;
-//! * [`check`] — цели упражнений и шаги решения, [`lab`] — данные упражнений и [`lab::verify`].
+//! * [`types`], [`model`], [`ip`]: network state (devices, interfaces, cables, services) and operations on it;
+//! * [`sim`]: frames, ARP, switches and VLAN, routing, TCP/UDP/ICMP, NAT, firewall, MTU, tunnels,
+//!   load balancer; [`dns`], [`http`], [`tls`], [`ssh`], [`transfer`], [`pageload`], [`capture`], [`attacks`]: services
+//!   and models on top of it;
+//! * [`term`]: mini-terminal (`exec`) and the configuration functions shared with the forms;
+//! * [`check`]: exercise goals and solution steps, [`lab`]: exercise data and [`lab::verify`].
 //!
-//! Всё детерминировано; время — в микросекундах. Крейт не знает о wasm: он собирается и нативно, и под
+//! Everything is deterministic; time is in microseconds. The crate knows nothing about wasm: it builds natively and for
 //! `wasm32-unknown-unknown`.
 
 #![allow(clippy::result_large_err, clippy::too_many_arguments, clippy::large_enum_variant)]

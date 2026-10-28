@@ -1,12 +1,12 @@
-//! «Python как первый язык», глава 0 — «Что такое язык программирования и почему Питон»: 14 слайдов, на каждом — схема на общем DSL.
-//! Генератор: перенос с `frontend/src/slides/py/ch00.tsx` и `anim/Py00.tsx` в данные; метки `cues` посчитаны по доле символов (озвучки пока нет).
+//! "Python as a First Language", chapter 0 — "What a programming language is and why Python": 14 slides, each with a diagram on the shared DSL.
+//! Generator: port of `frontend/src/slides/py/ch00.tsx` and `anim/Py00.tsx` to data; `cues` marks computed by character share (no voice-over yet).
 
 use content::{
     dsl::{arrow, asm, bar, bx, c_code, code, py, slot, text},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, Y,
 };
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/13-00.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/13-00.json`.
 pub fn chapter() -> Chapter {
     Chapter {
         book: 13,
@@ -31,25 +31,25 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 1, 2, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 1, 2, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен главы ----------------------------------------------------------------------
+// --- chapter scene helpers --------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр, `tone`, шрифт `size`.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотной таблицы кадров
+/// Rectangle with a label: (x, y) — centre, `tone`, font `size`.
+#[allow(clippy::too_many_arguments)] // short helper for a dense frame table
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись `size`; `tone` — цвет подписи.
+/// Short label `size`; `tone` — label colour.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Ряд двоичных цифр по клетке.
+/// Row of binary digits, one per cell.
 fn bits(prefix: &str, x0: f64, y: f64, digits: &str, tone: Tone, w: f64) -> Vec<content::item::Cell> {
     digits.chars().enumerate().map(|(i, ch)| bx(format!("{prefix}{i}"), x0 + i as f64 * (w + 1.0), y, w, 18.0, ch.to_string()).tone(tone).size(8.5)).collect()
 }
@@ -59,7 +59,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
 }
 
 
-// 1. Картина целиком
+// 1. The whole picture
 fn v01() -> SceneSpec {
     spec(
         &["Вопросы", "Кирпичики", "План"],
@@ -88,7 +88,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Программа — рецепт
+// 2. A program is a recipe
 fn v02() -> SceneSpec {
     spec(
         &["Рецепт", "Компьютер буквален", "Посредник"],
@@ -114,7 +114,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Уровни языков
+// 3. Language levels
 fn v03() -> SceneSpec {
     spec(
         &["Машинный код", "Ассемблер", "Питон"],
@@ -138,7 +138,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Компилятор и интерпретатор
+// 4. Compiler and interpreter
 fn v04() -> SceneSpec {
     spec(
         &["Компилятор", "Интерпретатор", "Консоль"],
@@ -167,7 +167,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Типы и стили
+// 5. Types and styles
 fn v05() -> SceneSpec {
     spec(
         &["Статическая типизация", "Динамическая типизация", "Стили"],
@@ -190,7 +190,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Почему Питон
+// 6. Why Python
 fn v06() -> SceneSpec {
     spec(
         &["Читаемость", "Популярность", "Батарейки"],
@@ -219,7 +219,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Где применяют
+// 7. Where it is used
 fn v07() -> SceneSpec {
     spec(
         &["Веб", "Данные и ML", "Автоматизация и утилиты"],
@@ -250,7 +250,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. Первый язык
+// 8. First language
 fn v08() -> SceneSpec {
     spec(
         &["Идеи переносятся", "Диалекты", "Путь курса"],
@@ -277,7 +277,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. Пять кирпичиков
+// 9. Five building blocks
 fn v09() -> SceneSpec {
     spec(
         &["Данные", "Управление", "Функции и классы"],
@@ -306,7 +306,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. Переменные и типы
+// 10. Variables and types
 fn v10() -> SceneSpec {
     spec(
         &["Имя и значение", "Типы значений", "Коллекции"],
@@ -329,7 +329,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Условия и циклы
+// 11. Conditions and loops
 fn v11() -> SceneSpec {
     spec(
         &["Условие", "Цикл", "Отступы"],
@@ -348,7 +348,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Функция
+// 12. Function
 fn v12() -> SceneSpec {
     spec(
         &["Описание", "Вызов", "Параметры и результат"],
@@ -370,7 +370,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Класс
+// 13. Class
 fn v13() -> SceneSpec {
     spec(
         &["Чертёж", "Объекты", "Методы"],
@@ -392,7 +392,7 @@ fn v13() -> SceneSpec {
     )
 }
 
-// 14. Итоги
+// 14. Summary
 fn v14() -> SceneSpec {
     spec(
         &["Главное", "Как учиться", "Дальше"],
@@ -423,7 +423,7 @@ fn v14() -> SceneSpec {
 mod tests {
     use super::*;
 
-    /// Глава проходит проверку (все сцены компилируются), у каждого слайда одна схема из трёх шагов с возрастающими метками.
+    /// The chapter passes the check (all scenes compile), each slide has one diagram of three steps with increasing marks.
     #[test]
     fn every_scene_compiles_and_matches_its_slide() {
         let ch = chapter();

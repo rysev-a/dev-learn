@@ -1,5 +1,5 @@
-//! Редактор кода для упражнений: `<textarea>` с подсветкой, нарисованной под ним (общий лексер crate `highlight`).
-//! Tab вставляет отступ, Ctrl/Cmd+Enter — проверить. Высота растёт по числу строк.
+//! Code editor for exercises: a `<textarea>` with highlighting drawn underneath (shared lexer from the `highlight` crate).
+//! Tab inserts an indent, Ctrl/Cmd+Enter checks. The height grows with the number of lines.
 
 use highlight::{highlight, Lang};
 use leptos::{html, prelude::*};
@@ -7,7 +7,7 @@ use wasm_bindgen::JsCast;
 
 const INDENT: &str = "    ";
 
-/// Вставка отступа вместо смены фокуса: новое значение и позиция курсора (в символах).
+/// Inserts an indent instead of moving focus: the new value and cursor position (in characters).
 pub fn insert_indent(value: &str, start: usize, end: usize) -> (String, usize) {
     let chars: Vec<char> = value.chars().collect();
     let (start, end) = (start.min(chars.len()), end.min(chars.len()));
@@ -23,10 +23,10 @@ pub fn CodeEditor(
     on_input: Callback<String>,
     on_run: Callback<()>,
     #[prop(default = Lang::Python)] lang: Lang,
-    /// решение принято: зелёная рамка
+    /// solution accepted: green border
     #[prop(into, default = false.into())]
     accepted: Signal<bool>,
-    /// фокус при создании
+    /// focus on creation
     #[prop(default = true)]
     autofocus: bool,
 ) -> impl IntoView {
@@ -73,7 +73,7 @@ pub fn CodeEditor(
             let _ = el.set_selection_range(caret as u32, caret as u32);
         }
     };
-    // подсветка под текстом двигается вместе с горизонтальной прокруткой поля
+    // the highlight under the text moves together with the field's horizontal scroll
     let on_scroll = move |_| {
         if let (Some(a), Some(s)) = (area.get(), shade.get()) {
             if let Ok(s) = s.clone().dyn_into::<web_sys::HtmlElement>() {
@@ -108,7 +108,7 @@ mod tests {
     fn indent_replaces_the_selection_and_moves_the_caret() {
         assert_eq!(insert_indent("ab", 1, 1), ("a    b".to_string(), 5));
         assert_eq!(insert_indent("abcd", 1, 3), ("a    d".to_string(), 5));
-        assert_eq!(insert_indent("я", 1, 1), ("я    ".to_string(), 5), "позиции — в символах, не в байтах");
-        assert_eq!(insert_indent("x", 9, 9).0, "x    ", "позиция за концом не ломает строку");
+        assert_eq!(insert_indent("é", 1, 1), ("é    ".to_string(), 5), "positions are in characters, not bytes");
+        assert_eq!(insert_indent("x", 9, 9).0, "x    ", "a position past the end does not break the line");
     }
 }

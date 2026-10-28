@@ -3,7 +3,7 @@ name = "scene"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Покадровые анимированные схемы слайдов: модель сцены, помощники авторов, подсветка кода и компоненты Leptos."
+description = "Frame-by-frame animated slide scenes: scene model, authoring helpers, code highlighting and Leptos components."
 
 [dependencies]
 content.workspace = true

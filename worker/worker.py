@@ -1,13 +1,13 @@
-"""Воркер проверки кода: забирает задания у основного сервера и запускает их в песочнице Docker.
+"""Code-checking worker: fetches jobs from the main server and runs them in a Docker sandbox.
 
-Работает на отдельной машине (например, в VM на домашнем сервере). Ему нужен только исходящий HTTPS до основного
-сервера: ни открытых портов, ни доступа к базе. Только стандартная библиотека Python и Docker с образами
+Runs on a separate machine (e.g. a VM on a home server). It needs only outgoing HTTPS to the main
+server: no open ports, no database access. Only the Python standard library and Docker with the images
 (python:3.13-slim, rust:1.97-slim, node:22-alpine, cs-core-rust-crates:1).
 
     CS_CORE_WORKER_TOKEN=… uv run worker.py --server https://cs-core.example.com --name home-1 --light 4 --heavy 2
 
-На основном сервере: CS_CORE_RUNNER=remote и тот же CS_CORE_WORKER_TOKEN. Сигнал остановки (Ctrl+C, SIGTERM) дожидается
-выполняющихся проверок."""
+On the main server: CS_CORE_RUNNER=remote and the same CS_CORE_WORKER_TOKEN. A stop signal (Ctrl+C, SIGTERM) waits for
+running checks to finish."""
 
 import argparse
 import json
@@ -26,7 +26,7 @@ LANES_ORDER = ("light", "heavy")
 
 
 def decode(o):
-    """Кортежи в определении задачи приходят как {"__tuple__": [...]} (как в app/exercises/store.py)."""
+    """Tuples in a task definition arrive as {"__tuple__": [...]} (as in app/exercises/store.py)."""
     if isinstance(o, dict):
         if set(o) == {"__tuple__"}:
             return tuple(decode(x) for x in o["__tuple__"])
@@ -78,7 +78,7 @@ class Worker:
                     {"name": self.name, "lanes": list(self.slots), "slots": sum(self.slots.values()), "jobs": jobs},
                 )
             except (OSError, ValueError) as e:
-                self.log(f"сервер недоступен: {e}")
+                self.log(f"server unavailable: {e}")
             self.stop.wait(PING_EVERY)
 
     def loop(self, lane: str) -> None:
@@ -96,7 +96,7 @@ class Worker:
                 backoff = min(backoff * 2, 30)
                 continue
             if code in (401, 404):
-                self.log("сервер отклонил токен воркера (проверьте CS_CORE_WORKER_TOKEN и CS_CORE_RUNNER=remote на сервере)")
+                self.log("server rejected the worker token (check CS_CORE_WORKER_TOKEN and CS_CORE_RUNNER=remote on the server)")
                 self.stop.wait(30)
                 continue
             if code != 200 or not job:
@@ -114,8 +114,8 @@ class Worker:
         t0 = time.time()
         try:
             result = runner.run_task(decode(job["task"]), job["code"])
-        except Exception as e:  # noqa: BLE001 — ошибка раннера не должна оставлять задание без ответа
-            result = {"status": "error", "results": [], "stdout": "", "stderr": f"Ошибка проверяющего сервера: {e}"}
+        except Exception as e:  # noqa: BLE001 — a runner error must not leave the job unanswered
+            result = {"status": "error", "results": [], "stdout": "", "stderr": f"Checker server error: {e}"}
         finally:
             with self.lock:
                 self.busy.discard(jid)
@@ -123,17 +123,17 @@ class Worker:
             try:
                 code, _ = self.server.post(f"/internal/worker/jobs/{jid}/result", {"name": self.name, "result": result})
             except (OSError, ValueError) as e:
-                self.log(f"результат {jid[:8]}: {e}")
+                self.log(f"result {jid[:8]}: {e}")
                 self.stop.wait(2 * (attempt + 1))
                 continue
             if code == 409:
-                self.log(f"результат {jid[:8]} не принят: аренда истекла")
+                self.log(f"result {jid[:8]} not accepted: lease expired")
             break
-        self.log(f"{job['lane']:5} {jid[:8]} {result.get('status')} {time.time() - t0:.1f} с")
+        self.log(f"{job['lane']:5} {jid[:8]} {result.get('status')} {time.time() - t0:.1f}s")
 
     def run(self) -> None:
         removed = runner.remove_stale_containers()
-        self.log(f"воркер {self.name}: полосы {self.slots}, убрано старых контейнеров: {removed}")
+        self.log(f"worker {self.name}: lanes {self.slots}, stale containers removed: {removed}")
         threads = [threading.Thread(target=self.beat, daemon=True)]
         for lane, n in self.slots.items():
             threads += [threading.Thread(target=self.loop, args=(lane,)) for _ in range(n)]
@@ -153,11 +153,11 @@ def main() -> None:
     ap.add_argument("--server", default=os.environ.get("CS_CORE_SERVER", "http://127.0.0.1:8000"))
     ap.add_argument("--token", default=os.environ.get("CS_CORE_WORKER_TOKEN", ""))
     ap.add_argument("--name", default=os.environ.get("CS_CORE_WORKER_NAME", os.uname().nodename))
-    ap.add_argument("--light", type=int, default=3, help="одновременных проверок python/js")
-    ap.add_argument("--heavy", type=int, default=1, help="одновременных проверок rust/c")
+    ap.add_argument("--light", type=int, default=3, help="concurrent python/js checks")
+    ap.add_argument("--heavy", type=int, default=1, help="concurrent rust/c checks")
     a = ap.parse_args()
     if not a.token:
-        sys.exit("Нужен токен: --token или CS_CORE_WORKER_TOKEN")
+        sys.exit("Token required: --token or CS_CORE_WORKER_TOKEN")
     w = Worker(Server(a.server, a.token), a.name, {"light": a.light, "heavy": a.heavy})
     signal.signal(signal.SIGTERM, lambda *_: w.stop.set())
     w.run()

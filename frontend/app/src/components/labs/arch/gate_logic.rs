@@ -1,5 +1,5 @@
-//! Чистая логика доски с вентилями: куда встанет элемент, как соединяются контакты, что происходит с проводами при
-//! удалении. Без интерфейса — проверяется тестами.
+//! Pure logic of the gate board: where an element lands, how pins connect, what happens to wires on
+//! deletion. No interface — covered by tests.
 
 use archlab::{
     layout::AutoWire,
@@ -9,38 +9,38 @@ use archlab::{
 use super::common::BOARD;
 use crate::components::labs::board_view::Point;
 
-/// Служебный id «призрака» элемента, который несут из палитры: автопроводка считает его уже стоящим на доске.
+/// Service id of the "ghost" of an element carried from the palette: auto-wiring treats it as already on the board.
 pub const DROP_ID: &str = "auto-new";
 
-/// Левый верхний угол элемента, центр которого в точке `at` (элемент остаётся в пределах «мира»).
+/// Top-left corner of an element whose center is at `at` (the element stays within the "world").
 pub fn gate_origin(at: Point) -> Point {
     BOARD.items.clamp(Point::new(at.x - GATE_W / 2.0, at.y - GATE_H / 2.0), (GATE_W, GATE_H))
 }
 
-/// Куда ставится элемент, брошенный на палитру: колонкой по центру доски.
+/// Where an element dropped on the palette goes: a column in the center of the board.
 pub fn palette_drop_spot(gates_on_board: usize) -> Point {
     Point::new(400.0, 100.0 + (gates_on_board % 4) as f64 * 70.0)
 }
 
-/// Предложенные автопроводкой связи, у которых вместо «призрака» теперь настоящий элемент.
+/// Links suggested by auto-wiring, with the real element in place of the "ghost".
 pub fn remap_drop(held: &[AutoWire], real_id: &str) -> Vec<AutoWire> {
     let remap = |r: &PinRef| if r.node == DROP_ID { PinRef { node: real_id.to_string(), pin: r.pin } } else { r.clone() };
     held.iter().map(|w| AutoWire { from: remap(&w.from), to: remap(&w.to), a: w.a, b: w.b }).collect()
 }
 
-/// Итог попытки соединить два контакта.
+/// Result of an attempt to connect two pins.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Connect {
-    /// нельзя: выход должен идти ко входу другого элемента
+    /// not allowed: an output must go to another element's input
     Rejected(&'static str),
-    /// замкнулся бы цикл: провод не ставится, а прежний провод на этом входе снят
+    /// a loop would close: the wire is not placed, and the previous wire on this input is removed
     Cycle(Vec<Wire>),
-    /// провод поставлен (прежний провод на этом входе заменён)
+    /// wire placed (the previous wire on this input is replaced)
     Added(Vec<Wire>),
 }
 
-/// Соединяет контакты `a` и `b` в любом порядке: выход берётся началом, вход — концом. Один вход — один провод.
-/// В пошаговом режиме (`steps_mode`) циклы разрешены: это суть защёлок.
+/// Connects pins `a` and `b` in either order: the output is the start, the input is the end. One input — one wire.
+/// In step mode (`steps_mode`) loops are allowed: that is the point of latches.
 pub fn connect(wires: &[Wire], a: &PinRef, b: &PinRef, steps_mode: bool, new_id: impl FnOnce() -> String) -> Connect {
     let (from, to) = if a.pin == PinKind::Out { (a, b) } else { (b, a) };
     if from.pin != PinKind::Out || to.pin == PinKind::Out || from.node == to.node {
@@ -55,13 +55,13 @@ pub fn connect(wires: &[Wire], a: &PinRef, b: &PinRef, steps_mode: bool, new_id:
     Connect::Added(next)
 }
 
-/// Убирает элемент и все его провода.
+/// Removes an element and all its wires.
 pub fn remove_gate(gates: &mut Vec<GateInstance>, wires: &mut Vec<Wire>, id: &str) {
     gates.retain(|g| g.id != id);
     wires.retain(|w| w.from.node != id && w.to.node != id);
 }
 
-/// Можно ли отпустить провод на этом контакте: нужен контакт другого вида (выход ↔ вход) на другом узле.
+/// Whether a wire can be released on this pin: it needs a pin of the other kind (output ↔ input) on another node.
 pub fn can_drop(pending: &PinRef, hover: &PinRef) -> bool {
     (pending.pin == PinKind::Out) != (hover.pin == PinKind::Out) && pending.node != hover.node
 }
@@ -77,14 +77,14 @@ mod tests {
 
     #[test]
     fn new_gate_is_centered_on_the_drop_point() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(gate_origin(Point::new(400.0, 200.0)), Point::new(368.0, 176.0));
         assert_eq!(gate_origin(Point::new(100_000.0, 100_000.0)), Point::new(3936.0, 2952.0));
     }
 
     #[test]
     fn dropping_on_the_palette_uses_a_column() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(palette_drop_spot(0), Point::new(400.0, 100.0));
         assert_eq!(palette_drop_spot(5), Point::new(400.0, 170.0));
         assert_eq!(palette_drop_spot(4), Point::new(400.0, 100.0));
@@ -92,31 +92,31 @@ mod tests {
 
     #[test]
     fn connect_takes_the_output_as_the_start_in_either_order() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let from = PinRef::out("A");
         let to = PinRef::inp("g1", PinKind::In0);
         for (a, b) in [(&from, &to), (&to, &from)] {
             match connect(&[], a, b, false, || "w1".into()) {
                 Connect::Added(w) => assert_eq!((w[0].from.clone(), w[0].to.clone()), (from.clone(), to.clone())),
-                other => panic!("ожидался провод, получено {other:?}"),
+                other => panic!("expected a wire, got {other:?}"),
             }
         }
     }
 
     #[test]
     fn connect_rejects_input_to_input_and_self_loops() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let (i0, i1) = (PinRef::inp("g1", PinKind::In0), PinRef::inp("g2", PinKind::In0));
         assert!(matches!(connect(&[], &i0, &i1, false, || "w".into()), Connect::Rejected(_)));
         let (o1, o2) = (PinRef::out("g1"), PinRef::out("g2"));
         assert!(matches!(connect(&[], &o1, &o2, false, || "w".into()), Connect::Rejected(_)));
         let own = PinRef::inp("g1", PinKind::In1);
-        assert!(matches!(connect(&[], &o1, &own, true, || "w".into()), Connect::Rejected(_)), "элемент не замыкают на себя даже в защёлках");
+        assert!(matches!(connect(&[], &o1, &own, true, || "w".into()), Connect::Rejected(_)), "an element is not wired to itself even in latches");
     }
 
     #[test]
     fn one_input_takes_one_wire() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let old = [wire("w1", "A", "g1", PinKind::In0), wire("w2", "B", "g1", PinKind::In1)];
         match connect(&old, &PinRef::out("C"), &PinRef::inp("g1", PinKind::In0), false, || "w3".into()) {
             Connect::Added(w) => {
@@ -129,8 +129,8 @@ mod tests {
 
     #[test]
     fn cycles_are_refused_outside_step_mode_and_allowed_inside_it() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        // g1 → g2, теперь g2 → g1 замкнёт круг
+        let _ru = locales::guard(i18n::Locale::Ru);
+        // g1 → g2, now g2 → g1 would close a loop
         let old = [wire("w1", "g1", "g2", PinKind::In0)];
         let (from, to) = (PinRef::out("g2"), PinRef::inp("g1", PinKind::In0));
         assert!(matches!(connect(&old, &from, &to, false, || "w2".into()), Connect::Cycle(rest) if rest.len() == 1));
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn removing_a_gate_removes_its_wires() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut gates = vec![
             GateInstance { id: "g1".into(), ty: GateType::Not, x: 0.0, y: 0.0 },
             GateInstance { id: "g2".into(), ty: GateType::And, x: 0.0, y: 0.0 },
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn auto_wires_of_the_ghost_move_to_the_real_gate() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let a = archlab::model::Point { x: 1.0, y: 2.0 };
         let held = [AutoWire { from: PinRef::out("A"), to: PinRef::inp(DROP_ID, PinKind::In0), a, b: a }, AutoWire { from: PinRef::out(DROP_ID), to: PinRef::inp("Y", PinKind::In0), a, b: a }];
         let real = remap_drop(&held, "g7");
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn drop_target_must_be_the_opposite_kind_of_pin_on_another_node() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let out = PinRef::out("g1");
         assert!(can_drop(&out, &PinRef::inp("g2", PinKind::In0)));
         assert!(!can_drop(&out, &PinRef::inp("g1", PinKind::In0)));

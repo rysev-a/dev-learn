@@ -1,4 +1,4 @@
-//! Слайды главы: рамка слайда и панель просмотра (шапка с плеером, сцена, точки).
+//! Chapter slides: slide frame and viewing panel (header with player, scene, dots).
 
 use leptos::prelude::*;
 
@@ -25,7 +25,35 @@ fn pause_icon() -> impl IntoView {
     }
 }
 
-/// Номер слайда после нажатия стрелки: вправо и вниз — вперёд, влево и вверх — назад; остальные клавиши — `None`.
+/// "Play + record": plays the slide while recording the voice to a file on the server (author tool, administrators only).
+#[derive(Clone, Copy)]
+pub struct RecordCtl {
+    /// recording in progress
+    pub on: Signal<bool>,
+    /// start recording the shown slide or stop the one in progress
+    pub toggle: Callback<()>,
+    /// short status: "Saving...", "Saved: ...", microphone or server error
+    pub status: Signal<Option<String>>,
+}
+
+fn record_icon() -> impl IntoView {
+    view! {
+        <svg width="14" height="11" viewBox="0 0 15 12" fill="currentColor">
+            <path d="M1 1.2v9.6L8.5 6z" />
+            <circle cx="12.2" cy="6" r="2.4" class="rec-dot" />
+        </svg>
+    }
+}
+
+fn stop_icon() -> impl IntoView {
+    view! {
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
+            <rect x="2" y="2" width="8" height="8" rx="1" />
+        </svg>
+    }
+}
+
+/// Slide number after an arrow key press: right and down go forward, left and up go back; other keys give `None`.
 pub fn arrow_target(key: &str, idx: usize, count: usize) -> Option<usize> {
     match key {
         "ArrowRight" | "ArrowDown" => Some((idx + 1).min(count.saturating_sub(1))),
@@ -34,37 +62,46 @@ pub fn arrow_target(key: &str, idx: usize, count: usize) -> Option<usize> {
     }
 }
 
-/// Панель просмотра: номер слайда, время главы, «Играть/Пауза», сам слайд и точки переключения. В полном экране шапка
-/// уходит в шапку оболочки, названия слайдов — в левое дерево, а сцена занимает всё поле; стрелки листают слайды.
+/// Viewing panel: slide number, chapter time, "Play/Pause", the slide itself and switching dots. In fullscreen the header
+/// moves into the shell header, slide titles into the left tree, and the scene takes the whole area; arrows flip slides.
 #[component]
 pub fn SlidePanel(
-    /// показанный слайд
+    /// the slide shown
     #[prop(into)]
     idx: Signal<usize>,
     count: usize,
-    /// названия слайдов для списка полного экрана
+    /// slide titles for the fullscreen list
     titles: Vec<String>,
-    /// позиция и длина главы, секунды
+    /// position and length of the chapter, seconds
     #[prop(into)]
     time: Signal<(f64, f64)>,
     #[prop(into)] playing: Signal<bool>,
     on_play: Callback<()>,
     on_pause: Callback<()>,
     on_pick: Callback<usize>,
-    /// слайд `i` на экране (пересоздаётся при смене слайда, как `key` в React)
+    /// slide `i` on screen (recreated when the slide changes, like `key` in React)
     stage: Callback<usize, AnyView>,
+    /// "Play + record" button next to "Play"; `None` - do not show
+    record: Option<RecordCtl>,
 ) -> impl IntoView {
     let controls = move || {
         view! {
             <span class="slide-panel-num">{move || format!("{:02} / {count:02}", idx.get() + 1)}</span>
             <span class="s-time-mono">{move || { let (t, d) = time.get(); format!("{} / {}", fmt_time(t), fmt_time(d)) }}</span>
+            {record.map(|r| view! {
+                <span class="slide-rec-status" title=move || r.status.get().unwrap_or_default()>{move || r.status.get()}</span>
+                <button class="slide-btn slide-rec" class:on=move || r.on.get() on:click=move |_| r.toggle.run(()) title=move || if r.on.get() { i18n::tr("Stop recording") } else { i18n::tr("Play and record the voice-over of this slide") }>
+                    {move || if r.on.get() { stop_icon().into_any() } else { record_icon().into_any() }}
+                    <span>{move || if r.on.get() { i18n::tr("Stop") } else { i18n::tr("Record") }}</span>
+                </button>
+            })}
             <button class="slide-btn" on:click=move |_| if playing.get() { on_pause.run(()) } else { on_play.run(()) } title=move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }>
                 {move || if playing.get() { pause_icon().into_any() } else { play_icon().into_any() }}
                 <span>{move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }}</span>
             </button>
         }
     };
-    // режим выбирается при создании: при смене полного экрана вкладка создаётся заново
+    // the mode is chosen at creation: when fullscreen changes the tab is recreated
     if expect_context::<Fullscreen>().is_on_untracked() {
         dom::on_window(leptos::ev::keydown, move |ev| {
             let typing = ev.target().and_then(|t| wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(t).ok()).is_some_and(|el| matches!(el.tag_name().as_str(), "INPUT" | "TEXTAREA") || el.is_content_editable());
@@ -109,9 +146,9 @@ mod tests {
     #[test]
     fn arrows_move_one_slide_and_stop_at_the_ends() {
         assert_eq!(arrow_target("ArrowRight", 2, 5), Some(3));
-        assert_eq!(arrow_target("ArrowDown", 4, 5), Some(4), "дальше последнего не идём");
+        assert_eq!(arrow_target("ArrowDown", 4, 5), Some(4), "do not go past the last");
         assert_eq!(arrow_target("ArrowLeft", 2, 5), Some(1));
-        assert_eq!(arrow_target("ArrowUp", 0, 5), Some(0), "раньше первого не идём");
+        assert_eq!(arrow_target("ArrowUp", 0, 5), Some(0), "do not go before the first");
         assert_eq!(arrow_target("Enter", 2, 5), None);
         assert_eq!(arrow_target("ArrowRight", 0, 0), Some(0));
     }

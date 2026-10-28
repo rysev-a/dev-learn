@@ -1,6 +1,6 @@
-//! Дискретная математика, глава 4 — «Бином, Паскаль и принцип Дирихле»: сцены.
-//! Перенос с `frontend/src/slides/anim/C4*.tsx` (React, `kit.tsx`) на данные: названия шагов, подписи и метки `cues` — как в
-//! прежних компонентах; группы `<G o={…}>` заменены присутствием элемента в кадре (отсутствующий гаснет на месте).
+//! Discrete mathematics, chapter 4 — "Binomial, Pascal and the pigeonhole principle": scenes.
+//! Port of `frontend/src/slides/anim/C4*.tsx` (React, `kit.tsx`) to data: step names, captions and `cues` marks — as in
+//! the former components; `<G o={…}>` groups are replaced by the element's presence in the frame (an absent one fades in place).
 
 use content::{
     dsl::{arrow, bar, bx, cell, circle, disc, dot, intersect, line, path, text, zone},
@@ -8,7 +8,7 @@ use content::{
     Frame, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-/// Сцены главы: имя прежнего компонента — описание.
+/// Chapter scenes: former component name — description.
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     vec![
         ("C4Intro", intro()),
@@ -27,7 +27,7 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники ---------------------------------------------------------------------------------------------------
+// --- helpers -----------------------------------------------------------------------------------------------------
 
 const ACCENT: &str = "var(--s-accent)";
 
@@ -35,37 +35,37 @@ fn put(f: &mut Frame, item: impl Into<Item>) {
     f.0.push(item.into());
 }
 
-/// Биномиальный коэффициент C(n, k).
+/// Binomial coefficient C(n, k).
 fn binom(n: u64, k: u64) -> u64 {
     (1..=k).fold(1, |r, i| r * (n - k + i) / i)
 }
 
-/// Центр клетки строки `r`, номера `c` в треугольнике с шагом (dx, dy).
+/// Centre of the cell in row `r`, number `c` of the triangle with step (dx, dy).
 fn tri_pos(r: usize, c: usize, dx: f64, dy: f64, cx: f64, y0: f64) -> (f64, f64) {
     (cx + (c as f64 - r as f64 / 2.0) * dx, y0 + r as f64 * dy)
 }
 
-/// Подпись `size` (приглушённая).
+/// Label `size` (muted).
 fn tx(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).size(size)
 }
 
-/// Моноширинная подпись `size`.
+/// Monospace label `size`.
 fn mono(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).mono().size(size)
 }
 
-/// Плашка: рамка и лёгкая заливка цвета `tone`, подпись `size`.
+/// Plate: frame and light fill of colour `tone`, label `size`.
 fn pill(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Зелёная плашка с подписью цвета акцента.
+/// Green plate with a label in the accent colour.
 fn pill_g(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, size: f64) -> Cell {
     pill(id, x, y, w, h, label, G, size).text_color(ACCENT)
 }
 
-/// Круг-узел треугольника: число внутри.
+/// Triangle node circle: number inside.
 fn tri_dot(id: String, x: f64, y: f64, r: f64, label: String, tone: Tone, size: f64) -> content::item::Dot {
     dot(id, x, y, label).r(r).size(size).tone(tone)
 }
@@ -74,7 +74,7 @@ fn sup(n: u64) -> String {
     n.to_string().chars().map(|d| "⁰¹²³⁴⁵⁶⁷⁸⁹".chars().nth(d.to_digit(10).unwrap_or(0) as usize).unwrap_or(d)).collect()
 }
 
-// --- 1. Введение ---------------------------------------------------------------------------------------------------
+// --- 1. Introduction -----------------------------------------------------------------------------------------------
 
 fn intro() -> SceneSpec {
     let frames = (0..4)
@@ -84,7 +84,7 @@ fn intro() -> SceneSpec {
                 put(&mut f, mono("title", 180.0, 84.0, "Бином, Паскаль, Дирихле", 15.0).tone(G));
             }
             if step == 1 || step == 2 {
-                // треугольник
+                // triangle
                 for r in 0..4 {
                     for c in 0..=r {
                         let (x, y) = tri_pos(r, c, 18.0, 17.0, 66.0, 30.0);
@@ -92,10 +92,10 @@ fn intro() -> SceneSpec {
                     }
                 }
                 put(&mut f, tx("l-tri", 66.0, 108.0, "треугольник", 9.5));
-                // бином
+                // binomial
                 put(&mut f, mono("bin", 180.0, 68.0, "(a+b)ⁿ", 18.0).tone(G));
                 put(&mut f, tx("l-bin", 180.0, 108.0, "формула", 9.5));
-                // кролики и клетки
+                // rabbits and cages
                 for i in 0..3 {
                     put(&mut f, zone(format!("cage{i}"), 265.0 + i as f64 * 28.0, 64.0, 22.0, 32.0).tone(B));
                 }
@@ -137,7 +137,7 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 2. Треугольник Паскаля ----------------------------------------------------------------------------------------
+// --- 2. Pascal's triangle ------------------------------------------------------------------------------------------
 
 fn pascal() -> SceneSpec {
     const ROWS: usize = 7;
@@ -184,7 +184,7 @@ fn pascal() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 3. Маршруты и сетка -------------------------------------------------------------------------------------------
+// --- 3. Routes and grid --------------------------------------------------------------------------------------------
 
 fn paths() -> SceneSpec {
     const PATH: [(usize, usize); 5] = [(0, 0), (1, 1), (2, 1), (3, 2), (4, 2)];
@@ -260,7 +260,7 @@ fn paths() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 4. Свойства треугольника --------------------------------------------------------------------------------------
+// --- 4. Triangle properties ----------------------------------------------------------------------------------------
 
 fn props() -> SceneSpec {
     const ROWS: usize = 7;
@@ -319,9 +319,9 @@ fn props() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 5. Бином Ньютона ----------------------------------------------------------------------------------------------
+// --- 5. Binomial theorem -------------------------------------------------------------------------------------------
 
-/// Члены разложения (a + b)ⁿ: коэффициент и одночлен.
+/// Terms of the expansion (a + b)ⁿ: coefficient and monomial.
 fn terms(n: u64) -> Vec<(u64, String)> {
     (0..=n)
         .map(|k| {
@@ -356,7 +356,7 @@ fn binomial() -> SceneSpec {
                     put(&mut f, tx("note", 180.0, 134.0, "ab и ba — одно слагаемое, поэтому коэффициент 2", 9.5));
                 }
                 _ => {
-                    // один и тот же ряд плашек: из трёх коэффициентов куба получаются пять коэффициентов четвёртой степени
+                    // the same row of plates: the three coefficients of the cube yield the five coefficients of the fourth power
                     let n: u64 = if step == 2 { 3 } else { 4 };
                     put(&mut f, mono("ttl", 180.0, 22.0, &format!("(a + b){}", sup(n)), 12.0));
                     for (i, (c, t)) in terms(n).iter().enumerate() {
@@ -388,9 +388,9 @@ fn binomial() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 6. Быстрые прикидки -------------------------------------------------------------------------------------------
+// --- 6. Quick estimates --------------------------------------------------------------------------------------------
 
-/// Десятичное число с запятой, три знака.
+/// Decimal number with a comma, three digits.
 fn dec3(v: f64) -> String {
     format!("{v:.3}").replace('.', ",")
 }
@@ -445,7 +445,7 @@ fn estimate() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 7. Включения и исключения: два множества ----------------------------------------------------------------------
+// --- 7. Inclusion–exclusion: two sets ------------------------------------------------------------------------------
 
 fn incl2() -> SceneSpec {
     let (a, b) = (disc(150.0, 70.0, 46.0), disc(210.0, 70.0, 46.0));
@@ -455,7 +455,7 @@ fn incl2() -> SceneSpec {
             if step <= 2 {
                 put(&mut f, circle("ca", 150.0, 70.0, 46.0).tone(B));
                 put(&mut f, circle("cb", 210.0, 70.0, 46.0).tone(G));
-                // общая часть: бледная на первом шаге, потом ярче
+                // shared part: pale at the first step, brighter afterwards
                 put(&mut f, intersect("both", a, b).tone(Y).fill_opacity(0.4).shown(if step >= 1 { 1.0 } else { 0.375 }));
                 put(&mut f, mono("na", 124.0, 74.0, "30", 13.0));
                 put(&mut f, mono("nab", 180.0, 74.0, "10", 13.0).tone(Y));
@@ -500,7 +500,7 @@ fn incl2() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 8. Включения и исключения: три множества ----------------------------------------------------------------------
+// --- 8. Inclusion–exclusion: three sets ----------------------------------------------------------------------------
 
 fn incl3() -> SceneSpec {
     const CIRCLES: [(f64, f64, Tone); 3] = [(140.0, 70.0, B), (200.0, 70.0, Y), (170.0, 112.0, G)];
@@ -562,13 +562,13 @@ fn incl3() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 9. Принцип Дирихле --------------------------------------------------------------------------------------------
+// --- 9. Pigeonhole principle ---------------------------------------------------------------------------------------
 
 fn pigeon() -> SceneSpec {
     let cage = |c: usize| 48.0 + c as f64 * 76.0;
     let frames = (0..4)
         .map(|step| {
-            // рассадка кроликов: на шаге 2 — другая, остальные — первая
+            // rabbit seating: at step 2 — a different one, the rest — the first
             let arr: [usize; 5] = if step == 2 { [3, 3, 0, 2, 3] } else { [0, 1, 1, 2, 3] };
             let placed = step >= 1;
             let cnt = |c: usize| arr.iter().filter(|&&a| a == c).count();
@@ -613,10 +613,10 @@ fn pigeon() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 10. Принцип Дирихле в хеш-таблицах ----------------------------------------------------------------------------
+// --- 10. Pigeonhole principle in hash tables -----------------------------------------------------------------------
 
 fn hash() -> SceneSpec {
-    const KEYS: [usize; 6] = [0, 1, 1, 2, 3, 1]; // ячейка каждого из шести ключей
+    const KEYS: [usize; 6] = [0, 1, 1, 2, 3, 1]; // bucket of each of the six keys
     let cell_x = |c: usize| 76.0 + c as f64 * 64.0;
     let frames = (0..5)
         .map(|step| {
@@ -643,20 +643,20 @@ fn hash() -> SceneSpec {
                     put(&mut f, zone(format!("box-{x}"), x, 71.0, 108.0, 94.0));
                     put(&mut f, tx(&format!("cap-{x}"), x, 136.0, t, 9.5));
                 }
-                // цепочка
+                // chaining
                 put(&mut f, bx("ch0", 60.0, 54.0, 52.0, 24.0, ""));
                 put(&mut f, dot("ch-d1", 46.0, 54.0, "1").r(7.0).size(8.0).tone(G));
                 put(&mut f, arrow("ch-ar", 54.0, 54.0, 64.0, 54.0).tone(G));
                 put(&mut f, dot("ch-d2", 74.0, 54.0, "2").r(7.0).size(8.0).tone(G));
                 put(&mut f, bx("ch1", 60.0, 90.0, 52.0, 24.0, ""));
-                // открытая адресация
+                // open addressing
                 for i in 0..3 {
                     put(&mut f, cell(format!("oa{i}"), 152.0 + i as f64 * 26.0, 72.0, "").w(24.0).h(32.0));
                 }
                 put(&mut f, dot("oa-d1", 152.0, 72.0, "1").r(7.0).size(8.0).tone(G));
                 put(&mut f, dot("oa-d2", 178.0, 72.0, "2").r(7.0).size(8.0).tone(Y));
                 put(&mut f, path("oa-hop", "M152 56 C160 36 172 36 178 54").tone(Y).width(1.4).arrow());
-                // расширение
+                // resizing
                 for i in 0..2 {
                     put(&mut f, cell(format!("ex-a{i}"), 270.0 + i as f64 * 18.0, 50.0, "").w(16.0).h(24.0));
                 }
@@ -665,7 +665,7 @@ fn hash() -> SceneSpec {
                     put(&mut f, cell(format!("ex-b{i}"), 270.0 + i as f64 * 18.0, 100.0, "").w(16.0).h(16.0).tone(G));
                 }
             }
-            // гистограммы: на шаге 2 столбики лежат невидимыми, на шаге 3 вырастают
+            // histograms: at step 2 the bars lie invisible, at step 3 they grow
             if step == 2 || step == 3 {
                 for (j, (title, tone, hs)) in [("хорошо: ровно", G, [30.0, 28.0, 32.0, 30.0]), ("плохо: кучно", R, [74.0, 20.0, 18.0, 8.0])].into_iter().enumerate() {
                     if step == 3 {
@@ -704,7 +704,7 @@ fn hash() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 11. Дни рождения и волосы -------------------------------------------------------------------------------------
+// --- 11. Birthdays and hairs ---------------------------------------------------------------------------------------
 
 fn birthday() -> SceneSpec {
     const N: usize = 23;
@@ -767,7 +767,7 @@ fn birthday() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 12. Криптографические хеши ------------------------------------------------------------------------------------
+// --- 12. Cryptographic hashes --------------------------------------------------------------------------------------
 
 fn crypto() -> SceneSpec {
     let frames = (0..4)
@@ -821,10 +821,10 @@ fn crypto() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 13. Итог главы ------------------------------------------------------------------------------------------------
+// --- 13. Chapter summary -------------------------------------------------------------------------------------------
 
 fn recap() -> SceneSpec {
-    // (крупная подпись, название, шаг, на котором карточка в фокусе)
+    // (large label, title, step at which the card is in focus)
     const CARDS: [(&str, &str, usize); 4] = [("Δ", "Паскаль", 1), ("(a+b)ⁿ", "бином", 2), ("∪ −", "включения", 3), ("5 > 4", "Дирихле", 3)];
     let frames = (0..5)
         .map(|step| {
@@ -863,7 +863,7 @@ mod tests {
     use super::*;
     use content::Scene;
 
-    /// Имена компонентов в порядке импортов `slides/dm/ch04.tsx`.
+    /// Component names in the import order of `slides/dm/ch04.tsx`.
     const NAMES: [&str; 13] = ["C4Intro", "C4Pascal", "C4Paths", "C4Props", "C4Binomial", "C4Estimate", "C4Incl2", "C4Incl3", "C4Pigeon", "C4Hash", "C4Birthday", "C4Crypto", "C4Recap"];
 
     #[test]

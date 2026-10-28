@@ -1,7 +1,7 @@
-//! Компоненты Leptos: оболочка сцены (кнопки шагов, холст, подпись), плавные узлы SVG и отрисовка элементов [`Item`].
+//! Leptos components: the scene shell (step buttons, canvas, caption), smooth SVG nodes and rendering of [`Item`] elements.
 //!
-//! Все элементы сцены существуют на экране всё время: на каждом шаге меняются только их свойства (положение, цвет, прозрачность),
-//! а плавность дают CSS-переходы класса `.a-t` из `App.css`.
+//! All scene elements exist on screen all the time: each step changes only their properties (position, color, opacity),
+//! and smoothness comes from the CSS transitions of the `.a-t` class in `App.css`.
 
 use std::sync::Arc;
 
@@ -17,10 +17,10 @@ use content::{
 
 use crate::{env::use_env, paint::Paint};
 
-/// Сцена невидима первые кадры и всплывает на CSS; движение внутри стартует после этой паузы.
+/// The scene is invisible for the first frames and fades in via CSS; motion inside starts after this pause.
 pub const REVEAL_MS: u32 = 800;
 
-/// Список строк для подписей сцены: принимает и `vec!["…"]`, и `Vec<String>` из данных.
+/// List of strings for scene captions: accepts both `vec!["…"]` and `Vec<String>` from data.
 #[derive(Clone, Debug, Default)]
 pub struct Strings(pub Vec<String>);
 
@@ -36,12 +36,12 @@ impl From<Vec<String>> for Strings {
     }
 }
 
-/// Управление шагами сцены.
+/// Scene step control.
 #[derive(Clone, Copy)]
 pub struct StepsCtl {
-    /// текущий шаг (0 — начало)
+    /// current step (0 — start)
     pub step: Signal<usize>,
-    /// номер последнего шага
+    /// index of the last step
     pub last: usize,
     manual: RwSignal<bool>,
     auto: RwSignal<bool>,
@@ -49,7 +49,7 @@ pub struct StepsCtl {
 }
 
 impl StepsCtl {
-    /// Ручной выбор шага: автосмена и привязка к голосу отключаются до нового запуска звука.
+    /// Manual step choice: auto-advance and voice binding are disabled until the sound is started again.
     pub fn pick(&self, i: usize) {
         self.manual.set(true);
         self.auto.set(false);
@@ -57,8 +57,8 @@ impl StepsCtl {
     }
 }
 
-/// Шаг сцены. `cues` — секунды от начала абзаца, когда наступают шаги 1, 2, …; пока слайд озвучивается, шаг берётся
-/// из времени голоса, иначе сцена сама проходит шаги по таймеру (`ms` на шаг) и останавливается на последнем.
+/// Scene step. `cues` are seconds from the start of the paragraph at which steps 1, 2, … begin; while the slide is voiced the step is taken
+/// from the voice time, otherwise the scene steps through on a timer (`ms` per step) and stops at the last one.
 pub fn use_steps(cues: Vec<f64>, ms: u32) -> StepsCtl {
     let env = use_env();
     let last = cues.len();
@@ -67,7 +67,7 @@ pub fn use_steps(cues: Vec<f64>, ms: u32) -> StepsCtl {
     let auto = RwSignal::new(!env.motion_off);
     let had_audio = StoredValue::new(false);
 
-    // новый запуск звука возвращает управление голосу
+    // a new sound start gives control back to the voice
     Effect::new(move |_| {
         let has = env.audio_time.get().is_some();
         if has && !had_audio.get_value() {
@@ -80,7 +80,7 @@ pub fn use_steps(cues: Vec<f64>, ms: u32) -> StepsCtl {
     let timer: StoredValue<Option<Timeout>, LocalStorage> = StoredValue::new_local(None);
     Effect::new(move |_| {
         let (step, auto, synced) = (raw.get(), auto.get(), synced.get());
-        timer.set_value(None); // отмена прежнего таймера
+        timer.set_value(None); // cancel the previous timer
         if synced || !auto || step >= last {
             return;
         }
@@ -96,7 +96,7 @@ pub fn use_steps(cues: Vec<f64>, ms: u32) -> StepsCtl {
     StepsCtl { step, last, manual, auto, raw }
 }
 
-/// Становится `true` через [`REVEAL_MS`] после показа сцены: с этого момента стартуют входные движения (появление фигур, рисование кривой).
+/// Becomes `true` [`REVEAL_MS`] after the scene is shown: from this moment the entry motions start (shapes appearing, curve drawing).
 pub fn use_reveal() -> Signal<bool> {
     let shown = RwSignal::new(use_env().motion_off);
     let timer: StoredValue<Option<Timeout>, LocalStorage> = StoredValue::new_local(None);
@@ -107,7 +107,7 @@ pub fn use_reveal() -> Signal<bool> {
     shown.into()
 }
 
-/// Оболочка сцены: кнопки шагов, холст SVG (ширина 360, высота `height`), подпись шага.
+/// Scene shell: step buttons, SVG canvas (width 360, height `height`), step caption.
 #[component]
 pub fn Stage(ctl: StepsCtl, #[prop(into)] labels: Strings, #[prop(into)] captions: Strings, #[prop(default = 170.0)] height: f64, children: Children) -> impl IntoView {
     let step = ctl.step;
@@ -140,7 +140,7 @@ pub fn Stage(ctl: StepsCtl, #[prop(into)] labels: Strings, #[prop(into)] caption
                 <defs>{heads}</defs>
                 {children()}
             </svg>
-            // новый элемент на каждом шаге — подпись появляется заново (CSS-анимация)
+            // a new element on each step — the caption appears again (CSS animation)
             {move || {
                 let note = captions.get(step.get()).cloned().unwrap_or_default();
                 view! { <div class="a-result"><span class="a-result-note">{note}</span></div> }
@@ -149,14 +149,14 @@ pub fn Stage(ctl: StepsCtl, #[prop(into)] labels: Strings, #[prop(into)] caption
     }
 }
 
-/// Плавно движущийся узел SVG: положение, прозрачность, масштаб.
+/// Smoothly moving SVG node: position, opacity, scale.
 #[component]
 pub fn G(
     #[prop(into, default = 0.0.into())] x: Signal<f64>,
     #[prop(into, default = 0.0.into())] y: Signal<f64>,
     #[prop(into, default = 1.0.into())] o: Signal<f64>,
     #[prop(into, default = 1.0.into())] s: Signal<f64>,
-    /// задержка перехода, мс
+    /// transition delay, ms
     #[prop(into, default = 0.0.into())] delay: Signal<f64>,
     #[prop(into, optional)] class: String,
     children: Children,
@@ -168,7 +168,7 @@ pub fn G(
     }
 }
 
-/// Плашка с текстом по центру, (x, y) — центр.
+/// Plate with centered text, (x, y) is the center.
 #[component]
 pub fn Pill(
     #[prop(into)] x: Signal<f64>,
@@ -194,7 +194,7 @@ pub fn Pill(
     }
 }
 
-/// Кружок-элемент с подписью, (x, y) — центр.
+/// Circle element with a label, (x, y) is the center.
 #[component]
 pub fn DotView(
     #[prop(into)] x: Signal<f64>,
@@ -220,7 +220,7 @@ pub fn DotView(
     }
 }
 
-/// Подпись; `o` — прозрачность (плавное появление).
+/// Label; `o` is opacity (smooth fade-in).
 #[component]
 pub fn Txt(
     #[prop(into)] x: f64,
@@ -228,9 +228,9 @@ pub fn Txt(
     #[prop(into, default = 1.0.into())] o: Signal<f64>,
     #[prop(default = "middle")] anchor: &'static str,
     #[prop(optional)] mono: bool,
-    /// цвет подписи; пусто — как у класса
+    /// label color; empty — as in the class
     #[prop(default = "")] color: &'static str,
-    /// размер шрифта; 0 — как у класса
+    /// font size; 0 — as in the class
     #[prop(default = 0.0)] size: f64,
     children: Children,
 ) -> impl IntoView {
@@ -247,9 +247,9 @@ pub fn Txt(
     view! { <text x=x y=y text-anchor=anchor class=format!("a-t {}", if mono { "a-mono" } else { "a-cap" }) style=style>{children()}</text> }
 }
 
-// --- отрисовка элементов сцены ---------------------------------------------------------------
+// --- scene element rendering ---------------------------------------------------------------
 
-/// Подпись с переносами: `\n` — новая строка, несколько строк центрируются по вертикали.
+/// Label with line breaks: `\n` is a new line, multiple lines are centered vertically.
 fn lines_view(text: String, anchor: &'static str, lh: f64) -> AnyView {
     let parts: Vec<String> = text.split('\n').map(String::from).collect();
     if parts.len() == 1 {
@@ -275,14 +275,14 @@ fn dash_css(dash: bool, pattern: &str) -> String {
     }
 }
 
-/// Производные сигналы по полям элемента: `at!(c, x)` → `Signal<f64>`.
+/// Derived signals over element fields: `at!(c, x)` → `Signal<f64>`.
 macro_rules! sig {
     ($m:ident . $f:ident) => {
         Signal::derive(move || $m.get().$f)
     };
 }
 
-/// Подпись под элементом: `y` — базовая линия.
+/// Label under an element: `y` is the baseline.
 fn sub_view(sub: Option<String>, y: f64) -> Option<impl IntoView> {
     sub.map(|sub| view! { <text y=y text-anchor="middle" class="a-cap" style="font-size: 8.5px">{sub}</text> })
 }
@@ -328,7 +328,7 @@ fn dot_view(d: Memo<Dot>) -> impl IntoView {
     }
 }
 
-/// Узел списка: значение | ссылка (точка или перечёркнутая пустая ссылка).
+/// List node: value | link (a dot or a crossed-out empty link).
 fn lnode_view(n: Memo<Lnode>) -> impl IntoView {
     view! {
         <G x=sig!(n.x) y=sig!(n.y) o=sig!(n.o) s=sig!(n.s) delay=sig!(n.delay)>
@@ -374,7 +374,7 @@ fn text_view(t: Memo<Text>) -> impl IntoView {
     }
 }
 
-/// Указатель: стрелка к точке (x, y) и имя.
+/// Pointer: an arrow to the point (x, y) and a name.
 fn ptr_view(p: Memo<Ptr>) -> impl IntoView {
     let hue = move || p.get().tone.hue().unwrap_or("var(--s-muted)");
     view! {
@@ -392,7 +392,7 @@ fn ptr_view(p: Memo<Ptr>) -> impl IntoView {
     }
 }
 
-/// Путь линии: прямая или дуга (смещение середины перпендикулярно линии).
+/// Line path: straight or an arc (midpoint offset perpendicular to the line).
 fn line_path(l: &Line) -> String {
     if l.bend == 0.0 {
         return format!("M{} {} L{} {}", l.x1, l.y1, l.x2, l.y2);
@@ -412,14 +412,14 @@ fn line_view(l: Memo<Line>) -> impl IntoView {
             style=move || {
                 let l = l.get();
                 let stroke = l.tone.hue().unwrap_or("var(--s-border)");
-                // `d: path()` в стиле нужен для плавного движения линии (CSS-переход свойства d)
+                // `d: path()` in the style is needed for smooth line motion (CSS transition of the d property)
                 format!("d: path(\"{}\"); fill: none; stroke: {stroke}; stroke-width: {}; opacity: {}; transition-delay: {}ms{}", line_path(&l), l.width, l.o, l.delay, l.dash.as_deref().map(|d| format!("; stroke-dasharray: {d}")).unwrap_or_default())
             }
         />
     }
 }
 
-/// Кривая по пути SVG; `draw` — доля прорисованной линии.
+/// Curve along an SVG path; `draw` is the fraction of the line drawn.
 fn path_view(p: Memo<Path>) -> impl IntoView {
     view! {
         <path
@@ -514,7 +514,7 @@ fn code_view(c: Memo<Code>) -> impl IntoView {
     }
 }
 
-// --- элементы схем из вентилей ---------------------------------------------------------------
+// --- gate-diagram elements ---------------------------------------------------------------
 
 fn gate_body(kind: GateKind) -> &'static str {
     match kind {
@@ -525,7 +525,7 @@ fn gate_body(kind: GateKind) -> &'static str {
     }
 }
 
-/// Вентиль: тело, кружок инверсии, выводы; подпись внутри и под ним.
+/// Gate: body, inversion bubble, pins; label inside and below.
 fn gate_view(g: Memo<Gate>) -> impl IntoView {
     view! {
         <G x=sig!(g.x) y=sig!(g.y) o=sig!(g.o) s=sig!(g.s) delay=sig!(g.delay)>
@@ -555,7 +555,7 @@ fn gate_view(g: Memo<Gate>) -> impl IntoView {
     }
 }
 
-/// Транзистор КМОП: затвор, канал (сплошной, если открыт), выводы; у p-канала кружок на затворе.
+/// CMOS transistor: gate, channel (solid when open), pins; a p-channel has a bubble on the gate.
 fn transistor_view(t: Memo<Transistor>) -> impl IntoView {
     view! {
         <G x=sig!(t.x) y=sig!(t.y) o=sig!(t.o) s=sig!(t.s) delay=sig!(t.delay)>
@@ -578,7 +578,7 @@ fn transistor_view(t: Memo<Transistor>) -> impl IntoView {
     }
 }
 
-/// Выключатель: два контакта и рычаг (замкнут или поднят).
+/// Switch: two contacts and a lever (closed or raised).
 fn switch_view(w: Memo<Switch>) -> impl IntoView {
     view! {
         <G x=sig!(w.x) y=sig!(w.y) o=sig!(w.o) s=sig!(w.s) delay=sig!(w.delay)>
@@ -597,7 +597,7 @@ fn switch_view(w: Memo<Switch>) -> impl IntoView {
     }
 }
 
-/// Лампочка: горит (зелёная) или погашена (крест).
+/// Lamp: lit (green) or off (cross).
 fn lamp_view(l: Memo<Lamp>) -> impl IntoView {
     view! {
         <G x=sig!(l.x) y=sig!(l.y) o=sig!(l.o) s=sig!(l.s) delay=sig!(l.delay)>
@@ -624,7 +624,7 @@ fn lamp_view(l: Memo<Lamp>) -> impl IntoView {
     }
 }
 
-/// Круг-контур: рамка цветом оттенка, при `filled` — лёгкая заливка.
+/// Circle outline: stroke in the tone color, with `filled` a light fill.
 fn circle_view(c: Memo<Circle>) -> impl IntoView {
     view! {
         <G x=sig!(c.x) y=sig!(c.y) o=sig!(c.o) s=sig!(c.s) delay=sig!(c.delay)>
@@ -638,7 +638,7 @@ fn circle_view(c: Memo<Circle>) -> impl IntoView {
     }
 }
 
-/// Область из операции над кругами; маски и обрезка строятся тут же (идентификаторы — от `id` элемента).
+/// Region from an operation over circles; masks and clipping are built here too (identifiers derive from the element's `id`).
 fn region_view(r: Memo<Region>) -> impl IntoView {
     view! {
         <g class="a-t" style=move || format!("opacity: {}; transition-delay: {}ms", r.get().o, r.get().delay)>
@@ -685,13 +685,13 @@ fn region_view(r: Memo<Region>) -> impl IntoView {
     }
 }
 
-/// Отрисовка одного элемента: вид задаёт первое состояние (у одного `id` он не меняется — это проверяет `Scene::compile`).
+/// Rendering of one element: the first state sets the kind (it never changes for one `id` — `Scene::compile` checks this).
 fn item_view(it: Memo<Item>) -> AnyView {
     macro_rules! typed {
         ($variant:ident, $render:ident) => {{
             let typed = Memo::new(move |_| match it.get() {
                 Item::$variant(v) => v,
-                other => unreachable!("вид элемента изменился: {other:?}"),
+                other => unreachable!("element kind changed: {other:?}"),
             });
             $render(typed).into_any()
         }};
@@ -716,7 +716,7 @@ fn item_view(it: Memo<Item>) -> AnyView {
     }
 }
 
-/// Сцена целиком: оболочка и все её элементы (компилируются при создании). `cues` перекрывают метки шагов сцены.
+/// The whole scene: the shell and all its elements (compiled on creation). `cues` override the scene's step marks.
 #[component]
 pub fn SceneView(spec: content::SceneSpec, #[prop(optional)] cues: Option<Vec<f64>>) -> impl IntoView {
     let scene = match Scene::compile(&spec) {

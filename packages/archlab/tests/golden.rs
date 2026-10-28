@@ -1,5 +1,5 @@
-//! Дифференциальные тесты: результаты Rust совпадают с «золотыми» результатами TypeScript-движка
-//! бит в бит — значения узлов, цепочки `settle`, проверки эталонов и их искажений, блоки и трассы процессора.
+//! Differential tests: Rust results match the "golden" results of the TypeScript engine
+//! bit for bit — node values, `settle` chains, checks of reference solutions and their corruptions, blocks and processor traces.
 
 mod common;
 
@@ -24,7 +24,7 @@ fn inputs_from_int(v: u64) -> InputState {
     s
 }
 
-/// Значения узлов как в экспортёре: ключи по порядку, символы 0/1/?.
+/// Node values as in the exporter: keys in order, characters 0/1/?.
 fn encode(values: &Values) -> (Vec<String>, String) {
     let mut keys: Vec<String> = values.keys().cloned().collect();
     keys.sort();
@@ -52,7 +52,7 @@ fn nv(v: &Value) -> NodeValue {
 
 #[test]
 fn circuits_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let g = golden();
@@ -71,7 +71,7 @@ fn circuits_match_typescript() {
             circuit.gates[j].ty = serde_json::from_value(m[1].clone()).expect("тип");
         }
 
-        // проверка упражнения
+        // exercise check
         let want = &entry["verdict"];
         match spec.mode {
             Mode::Table => {
@@ -91,7 +91,7 @@ fn circuits_match_typescript() {
             }
         }
 
-        // значения узлов и цепочка settle
+        // node values and the settle chain
         let vectors: Vec<u64> = entry["vectors"].as_array().expect("vectors").iter().map(|v| v.as_u64().expect("v")).collect();
         let keysets = entry["keysets"].as_array().expect("keysets");
         for (i, v) in vectors.iter().enumerate() {
@@ -113,7 +113,7 @@ fn circuits_match_typescript() {
 
 #[test]
 fn reference_and_empty_verdicts_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let g = golden();
@@ -144,7 +144,7 @@ fn reference_and_empty_verdicts_match_typescript() {
 
 #[test]
 fn block_expansions_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let lab = lab();
     let lib = lab.reference_library();
     let g = golden();
@@ -165,7 +165,7 @@ fn block_expansions_match_typescript() {
 
 #[test]
 fn cpu8_blocks_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let want = g["blocks"].as_array().expect("blocks");
     let have = cpu8_blocks().all();
@@ -188,7 +188,7 @@ fn cpu8_blocks_match_typescript() {
 
 #[test]
 fn assembler_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let mut sources = 0;
     for e in g["assembler"].as_array().expect("assembler") {
@@ -221,7 +221,7 @@ fn view_json(v: &archlab::asm::MachineView) -> Value {
 
 #[test]
 fn cpu8_traces_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let list = g["cpu8"].as_array().expect("cpu8");
     assert!(list.len() >= 17);
@@ -233,7 +233,7 @@ fn cpu8_traces_match_typescript() {
         assert_eq!(json!(asm.words), e["words"], "{name}: машинный код");
         let limit = e["limit"].as_u64().expect("limit");
 
-        // эмулятор: первые шаги и итог
+        // emulator: first steps and the result
         let mut m = Machine::new(&asm.words, &disk);
         for (i, w) in e["emu_first"].as_array().expect("emu_first").iter().enumerate() {
             m.step();
@@ -243,7 +243,7 @@ fn cpu8_traces_match_typescript() {
         m.run(limit);
         assert_eq!(view_json(&m.view()), e["emu"], "{name}: эмулятор, итог");
 
-        // процессор на вентилях: то же самое
+        // gate-level processor: the same
         let mut gm = GateMachine::new(&asm.words, &disk).expect("машина на вентилях");
         for (i, w) in e["gate_first"].as_array().expect("gate_first").iter().enumerate() {
             gm.step();
@@ -253,7 +253,7 @@ fn cpu8_traces_match_typescript() {
         gm.run(limit);
         assert_eq!(view_json(&gm.view()), e["gate"], "{name}: вентили, итог");
 
-        // сверка диска с ожидаемым
+        // comparing the disk with the expected one
         if let Some(task) = e.get("check").filter(|c| !c.is_null()) {
             let lab = lab();
             let id = name.strip_prefix("task:").expect("task:");
@@ -271,7 +271,7 @@ fn cpu8_traces_match_typescript() {
 
 #[test]
 fn special_circuits_match_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     let list = g["specials"].as_array().expect("specials");
     assert!(list.len() >= 15);
@@ -295,7 +295,7 @@ fn special_circuits_match_typescript() {
 
 #[test]
 fn step_order_fallback_matches_typescript() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let g = golden();
     for e in g["steps_cases"].as_array().expect("steps_cases") {
         let name = e["name"].as_str().expect("name");
@@ -312,7 +312,7 @@ fn step_order_fallback_matches_typescript() {
         let want_got: Vec<Vec<NodeValue>> = want["got"].as_array().expect("got").iter().map(|r| r.as_array().expect("row").iter().map(nv).collect()).collect();
         assert_eq!(s.got, want_got, "{name}: выходы по шагам");
     }
-    // отпускание S = R = 1 удаётся только при определённом порядке: все сразу не проходит, по одному — проходит
+    // releasing S = R = 1 succeeds only in a particular order: all at once fails, one at a time passes
     let case = g["steps_cases"].as_array().expect("steps_cases").iter().find(|c| c["name"] == "release-needs-order").expect("случай");
     assert_eq!(case["verdict"]["ok"], true);
 }

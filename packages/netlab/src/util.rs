@@ -1,5 +1,5 @@
-//! Мелкие помощники, воспроизводящие поведение JavaScript там, где оно видно ученику:
-//! округление, `toFixed`, `Number(...)`, длина строки в UTF-16 и словарь с порядком вставки.
+//! Small helpers reproducing JavaScript behaviour where the student can see it:
+//! rounding, `toFixed`, `Number(...)`, string length in UTF-16 and an insertion-ordered map.
 
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
@@ -7,7 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::marker::PhantomData;
 
-/// `Math.round`: половинки округляются вверх.
+/// `Math.round`: halves round up.
 pub fn js_round(x: f64) -> f64 {
     let r = x.floor();
     if x - r >= 0.5 {
@@ -17,7 +17,7 @@ pub fn js_round(x: f64) -> f64 {
     }
 }
 
-/// `Number.prototype.toFixed`: точное десятичное разложение и округление «половина вверх».
+/// `Number.prototype.toFixed`: exact decimal expansion and "half up" rounding.
 pub fn to_fixed(x: f64, digits: usize) -> String {
     if x.is_nan() {
         return "NaN".into();
@@ -62,7 +62,7 @@ pub fn to_fixed(x: f64, digits: usize) -> String {
     s
 }
 
-/// `Number(строка)`: пустая — 0, нечисловая — NaN.
+/// `Number(string)`: empty is 0, non-numeric is NaN.
 pub fn js_num(s: &str) -> f64 {
     let t = s.trim();
     if t.is_empty() {
@@ -95,7 +95,7 @@ pub fn js_num(s: &str) -> f64 {
     t.parse::<f64>().unwrap_or(f64::NAN)
 }
 
-/// `Number(x) || запасное`: NaN и 0 заменяются запасным значением.
+/// `Number(x) || fallback`: NaN and 0 are replaced by the fallback value.
 pub fn num_or(s: Option<&str>, default: f64) -> f64 {
     let n = s.map(js_num).unwrap_or(f64::NAN);
     if n.is_nan() || n == 0.0 {
@@ -105,7 +105,7 @@ pub fn num_or(s: Option<&str>, default: f64) -> f64 {
     }
 }
 
-/// Число из команды как порт или счётчик: NaN и отрицательные превращаются в 0, дробная часть отбрасывается.
+/// Number from a command as a port or counter: NaN and negatives become 0, the fractional part is dropped.
 pub fn to_int(f: f64) -> i64 {
     if f.is_nan() {
         0
@@ -114,12 +114,12 @@ pub fn to_int(f: f64) -> i64 {
     }
 }
 
-/// Длина строки в единицах UTF-16 (`String.prototype.length`).
+/// String length in UTF-16 units (`String.prototype.length`).
 pub fn utf16_len(s: &str) -> usize {
     s.encode_utf16().count()
 }
 
-/// Число как JavaScript печатает его в шаблонной строке (целые без «.0»).
+/// Number as JavaScript prints it in a template string (integers without ".0").
 pub fn num_str(x: f64) -> String {
     if x.is_nan() {
         "NaN".into()
@@ -130,19 +130,19 @@ pub fn num_str(x: f64) -> String {
     }
 }
 
-/// Строка из необязательного значения так, как её дал бы шаблон JavaScript для `undefined`.
+/// String from an optional value as a JavaScript template would render it for `undefined`.
 pub fn und(o: Option<&str>) -> &str {
     o.unwrap_or("undefined")
 }
 
-/// Словарь с порядком вставки (как объект JavaScript с нечисловыми ключами). Вставка существующего ключа
-/// не меняет его место. В JSON — обычный объект.
+/// Insertion-ordered map (like a JavaScript object with non-numeric keys). Inserting an existing key
+/// does not change its position. In JSON a plain object.
 #[derive(Clone, Debug)]
 pub struct OrdMap<V> {
     entries: Vec<(String, V)>,
 }
 
-/// Равенство не зависит от порядка ключей: два словаря с теми же парами «ключ — значение» равны.
+/// Equality does not depend on key order: two maps with the same key-value pairs are equal.
 impl<V: PartialEq> PartialEq for OrdMap<V> {
     fn eq(&self, other: &Self) -> bool {
         self.entries.len() == other.entries.len() && self.entries.iter().all(|(k, v)| other.get(k) == Some(v))
@@ -201,7 +201,7 @@ impl<V> OrdMap<V> {
     pub fn clear(&mut self) {
         self.entries.clear();
     }
-    /// Значение по ключу; если его нет — вставить `make()`.
+    /// Value by key; if absent, insert `make()`.
     pub fn get_or_insert_with(&mut self, k: &str, make: impl FnOnce() -> V) -> &mut V {
         let i = match self.entries.iter().position(|(x, _)| x == k) {
             Some(i) => i,
@@ -249,7 +249,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn to_fixed_как_в_js() {
+    fn to_fixed_like_js() {
         assert_eq!(to_fixed(2.5, 0), "3");
         assert_eq!(to_fixed(0.0625, 3), "0.063");
         assert_eq!(to_fixed(1.005, 2), "1.00");
@@ -260,7 +260,7 @@ mod tests {
     }
 
     #[test]
-    fn js_num_разбор() {
+    fn js_num_parsing() {
         assert_eq!(js_num(" 12 "), 12.0);
         assert_eq!(js_num(""), 0.0);
         assert!(js_num("abc").is_nan());
@@ -271,14 +271,14 @@ mod tests {
     }
 
     #[test]
-    fn js_round_половинки_вверх() {
+    fn js_round_halves_up() {
         assert_eq!(js_round(2.5), 3.0);
         assert_eq!(js_round(-2.5), -2.0);
         assert_eq!(js_round(2.4), 2.0);
     }
 
     #[test]
-    fn ordmap_порядок() {
+    fn ordmap_order() {
         let mut m = OrdMap::new();
         m.insert("b", 1);
         m.insert("a", 2);
@@ -289,6 +289,6 @@ mod tests {
         let back: OrdMap<i32> = serde_json::from_str(&j).unwrap();
         assert_eq!(back, m);
         let other: OrdMap<i32> = serde_json::from_str(r#"{"a":2,"b":3}"#).unwrap();
-        assert_eq!(other, m, "равенство без учёта порядка");
+        assert_eq!(other, m, "equality ignores order");
     }
 }

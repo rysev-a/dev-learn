@@ -1,5 +1,5 @@
-//! Книга 11 «Современный Frontend», глава 18 «CSS: блочная модель, оформление и позиционирование» (раздел «CSS и вёрстка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 18 "CSS: box model, styling and positioning" (section "CSS and layout"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bx, code, dot, text, zone},
@@ -7,11 +7,11 @@ use content::{
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [&[10.1, 20.5, 29.7], &[9.7, 16.3, 30.9], &[7.2, 23.1, 32.1], &[17.4, 28.9], &[8.3, 19.5, 25.0], &[12.3, 16.4, 33.6], &[9.4, 21.8, 31.5], &[10.9, 23.5, 30.2], &[12.1, 20.2, 33.6], &[8.3, 17.1, 28.6], &[10.0, 18.6, 29.7], &[9.5, 17.7, 34.5], &[10.9, 22.4, 29.6]];
 
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-18.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-18.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Всё — прямоугольники", "display: block, inline, inline-block, none", "У каждого элемента свой бокс; display решает, как он встанет среди соседей.", v01),
@@ -36,30 +36,30 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись по центру.
+/// Short centred label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Подпись, выровненная по левому краю.
+/// Left-aligned label.
 fn left(id: &str, x: f64, y: f64, label: &str) -> content::item::Text {
     text(id, x, y, label).size(9.0).anchor(Anchor::Start)
 }
 
-/// Врезка CSS; (x, y) — начало первой строки.
+/// CSS inset; (x, y) — start of the first line.
 fn css(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Css, id, x, y, lines)
 }
@@ -68,7 +68,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Всё — прямоугольники
+// 1. Everything is a rectangle
 fn v01() -> SceneSpec {
     spec(
         &["Прямоугольники", "Блочный", "Строчный", "Строчно-блочный и none"],
@@ -105,7 +105,7 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Блочная модель
+// 2. Box model
 fn v02() -> SceneSpec {
     spec(
         &["Четыре слоя", "Сумма", "border-box", "В начале стилей"],
@@ -150,7 +150,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Схлопывание отступов
+// 3. Margin collapsing
 fn v03() -> SceneSpec {
     spec(
         &["Два отступа", "Побеждает больший", "Родитель и ребёнок", "Как избежать"],
@@ -197,7 +197,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Размеры и переполнение
+// 4. Sizes and overflow
 fn v04() -> SceneSpec {
     spec(
         &["Жёстко и гибко", "Пропорции", "Переполнение"],
@@ -224,7 +224,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Рамки, скругление, тени
+// 5. Borders, rounding, shadows
 fn v05() -> SceneSpec {
     spec(
         &["Рамка", "Скругление", "Тень", "Контур"],
@@ -265,7 +265,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Фоны
+// 6. Backgrounds
 fn v06() -> SceneSpec {
     spec(
         &["Слои", "Градиент", "cover и contain", "Запись"],
@@ -299,7 +299,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Типографика
+// 7. Typography
 fn v07() -> SceneSpec {
     spec(
         &["Стек шрифтов", "Межстрочный интервал", "Регистр и буквы", "Многоточие"],
@@ -342,7 +342,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. Списки
+// 8. Lists
 fn v08() -> SceneSpec {
     let items = [("кофе", 70.0), ("чай", 95.0), ("какао", 120.0)];
     let list = |x: f64, w: f64, marker: Option<(Tone, f64)>| {
@@ -379,7 +379,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. Позиционирование
+// 9. Positioning
 fn v09() -> SceneSpec {
     spec(
         &["static", "relative", "absolute", "Опорная точка"],
@@ -427,7 +427,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. Fixed и sticky
+// 10. Fixed and sticky
 fn v10() -> SceneSpec {
     spec(
         &["fixed", "Прокрутка", "sticky", "Предел родителя"],
@@ -482,7 +482,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Слои
+// 11. Layers
 fn v11() -> SceneSpec {
     spec(
         &["Порядок в разметке", "z-index", "Контекст наложения", "Шкала слоёв"],
@@ -523,7 +523,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Центрирование и float
+// 12. Centring and float
 fn v12() -> SceneSpec {
     spec(
         &["Блок по центру", "Текст и центр", "Float", "Clearfix"],
@@ -566,7 +566,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Чек-лист
+// 13. Checklist
 fn v13() -> SceneSpec {
     let cell = |id: &str, x: f64, y: f64, t: &str, tone: Tone| b(id, x, y, 112.0, 30.0, t, tone, 9.0);
     let model = || {

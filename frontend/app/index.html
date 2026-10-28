@@ -7,20 +7,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <!-- общие стили приложения и лабораторий -->
+    <!-- shared styles of the app and labs -->
     <link data-trunk rel="css" href="styles/app.css" />
     <link data-trunk rel="css" href="styles/lab.css" />
     <link data-trunk rel="css" href="styles/netlab.css" />
     <link data-trunk rel="css" href="styles/sdlab.css" />
     <link data-trunk rel="css" href="styles/virtlab.css" />
-    <!-- цветовые темы: после app.css, переопределяют его переменные -->
+    <!-- color themes: after app.css, they override its variables -->
     <link data-trunk rel="css" href="styles/themes.css" />
-    <!-- редактор кода на textarea и остальное своё -->
+    <!-- textarea code editor and the rest of the app's own styles -->
     <link data-trunk rel="css" href="style.css" />
     <link data-trunk rel="rust" data-bin="frontend" data-wasm-opt="0" />
   </head>
   <body>
-    <!-- режим и цветовая тема до загрузки приложения, чтобы страница не мигала цветами по умолчанию -->
+    <!-- mode and color theme before the app loads, so the page does not flash default colors -->
     <script>
       try {
         var d = document.documentElement, t = localStorage.getItem("cs-core-theme") === "light" ? "light" : "dark";

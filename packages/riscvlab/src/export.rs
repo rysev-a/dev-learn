@@ -1,63 +1,63 @@
-//! Формат выгрузки из прежней реализации на TypeScript (`frontend/scripts/riscv-export.mjs`) и перевод в данные курса.
+//! Format of the export from the previous TypeScript implementation (`frontend/scripts/riscv-export.mjs`) and conversion into course data.
 //!
-//! Выгрузка — промежуточный файл: поля названы, как в TypeScript (`text`, `solution`), проверки уже в виде данных.
-//! [`ExportChapter::into_lab_chapter`] строит канонический [`LabChapter`] и проверяет его: эталонная программа каждой
-//! задачи обязана проходить проверку, а пустая программа — нет.
+//! The export is an intermediate file: fields are named as in TypeScript (`text`, `solution`), checks are already data.
+//! [`ExportChapter::into_lab_chapter`] builds the canonical [`LabChapter`] and validates it: the reference program of every
+//! task must pass the check, and an empty program must not.
 
 use serde::{Deserialize, Serialize};
 
 use crate::task::{verify, Check, Lab, LabChapter, Profile, Task, TaskSpec, Test, DEFAULT_TASK_STEPS};
 
-/// Файл выгрузки.
+/// Export file.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Export {
-    /// версия формата выгрузки
+    /// export format version
     pub version: u32,
-    /// главы
+    /// chapters
     pub chapters: Vec<ExportChapter>,
 }
 
-/// Глава в выгрузке.
+/// Chapter in the export.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ExportChapter {
-    /// номер книги
+    /// book number
     pub book: u32,
-    /// номер главы
+    /// chapter number
     pub chapter: u32,
-    /// окружение, в котором работают программы
+    /// environment the programs run in
     pub profile: Profile,
-    /// задачи
+    /// tasks
     pub tasks: Vec<ExportTask>,
 }
 
-/// Задача в выгрузке.
+/// Task in the export.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ExportTask {
-    /// идентификатор задачи
+    /// task identifier
     pub id: String,
-    /// название
+    /// title
     pub title: String,
-    /// условие
+    /// statement
     pub text: String,
-    /// подсказка
+    /// hint
     pub hint: String,
-    /// заготовка программы
+    /// program starter
     pub starter: String,
-    /// эталонное решение
+    /// reference solution
     pub solution: String,
-    /// данные задания (секция `.data`)
+    /// task data (the `.data` section)
     pub data: String,
     #[serde(default)]
-    /// положение переключателей (8 бит)
+    /// switch positions (8 bits)
     pub switches: u8,
     #[serde(default)]
-    /// лимит шагов на тест (по умолчанию 200000)
+    /// step limit per test (200000 by default)
     pub max_steps: Option<u64>,
-    /// проверка итога
+    /// check of the outcome
     pub check: Check,
 }
 
-/// Что не так с выгрузкой.
+/// What is wrong with the export.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ExportError(pub String);
 
@@ -70,7 +70,7 @@ impl std::fmt::Display for ExportError {
 impl std::error::Error for ExportError {}
 
 impl ExportChapter {
-    /// Канонический файл главы с проверкой задач.
+    /// Canonical chapter file with task validation.
     pub fn into_lab_chapter(self) -> Result<LabChapter, ExportError> {
         let mut tasks = Vec::new();
         for t in self.tasks {

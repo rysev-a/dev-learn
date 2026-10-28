@@ -1,18 +1,18 @@
-//! Серверная проверка решения упражнения-симулятора.
+//! Server-side check of a simulator exercise solution.
 //!
-//! Клиент при решении присылает JSON `{идентификатор цели: данные, …}` — достигнутые цели с данными (так делает и прежний
-//! TypeScript-клиент: `onSolved(JSON.stringify(...))`). Что лежит в «данных» и насколько их можно перепроверить:
+//! On solving, the client sends JSON `{goal id: data, …}` — achieved goals with data (the former
+//! TypeScript client does the same: `onSolved(JSON.stringify(...))`). What the "data" holds and how far it can be re-checked:
 //!
-//! | симулятор | данные цели | проверка на сервере |
+//! | simulator | goal data | server check |
 //! |---|---|---|
-//! | `hv` | `{translate, mistakes}` (+ необязательно `trace` — записанные действия, [`crate::hv::Step`]) | с `trace` — полное воспроизведение прогона ([`GoalStatus::Verified`]); без — только форма и здравый смысл: программа с POPF невозможна без трансляции ([`GoalStatus::Unverified`]) |
-//! | `ept` | настройки запуска `{mode, guest, host, workload}` | модель запускается заново, цель проверяется по результату — **полная перепроверка** |
-//! | `numa` | размещение `{машина: {cpu, mem, vnuma}}` | оценка размещения заново — **полная перепроверка** |
-//! | `migration` | параметры `{dirty, bw, downtimeMs, autoConverge, compress, postcopyAfter}` | скорости сверяются со сценарием, параметры — с допустимыми границами, симуляция заново — **полная перепроверка** |
-//! | `virtq`, `qcow2` | `true` (прежний клиент) или `{trace: [действия]}` | с `trace` — воспроизведение сессии; без — достижение цели не проверить (история не присылается): [`GoalStatus::Unverified`] |
+//! | `hv` | `{translate, mistakes}` (+ optional `trace` — recorded actions, [`crate::hv::Step`]) | with `trace` — full replay of the run ([`GoalStatus::Verified`]); without — only shape and sanity: a program with POPF is impossible without translation ([`GoalStatus::Unverified`]) |
+//! | `ept` | run settings `{mode, guest, host, workload}` | the model is re-run, the goal is checked against the result — **full re-check** |
+//! | `numa` | placement `{machine: {cpu, mem, vnuma}}` | the placement is re-evaluated — **full re-check** |
+//! | `migration` | parameters `{dirty, bw, downtimeMs, autoConverge, compress, postcopyAfter}` | rates are checked against the scenario, parameters against allowed bounds, the simulation is re-run — **full re-check** |
+//! | `virtq`, `qcow2` | `true` (former client) or `{trace: [actions]}` | with `trace` — session replay; without — goal achievement cannot be checked (history is not sent): [`GoalStatus::Unverified`] |
 //!
-//! Режим [`Strictness::Lenient`] принимает и непроверяемые цели (корректная структура со всеми целями), режим
-//! [`Strictness::Strict`] — только проверенные: старый клиент в нём не пройдёт, новый (присылающий `trace`) пройдёт.
+//! Mode [`Strictness::Lenient`] also accepts unverifiable goals (a correct structure with all goals), mode
+//! [`Strictness::Strict`] accepts only verified ones: the old client fails it, the new one (sending `trace`) passes.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -21,61 +21,61 @@ use crate::error::SpecError;
 use crate::spec::{base_map, Spec};
 use crate::{ept, hv, migration, numa, qcow2, virtq};
 
-/// Наибольшая длина записи действий: больше — отклоняется (защита от перегрузки сервера).
+/// Maximum action trace length: longer traces are rejected (protects the server from overload).
 pub const MAX_TRACE: usize = 2000;
 
-/// Насколько строго принимать решение.
+/// How strictly to accept a solution.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Strictness {
-    /// Принимать и цели, которые перепроверить нечем (достаточно корректной структуры).
+    /// Also accept goals that cannot be re-checked (a correct structure is enough).
     Lenient,
-    /// Принимать только цели, достижение которых подтверждено моделью.
+    /// Accept only goals whose achievement is confirmed by the model.
     Strict,
 }
 
-/// Состояние одной цели в присланном решении.
+/// Status of one goal in the submitted solution.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum GoalStatus {
-    /// Достижение цели подтверждено повторным расчётом по присланным данным.
+    /// Goal achievement confirmed by recomputation from the submitted data.
     Verified,
-    /// Структура верна, но достижение цели по присланным данным проверить нечем.
+    /// Structure is correct, but there is no way to check goal achievement from the submitted data.
     Unverified,
-    /// Цели в решении нет.
+    /// The goal is absent from the solution.
     Missing,
-    /// Данные неверны или цель по ним не достигается.
+    /// Data is invalid or the goal is not reached with it.
     Rejected {
-        /// Причина.
+        /// Reason.
         reason: String,
     },
 }
 
-/// Вердикт по одной цели.
+/// Verdict for one goal.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GoalVerdict {
-    /// Идентификатор цели.
+    /// Goal identifier.
     pub id: String,
-    /// Состояние.
+    /// Status.
     #[serde(flatten)]
     pub status: GoalStatus,
 }
 
-/// Вердикт по решению.
+/// Verdict for the solution.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Verdict {
-    /// Упражнение решено (с учётом строгости).
+    /// The exercise is solved (taking strictness into account).
     pub solved: bool,
-    /// По каждой цели упражнения, в порядке целей.
+    /// Per exercise goal, in goal order.
     pub goals: Vec<GoalVerdict>,
 }
 
 impl Verdict {
-    /// Идентификаторы целей с данным состоянием.
+    /// Identifiers of goals with the given status.
     pub fn ids(&self, f: impl Fn(&GoalStatus) -> bool) -> Vec<&str> {
         self.goals.iter().filter(|g| f(&g.status)).map(|g| g.id.as_str()).collect()
     }
 
-    /// Первая причина отказа, если есть.
+    /// First rejection reason, if any.
     pub fn first_rejection(&self) -> Option<String> {
         self.goals.iter().find_map(|g| match &g.status {
             GoalStatus::Rejected { reason } => Some(format!("{}: {reason}", g.id)),
@@ -85,12 +85,12 @@ impl Verdict {
     }
 }
 
-/// Проверить решение в режиме [`Strictness::Lenient`].
+/// Check a solution in [`Strictness::Lenient`] mode.
 pub fn verify(spec: &Spec, submitted: &Value) -> Verdict {
     verify_with(spec, submitted, Strictness::Lenient)
 }
 
-/// Проверить решение: для каждой цели упражнения взять присланные данные и перепроверить моделью, насколько это возможно.
+/// Check a solution: for each exercise goal take the submitted data and re-check it with the model as far as possible.
 pub fn verify_with(spec: &Spec, submitted: &Value, strict: Strictness) -> Verdict {
     let mut goals = vec![];
     for g in spec.goals() {
@@ -109,7 +109,7 @@ pub fn verify_with(spec: &Spec, submitted: &Value, strict: Strictness) -> Verdic
     Verdict { solved, goals }
 }
 
-// Как в JavaScript: false, null, 0 и пустая строка — «цели нет».
+// As in JavaScript: false, null, 0 and the empty string mean "no goal".
 fn truthy(v: &Value) -> bool {
     match v {
         Value::Null | Value::Bool(false) => false,
@@ -127,7 +127,7 @@ fn rejected(reason: impl Into<String>) -> Result<GoalStatus, SpecError> {
     Ok(GoalStatus::Rejected { reason: reason.into() })
 }
 
-/// Данные цели симуляторов с записью действий: `true` (прежний клиент) или `{trace: [...]}`.
+/// Goal data of simulators with an action trace: `true` (former client) or `{trace: [...]}`.
 fn trace_of<A: serde::de::DeserializeOwned>(info: &Value) -> Result<Option<Vec<A>>, SpecError> {
     let Some(t) = info.get("trace") else {
         return Ok(None);

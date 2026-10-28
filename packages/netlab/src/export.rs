@@ -1,6 +1,6 @@
-//! Перенос упражнений из прежнего TypeScript-кода: разбор выгрузки `frontend/scripts/net-export.mjs`
-//! (`scenarios.json`) и превращение её в файлы глав ([`LabChapter`]). Здесь же проверка «ничего не потеряно»:
-//! состояние и цели после разбора совпадают с исходным JSON (с точностью до переименования ключей).
+//! Migration of exercises from the former TypeScript code: parsing the dump of `frontend/scripts/net-export.mjs`
+//! (`scenarios.json`) and turning it into chapter files ([`LabChapter`]). Also the "nothing is lost" check:
+//! state and goals after parsing match the original JSON (up to key renaming).
 
 use crate::check::{Goal, Step};
 use crate::lab::{LabChapter, NetSpec, Task, Tools, NET_BOOK};
@@ -11,7 +11,7 @@ use serde_json::value::RawValue;
 use serde_json::Value;
 use std::collections::BTreeMap;
 
-/// Шаг решения в записи TypeScript: `{unlink:[a,b]}`, `{drop:id}`, `{cable:[a,b]}`, `{cmd:[устройство, строка]}`.
+/// Solution step in TypeScript form: `{unlink:[a,b]}`, `{drop:id}`, `{cable:[a,b]}`, `{cmd:[device, string]}`.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 pub enum TsOp {
@@ -42,7 +42,7 @@ impl From<TsOp> for Step {
     }
 }
 
-/// Упражнение в записи выгрузки.
+/// Exercise in dump form.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TsScenario {
     pub chapter: u32,
@@ -52,19 +52,19 @@ pub struct TsScenario {
     pub hint: String,
     #[serde(default)]
     pub tools: BTreeMap<String, Option<bool>>,
-    /// Исходная сеть как JSON (сырой текст: порядок ключей в `hosts`, заголовках и т. п. важен).
+    /// Initial network as JSON (raw text: key order in `hosts`, headers etc. matters).
     pub start: Box<RawValue>,
     pub goals: Vec<Box<RawValue>>,
     pub solution: Vec<TsOp>,
 }
 
-/// Файл выгрузки.
+/// Dump file.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Export {
     pub scenarios: Vec<TsScenario>,
 }
 
-/// Прежние имена ключей (camelCase) → канонические.
+/// Former key names (camelCase) -> canonical ones.
 const RENAMES: &[(&str, &str)] = &[
     ("dropPrivate", "drop_private"),
     ("icmpBlock", "icmp_block"),
@@ -89,13 +89,13 @@ const RENAMES: &[(&str, &str)] = &[
     ("maxS", "max_s"),
 ];
 
-/// Привести JSON к виду для сравнения: канонические ключи, устройства массивом, числа как f64, без `null`, `false`
-/// и пустых объектов/массивов (их отсутствие равносильно значению по умолчанию).
+/// Normalize JSON for comparison: canonical keys, devices as an array, numbers as f64, without `null`, `false`
+/// and empty objects/arrays (their absence is equivalent to the default value).
 pub fn normalize(v: &Value, in_devices: bool) -> Value {
     match v {
         Value::Object(m) => {
             if in_devices {
-                // «id → устройство» превращается в массив устройств (по id: порядок ключей в `Value` потерян)
+                // "id -> device" becomes an array of devices (by id: key order in `Value` is lost)
                 let mut v: Vec<Value> = m.values().map(|d| normalize(d, false)).collect();
                 v.sort_by_key(|d| d["id"].as_str().unwrap_or("").to_string());
                 return Value::Array(v);
@@ -127,7 +127,7 @@ pub fn normalize(v: &Value, in_devices: bool) -> Value {
     }
 }
 
-/// Превратить упражнение выгрузки в задачу. Ошибка — что-то потерялось при разборе.
+/// Turn a dump exercise into a task. Error means something was lost while parsing.
 pub fn convert(s: &TsScenario) -> Result<Task, String> {
     let ctx = |e: String| format!("{}: {e}", s.id);
     let start: NetState = serde_json::from_str(s.start.get()).map_err(|e| ctx(i18n::trf!("start network: {0}", e)))?;
@@ -164,7 +164,7 @@ pub fn convert(s: &TsScenario) -> Result<Task, String> {
     })
 }
 
-/// Разобрать всю выгрузку в файлы глав (по возрастанию номера главы).
+/// Parse the whole dump into chapter files (in ascending chapter order).
 pub fn convert_all(e: &Export) -> Result<Vec<LabChapter>, String> {
     let mut by: BTreeMap<u32, Vec<Task>> = BTreeMap::new();
     for s in &e.scenarios {

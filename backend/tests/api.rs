@@ -1,5 +1,5 @@
-//! Сквозные проверки API на базе SurrealDB в памяти: сид из настоящих исходников курса, вход, прогресс, квизы,
-//! ответы, очередь проверок и внутренний API воркера.
+//! End-to-end API checks on in-memory SurrealDB: seed from the real course sources, sign-in, progress, quizzes,
+//! answers, the check queue and the internal worker API.
 
 use axum::{
     body::Body,
@@ -17,6 +17,7 @@ async fn app(worker_token: &str) -> Router {
         surreal_url: "memory".into(),
         data_dir: std::path::PathBuf::from("data"),
         audio_dir: std::env::temp_dir().join("cs-core-rs-test-audio"),
+        records_dir: std::env::temp_dir().join("cs-core-rs-test-records"),
         static_dir: None,
         worker_token: worker_token.into(),
         seed: "auto".into(),
@@ -41,7 +42,7 @@ async fn call(app: &Router, method: Method, uri: &str, token: Option<&str>, body
 }
 
 async fn sign_in(app: &Router, email: &str) -> String {
-    let (st, _) = call(app, Method::POST, "/api/auth/signup", None, Some(json!({ "email": email, "password": "correct-horse-1", "name": "Тест" }))).await;
+    let (st, _) = call(app, Method::POST, "/api/auth/signup", None, Some(json!({ "email": email, "password": "correct-horse-1", "name": "Test" }))).await;
     assert_eq!(st, StatusCode::CREATED);
     let (st, body) = call(app, Method::POST, "/api/auth/login", None, Some(json!({ "email": email, "password": "correct-horse-1" }))).await;
     assert_eq!(st, StatusCode::OK);
@@ -70,21 +71,21 @@ async fn course_content_is_seeded() {
 
     let (_, tasks) = call(&app, Method::GET, "/api/exercises/13/0", None, None).await;
     assert!(tasks["tasks"].as_array().unwrap().iter().any(|t| t["id"] == "intro-variable"));
-    // SQL-задачи приходят вместе с описанием учебных баз
+    // SQL tasks come with the description of the practice databases
     let (_, sql) = call(&app, Method::GET, "/api/exercises/9/2", None, None).await;
     let first = &sql["tasks"][0];
     assert_eq!(first["mode"], "sql");
     let key = first["dataset"].as_str().unwrap();
     assert!(!sql["datasets"][key]["tables"].as_array().unwrap().is_empty());
     assert_eq!(call(&app, Method::GET, "/api/exercises/9/99", None, None).await.0, StatusCode::NOT_FOUND);
-    // у глав 17+ учебные базы с внешними ключами, заполненными в произвольном порядке: схема всё равно строится
+    // chapters 17+ have practice databases with foreign keys filled in arbitrary order: the schema is still built
     for chapter in 1..=32 {
         let (st, _) = call(&app, Method::GET, &format!("/api/exercises/9/{chapter}"), None, None).await;
-        assert_eq!(st, StatusCode::OK, "глава {chapter} книги 9");
+        assert_eq!(st, StatusCode::OK, "chapter {chapter} of book 9");
     }
     assert_eq!(call(&app, Method::GET, "/api/nope", None, None).await.0, StatusCode::NOT_FOUND);
 
-    // защищённые маршруты без сессии
+    // protected routes without a session
     for uri in ["/api/progress", "/api/quizzes/18/24", "/api/answers/12/1", "/api/exercises/13/0/state"] {
         assert_eq!(call(&app, Method::GET, uri, None, None).await.0, StatusCode::UNAUTHORIZED, "{uri}");
     }
@@ -97,25 +98,25 @@ async fn slides_are_stored_as_data_and_served_per_chapter() {
     assert_eq!(st, StatusCode::OK);
     let list = list.as_array().unwrap();
     let files = std::fs::read_dir("data/slides").unwrap().count();
-    assert_eq!(list.len(), files, "каждый файл главы попал в базу");
+    assert_eq!(list.len(), files, "every chapter file made it into the database");
     assert!(list.iter().any(|c| c["book"] == 13 && c["chapter"] == 0));
 
-    // схема системного дизайна: сцена из кадров приходит как данные
+    // system design diagram: a scene made of frames arrives as data
     let (st, ch) = call(&app, Method::GET, "/api/slides/18/24", None, None).await;
     assert_eq!(st, StatusCode::OK);
     let slides = ch["slides"].as_array().unwrap();
     assert_eq!(slides.len(), 13);
     assert!(ch["rubric"].as_str().unwrap().contains("ГЛАВА 24"));
-    let scene = slides[0]["body"].as_array().unwrap().iter().find(|b| b["t"] == "scene").expect("в слайде есть сцена");
+    let scene = slides[0]["body"].as_array().unwrap().iter().find(|b| b["t"] == "scene").expect("the slide has a scene");
     assert!(!scene["frames"].as_array().unwrap().is_empty());
     assert_eq!(scene["labels"].as_array().unwrap().len(), scene["frames"].as_array().unwrap().len());
 
-    // старый формат: блоки вместо сцены
+    // old format: blocks instead of a scene
     let (_, py) = call(&app, Method::GET, "/api/slides/13/5", None, None).await;
     let kinds: Vec<&str> = py["slides"][1]["body"].as_array().unwrap().iter().map(|b| b["t"].as_str().unwrap()).collect();
     assert_eq!(kinds, ["code", "label", "cmd", "note"]);
 
-    // ДМ: схемы написаны генераторами на Rust и лежат в данных наравне с остальными
+    // Discrete math: diagrams are written by Rust generators and stored in the data like the rest
     let (st, dm) = call(&app, Method::GET, "/api/slides/12/1", None, None).await;
     assert_eq!(st, StatusCode::OK);
     assert_eq!(dm["slides"].as_array().unwrap().len(), 13);
@@ -126,22 +127,22 @@ async fn slides_are_stored_as_data_and_served_per_chapter() {
 async fn lab_solutions_are_checked_by_the_server_engine() {
     let app = app("").await;
     let token = sign_in(&app, "student@mail.com").await;
-    // сценарий приходит без эталона
+    // the scenario arrives without the reference solution
     let (st, lab) = call(&app, Method::GET, "/api/labs/18/2", None, None).await;
     assert_eq!(st, StatusCode::OK);
     assert_eq!(lab["lab"], "sd");
     let first = &lab["tasks"][0];
-    assert!(first["spec"].get("solution").is_none(), "эталон не уходит клиенту");
+    assert!(first["spec"].get("solution").is_none(), "the reference is not sent to the client");
     assert!(first["spec"]["goals"].as_array().is_some_and(|g| !g.is_empty()));
     assert_eq!(call(&app, Method::GET, "/api/labs/18/99", None, None).await.0, StatusCode::NOT_FOUND);
 
-    // эталон и исходная схема из файла данных
+    // the reference and the starting diagram from the data file
     let file: Value = serde_json::from_slice(&std::fs::read("data/labs/sd/18-02.json").unwrap()).unwrap();
     let task = &file["tasks"][0];
     let id = task["id"].as_str().unwrap();
     let uri = format!("/api/exercises/18/2/{id}/solved");
     let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": task["spec"]["start"].to_string() }))).await;
-    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "исходная схема не решает упражнение: {body}");
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "the starting diagram does not solve the exercise: {body}");
     let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": task["spec"]["solution"].to_string() }))).await;
     assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
 }
@@ -153,12 +154,12 @@ async fn riscv_programs_are_checked_by_running_them() {
     let (st, lab) = call(&app, Method::GET, "/api/labs/14/16", None, None).await;
     assert_eq!(st, StatusCode::OK);
     assert_eq!(lab["lab"], "riscv");
-    assert!(lab["tasks"][0]["spec"].get("reference").is_none(), "эталонная программа не уходит клиенту");
+    assert!(lab["tasks"][0]["spec"].get("reference").is_none(), "the reference program is not sent to the client");
     let file: Value = serde_json::from_slice(&std::fs::read("data/labs/arch/14-16.json").unwrap()).unwrap();
     let task = &file["tasks"][0];
     let uri = format!("/api/exercises/14/16/{}/solved", task["id"].as_str().unwrap());
     let (st, _) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": "" }))).await;
-    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "пустая программа не решает");
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "an empty program does not solve it");
     let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": task["spec"]["reference"] }))).await;
     assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
 }
@@ -177,7 +178,7 @@ async fn architecture_lab_accepts_every_reference_solution_in_course_order() {
                 Value::String(text) => text.clone(),
                 other => other.to_string(),
             };
-            // составные блоки открываются решениями самого ученика: порядок курса важен
+            // composite blocks are unlocked by the student's own solutions: course order matters
             let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": reference }))).await;
             assert_eq!(st, StatusCode::NO_CONTENT, "{chapter}/{}: {body}", task["id"]);
             solved += 1;
@@ -186,7 +187,7 @@ async fn architecture_lab_accepts_every_reference_solution_in_course_order() {
         }
     }
     assert_eq!(solved, 103);
-    assert!(empty_rejected > 90, "пустая схема не решает упражнение (отклонено {empty_rejected})");
+    assert!(empty_rejected > 90, "an empty diagram does not solve the exercise (rejected {empty_rejected})");
 }
 
 #[tokio::test]
@@ -212,21 +213,21 @@ async fn network_lab_accepts_solved_networks_and_rejects_the_starting_ones() {
         }
     }
     assert_eq!(accepted, 79);
-    assert_eq!(rejected, 79, "исходная сеть не решает ни одного упражнения");
+    assert_eq!(rejected, 79, "the starting network solves no exercise");
 }
 
 #[tokio::test]
 async fn composite_gates_stay_locked_until_the_student_builds_them() {
     let app = app("").await;
     let token = sign_in(&app, "locks@mail.com").await;
-    // «половинный сумматор» использует XOR, который открывается сборкой «xor» своими руками
+    // the "half adder" uses XOR, which is unlocked by building "xor" by hand
     let file: Value = serde_json::from_slice(&std::fs::read("data/labs/arch/14-09.json").unwrap()).unwrap();
     let task = file["tasks"].as_array().unwrap().iter().find(|t| t["id"] == "half-adder").unwrap();
     let uri = "/api/exercises/14/9/half-adder/solved";
     let (st, body) = call(&app, Method::PUT, uri, Some(&token), Some(json!({ "solution": task["spec"]["solution"].to_string() }))).await;
-    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "XOR закрыт: {body}");
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "XOR is locked: {body}");
     assert!(body["detail"].as_str().unwrap().contains("XOR"), "{body}");
-    // нерешённый черновик открывать элемент не должен
+    // an unsolved draft must not unlock the element
     let (st, _) = call(&app, Method::PUT, "/api/exercises/14/6/xor-gate/draft", Some(&token), Some(json!({ "code": "{}" }))).await;
     assert!(st == StatusCode::NO_CONTENT || st == StatusCode::NOT_FOUND);
     let (st, _) = call(&app, Method::PUT, uri, Some(&token), Some(json!({ "solution": task["spec"]["solution"].to_string() }))).await;
@@ -242,11 +243,11 @@ async fn progress_quiz_and_answers() {
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 18, "chapter": 24, "slide": 2 }))).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 18, "chapter": 24, "slide": 2 }))).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 0, "chapter": 24, "slide": 2 }))).await.0, StatusCode::UNPROCESSABLE_ENTITY);
-    // у «Python» и «Unix» есть нулевая глава (введение): её слайды тоже сохраняются
+    // "Python" and "Unix" have a chapter zero (introduction): its slides are saved too
     assert_eq!(call(&app, Method::POST, "/api/progress/slides", t, Some(json!({ "book": 13, "chapter": 0, "slide": 1 }))).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::GET, "/api/progress", t, None).await.1["slides"]["13:0"], json!([1]));
 
-    // квиз: вопросы без ответов, на вопрос отвечают один раз
+    // quiz: questions without answers, each question is answered once
     let (_, quiz) = call(&app, Method::GET, "/api/quizzes/18/24", t, None).await;
     assert_eq!(quiz["questions"].as_array().unwrap().len(), 5);
     assert!(quiz["questions"][0].get("answer").is_none());
@@ -254,12 +255,12 @@ async fn progress_quiz_and_answers() {
     let (st, first) = call(&app, Method::POST, "/api/quizzes/18/24/answer", t, Some(json!({ "question": 0, "pick": 0 }))).await;
     assert_eq!(st, StatusCode::OK);
     let (_, again) = call(&app, Method::POST, "/api/quizzes/18/24/answer", t, Some(json!({ "question": 0, "pick": 3 }))).await;
-    assert_eq!(again["pick"], first["pick"], "повторный ответ ничего не меняет");
+    assert_eq!(again["pick"], first["pick"], "a repeated answer changes nothing");
     assert_eq!(call(&app, Method::POST, "/api/quizzes/18/24/answer", t, Some(json!({ "question": 0, "pick": 40 }))).await.0, StatusCode::UNPROCESSABLE_ENTITY);
     let (_, quiz) = call(&app, Method::GET, "/api/quizzes/18/24", t, None).await;
     assert!(quiz["reveal"][0]["expl"].as_str().is_some());
 
-    // ответы с вводом: верный запоминается, неверный ничего не раскрывает
+    // typed answers: a correct one is remembered, a wrong one reveals nothing
     let (_, bad) = call(&app, Method::POST, "/api/answers/12/1/check", t, Some(json!({ "task": 0, "value": "999" }))).await;
     assert_eq!(bad, json!({ "ok": false }));
     let (_, good) = call(&app, Method::POST, "/api/answers/12/1/check", t, Some(json!({ "task": 0, "value": " 1 " }))).await;
@@ -271,13 +272,13 @@ async fn progress_quiz_and_answers() {
     assert_eq!(progress["quizRight"]["18:24"], first["right"]);
     assert_eq!(progress["answers"]["12:1"]["0"], "1");
 
-    // сбросы
+    // resets
     assert_eq!(call(&app, Method::DELETE, "/api/progress/quiz?book=18&chapter=24", t, None).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::DELETE, "/api/progress?scope=practice", t, None).await.0, StatusCode::NO_CONTENT);
     let (_, progress) = call(&app, Method::GET, "/api/progress", t, None).await;
     assert_eq!(progress["quiz"], json!({}));
     assert_eq!(progress["answers"], json!({}));
-    assert_eq!(progress["slides"]["18:24"], json!([2]), "scope=practice слайды не трогает");
+    assert_eq!(progress["slides"]["18:24"], json!([2]), "scope=practice does not touch slides");
     assert_eq!(call(&app, Method::DELETE, "/api/progress?scope=zzz", t, None).await.0, StatusCode::UNPROCESSABLE_ENTITY);
 }
 
@@ -288,9 +289,9 @@ async fn code_jobs_go_through_the_worker_api() {
     let t = Some(token.as_str());
     let run = json!({ "book": 13, "chapter": 0, "task": "intro-variable", "code": "year = 1991\nprint(year)" });
 
-    // воркеров нет — проверка недоступна
+    // no workers: checking is unavailable
     assert_eq!(call(&app, Method::POST, "/api/exercises/run", t, Some(run.clone())).await.0, StatusCode::SERVICE_UNAVAILABLE);
-    // токен воркера
+    // worker token
     let w = |m: Method, uri: &str, tok: Option<&str>, body: Value| {
         let app = app.clone();
         let uri = uri.to_string();
@@ -303,18 +304,18 @@ async fn code_jobs_go_through_the_worker_api() {
     let (_, status) = call(&app, Method::GET, "/api/exercises/runner/status", None, None).await;
     assert_eq!(status, json!({ "available": true, "queued": 0, "running": 0, "workers": 1 }));
 
-    // постановка → очередь → воркер забирает → результат → попытка и статус записаны
+    // enqueue -> queue -> worker picks up -> result -> attempt and status recorded
     let (st, queued) = call(&app, Method::POST, "/api/exercises/run", t, Some(run.clone())).await;
     assert_eq!(st, StatusCode::ACCEPTED);
     assert_eq!(queued["state"], "queued");
     let id = queued["id"].as_str().unwrap().to_string();
-    assert_eq!(call(&app, Method::POST, "/api/exercises/run", t, Some(run.clone())).await.0, StatusCode::TOO_MANY_REQUESTS, "одна проверка на пользователя");
+    assert_eq!(call(&app, Method::POST, "/api/exercises/run", t, Some(run.clone())).await.0, StatusCode::TOO_MANY_REQUESTS, "one check per user");
 
     let (st, job) = w(Method::POST, "/internal/worker/claim", Some("secret"), json!({ "name": "w1", "lanes": ["light"], "wait": 0 })).await;
     assert_eq!(st, StatusCode::OK);
     assert_eq!(job["id"], id);
     assert_eq!(job["task"]["id"], "intro-variable");
-    assert!(job["task"]["expected"].is_array(), "в задание для воркера попадает spec: {job}");
+    assert!(job["task"]["expected"].is_array(), "the worker job includes the spec: {job}");
     assert_eq!(call(&app, Method::GET, &format!("/api/exercises/run/{id}"), t, None).await.1["state"], "running");
     assert_eq!(w(Method::POST, "/internal/worker/jobs/zzz/result", Some("secret"), json!({ "name": "w1", "result": {} })).await.0, StatusCode::CONFLICT);
     assert_eq!(w(Method::POST, &format!("/internal/worker/jobs/{id}/result"), Some("secret"), json!({ "name": "other", "result": {} })).await.0, StatusCode::CONFLICT);
@@ -330,24 +331,24 @@ async fn code_jobs_go_through_the_worker_api() {
     let (_, attempts) = call(&app, Method::GET, "/api/exercises/13/0/intro-variable/attempts", t, None).await;
     assert_eq!(attempts["attempts"].as_array().unwrap().len(), 1);
 
-    // то же решение второй раз — из кэша, без воркера
+    // the same solution a second time comes from the cache, without a worker
     let (st, cached) = call(&app, Method::POST, "/api/exercises/run", t, Some(run)).await;
     assert_eq!(st, StatusCode::ACCEPTED);
     assert_eq!(cached["state"], "done");
     assert_eq!(cached["solved"], true);
     let (_, attempts) = call(&app, Method::GET, "/api/exercises/13/0/intro-variable/attempts", t, None).await;
-    assert_eq!(attempts["attempts"].as_array().unwrap().len(), 2, "кэш не отменяет записи попытки");
+    assert_eq!(attempts["attempts"].as_array().unwrap().len(), 2, "the cache does not skip recording the attempt");
 
-    // черновики; чужие и несуществующие задачи
+    // drafts; other people's and nonexistent tasks
     assert_eq!(call(&app, Method::PUT, "/api/exercises/13/0/intro-variable/draft", t, Some(json!({ "code": "x = 1" }))).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, Method::GET, "/api/exercises/13/0/state", t, None).await.1["drafts"]["intro-variable"], "x = 1");
     assert_eq!(call(&app, Method::PUT, "/api/exercises/13/0/nope/draft", t, Some(json!({ "code": "x" }))).await.0, StatusCode::NOT_FOUND);
     assert_eq!(call(&app, Method::POST, "/api/exercises/run", t, Some(json!({ "book": 13, "chapter": 0, "task": "intro-variable", "code": "  " }))).await.0, StatusCode::UNPROCESSABLE_ENTITY);
 
-    // лабораторное упражнение засчитывается без песочницы, но только если решение проходит проверку движком лаборатории
+    // a lab exercise is accepted without a sandbox, but only if the lab engine accepts the solution
     let lab = call(&app, Method::GET, "/api/exercises/14/6", None, None).await.1["tasks"][0]["id"].as_str().unwrap().to_string();
     let solved_uri = format!("/api/exercises/14/6/{lab}/solved");
-    assert_eq!(call(&app, Method::PUT, &solved_uri, t, Some(json!({ "solution": "{}" }))).await.0, StatusCode::UNPROCESSABLE_ENTITY, "пустое решение не засчитывается");
+    assert_eq!(call(&app, Method::PUT, &solved_uri, t, Some(json!({ "solution": "{}" }))).await.0, StatusCode::UNPROCESSABLE_ENTITY, "an empty solution is not accepted");
     let file: Value = serde_json::from_slice(&std::fs::read("data/labs/arch/14-06.json").unwrap()).unwrap();
     let reference = file["tasks"][0]["spec"]["solution"].to_string();
     assert_eq!(call(&app, Method::PUT, &solved_uri, t, Some(json!({ "solution": reference }))).await.0, StatusCode::NO_CONTENT);
@@ -370,17 +371,17 @@ async fn web_lab_accepts_references_and_rejects_starters() {
         let path = entry.unwrap().path();
         let file: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         let (book, chapter) = (file["book"].as_i64().unwrap(), file["chapter"].as_i64().unwrap());
-        // задание приходит без эталона
+        // the task arrives without the reference
         let (st, lab) = call(&app, Method::GET, &format!("/api/labs/{book}/{chapter}"), None, None).await;
         assert_eq!(st, StatusCode::OK, "GET /api/labs/{book}/{chapter}");
         assert_eq!(lab["lab"], "web");
-        assert!(lab["tasks"].as_array().unwrap().iter().all(|t| t["spec"].get("reference").is_none()), "эталон не уходит клиенту");
+        assert!(lab["tasks"].as_array().unwrap().iter().all(|t| t["spec"].get("reference").is_none()), "the reference is not sent to the client");
         for task in file["tasks"].as_array().unwrap() {
             let spec = &task["spec"];
             let uri = format!("/api/exercises/{book}/{chapter}/{}/solved", task["id"].as_str().unwrap());
             let start = json!({ "html": spec["starter_html"], "css": spec["starter_css"] });
             let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": start.to_string() }))).await;
-            assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "{}: заготовка не должна решать: {body}", task["id"]);
+            assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "{}: the starter must not solve it: {body}", task["id"]);
             let r = &spec["reference"];
             let good = match spec["kind"].as_str().unwrap() {
                 "html" => json!({ "html": r["html"], "css": "" }),
@@ -388,11 +389,11 @@ async fn web_lab_accepts_references_and_rejects_starters() {
                 _ => json!({ "html": "", "css": r["selector"] }),
             };
             let (st, body) = call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": good.to_string() }))).await;
-            assert_eq!(st, StatusCode::NO_CONTENT, "{}: эталон должен приниматься: {body}", task["id"]);
+            assert_eq!(st, StatusCode::NO_CONTENT, "{}: the reference must be accepted: {body}", task["id"]);
             checked += 1;
         }
     }
-    assert!(checked >= 21, "проверено упражнений: {checked}");
+    assert!(checked >= 21, "exercises checked: {checked}");
 }
 
 async fn call_lang(app: &Router, lang: &str, method: Method, uri: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
@@ -414,7 +415,7 @@ async fn call_lang(app: &Router, lang: &str, method: Method, uri: &str, token: O
 async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     let app = app("").await;
 
-    // список книг: у переведённой — английское название и оба языка, у остальных — русские название и только русский
+    // book list: a translated book has the English title and both languages, the others have the Russian title and Russian only
     let (_, books) = call_lang(&app, "en-US,en;q=0.9", Method::GET, "/api/books", None, None).await;
     let books = books.as_array().unwrap();
     let dm = books.iter().find(|b| b["id"] == 12).unwrap();
@@ -425,28 +426,28 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     assert_eq!(py["title"], "Python as a First Language");
     for (id, title) in [(14, "Computer Architecture"), (15, "Computer Networks"), (17, "Virtualization"), (11, "Modern Frontend"), (18, "System Design")] {
         let book = books.iter().find(|b| b["id"] == id).unwrap();
-        assert_eq!(book["langs"], json!(["ru", "en"]), "книга {id}");
+        assert_eq!(book["langs"], json!(["ru", "en"]), "book {id}");
         assert_eq!(book["title"], title);
     }
-    assert!(books.iter().all(|b| b["langs"] == json!(["ru", "en"])), "все книги курса переведены");
+    assert!(books.iter().all(|b| b["langs"] == json!(["ru", "en"])), "all course books are translated");
     let (_, ru_books) = call_lang(&app, "ru", Method::GET, "/api/books", None, None).await;
     assert_eq!(ru_books.as_array().unwrap().iter().find(|b| b["id"] == 12).unwrap()["title"], "Дискретная математика");
 
-    // оглавление и текст главы: те же id, английский текст, столько же абзацев
+    // table of contents and chapter text: same ids, English text, same number of paragraphs
     let (_, ru_course) = call_lang(&app, "ru", Method::GET, "/api/books/12/course", None, None).await;
     let (_, en_course) = call_lang(&app, "en", Method::GET, "/api/books/12/course", None, None).await;
     assert_eq!(en_course[0]["title"], "The language of mathematics");
     assert_eq!(ru_course[0]["id"], en_course[0]["id"]);
     let chapter_id = en_course[0]["chapters"][0]["id"].clone();
-    assert_eq!(ru_course[0]["chapters"][0]["id"], chapter_id, "адрес главы не зависит от языка");
+    assert_eq!(ru_course[0]["chapters"][0]["id"], chapter_id, "the chapter address does not depend on the language");
     let (_, en_chapter) = call_lang(&app, "en", Method::GET, &format!("/api/chapters/{chapter_id}"), None, None).await;
     let (_, ru_chapter) = call_lang(&app, "ru", Method::GET, &format!("/api/chapters/{chapter_id}"), None, None).await;
     assert!(en_chapter["lessons"][0]["text"].as_str().unwrap().starts_with("Discrete mathematics. Chapter 1."));
     assert!(ru_chapter["lessons"][0]["text"].as_str().unwrap().starts_with("Дискретная математика. Глава 1."));
     assert_eq!(en_chapter["lessons"].as_array().unwrap().len(), ru_chapter["lessons"].as_array().unwrap().len());
-    assert_ne!(en_chapter["lessons"][0]["id"], ru_chapter["lessons"][0]["id"], "у каждого языка свои части урока (и своё аудио)");
+    assert_ne!(en_chapter["lessons"][0]["id"], ru_chapter["lessons"][0]["id"], "each language has its own lesson parts (and its own audio)");
 
-    // слайды: переведённой книги — английские, остальных — русские
+    // slides: English for a translated book, Russian for the others
     let (_, en_slides) = call_lang(&app, "en", Method::GET, "/api/slides/12/1", None, None).await;
     assert!(en_slides["rubric"].as_str().unwrap().starts_with("DISCRETE MATHEMATICS"));
     assert_eq!(en_slides["slides"].as_array().unwrap().len(), 13);
@@ -455,7 +456,7 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     let (_, arch_slides) = call_lang(&app, "en", Method::GET, "/api/slides/14/1", None, None).await;
     assert!(arch_slides["rubric"].as_str().unwrap().starts_with("THE COMPUTER AND THE TRANSISTOR"));
 
-    // квиз: тот же ответ и число вариантов, текст — на языке запроса
+    // quiz: same answer and number of options, text in the request language
     let token = sign_in(&app, "lang@example.com").await;
     let (_, en_quiz) = call_lang(&app, "en", Method::GET, "/api/quizzes/12/1", Some(&token), None).await;
     let (_, ru_quiz) = call_lang(&app, "ru", Method::GET, "/api/quizzes/12/1", Some(&token), None).await;
@@ -466,7 +467,7 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     assert_eq!(en_answer["answer"], 1);
     assert!(en_answer["expl"].as_str().unwrap().starts_with("A list is a contract"));
 
-    // ответы с вводом: «да» — это yes/true, и наоборот
+    // typed answers: "да" means yes/true, and vice versa
     let (_, en_set) = call_lang(&app, "en", Method::GET, "/api/answers/12/1", Some(&token), None).await;
     assert_eq!(en_set["tasks"][0]["q"], "How many subsets does the empty set have?");
     let check = |lang: &'static str, value: &'static str| {
@@ -479,7 +480,7 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     assert_eq!(check("ru", "да").await, json!(true));
     assert_eq!(check("ru", "yes").await, json!(false));
 
-    // код-задачи: условия на языке запроса, тесты и драйвер общие
+    // code tasks: statements in the request language, tests and driver shared
     let (_, en_tasks) = call_lang(&app, "en", Method::GET, "/api/exercises/13/5", Some(&token), None).await;
     let (_, ru_tasks) = call_lang(&app, "ru", Method::GET, "/api/exercises/13/5", Some(&token), None).await;
     let (en_list, ru_list) = (en_tasks["tasks"].as_array().unwrap(), ru_tasks["tasks"].as_array().unwrap());
@@ -487,4 +488,59 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     assert_eq!(en_list[0]["id"], ru_list[0]["id"]);
     assert_ne!(en_list[0]["statement"], ru_list[0]["statement"]);
     assert!(!en_list[0]["statement"].as_str().unwrap().is_empty());
+}
+
+/// Recording for a slide: the whole request body, the type in `Content-Type`.
+async fn upload(app: &Router, token: &str, uri: &str, content_type: &str, bytes: &[u8]) -> (StatusCode, Value) {
+    let req = Request::builder().method(Method::POST).uri(uri).header(header::AUTHORIZATION, format!("Bearer {token}")).header(header::CONTENT_TYPE, content_type).body(Body::from(bytes.to_vec())).unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = res.into_body().collect().await.unwrap().to_bytes();
+    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+#[tokio::test]
+async fn slide_recordings_are_saved_by_administrators_only() {
+    let dir = std::env::temp_dir().join(format!("cs-core-records-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let cfg = Config {
+        bind: "127.0.0.1:0".into(),
+        surreal_url: "memory".into(),
+        data_dir: std::path::PathBuf::from("data"),
+        audio_dir: std::env::temp_dir().join("cs-core-rs-test-audio"),
+        records_dir: dir.clone(),
+        static_dir: None,
+        worker_token: "".into(),
+        seed: "auto".into(),
+    };
+    let database = db::memory().await.unwrap();
+    let app = build(database.clone(), cfg).await.unwrap().0;
+    auth::Auth::new(database).ensure_admin("author@mail.com", "correct-horse-1").await.unwrap();
+    let (st, body) = call(&app, Method::POST, "/api/auth/login", None, Some(json!({ "email": "author@mail.com", "password": "correct-horse-1" }))).await;
+    assert_eq!(st, StatusCode::OK);
+    let admin = body["token"].as_str().unwrap().to_string();
+    let student = sign_in(&app, "student@mail.com").await;
+
+    // students and guests cannot write to disk
+    assert_eq!(upload(&app, &student, "/api/records/13/1/2", "audio/webm;codecs=opus", b"webm").await.0, StatusCode::FORBIDDEN);
+    assert_eq!(call(&app, Method::POST, "/api/records/13/1/2", None, None).await.0, StatusCode::UNAUTHORIZED);
+
+    // admin: the file goes to <book>/<chapter>/<slide>.<extension by type>
+    let (st, saved) = upload(&app, &admin, "/api/records/13/1/2", "audio/webm;codecs=opus", b"webm-bytes").await;
+    assert_eq!(st, StatusCode::OK, "{saved}");
+    let path = dir.join("13").join("1").join("2.webm");
+    assert_eq!(saved["path"].as_str().unwrap(), path.to_string_lossy());
+    assert_eq!(saved["bytes"], 10);
+    assert_eq!(std::fs::read(&path).unwrap(), b"webm-bytes");
+
+    // a slide has one file: a new recording in another container replaces the old one
+    assert_eq!(upload(&app, &admin, "/api/records/13/1/2", "audio/mp4", b"m4a").await.0, StatusCode::OK);
+    assert!(!path.exists(), "the old webm is removed");
+    assert_eq!(std::fs::read(dir.join("13").join("1").join("2.m4a")).unwrap(), b"m4a");
+
+    // an unknown type and an empty body are rejected
+    assert_eq!(upload(&app, &admin, "/api/records/13/1/3", "text/plain", b"x").await.0, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(upload(&app, &admin, "/api/records/13/1/3", "audio/webm", b"").await.0, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(upload(&app, &admin, "/api/records/0/1/3", "audio/webm", b"x").await.0, StatusCode::UNPROCESSABLE_ENTITY);
+    let _ = std::fs::remove_dir_all(&dir);
 }

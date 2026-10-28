@@ -1,9 +1,9 @@
-//! Операции над состоянием сети: кабели, поиск портов, копия без кэшей, проверка целостности.
+//! Operations on the network state: cables, port lookup, copy without caches, integrity check.
 
 use crate::ip::mac_str;
 use crate::types::*;
 
-/// Генератор MAC-адресов для построения сетей кодом: 28:28:00:00:00:01, 02, …
+/// MAC address generator for building networks in code: 28:28:00:00:00:01, 02, ...
 #[derive(Clone, Debug)]
 pub struct MacGen(u32);
 
@@ -17,7 +17,7 @@ impl MacGen {
     pub fn new() -> MacGen {
         MacGen::default()
     }
-    /// Интерфейс с новым MAC и без адреса.
+    /// Interface with a new MAC and no address.
     pub fn iface(&mut self, name: &str) -> Iface {
         let n = self.0;
         self.0 += 1;
@@ -33,7 +33,7 @@ pub fn split_ref(s: &str) -> (&str, &str) {
     }
 }
 
-/// Сосед по кабелю: устройство, порт и индекс кабеля.
+/// Neighbour over a cable: device, port and cable index.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Peer {
     pub dev: String,
@@ -42,18 +42,18 @@ pub struct Peer {
 }
 
 impl NetState {
-    /// Устройство по id.
+    /// Device by id.
     pub fn device(&self, id: &str) -> Option<&Device> {
         self.devices.get(id)
     }
 
-    /// Индекс кабеля, подключённого к порту.
+    /// Index of the cable connected to the port.
     pub fn link_of(&self, dev: &str, port: &str) -> Option<usize> {
         let key = port_ref(dev, port);
         self.links.iter().position(|l| l.a == key || l.b == key)
     }
 
-    /// По другую сторону кабеля от (dev, port).
+    /// The other side of the cable from (dev, port).
     pub fn peer_of(&self, dev: &str, port: &str) -> Option<Peer> {
         let i = self.link_of(dev, port)?;
         let l = &self.links[i];
@@ -63,13 +63,13 @@ impl NetState {
         Some(Peer { dev: d.to_string(), port: p.to_string(), link: i })
     }
 
-    /// Первый порт устройства без кабеля.
+    /// First device port without a cable.
     pub fn free_port(&self, dev: &str) -> Option<&Iface> {
         let d = self.devices.get(dev)?;
         d.ifaces.iter().find(|i| self.link_of(dev, &i.name).is_none())
     }
 
-    /// Проложить кабель между первыми свободными портами. Ошибка — текст для ученика.
+    /// Lay a cable between the first free ports. Error is text for the student.
     pub fn connect(&mut self, a: &str, b: &str, extra: Option<&LinkExtra>) -> Result<(), String> {
         if a == b {
             return Err(i18n::tr("Cannot connect a device to itself").into());
@@ -104,25 +104,25 @@ impl NetState {
         Ok(())
     }
 
-    /// Убрать кабель по индексу.
+    /// Remove a cable by index.
     pub fn disconnect(&mut self, idx: usize) {
         if idx < self.links.len() {
             self.links.remove(idx);
         }
     }
 
-    /// Копия без служебных кэшей — для сохранения в кабинете и для проверки «с чистого листа».
+    /// Copy without runtime caches: for saving in the account and for checking "from scratch".
     pub fn stripped(&self) -> NetState {
         NetState { devices: self.devices.clone(), links: self.links.clone(), pki: self.pki.clone(), rt: Runtime::default(), busy: false }
     }
 
-    /// Сбросить кэши ARP, таблицы MAC и прочее.
+    /// Reset the ARP caches, MAC tables and the rest.
     pub fn reset_runtime(&mut self) {
         self.rt = Runtime::default();
     }
 }
 
-/// Необязательные свойства кабеля при прокладке (шаг решения `cable`).
+/// Optional cable properties when laying it (solution step `cable`).
 #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct LinkExtra {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -135,14 +135,14 @@ pub struct LinkExtra {
     pub loss: Option<f64>,
 }
 
-/// Пределы размера присланного состояния: чтобы чужой JSON не превратился в бесконечную проверку.
+/// Size limits of a submitted state: so that foreign JSON does not turn into an endless check.
 pub const MAX_DEVICES: usize = 64;
 pub const MAX_LINKS: usize = 256;
 pub const MAX_ITEMS: usize = 1000;
 
 impl NetState {
-    /// Проверка целостности: кабели ведут к существующим портам, порт занят не более одним кабелем,
-    /// размеры списков в пределах.
+    /// Integrity check: cables lead to existing ports, a port holds at most one cable,
+    /// list sizes are within limits.
     pub fn validate(&self) -> Result<(), String> {
         if self.devices.len() > MAX_DEVICES {
             return Err(i18n::trf!("too many devices ({0})", self.devices.len()));
@@ -186,7 +186,7 @@ impl NetState {
     }
 }
 
-/// Разобрать состояние из JSON (каноническая запись или прежняя запись клиента) и проверить его.
+/// Parse the state from JSON (canonical form or the former client form) and check it.
 pub fn state_from_json(s: &str) -> Result<NetState, String> {
     let st: NetState = serde_json::from_str(s).map_err(|e| i18n::trf!("failed to parse the network state: {0}", e))?;
     st.validate()?;

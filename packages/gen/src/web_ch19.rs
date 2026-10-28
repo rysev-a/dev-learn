@@ -1,15 +1,15 @@
-//! Книга 11 «Современный Frontend», глава 19 «CSS: Flexbox» (раздел «CSS и вёрстка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 19 "CSS: Flexbox" (section "CSS and layout"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bx, text, zone},
     Block, Chapter, Frame, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [&[10.3, 20.4, 27.4], &[15.3, 19.6, 24.0], &[10.1, 15.6, 21.5], &[8.6, 13.4, 19.4], &[11.8, 20.2, 31.2], &[6.9, 14.3, 28.9], &[10.8, 18.0, 26.4], &[8.9, 13.5, 25.1], &[13.4, 18.4, 26.6], &[17.9, 29.4, 32.4], &[12.3, 21.1, 24.9], &[8.8, 17.0, 21.9], &[9.1, 17.1, 22.5]];
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-19.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-19.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Одномерная раскладка", "Контейнер и элементы", "Включили флекс у родителя, и его прямые дети встали в одну линию.", v01),
@@ -34,41 +34,41 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Пунктирный прямоугольник: свободное место или «поле».
+/// Dashed rectangle: free space or a "field".
 #[allow(clippy::too_many_arguments)]
 fn free(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(8.0).dash()
 }
 
-/// Короткая подпись.
+/// Short label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Строка CSS над схемой (моноширинная).
+/// CSS line above the diagram (monospace).
 fn prop(label: &str) -> content::item::Text {
     text("prop", 180.0, 18.0, label).size(10.0).mono().tone(Y)
 }
 
-/// Нижняя подпись схемы.
+/// Bottom caption of the diagram.
 fn foot(label: &str, tone: Tone) -> content::item::Text {
     text("foot", 180.0, 152.0, label).size(10.0).tone(tone)
 }
 
-/// Флекс-контейнер: область с подписью.
+/// Flex container: area with a label.
 fn box_(x: f64, y: f64, w: f64, h: f64) -> content::item::Zone {
     zone("z", x, y, w, h).tone(B)
 }
@@ -77,7 +77,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// 1. Одномерная раскладка
+// 1. One-dimensional layout
 fn v01() -> SceneSpec {
     let row = |extra: bool| {
         let mut f = Frame::new().with(zone("z", 180.0, 80.0, 330.0, 86.0).tone(B).label("display: flex"));
@@ -110,9 +110,9 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Главная и поперечная оси
+// 2. Main and cross axes
 fn v02() -> SceneSpec {
-    // (положение элементов: x, y, w, h), стрелки осей, подписи осей
+    // (item positions: x, y, w, h), axis arrows, axis labels
     #[allow(clippy::type_complexity)]
     let frame = |dir: &str, items: [(f64, f64, f64, f64); 3], am: (f64, f64, f64, f64), ac: (f64, f64, f64, f64), tm: (f64, f64), tc: (f64, f64)| {
         let mut f = Frame::new().with(prop(&format!("flex-direction: {dir}"))).with(box_(160.0, 85.0, 260.0, 90.0));
@@ -254,7 +254,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. flex-wrap и строки
+// 6. flex-wrap and lines
 fn v06() -> SceneSpec {
     let frame = |label: &str, pos: [(f64, f64, f64); 5], tail: &str| {
         let mut f = Frame::new().with(prop(label)).with(box_(180.0, 85.0, 320.0, 96.0));
@@ -318,9 +318,9 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. как flex делит свободное место
+// 8. how flex divides free space
 fn v08() -> SceneSpec {
-    // масштаб 1:2 — ширины на схеме вдвое меньше настоящих
+    // scale 1:2 — widths on the diagram are half the real ones
     let row = |label: &str, tail: &str, cw: f64, ws: [f64; 3], names: [&str; 3]| {
         let left = 30.0;
         let mut f = Frame::new().with(prop(label)).with(box_(left + cw / 2.0, 70.0, cw, 64.0));
@@ -348,7 +348,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. order и доступность порядка
+// 9. order and order accessibility
 fn v09() -> SceneSpec {
     let names = ["A", "B", "C", "D"];
     let row = |label: &str, order: [usize; 4], tones: [Tone; 4], unders: [&str; 4], tail: &str, tone: Tone| {
@@ -386,7 +386,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. min-width: 0, переполнение и типичные баги
+// 10. min-width: 0, overflow and typical bugs
 fn v10() -> SceneSpec {
     spec(
         &["Переполнение", "min-width: 0", "Сплющилась", "shrink: 0"],
@@ -467,7 +467,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. паттерны
+// 12. patterns
 fn v12() -> SceneSpec {
     let cards = |f: Frame| {
         let mut f = f;
@@ -513,7 +513,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. flex и grid, чек-лист
+// 13. flex and grid, checklist
 fn v13() -> SceneSpec {
     let labels = ["кнопка", "поле для текста", "ок", "ссылка"];
     let flex_x = [53.0, 139.0, 217.0, 285.0];

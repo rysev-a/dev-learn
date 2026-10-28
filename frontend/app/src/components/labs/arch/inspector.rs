@@ -1,5 +1,5 @@
-//! «Заглянуть внутрь»: просмотр схемы блока и процессора только для чтения — крошки пути, спуск в блоки вплоть до
-//! вентилей, живые значения на проводах (`CircuitView.tsx`, часть `CircuitLab.tsx` и `CpuInspector.tsx`).
+//! "Look inside": read-only view of a block's and the processor's circuit — path breadcrumbs, descent into blocks down to
+//! gates, live values on the wires (`CircuitView.tsx`, part of `CircuitLab.tsx` and `CpuInspector.tsx`).
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -22,15 +22,15 @@ use crate::{
     dom,
 };
 
-/// Равномерная раскладка узлов по высоте доски `h` (для схем с многими входами и выходами).
+/// Even layout of nodes over the board height `h` (for circuits with many inputs and outputs).
 pub fn spread_ys(names: &[String], h: f64) -> YMap {
     let n = names.len();
     let step = if n > 1 { (h - 80.0) / (n as f64 - 1.0) } else { 0.0 };
     YMap(names.iter().enumerate().map(|(i, name)| (name.clone(), if n == 1 { h / 2.0 } else { 40.0 + i as f64 * step })).collect())
 }
 
-/// Y входов по их именам (имена бывают любыми, не только `A`…`F`): до трёх — 80/200/320, до четырёх — по высоте
-/// 50…390 (как на обычной доске), больше — равномерно по `h`.
+/// Y of inputs by their names (names can be anything, not only `A`…`F`): up to three — 80/200/320, up to four — by height
+/// 50…390 (as on the normal board), more — evenly over `h`.
 pub fn named_input_ys(names: &[String], h: f64) -> YMap {
     if names.len() > 4 {
         return spread_ys(names, h);
@@ -42,7 +42,7 @@ pub fn named_input_ys(names: &[String], h: f64) -> YMap {
     YMap(names.iter().enumerate().map(|(i, n)| (n.clone(), 50.0 + i as f64 * step)).collect())
 }
 
-/// Размеры доски просмотра схемы из вентилей: (ширина, высота, на сколько колонка выходов уехала вправо).
+/// Size of the gate-circuit view board: (width, height, how far the output column moved right).
 pub fn gate_view_size(gates: &[GateInstance], inputs: usize, outputs: usize, spread: f64) -> (f64, f64, f64) {
     let sx = |x: f64| js_round(150.0 + (x - 150.0) * spread);
     let sy = |y: f64| js_round(20.0 + (y - 20.0) * spread);
@@ -52,7 +52,7 @@ pub fn gate_view_size(gates: &[GateInstance], inputs: usize, outputs: usize, spr
     (w, BOARD_H.max(lowest).max(ports), w - BOARD_W)
 }
 
-/// Во сколько раз раздвинуть схему блоков процессора, чтобы она читалась.
+/// By how much to spread the processor block circuit so it is readable.
 pub fn spread_for_blocks(instances: usize) -> f64 {
     match instances {
         n if n > 8 => 1.7,
@@ -61,7 +61,7 @@ pub fn spread_for_blocks(instances: usize) -> f64 {
     }
 }
 
-/// Во сколько раз раздвинуть схему из вентилей процессора.
+/// By how much to spread the processor gate circuit.
 pub fn spread_for_gates(gates: usize) -> f64 {
     match gates {
         n if n > 40 => 1.9,
@@ -71,16 +71,16 @@ pub fn spread_for_gates(gates: usize) -> f64 {
     }
 }
 
-/// Высота доски блоков процессора: все блоки помещаются.
+/// Processor block board height: all blocks fit.
 pub fn block_board_height(instances: &[BlockInstance]) -> f64 {
     instances.iter().map(|i| i.y + 290.0).fold(BLOCKS_BOARD_H, f64::max)
 }
 
-/// Значение сигнала на входном контакте элемента: по узлу и контакту.
+/// Signal value on an element's input pin: by node and pin.
 type PinValue = Arc<dyn Fn(&str, PinKind) -> NodeValue + Send + Sync>;
 
-/// Схема из вентилей только для просмотра — «внутренность» блока. Значения берутся из общей симуляции, сигналы
-/// живые. Вентили можно двигать и раздвигать: схема от этого не меняется.
+/// View-only gate circuit — the "inside" of a block. Values come from the shared simulation, the signals
+/// are live. Gates can be moved and spread apart: the circuit does not change from this.
 #[component]
 pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: Arc<BlockInterface>, scope: Scope, #[prop(default = 1.0)] spread: f64) -> impl IntoView {
     let fullscreen = use_fullscreen();
@@ -92,7 +92,7 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
 
     let in_y = Arc::new(named_input_ys(&iface.inputs, h));
     let out_y = Arc::new(if iface.outputs.len() > 4 { spread_ys(&iface.outputs, h) } else { output_ys(&iface.outputs) });
-    // вентили на экране: сдвинутые рукой или раздвинутые
+    // gates on screen: moved by hand or spread apart
     let placed = {
         let gates = gates.clone();
         Memo::new(move |_| {
@@ -111,7 +111,7 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
         let (in_y, out_y, outputs) = (in_y.clone(), out_y.clone(), iface.outputs.clone());
         move |r: &PinRef| {
             let p = placed.with(|g| pin_pos(r, g, &out_y, &in_y));
-            // колонка выходов при раздвигании уехала вправо вместе с доской
+            // the output column moved right together with the board when spreading
             if r.pin != PinKind::Out && outputs.contains(&r.node) {
                 (p.x + extra_w, p.y)
             } else {
@@ -257,7 +257,7 @@ pub fn CircuitView(gates: Arc<Vec<GateInstance>>, wires: Arc<Vec<Wire>>, iface: 
     }
 }
 
-/// Вентиль просмотра: контур, точки сигналов на контактах и «щуп» со значением выхода; его можно двигать.
+/// View gate: outline, signal dots on the pins and an output-value "probe"; it can be moved.
 #[allow(clippy::too_many_arguments)]
 fn gate_node(
     view: BoardView,
@@ -308,8 +308,8 @@ fn gate_node(
     }
 }
 
-/// Просмотр схемы блока или процессора: крошки пути, «← Назад» и сама схема уровня. Путь (`path`) — id экземпляров,
-/// в которые спустились; `top` — самый верхний уровень. `cpu` — раздвигать схемы и показывать сводку по вентилям.
+/// View of a block's or the processor's circuit: path breadcrumbs, "← Back" and the level's circuit itself. The path (`path`) is the ids of the instances
+/// descended into; `top` is the topmost level. `cpu` — spread the circuits and show the gate summary.
 #[component]
 pub fn Inspector(top: Signal<Level>, library: Signal<Lib>, path: RwSignal<Vec<String>>, #[prop(default = false)] cpu: bool) -> impl IntoView {
     move || {
@@ -396,7 +396,7 @@ mod tests {
 
     #[test]
     fn up_to_three_inputs_use_the_classic_rows() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let ys = named_input_ys(&names(3), 440.0);
         assert_eq!(ys.get("n0"), Some(80.0));
         assert_eq!(ys.get("n2"), Some(320.0));
@@ -404,7 +404,7 @@ mod tests {
 
     #[test]
     fn four_inputs_spread_over_the_board_and_many_inputs_over_its_height() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let four = named_input_ys(&names(4), 440.0);
         assert_eq!((four.get("n0"), four.get("n3")), (Some(50.0), Some(390.0)));
         let many = named_input_ys(&names(9), 800.0);
@@ -414,18 +414,18 @@ mod tests {
 
     #[test]
     fn view_size_grows_with_spread_and_ports() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let g = |x: f64, y: f64| GateInstance { id: "g".into(), ty: GateType::And, x, y };
         assert_eq!(gate_view_size(&[g(200.0, 100.0)], 2, 1, 1.0), (BOARD_W, BOARD_H, 0.0));
         let (w, h, extra) = gate_view_size(&[g(700.0, 400.0)], 2, 1, 2.0);
         assert!(w > BOARD_W && h > BOARD_H && extra == w - BOARD_W);
-        // много выходов — доска выше, чтобы все поместились
+        // many outputs — a taller board so that all fit
         assert_eq!(gate_view_size(&[], 2, 12, 1.0).1, 640.0);
     }
 
     #[test]
     fn processor_spread_depends_on_the_size_of_the_scheme() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         assert_eq!(spread_for_blocks(2), 1.2);
         assert_eq!(spread_for_blocks(5), 1.4);
         assert_eq!(spread_for_blocks(12), 1.7);
@@ -436,7 +436,7 @@ mod tests {
 
     #[test]
     fn block_board_is_tall_enough_for_the_lowest_block() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let i = |y: f64| BlockInstance { id: "i".into(), block_id: "b".into(), x: 0.0, y };
         assert_eq!(block_board_height(&[i(10.0)]), BLOCKS_BOARD_H);
         assert_eq!(block_board_height(&[i(10.0), i(500.0)]), 790.0);

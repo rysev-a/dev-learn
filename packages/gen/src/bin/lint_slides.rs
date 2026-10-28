@@ -1,5 +1,5 @@
-//! Проверка раскладки всех сцен в файлах данных: `cargo run --release --bin lint_slides -- <каталог данных> [глава…]`.
-//! Печатает замечания (текст шире ячейки, элемент за холстом) и итог; код возврата 1, если замечания есть.
+//! Layout check of all scenes in the data files: `cargo run --release --bin lint_slides -- <data directory> [chapter…]`.
+//! Prints remarks (text wider than a cell, element outside the canvas) and a summary; exit code 1 if there are remarks.
 
 use std::path::PathBuf;
 

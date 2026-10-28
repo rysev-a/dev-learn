@@ -15,6 +15,7 @@ path = "src/main.rs"
 [dependencies]
 content.workspace = true
 i18n.workspace = true
+locales.workspace = true
 sdlab.workspace = true
 virtlab.workspace = true
 weblab.workspace = true

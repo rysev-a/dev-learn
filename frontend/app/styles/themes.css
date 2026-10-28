@@ -1,8 +1,8 @@
-/* Цветовые темы (как в VS Code). Файл сгенерирован: основные цвета каждой темы заданы вручную, производные (границы, наведение, прозрачности) посчитаны,
-   контраст проверен. Применяются атрибутом data-palette на <html>; в настройках карточки предпросмотра получают тот же атрибут на себе. Светлый или тёмный режим
-   задаёт data-theme, тема поверх него переопределяет переменные. */
+/* Color themes (as in VS Code). The file is generated: the main colors of each theme are set by hand, derived ones (borders, hover, opacities) are computed,
+   contrast is checked. Applied via the data-palette attribute on <html>; in settings the preview cards get the same attribute on themselves. Light or dark mode is
+   set by data-theme, the theme on top of it overrides the variables. */
 
-/* Dracula (тёмная) */
+/* Dracula (dark) */
 :root[data-palette="dracula"],
 .palette-card[data-palette="dracula"] {
   --bg: #282a36;
@@ -51,7 +51,7 @@
   --syn-comment: #7080b8;
 }
 
-/* One Dark (тёмная) */
+/* One Dark (dark) */
 :root[data-palette="one-dark"],
 .palette-card[data-palette="one-dark"] {
   --bg: #282c34;
@@ -100,7 +100,7 @@
   --syn-comment: #7f848e;
 }
 
-/* Nord (тёмная) */
+/* Nord (dark) */
 :root[data-palette="nord"],
 .palette-card[data-palette="nord"] {
   --bg: #2e3440;
@@ -149,7 +149,7 @@
   --syn-comment: #8996b0;
 }
 
-/* Tokyo Night (тёмная) */
+/* Tokyo Night (dark) */
 :root[data-palette="tokyo-night"],
 .palette-card[data-palette="tokyo-night"] {
   --bg: #1a1b26;
@@ -198,7 +198,7 @@
   --syn-comment: #6a7099;
 }
 
-/* Solarized Dark (тёмная) */
+/* Solarized Dark (dark) */
 :root[data-palette="solarized-dark"],
 .palette-card[data-palette="solarized-dark"] {
   --bg: #002b36;
@@ -247,7 +247,7 @@
   --syn-comment: #6f8a92;
 }
 
-/* Monokai (тёмная) */
+/* Monokai (dark) */
 :root[data-palette="monokai"],
 .palette-card[data-palette="monokai"] {
   --bg: #272822;
@@ -296,7 +296,7 @@
   --syn-comment: #8a8a78;
 }
 
-/* GitHub Light (светлая) */
+/* GitHub Light (light) */
 :root[data-palette="github-light"],
 .palette-card[data-palette="github-light"] {
   --bg: #f6f8fa;
@@ -345,7 +345,7 @@
   --syn-comment: #6e7781;
 }
 
-/* Solarized Light (светлая) */
+/* Solarized Light (light) */
 :root[data-palette="solarized-light"],
 .palette-card[data-palette="solarized-light"] {
   --bg: #fdf6e3;
@@ -394,7 +394,7 @@
   --syn-comment: #7a8f94;
 }
 
-/* One Light (светлая) */
+/* One Light (light) */
 :root[data-palette="one-light"],
 .palette-card[data-palette="one-light"] {
   --bg: #fafafa;
@@ -443,7 +443,7 @@
   --syn-comment: #8a8c96;
 }
 
-/* Gruvbox Light (светлая) */
+/* Gruvbox Light (light) */
 :root[data-palette="gruvbox-light"],
 .palette-card[data-palette="gruvbox-light"] {
   --bg: #fbf1c7;
@@ -492,7 +492,7 @@
   --syn-comment: #7c6f64;
 }
 
-/* Тёмная по умолчанию: значения из app.css, нужны только карточкам предпросмотра в настройках */
+/* Default dark: values from app.css, needed only by the preview cards in settings */
 .palette-card[data-palette="default-dark"] {
   --bg: #0f1115;
   --sidebar-bg: #12151b;
@@ -540,7 +540,7 @@
   --syn-comment: var(--s-muted);
 }
 
-/* Светлая по умолчанию: значения из app.css, нужны только карточкам предпросмотра в настройках */
+/* Default light: values from app.css, needed only by the preview cards in settings */
 .palette-card[data-palette="default-light"] {
   --bg: #f5f6f8;
   --sidebar-bg: #ffffff;

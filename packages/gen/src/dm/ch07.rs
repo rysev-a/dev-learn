@@ -1,7 +1,7 @@
-//! Дискретная математика, глава 7 «Индукция и рекуррентности»: сцены (перенос с `slides/anim/C7*.tsx` на данные).
+//! Discrete mathematics, chapter 7 "Induction and recurrences": scenes (port of `slides/anim/C7*.tsx` to data).
 //!
-//! Упрощения при переносе: у сцен нет поступенчатой задержки переходов (ступени лестницы, домино, уровни дерева слияния
-//! появляются и перекрашиваются одновременно); фигуры «повёрнутого прямоугольника» (упавшее домино) нарисованы толстыми линиями.
+//! Simplifications in the port: scenes have no staggered transition delays (stair steps, dominoes, merge tree levels
+//! appear and recolour at once); the "rotated rectangle" shapes (a fallen domino) are drawn with thick lines.
 
 use content::{
     dsl::{arrow, bx, dot, line, path, text},
@@ -9,7 +9,7 @@ use content::{
     Frame, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-/// Сцены главы: (имя прежнего React-компонента, описание).
+/// Chapter scenes: (former React component name, description).
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     vec![
         ("C7Intro", intro()),
@@ -28,30 +28,30 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники ---------------------------------------------------------------------------------
+// --- helpers -----------------------------------------------------------------------------------
 
-/// Моноширинная подпись (центр), кегль `size`.
+/// Monospace label (centre), font size `size`.
 fn mono(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).mono().size(size)
 }
 
-/// Обычная подпись (центр), кегль `size`.
+/// Regular label (centre), font size `size`.
 fn cap(id: &str, x: f64, y: f64, s: &str, size: f64) -> Text {
     text(id, x, y, s).size(size)
 }
 
-/// Плашка: (x, y) — центр.
-#[allow(clippy::too_many_arguments)] // короткий помощник для плотных таблиц кадров
+/// Plate: (x, y) — centre.
+#[allow(clippy::too_many_arguments)] // short helper for dense frame tables
 fn pill(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Кружок с подписью.
+/// Circle with a label.
 fn node(id: &str, x: f64, y: f64, r: f64, label: &str, tone: Tone, size: f64) -> Dot {
     dot(id, x, y, label).r(r).tone(tone).size(size)
 }
 
-/// Кривая-дуга над узлами: из (x1, y) вверх на высоту `lift` и вниз в (x2, y).
+/// Arc curve over the nodes: from (x1, y) up by `lift` and down to (x2, y).
 fn arc(id: &str, x1: f64, x2: f64, y: f64, top: f64, tone: Tone) -> content::item::Path {
     path(id, format!("M{x1} {y} C{x1} {top} {x2} {top} {x2} {y}")).tone(tone).arrow()
 }
@@ -60,7 +60,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-// --- 1. Введение -------------------------------------------------------------------------------
+// --- 1. Introduction ---------------------------------------------------------------------------
 
 fn intro() -> SceneSpec {
     let rec = [("обход дерева", "tree"), ("вложенный json", "{…{…}}"), ("спуск по каталогам", "/a/b/c")];
@@ -98,12 +98,12 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 2. Лестница -------------------------------------------------------------------------------
+// --- 2. Staircase ------------------------------------------------------------------------------
 
 fn stairs() -> SceneSpec {
     let sx = |i: usize| 30.0 + i as f64 * 36.0;
     let sy = |i: usize| 126.0 - i as f64 * 11.0;
-    // ступени достигнуты до номера `reach` (не включая)
+    // steps reached up to number `reach` (exclusive)
     let steps = |reach: usize| {
         Frame::new()
             .with_all((0..8).map(|i| {
@@ -133,10 +133,10 @@ fn stairs() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 3. Математическая индукция: домино --------------------------------------------------------
+// --- 3. Mathematical induction: dominoes -------------------------------------------------------
 
 fn induction() -> SceneSpec {
-    // домино: стоящее — вертикальный отрезок, упавшее — отрезок под углом 72° (поворот вокруг левого нижнего угла)
+    // domino: standing — vertical segment, fallen — segment at 72° (rotation around the bottom-left corner)
     let dominoes = |all_fallen: bool, first_fallen: bool| {
         let mut f = Frame::new();
         for i in 0..9 {
@@ -174,7 +174,7 @@ fn induction() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 4. Сумма 1 + … + n ------------------------------------------------------------------------
+// --- 4. Sum 1 + … + n --------------------------------------------------------------------------
 
 fn sum() -> SceneSpec {
     let f0 = Frame::new().with(mono("stmt", 180.0, 86.0, "1 + 2 + … + n = n(n+1)/2", 20.0).tone(G));
@@ -214,11 +214,11 @@ fn sum() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 5. Интуиция Гаусса ------------------------------------------------------------------------
+// --- 5. Gauss's intuition ----------------------------------------------------------------------
 
 fn gauss() -> SceneSpec {
     let down = ["100", "99", "98", "97", "96", "95"];
-    // два ряда: верхний 1…6, нижний 100…95
+    // two rows: top 1…6, bottom 100…95
     let rows = || {
         Frame::new()
             .with_all((0..6).map(|i| pill(&format!("u{i}"), 58.0 + i as f64 * 42.0, 48.0, 36.0, 24.0, &(i + 1).to_string(), B, 11.0)))
@@ -254,14 +254,14 @@ fn gauss() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 6. Сильная индукция -----------------------------------------------------------------------
+// --- 6. Strong induction -----------------------------------------------------------------------
 
 fn strong() -> SceneSpec {
     let x = |i: usize| 40.0 + i as f64 * 46.0;
     let ladder = || {
         Frame::new().with_all((0..7).map(|i| node(&format!("k{i}"), x(i), 92.0, 13.0, &(i + 1).to_string(), if i == 6 { Y } else { G }, 11.0)))
     };
-    // дуги «опора на все предыдущие»: в первом кадре ещё не нарисованы
+    // arcs "relying on all previous": not yet drawn in the first frame
     let arcs = |shown: bool| {
         (0..6).map(move |i| {
             let top = 40.0 - i as f64 * 2.0;
@@ -304,11 +304,11 @@ fn strong() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 7. Индукция и рекурсия --------------------------------------------------------------------
+// --- 7. Induction and recursion ----------------------------------------------------------------
 
 fn recursion() -> SceneSpec {
     let rows = [("база индукции", "return 1  (n = 0)"), ("переход", "n * fact(n − 1)"), ("доказательство", "корректно «по построению»")];
-    // таблица «индукция ≈ рекурсия»: строка i подсвечена с шага i + 1
+    // table "induction ≈ recursion": row i is highlighted from step i + 1
     let table = |step: usize| {
         let mut f = Frame::new().with(cap("hi", 95.0, 22.0, "индукция", 10.0).tone(B)).with(cap("hr", 265.0, 22.0, "рекурсия", 10.0).tone(G));
         for (i, (a, b)) in rows.iter().enumerate() {
@@ -322,7 +322,7 @@ fn recursion() -> SceneSpec {
         f
     };
     let f3 = table(3).with(mono("nothing", 180.0, 160.0, "отдельно доказывать нечего", 11.0).tone(G));
-    // лестница без первой ступени
+    // staircase without the first step
     let mut f4 = Frame::new();
     for i in 0..6 {
         let (cx, h) = (70.0 + i as f64 * 44.0, if i == 0 { 6.0 } else { 30.0 + i as f64 * 10.0 });
@@ -331,7 +331,7 @@ fn recursion() -> SceneSpec {
         f4 = f4.with(if i == 0 { c.tone(R).dash() } else { c.tone(M) });
     }
     f4 = f4.with(mono("nb", 70.0, 104.0, "база?", 11.0).tone(R)).with(cap("nf", 180.0, 154.0, "нет первой ступени — не на что опереться", 10.0).tone(R));
-    // стек вызовов без дна
+    // call stack without a bottom
     let mut f5 = Frame::new();
     for i in 0..6 {
         let last = i == 5;
@@ -356,7 +356,7 @@ fn recursion() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 8. Рекуррентные соотношения ---------------------------------------------------------------
+// --- 8. Recurrence relations -------------------------------------------------------------------
 
 fn recurrence() -> SceneSpec {
     let fib = [1, 1, 2, 3, 5, 8, 13];
@@ -401,9 +401,9 @@ fn recurrence() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 9. Сортировка слиянием --------------------------------------------------------------------
+// --- 9. Merge sort -----------------------------------------------------------------------------
 
-/// Уровни дерева деления: на уровне `l` — `2^l` кусков шириной 320/2^l; верхний край уровня — `y0 + l·dy`.
+/// Levels of the division tree: at level `l` — `2^l` pieces of width 320/2^l; the top edge of the level — `y0 + l·dy`.
 fn levels(tone: Tone, y0: f64, dy: f64, count: usize) -> Vec<Cell> {
     let mut out = Vec::new();
     for l in 0..count {
@@ -441,12 +441,12 @@ fn merge() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 10. Быстрая сортировка --------------------------------------------------------------------
+// --- 10. Quicksort -----------------------------------------------------------------------------
 
 fn quick() -> SceneSpec {
     let f0 = Frame::new().with(mono("t", 180.0, 80.0, "quicksort", 22.0).tone(G));
     let f1 = Frame::new().with_all(levels(G, 22.0, 28.0, 4)).with(mono("nl", 180.0, 148.0, "log n уровней × n = n log n", 13.0).tone(G));
-    // худший случай: опорный каждый раз крайний — строки n, n−1, n−2, …
+    // worst case: the pivot is always the extreme one — rows n, n−1, n−2, …
     let worst = || {
         let mut f = Frame::new();
         for l in 0..8 {
@@ -481,7 +481,7 @@ fn quick() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 11. Инвариант цикла -----------------------------------------------------------------------
+// --- 11. Loop invariant ------------------------------------------------------------------------
 
 fn invariant() -> SceneSpec {
     let f0 = Frame::new()
@@ -490,7 +490,7 @@ fn invariant() -> SceneSpec {
         .with(mono("s", 120.0, 82.0, "step()", 13.0).anchor(Anchor::Start))
         .with(cap("nr", 180.0, 140.0, "рекурсии нет — индукция откуда?", 10.0));
     let f1 = Frame::new().with(mono("inv", 180.0, 86.0, "инвариант", 30.0).tone(G));
-    // четыре витка: «I ✓» перед каждым, между ними — виток
+    // four iterations: "I ✓" before each, an iteration between them
     let turns = || {
         Frame::new()
             .with_all((0..4).map(|i| pill(&format!("i{i}"), 44.0 + i as f64 * 80.0, 52.0, 58.0, 26.0, "I ✓", G, 10.0).text_color("var(--s-accent)")))
@@ -523,7 +523,7 @@ fn invariant() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 12. Практические выводы -------------------------------------------------------------------
+// --- 12. Practical conclusions -----------------------------------------------------------------
 
 fn practice() -> SceneSpec {
     let f0 = Frame::new().with(mono("t", 180.0, 86.0, "база · шаг · время", 22.0).tone(G));
@@ -561,11 +561,11 @@ fn practice() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 13. Итог ----------------------------------------------------------------------------------
+// --- 13. Summary -------------------------------------------------------------------------------
 
 fn recap() -> SceneSpec {
     let cards = [("база + шаг", "индукция"), ("P(<k) ⇒ P(k)", "сильная"), ("f(n−1)", "рекурсия"), ("T(n)", "рекуррентности")];
-    // шаг `step`: карточка step − 1 подсвечена и увеличена, прежние — пройдены
+    // step `step`: card step − 1 is highlighted and enlarged, the previous ones — passed
     let frame = |step: usize| {
         let mut f = Frame::new();
         for (i, (big, name)) in cards.iter().enumerate() {

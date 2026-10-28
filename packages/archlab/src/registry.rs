@@ -1,21 +1,21 @@
-//! Какие главы книги «Архитектура компьютера» — лаборатории: номер главы → раздел схем или ассемблер.
-//! Порт `registry.ts` (главы 6–15; RISC-V и настоящие программы, главы 16–17, — в другом крейте).
+//! Which chapters of the "Computer Architecture" book are labs: chapter number → circuit section or assembler.
+//! Port of `registry.ts` (chapters 6–15; RISC-V and real programs, chapters 16–17, are in another crate).
 
 use crate::model::GateType;
 
-/// Раздел упражнений со схемами (`sections.ts`).
+/// Section of circuit exercises (`sections.ts`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SectionInfo {
     pub slug: &'static str,
     pub title: &'static str,
     pub description: &'static str,
-    /// Ключ прогресса в браузере (`progressKey`).
+    /// Progress key in the browser (`progressKey`).
     pub progress_key: &'static str,
-    /// Глава книги, в которой лежит раздел.
+    /// Book chapter the section lives in.
     pub chapter: u32,
 }
 
-/// Разделы со схемами по порядку глав 6–14.
+/// Circuit sections in the order of chapters 6–14.
 pub const SECTIONS: [SectionInfo; 9] = [
     SectionInfo { slug: "simple-circuits", title: i18n::t!("Simple circuits"), description: i18n::t!("Logic gates and truth tables: from a wire to a multiplexer"), progress_key: "simple", chapter: 6 },
     SectionInfo { slug: "mux", title: i18n::t!("Multiplexers"), description: i18n::t!("Selecting and routing signals: multiplexers, decoders, encoders, buses"), progress_key: "mux", chapter: 7 },
@@ -28,19 +28,19 @@ pub const SECTIONS: [SectionInfo; 9] = [
     SectionInfo { slug: "cpu", title: i18n::t!("Processor from blocks"), description: i18n::t!("Your circuits as blocks with interfaces: buses, looking inside, and assembling a processor"), progress_key: "cpu", chapter: 14 },
 ];
 
-/// Глава с ассемблером Мини-8.
+/// Chapter with the Mini-8 assembler.
 pub const ASM_CHAPTER: u32 = 15;
 
-/// Тип лаборатории главы.
+/// Lab type of a chapter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LabKind {
-    /// Схемы из вентилей и блоков; раздел `slug`.
+    /// Circuits from gates and blocks; section `slug`.
     Circuit(&'static str),
-    /// Ассемблер процессора Мини-8.
+    /// Assembler of the Mini-8 processor.
     Asm,
 }
 
-/// Тип лаборатории главы (`LAB_CHAPTERS`); `None` — не лаборатория этого крейта.
+/// Lab type of a chapter (`LAB_CHAPTERS`); `None` — not a lab of this crate.
 pub fn lab_kind(chapter: u32) -> Option<LabKind> {
     if chapter == ASM_CHAPTER {
         return Some(LabKind::Asm);
@@ -48,35 +48,35 @@ pub fn lab_kind(chapter: u32) -> Option<LabKind> {
     section_of_chapter(chapter).map(|s| LabKind::Circuit(s.slug))
 }
 
-/// Раздел, лежащий в главе.
+/// Section that lives in the chapter.
 pub fn section_of_chapter(chapter: u32) -> Option<&'static SectionInfo> {
     SECTIONS.iter().find(|s| s.chapter == chapter)
 }
 
-/// Раздел по slug.
+/// Section by slug.
 pub fn section_by_slug(slug: &str) -> Option<&'static SectionInfo> {
     SECTIONS.iter().find(|s| s.slug == slug)
 }
 
-/// Номер главы, в которой лежит раздел со схемами (`CHAPTER_OF_SLUG`).
+/// Number of the chapter the circuit section lives in (`CHAPTER_OF_SLUG`).
 pub fn chapter_of_slug(slug: &str) -> Option<u32> {
     section_by_slug(slug).map(|s| s.chapter)
 }
 
-/// Все номера глав этого крейта: 6–15.
+/// All chapter numbers of this crate: 6–15.
 pub fn chapters() -> impl Iterator<Item = u32> {
     SECTIONS.iter().map(|s| s.chapter).chain(std::iter::once(ASM_CHAPTER))
 }
 
-/// Составные элементы: каждый собирается из базовых вентилей. Собрав его вручную в указанном
-/// упражнении, ученик открывает готовый блок в палитре (`COMPOSITE_GATES`).
+/// Composite elements: each is built from basic gates. By building one by hand in the given
+/// exercise, the student unlocks the ready-made block in the palette (`COMPOSITE_GATES`).
 pub fn composite_requirement(ty: GateType) -> Option<(&'static str, &'static str)> {
     match ty {
         GateType::Nand => Some(("simple-circuits", "nand")),
         GateType::Xor => Some(("simple-circuits", "xor")),
-        // XNOR — «НЕ от XOR»: открывается вместе с ним
+        // XNOR — "NOT of XOR": unlocks together with it
         GateType::Xnor => Some(("simple-circuits", "xor")),
-        // триггер по фронту ученик сначала собирает сам — из ведущей и ведомой защёлок
+        // the student first builds the edge-triggered flip-flop by hand — from master and slave latches
         GateType::Dff => Some(("registers", "dff")),
         _ => None,
     }

@@ -1,4 +1,4 @@
-//! Минимальная работа с PCM-WAV: длительность и склейка частей главы в один файл (скачивание главы).
+//! Minimal PCM-WAV handling: duration and joining a chapter's parts into one file (chapter download).
 
 use std::path::Path;
 
@@ -32,7 +32,7 @@ fn read(path: &Path) -> Option<Wav> {
     Some(Wav { channels, rate, bits, data: data? })
 }
 
-/// Длительность в секундах (0, если файл не читается).
+/// Duration in seconds (0 if the file is unreadable).
 pub fn duration(path: &Path) -> f64 {
     match read(path) {
         Some(w) if w.rate > 0 && w.channels > 0 && w.bits >= 8 => w.data.len() as f64 / (w.rate as f64 * w.channels as f64 * (w.bits as f64 / 8.0)),
@@ -40,21 +40,21 @@ pub fn duration(path: &Path) -> f64 {
     }
 }
 
-/// Склеивает части с одинаковым форматом; `Err` — форматы различаются или файл не читается.
+/// Joins parts with the same format; `Err` - formats differ or a file is unreadable.
 pub fn concat(paths: &[std::path::PathBuf]) -> Result<Vec<u8>, &'static str> {
     let mut head: Option<(u16, u32, u16)> = None;
     let mut data = Vec::new();
     for p in paths {
-        let w = read(p).ok_or("не читается")?;
+        let w = read(p).ok_or("unreadable")?;
         let cur = (w.channels, w.rate, w.bits);
         match head {
             None => head = Some(cur),
-            Some(h) if h != cur => return Err("форматы различаются"),
+            Some(h) if h != cur => return Err("formats differ"),
             _ => {}
         }
         data.extend_from_slice(&w.data);
     }
-    let (channels, rate, bits) = head.ok_or("нет частей")?;
+    let (channels, rate, bits) = head.ok_or("no parts")?;
     let block = channels * (bits / 8);
     let mut out = Vec::with_capacity(44 + data.len());
     out.extend_from_slice(b"RIFF");

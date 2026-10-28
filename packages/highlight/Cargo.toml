@@ -3,7 +3,7 @@ name = "highlight"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Подсветка кода по строкам (Python, C, ассемблер RISC-V, Rust) без зависимостей: для схем слайдов и редактора упражнений."
+description = "Line-by-line syntax highlighting (Python, C, RISC-V assembly, Rust) with no dependencies: for slide diagrams and the exercise editor."
 
 [features]
 serde = ["dep:serde"]

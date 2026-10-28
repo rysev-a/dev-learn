@@ -1,26 +1,26 @@
-//! SSH в симуляторе: ключ хоста, known_hosts, вход по ключу или паролю, прыжок через бастион (-J).
-//! Сеть — настоящая (TCP-проба на порт 22), а проверки ключей и паролей — здесь.
+//! SSH in the simulator: host key, known_hosts, login by key or password, jump through a bastion (-J).
+//! The network is real (TCP probe to port 22), while key and password checks are here.
 
 use crate::ip::*;
 use crate::sim::{delivered_to, fmt_ms, tcp1};
 use crate::types::*;
 
-/// Конфигурация SSH-сервера по умолчанию.
+/// Default SSH server configuration.
 pub fn new_ssh() -> SshConfig {
     SshConfig { host_key: "SHA256:hostKeyA1".into(), rot: None, password_auth: true, users: Default::default() }
 }
 
-/// Ключ клиента (отпечаток).
+/// Client key (fingerprint).
 pub fn key_of(d: &Device) -> Option<&str> {
     d.ssh_key.as_deref()
 }
 
-/// Новый отпечаток ключа устройства.
+/// New key fingerprint for a device.
 pub fn make_key(d: &Device) -> String {
     format!("SHA256:{}Key{}", d.id, (crate::util::utf16_len(&d.name) * 7) % 97)
 }
 
-/// Способ входа.
+/// Login method.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Auth {
     Key,
@@ -36,7 +36,7 @@ impl Auth {
     }
 }
 
-/// Итог подключения.
+/// Connection outcome.
 #[derive(Clone, Debug, Default)]
 pub struct SshResult {
     pub ok: bool,
@@ -55,7 +55,7 @@ fn perm(pw: bool) -> String {
     format!("publickey{}", if pw { ",password" } else { "" })
 }
 
-/// Одно подключение клиента к серверу: порт 22, ключ хоста, пользователь, ключ или пароль.
+/// One client connection to a server: port 22, host key, user, key or password.
 pub fn ssh_hop(state: &mut NetState, client_id: &str, user: &str, ip: u32, pass: Option<&str>, no_key: bool, label: &str) -> SshResult {
     let run = tcp1(state, client_id, ip, 22, 50000, false);
     if run.status == ProbeStatus::Refused {
@@ -116,7 +116,7 @@ pub fn ssh_hop(state: &mut NetState, client_id: &str, user: &str, ip: u32, pass:
     fail(format!("{user}@{k}: Permission denied ({}) — {why}", perm(sshd.password_auth)), Some(run), Some(srv))
 }
 
-/// `ssh [-J jump] user@host`: через бастион клиент сначала входит на него, затем TCP до цели идёт с бастиона.
+/// `ssh [-J jump] user@host`: via a bastion the client first logs in there, then TCP to the target goes from the bastion.
 pub fn ssh_connect(
     state: &mut NetState,
     client_id: &str,
@@ -134,7 +134,7 @@ pub fn ssh_connect(
         let e = a.error.clone().unwrap_or_else(|| "undefined".into());
         return SshResult { ok: false, error: Some(i18n::trf!("bastion: {0}", e)), ..a };
     };
-    // дальше TCP идёт с бастиона: клиент проходит аутентификацию на цели своим ключом
+    // from here TCP goes from the bastion: the client authenticates on the target with its own key
     let probe = tcp1(state, &jd.id, ip, 22, 50000, false);
     if probe.status != ProbeStatus::Connected {
         let why = if probe.status == ProbeStatus::Refused { i18n::tr("port closed") } else { i18n::tr("no reply") };

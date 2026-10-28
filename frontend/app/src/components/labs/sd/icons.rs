@@ -1,8 +1,8 @@
-//! Значки компонентов на поле схемы: содержимое `<svg>` 24×24 (контур, как у остальных значков приложения).
+//! Component icons on the diagram board: contents of a 24×24 `<svg>` (outline, like the app's other icons).
 
 use sdlab::Kind;
 
-/// Разметка значка вида компонента (внутренность элемента `<g>`).
+/// Markup of a component kind's icon (the inside of a `<g>` element).
 pub fn markup(kind: Kind) -> &'static str {
     match kind {
         Kind::Clients => r#"<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>"#,
@@ -35,12 +35,12 @@ mod tests {
 
     #[test]
     fn every_kind_has_a_balanced_icon() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         for k in Kind::ALL {
             let m = markup(k);
             assert!(m.starts_with('<') && m.ends_with("/>"), "{k}: {m}");
-            assert_eq!(m.matches('<').count(), m.matches("/>").count(), "{k}: каждый элемент закрыт");
-            assert_eq!(m.matches('"').count() % 2, 0, "{k}: кавычки парные");
+            assert_eq!(m.matches('<').count(), m.matches("/>").count(), "{k}: every element is closed");
+            assert_eq!(m.matches('"').count() % 2, 0, "{k}: quotes are paired");
         }
     }
 }

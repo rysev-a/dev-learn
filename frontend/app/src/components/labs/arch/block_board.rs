@@ -1,6 +1,6 @@
-//! Доска с блоками: прямоугольники с типизированными портами, соединяемые шинами (`BlockBoard.tsx`). Порт можно
-//! раскрыть (▸) и тянуть шину от отдельного поля. Типы совместимы только по имени. В режиме `readonly` (внутренность
-//! блока) блоки можно двигать на экране — схема не меняется.
+//! Board with blocks: rectangles with typed ports connected by buses (`BlockBoard.tsx`). A port can be
+//! expanded (▸) and a bus dragged from an individual field. Types are compatible only by name. In `readonly` mode (the inside
+//! of a block) blocks can be moved on screen — the circuit does not change.
 
 use std::{
     collections::{HashMap, HashSet},
@@ -34,7 +34,7 @@ fn client(e: &web_sys::PointerEvent) -> Point {
     Point::new(f64::from(e.client_x()), f64::from(e.client_y()))
 }
 
-/// Перетаскиваемый блок, его высота (для границ мира) и точка нажатия на порт.
+/// Dragged block, its height (for the world bounds) and the point where a port was pressed.
 #[derive(Clone, Copy, Default)]
 struct DragInfo {
     item: ItemDrag,
@@ -42,7 +42,7 @@ struct DragInfo {
     pin_down: Option<Point>,
 }
 
-/// Подпись и вид шины на доске.
+/// Label and kind of a bus on the board.
 #[derive(Clone, Debug, PartialEq)]
 struct WireView {
     id: String,
@@ -54,7 +54,7 @@ struct WireView {
     class: &'static str,
 }
 
-/// Всё, что нужно обработчикам доски: сигналы состояния и данные схемы.
+/// Everything the board handlers need: state signals and circuit data.
 #[derive(Clone, Copy)]
 struct Ix {
     iface: StoredValue<Arc<BlockInterface>>,
@@ -77,7 +77,7 @@ struct Ix {
 }
 
 impl Ix {
-    /// Выполнить `f` с функцией «порты узла» (читает схему без подписки на сигналы).
+    /// Run `f` with the "node ports" function (reads the circuit without subscribing to signals).
     fn with_ports<R>(&self, f: impl FnOnce(&archlab::blocks::PortsOf) -> R) -> R {
         let iface = self.iface.get_value();
         let lib = self.library.get_untracked();
@@ -230,7 +230,7 @@ impl Ix {
     }
 }
 
-/// Доска блоков: в режиме `readonly` — только просмотр (внутренность блока или процессор).
+/// Block board: in `readonly` mode, view only (a block's inside or the processor).
 #[component]
 pub fn BlockBoard(
     iface: Arc<BlockInterface>,
@@ -282,7 +282,7 @@ pub fn BlockBoard(
         on_message,
     };
 
-    // шины с подписями: значения порта берутся из развёрнутой схемы
+    // buses with labels: port values are taken from the expanded circuit
     let scope_for_wires = scope.clone();
     let wires_view = Memo::new(move |_| {
         let iface = iface_v.get_value();
@@ -318,7 +318,7 @@ pub fn BlockBoard(
     });
     let wire_ids = Memo::new(move |_| wires_view.with(|w| w.iter().map(|x| x.id.clone()).collect::<Vec<_>>()));
 
-    // контакты, к которым можно присоединить тянущуюся шину (остальные гаснут)
+    // pins a dragged bus can be attached to (the rest are dimmed)
     let compatible = Memo::new(move |_| {
         let Some(pending) = ix.pending.get() else { return HashSet::new() };
         let iface = iface_v.get_value();
@@ -354,7 +354,7 @@ pub fn BlockBoard(
             ix.cancel_wire();
         }
     });
-    // пока шина тянется за мышью, нажатие мимо порта и мимо кнопок масштаба её отменяет
+    // while a bus is dragged by the mouse, a press away from a port and the zoom buttons cancels it
     dom::on_window(ev::pointerdown, move |e| {
         if !ix.sticky.get_untracked() || e.button() == 1 {
             return;
@@ -424,7 +424,7 @@ pub fn BlockBoard(
     }
 }
 
-/// Шина: линия по значению сигнала, подпись с битами посередине, широкая полоса для щелчка (клик — удалить).
+/// Bus: a line by signal value, a label with bits in the middle, a wide strip for clicking (click deletes).
 fn wire_view(ix: Ix, wires: Memo<Vec<WireView>>, id: String) -> impl IntoView {
     let me = Memo::new({
         let id = id.clone();
@@ -463,7 +463,7 @@ fn wire_view(ix: Ix, wires: Memo<Vec<WireView>>, id: String) -> impl IntoView {
     }
 }
 
-/// Прямоугольник: блок (с заголовком, «лупой» и крестиком) или колонка портов упражнения.
+/// Rectangle: a block (with a title, a "magnifier" and a cross) or the exercise's port column.
 #[allow(clippy::too_many_arguments)]
 fn box_view(
     ix: Ix,
@@ -546,7 +546,7 @@ fn box_view(
     }
 }
 
-/// Строка порта: подпись, значения (у колонок упражнения) и контакт.
+/// Port row: label, values (for the exercise columns) and pin.
 #[allow(clippy::too_many_arguments)]
 fn row_view(
     ix: Ix,
@@ -588,7 +588,7 @@ fn row_view(
         e.prevent_default();
         ix.expanded.update(|set| toggle_expanded(set, &toggle_key));
     };
-    // стрелка раскрытия поля: слева у входов, справа у выходов
+    // field expand arrow: on the left for inputs, on the right for outputs
     let caret = row.expandable.then(|| {
         let (cx, tx) = if row.side_in { (8.0 + depth * 10.0, 15.0 + depth * 10.0) } else { (w - 22.0 - depth * 10.0, w - 15.0 - depth * 10.0) };
         view! {

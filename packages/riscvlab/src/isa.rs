@@ -1,19 +1,19 @@
-//! RISC-V RV32IM: настоящие 32-битные команды.
-//! Кодирование — по спецификации «RISC-V Unprivileged ISA» (форматы R, I, S, B, U, J).
+//! RISC-V RV32IM: real 32-bit instructions.
+//! Encoding follows the "RISC-V Unprivileged ISA" specification (formats R, I, S, B, U, J).
 
 use serde::{Deserialize, Serialize};
 
-/// ABI-имена регистров x0…x31.
+/// ABI names of registers x0…x31.
 pub const ABI_NAMES: [&str; 32] = [
     "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2",
     "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6",
 ];
 
-/// Номер регистра по имени: x5, t0, fp…
+/// Register number by name: x5, t0, fp…
 pub fn reg_num(name: &str) -> Option<u8> {
     let n = crate::js::trim(name).to_lowercase();
     if let Some(d) = n.strip_prefix('x') {
-        // x0…x31 без ведущих нулей
+        // x0…x31 without leading zeros
         let ok = !d.is_empty()
             && d.len() <= 2
             && d.bytes().all(|b| b.is_ascii_digit())
@@ -32,29 +32,29 @@ pub fn reg_num(name: &str) -> Option<u8> {
     ABI_NAMES.iter().position(|a| *a == n).map(|i| i as u8)
 }
 
-/// ABI-имя регистра по номеру.
+/// ABI name of a register by number.
 pub fn reg_name(n: u8) -> &'static str {
     ABI_NAMES.get(usize::from(n)).copied().unwrap_or("?")
 }
 
-/// Формат команды.
+/// Instruction format.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Fmt {
-    /// формат R: три регистра
+    /// format R: three registers
     R,
-    /// формат I: число из команды
+    /// format I: immediate from the instruction
     I,
-    /// сдвиги на число: старшие семь бит — f7
+    /// shifts by an immediate: the upper seven bits are f7
     SH,
-    /// загрузка из памяти (формат I)
+    /// load from memory (format I)
     L,
-    /// формат S: запись в память
+    /// format S: store to memory
     S,
-    /// формат B: условный переход
+    /// format B: conditional branch
     B,
-    /// формат U: длинное число
+    /// format U: long immediate
     U,
-    /// формат J: переход `jal`
+    /// format J: `jal` jump
     J,
     /// jalr
     JR,
@@ -62,46 +62,46 @@ pub enum Fmt {
     SYS,
 }
 
-/// Расширение набора команд.
+/// Instruction set extension.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Ext {
-    /// базовый набор
+    /// base set
     I,
-    /// умножение и деление
+    /// multiplication and division
     M,
 }
 
-/// Описание одной команды.
+/// Description of one instruction.
 #[derive(Clone, Copy, Debug)]
 pub struct OpInfo {
-    /// команда
+    /// instruction
     pub op: Op,
-    /// мнемоника (строчными буквами)
+    /// mnemonic (lowercase)
     pub mnemonic: &'static str,
-    /// формат команды
+    /// instruction format
     pub fmt: Fmt,
-    /// код операции (младшие 7 бит слова)
+    /// opcode (low 7 bits of the word)
     pub opcode: u32,
-    /// поле f3, если есть
+    /// f3 field, if any
     pub f3: Option<u32>,
-    /// поле f7, если есть
+    /// f7 field, if any
     pub f7: Option<u32>,
-    /// расширение набора команд
+    /// instruction set extension
     pub ext: Ext,
-    /// что делает (для справочника)
+    /// what it does (for the reference)
     pub meaning: &'static str,
-    /// пример записи
+    /// example of syntax
     pub example: &'static str,
 }
 
 macro_rules! ops {
     ($( $v:ident, $name:literal, $fmt:ident, $opc:expr, $f3:expr, $f7:expr, $ext:ident, $meaning:literal, $example:literal; )*) => {
-        /// Команды RV32IM.
+        /// RV32IM instructions.
         #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
         #[serde(rename_all = "lowercase")]
         pub enum Op { $( #[doc = concat!("`", $name, "`: ", $meaning)] $v ),* }
 
-        /// Таблица команд (порядок — как в справочнике; индекс совпадает с номером варианта `Op`).
+        /// Instruction table (order as in the reference; the index matches the `Op` variant number).
         pub const OPS: &[OpInfo] = &[
             $( OpInfo { op: Op::$v, mnemonic: $name, fmt: Fmt::$fmt, opcode: $opc, f3: $f3, f7: $f7, ext: Ext::$ext,
                         meaning: $meaning, example: $example } ),*
@@ -110,7 +110,7 @@ macro_rules! ops {
 }
 
 ops! {
-    // --- арифметика и логика между регистрами (opcode 0110011) ---
+    // --- register-to-register arithmetic and logic (opcode 0110011) ---
     Add, "add", R, 0x33, Some(0), Some(0x00), I, "rd = rs1 + rs2", "add a0, a1, a2";
     Sub, "sub", R, 0x33, Some(0), Some(0x20), I, "rd = rs1 − rs2", "sub a0, a1, a2";
     Sll, "sll", R, 0x33, Some(1), Some(0x00), I, "rd = rs1 << rs2[4:0]", "sll a0, a1, a2";
@@ -121,7 +121,7 @@ ops! {
     Sra, "sra", R, 0x33, Some(5), Some(0x20), I, "rd = rs1 >> rs2[4:0] (arithmetic, keeps the sign)", "sra a0, a1, a2";
     Or, "or", R, 0x33, Some(6), Some(0x00), I, "rd = rs1 OR rs2", "or a0, a1, a2";
     And, "and", R, 0x33, Some(7), Some(0x00), I, "rd = rs1 AND rs2", "and a0, a1, a2";
-    // --- умножение и деление (расширение M) ---
+    // --- multiplication and division (extension M) ---
     Mul, "mul", R, 0x33, Some(0), Some(0x01), M, "rd = low 32 bits of rs1 · rs2", "mul a0, a1, a2";
     Mulh, "mulh", R, 0x33, Some(1), Some(0x01), M, "rd = high 32 bits of rs1 · rs2 (both signed)", "mulh a0, a1, a2";
     Mulhsu, "mulhsu", R, 0x33, Some(2), Some(0x01), M, "rd = high 32 bits (rs1 signed, rs2 unsigned)", "mulhsu a0, a1, a2";
@@ -130,7 +130,7 @@ ops! {
     Divu, "divu", R, 0x33, Some(5), Some(0x01), M, "rd = rs1 / rs2 (unsigned)", "divu a0, a1, a2";
     Rem, "rem", R, 0x33, Some(6), Some(0x01), M, "rd = remainder of rs1 / rs2 (signed)", "rem a0, a1, a2";
     Remu, "remu", R, 0x33, Some(7), Some(0x01), M, "rd = remainder of rs1 / rs2 (unsigned)", "remu a0, a1, a2";
-    // --- с числом из команды (0010011) ---
+    // --- with an immediate from the instruction (0010011) ---
     Addi, "addi", I, 0x13, Some(0), None, I, "rd = rs1 + imm (−2048…2047)", "addi a0, a0, -1";
     Slti, "slti", I, 0x13, Some(2), None, I, "rd = (rs1 < imm), signed", "slti a0, a1, 10";
     Sltiu, "sltiu", I, 0x13, Some(3), None, I, "rd = (rs1 < imm), unsigned", "sltiu a0, a1, 10";
@@ -140,7 +140,7 @@ ops! {
     Slli, "slli", SH, 0x13, Some(1), Some(0x00), I, "rd = rs1 << imm (0…31)", "slli a0, a1, 2";
     Srli, "srli", SH, 0x13, Some(5), Some(0x00), I, "rd = rs1 >> imm (logical)", "srli a0, a1, 2";
     Srai, "srai", SH, 0x13, Some(5), Some(0x20), I, "rd = rs1 >> imm (arithmetic)", "srai a0, a1, 2";
-    // --- память (0000011 / 0100011) ---
+    // --- memory (0000011 / 0100011) ---
     Lb, "lb", L, 0x03, Some(0), None, I, "rd = signed byte [rs1+offset]", "lb a0, 0(a1)";
     Lh, "lh", L, 0x03, Some(1), None, I, "rd = signed halfword [rs1+offset]", "lh a0, 0(a1)";
     Lw, "lw", L, 0x03, Some(2), None, I, "rd = word [rs1+offset]", "lw a0, 4(a1)";
@@ -149,7 +149,7 @@ ops! {
     Sb, "sb", S, 0x23, Some(0), None, I, "byte [rs1+offset] = rs2", "sb a0, 0(a1)";
     Sh, "sh", S, 0x23, Some(1), None, I, "halfword [rs1+offset] = rs2", "sh a0, 0(a1)";
     Sw, "sw", S, 0x23, Some(2), None, I, "word [rs1+offset] = rs2", "sw a0, 4(a1)";
-    // --- переходы (1100011) ---
+    // --- branches (1100011) ---
     Beq, "beq", B, 0x63, Some(0), None, I, "if rs1 = rs2, branch", "beq a0, a1, label";
     Bne, "bne", B, 0x63, Some(1), None, I, "if rs1 ≠ rs2, branch", "bne a0, a1, label";
     Blt, "blt", B, 0x63, Some(4), None, I, "if rs1 < rs2 (signed), branch", "blt a0, a1, label";
@@ -158,40 +158,40 @@ ops! {
     Bgeu, "bgeu", B, 0x63, Some(7), None, I, "if rs1 ≥ rs2 (unsigned), branch", "bgeu a0, a1, label";
     Jal, "jal", J, 0x6f, None, None, I, "rd = pc + 4; jump to label", "jal ra, function";
     Jalr, "jalr", JR, 0x67, Some(0), None, I, "rd = pc + 4; jump to rs1 + offset", "jalr ra, 0(t0)";
-    // --- длинные числа и адреса ---
+    // --- long immediates and addresses ---
     Lui, "lui", U, 0x37, None, None, I, "rd = imm << 12", "lui a0, 0x12345";
     Auipc, "auipc", U, 0x17, None, None, I, "rd = pc + (imm << 12)", "auipc a0, 1";
-    // --- система ---
+    // --- system ---
     Ecall, "ecall", SYS, 0x73, None, None, I, "system call (number in a7)", "ecall";
     Ebreak, "ebreak", SYS, 0x73, None, None, I, "halt (breakpoint)", "ebreak";
 }
 
 impl Op {
-    /// Описание команды.
+    /// Instruction description.
     pub fn info(self) -> &'static OpInfo {
         &OPS[self as usize]
     }
-    /// Мнемоника.
+    /// Mnemonic.
     pub fn mnemonic(self) -> &'static str {
         self.info().mnemonic
     }
 }
 
-/// Команда по мнемонике (строчными буквами).
+/// Instruction by mnemonic (lowercase).
 pub fn op_by_mnemonic(m: &str) -> Option<&'static OpInfo> {
     OPS.iter().find(|o| o.mnemonic == m)
 }
 
-/// Псевдокоманда: пример записи и во что она разворачивается.
+/// Pseudo-instruction: example of syntax and what it expands to.
 #[derive(Clone, Copy, Debug)]
 pub struct Pseudo {
-    /// пример записи
+    /// example of syntax
     pub example: &'static str,
-    /// во что разворачивается
+    /// what it expands to
     pub becomes: &'static str,
 }
 
-/// Псевдокоманды — сокращения, которые разворачивает ассемблер.
+/// Pseudo-instructions — shorthands expanded by the assembler.
 pub const PSEUDO: &[Pseudo] = &[
     Pseudo { example: "nop", becomes: "addi zero, zero, 0" },
     Pseudo { example: "li a0, 1000", becomes: i18n::t!("addi a0, zero, 1000  (large number — lui + addi)") },
@@ -219,7 +219,7 @@ pub const PSEUDO: &[Pseudo] = &[
 ];
 
 /* ============================================================
-Кодирование
+Encoding
 ============================================================ */
 
 fn f3(o: &OpInfo) -> i32 {
@@ -229,7 +229,7 @@ fn f7(o: &OpInfo) -> i32 {
     o.f7.unwrap_or(0) as i32
 }
 
-/// Формат R: `op rd, rs1, rs2`.
+/// Format R: `op rd, rs1, rs2`.
 pub fn enc_r(o: &OpInfo, rd: u8, rs1: u8, rs2: u8) -> u32 {
     ((f7(o) << 25)
         | (i32::from(rs2) << 20)
@@ -239,12 +239,12 @@ pub fn enc_r(o: &OpInfo, rd: u8, rs1: u8, rs2: u8) -> u32 {
         | o.opcode as i32) as u32
 }
 
-/// Формат I: `op rd, rs1, число`.
+/// Format I: `op rd, rs1, imm`.
 pub fn enc_i(o: &OpInfo, rd: u8, rs1: u8, imm: i32) -> u32 {
     (((imm & 0xfff) << 20) | (i32::from(rs1) << 15) | (f3(o) << 12) | (i32::from(rd) << 7) | o.opcode as i32) as u32
 }
 
-/// Сдвиги: в старших семи битах — f7, в пяти младших полях числа — величина сдвига.
+/// Shifts: f7 in the upper seven bits, the shift amount in the five low bits of the immediate.
 pub fn enc_sh(o: &OpInfo, rd: u8, rs1: u8, shamt: i32) -> u32 {
     ((f7(o) << 25)
         | ((shamt & 31) << 20)
@@ -254,7 +254,7 @@ pub fn enc_sh(o: &OpInfo, rd: u8, rs1: u8, shamt: i32) -> u32 {
         | o.opcode as i32) as u32
 }
 
-/// Формат S: `op rs2, число(rs1)`.
+/// Format S: `op rs2, imm(rs1)`.
 pub fn enc_s(o: &OpInfo, rs2: u8, rs1: u8, imm: i32) -> u32 {
     ((((imm >> 5) & 0x7f) << 25)
         | (i32::from(rs2) << 20)
@@ -264,7 +264,7 @@ pub fn enc_s(o: &OpInfo, rs2: u8, rs1: u8, imm: i32) -> u32 {
         | o.opcode as i32) as u32
 }
 
-/// Формат B: `op rs1, rs2, смещение`.
+/// Format B: `op rs1, rs2, offset`.
 pub fn enc_b(o: &OpInfo, rs1: u8, rs2: u8, off: i32) -> u32 {
     ((((off >> 12) & 1) << 31)
         | (((off >> 5) & 0x3f) << 25)
@@ -276,12 +276,12 @@ pub fn enc_b(o: &OpInfo, rs1: u8, rs2: u8, off: i32) -> u32 {
         | o.opcode as i32) as u32
 }
 
-/// Формат U: `op rd, число20`.
+/// Format U: `op rd, imm20`.
 pub fn enc_u(o: &OpInfo, rd: u8, imm20: i32) -> u32 {
     (((imm20 & 0xfffff) << 12) | (i32::from(rd) << 7) | o.opcode as i32) as u32
 }
 
-/// Формат J: `jal rd, смещение`.
+/// Format J: `jal rd, offset`.
 pub fn enc_j(o: &OpInfo, rd: u8, off: i32) -> u32 {
     ((((off >> 20) & 1) << 31)
         | (((off >> 1) & 0x3ff) << 21)
@@ -291,33 +291,33 @@ pub fn enc_j(o: &OpInfo, rd: u8, off: i32) -> u32 {
         | o.opcode as i32) as u32
 }
 
-/// Слово команды `ecall`.
+/// Word of the `ecall` instruction.
 pub const ECALL: u32 = 0x0000_0073;
-/// Слово команды `ebreak`.
+/// Word of the `ebreak` instruction.
 pub const EBREAK: u32 = 0x0010_0073;
 
 /* ============================================================
-Декодирование
+Decoding
 ============================================================ */
 
-/// Разобранное слово команды.
+/// Decoded instruction word.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Decoded {
-    /// слово команды
+    /// instruction word
     pub word: u32,
-    /// `None` — слово не является командой RV32IM
+    /// `None` — the word is not an RV32IM instruction
     pub op: Option<Op>,
-    /// номер регистра-приёмника
+    /// destination register number
     pub rd: u8,
-    /// номер первого регистра-источника
+    /// first source register number
     pub rs1: u8,
-    /// номер второго регистра-источника
+    /// second source register number
     pub rs2: u8,
-    /// число из команды со знаком (для U — 20 бит как есть, без знака)
+    /// signed immediate from the instruction (for U — 20 bits as is, unsigned)
     pub imm: i32,
 }
 
-/// Поиск по ключу «код|f3|f7» (−1 — поля нет), как в таблице декодера.
+/// Lookup by key "opcode|f3|f7" (−1 — the field is absent), as in the decoder table.
 fn lookup(opcode: u32, f3k: i32, f7k: i32) -> Option<&'static OpInfo> {
     OPS.iter().find(|o| {
         if o.fmt == Fmt::SYS {
@@ -329,7 +329,7 @@ fn lookup(opcode: u32, f3k: i32, f7k: i32) -> Option<&'static OpInfo> {
     })
 }
 
-/// Разбор слова команды.
+/// Decoding of an instruction word.
 pub fn decode(word: u32) -> Decoded {
     let w = word as i32;
     let opcode = word & 0x7f;
@@ -352,7 +352,7 @@ pub fn decode(word: u32) -> Decoded {
     } else if opcode == 0x33 {
         lookup(opcode, f3k, f7k)
     } else if opcode == 0x13 {
-        // обычные команды различаются по f3, сдвиги — ещё и по старшим семи битам (srli и srai)
+        // ordinary instructions differ by f3, shifts also by the upper seven bits (srli and srai)
         lookup(opcode, f3k, -1).or_else(|| lookup(opcode, f3k, f7k))
     } else {
         lookup(opcode, f3k, -1)
@@ -391,7 +391,7 @@ fn signed(n: i32) -> String {
     }
 }
 
-/// Команда обратно в текст (имена регистров — как в ABI).
+/// Instruction back to text (register names as in the ABI).
 pub fn disassemble(word: u32) -> String {
     let d = decode(word);
     let Some(op) = d.op else {
@@ -413,31 +413,31 @@ pub fn disassemble(word: u32) -> String {
 }
 
 /* ============================================================
-Разбор команды по полям — для учебного списка
+Splitting an instruction into fields, for the teaching listing
 ============================================================ */
 
-/// Цвет поля в листинге (css-класс).
+/// Field colour in the listing (css class).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum FieldClass {
-    /// код операции
+    /// opcode
     Op,
-    /// старшие семь бит (f7)
+    /// upper seven bits (f7)
     F7,
-    /// второй регистр-источник
+    /// second source register
     Rs2,
-    /// первый регистр-источник
+    /// first source register
     Rs1,
-    /// поле f3
+    /// f3 field
     F3,
-    /// регистр-приёмник
+    /// destination register
     Rd,
-    /// число из команды
+    /// immediate from the instruction
     Imm,
 }
 
 impl FieldClass {
-    /// Имя css-класса.
+    /// Name of the css class.
     pub fn css(self) -> &'static str {
         match self {
             FieldClass::Op => "op",
@@ -451,29 +451,29 @@ impl FieldClass {
     }
 }
 
-/// Формат слова при разборе по полям.
+/// Word format in the field-level parse.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FieldFmt {
-    /// формат R: три регистра
+    /// format R: three registers
     R,
-    /// формат I: число из команды
+    /// format I: immediate from the instruction
     I,
-    /// формат S: запись в память
+    /// format S: store to memory
     S,
-    /// формат B: условный переход
+    /// format B: conditional branch
     B,
-    /// формат U: длинное число
+    /// format U: long immediate
     U,
-    /// формат J: переход `jal`
+    /// format J: `jal` jump
     J,
-    /// системная команда (`ecall`, `ebreak`)
+    /// system instruction (`ecall`, `ebreak`)
     Sys,
-    /// не команда
+    /// not an instruction
     Unknown,
 }
 
 impl FieldFmt {
-    /// Буква формата, как в справочнике.
+    /// Format letter, as in the reference.
     pub fn letter(self) -> &'static str {
         match self {
             FieldFmt::R => "R",
@@ -488,28 +488,28 @@ impl FieldFmt {
     }
 }
 
-/// Поле слова команды: название, биты (строка из 0 и 1, старший слева) и цвет.
+/// Field of an instruction word: name, bits (string of 0 and 1, most significant first) and colour.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BitField {
-    /// название поля
+    /// field name
     pub name: String,
-    /// биты поля: строка из 0 и 1, старший слева
+    /// field bits: string of 0 and 1, most significant first
     pub bits: String,
-    /// цвет поля
+    /// field colour
     pub cls: FieldClass,
 }
 
-/// Слово команды по полям.
+/// Instruction word by fields.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Fields {
-    /// формат слова при разборе по полям
+    /// word format in the field-level parse
     pub fmt: FieldFmt,
-    /// поля слова, от старшего к младшему
+    /// fields of the word, from most to least significant
     pub fields: Vec<BitField>,
 }
 
-/// Биты hi…lo слова, `hi - lo + 1` символов. Для ширины 32 маска нулевая (как в прежней версии на JavaScript,
-/// где `1 << 32 === 1`), поэтому поле «слово» у не-команды — 32 нуля.
+/// Bits hi…lo of the word, `hi - lo + 1` characters. For width 32 the mask is zero (as in the previous JavaScript version,
+/// where `1 << 32 === 1`), so the "word" field of a non-instruction is 32 zeros.
 fn bin(w: u32, hi: u32, lo: u32) -> String {
     let width = hi - lo + 1;
     let mask: u32 = if width >= 32 { 0 } else { (1u32 << width) - 1 };
@@ -517,7 +517,7 @@ fn bin(w: u32, hi: u32, lo: u32) -> String {
     format!("{v:0width$b}", width = width as usize)
 }
 
-/// Разбор слова команды по полям.
+/// Field-level parse of an instruction word.
 pub fn fields_of(word: u32) -> Fields {
     let d = decode(word);
     let f = |name: &str, hi: u32, lo: u32, cls: FieldClass| BitField {

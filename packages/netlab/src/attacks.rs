@@ -1,6 +1,6 @@
-//! Атаки на фоне: подмена ARP (MITM), SYN-флуд, сканирование портов. Нарушитель — обычное устройство с полем
-//! `attack`; перед каждой пробой атаки «проверяются на достижимость» настоящими пакетами, поэтому файрвол
-//! и коммутация влияют на результат так же, как в жизни.
+//! Background attacks: ARP spoofing (MITM), SYN flood, port scanning. The attacker is an ordinary device with the
+//! `attack` field; before every probe the attacks are "checked for reachability" with real packets, so the firewall
+//! and switching affect the result just like in real life.
 
 use crate::ip::*;
 use crate::sim::{lookup, tcp1};
@@ -10,7 +10,7 @@ fn first_ip(d: &Device) -> Option<&Iface> {
     d.ifaces.iter().find(|i| i.ip.is_some())
 }
 
-/// Подготовить побочные эффекты атак перед пробой (подмена ARP-кэша жертвы, перегруженные очереди SYN).
+/// Prepare attack side effects before a probe (spoofing the victim's ARP cache, overloaded SYN queues).
 pub fn attacks_before(state: &mut NetState) {
     if state.busy {
         return;
@@ -62,7 +62,7 @@ pub fn attacks_before(state: &mut NetState) {
     state.busy = false;
 }
 
-/// Фоновый трафик для перехвата: сканер обходит порты цели.
+/// Background traffic for capture: the scanner walks over the target's ports.
 pub fn background_traffic(state: &mut NetState) {
     if state.busy {
         return;

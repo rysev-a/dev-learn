@@ -1,4 +1,4 @@
-# Python (воркер, озвучка)
+# Python (worker, voice-over)
 __pycache__/
 *.py[oc]
 build/
@@ -12,7 +12,7 @@ wheels/
 # Node
 node_modules/
 
-# модель озвучки и сгенерированное аудио
+# voice-over model and generated audio
 models/
 audio/
 
@@ -31,3 +31,6 @@ frontend/target/
 frontend/app/dist/
 
 packages/*/target
+
+# voice recordings for slides from the interface (the "Play + record" button)
+media/records/

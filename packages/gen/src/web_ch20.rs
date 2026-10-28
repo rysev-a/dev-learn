@@ -1,12 +1,12 @@
-//! Книга 11 «Современный Frontend», глава 20 «CSS: Grid» (раздел «CSS и вёрстка»):
-//! 13 слайдов, на каждом — схема на общем DSL. Метки `cues` посчитаны по доле символов абзаца (≈14 символов в секунду, озвучки нет).
+//! Book 11 "Modern Frontend", chapter 20 "CSS: Grid" (section "CSS and layout"):
+//! 13 slides, each with a diagram on the shared DSL. `cues` marks computed by the paragraph's character share (≈14 characters per second, no voice-over).
 
 use content::{
     dsl::{arrow, bx, code, text, zone},
     Block, Chapter, Frame, Lang, SceneSpec, Slide, Tone, B, G, M, R, V, Y,
 };
 
-/// Метки шагов (секунды от начала абзаца) для каждого из 13 слайдов.
+/// Step marks (seconds from the paragraph start) for each of the 13 slides.
 const CUES: [&[f64]; 13] = [
     &[10.5, 17.9],
     &[13.4, 23.5, 33.2],
@@ -23,7 +23,7 @@ const CUES: [&[f64]; 13] = [
     &[14.8, 19.6, 25.2],
 ];
 
-/// Глава как данные: `cargo run --bin generate` пишет её в `backend/data/slides/11-20.json`.
+/// Chapter as data: `cargo run --bin generate` writes it to `backend/data/slides/11-20.json`.
 pub fn chapter() -> Chapter {
     let slides: [(&str, &str, &str, fn() -> SceneSpec); 13] = [
         ("Двумерная раскладка", "Контейнер, дорожки, ячейки", "Грид раскладывает по двум осям сразу: display: grid делает детей элементами сетки.", v01),
@@ -48,25 +48,25 @@ pub fn chapter() -> Chapter {
     }
 }
 
-/// Слайд из одной схемы: метки `cues` — когда наступают шаги 2, 3, … (секунды от начала абзаца).
+/// Slide with a single diagram: `cues` marks — when steps 2, 3, … begin (seconds from the paragraph start).
 fn slide(title: &str, sub: &str, main: &str, scene: &fn() -> SceneSpec, cues: &[f64]) -> Slide {
     Slide { title: title.into(), sub: Some(sub.into()), short: None, main: main.into(), body: vec![Block::Scene(scene().cues(cues))] }
 }
 
-// --- помощники сцен ----------------------------------------------------------------------------
+// --- scene helpers -----------------------------------------------------------------------------
 
-/// Прямоугольник с подписью: (x, y) — центр.
+/// Rectangle with a label: (x, y) — centre.
 #[allow(clippy::too_many_arguments)]
 fn b(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> content::item::Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Короткая подпись.
+/// Short label.
 fn note(id: &str, x: f64, y: f64, label: &str, size: f64) -> content::item::Text {
     text(id, x, y, label).size(size)
 }
 
-/// Врезка CSS; (x, y) — начало первой строки (базовая линия).
+/// CSS inset; (x, y) — start of the first line (baseline).
 fn css(id: &str, x: f64, y: f64, lines: &[&str]) -> content::item::Code {
     code(Lang::Css, id, x, y, lines)
 }
@@ -75,7 +75,7 @@ fn spec(labels: &[&str], captions: &[&str], frames: Vec<Frame>) -> SceneSpec {
     SceneSpec::new(labels, captions, frames)
 }
 
-/// Геометрия сетки: левый край, ширины колонок, верх, высоты строк и промежутки.
+/// Grid geometry: left edge, column widths, top, row heights and gaps.
 struct Grid {
     x: f64,
     cols: Vec<f64>,
@@ -98,14 +98,14 @@ impl Grid {
         self.y + self.rows[..r].iter().sum::<f64>() + self.gy * r as f64
     }
 
-    /// Прямоугольник от колонки `c0` до `c1` (не включая) и от строки `r0` до `r1`: центр и размеры.
+    /// Rectangle from column `c0` to `c1` (exclusive) and from row `r0` to `r1`: centre and size.
     fn rect(&self, c0: usize, c1: usize, r0: usize, r1: usize) -> (f64, f64, f64, f64) {
         let (x0, x1) = (self.left(c0), self.left(c1 - 1) + self.cols[c1 - 1]);
         let (y0, y1) = (self.top(r0), self.top(r1 - 1) + self.rows[r1 - 1]);
         ((x0 + x1) / 2.0, (y0 + y1) / 2.0, x1 - x0, y1 - y0)
     }
 
-    /// Вертикальная линия `i` (с нуля): край дорожки или середина промежутка.
+    /// Vertical line `i` (zero-based): track edge or the middle of a gap.
     fn line_x(&self, i: usize) -> f64 {
         if i == 0 {
             self.x
@@ -116,7 +116,7 @@ impl Grid {
         }
     }
 
-    /// Горизонтальная линия `i` (с нуля).
+    /// Horizontal line `i` (zero-based).
     fn line_y(&self, i: usize) -> f64 {
         if i == 0 {
             self.y
@@ -127,21 +127,21 @@ impl Grid {
         }
     }
 
-    /// Элемент сетки.
+    /// Grid item.
     #[allow(clippy::too_many_arguments)]
     fn put(&self, id: &str, c0: usize, c1: usize, r0: usize, r1: usize, label: &str, tone: Tone, size: f64) -> content::item::Cell {
         let (x, y, w, h) = self.rect(c0, c1, r0, r1);
         b(id, x, y, w, h, label, tone, size)
     }
 
-    /// Пунктирная заготовка ячейки.
+    /// Dashed cell placeholder.
     fn slot(&self, id: &str, c0: usize, c1: usize, r0: usize, r1: usize) -> content::item::Zone {
         let (x, y, w, h) = self.rect(c0, c1, r0, r1);
         zone(id, x, y, w, h).tone(M).dash()
     }
 }
 
-// 1. Двумерная раскладка
+// 1. Two-dimensional layout
 fn v01() -> SceneSpec {
     let g = Grid::new(69.0, &[70.0, 70.0, 70.0], 6.0, 50.0, &[38.0, 38.0], 6.0);
     let cells = |f: Frame, tones: [Tone; 6]| {
@@ -194,9 +194,9 @@ fn v01() -> SceneSpec {
     )
 }
 
-// 2. Колонки и строки
+// 2. Columns and rows
 fn v02() -> SceneSpec {
-    // масштаб: 200px ≈ 90 единиц холста; контейнер 320 единиц, промежуток 4
+    // scale: 200px ≈ 90 canvas units; container 320 units, gap 4
     let g = |w: [f64; 3]| Grid::new(20.0, &w, 4.0, 60.0, &[44.0], 0.0);
     let fixed = [90.0, 45.0, 68.0];
     let fr = [90.0, 74.0, 148.0];
@@ -238,7 +238,7 @@ fn v02() -> SceneSpec {
     )
 }
 
-// 3. Промежутки и неявные дорожки
+// 3. Gaps and implicit tracks
 fn v03() -> SceneSpec {
     let cells = |g: &Grid, tones: [Tone; 6], dash_second: bool| {
         let mut f = Frame::new();
@@ -280,7 +280,7 @@ fn v03() -> SceneSpec {
     )
 }
 
-// 4. Границы дорожек
+// 4. Track boundaries
 fn v04() -> SceneSpec {
     spec(
         &["minmax", "Не меньше минимума", "Ключевые слова", "Ловушка 1fr"],
@@ -315,7 +315,7 @@ fn v04() -> SceneSpec {
     )
 }
 
-// 5. Адаптивная сетка без медиа-запросов
+// 5. Responsive grid without media queries
 fn v05() -> SceneSpec {
     let lines = || css("k", 14.0, 18.0, &["grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));"]).size(8.5).w(332.0);
     let items = |g: &Grid, n: usize| {
@@ -359,7 +359,7 @@ fn v05() -> SceneSpec {
     )
 }
 
-// 6. Размещение по линиям
+// 6. Placement by lines
 fn v06() -> SceneSpec {
     let g = Grid::new(54.0, &[80.0; 3], 6.0, 44.0, &[44.0, 44.0], 6.0);
     let frame = |item: (usize, usize, usize, usize), label: &str, top: &[usize], left: &[usize], neg: bool, neg_hl: &[usize], caption: &str| {
@@ -401,7 +401,7 @@ fn v06() -> SceneSpec {
     )
 }
 
-// 7. Именованные области
+// 7. Named areas
 fn v07() -> SceneSpec {
     let g = Grid::new(150.0, &[60.0, 134.0], 4.0, 26.0, &[26.0, 70.0, 22.0], 4.0);
     let page = |hl_header: bool| {
@@ -440,7 +440,7 @@ fn v07() -> SceneSpec {
     )
 }
 
-// 8. Выравнивание
+// 8. Alignment
 fn v08() -> SceneSpec {
     let g = Grid::new(30.0, &[96.0; 3], 8.0, 34.0, &[84.0], 0.0);
     let slots = |f: Frame| {
@@ -450,7 +450,7 @@ fn v08() -> SceneSpec {
         }
         f
     };
-    // положение коробки 28×18 в ячейке: start / center / end
+    // position of a 28×18 box in a cell: start / center / end
     let pos = |i: usize, kind: usize| {
         let (x, y, w, h) = g.rect(i, i + 1, 0, 1);
         match kind {
@@ -494,7 +494,7 @@ fn v08() -> SceneSpec {
     )
 }
 
-// 9. Автозаполнение
+// 9. Auto-fill
 fn v09() -> SceneSpec {
     let g = Grid::new(69.0, &[70.0; 3], 6.0, 28.0, &[30.0; 3], 6.0);
     let hole = || zone("hole", g.rect(2, 3, 0, 1).0, g.rect(2, 3, 0, 1).1, 70.0, 30.0).tone(R).dash();
@@ -538,7 +538,7 @@ fn v09() -> SceneSpec {
     )
 }
 
-// 10. Вложенные сетки
+// 10. Nested grids
 fn v10() -> SceneSpec {
     let outer = Grid::new(24.0, &[90.0, 150.0, 70.0], 6.0, 36.0, &[100.0], 0.0);
     let inner = Grid::new(132.0, &[60.0, 60.0], 6.0, 50.0, &[34.0, 34.0], 6.0);
@@ -584,7 +584,7 @@ fn v10() -> SceneSpec {
     )
 }
 
-// 11. Типичные макеты
+// 11. Typical layouts
 fn v11() -> SceneSpec {
     let page = Grid::new(20.0, &[70.0, 246.0], 4.0, 22.0, &[24.0, 78.0, 20.0], 4.0);
     let gal = Grid::new(20.0, &[74.0; 4], 6.0, 34.0, &[34.0, 34.0], 6.0);
@@ -627,7 +627,7 @@ fn v11() -> SceneSpec {
     )
 }
 
-// 12. Грид и флексбокс
+// 12. Grid and flexbox
 fn v12() -> SceneSpec {
     let g = Grid::new(76.0, &[100.0, 100.0], 8.0, 36.0, &[32.0, 32.0], 8.0);
     let labels = ["Главная", "Каталог", "О компании", "Вход"];
@@ -675,7 +675,7 @@ fn v12() -> SceneSpec {
     )
 }
 
-// 13. Отладка и чек-лист
+// 13. Debugging and checklist
 fn v13() -> SceneSpec {
     let ov = Grid::new(196.0, &[50.0, 100.0], 4.0, 34.0, &[20.0, 60.0, 20.0], 4.0);
     let overlay = || {

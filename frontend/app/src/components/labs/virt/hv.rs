@@ -1,7 +1,7 @@
-//! Симулятор мини-гипервизора (глава 2): гость исполняет программу, а ученик — монитор: на каждой ловушке выбирает верную
-//! имитацию над виртуальным состоянием. Команда POPF не вызывает ловушку, пока не включена двоичная трансляция.
-//! Решено, когда пройдены все программы. В данных цели — `{translate, mistakes, trace}`: по записи действий сервер
-//! воспроизводит прогон.
+//! Mini-hypervisor simulator (chapter 2): the guest runs a program, and the student is the monitor: at each trap they pick the correct
+//! emulation over the virtual state. The POPF instruction does not trap until binary translation is enabled.
+//! Solved when all programs are passed. The goal data is `{translate, mistakes, trace}`: the server replays the run
+//! from the action record.
 
 use leptos::prelude::*;
 use serde::Serialize;
@@ -13,14 +13,14 @@ use virtlab::{
 
 use super::common::{data, Goals, Tab};
 
-/// Сообщение под ловушкой: неверный выбор или «тихая» команда — красным, остальное — зелёным.
+/// Message under the trap: a wrong choice or a "silent" instruction — red, the rest — green.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Notice {
     pub bad: bool,
     pub text: String,
 }
 
-/// Данные достигнутой цели.
+/// Data of a reached goal.
 #[derive(Serialize)]
 struct GoalData<'a> {
     translate: bool,
@@ -28,13 +28,13 @@ struct GoalData<'a> {
     trace: &'a [Step],
 }
 
-/// Прогон одной программы учеником: сессия модели, запись действий и сообщение.
+/// The student's run of one program: model session, action record and message.
 #[derive(Clone)]
 pub struct HvRun {
     session: Session,
     trace: Vec<Step>,
     notice: Option<Notice>,
-    /// длина идентификатора программы — добавка к зерну перемешивания вариантов (как в React)
+    /// length of the program identifier — an addition to the option shuffle seed (as in React)
     id_len: u64,
 }
 
@@ -56,12 +56,12 @@ impl HvRun {
         self.notice.as_ref()
     }
 
-    /// Можно ли нажать «Шаг»: команда есть и она не вызывает ловушку.
+    /// Whether "Step" can be pressed: there is an instruction and it does not trap.
     pub fn can_step(&self) -> bool {
         matches!(self.session.inspect(), Some(Inspection::Direct | Inspection::Silent { .. }))
     }
 
-    /// Кнопка «Шаг».
+    /// "Step" button.
     pub fn step(&mut self) {
         match self.session.step() {
             Stepped::Blocked => {}
@@ -76,7 +76,7 @@ impl HvRun {
         }
     }
 
-    /// Выбор варианта на ловушке. `Some(данные цели)` — программа верно выполнена до конца.
+    /// Choosing an option at a trap. `Some(goal data)` — the program ran to the end correctly.
     pub fn choose(&mut self, label: &str) -> Option<Value> {
         let choice = self.session.choose(label);
         match choice {
@@ -101,19 +101,19 @@ impl HvRun {
         }
     }
 
-    /// Начать сначала (трансляция сохраняется).
+    /// Start over (translation is kept).
     pub fn reset(&mut self) {
         self.session.reset();
         self.trace.clear();
         self.notice = None;
     }
 
-    /// Включить или выключить трансляцию — до запуска.
+    /// Turn translation on or off — before the run.
     pub fn set_translate(&mut self, on: bool) {
         self.session.set_translate(on);
     }
 
-    /// Варианты на текущей ловушке, перемешанные по номеру команды (чтобы верный не стоял всегда первым).
+    /// Options at the current trap, shuffled by instruction number (so the correct one is not always first).
     pub fn options(&self) -> Vec<TrapOption> {
         match self.session.inspect() {
             Some(Inspection::Trap { options, .. }) => {
@@ -124,7 +124,7 @@ impl HvRun {
     }
 }
 
-/// Перемешивание с зерном (линейный конгруэнтный генератор): один и тот же порядок при каждой отрисовке.
+/// Seeded shuffle (linear congruential generator): the same order on every render.
 pub fn shuffle<T: Clone>(items: &[T], seed: u64) -> Vec<T> {
     let mut a = items.to_vec();
     let mut x = seed;
@@ -136,11 +136,11 @@ pub fn shuffle<T: Clone>(items: &[T], seed: u64) -> Vec<T> {
     a
 }
 
-/// Вкладки программ и выбранная программа.
+/// Program tabs and the selected program.
 #[component]
 pub fn HvLab(programs: Vec<Program>, goals: Goals) -> impl IntoView {
     let pid = RwSignal::new(0usize);
-    // нажатие на уже открытую вкладку — «начать сначала»
+    // pressing an already open tab — "start over"
     let restart = RwSignal::new(0u32);
     let tabs = programs
         .iter()
@@ -168,7 +168,7 @@ pub fn HvLab(programs: Vec<Program>, goals: Goals) -> impl IntoView {
     }
 }
 
-/// Одна программа: код, управление и состояние гостя.
+/// One program: code, controls and guest state.
 #[component]
 fn HvProgram(program: Program, goals: Goals, restart: RwSignal<u32>) -> impl IntoView {
     match HvRun::new(&program, false) {
@@ -314,17 +314,17 @@ mod tests {
     use super::*;
 
     fn program(id: &str) -> Program {
-        default_programs().into_iter().find(|p| p.id == id).expect("программа")
+        default_programs().into_iter().find(|p| p.id == id).expect("program")
     }
 
-    /// Проходит программу верными вариантами; возвращает данные цели.
+    /// Passes a program with the correct options; returns the goal data.
     fn solve(run: &mut HvRun) -> Option<Value> {
         for _ in 0..40 {
             match run.session().inspect() {
                 None => break,
                 Some(Inspection::Direct | Inspection::Silent { .. }) => run.step(),
                 Some(Inspection::Trap { options, .. }) => {
-                    let ok = options.into_iter().find(|o| o.ok).expect("верный вариант");
+                    let ok = options.into_iter().find(|o| o.ok).expect("correct option");
                     if let Some(d) = run.choose(&ok.label) {
                         return Some(d);
                     }
@@ -336,11 +336,11 @@ mod tests {
 
     #[test]
     fn ideal_run_reaches_goal_with_replayable_trace() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         for p in default_programs() {
-            let mut run = HvRun::new(&p, p.id == "popf").expect("прогон");
-            let info = solve(&mut run).unwrap_or_else(|| panic!("{}: цель не достигнута", p.id));
-            // решение, как его читает сервер, подтверждается воспроизведением
+            let mut run = HvRun::new(&p, p.id == "popf").expect("run");
+            let info = solve(&mut run).unwrap_or_else(|| panic!("{}: goal not reached", p.id));
+            // the solution, as the server reads it, is confirmed by replay
             let spec = virtlab::Spec::Hv { programs: default_programs() };
             let mut solution = serde_json::Map::new();
             solution.insert(p.id.clone(), info);
@@ -352,49 +352,49 @@ mod tests {
 
     #[test]
     fn mistakes_are_counted_and_traced() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let p = program("base");
-        let mut run = HvRun::new(&p, false).expect("прогон");
+        let mut run = HvRun::new(&p, false).expect("run");
         run.step(); // ADD 3
-        let Some(Inspection::Trap { options, .. }) = run.session().inspect() else { panic!("ждали ловушку") };
-        let bad = options.iter().find(|o| !o.ok).expect("неверный вариант").clone();
+        let Some(Inspection::Trap { options, .. }) = run.session().inspect() else { panic!("expected a trap") };
+        let bad = options.iter().find(|o| !o.ok).expect("wrong option").clone();
         assert!(run.choose(&bad.label).is_none());
         assert_eq!(run.session().state().mistakes, 1);
         assert!(run.notice().is_some_and(|n| n.bad && n.text.starts_with("Нет: ")));
-        let info = solve(&mut run).expect("цель");
+        let info = solve(&mut run).expect("goal");
         assert_eq!(info["mistakes"], 1);
         assert_eq!(info["translate"], false);
     }
 
     #[test]
     fn popf_without_translation_is_silent_and_not_a_goal() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let p = program("popf");
-        let mut run = HvRun::new(&p, false).expect("прогон");
+        let mut run = HvRun::new(&p, false).expect("run");
         assert!(solve(&mut run).is_none());
         assert!(run.session().finish().is_some_and(|f| !f.ok));
-        // начать сначала: трансляция остаётся выключенной, запись и сообщение очищены
+        // start over: translation stays off, the record and message are cleared
         run.reset();
         assert!(run.notice().is_none());
         assert!(!run.session().translate());
         assert!(run.session().current().is_some());
-        // с трансляцией — цель достигается
+        // with translation the goal is reached
         run.set_translate(true);
         assert!(solve(&mut run).is_some());
     }
 
     #[test]
     fn step_is_blocked_on_trap() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        let mut run = HvRun::new(&program("irq"), false).expect("прогон");
-        assert!(!run.can_step(), "первая команда — CLI, ловушка");
+        let _ru = locales::guard(i18n::Locale::Ru);
+        let mut run = HvRun::new(&program("irq"), false).expect("run");
+        assert!(!run.can_step(), "the first instruction is CLI, a trap");
         run.step();
         assert_eq!(run.session().state().pc, 0);
     }
 
     #[test]
     fn shuffle_is_a_stable_permutation() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let v: Vec<u32> = (0..6).collect();
         for seed in 0..20 {
             let s = shuffle(&v, seed);

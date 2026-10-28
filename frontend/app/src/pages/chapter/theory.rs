@@ -1,10 +1,10 @@
-//! Вкладка «Теория»: слайды главы с плеером и окном «За кадром». Для глав, ещё не перенесённых на Leptos, — текст уроков.
+//! "Theory" tab: chapter slides with the player and the "Voice-over" window. For chapters not yet ported to Leptos - the lesson text.
 
 use std::sync::Arc;
 
 use api::dto::Chapter;
 use content::Chapter as SlideChapter;
-use leptos::prelude::*;
+use leptos::{prelude::*, task::spawn_local};
 use leptos_router::hooks::query_signal;
 use scene::{provide_env, SceneEnv};
 
@@ -12,26 +12,28 @@ use super::ChapterCtx;
 use crate::{
     components::{
         blocks::DataSlide,
-        slides::SlidePanel,
+        slides::{RecordCtl, SlidePanel},
         voice_popup::VoicePopup,
     },
-    hooks::{use_load, Load},
+    hooks::{client, use_load, Load},
     player::{estimate_seconds, Player},
     progress::ProgressStore,
+    recorder,
+    session::Session,
     settings,
 };
 
-/// Длительности абзацев главы: озвучка, если файл есть, иначе виртуальные часы.
+/// Chapter paragraph durations: voice-over if the file exists, otherwise the virtual clock.
 pub fn durations(ch: &Chapter) -> Vec<f64> {
     ch.lessons.iter().map(|l| if l.dur > 0.0 { l.dur } else { estimate_seconds(&l.text) }).collect()
 }
 
-/// Позиция в главе: сумма абзацев до показанного плюс время внутри него.
+/// Position in the chapter: sum of paragraphs before the shown one plus the time within it.
 pub fn chapter_position(durations: &[f64], shown: usize, inside: Option<f64>) -> f64 {
     durations.iter().take(shown).sum::<f64>() + inside.unwrap_or(0.0)
 }
 
-/// Слайды главы: данные с бэкенда; у главы без слайдов — текст урока.
+/// Chapter slides: data from the backend; a chapter without slides shows the lesson text.
 #[component]
 pub fn Theory() -> impl IntoView {
     let ctx = expect_context::<ChapterCtx>();
@@ -49,12 +51,12 @@ pub fn Theory() -> impl IntoView {
     }
 }
 
-/// Название слайда в списке полного экрана: короткое (`short`), если задано, иначе заголовок.
+/// Slide title in the fullscreen list: the short one (`short`) if set, otherwise the heading.
 pub fn fs_title(short: Option<&str>, title: &str) -> String {
     short.filter(|s| !s.trim().is_empty()).unwrap_or(title).to_string()
 }
 
-/// Колода слайдов главы: число слайдов, их названия для списка полного экрана и функция «слайд i → вид».
+/// Chapter slide deck: slide count, their titles for the fullscreen list, and the "slide i -> view" function.
 #[derive(Clone)]
 struct Deck {
     count: usize,
@@ -74,7 +76,7 @@ impl Deck {
     }
 }
 
-/// Глава без слайдов на Leptos: сам текст урока по абзацам.
+/// Chapter without slides on Leptos: the lesson text itself, by paragraphs.
 #[component]
 fn PlainText(chapter: Chapter) -> impl IntoView {
     let paragraphs = chapter.lessons.into_iter().map(|l| view! { <p class="s-hint">{l.text}</p> }).collect_view();
@@ -96,10 +98,10 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let num = chapter.num;
     on_cleanup(move || player.stop());
 
-    // слайд следует за читаемым абзацем, иначе — ручной выбор (он живёт в адресе: перезагрузка возвращает на тот же слайд)
+    // the slide follows the paragraph being read, otherwise manual choice (it lives in the address: reload returns to the same slide)
     let idx = Memo::new(move |_| player.playing.get().or_else(|| manual.get()).unwrap_or(0).min(count - 1));
     let playing = Signal::derive(move || player.playing.get().is_some() && !player.paused.get());
-    // просмотренный слайд идёт в прогресс (дашборд на главной)
+    // the viewed slide goes to progress (dashboard on the home page)
     Effect::new(move |_| progress.mark_slide(book, num, idx.get()));
 
     let start_from = {
@@ -109,7 +111,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
             set_manual.set(None);
         }
     };
-    // клик по слайду: если глава играет — начинаем с этой части, иначе просто показываем слайд
+    // click on a slide: if the chapter is playing - start from this part, otherwise just show the slide
     let on_pick = {
         let start_from = start_from.clone();
         Callback::new(move |i: usize| {
@@ -123,6 +125,69 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 set_manual.set(Some(i));
             }
         })
+    };
+    // "Play + record" (administrators only): the slide plays from the current place, the microphone is recorded to a file on the server
+    // (`media/records/<book>/<chapter>/<slide>`); recording ends with the "Stop" button or when the player leaves this slide -
+    // then the player stops and the slide stays in place
+    let record = {
+        let session = expect_context::<Session>();
+        let is_admin = session.identity.get_untracked().is_some_and(|i| i.roles.iter().any(|r| r == "admin"));
+        let recording = RwSignal::new(None::<usize>);
+        let status = RwSignal::new(None::<String>);
+        let live = StoredValue::new_local(None::<recorder::Recording>);
+        on_cleanup(move || {
+            if let Some(Some(r)) = live.try_update_value(|v| v.take()) {
+                r.cancel();
+            }
+        });
+        let finish = move || {
+            let Some(i) = recording.get_untracked() else { return };
+            recording.set(None);
+            // the end of a paragraph (or chapter) returns to the recorded slide; the choice of another slide is respected
+            let back = match player.playing.get_untracked() {
+                Some(j) if j != i + 1 => j,
+                _ => i,
+            };
+            set_manual.set(Some(back));
+            player.stop();
+            let Some(Some(rec)) = live.try_update_value(|v| v.take()) else { return };
+            status.set(Some(i18n::tr("Saving the recording…").to_string()));
+            rec.stop(move |blob| {
+                spawn_local(async move {
+                    let msg = match client().upload_record(book, num, i, &blob).await {
+                        Ok(path) => i18n::trf!("Saved: {}", path),
+                        Err(e) => e.message,
+                    };
+                    let _ = status.try_set(Some(msg));
+                })
+            });
+        };
+        Effect::new(move |_| {
+            if let Some(i) = recording.get() {
+                if player.playing.get() != Some(i) {
+                    finish();
+                }
+            }
+        });
+        let start_from = start_from.clone();
+        let toggle = Callback::new(move |()| {
+            if recording.get_untracked().is_some() {
+                return finish();
+            }
+            let i = idx.get_untracked();
+            let start_from = start_from.clone();
+            status.set(Some(i18n::tr("Microphone…").to_string()));
+            recorder::start(move |res| match res {
+                Ok(rec) => {
+                    live.set_value(Some(rec));
+                    status.set(None);
+                    start_from(i);
+                    recording.set(Some(i));
+                }
+                Err(e) => status.set(Some(e)),
+            });
+        });
+        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into() })
     };
     let on_play = Callback::new(move |()| {
         if player.playing.get_untracked().is_some() {
@@ -150,7 +215,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let stage = {
         let frame = deck.frame.clone();
         Callback::new(move |i: usize| {
-            // среда сцены: время озвучки этого слайда и режим «без движения»
+            // scene environment: this slide's voice-over time and "no motion" mode
             provide_env(SceneEnv { audio_time: Signal::derive(move || player.audio_time(i)), motion_off: settings::motion_off() });
             frame(i)
         })
@@ -168,7 +233,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     view! {
         <div>
             {popup}
-            <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage />
+            <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage record=record />
         </div>
     }
 }
@@ -179,9 +244,9 @@ mod tests {
 
     #[test]
     fn full_screen_list_prefers_the_short_title() {
-        assert_eq!(fs_title(Some("Кратко"), "Длинный заголовок слайда"), "Кратко");
-        assert_eq!(fs_title(None, "Заголовок"), "Заголовок");
-        assert_eq!(fs_title(Some("  "), "Заголовок"), "Заголовок", "пустое короткое название не показываем");
+        assert_eq!(fs_title(Some("Brief"), "Long slide title"), "Brief");
+        assert_eq!(fs_title(None, "Title"), "Title");
+        assert_eq!(fs_title(Some("  "), "Title"), "Title", "an empty short title is not shown");
     }
 
     #[test]
@@ -190,6 +255,6 @@ mod tests {
         assert_eq!(chapter_position(&d, 0, None), 0.0);
         assert_eq!(chapter_position(&d, 2, None), 30.0);
         assert_eq!(chapter_position(&d, 2, Some(4.5)), 34.5);
-        assert_eq!(chapter_position(&d, 9, None), 60.0, "слайд за концом не ломает сумму");
+        assert_eq!(chapter_position(&d, 9, None), 60.0, "a slide past the end does not break the sum");
     }
 }

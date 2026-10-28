@@ -1,6 +1,6 @@
-//! Симулятор сети: кадры, ARP, коммутаторы, маршрутизация, TTL, ICMP, TCP-рукопожатие, NAT и фильтр FORWARD.
-//! Всё синхронное и детерминированное: одна «проба» (ping, TCP-подключение) даёт список переходов кадров для
-//! анимации, журнал событий и итог. Время — в микросекундах.
+//! Network simulator: frames, ARP, switches, routing, TTL, ICMP, TCP handshake, NAT and the FORWARD filter.
+//! Everything is synchronous and deterministic: one "probe" (ping, TCP connect) yields a list of frame hops for
+//! animation, an event log and an outcome. Time is in microseconds.
 
 use crate::attacks::attacks_before;
 use crate::capture::record_capture;
@@ -9,7 +9,7 @@ use crate::types::*;
 use crate::util::{js_round, to_fixed};
 use std::collections::{HashMap, HashSet};
 
-/// Задержка обработки кадра устройством, мкс.
+/// Frame processing delay on a device, us.
 fn proc_us(kind: DeviceKind) -> f64 {
     match kind {
         DeviceKind::Host | DeviceKind::Server => 20.0,
@@ -28,14 +28,14 @@ fn ip_frame_size(p: Proto) -> u32 {
     }
 }
 
-/// Число как в шаблонной строке JavaScript; отсутствующее — «undefined».
+/// Number as in a JavaScript template string; missing is "undefined".
 fn on(o: Option<i64>) -> String {
     o.map(|v| v.to_string()).unwrap_or_else(|| "undefined".into())
 }
 
-/* ---- маршруты ---- */
+/* ---- routes ---- */
 
-/// Строка таблицы маршрутов: сеть, префикс, шлюз, интерфейс и признак «подключена напрямую».
+/// Routing table row: network, prefix, gateway, interface and the "directly connected" flag.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RouteEntry {
     pub net: u32,
@@ -45,7 +45,7 @@ pub struct RouteEntry {
     pub connected: bool,
 }
 
-/// Таблица маршрутов устройства: подключённые сети и статические маршруты. `no_tun` — без туннельных интерфейсов.
+/// Routing table of a device: connected networks and static routes. `no_tun` excludes tunnel interfaces.
 pub fn route_table(d: &Device, no_tun: bool) -> Vec<RouteEntry> {
     let mut out: Vec<RouteEntry> = Vec::new();
     for i in &d.ifaces {
@@ -84,7 +84,7 @@ pub fn route_table(d: &Device, no_tun: bool) -> Vec<RouteEntry> {
     out
 }
 
-/// Лучший маршрут до адреса: самый длинный префикс, при равенстве — подключённая сеть.
+/// Best route to an address: longest prefix, on a tie the connected network.
 pub fn lookup(d: &Device, dst: Option<u32>, no_tun: bool) -> Option<RouteEntry> {
     let mut best: Option<RouteEntry> = None;
     for r in route_table(d, no_tun) {
@@ -102,12 +102,12 @@ pub fn lookup(d: &Device, dst: Option<u32>, no_tun: bool) -> Option<RouteEntry> 
     best
 }
 
-/// Адреса всех интерфейсов устройства.
+/// Addresses of all interfaces of a device.
 pub fn own_ips(d: &Device) -> Vec<u32> {
     d.ifaces.iter().filter(|i| i.ip.is_some()).filter_map(|i| parse_ip_opt(i.ip.as_deref())).collect()
 }
 
-/* ---- кортежи соединений (conntrack) ---- */
+/* ---- connection tuples (conntrack) ---- */
 
 pub(crate) fn tuple_of(p: &Packet) -> Tuple {
     let (sport, dport) = if p.proto == Proto::Icmp {
@@ -133,7 +133,7 @@ fn apply_tuple(p: &mut Packet, t: &Tuple) {
     p.dport = t.dport;
 }
 
-/* ---- описание кадров для подписей и журнала ---- */
+/* ---- frame descriptions for labels and the log ---- */
 
 pub(crate) fn describe(f: &Frame) -> String {
     match &f.body {
@@ -198,7 +198,7 @@ fn kind_of(f: &Frame) -> FrameKind {
     }
 }
 
-/// Слушает ли служба на адрес `dst` (учёт привязки `bind`).
+/// Whether the service listens on address `dst` (honouring the `bind` binding).
 pub(crate) fn bind_ok(svc: &Service, dst: Option<u32>) -> bool {
     match svc.bind.as_deref() {
         None | Some("") | Some("0.0.0.0") => true,
@@ -206,7 +206,7 @@ pub(crate) fn bind_ok(svc: &Service, dst: Option<u32>) -> bool {
     }
 }
 
-/// Текущая проба симулятора: кто её послал и чем она закончилась.
+/// Current simulator probe: who sent it and how it ended.
 #[derive(Clone, Debug)]
 pub struct Probe {
     pub origin: String,
@@ -234,7 +234,7 @@ impl ProbeResult {
     }
 }
 
-/// Симулятор одной пробы над состоянием сети. Устройства и кабели только читаются, меняются кэши (`rt`).
+/// Simulator of one probe over the network state. Devices and cables are read-only, caches (`rt`) change.
 pub struct Sim<'a> {
     pub(crate) devices: &'a Devices,
     pub(crate) links: &'a [Link],
@@ -287,12 +287,12 @@ impl<'a> Sim<'a> {
         let l = links.iter().find(|l| l.a == key || l.b == key)?;
         let other = if l.a == key { &l.b } else { &l.a };
         let (d, p) = crate::model::split_ref(other);
-        // обе стороны кабеля должны существовать
+        // both ends of the cable must exist
         self.dev(d)?.iface(p)?;
         Some((d.to_string(), p.to_string(), l))
     }
 
-    /* --- уровень 2 --- */
+    /* --- layer 2 --- */
 
     pub(crate) fn xmit(&mut self, dev_id: &str, port: &str, frame: Frame, at: f64) {
         let Some(d) = self.dev(dev_id) else { return };
@@ -377,7 +377,7 @@ impl<'a> Sim<'a> {
             return self.log(at, dev_id, EventKind::Drop, i18n::trf!("port {0} is down", port));
         }
         if frame.dst != ifc.mac && frame.dst != BCAST_MAC {
-            return; // чужой кадр
+            return; // foreign frame
         }
         let t = at + proc_us(d.kind);
         match frame.body {
@@ -386,7 +386,7 @@ impl<'a> Sim<'a> {
         }
     }
 
-    /// Кадр уже проходил через это устройство — значит, в сети петля.
+    /// The frame has already passed through this device, so the network has a loop.
     fn loop_seen(&mut self, d: &Device, frame: &mut Frame, at: f64) -> bool {
         if frame.uid.is_none() {
             self.uid_seq += 1;
@@ -544,14 +544,14 @@ impl<'a> Sim<'a> {
         self.rt.arp.get(&d.id).and_then(|c| c.get(&next_hop)).map(known)
     }
 
-    /* --- уровень 3: отправка --- */
+    /* --- layer 3: sending --- */
 
     pub(crate) fn ip_out(&mut self, d: &'a Device, mut pkt: Packet, at: f64) {
         if own_ips(d).contains(&pkt.dst) {
             if pkt.src.is_none() {
                 pkt.src = Some(pkt.dst);
             }
-            return self.ip_in(d, None, pkt, at); // сам себе
+            return self.ip_in(d, None, pkt, at); // to itself
         }
         let Some(r) = lookup(d, Some(pkt.dst), pkt.no_tun) else {
             return self.log(at, &d.id, EventKind::Drop, i18n::trf!("no route to {0} (Network is unreachable)", ip_str(pkt.dst)));
@@ -571,7 +571,7 @@ impl<'a> Sim<'a> {
         self.xmit(&d.id, &ifc.name, Frame { size, src: ifc.mac.clone(), dst: mac, vlan: None, uid: None, body: Payload::Ip(pkt) }, at2);
     }
 
-    /// Туннель (VPN): внутренний пакет упаковывается в UDP до пира.
+    /// Tunnel (VPN): the inner packet is encapsulated in UDP to the peer.
     fn tun_send(&mut self, d: &'a Device, ifc: &'a Iface, tun: &Tun, pkt: Packet, at: f64) {
         let peer = parse_ip(&tun.peer).unwrap_or(0);
         self.log(
@@ -649,7 +649,7 @@ impl<'a> Sim<'a> {
         self.ip_out(d, err, at);
     }
 
-    /* --- уровень 3: приём и пересылка --- */
+    /* --- layer 3: receiving and forwarding --- */
 
     pub(crate) fn ip_in(&mut self, d: &'a Device, ifc: Option<&'a Iface>, mut pkt: Packet, at: f64) {
         let tup = tuple_of(&pkt);
@@ -688,7 +688,7 @@ impl<'a> Sim<'a> {
             est = replied;
             apply_tuple(&mut pkt, &tr);
         } else if pkt.proto == Proto::Icmp && pkt.icmp.as_ref().and_then(|i| i.orig.as_ref()).is_some() {
-            // ошибка ICMP про уже трансформированный пакет
+            // ICMP error about an already translated packet
             let inner = pkt.icmp.as_ref().and_then(|i| i.orig.clone());
             if let Some(inner) = inner {
                 let e = self.rt.ct.entry(d.id.clone()).or_default().iter().find(|x| x.tr == inner).cloned();
@@ -748,7 +748,7 @@ impl<'a> Sim<'a> {
         self.forward(d, ifc, pkt, at, est, tup);
     }
 
-    /* --- балансировщик (L4): виртуальный адрес → один из бэкендов; источник подменяется на адрес балансировщика --- */
+    /* --- load balancer (L4): virtual address → one of the backends; the source is rewritten to the balancer's address --- */
 
     pub(crate) fn backend_dev(&self, ip: &str) -> Option<&'a Device> {
         let n = parse_ip(ip);
@@ -908,9 +908,9 @@ impl<'a> Sim<'a> {
         d.fw.policy
     }
 
-    /* --- уровень 4: локальная доставка --- */
+    /* --- layer 4: local delivery --- */
 
-    /// Ответ на пакет `pkt` от устройства `d`: адреса меняются местами, TTL 64.
+    /// Reply to packet `pkt` from device `d`: addresses are swapped, TTL 64.
     pub(crate) fn reply(&mut self, d: &'a Device, pkt: &Packet, at: f64, mut extra: Packet) {
         extra.src = Some(pkt.dst);
         extra.dst = pkt.src.unwrap_or(0);
@@ -998,7 +998,7 @@ impl<'a> Sim<'a> {
         }
         let is_server = self.probe.as_ref().map(|p| d.id != p.origin).unwrap_or(false);
         if sess && is_server {
-            // сервер: данные, закрытие
+            // server: data, close
             if pkt.flags == Some(TcpFlags::PshAck) {
                 self.log(
                     at,
@@ -1132,7 +1132,7 @@ impl<'a> Sim<'a> {
         self.ip_out(d, extra, t);
     }
 
-    /// Завершить пробу: записать перехват, упорядочить события и переходы, собрать итог.
+    /// Finish the probe: record the capture, order events and hops, assemble the outcome.
     fn finish(mut self, t0: f64) -> ProbeRun {
         record_capture(&mut self);
         self.events.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap_or(std::cmp::Ordering::Equal));
@@ -1152,9 +1152,9 @@ impl<'a> Sim<'a> {
     }
 }
 
-/* ---- пробы ---- */
+/* ---- probes ---- */
 
-/// Устройство, принявшее пакет для адреса `ip` в ходе пробы.
+/// Device that accepted a packet for address `ip` during the probe.
 pub fn delivered_to(state: &NetState, run: &ProbeRun, ip: Option<u32>) -> Option<Device> {
     let id = &run.delivered.iter().find(|x| x.dst == ip)?.dev;
     state.devices.get(id).cloned()
@@ -1171,12 +1171,12 @@ fn run_probe(state: &mut NetState, dev_id: &str, probe: Probe, kind: EventKind, 
     sim.finish(t0)
 }
 
-/// Параметры одной ICMP-пробы.
+/// Parameters of one ICMP probe.
 #[derive(Clone, Debug)]
 pub struct PingOpts {
     pub ttl: i64,
     pub id: i64,
-    /// Полезная нагрузка, байт; `None` — обычный пакет.
+    /// Payload, bytes; `None` is an ordinary packet.
     pub size: Option<i64>,
     pub df: bool,
 }
@@ -1187,7 +1187,7 @@ impl Default for PingOpts {
     }
 }
 
-/// Одна ICMP-проба: TTL можно задать (для traceroute).
+/// One ICMP probe: TTL can be set (for traceroute).
 pub fn ping1(state: &mut NetState, dev_id: &str, dst: u32, o: &PingOpts) -> ProbeRun {
     attacks_before(state);
     let mut pkt = Packet::new(Proto::Icmp, dst);
@@ -1201,7 +1201,7 @@ pub fn ping1(state: &mut NetState, dev_id: &str, dst: u32, o: &PingOpts) -> Prob
     run_probe(state, dev_id, probe, EventKind::Icmp, format!("ping {}", ip_str(dst)), pkt)
 }
 
-/// TCP-подключение к порту: SYN → SYN-ACK / RST / тишина. `session` — полный сеанс с данными и закрытием.
+/// TCP connect to a port: SYN -> SYN-ACK / RST / silence. `session` is a full session with data and close.
 pub fn tcp1(state: &mut NetState, dev_id: &str, dst: u32, port: i64, sport: i64, session: bool) -> ProbeRun {
     attacks_before(state);
     let mut pkt = Packet::new(Proto::Tcp, dst);
@@ -1215,7 +1215,7 @@ pub fn tcp1(state: &mut NetState, dev_id: &str, dst: u32, port: i64, sport: i64,
     run_probe(state, dev_id, probe, EventKind::Tcp, i18n::trf!("connecting to {0}:{1}", ip_str(dst), port), pkt)
 }
 
-/// Одна UDP-датаграмма на порт: ответ, ICMP «порт недоступен» или тишина.
+/// One UDP datagram to a port: reply, ICMP "port unreachable" or silence.
 pub fn udp1(state: &mut NetState, dev_id: &str, dst: u32, port: i64, sport: i64) -> ProbeRun {
     let mut pkt = Packet::new(Proto::Udp, dst);
     pkt.sport = Some(sport);
@@ -1224,7 +1224,7 @@ pub fn udp1(state: &mut NetState, dev_id: &str, dst: u32, port: i64, sport: i64)
     run_probe(state, dev_id, probe, EventKind::Udp, i18n::trf!("sending a datagram to {0}:{1}/udp", ip_str(dst), port), pkt)
 }
 
-/// DNS-запрос с устройства: вопрос `q` к серверу `server`.
+/// DNS query from a device: question `q` to server `server`.
 pub fn dns1(state: &mut NetState, dev_id: &str, server: u32, q: DnsQuestion, rd: bool) -> ProbeRun {
     let sport = 50002;
     let mut pkt = Packet::new(Proto::Udp, server);
@@ -1236,7 +1236,7 @@ pub fn dns1(state: &mut NetState, dev_id: &str, server: u32, q: DnsQuestion, rd:
     run_probe(state, dev_id, probe, EventKind::Dns, text, pkt)
 }
 
-/// Проба ICMP с растущим TTL до ответа, «недоступно» или трёх тишин подряд.
+/// ICMP probe with growing TTL until a reply, "unreachable" or three silences in a row.
 pub fn traceroute(state: &mut NetState, dev_id: &str, dst: u32, max_hops: i64) -> Vec<(i64, ProbeRun)> {
     let mut hops = Vec::new();
     let mut misses = 0;
@@ -1257,7 +1257,7 @@ pub fn traceroute(state: &mut NetState, dev_id: &str, dst: u32, max_hops: i64) -
     hops
 }
 
-/// «3.141 мс» / «12.3 мс»; `None` — «—».
+/// "3.141 ms" / "12.3 ms"; `None` is "-".
 pub fn fmt_ms(us: Option<f64>) -> String {
     match us {
         None => "—".into(),

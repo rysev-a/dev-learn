@@ -1,9 +1,9 @@
-//! Канонический вид файлов данных: JSON с отступами, но короткие массивы чисел и строк — в одну строку
-//! (таблицы истинности, списки входов), чтобы файлы читались и не раздувались.
+//! Canonical form of data files: indented JSON, but short arrays of numbers and strings go on one line
+//! (truth tables, input lists) so the files stay readable and do not bloat.
 
 use serde::Serialize;
 
-/// Длина строки, до которой массив сворачивается в одну строку.
+/// Line length up to which an array is collapsed onto one line.
 const INLINE_MAX: usize = 100;
 
 fn is_scalar_line(line: &str) -> bool {
@@ -16,7 +16,7 @@ fn is_inline_array_line(line: &str) -> bool {
     t.trim_start().starts_with('[') && t.ends_with(']')
 }
 
-/// Сворачивает массивы, все элементы которых — скаляры или уже свёрнутые массивы, если строка выходит короткой.
+/// Collapses arrays whose elements are all scalars or already-collapsed arrays, if the line comes out short.
 pub fn compact(pretty: &str) -> String {
     let mut lines: Vec<String> = pretty.lines().map(str::to_string).collect();
     loop {
@@ -57,7 +57,7 @@ pub fn compact(pretty: &str) -> String {
     out
 }
 
-/// Канонический JSON значения: с отступами, короткие массивы в строку, перевод строки в конце.
+/// Canonical JSON of a value: indented, short arrays on one line, trailing newline.
 pub fn canonical_json<T: Serialize>(v: &T) -> Result<String, serde_json::Error> {
     Ok(compact(&serde_json::to_string_pretty(v)?))
 }

@@ -1,28 +1,29 @@
 # syntax=docker/dockerfile:1
 #
-# Бэкенд на axum + SurrealDB (каталог backend). Контекст сборки — корень репозитория.
+# Backend on axum + SurrealDB (the backend directory). Build context is the repository root.
 #
-# Общие crates (auth, auth_api, admin_api, system_tasks, mail, observability) лежат в приватном реестре `lab`: нужен токен gitness
-# (секрет сборки `lab_token`; cargo читает индекс реестра, даже когда всё уже скомпилировано):
+# Shared crates (auth, auth_api, admin_api, system_tasks, mail, observability) live in the private `lab` registry: a gitness token is needed
+# (build secret `lab_token`; cargo reads the registry index even when everything is already compiled):
 #   LAB_TOKEN=… docker build -f deploy/backend.Dockerfile --secret id=lab_token,env=LAB_TOKEN -t cs-core-backend .
-# Без доступа к реестру lab (нет сети до git.service-lab.dev) зависимости можно подложить готовым каталогом `cargo vendor`:
-#   (cd backend && cargo vendor --locked /tmp/vendor-backend) и положить туда `.cargo-config.toml` (замена источников на /vendor),
-#   затем `--build-context vendor=/tmp/vendor-backend` (в compose — переменная CS_CORE_VENDOR_DIR). По умолчанию контекст vendor пуст
-#   (deploy/no-vendor) и работает реестр с токеном.
-# Быстрая сборка на готовом графе зависимостей lab (только amd64-хост и `docker login git.service-lab.dev`):
+# Without access to the lab registry (no network to git.service-lab.dev) the dependencies can be supplied as a ready `cargo vendor` directory:
+#   (cd backend && cargo vendor --locked /tmp/vendor-backend) and put `.cargo-config.toml` there (source replacement pointing to /vendor),
+#   then `--build-context vendor=/tmp/vendor-backend` (in compose: the CS_CORE_VENDOR_DIR variable). By default the vendor context is empty
+#   (deploy/no-vendor) and the registry with the token is used.
+# Fast build on the ready lab dependency graph (amd64 host only, and `docker login git.service-lab.dev`):
 #   --build-arg BASE=git.service-lab.dev/lab/lab_images/backend.base:rust-1.98.1
 #
-# Содержимое курса (учебники, слайды, SQL упражнений/квизов) бэкенд читает при запуске из /app/data.
-# Данные курса (crate content) общие с фронтендом и генераторами: лежат в packages и подключаются путём ../packages.
+# The backend reads the course content (textbooks, slides, exercise/quiz SQL) from /app/data at startup.
+# The course data (crate content) is shared with the frontend and generators: it lives in packages and is referenced by the path ../packages.
 ARG BASE=rust:1.98.1-bookworm
 FROM ${BASE} AS build
 ENV CARGO_TARGET_DIR=/target
 COPY backend/.cargo/config.toml /usr/local/cargo/config.toml
 WORKDIR /src/backend
 COPY packages/i18n /src/packages/i18n
+COPY packages/locales /src/packages/locales
 COPY packages/content /src/packages/content
 COPY packages/highlight /src/packages/highlight
-# движки лабораторий: сервер перепроверяет решения тем же кодом, что работает в браузере
+# lab engines: the server re-checks solutions with the same code that runs in the browser
 COPY packages/sdlab /src/packages/sdlab
 COPY packages/virtlab /src/packages/virtlab
 COPY packages/weblab /src/packages/weblab
@@ -31,7 +32,7 @@ COPY packages/archlab /src/packages/archlab
 COPY packages/netlab /src/packages/netlab
 COPY --from=vendor / /vendor
 RUN if [ -f /vendor/.cargo-config.toml ]; then cat /vendor/.cargo-config.toml >> /usr/local/cargo/config.toml; fi
-# слой зависимостей: пока не менялись манифест и lock, пересобираются только исходники
+# dependency layer: while the manifest and lock are unchanged, only the sources are rebuilt
 COPY backend/Cargo.toml backend/Cargo.lock ./
 RUN mkdir src && echo 'fn main() {}' > src/main.rs && : > src/lib.rs
 RUN --mount=type=secret,id=lab_token,required=false \

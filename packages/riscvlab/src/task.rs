@@ -1,9 +1,9 @@
-//! Упражнения лаборатории RISC-V как данные и проверка решений.
+//! RISC-V lab exercises as data, and solution checking.
 //!
-//! * [`LabChapter`] — файл данных главы (`backend/data/labs/arch/<книга>-<глава>.json`);
-//! * [`TaskSpec`] — всё, что нужно для проверки: заготовка, эталон, данные задания, тесты;
-//! * [`verify`] — ассемблирует присланный текст программы, прогоняет все тесты задачи и выносит вердикт.
-//!   Это то, что сервер делает на `PUT /api/exercises/14/<глава>/<id>/solved`.
+//! * [`LabChapter`] — chapter data file (`backend/data/labs/arch/<book>-<chapter>.json`);
+//! * [`TaskSpec`] — everything needed for the check: starter, reference solution, task data, tests;
+//! * [`verify`] — assembles the submitted program text, runs all the task's tests and issues a verdict.
+//!   This is what the server does on `PUT /api/exercises/14/<chapter>/<id>/solved`.
 
 use serde::{Deserialize, Serialize};
 
@@ -12,77 +12,77 @@ use crate::isa::reg_name;
 use crate::js::json_quote;
 use crate::machine::{Machine, Options, View, DEFAULT_MAX_STEPS};
 
-/// Самый длинный текст программы, который проверяет сервер (байт).
+/// Longest program text the server will check (bytes).
 pub const MAX_PROGRAM_BYTES: usize = 256 * 1024;
 
-/// Лимит шагов на один тест по умолчанию (как в интерфейсе).
+/// Default step limit per test (as in the UI).
 pub const DEFAULT_TASK_STEPS: u64 = 200_000;
 
-/// Какая лаборатория.
+/// Which lab.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Lab {
-    /// RISC-V: главы 16 и 17 книги 14
+    /// RISC-V: chapters 16 and 17 of book 14
     Riscv,
 }
 
-/// Окружение, в котором работает программа.
+/// Environment the program runs in.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Profile {
-    /// учебная плата: остановка `ebreak`, консоль UART, светодиоды, переключатели, таймер (глава 16)
+    /// educational board: `ebreak` halts, UART console, LEDs, switches, timer (chapter 16)
     Board,
-    /// настоящая программа: `write` и `exit` как в Linux, точка входа `_start` (глава 17)
+    /// real program: `write` and `exit` as in Linux, `_start` entry point (chapter 17)
     Linux,
 }
 
-/// Файл данных главы.
+/// Chapter data file.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct LabChapter {
-    /// номер книги
+    /// book number
     pub book: u32,
-    /// номер главы
+    /// chapter number
     pub chapter: u32,
-    /// какая лаборатория
+    /// which lab
     pub lab: Lab,
-    /// задачи
+    /// tasks
     pub tasks: Vec<Task>,
 }
 
-/// Упражнение.
+/// Exercise.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Task {
-    /// идентификатор задачи
+    /// task identifier
     pub id: String,
-    /// название
+    /// title
     pub title: String,
-    /// условие
+    /// statement
     pub statement: String,
-    /// подсказка
+    /// hint
     pub hint: String,
-    /// спецификация упражнения
+    /// exercise specification
     pub spec: TaskSpec,
 }
 
-/// Спецификация упражнения.
+/// Exercise specification.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TaskSpec {
-    /// окружение, в котором работают программы
+    /// environment the programs run in
     pub profile: Profile,
-    /// заготовка программы
+    /// program starter
     pub starter: String,
-    /// эталонное решение (клиенту не отдаётся, см. [`TaskSpec::without_reference`]; в ответе сервера поля нет)
+    /// reference solution (not sent to the client, see [`TaskSpec::without_reference`]; the field is absent in the server response)
     #[serde(default)]
     pub reference: String,
-    /// данные задания: ассемблерный текст секции `.data`; дописывается к программе и не редактируется
+    /// task data: assembler text of the `.data` section; appended to the program and not editable
     pub data: String,
-    /// что считается «зависанием»: сколько команд выполнять на тест
+    /// what counts as a "hang": how many instructions to execute per test
     #[serde(default = "default_steps")]
     pub max_steps: u64,
-    /// тесты
+    /// tests
     pub tests: Vec<Test>,
 }
 
@@ -90,112 +90,112 @@ fn default_steps() -> u64 {
     DEFAULT_TASK_STEPS
 }
 
-/// Один тест: входы и ожидание.
+/// One test: inputs and expectation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Test {
-    /// положение переключателей (8 бит)
+    /// switch positions (8 bits)
     #[serde(default)]
     pub switches: u8,
-    /// регистры, заданные до запуска (кроме sp, который ставит загрузчик, если не указан)
+    /// registers set before the run (except sp, which the loader sets if not specified)
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub regs: Vec<RegInit>,
-    /// что должно получиться
+    /// what the result should be
     pub check: Check,
 }
 
-/// Начальное значение регистра.
+/// Initial register value.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegInit {
-    /// номер регистра x0…x31
+    /// register number x0…x31
     pub reg: u8,
-    /// значение
+    /// value
     pub value: i32,
 }
 
-/// Проверка итогового состояния машины после остановки. Тексты — как в прежней версии на TypeScript.
+/// Check of the final machine state after halting. Texts are as in the previous TypeScript version.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Check {
-    /// в консоли ровно этот текст
+    /// exactly this text in the console
     Uart {
-        /// ожидаемый вывод
+        /// expected output
         expected: String,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
-    /// светодиоды горят по узору
+    /// LEDs lit in the pattern
     Leds {
-        /// ожидаемые восемь бит
+        /// expected eight bits
         expected: u8,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
-        /// дописывается к сообщению об ошибке
+        /// appended to the error message
         #[serde(default, skip_serializing_if = "String::is_empty")]
         bad_suffix: String,
     },
-    /// в регистре число
+    /// a number in the register
     Reg {
-        /// номер регистра x0…x31
+        /// register number x0…x31
         reg: u8,
-        /// ожидаемое значение (со знаком)
+        /// expected value (signed)
         expected: i32,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
-    /// по метке лежит строка (читается до нулевого байта)
+    /// a string lies at the label (read up to the zero byte)
     MemCstr {
-        /// имя метки
+        /// label name
         symbol: String,
-        /// ожидаемая строка
+        /// expected string
         expected: String,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
-    /// по метке лежит массив 32-битных слов
+    /// an array of 32-bit words lies at the label
     MemWords {
-        /// имя метки
+        /// label name
         symbol: String,
-        /// ожидаемые слова со знаком
+        /// expected words, signed
         expected: Vec<i32>,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
-    /// sp вернулся на вершину памяти
+    /// sp has returned to the top of memory
     StackReturned,
-    /// все проверки по порядку; сообщение — первой неудавшейся, иначе `ok`
+    /// all checks in order; the message is that of the first failed one, otherwise `ok`
     All {
-        /// вложенные проверки
+        /// nested checks
         checks: Vec<Check>,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
-    /// светодиод переключился `toggles` раз по схеме 1, 0, 1, 0…, каждое состояние держалось не меньше `min_gap` тактов
+    /// the LED toggled `toggles` times in the pattern 1, 0, 1, 0…, each state held for at least `min_gap` cycles
     Blink {
-        /// сколько переключений нужно
+        /// how many toggles are needed
         toggles: u32,
-        /// минимальная выдержка между переключениями, в тактах
+        /// minimum hold time between toggles, in cycles
         min_gap: u64,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
-    /// программа завершилась вызовом exit: вывод и код возврата
+    /// the program finished with an exit call: output and return code
     Run {
-        /// ожидаемый вывод
+        /// expected output
         stdout: String,
-        /// ожидаемый код возврата
+        /// expected return code
         code: i32,
-        /// сообщение при успехе
+        /// message on success
         ok: String,
     },
 }
 
-/// Итог проверки одного условия.
+/// Outcome of checking one condition.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CheckResult {
-    /// всё прошло
+    /// everything passed
     pub ok: bool,
-    /// текст сообщения
+    /// message text
     pub message: String,
 }
 
@@ -206,7 +206,7 @@ fn bad(message: String) -> CheckResult {
     CheckResult { ok: false, message }
 }
 
-/// `0b` и восемь двоичных цифр.
+/// `0b` and eight binary digits.
 fn bin8(n: u32) -> String {
     format!("0b{:08b}", n & 0xff)
 }
@@ -216,7 +216,7 @@ fn word_at(mem: &[u8], a: usize) -> i32 {
     b(0) | (b(1) << 8) | (b(2) << 16) | (b(3) << 24)
 }
 
-/// Строка до нулевого байта; байты — как коды символов Latin-1 (так её читала прежняя проверка).
+/// String up to the zero byte; bytes as Latin-1 character codes (that is how the previous check read it).
 fn cstr_at(mem: &[u8], a: Option<u32>) -> String {
     let Some(a) = a else { return String::new() };
     let mut s = String::new();
@@ -229,7 +229,7 @@ fn cstr_at(mem: &[u8], a: Option<u32>) -> String {
 }
 
 impl Check {
-    /// Проверить состояние машины после остановки. `symbols` — адреса меток программы.
+    /// Check the machine state after halting. `symbols` — addresses of the program's labels.
     pub fn evaluate(&self, v: &View, symbols: &std::collections::BTreeMap<String, u32>) -> CheckResult {
         match self {
             Check::Uart { expected, ok: okm } => {
@@ -290,7 +290,7 @@ impl Check {
                 ok(okm)
             }
             Check::Blink { toggles, min_gap, ok: okm } => {
-                // оставляем только настоящие переключения: запись того же значения — не событие
+                // keep only real toggles: writing the same value is not an event
                 let mut changes: Vec<(u64, u8)> = Vec::new();
                 let mut prev = 0u8;
                 for e in &v.led_log {
@@ -336,59 +336,59 @@ impl Check {
 }
 
 impl TaskSpec {
-    /// Копия без эталонного решения — то, что бэкенд отдаёт клиенту.
+    /// Copy without the reference solution — what the backend sends to the client.
     pub fn without_reference(&self) -> TaskSpec {
         TaskSpec { reference: String::new(), ..self.clone() }
     }
 
-    /// Полный текст программы: то, что написал ученик, плюс данные задания.
+    /// Full program text: what the student wrote plus the task data.
     pub fn full_source(&self, user: &str) -> String {
         full_source(user, &self.data)
     }
 }
 
-/// Полный текст программы: то, что написал ученик, плюс данные задания.
+/// Full program text: what the student wrote plus the task data.
 pub fn full_source(user: &str, data: &str) -> String {
     format!("{user}\n.data\n{data}\n")
 }
 
-/// Чем закончилась проверка.
+/// How the check ended.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Outcome {
-    /// все тесты пройдены
+    /// all tests passed
     Passed,
-    /// программа остановилась, но результат не тот
+    /// the program halted, but the result is wrong
     Wrong,
-    /// машина сломалась: неверная команда, выход из памяти, лимит шагов
+    /// the machine broke: invalid instruction, out-of-memory access, step limit
     Fault,
-    /// программа не собралась (или слишком длинная)
+    /// the program did not assemble (or is too long)
     AsmErrors,
 }
 
-/// Итог одного теста.
+/// Outcome of one test.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TestVerdict {
-    /// всё прошло
+    /// everything passed
     pub ok: bool,
-    /// текст сообщения
+    /// message text
     pub message: String,
-    /// сколько команд выполнено
+    /// how many instructions were executed
     pub steps: u64,
 }
 
-/// Вердикт по решению.
+/// Verdict on the solution.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Verdict {
-    /// всё прошло
+    /// everything passed
     pub ok: bool,
-    /// чем закончилась проверка
+    /// how the check ended
     pub outcome: Outcome,
-    /// сообщение ученику: первое из неудавшихся, иначе — последнего теста
+    /// message to the student: the first failed test, otherwise the last one
     pub message: String,
-    /// ошибки ассемблера (номера строк — по полному тексту: программа и данные задания)
+    /// assembler errors (line numbers refer to the full text: program plus task data)
     pub errors: Vec<AsmError>,
-    /// тесты
+    /// tests
     pub tests: Vec<TestVerdict>,
 }
 
@@ -396,7 +396,7 @@ fn failed(outcome: Outcome, message: String, errors: Vec<AsmError>) -> Verdict {
     Verdict { ok: false, outcome, message, errors, tests: Vec::new() }
 }
 
-/// Запустить собранную программу в условиях теста и проверить результат.
+/// Run the assembled program under the test's conditions and check the result.
 pub fn run_test(spec: &TaskSpec, asm: &AsmResult, test: &Test) -> (CheckResult, Outcome, u64) {
     let mut m = Machine::new(&asm.image, Options { switches: test.switches, entry: asm.entry });
     for r in &test.regs {
@@ -412,7 +412,7 @@ pub fn run_test(spec: &TaskSpec, asm: &AsmResult, test: &Test) -> (CheckResult, 
     (r, outcome, steps)
 }
 
-/// Проверка решения: собрать присланный текст программы и прогнать все тесты задачи.
+/// Solution check: assemble the submitted program text and run all the task's tests.
 pub fn verify(spec: &TaskSpec, program: &str) -> Verdict {
     if program.len() > MAX_PROGRAM_BYTES {
         let msg =
@@ -428,7 +428,7 @@ pub fn verify(spec: &TaskSpec, program: &str) -> Verdict {
         return failed(Outcome::Wrong, i18n::tr("The task has no tests").to_string(), Vec::new());
     }
     let mut tests = Vec::new();
-    // итог — по первому неудавшемуся тесту, а если все прошли — по последнему
+    // the outcome is by the first failed test, or by the last one if all passed
     let mut summary: Option<(Outcome, String)> = None;
     for t in &spec.tests {
         let (r, o, steps) = run_test(spec, &asm, t);
@@ -442,24 +442,24 @@ pub fn verify(spec: &TaskSpec, program: &str) -> Verdict {
 }
 
 impl LabChapter {
-    /// Разобрать файл данных главы.
+    /// Parse a chapter data file.
     pub fn from_json(text: &str) -> Result<LabChapter, serde_json::Error> {
         serde_json::from_str(text)
     }
 
-    /// Канонический JSON файла (с отступами и переводом строки в конце).
+    /// Canonical JSON of the file (indented, with a trailing newline).
     pub fn to_canonical_json(&self) -> Result<String, serde_json::Error> {
         let mut s = serde_json::to_string_pretty(self)?;
         s.push('\n');
         Ok(s)
     }
 
-    /// Задача по id.
+    /// Task by id.
     pub fn task(&self, id: &str) -> Option<&Task> {
         self.tasks.iter().find(|t| t.id == id)
     }
 
-    /// Копия главы без эталонных решений — для клиента.
+    /// Copy of the chapter without reference solutions — for the client.
     pub fn without_references(&self) -> LabChapter {
         LabChapter {
             tasks: self.tasks.iter().map(|t| Task { spec: t.spec.without_reference(), ..t.clone() }).collect(),
@@ -468,7 +468,7 @@ impl LabChapter {
     }
 }
 
-/// Имя файла данных главы: `<книга>-<глава:02>.json`.
+/// Chapter data file name: `<book>-<chapter:02>.json`.
 pub fn chapter_file_name(book: u32, chapter: u32) -> String {
     format!("{book}-{chapter:02}.json")
 }

@@ -1,5 +1,5 @@
-//! Сессия: токен и личность вошедшего пользователя. Токен выдаёт `/api/auth/login`, хранится в `localStorage`
-//! (ключ `cs-core-token`) и уходит в каждый запрос заголовком `Authorization: Bearer`.
+//! Session: token and identity of the signed-in user. The token is issued by `/api/auth/login`, stored in `localStorage`
+//! (key `cs-core-token`) and sent with every request in the `Authorization: Bearer` header.
 
 use api::{dto::Identity, ApiError, Client};
 use leptos::{prelude::*, task::spawn_local};
@@ -10,7 +10,7 @@ use crate::settings;
 pub struct Session {
     pub token: RwSignal<Option<String>>,
     pub identity: RwSignal<Option<Identity>>,
-    /// проверка сохранённого токена закончилась
+    /// checking the saved token has finished
     pub checked: RwSignal<bool>,
 }
 
@@ -35,7 +35,7 @@ impl Session {
         Ok(())
     }
 
-    /// Регистрация и сразу вход (подтверждение почты входу не мешает).
+    /// Registration and immediate sign-in (email confirmation does not prevent signing in).
     pub async fn register(&self, client: &Client, email: &str, name: &str, password: &str) -> Result<(), ApiError> {
         client.signup(email.trim(), password, name.trim()).await?;
         self.login(client, email, password).await
@@ -50,7 +50,7 @@ impl Session {
     }
 }
 
-/// Создаёт сессию и клиент API, кладёт их в контекст и проверяет сохранённый токен.
+/// Creates the session and API client, puts them in the context and checks the saved token.
 pub fn provide_session() -> Session {
     let session = Session { token: RwSignal::new(settings::read(settings::TOKEN).filter(|t| !t.is_empty())), identity: RwSignal::new(None), checked: RwSignal::new(false) };
     let client = Client::new(move || session.token.get_untracked(), move || session.forget());

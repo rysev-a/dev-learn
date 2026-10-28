@@ -1,9 +1,9 @@
-//! Лаборатория «Архитектура компьютера» (книга 14, главы 6–15): схемы из вентилей и блоков, процессор Мини-8 на
-//! вентилях и ассемблер Мини-8. Расчёт и проверка — в крейте `archlab`, общем с бэкендом; здесь — интерфейс.
+//! "Computer Architecture" lab (book 14, chapters 6–15): circuits of gates and blocks, the Mini-8 processor built from
+//! gates, and the Mini-8 assembler. Computation and verification are in the `archlab` crate shared with the backend; this is the interface.
 //!
-//! [`ArchLab`] разбирает сценарий упражнения (`spec`), загружает данные лаборатории (сценарии других глав и решённое
-//! учеником — из них собираются блоки, см. `data.rs`) и открывает нужный интерфейс: `CircuitLab` для схем,
-//! `AsmLab` для программ.
+//! [`ArchLab`] parses the exercise scenario (`spec`), loads the lab data (scenarios of other chapters and what the student
+//! has solved — blocks are built from them, see `data.rs`) and opens the right interface: `CircuitLab` for circuits,
+//! `AsmLab` for programs.
 
 use std::sync::Arc;
 
@@ -28,12 +28,12 @@ mod inspector;
 mod model;
 mod solution;
 
-/// Разбор сценария упражнения, который прислал сервер (без эталонного решения).
+/// Parsing of the exercise scenario sent by the server (without the reference solution).
 fn parse_spec(value: &serde_json::Value) -> Result<Spec, String> {
     serde_json::from_value(value.clone()).map_err(|e| i18n::trf!("Exercise scenario could not be parsed: {0}", e))
 }
 
-/// Лаборатория выбранного упражнения.
+/// Lab of the selected exercise.
 #[component]
 pub fn ArchLab(props: LabProps) -> impl IntoView {
     let spec = match parse_spec(&props.task.spec) {
@@ -64,11 +64,11 @@ mod tests {
 
     #[test]
     fn spec_without_the_reference_solution_is_readable() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
-        // сервер убирает `solution` из сценария для клиента: движок обязан читать и такой
+        let _ru = locales::guard(i18n::Locale::Ru);
+        // the server removes `solution` from the scenario for the client: the engine must be able to read such a one too
         let circuit = json!({
             "kind": "circuit", "section": "simple-circuits", "mode": "table", "build": "gates", "inputs": ["A"],
-            "outputs": ["Y"], "target": [[1], [0]], "allowed": ["NOT"], "formula": "Y = НЕ A", "success": "ок"
+            "outputs": ["Y"], "target": [[1], [0]], "allowed": ["NOT"], "formula": "Y = NOT A", "success": "ok"
         });
         match parse_spec(&circuit) {
             Ok(Spec::Circuit(c)) => assert!(c.solution.is_none() && c.outputs == ["Y"]),
@@ -76,7 +76,7 @@ mod tests {
         }
         let asm = json!({
             "kind": "asm", "starter": "hlt", "disk": "00ff", "expected": "00ff",
-            "regions": [{"name": "вход", "from": 0, "length": 2}]
+            "regions": [{"name": "input", "from": 0, "length": 2}]
         });
         match parse_spec(&asm) {
             Ok(Spec::Asm(a)) => assert!(a.solution.is_empty() && a.disk.0 == [0, 255]),

@@ -1,7 +1,7 @@
-//! Типы лаборатории: схема сервиса, нагрузка, результат расчёта, цели и упражнения.
+//! Lab types: service design, workload, evaluation result, goals and exercises.
 //!
-//! Имена полей в данных — `snake_case`. При чтении принимаются и прежние имена из TypeScript-версии
-//! (`dataGB`, `maxNodes`, `cdnHit` …) — через `alias`, чтобы разбирать старые черновики и выгрузки.
+//! Field names in the data are `snake_case`. On reading, the former names from the TypeScript version are also accepted
+//! (`dataGB`, `maxNodes`, `cdnHit` …) — via `alias`, to parse old drafts and exports.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -13,9 +13,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::kinds;
 
-/* ---------- виды компонентов ---------- */
+/* ---------- component kinds ---------- */
 
-/// Вид компонента схемы.
+/// Design component kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
@@ -43,7 +43,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    /// Все виды в порядке объявления.
+    /// All kinds in declaration order.
     pub const ALL: [Kind; 21] = [
         Kind::Clients,
         Kind::Cdn,
@@ -68,7 +68,7 @@ impl Kind {
         Kind::Analytics,
     ];
 
-    /// Строковое имя, как в данных (`"cdn"`, `"app"` …).
+    /// String name as in the data (`"cdn"`, `"app"` …).
     pub const fn as_str(self) -> &'static str {
         match self {
             Kind::Clients => "clients",
@@ -95,12 +95,12 @@ impl Kind {
         }
     }
 
-    /// Порядковый номер вида (индекс в [`Kind::ALL`]).
+    /// Ordinal of the kind (index in [`Kind::ALL`]).
     pub const fn index(self) -> usize {
         self as usize
     }
 
-    /// Русское название компонента.
+    /// Russian name of the component.
     pub fn label(self) -> &'static str {
         kinds::spec(self).label
     }
@@ -119,7 +119,7 @@ impl FromStr for Kind {
     }
 }
 
-/// Сервисы, которые приложение вызывает на части запросов (`Workload::calls`).
+/// Services the application calls on a share of requests (`Workload::calls`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum DepKind {
     Auth,
@@ -129,10 +129,10 @@ pub enum DepKind {
 }
 
 impl DepKind {
-    /// Все зависимости в порядке обхода движком.
+    /// All dependencies in the engine's traversal order.
     pub const ALL: [DepKind; 4] = [DepKind::Auth, DepKind::Geo, DepKind::Ml, DepKind::Pay];
 
-    /// Вид компонента, который отвечает за зависимость.
+    /// Component kind responsible for the dependency.
     pub const fn kind(self) -> Kind {
         match self {
             DepKind::Auth => Kind::Auth,
@@ -143,21 +143,21 @@ impl DepKind {
     }
 }
 
-/// Что ломаем при проверке отказа: вид компонента (по одному экземпляру) или зона, регион, выкладка.
+/// What to break in a failure check: a component kind (one instance) or a zone, region, deploy.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FailKind {
-    /// отказ зоны доступности
+    /// availability zone failure
     Zone,
-    /// отказ региона
+    /// region failure
     Region,
-    /// выкладка новой версии
+    /// deploy of a new version
     Deploy,
-    /// отказ одного экземпляра компонента этого вида
+    /// failure of one instance of a component of this kind
     Component(Kind),
 }
 
 impl FailKind {
-    /// Строка для данных: `"zone"`, `"region"`, `"deploy"` или вид компонента.
+    /// String for the data: `"zone"`, `"region"`, `"deploy"` or a component kind.
     pub const fn as_str(self) -> &'static str {
         match self {
             FailKind::Zone => "zone",
@@ -193,9 +193,9 @@ impl<'de> Deserialize<'de> for FailKind {
     }
 }
 
-/* ---------- параметры и схема ---------- */
+/* ---------- parameters and design ---------- */
 
-/// Значение параметра компонента: число, строка (из списка) или флаг.
+/// Component parameter value: number, string (from a list) or flag.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ParamValue {
@@ -205,7 +205,7 @@ pub enum ParamValue {
 }
 
 impl PartialEq for ParamValue {
-    /// Строгое равенство, как `===` в JavaScript: число не равно строке.
+    /// Strict equality, like `===` in JavaScript: a number is not equal to a string.
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (ParamValue::Bool(a), ParamValue::Bool(b)) => a == b,
@@ -238,7 +238,7 @@ impl From<&str> for ParamValue {
 }
 
 impl ParamValue {
-    /// Число: как `Number(v) || 0` в JavaScript (флаг — 0/1, нечисловая строка — 0).
+    /// Number: like `Number(v) || 0` in JavaScript (flag — 0/1, non-numeric string — 0).
     pub fn as_num(&self) -> f64 {
         match self {
             ParamValue::Num(x) => *x,
@@ -254,7 +254,7 @@ impl ParamValue {
         }
     }
 
-    /// Число для сравнений: как `Number(v)` в JavaScript (нечисловая строка — `NaN`, при котором сравнения ложны).
+    /// Number for comparisons: like `Number(v)` in JavaScript (non-numeric string — `NaN`, for which comparisons are false).
     pub fn to_number(&self) -> f64 {
         match self {
             ParamValue::Str(s) => {
@@ -269,7 +269,7 @@ impl ParamValue {
         }
     }
 
-    /// Строка: как `String(v)` в JavaScript.
+    /// String: like `String(v)` in JavaScript.
     pub fn as_text(&self) -> std::borrow::Cow<'_, str> {
         match self {
             ParamValue::Str(s) => std::borrow::Cow::Borrowed(s),
@@ -278,7 +278,7 @@ impl ParamValue {
         }
     }
 
-    /// Флаг включён (только настоящий `true`).
+    /// Flag is on (only a real `true`).
     pub fn is_true(&self) -> bool {
         matches!(self, ParamValue::Bool(true))
     }
@@ -293,15 +293,15 @@ fn unplaced() -> f64 {
     -1.0
 }
 
-/// Компонент на схеме.
+/// Component on the design.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SdNode {
     pub id: String,
     pub kind: Kind,
-    /// Название на схеме; пустое при чтении заменяется названием вида ([`SdState::normalize`]).
+    /// Name on the design; empty on reading is replaced by the kind name ([`SdState::normalize`]).
     #[serde(default)]
     pub name: String,
-    /// Положение на поле; отрицательное — «не размещён», его расставляет [`crate::layout::place`].
+    /// Position on the board; negative — "not placed", laid out by [`crate::layout::place`].
     #[serde(default = "unplaced")]
     pub x: f64,
     #[serde(default = "unplaced")]
@@ -311,7 +311,7 @@ pub struct SdNode {
 }
 
 impl SdNode {
-    /// Новый компонент с параметрами по умолчанию, перекрытыми `params`; название — название вида.
+    /// New component with defaults overridden by `params`; the name is the kind name.
     pub fn new(id: &str, kind: Kind, params: &[(&str, ParamValue)]) -> SdNode {
         let mut p = kinds::default_params(kind);
         for (k, v) in params {
@@ -320,7 +320,7 @@ impl SdNode {
         SdNode { id: id.to_owned(), kind, name: kind.label().to_owned(), x: -1.0, y: -1.0, params: p }
     }
 
-    /// Значение параметра: заданное, иначе по умолчанию для вида, иначе 0.
+    /// Parameter value: the set one, else the kind default, else 0.
     pub fn param(&self, key: &str) -> &ParamValue {
         static ZERO: ParamValue = ParamValue::Num(0.0);
         match self.params.get(key) {
@@ -329,23 +329,23 @@ impl SdNode {
         }
     }
 
-    /// Числовое значение параметра.
+    /// Numeric parameter value.
     pub fn num(&self, key: &str) -> f64 {
         self.param(key).as_num()
     }
 
-    /// Строковое значение параметра.
+    /// String parameter value.
     pub fn text(&self, key: &str) -> std::borrow::Cow<'_, str> {
         self.param(key).as_text()
     }
 
-    /// Флаг-параметр включён.
+    /// Flag parameter is on.
     pub fn flag(&self, key: &str) -> bool {
         self.param(key).is_true()
     }
 }
 
-/// Связь «от выхода к входу».
+/// Link "from output to input".
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SdEdge {
     pub from: String,
@@ -358,7 +358,7 @@ impl SdEdge {
     }
 }
 
-/// Схема: компоненты и связи. Это же — решение ученика (черновик в кабинете, `solution` на сервере).
+/// Design: components and links. This is also the student's solution (draft in the account, `solution` on the server).
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SdState {
     #[serde(default)]
@@ -368,7 +368,7 @@ pub struct SdState {
 }
 
 impl SdState {
-    /// Подставляет название вида компонентам без названия.
+    /// Fills in the kind name for components without a name.
     pub fn normalize(&mut self) {
         for n in &mut self.nodes {
             if n.name.is_empty() {
@@ -377,20 +377,20 @@ impl SdState {
         }
     }
 
-    /// Компонент по id (первый).
+    /// Component by id (first).
     pub fn node(&self, id: &str) -> Option<&SdNode> {
         self.nodes.iter().find(|n| n.id == id)
     }
 
-    /// Компоненты данного вида.
+    /// Components of the given kind.
     pub fn of_kind(&self, kind: Kind) -> impl Iterator<Item = &SdNode> {
         self.nodes.iter().filter(move |n| n.kind == kind)
     }
 }
 
-/* ---------- нагрузка ---------- */
+/* ---------- workload ---------- */
 
-/// Доля запросов приложения, которая обращается к сервису-зависимости (0..1).
+/// Share of application requests that call a dependency service (0..1).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct Calls {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -404,7 +404,7 @@ pub struct Calls {
 }
 
 impl Calls {
-    /// Доля обращений к сервису (0, если не задана).
+    /// Share of calls to the service (0 if not set).
     pub fn get(&self, k: DepKind) -> f64 {
         match k {
             DepKind::Auth => self.auth,
@@ -416,58 +416,58 @@ impl Calls {
     }
 }
 
-/// Нагрузка на сервис: запросы в секунду по классам и данные.
+/// Service workload: requests per second by class and data.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Workload {
-    /// статика (картинки, скрипты), запр/с: CDN или blob; иначе её отдаёт приложение
+    /// static content (images, scripts), req/s: CDN or blob; otherwise served by the application
     #[serde(alias = "static")]
     pub static_rps: f64,
-    /// динамические чтения, запр/с
+    /// dynamic reads, req/s
     #[serde(alias = "read")]
     pub read_rps: f64,
-    /// записи, запр/с
+    /// writes, req/s
     #[serde(alias = "write")]
     pub write_rps: f64,
-    /// доля чтений, которые на самом деле поиск (идут в search; без него — тяжёлый запрос в БД)
+    /// share of reads that are actually search (go to search; without it — a heavy DB query)
     #[serde(default, alias = "searchShare", skip_serializing_if = "Option::is_none")]
     pub search_share: Option<f64>,
-    /// объём данных, ГБ
+    /// data volume, GB
     #[serde(alias = "dataGB")]
     pub data_gb: f64,
-    /// доля данных, которую читают часто (рабочий набор), 0..1
+    /// share of data read frequently (working set), 0..1
     #[serde(alias = "hotSet")]
     pub hot_set: f64,
-    /// доля запросов на самый «горячий» ключ (0..1): перекос шардов
+    /// share of requests to the single "hottest" key (0..1): shard skew
     #[serde(default, alias = "hotKey", skip_serializing_if = "Option::is_none")]
     pub hot_key: Option<f64>,
-    /// одновременных соединений WebSocket
+    /// concurrent WebSocket connections
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub connections: Option<f64>,
-    /// сообщений в секунду на соединение
+    /// messages per second per connection
     #[serde(default, alias = "msgPerConn", skip_serializing_if = "Option::is_none")]
     pub msg_per_conn: Option<f64>,
-    /// длительность пика для расчёта отставания очереди, секунд
+    /// spike duration for computing queue lag, seconds
     #[serde(default, alias = "spikeSec", skip_serializing_if = "Option::is_none")]
     pub spike_sec: Option<f64>,
-    /// ключи шардирования растут монотонно: при range-шардировании все записи уходят в один шард
+    /// shard keys grow monotonically: with range sharding all writes go to one shard
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monotonic: Option<bool>,
-    /// среднее число подписчиков автора (лента)
+    /// average number of an author's followers (feed)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fanout: Option<f64>,
-    /// доли запросов приложения к сервисам-зависимостям; без связи с сервисом такие запросы не выполняются
+    /// shares of application requests to dependency services; without a link to the service such requests fail
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub calls: Option<Calls>,
-    /// обновления геопозиций в секунду (такси, курьеры)
+    /// geo-position updates per second (taxi, couriers)
     #[serde(default, alias = "geoUpdates", skip_serializing_if = "Option::is_none")]
     pub geo_updates: Option<f64>,
-    /// объём файлов в объектном хранилище, ТБ
+    /// volume of files in object storage, TB
     #[serde(default, alias = "mediaTB", skip_serializing_if = "Option::is_none")]
     pub media_tb: Option<f64>,
 }
 
 impl Workload {
-    /// Нагрузка из трёх основных чисел; остальное — по умолчанию (данные 10 ГБ, рабочий набор 20%).
+    /// Workload from the three main numbers; the rest is default (data 10 GB, working set 20%).
     pub fn new(static_rps: f64, read_rps: f64, write_rps: f64) -> Workload {
         Workload { static_rps, read_rps, write_rps, data_gb: 10.0, hot_set: 0.2, ..Workload::default() }
     }
@@ -477,27 +477,27 @@ impl Workload {
     }
 }
 
-/* ---------- результат расчёта ---------- */
+/* ---------- evaluation result ---------- */
 
-/// Опции расчёта: что сломать.
+/// Evaluation options: what to break.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct EvalOptions {
-    /// сломать по одному экземпляру каждого компонента этого вида (или всю зону, регион, выкладку)
+    /// break one instance of each component of this kind (or a whole zone, region, deploy)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail: Option<FailKind>,
-    /// отключённые вручную узлы (клик по узлу в интерфейсе)
+    /// manually disabled nodes (click on a node in the UI)
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub down: Vec<String>,
 }
 
 impl EvalOptions {
-    /// Только отказ.
+    /// Failure only.
     pub fn fail(f: FailKind) -> EvalOptions {
         EvalOptions { fail: Some(f), down: Vec::new() }
     }
 }
 
-/// Состояние узла по загрузке.
+/// Node state by utilization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum NodeStatus {
@@ -509,18 +509,18 @@ pub enum NodeStatus {
     Down,
 }
 
-/// Допускает `null` вместо нечислового значения (JSON не умеет NaN и бесконечность).
+/// Accepts `null` instead of a non-numeric value (JSON has no NaN or infinity).
 fn lenient_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
     Ok(Option::<f64>::deserialize(d)?.unwrap_or(f64::NAN))
 }
 
-/// Нагрузка на узел.
+/// Node load.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NodeLoad {
-    /// входящая нагрузка, усл. запросов в секунду
+    /// incoming load, conventional requests per second
     #[serde(deserialize_with = "lenient_f64")]
     pub load: f64,
-    /// ёмкость (то, что узел вытягивает), усл. запросов в секунду
+    /// capacity (what the node can handle), conventional requests per second
     #[serde(deserialize_with = "lenient_f64")]
     pub cap: f64,
     #[serde(deserialize_with = "lenient_f64")]
@@ -532,7 +532,7 @@ pub struct NodeLoad {
     pub note: Option<String>,
 }
 
-/// Нагрузки узлов в порядке узлов схемы (без пользователей); в JSON — объект `{id: нагрузка}`.
+/// Node loads in the order of design nodes (without users); in JSON — an object `{id: load}`.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Loads(Vec<(String, NodeLoad)>);
 
@@ -584,46 +584,46 @@ impl<'de> Deserialize<'de> for Loads {
     }
 }
 
-/// Результат расчёта схемы под нагрузкой (в TypeScript — `Result`).
+/// Result of evaluating a design under a workload (`Result` in TypeScript).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EvalResult {
     pub loads: Loads,
-    /// средняя и «хвостовая» задержка пользовательского запроса, мс
+    /// average and "tail" latency of a user request, ms
     #[serde(deserialize_with = "lenient_f64")]
     pub p50: f64,
     #[serde(deserialize_with = "lenient_f64")]
     pub p99: f64,
-    /// доля успешных запросов, 0..1 (с учётом перегрузок)
+    /// success rate, 0..1 (accounting for overloads)
     #[serde(deserialize_with = "lenient_f64")]
     pub success: f64,
-    /// доступность схемы по компонентам, 0..1
+    /// design availability by components, 0..1
     #[serde(deserialize_with = "lenient_f64")]
     pub availability: f64,
-    /// стоимость, $ в месяц
+    /// cost, $ per month
     #[serde(deserialize_with = "lenient_f64")]
     pub cost: f64,
-    /// доля чтений из кэша (`None` — кэша нет)
+    /// share of reads from cache (`None` — no cache)
     pub hit: Option<f64>,
     #[serde(alias = "cdnHit")]
     pub cdn_hit: Option<f64>,
-    /// отставание очереди после пика, секунд (`None` — очереди нет; 999 — не разбирается)
+    /// queue lag after a spike, seconds (`None` — no queue; 999 — not draining)
     #[serde(alias = "lagSec")]
     pub lag_sec: Option<f64>,
-    /// отставание реплик, мс
+    /// replica lag, ms
     #[serde(alias = "replicaLagMs")]
     pub replica_lag_ms: Option<f64>,
-    /// максимальная доля данных на одном шарде, 0..1
+    /// maximum share of data on one shard, 0..1
     #[serde(alias = "maxShardShare")]
     pub max_shard_share: Option<f64>,
-    /// есть ли путь от пользователей до обработки запросов
+    /// whether there is a path from users to request processing
     pub entry: bool,
-    /// предупреждения: лишние связи, неподключённые компоненты…
+    /// warnings: extra links, unconnected components…
     pub warnings: Vec<String>,
 }
 
-/* ---------- цели и упражнения ---------- */
+/* ---------- goals and exercises ---------- */
 
-/// Сравнение значения параметра.
+/// Parameter value comparison.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Op {
     #[serde(rename = ">=")]
@@ -637,7 +637,7 @@ pub enum Op {
 }
 
 impl Op {
-    /// Запись оператора, как в тексте цели.
+    /// Operator spelling, as in the goal text.
     pub const fn as_str(self) -> &'static str {
         match self {
             Op::Ge => ">=",
@@ -648,34 +648,34 @@ impl Op {
     }
 }
 
-/// Цель упражнения. В данных — объект с полем `type` (`{"type": "p99", "max": 150}`).
+/// Exercise goal. In the data — an object with a `type` field (`{"type": "p99", "max": 150}`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Goal {
-    /// ни один компонент не загружен больше чем на `max` (0..1)
+    /// no component is utilized above `max` (0..1)
     Capacity { max: f64 },
-    /// компонент этого вида загружен не больше чем на `max`
+    /// a component of this kind is utilized at most `max`
     Util { kind: Kind, max: f64 },
     P99 { max: f64 },
     P50 { max: f64 },
     Success { min: f64 },
     Availability { min: f64 },
     Cost { max: f64 },
-    /// в схеме есть компонент (не меньше `min` штук, по умолчанию 1)
+    /// the design has a component (at least `min` of them, default 1)
     Has {
         kind: Kind,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         min: Option<f64>,
     },
     Lacks { kind: Kind },
-    /// есть связь от компонента вида `from` к компоненту вида `to`
+    /// there is a link from a component of kind `from` to a component of kind `to`
     Link { from: Kind, to: Kind },
     Hit { min: f64 },
     #[serde(alias = "cdnHit")]
     CdnHit { min: f64 },
-    /// после отказа успешно не меньше 99% запросов
+    /// after the failure at least 99% of requests succeed
     Survive { fail: FailKind },
-    /// параметр всех компонентов вида соответствует условию
+    /// the parameter of all components of the kind satisfies the condition
     Param {
         kind: Kind,
         #[serde(deserialize_with = "de_param_key")]
@@ -688,7 +688,7 @@ pub enum Goal {
     ReplicaLag { max: f64 },
     #[serde(alias = "shardShare")]
     ShardShare { max: f64 },
-    /// нет единой точки отказа среди компонентов этих видов
+    /// no single point of failure among components of these kinds
     #[serde(alias = "noSpof")]
     NoSpof { kinds: Vec<Kind> },
 }
@@ -698,13 +698,13 @@ fn de_param_key<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
     Ok(kinds::canonical_param_key(&s).to_owned())
 }
 
-/// Результат проверки одной цели.
+/// Result of checking one goal.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GoalResult {
     pub ok: bool,
-    /// условие словами
+    /// condition in words
     pub text: String,
-    /// «сейчас …» — что получилось
+    /// "now …" — what came out
     pub detail: String,
 }
 
@@ -721,60 +721,60 @@ fn de_show<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
     Ok(raw.into_iter().map(|s| kinds::canonical_show_key(&s)).collect())
 }
 
-/// Содержимое упражнения без текста: нагрузка, палитра, исходная схема, цели и эталон.
-/// `solution` бэкенд не отдаёт клиенту.
+/// Exercise content without text: workload, palette, starting design, goals and reference solution.
+/// The backend does not send `solution` to the client.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Scenario {
     pub workload: Workload,
-    /// какие компоненты можно добавлять с панели
+    /// which components can be added from the panel
     pub palette: Vec<Kind>,
-    /// исходная схема
+    /// starting design
     pub start: SdState,
     pub goals: Vec<Goal>,
-    /// эталонная схема (проверяется самопроверкой и тестами)
+    /// reference design (checked by the self-check and tests)
     pub solution: SdState,
-    /// сколько узлов можно держать на схеме (по умолчанию 14)
+    /// how many nodes the design may hold (default 14)
     #[serde(default, alias = "maxNodes", skip_serializing_if = "Option::is_none")]
     pub max_nodes: Option<usize>,
-    /// какие дополнительные параметры показывать: `"app.retries"` и т. п.
+    /// which extra parameters to show: `"app.retries"` etc.
     #[serde(default, deserialize_with = "de_show", skip_serializing_if = "no_show")]
     pub show: Vec<String>,
 }
 
 impl Scenario {
-    /// Предел числа узлов на схеме.
+    /// Limit on the number of nodes in the design.
     pub fn max_nodes(&self) -> usize {
         self.max_nodes.unwrap_or_else(default_max_nodes)
     }
 
-    /// Показывать ли параметр в панели компонента: основные — всегда, дополнительные — если перечислены в `show`.
+    /// Whether to show a parameter in the component panel: basic ones — always, extra ones — if listed in `show`.
     pub fn param_visible(&self, kind: Kind, p: &kinds::ParamSpec) -> bool {
         p.basic || self.show.iter().any(|s| s.split_once('.').is_some_and(|(k, key)| k == kind.as_str() && key == p.key))
     }
 
-    /// Копия для клиента: без эталонного решения.
+    /// Copy for the client: without the reference solution.
     pub fn without_solution(&self) -> Scenario {
         Scenario { solution: SdState::default(), ..self.clone() }
     }
 }
 
-/// Упражнение: текст и содержимое.
+/// Exercise: text and content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
     pub title: String,
-    /// условие (абзац)
+    /// statement (a paragraph)
     pub statement: String,
     pub hint: String,
     pub spec: Scenario,
 }
 
-/// Файл данных главы: `backend/data/labs/sd/<книга>-<глава:02>.json`.
+/// Chapter data file: `backend/data/labs/sd/<book>-<chapter:02>.json`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LabChapter {
     pub book: u32,
     pub chapter: u32,
-    /// вид лаборатории (`"sd"`)
+    /// lab kind (`"sd"`)
     pub lab: String,
     pub tasks: Vec<Task>,
 }

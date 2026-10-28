@@ -1,6 +1,6 @@
-# Маршруты Traefik для рабочего сервера: домен из CS_CORE_DOMAIN, HTTPS с сертификатом Let's Encrypt (резолвер `le` задан флагами traefik в compose),
-# HTTP только перенаправляет на HTTPS. Подключается переменной CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml. По адресу машины без домена сайт не открывается.
-# /api → бэкенд; всё остальное → frontend (Caddy со статикой Leptos; /internal он отдаёт как 404).
+# Traefik routes for the production server: the domain from CS_CORE_DOMAIN, HTTPS with a Let's Encrypt certificate (the `le` resolver is set by traefik flags in compose),
+# HTTP only redirects to HTTPS. Enabled by the variable CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml. The site does not open by machine address without a domain.
+# /api -> backend; everything else -> frontend (Caddy with the Leptos static files; it answers /internal with 404).
 http:
   routers:
     http-to-https:

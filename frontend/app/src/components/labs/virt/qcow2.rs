@@ -1,5 +1,5 @@
-//! Симулятор слоёв qcow2 (глава 9): снимки, запись с копированием, чтение вниз по цепочке, слияние и откат. Решено, когда
-//! выполнены все цели. В данных цели — `{trace}`: записанные действия, по ним сервер воспроизводит сессию.
+//! qcow2 layer simulator (chapter 9): snapshots, copy-on-write, reads down the chain, merging and rollback. Solved when
+//! all goals are met. The goal data is `{trace}`: the recorded actions, from which the server replays the session.
 
 use std::collections::BTreeMap;
 
@@ -12,10 +12,10 @@ use virtlab::{
 
 use super::common::{trace_data, GoalItem, GoalList, Goals};
 
-/// Буквы данных для записи.
+/// Data letters for writes.
 const LETTERS: &str = "EFGHIJKLMNOPQRSTUVWXYZ";
 
-/// Подпись под цепочкой по тому, что произошло; `cluster` и `data` — параметры записи или чтения.
+/// Caption under the chain by what happened; `cluster` and `data` are the write or read parameters.
 pub fn note_text(note: &Note, cluster: u32, data: &str) -> String {
     match note {
         Note::Snapshot => i18n::tr("Snapshot: an empty layer was added on top, the previous one is frozen. Nothing was copied.").to_string(),
@@ -37,19 +37,19 @@ pub fn note_text(note: &Note, cluster: u32, data: &str) -> String {
     }
 }
 
-/// Прочитанный путь: кластер и глубина слоя, на котором чтение остановилось.
+/// The path read: the cluster and the depth of the layer where the read stopped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Path {
     pub cluster: u32,
     pub depth: usize,
 }
 
-/// Слой цепочки подсвечен как пройденный чтением.
+/// The chain layer is highlighted as passed by a read.
 pub fn walked(path: Option<Path>, depth: usize, chain_len: usize) -> bool {
     path.is_some_and(|p| depth <= p.depth && depth < chain_len)
 }
 
-/// Ход упражнения: сессия модели, запись действий, путь чтения и подпись.
+/// Exercise progress: model session, action record, read path and caption.
 #[derive(Clone)]
 pub struct Qcow2Run {
     session: Session,
@@ -82,7 +82,7 @@ impl Qcow2Run {
         &self.msg
     }
 
-    /// Выполнить действие. Возвращает цели, достигнутые только что, с данными для сервера (запись действий на этот момент).
+    /// Perform an action. Returns the goals just reached, with data for the server (the action record up to this moment).
     pub fn act(&mut self, a: Action) -> Vec<(String, Value)> {
         let (cluster, data) = match &a {
             Action::Write { cluster, data } => (*cluster, data.as_str()),
@@ -93,7 +93,7 @@ impl Qcow2Run {
         let impossible = matches!(note, Note::CommitImpossible | Note::RevertImpossible);
         self.msg = note_text(&note, cluster, data);
         if !impossible {
-            // невозможное действие ничего не меняет и в запись не попадает; путь чтения сбрасывается любым действием
+            // an impossible action changes nothing and is not recorded; any action resets the read path
             self.path = match &note {
                 Note::Read(r) => Some(Path { cluster, depth: r.depth.unwrap_or(self.session.chain().len()) }),
                 _ => None,
@@ -178,7 +178,7 @@ pub fn Qcow2Lab(clusters: u32, base: Vec<BaseCluster>, targets: Vec<Qcow2Goal>, 
     }
 }
 
-/// Слои цепочки с клетками кластеров.
+/// Chain layers with cluster cells.
 fn layers_view(chain: &[Layer], path: Option<Path>, clusters: u32) -> impl IntoView {
     let len = chain.len();
     chain
@@ -222,7 +222,7 @@ mod tests {
 
     #[test]
     fn deep_read_goal_with_path() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         for _ in 0..3 {
             r.act(Action::Snapshot);
@@ -232,14 +232,14 @@ mod tests {
         assert_eq!(got, ["deep"]);
         assert_eq!(r.path(), Some(Path { cluster: 0, depth: 3 }));
         assert_eq!(r.msg(), "Кластер 0 = «A», найден в слое «база», обращений к таблицам: 4.");
-        // любое другое действие сбрасывает путь
+        // any other action resets the path
         r.act(Action::Snapshot);
         assert_eq!(r.path(), None);
     }
 
     #[test]
     fn read_of_missing_cluster_walks_whole_chain() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Snapshot);
         r.act(Action::Read { cluster: 7 });
@@ -249,7 +249,7 @@ mod tests {
 
     #[test]
     fn rollback_goal_and_trace_replays_on_server() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Snapshot);
         r.act(write(1, "Z"));
@@ -257,7 +257,7 @@ mod tests {
         assert_eq!(r.msg(), "Откат: верхний слой с записями отброшен. Прочитайте кластер, который вы в него писали.");
         let got = r.act(Action::Read { cluster: 1 });
         assert_eq!(ids(got.clone()), ["rollback"]);
-        let (_, info) = got.into_iter().next().expect("цель");
+        let (_, info) = got.into_iter().next().expect("goal");
         assert_eq!(info["trace"].as_array().map(Vec::len), Some(4));
         let spec = virtlab::Spec::Qcow2 {
             clusters: virtlab::qcow2::CLUSTERS,
@@ -272,19 +272,19 @@ mod tests {
 
     #[test]
     fn squash_goal_after_commits() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         for _ in 0..3 {
             r.act(Action::Snapshot);
         }
-        assert!(ids(r.act(Action::Commit)).is_empty(), "из четырёх слоёв осталось три");
+        assert!(ids(r.act(Action::Commit)).is_empty(), "three layers remain out of four");
         assert_eq!(ids(r.act(Action::Commit)), ["squash"]);
         assert_eq!(r.chain().len(), 2);
     }
 
     #[test]
     fn impossible_actions_are_not_traced_and_keep_path() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Read { cluster: 0 });
         let traced = r.trace.len();
@@ -298,7 +298,7 @@ mod tests {
 
     #[test]
     fn copy_up_write_note() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let mut r = run();
         r.act(Action::Snapshot);
         r.act(write(0, "F"));
@@ -312,11 +312,11 @@ mod tests {
 
     #[test]
     fn walked_layers() {
-        let _ru = i18n::guard(i18n::Locale::Ru);
+        let _ru = locales::guard(i18n::Locale::Ru);
         let p = Some(Path { cluster: 0, depth: 1 });
         assert!(walked(p, 0, 3) && walked(p, 1, 3) && !walked(p, 2, 3));
         assert!(!walked(None, 0, 3));
-        // чтение «в никуда» проходит все слои
+        // a read "into nothing" passes through all layers
         assert!(walked(Some(Path { cluster: 0, depth: 3 }), 2, 3));
     }
 }

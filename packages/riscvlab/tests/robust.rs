@@ -1,11 +1,11 @@
-//! Устойчивость: мусор на входе не роняет ассемблер и машину (в том числе в отладочной сборке с проверкой переполнений).
+//! Robustness: garbage input does not crash the assembler or the machine (including a debug build with overflow checks).
 
 use riscvlab::task::{verify, Check, Profile, Test};
 use riscvlab::{assemble, Machine, Options, TaskSpec};
 
 #[test]
 fn extreme_numbers_do_not_panic() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let src = "
   li a0, 0xffffffffffffffffffff
   li a0, 99999999999999999999
@@ -32,9 +32,9 @@ fn extreme_numbers_do_not_panic() {
 
 #[test]
 fn weird_text_does_not_panic() {
-    i18n::set_locale(i18n::Locale::Ru);
-    // псевдослучайные строки из «неудобных» символов
-    let alphabet: Vec<char> = "ab01 \t\r\n,:()%'\"\\+-#;/.$_xX😀ЖжЁё\u{0}\u{a0}\u{2028}\u{feff}é".chars().collect();
+    locales::set_locale(i18n::Locale::Ru);
+    // pseudo-random strings of "awkward" characters
+    let alphabet: Vec<char> = "ab01 \t\r\n,:()%'\"\\+-#;/.$_xX😀αβγδ\u{0}\u{a0}\u{2028}\u{feff}é".chars().collect();
     let mut seed: u64 = 0x9e37_79b9_7f4a_7c15;
     let mut next = || {
         seed ^= seed << 13;
@@ -46,12 +46,12 @@ fn weird_text_does_not_panic() {
         let len = (next() % 60) as usize;
         let s: String = (0..len).map(|_| alphabet[(next() % alphabet.len() as u64) as usize]).collect();
         let r = assemble(&s);
-        // что бы ни собралось, машина обязана это пережить
+        // whatever assembles, the machine must survive it
         let mut m = Machine::new(&r.image, Options { switches: 3, entry: r.entry });
         m.run(500);
         let _ = m.view();
     }
-    // токены ассемблера вперемешку
+    // assembler tokens shuffled together
     let toks = [
         "add", "lw", "li", "la", "%hi(", "%lo(", ".word", ".asciz", "\"", "'", "a0", "(", ")", ",", ":", "x", "1", "-",
         "+", "lab", "\n", " ", ".equ", ".space", "jalr", "beqz", "call",
@@ -68,7 +68,7 @@ fn weird_text_does_not_panic() {
 
 #[test]
 fn verify_never_panics_on_junk_programs() {
-    i18n::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::Ru);
     let spec = TaskSpec {
         profile: Profile::Board,
         starter: String::new(),

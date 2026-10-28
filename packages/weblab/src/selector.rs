@@ -1,11 +1,11 @@
-//! Специфичность селекторов и упражнения «напишите селектор».
+//! Selector specificity and "write a selector" exercises.
 
 use std::collections::BTreeSet;
 
 use crate::html::{selector, Doc};
 use crate::spec::{Item, Task};
 
-/// Специфичность (идентификаторы, классы/атрибуты/псевдоклассы, типы/псевдоэлементы). Для списка через запятую — наибольшая.
+/// Specificity (ids, classes/attributes/pseudo-classes, types/pseudo-elements). For a comma-separated list, the highest.
 pub fn specificity(sel: &str) -> [u32; 3] {
     split_top(sel, ',').iter().map(|s| one(s)).max().unwrap_or([0, 0, 0])
 }
@@ -16,7 +16,7 @@ fn add(a: &mut [u32; 3], b: [u32; 3]) {
     }
 }
 
-/// Делит по символу вне скобок и кавычек.
+/// Splits on a character outside brackets and quotes.
 fn split_top(s: &str, sep: char) -> Vec<String> {
     let (mut out, mut cur, mut depth, mut quote) = (Vec::new(), String::new(), 0i32, None::<char>);
     for c in s.chars() {
@@ -56,7 +56,7 @@ fn ident_end(chars: &[char], mut i: usize) -> usize {
     i
 }
 
-/// Специфичность одного сложного селектора.
+/// Specificity of a single complex selector.
 fn one(sel: &str) -> [u32; 3] {
     let chars: Vec<char> = sel.trim().chars().collect();
     let mut sp = [0u32; 3];
@@ -141,7 +141,7 @@ fn one(sel: &str) -> [u32; 3] {
     sp
 }
 
-/// Есть ли в тексте селекторов `#id` (вне строк и скобок атрибутов).
+/// Whether the selector text contains `#id` (outside strings and attribute brackets).
 pub fn has_id(sel: &str) -> bool {
     let (mut quote, mut attr) = (None::<char>, false);
     for c in sel.chars() {
@@ -170,7 +170,7 @@ fn label(el: &scraper::ElementRef) -> String {
     }
 }
 
-/// Упражнение «селектор»: должен выбрать ровно элементы с `id` из `want` (и ничего больше).
+/// The "selector" exercise: it must select exactly the elements whose `id` is in `want` (and nothing else).
 pub fn check_selector(task: &Task, answer: &str) -> Vec<Item> {
     let mut items = Vec::new();
     let answer = answer.trim();

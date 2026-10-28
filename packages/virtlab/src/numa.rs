@@ -1,12 +1,12 @@
-//! Модель размещения машин по узлам NUMA (глава 11).
+//! Model of placing machines on NUMA nodes (chapter 11).
 //!
-//! На хосте несколько узлов (в упражнении — два по 8 ядер и 32 ГиБ). У машины выбирают, где работают её vCPU и где лежит
-//! память: узел, либо «растянуть» (пополам). Доля удалённых обращений: свой узел — 0; процессоры и память на разных узлах — 1;
-//! что-то растянуто, а другое нет — 0,5; растянуто всё — 0,5, а с виртуальной топологией NUMA гость сам размещает данные
-//! ближе — 0,25.
+//! The host has several nodes (in the exercise — two with 8 cores and 32 GiB each). For a machine one chooses where its vCPUs run and where
+//! its memory lives: a node, or "spread" (half and half). Remote access share: own node — 0; CPUs and memory on different nodes — 1;
+//! one spread and the other not — 0.5; everything spread — 0.5, but with a virtual NUMA topology the guest itself places data
+//! closer — 0.25.
 //!
-//! Цель — по одной на сценарий: принятое размещение помещается в узлы, а средняя (по vCPU) доля удалённых обращений
-//! не больше [`Scenario::max`].
+//! One goal per scenario: the accepted placement fits into the nodes, and the average (over vCPUs) remote access share
+//! is at most [`Scenario::max`].
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -16,33 +16,33 @@ use serde::{Deserialize, Serialize};
 use crate::error::SpecError;
 use crate::goal::Goal;
 
-/// Узел хоста.
+/// Host node.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Node {
-    /// Ядер на узле.
+    /// Cores on the node.
     pub cores: u32,
-    /// Памяти на узле, ГиБ.
+    /// Memory on the node, GiB.
     pub mem: u32,
 }
 
-/// Виртуальная машина сценария.
+/// Scenario virtual machine.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Vm {
-    /// Имя машины.
+    /// Machine name.
     pub name: String,
-    /// Число vCPU.
+    /// Number of vCPUs.
     pub vcpus: u32,
-    /// Память, ГиБ.
+    /// Memory, GiB.
     pub mem: u32,
 }
 
-/// Куда поставлены процессоры или память машины.
+/// Where the machine's CPUs or memory are placed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
 pub enum Place {
-    /// Узел с таким номером.
+    /// Node with this number.
     Node(u8),
-    /// Растянуть пополам по всем узлам.
+    /// Spread evenly across all nodes.
     Wide,
 }
 
@@ -74,65 +74,65 @@ impl fmt::Display for Place {
     }
 }
 
-/// Размещение одной машины.
+/// Placement of one machine.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Placement {
-    /// Где работают vCPU.
+    /// Where the vCPUs run.
     pub cpu: Place,
-    /// Где лежит память.
+    /// Where the memory lives.
     pub mem: Place,
-    /// Виртуальная топология NUMA для растянутой машины.
+    /// Virtual NUMA topology for a spread machine.
     pub vnuma: bool,
 }
 
-/// Размещение всех машин сценария: имя → размещение.
+/// Placement of all scenario machines: name → placement.
 pub type Plan = BTreeMap<String, Placement>;
 
-/// Сценарий: машины, цель и допустимая доля удалённых обращений.
+/// Scenario: machines, goal and allowed remote access share.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scenario {
-    /// Идентификатор (он же идентификатор цели).
+    /// Identifier (also the goal identifier).
     pub id: String,
-    /// Название вкладки.
+    /// Tab title.
     pub title: String,
-    /// Машины.
+    /// Machines.
     pub vms: Vec<Vm>,
-    /// Текст цели.
+    /// Goal text.
     pub goal: String,
-    /// Допустимая средняя доля удалённых обращений (0…1).
+    /// Allowed average remote access share (0…1).
     pub max: f64,
 }
 
 impl Scenario {
-    /// Цель упражнения по этому сценарию.
+    /// Exercise goal for this scenario.
     pub fn as_goal(&self) -> Goal {
         Goal::new(self.id.clone(), self.goal.clone())
     }
 }
 
-/// Загрузка узла.
+/// Node load.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Load {
-    /// Занято ядер.
+    /// Cores in use.
     pub cores: f64,
-    /// Занято памяти, ГиБ.
+    /// Memory in use, GiB.
     pub mem: f64,
 }
 
-/// Оценка размещения.
+/// Placement evaluation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Evaluation {
-    /// Загрузка узлов.
+    /// Node loads.
     pub load: Vec<Load>,
-    /// Какой-то узел перегружен (ядра или память).
+    /// Some node is overloaded (cores or memory).
     pub over: bool,
-    /// Доля удалённых обращений каждой машины (в порядке машин сценария).
+    /// Remote access share of each machine (in scenario machine order).
     pub per: Vec<(String, f64)>,
-    /// Средняя доля удалённых обращений, взвешенная по vCPU.
+    /// Average remote access share, weighted by vCPUs.
     pub avg: f64,
 }
 
-/// Доля удалённых обращений для размещения (`vnuma` — виртуальная топология).
+/// Remote access share for a placement (`vnuma` — virtual topology).
 pub fn remote(cpu: Place, mem: Place, vnuma: bool) -> f64 {
     match (cpu, mem) {
         (Place::Wide, Place::Wide) => {
@@ -153,7 +153,7 @@ pub fn remote(cpu: Place, mem: Place, vnuma: bool) -> f64 {
     }
 }
 
-// Какая доля машины приходится на узел `i`.
+// What share of the machine falls on node `i`.
 fn share(nodes: usize, place: Place, i: usize) -> f64 {
     match place {
         Place::Wide => 1.0 / nodes as f64,
@@ -167,8 +167,8 @@ fn share(nodes: usize, place: Place, i: usize) -> f64 {
     }
 }
 
-/// Оценить размещение `plan` машин `vms` на узлах `nodes`.
-/// Ошибка — для машины нет размещения или оно указывает на несуществующий узел.
+/// Evaluate placement `plan` of machines `vms` on nodes `nodes`.
+/// Error — a machine has no placement or it points to a nonexistent node.
 pub fn evaluate(nodes: &[Node], vms: &[Vm], plan: &Plan) -> Result<Evaluation, SpecError> {
     let mut load = vec![Load { cores: 0.0, mem: 0.0 }; nodes.len()];
     let mut weighted = 0.0;
@@ -196,31 +196,31 @@ pub fn evaluate(nodes: &[Node], vms: &[Vm], plan: &Plan) -> Result<Evaluation, S
     Ok(Evaluation { load, over, per, avg: if total != 0.0 { weighted / total } else { 0.0 } })
 }
 
-/// Размещение по умолчанию: всё на узле 0.
+/// Default placement: everything on node 0.
 pub fn default_plan(vms: &[Vm]) -> Plan {
     vms.iter().map(|v| (v.name.clone(), Placement { cpu: Place::Node(0), mem: Place::Node(0), vnuma: false })).collect()
 }
 
-/// Исход кнопки «Принять размещение».
+/// Outcome of the "Accept placement" button.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Accept {
-    /// Не помещается: на каком-то узле не хватает ядер или памяти.
+    /// Does not fit: some node lacks cores or memory.
     Over,
-    /// Слишком много удалённых обращений.
+    /// Too many remote accesses.
     TooRemote {
-        /// Доля удалённых обращений.
+        /// Remote access share.
         avg: f64,
-        /// Допустимая доля.
+        /// Allowed share.
         max: f64,
     },
-    /// Принято.
+    /// Accepted.
     Ok {
-        /// Доля удалённых обращений.
+        /// Remote access share.
         avg: f64,
     },
 }
 
-/// Принять размещение сценария: цель достигнута при [`Accept::Ok`].
+/// Accept the scenario placement: the goal is reached on [`Accept::Ok`].
 pub fn accept(nodes: &[Node], sc: &Scenario, plan: &Plan) -> Result<Accept, SpecError> {
     let ev = evaluate(nodes, &sc.vms, plan)?;
     Ok(if ev.over {
@@ -232,12 +232,12 @@ pub fn accept(nodes: &[Node], sc: &Scenario, plan: &Plan) -> Result<Accept, Spec
     })
 }
 
-/// Узлы упражнения по умолчанию: два по 8 ядер и 32 ГиБ.
+/// Default exercise nodes: two with 8 cores and 32 GiB each.
 pub fn default_nodes() -> Vec<Node> {
     vec![Node { cores: 8, mem: 32 }; 2]
 }
 
-/// Сценарии по умолчанию (упражнение главы 11).
+/// Default scenarios (chapter 11 exercise).
 pub fn default_scenarios() -> Vec<Scenario> {
     let vm = |name: &str, vcpus: u32, mem: u32| Vm { name: name.into(), vcpus, mem };
     vec![

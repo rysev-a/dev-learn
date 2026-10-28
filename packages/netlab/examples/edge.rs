@@ -1,19 +1,19 @@
-//! Отладка расхождений с TypeScript: печатает вывод «краевых» команд для упражнения в том же виде, что
-//! `node scripts/net-export.mjs --edge <id>`. Запуск: `cargo run --example edge -- <id>`; затем `diff` двух выводов.
+//! Debugging divergences from TypeScript: prints the output of the "edge-case" commands for an exercise in the same form as
+//! `node scripts/net-export.mjs --edge <id>`. Run: `cargo run --example edge -- <id>`; then `diff` the two outputs.
 
 use netlab::lab::load_dir;
 use netlab::term::exec;
 use std::path::PathBuf;
 
 fn main() {
-    let id = std::env::args().nth(1).expect("id упражнения");
+    let id = std::env::args().nth(1).expect("exercise id");
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let gold: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(root.join("tests/golden.json")).expect("golden")).expect("json");
     let template: Vec<String> =
-        gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
-    let chapters = load_dir(&root.join("../../backend/data/labs/net")).expect("данные");
-    let task = chapters.iter().flat_map(|c| c.tasks.iter()).find(|t| t.id == id).expect("нет такого упражнения");
+        gold["edge_template"].as_array().expect("template").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
+    let chapters = load_dir(&root.join("../../backend/data/labs/net")).expect("data");
+    let task = chapters.iter().flat_map(|c| c.tasks.iter()).find(|t| t.id == id).expect("no such exercise");
     let mut s = task.spec.start_state();
     for run in gold["scenarios"][&id]["edge"].as_array().expect("edge") {
         let dev = run["dev"].as_str().unwrap_or("");

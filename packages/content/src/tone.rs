@@ -1,8 +1,8 @@
-//! Цвета элементов схем. Только переменные темы `--s-*` (обе темы приложения), своих цветов нет.
+//! Colors of diagram elements. Only the theme variables `--s-*` (both app themes), no custom colors.
 
 use serde::{Deserialize, Serialize};
 
-/// Цвет элемента: приглушённый, зелёный (акцент), жёлтый, красный, синий, фиолетовый — «оттенки»; остальные — особые заливки.
+/// Element color: muted, green (accent), yellow, red, blue, violet are "hues"; the rest are special fills.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Tone {
@@ -13,17 +13,17 @@ pub enum Tone {
     Red,
     Blue,
     Violet,
-    /// «чёрный» узел дерева
+    /// "black" tree node
     Ink,
-    /// «красный» узел дерева (сплошная заливка)
+    /// "red" tree node (solid fill)
     SolidRed,
-    /// светлая заливка
+    /// light fill
     Light,
-    /// только рамка
+    /// outline only
     Outline,
 }
 
-// Короткие имена для авторов сцен: `cell("a", 10.0, 20.0, "x").tone(G)`.
+// Short names for scene authors: `cell("a", 10.0, 20.0, "x").tone(G)`.
 pub const M: Tone = Tone::Muted;
 pub const G: Tone = Tone::Green;
 pub const Y: Tone = Tone::Yellow;
@@ -31,7 +31,7 @@ pub const R: Tone = Tone::Red;
 pub const B: Tone = Tone::Blue;
 pub const V: Tone = Tone::Violet;
 
-/// Заливка, рамка и цвет подписи элемента.
+/// Fill, stroke and label color of an element.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Look {
     pub fill: &'static str,
@@ -41,7 +41,7 @@ pub struct Look {
 }
 
 impl Tone {
-    /// Цвет оттенка (`None` у особых заливок).
+    /// Hue color (`None` for special fills).
     pub fn hue(self) -> Option<&'static str> {
         Some(match self {
             Tone::Muted => "var(--s-muted)",
@@ -68,7 +68,7 @@ impl Tone {
         }
     }
 
-    /// Идентификатор наконечника стрелки в `<defs>` сцены (для особых заливок — приглушённый).
+    /// Id of the arrowhead in the scene's `<defs>` (muted for special fills).
     pub fn marker(self) -> &'static str {
         match self {
             Tone::Green => "a-hd-g",
@@ -80,7 +80,7 @@ impl Tone {
     }
 }
 
-/// Оттенки, для которых в `<defs>` есть наконечник стрелки: (имя маркера, цвет).
+/// Hues that have an arrowhead in `<defs>`: (marker name, color).
 pub const ARROW_HEADS: [(&str, &str); 5] = [
     ("a-hd-m", "var(--s-muted)"),
     ("a-hd-g", "var(--s-accent)"),

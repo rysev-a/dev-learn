@@ -1,4 +1,4 @@
-//! Загрузка данных лаборатории и доступ к упражнениям.
+//! Loading lab data and accessing exercises.
 
 use crate::blocks::{BlockDef, BlockLibrary, BlockSource, Solution};
 use crate::exercise::*;
@@ -7,20 +7,20 @@ use crate::registry;
 use std::collections::BTreeMap;
 use std::path::Path;
 
-/// Откуда библиотека блоков берёт содержимое решённых упражнений.
+/// Where the block library takes the contents of solved exercises from.
 pub trait SolutionStore {
-    /// Решение упражнения `exercise_id` раздела `section`; `None` — не решено (блок закрыт).
+    /// Solution of exercise `exercise_id` in section `section`; `None` — not solved (block locked).
     fn load(&self, section: &str, exercise_id: &str) -> Option<Solution>;
 }
 
-/// Все главы лаборатории (6–15), загруженные из файлов данных.
+/// All lab chapters (6–15) loaded from data files.
 #[derive(Debug, Clone, Default)]
 pub struct ArchLab {
     chapters: BTreeMap<u32, LabChapter>,
 }
 
 impl ArchLab {
-    /// Из готовых глав; проверяет книгу, вид лаборатории и уникальность задач.
+    /// From ready-made chapters; checks the book, the lab kind and task uniqueness.
     pub fn from_chapters(list: Vec<LabChapter>) -> Result<ArchLab, String> {
         let mut chapters = BTreeMap::new();
         for c in list {
@@ -40,7 +40,7 @@ impl ArchLab {
         Ok(ArchLab { chapters })
     }
 
-    /// Из текстов файлов (JSON одной главы каждый).
+    /// From file contents (one chapter JSON each).
     pub fn from_json<'a>(texts: impl IntoIterator<Item = &'a str>) -> Result<ArchLab, String> {
         let list = texts
             .into_iter()
@@ -49,7 +49,7 @@ impl ArchLab {
         Self::from_chapters(list)
     }
 
-    /// Из каталога `backend/data/labs/arch`: файлы `14-06.json` … `14-15.json` (чужие главы — RISC-V — пропускаются).
+    /// From the `backend/data/labs/arch` directory: files `14-06.json` … `14-15.json` (foreign chapters — RISC-V — are skipped).
     pub fn load_dir(dir: &Path) -> Result<ArchLab, String> {
         let mut texts = Vec::new();
         for n in registry::chapters() {
@@ -61,22 +61,22 @@ impl ArchLab {
         Self::from_json(texts.iter().map(String::as_str))
     }
 
-    /// Глава по номеру.
+    /// Chapter by number.
     pub fn chapter(&self, n: u32) -> Option<&LabChapter> {
         self.chapters.get(&n)
     }
 
-    /// Все главы по порядку.
+    /// All chapters in order.
     pub fn chapters(&self) -> impl Iterator<Item = &LabChapter> {
         self.chapters.values()
     }
 
-    /// Упражнение главы по id.
+    /// Chapter exercise by id.
     pub fn task(&self, chapter: u32, id: &str) -> Option<&Task> {
         self.chapters.get(&chapter)?.tasks.iter().find(|t| t.id == id)
     }
 
-    /// Упражнение со схемой по разделу и id (для блоков: `source`).
+    /// Circuit exercise by section and id (for blocks: `source`).
     pub fn circuit_task(&self, section: &str, id: &str) -> Option<(&Task, &CircuitSpec)> {
         let chapter = registry::chapter_of_slug(section)?;
         let t = self.task(chapter, id)?;
@@ -86,12 +86,12 @@ impl ArchLab {
         }
     }
 
-    /// Упражнения главы для клиента — без эталонов.
+    /// Chapter exercises for the client — without reference solutions.
     pub fn tasks_for_client(&self, chapter: u32) -> Vec<Task> {
         self.chapters.get(&chapter).map(|c| c.tasks.iter().map(Task::for_client).collect()).unwrap_or_default()
     }
 
-    /// Библиотека блоков: определения — из упражнений с `block`, содержимое — из `store`.
+    /// Block library: definitions — from exercises with `block`, contents — from `store`.
     pub fn library(&self, store: &dyn SolutionStore) -> BlockLibrary {
         let mut lib = BlockLibrary::builtin();
         for info in registry::SECTIONS {
@@ -112,12 +112,12 @@ impl ArchLab {
         lib
     }
 
-    /// Библиотека, в которой все блоки открыты эталонными решениями.
+    /// Library in which all blocks are unlocked by reference solutions.
     pub fn reference_library(&self) -> BlockLibrary {
         self.library(&ReferenceStore(self))
     }
 
-    /// Подсказка для закрытого составного элемента: что нужно собрать (`gateLockHint`).
+    /// Hint for a locked composite element: what needs to be built (`gateLockHint`).
     pub fn gate_lock_hint(&self, ty: GateType) -> String {
         let Some((slug, id)) = registry::composite_requirement(ty) else {
             return String::new();
@@ -128,7 +128,7 @@ impl ArchLab {
     }
 }
 
-/// Хранилище эталонных решений: все блоки открыты.
+/// Store of reference solutions: all blocks unlocked.
 pub struct ReferenceStore<'a>(pub &'a ArchLab);
 
 impl SolutionStore for ReferenceStore<'_> {
@@ -137,21 +137,21 @@ impl SolutionStore for ReferenceStore<'_> {
     }
 }
 
-/// Хранилище решений ученика: то, что осталось в кабинете как «решено» (аналог `hydrateLab`:
-/// решённое переносится между главами, из него собираются составные блоки).
+/// Store of the student's solutions: what is left in the account as "solved" (analog of `hydrateLab`:
+/// solved work carries over between chapters, composite blocks are built from it).
 #[derive(Debug, Clone, Default)]
 pub struct DraftStore {
     drafts: BTreeMap<(String, String), Solution>,
 }
 
 impl DraftStore {
-    /// Пустое хранилище: все блоки закрыты.
+    /// Empty store: all blocks locked.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Добавить решение (JSON, как его присылает клиент) упражнения `exercise_id` раздела `section`.
-    /// Нерабочий JSON пропускается — как в `hydrate.ts` («не схема — пропускаем»).
+    /// Add a solution (JSON as sent by the client) of exercise `exercise_id` in section `section`.
+    /// Broken JSON is skipped — as in `hydrate.ts` ("not a circuit — skip").
     pub fn add(&mut self, section: &str, exercise_id: &str, json: &str) -> bool {
         match Solution::from_json(json) {
             Ok(s) => {
@@ -162,7 +162,7 @@ impl DraftStore {
         }
     }
 
-    /// Собрать из записей кабинета `(глава, id упражнения, JSON решения)`.
+    /// Build from account records `(chapter, exercise id, solution JSON)`.
     pub fn from_drafts<'a>(lab: &ArchLab, drafts: impl IntoIterator<Item = (u32, &'a str, &'a str)>) -> Self {
         let mut s = DraftStore::new();
         for (chapter, id, json) in drafts {

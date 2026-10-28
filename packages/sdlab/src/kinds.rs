@@ -1,5 +1,5 @@
-//! Справочник компонентов: русские названия, настраиваемые параметры, значения по умолчанию, палитра.
-//! Числа ёмкости, цен и задержек — в [`crate::reference`].
+//! Component catalog: Russian names, configurable parameters, defaults, palette.
+//! Capacity, price and latency numbers are in [`crate::reference`].
 
 use std::collections::BTreeMap;
 use std::sync::LazyLock;
@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use crate::types::{Kind, ParamValue};
 
-/// Тип поля параметра в панели компонента.
+/// Field type of a parameter in the component panel.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ParamType {
@@ -17,14 +17,14 @@ pub enum ParamType {
     Bool,
 }
 
-/// Вариант выбора.
+/// Choice option.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ParamOption {
     pub value: ParamValue,
     pub label: &'static str,
 }
 
-/// Описание параметра компонента.
+/// Description of a component parameter.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ParamSpec {
     pub key: &'static str,
@@ -35,11 +35,11 @@ pub struct ParamSpec {
     pub max: Option<f64>,
     pub options: Vec<ParamOption>,
     pub default: ParamValue,
-    /// подсказка под полем
+    /// hint under the field
     pub help: Option<&'static str>,
-    /// `false` — показывается только в упражнениях, где параметр перечислен в `show`
+    /// `false` — shown only in exercises where the parameter is listed in `show`
     pub basic: bool,
-    /// движок параметр не читает: он нужен только для целей `param` (метка «как устроено», не рычаг расчёта)
+    /// the engine does not read the parameter: it exists only for `param` goals (a "how it works" marker, not an evaluation lever)
     pub inert: bool,
 }
 
@@ -83,28 +83,28 @@ impl ParamSpec {
         self
     }
 
-    /// Параметр, который движок не читает (см. [`ParamSpec::inert`]).
+    /// A parameter the engine does not read (see [`ParamSpec::inert`]).
     fn inert(mut self) -> ParamSpec {
         self.inert = true;
         self
     }
 
-    /// Дополнительный параметр: виден только в упражнениях с ним в `show`.
+    /// Extra parameter: visible only in exercises that list it in `show`.
     fn advanced(mut self) -> ParamSpec {
         self.basic = false;
         self
     }
 }
 
-/// Описание вида компонента.
+/// Description of a component kind.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct KindSpec {
     pub kind: Kind,
     pub label: &'static str,
-    /// одна строка: чем занимается компонент
+    /// one line: what the component does
     pub about: &'static str,
     pub params: Vec<ParamSpec>,
-    /// колонка раскладки слева направо
+    /// layout column, left to right
     pub col: usize,
 }
 
@@ -153,7 +153,7 @@ fn mk(kind: Kind, label: &'static str, about: &'static str, col: usize, params: 
 }
 
 fn build() -> Vec<KindSpec> {
-    // порядок — как в `Kind::ALL`
+    // order — as in `Kind::ALL`
     let mut v = vec![
         mk(Kind::Clients, i18n::tr("Users"), i18n::tr("source of the load"), 0, vec![]),
         mk(Kind::Cdn, "CDN", i18n::tr("serves static content from the nearest servers"), 1, vec![ttl().help(i18n::tr("the larger the TTL, the higher the hit ratio"))]),
@@ -164,7 +164,7 @@ fn build() -> Vec<KindSpec> {
         mk(Kind::Gateway, i18n::tr("API gateway"), i18n::tr("entry point: authorization, routing, limits"), 2, vec![ParamSpec::int("instances", i18n::tr("Instances"), 1, 4, 1)]),
         mk(Kind::Limiter, i18n::tr("Rate limiter"), i18n::tr("lets through at most N requests per second"), 2, vec![ParamSpec::int("limit", i18n::tr("Limit, req/s"), 100, 50000, 2000)]),
         mk(Kind::App, i18n::tr("App server"), i18n::tr("stateless business logic"), 4, vec![
-            // верхний предел 40, а не 30, как в TypeScript-версии: эталоны итоговых заданий (глав 22–24) требуют 33–35 серверов
+            // the upper limit is 40, not 30 as in the TypeScript version: reference solutions of the final exercises (chapters 22–24) need 33–35 servers
             instances(40),
             size(),
             ParamSpec::select("sessions", i18n::tr("Sessions"), &[(s("local"), i18n::tr("in server memory")), (s("external"), i18n::tr("in external storage"))], s("local")),
@@ -249,40 +249,40 @@ fn build() -> Vec<KindSpec> {
         mk(Kind::Notify, i18n::tr("Notifications"), i18n::tr("sends pushes and emails from a queue or stream"), 6, vec![instances(20)]),
         mk(Kind::Analytics, i18n::tr("Analytics"), i18n::tr("event store for reports and product metrics"), 6, vec![instances(10)]),
     ];
-    // приводим к порядку Kind::ALL
+    // bring into Kind::ALL order
     v.sort_by_key(|k| k.kind.index());
     v
 }
 
 static SPECS: LazyLock<Vec<KindSpec>> = LazyLock::new(build);
 
-/// Описание вида компонента.
+/// Description of a component kind.
 pub fn spec(kind: Kind) -> &'static KindSpec {
-    // порядок в SPECS совпадает с Kind::ALL (build сортирует по индексу вида)
+    // the order in SPECS matches Kind::ALL (build sorts by kind index)
     &SPECS[kind.index()]
 }
 
-/// Описания всех видов в порядке [`Kind::ALL`].
+/// Descriptions of all kinds in [`Kind::ALL`] order.
 pub fn all_specs() -> &'static [KindSpec] {
     &SPECS
 }
 
-/// Описание параметра вида по ключу.
+/// Parameter description of a kind by key.
 pub fn param_spec(kind: Kind, key: &str) -> Option<&'static ParamSpec> {
     spec(kind).params.iter().find(|p| p.key == key)
 }
 
-/// Значение параметра по умолчанию.
+/// Default parameter value.
 pub fn default_param(kind: Kind, key: &str) -> Option<&'static ParamValue> {
     param_spec(kind, key).map(|p| &p.default)
 }
 
-/// Параметры нового компонента: все значения по умолчанию.
+/// Parameters of a new component: all defaults.
 pub fn default_params(kind: Kind) -> BTreeMap<String, ParamValue> {
     spec(kind).params.iter().map(|p| (p.key.to_owned(), p.default.clone())).collect()
 }
 
-/// Порядок компонентов в палитре.
+/// Component order in the palette.
 pub const KIND_ORDER: [Kind; 20] = [
     Kind::Cdn,
     Kind::Limiter,
@@ -306,7 +306,7 @@ pub const KIND_ORDER: [Kind; 20] = [
     Kind::Monitor,
 ];
 
-/// Ключ параметра в современной записи: прежние `sizeGB` и `shardKey` из TypeScript-версии переводятся в `size_gb` и `shard_key`.
+/// Parameter key in the modern spelling: the former `sizeGB` and `shardKey` from the TypeScript version become `size_gb` and `shard_key`.
 pub fn canonical_param_key(key: &str) -> &str {
     match key {
         "sizeGB" => "size_gb",
@@ -315,7 +315,7 @@ pub fn canonical_param_key(key: &str) -> &str {
     }
 }
 
-/// Запись из списка `show` (`"db.shardKey"`) в современной записи (`"db.shard_key"`).
+/// Entry of the `show` list (`"db.shardKey"`) in the modern spelling (`"db.shard_key"`).
 pub fn canonical_show_key(entry: &str) -> String {
     match entry.split_once('.') {
         Some((kind, key)) => format!("{kind}.{}", canonical_param_key(key)),

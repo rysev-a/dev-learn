@@ -1,4 +1,4 @@
-//! Ошибки API: тело `{"detail": "..."}` — как у FastAPI, чтобы клиент разбирал оба бэкенда одинаково.
+//! API errors: body `{"detail": "..."}` - like FastAPI, so the client parses both backends the same way.
 
 use axum::{
     http::StatusCode,
@@ -44,7 +44,7 @@ impl From<anyhow::Error> for ApiError {
     }
 }
 
-// --- доступ к полям JSON-строк, которые возвращает SurrealDB ---------------------------------
+// --- access to the fields of JSON rows returned by SurrealDB ---------------------------------
 
 pub fn s(v: &Value, k: &str) -> String {
     v.get(k).and_then(Value::as_str).unwrap_or("").to_string()
@@ -58,12 +58,12 @@ pub fn f(v: &Value, k: &str) -> f64 {
     v.get(k).and_then(Value::as_f64).unwrap_or(0.0)
 }
 
-/// Текущее время в секундах (дробное) — для аренд и кэша очереди.
+/// Current time in seconds (fractional) - for leases and the queue cache.
 pub fn now_secs() -> f64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0)
 }
 
-/// Время в формате ISO 8601 с часовым поясом: `2026-10-22T16:18:00+00:00`.
+/// Time in ISO 8601 format with a time zone: `2026-10-22T16:18:00+00:00`.
 pub fn iso_now() -> String {
     chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S+00:00").to_string()
 }

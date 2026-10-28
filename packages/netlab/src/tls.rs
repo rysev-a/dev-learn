@@ -1,5 +1,5 @@
-//! TLS/HTTPS в симуляторе: сертификат сервера (CN, SAN, издатель, срок), цепочка до доверенного корня,
-//! версии протокола, проверка клиентом и стоимость рукопожатия в кругах. «Сейчас» — фиксированная дата.
+//! TLS/HTTPS in the simulator: server certificate (CN, SAN, issuer, validity), chain to a trusted root,
+//! protocol versions, client verification and handshake cost in round trips. "Now" is a fixed date.
 
 use crate::http::ParsedUrl;
 use crate::ip::*;
@@ -7,10 +7,10 @@ use crate::sim::{delivered_to, fmt_ms, tcp1};
 use crate::types::*;
 use crate::util::{js_num, OrdMap};
 
-/// «Сегодня» для проверки срока сертификатов.
+/// "Today" for checking certificate validity.
 pub const NOW: &str = "2026-10-16";
 
-/// Корневые и промежуточные центры сертификации по умолчанию.
+/// Default root and intermediate certificate authorities.
 pub fn default_pki() -> Pki {
     let mut cas = OrdMap::new();
     cas.insert("PublicRootCA", Ca { issuer: None });
@@ -21,12 +21,12 @@ pub fn default_pki() -> Pki {
     Pki { cas }
 }
 
-/// Доверенные корни клиента по умолчанию.
+/// Default trusted roots of the client.
 pub fn default_trust() -> Vec<String> {
     vec!["PublicRootCA".to_string()]
 }
 
-/// Конфигурация TLS-сервера по умолчанию.
+/// Default TLS server configuration.
 pub fn new_tls() -> TlsConfig {
     TlsConfig {
         cert: TlsCert {
@@ -40,7 +40,7 @@ pub fn new_tls() -> TlsConfig {
     }
 }
 
-/// Дни от 1970-01-01 до гражданской даты (алгоритм Хиннанта).
+/// Days from 1970-01-01 to a civil date (Hinnant's algorithm).
 fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
     let y = if m <= 2 { y - 1 } else { y };
     let era = if y >= 0 { y } else { y - 399 } / 400;
@@ -63,7 +63,7 @@ fn civil_from_days(z: i64) -> (i64, i64, i64) {
     (if m <= 2 { y + 1 } else { y }, m, d)
 }
 
-/// «ГГГГ-ММ-ДД» → число дней от начала эпохи; `None` для чего-то иного.
+/// "YYYY-MM-DD" -> number of days since the epoch; `None` for anything else.
 pub fn parse_date(s: &str) -> Option<i64> {
     let b = s.as_bytes();
     if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
@@ -78,7 +78,7 @@ pub fn parse_date(s: &str) -> Option<i64> {
     Some(days_from_civil(y, m, d))
 }
 
-/// Дата через `n` дней после «сегодня» в виде «ГГГГ-ММ-ДД».
+/// Date `n` days after "today" in the form "YYYY-MM-DD".
 pub fn add_days(n: f64) -> String {
     let now = parse_date(NOW).unwrap_or(0);
     let n = if n.is_finite() { n.clamp(-3_000_000.0, 3_000_000.0) } else { 0.0 };
@@ -99,7 +99,7 @@ fn name_matches(pattern: &str, host: &str) -> bool {
     false
 }
 
-/// Итог проверки сертификата клиентом.
+/// Outcome of certificate verification by the client.
 #[derive(Clone, Debug, PartialEq)]
 pub struct TlsVerdict {
     pub ok: bool,
@@ -109,7 +109,7 @@ pub struct TlsVerdict {
     pub lines: Vec<String>,
 }
 
-/// Проверка клиентом `client`: версии, срок, имя, цепочка до доверенного корня.
+/// Verification by `client`: versions, validity, name, chain to a trusted root.
 pub fn validate(state: &NetState, client: &Device, host: &str, tls: &TlsConfig) -> TlsVerdict {
     let default = default_pki();
     let cas = state.pki.as_ref().map(|p| &p.cas).unwrap_or(&default.cas);
@@ -184,7 +184,7 @@ pub fn validate(state: &NetState, client: &Device, host: &str, tls: &TlsConfig) 
     fail(60, i18n::tr("chain too long").into(), lines)
 }
 
-/// Итог HTTPS-запроса.
+/// Outcome of an HTTPS request.
 #[derive(Clone, Debug, Default)]
 pub struct TlsFetchResult {
     pub error: Option<String>,
@@ -193,7 +193,7 @@ pub struct TlsFetchResult {
     pub via: Option<String>,
 }
 
-/// HTTPS-запрос: TCP-проба на порт + проверка TLS + ответ веб-сервера.
+/// HTTPS request: TCP probe to the port + TLS verification + web server response.
 pub fn tls_fetch(state: &mut NetState, dev_id: &str, u: &ParsedUrl, ip: u32, method: &str, headers: &OrdMap<String>) -> TlsFetchResult {
     let mut run = tcp1(state, dev_id, ip, u.port, 50000, true);
     if run.status == ProbeStatus::Refused {
@@ -253,7 +253,7 @@ pub fn tls_fetch(state: &mut NetState, dev_id: &str, u: &ParsedUrl, ip: u32, met
     TlsFetchResult { response: Some(resp), run: Some(run), via: Some(via), error: None }
 }
 
-/// `openssl s_client`: подробный вывод рукопожатия.
+/// `openssl s_client`: verbose handshake output.
 pub fn s_client(state: &mut NetState, dev_id: &str, host: &str, ip: u32, port: i64) -> (String, ProbeRun) {
     let run = tcp1(state, dev_id, ip, port, 50000, false);
     if run.status != ProbeStatus::Connected {

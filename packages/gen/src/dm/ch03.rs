@@ -1,7 +1,7 @@
-//! Дискретная математика, глава 3 («Комбинаторика: перестановки и сочетания»): сцены.
-//! Перенос с `frontend/src/slides/anim/C3*.tsx` (ручная отрисовка на `kit.tsx`) в данные: шаги, подписи и метки `cues` прежние.
-//! Что упрощено: «столбики» (горизонтальные полосы) — ячейки, у которых ширина растёт между кадрами; ступенчатые задержки
-//! появления рядов исчезли (всё в кадре появляется одновременно); двунаправленные стрелки в «Classify» — простые линии.
+//! Discrete mathematics, chapter 3 ("Combinatorics: permutations and combinations"): scenes.
+//! Port of `frontend/src/slides/anim/C3*.tsx` (manual rendering on `kit.tsx`) to data: steps, captions and `cues` marks unchanged.
+//! What was simplified: "bars" (horizontal strips) — cells whose width grows between frames; staggered delays
+//! of row appearance are gone (everything in a frame appears at once); bidirectional arrows in "Classify" — plain lines.
 
 use content::{
     dsl::{arrow, bx, cell, dot, line, path, py, text},
@@ -9,7 +9,7 @@ use content::{
     Frame, SceneSpec, Tone, B, G, M, R, Y,
 };
 
-/// Все сцены главы: имя прежнего компонента — описание.
+/// All chapter scenes: former component name — description.
 pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     vec![
         ("C3Intro", intro()),
@@ -28,39 +28,39 @@ pub fn scenes() -> Vec<(&'static str, SceneSpec)> {
     ]
 }
 
-// --- помощники -----------------------------------------------------------------------------------
+// --- helpers -------------------------------------------------------------------------------------
 
-/// Плашка 20 в высоту с подписью (шрифт 10,5): (x, y) — центр.
+/// Plate 20 high with a label (font 10.5): (x, y) — centre.
 fn pill(id: &str, x: f64, y: f64, w: f64, label: &str, tone: Tone) -> Cell {
     bx(id, x, y, w, 20.0, label).tone(tone).size(10.5)
 }
 
-/// Плашка произвольной высоты и шрифта.
+/// Plate of arbitrary height and font.
 fn pill_hs(id: &str, x: f64, y: f64, w: f64, h: f64, label: &str, tone: Tone, size: f64) -> Cell {
     bx(id, x, y, w, h, label).tone(tone).size(size)
 }
 
-/// Пустая рамка (карточка, панель, ячейка сетки): подписи кладутся поверх отдельными элементами.
+/// Empty frame (card, panel, grid cell): labels are placed on top as separate elements.
 fn panel(id: &str, x: f64, y: f64, w: f64, h: f64, tone: Tone) -> Cell {
     cell(id, x, y, "").w(w).h(h).tone(tone)
 }
 
-/// Приглушённая подпись (шрифт 10 по умолчанию): (x, y) — база строки.
+/// Muted label (font 10 by default): (x, y) — baseline.
 fn cap(id: &str, x: f64, y: f64, label: &str) -> Text {
     text(id, x, y, label)
 }
 
-/// Моноширинная подпись обычным цветом текста.
+/// Monospace label in the regular text colour.
 fn mono(id: &str, x: f64, y: f64, size: f64, label: &str) -> Text {
     text(id, x, y, label).mono().size(size)
 }
 
-/// Моноширинная подпись цветом оттенка.
+/// Monospace label in the tone colour.
 fn monoc(id: &str, x: f64, y: f64, size: f64, label: &str, tone: Tone) -> Text {
     mono(id, x, y, size, label).tone(tone)
 }
 
-/// Горизонтальная полоса от левого края `x`; не выросшая — нулевой ширины и невидимая (в следующем кадре вырастает).
+/// Horizontal bar from the left edge `x`; not yet grown — zero width and invisible (grows in the next frame).
 fn hbar(id: &str, x: f64, y: f64, w: f64, h: f64, tone: Tone, grown: bool) -> Cell {
     if grown {
         panel(id, x + w / 2.0, y, w, h, tone)
@@ -69,17 +69,17 @@ fn hbar(id: &str, x: f64, y: f64, w: f64, h: f64, tone: Tone, grown: bool) -> Ce
     }
 }
 
-/// Кружок-узел без подписи или с номером (радиус 11 — как у прежних точек).
+/// Node circle without a label or with a number (radius 11 — as the former dots).
 fn node(id: &str, x: f64, y: f64, label: &str, tone: Tone) -> Dot {
     dot(id, x, y, label).r(11.0).tone(tone)
 }
 
-/// Линия цвета рамки (прежний `var(--s-border)`).
+/// Line in the frame colour (former `var(--s-border)`).
 fn rule(id: &str, x1: f64, y1: f64, x2: f64, y2: f64) -> Line {
     line(id, x1, y1, x2, y2).tone(Tone::Outline).width(1.2)
 }
 
-/// Число с пробелами между тройками цифр: 1302540 → «1 302 540».
+/// Number with spaces between digit triples: 1302540 → "1 302 540".
 fn group(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();
@@ -96,7 +96,7 @@ fn frames(v: Vec<Frame>) -> Vec<Frame> {
     v
 }
 
-/// Точки правильного многоугольника: центр (cx, cy), радиус r, первая точка сверху.
+/// Points of a regular polygon: centre (cx, cy), radius r, first point at the top.
 fn ring(n: usize, r: f64, cx: f64, cy: f64) -> Vec<(f64, f64)> {
     (0..n)
         .map(|i| {
@@ -106,12 +106,12 @@ fn ring(n: usize, r: f64, cx: f64, cy: f64) -> Vec<(f64, f64)> {
         .collect()
 }
 
-/// Все пары вершин i < j.
+/// All vertex pairs i < j.
 fn all_pairs(n: usize) -> Vec<(usize, usize)> {
     (0..n).flat_map(|i| (i + 1..n).map(move |j| (i, j))).collect()
 }
 
-// --- 1. Введение ---------------------------------------------------------------------------------
+// --- 1. Introduction -----------------------------------------------------------------------------
 
 fn intro() -> SceneSpec {
     let pin = |frame: Frame| {
@@ -170,7 +170,7 @@ fn intro() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 2. Правило суммы ----------------------------------------------------------------------------
+// --- 2. Sum rule ---------------------------------------------------------------------------------
 
 fn sum() -> SceneSpec {
     let groups = |row: bool| {
@@ -223,7 +223,7 @@ fn sum() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 3. Правило произведения ---------------------------------------------------------------------
+// --- 3. Product rule -----------------------------------------------------------------------------
 
 fn product() -> SceneSpec {
     let tree = {
@@ -283,12 +283,12 @@ fn product() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 4. Пространство паролей ---------------------------------------------------------------------
+// --- 4. Password space ---------------------------------------------------------------------------
 
 fn password() -> SceneSpec {
     let lens: Vec<(u32, f64)> = [6u32, 8, 10, 12].iter().map(|&n| (n, n as f64 * 95f64.log10())).collect();
     let cells = |frame: Frame| frame.with_all((0..8).map(|i| cell(format!("sym{i}"), 46.0 + i as f64 * 38.0, 56.0, "95").w(32.0).h(44.0).tone(G).size(14.0)));
-    // полосы длины: `grown` — выросли (иначе нулевой ширины, чтобы вырасти в следующем кадре)
+    // length bars: `grown` — grown (otherwise zero width, to grow in the next frame)
     let lengths = |grown: bool| {
         let mut f = Frame::new();
         for (i, (n, lg)) in lens.iter().enumerate() {
@@ -318,7 +318,7 @@ fn password() -> SceneSpec {
         }
         f
     };
-    // кадр 1 несёт ещё и невыросшие полосы шага 2, кадр 2 — полосы шага 3
+    // frame 1 also carries the ungrown bars of step 2, frame 2 — the bars of step 3
     let with_hidden = |frame: Frame, extra: Frame| frame.with_all(extra.0);
     let hidden_lengths = Frame::new().with_all((0..4).map(|i| hbar(&format!("len{i}"), 72.0, 39.0 + i as f64 * 28.0, lens[i].1 * 9.0, 18.0, G, false)));
     let hidden_phrase = Frame::new().with(hbar("short", 40.0, 61.0, 95.0, 18.0, Y, false)).with(hbar("words", 40.0, 117.0, 200.0, 18.0, G, false));
@@ -353,9 +353,9 @@ fn password() -> SceneSpec {
     .step_ms(2800)
 }
 
-// --- 5. Факториал --------------------------------------------------------------------------------
+// --- 5. Factorial --------------------------------------------------------------------------------
 
-/// Ломаная «порядок числа» для n = 1…15: по горизонтали n, по вертикали lg f(n).
+/// Polyline "order of magnitude" for n = 1…15: n horizontally, lg f(n) vertically.
 fn curve(f: impl Fn(f64) -> f64) -> String {
     let pts: Vec<String> = (1..=15).map(|n| format!("{:.1} {:.1}", 40.0 + n as f64 * 19.0, 140.0 - f(n as f64).log10() * 9.0)).collect();
     format!("M{}", pts.join(" L"))
@@ -375,7 +375,7 @@ fn factorial() -> SceneSpec {
         }
         f.with(monoc("res", 180.0, 126.0, 16.0, "4! = 24", G))
     };
-    // (n, подпись, порядок числа / 12 шириной)
+    // (n, label, order of magnitude / 12 as width)
     let bars: [(u32, &str, f64); 4] = [(5, "120", 2.08), (10, "3,6 · 10⁶", 6.56), (15, "1,3 · 10¹²", 12.12), (20, "2,4 · 10¹⁸", 18.39)];
     let growth = |grown: bool| {
         let mut f = Frame::new();
@@ -422,7 +422,7 @@ fn factorial() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 6. Перестановки -----------------------------------------------------------------------------
+// --- 6. Permutations -----------------------------------------------------------------------------
 
 fn perm() -> SceneSpec {
     let orders = ["abc", "acb", "bac", "bca", "cab", "cba"];
@@ -469,7 +469,7 @@ fn perm() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 7. Размещения -------------------------------------------------------------------------------
+// --- 7. Arrangements -----------------------------------------------------------------------------
 
 fn arrange() -> SceneSpec {
     let question = Frame::new()
@@ -480,7 +480,7 @@ fn arrange() -> SceneSpec {
         .with(pill_hs("no", 296.0, 102.0, 90.0, 20.0, "нет: сочетание", G, 9.5));
     let podium = {
         let mut f = Frame::new();
-        // (подпись места, название, число вариантов, высота ступени над общим основанием)
+        // (place label, title, number of options, step height above the common base)
         for (i, (m, t, n, up)) in [("🥇", "золото", "20", 38.0), ("🥈", "серебро", "19", 24.0), ("🥉", "бронза", "18", 12.0)].iter().enumerate() {
             let x = 98.0 + i as f64 * 88.0;
             let h = 44.0 + up;
@@ -532,11 +532,11 @@ fn arrange() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 8. Сочетания --------------------------------------------------------------------------------
+// --- 8. Combinations -----------------------------------------------------------------------------
 
 fn combine() -> SceneSpec {
     let ord = ["abc", "acb", "bac", "bca", "cab", "cba"];
-    // порядки сливаются в одну точку (128, 56) и гаснут
+    // the orders merge into one point (128, 56) and fade
     let orders = |merged: bool| {
         Frame::new().with_all(ord.iter().enumerate().map(|(i, o)| {
             let (x, y) = if merged { (128.0, 56.0) } else { (70.0 + (i % 3) as f64 * 56.0, 40.0 + (i / 3) as f64 * 34.0) };
@@ -592,7 +592,7 @@ fn combine() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 9. Числа покера -----------------------------------------------------------------------------
+// --- 9. Poker numbers ----------------------------------------------------------------------------
 
 fn poker() -> SceneSpec {
     const CAT: [(&str, u64); 10] = [
@@ -610,7 +610,7 @@ fn poker() -> SceneSpec {
     let tone_of = |i: usize| if i > 6 { R } else { Y };
     let bar_w = |v: u64| (v as f64).log10() * 32.0;
     let hidden_bars = Frame::new().with_all(CAT.iter().enumerate().map(|(i, &(_, v))| hbar(&format!("hb{i}"), 104.0, 20.0 + i as f64 * 14.0, bar_w(v), 10.0, tone_of(i), false)));
-    // колода: на первом шаге — крупная плашка, на втором — сжимается к левому краю
+    // deck: at the first step — a large plate, at the second — shrinks to the left edge
     let all = Frame::new().with(cell("deck", 180.0, 69.0, "2 598 960 рук").w(220.0).h(70.0).size(20.0).tone(G)).with(cap("deck-note", 180.0, 132.0, "C(52, 5) — все возможные руки"));
     let cats = Frame::new()
         .with(cell("deck", 65.0, 74.0, "2 598 960").w(90.0).h(100.0).size(11.0).tone(G))
@@ -661,7 +661,7 @@ fn poker() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 10. Число пар -------------------------------------------------------------------------------
+// --- 10. Number of pairs -------------------------------------------------------------------------
 
 fn pairs() -> SceneSpec {
     let p10 = ring(10, 56.0, 180.0, 84.0);
@@ -715,7 +715,7 @@ fn pairs() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 11. Двойной счёт и классификация ------------------------------------------------------------
+// --- 11. Double counting and classification ------------------------------------------------------
 
 fn classify() -> SceneSpec {
     let dup = {
@@ -766,7 +766,7 @@ fn classify() -> SceneSpec {
     .step_ms(3000)
 }
 
-// --- 12. Сцепки глав -----------------------------------------------------------------------------
+// --- 12. Chapter links ---------------------------------------------------------------------------
 
 fn links() -> SceneSpec {
     let subs = ["ab", "ac", "ad", "bc", "bd", "cd"];
@@ -825,7 +825,7 @@ fn links() -> SceneSpec {
     .step_ms(3000)
 }
 
-/// Строка треугольника Паскаля с номером `n` (с нуля).
+/// Row of Pascal's triangle with number `n` (zero-based).
 fn pascal_row(n: usize) -> Vec<u64> {
     let mut row = vec![1u64];
     for k in 0..n {
@@ -835,10 +835,10 @@ fn pascal_row(n: usize) -> Vec<u64> {
     row
 }
 
-// --- 13. Итог ------------------------------------------------------------------------------------
+// --- 13. Summary ---------------------------------------------------------------------------------
 
 fn recap() -> SceneSpec {
-    // (символ, название, шаг, на котором карточка выступает)
+    // (symbol, title, step at which the card stands out)
     let cards: [(&str, &str, usize); 5] = [("+  ×", "правила", 1), ("n!", "перестановки", 2), ("A", "размещения", 2), ("C", "сочетания", 2), ("C(n,2)", "пары", 2)];
     let at = |step: usize| {
         let mut f = Frame::new();
@@ -876,14 +876,14 @@ fn recap() -> SceneSpec {
     .step_ms(2600)
 }
 
-// --- проверки ------------------------------------------------------------------------------------
+// --- checks --------------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use content::Scene;
 
-    /// Компоненты из импортов `slides/dm/ch03.tsx` по порядку.
+    /// Components from the imports of `slides/dm/ch03.tsx`, in order.
     const COMPONENTS: [&str; 13] =
         ["C3Intro", "C3Sum", "C3Product", "C3Password", "C3Factorial", "C3Perm", "C3Arrange", "C3Combine", "C3Poker", "C3Pairs", "C3Classify", "C3Links", "C3Recap"];
 

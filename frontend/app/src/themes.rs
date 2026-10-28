@@ -1,9 +1,9 @@
-//! Цветовые темы интерфейса и редактора кода (как в VS Code). Сами цвета — `styles/themes.css` (блок `data-palette="<id>"` на `<html>`):
-//! они переопределяют переменные приложения, слайдов и подсветки кода. Здесь — список тем для настроек.
+//! Color themes of the interface and code editor (as in VS Code). The colors themselves are `styles/themes.css` (a `data-palette="<id>"` block on `<html>`):
+//! they override the variables of the app, slides and code highlighting. Here is the theme list for settings.
 
 use crate::settings::Theme;
 
-/// Тема: идентификатор (значение `data-palette`), название и режим (светлая или тёмная).
+/// Theme: identifier (the `data-palette` value), name and mode (light or dark).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Palette {
     pub id: &'static str,
@@ -11,7 +11,7 @@ pub struct Palette {
     pub mode: Theme,
 }
 
-/// Тема по умолчанию: палитра из `app.css`, атрибут `data-palette` на `<html>` не ставится.
+/// Default theme: the palette from `app.css`, the `data-palette` attribute is not set on `<html>`.
 pub const DEFAULT: &str = "default";
 
 pub const PALETTES: &[Palette] = &[
@@ -29,17 +29,17 @@ pub const PALETTES: &[Palette] = &[
     Palette { id: "gruvbox-light", name: "Gruvbox Light", mode: Theme::Light },
 ];
 
-/// Темы одного режима в порядке показа.
+/// Themes of one mode in display order.
 pub fn of_mode(mode: Theme) -> impl Iterator<Item = &'static Palette> {
     PALETTES.iter().filter(move |p| p.mode == mode)
 }
 
-/// Известна ли тема этого режима (защита от устаревшего значения в `localStorage`).
+/// Whether the theme is known for this mode (protection against an outdated value in `localStorage`).
 pub fn is_known(mode: Theme, id: &str) -> bool {
     PALETTES.iter().any(|p| p.mode == mode && p.id == id)
 }
 
-/// Идентификатор для карточки предпросмотра: у тем по умолчанию в `themes.css` свои блоки `default-dark` и `default-light`.
+/// Identifier for the preview card: default themes have their own blocks `default-dark` and `default-light` in `themes.css`.
 pub fn card_id(p: &Palette) -> String {
     match (p.id, p.mode) {
         (DEFAULT, Theme::Dark) => "default-dark".to_string(),
@@ -58,9 +58,9 @@ mod tests {
     fn every_palette_has_a_css_block_for_the_page_and_for_its_card() {
         for p in PALETTES {
             let id = card_id(p);
-            assert!(CSS.contains(&format!(".palette-card[data-palette=\"{id}\"]")), "нет карточки темы {id}");
+            assert!(CSS.contains(&format!(".palette-card[data-palette=\"{id}\"]")), "no card for theme {id}");
             if p.id != DEFAULT {
-                assert!(CSS.contains(&format!(":root[data-palette=\"{id}\"]")), "нет блока темы {id}");
+                assert!(CSS.contains(&format!(":root[data-palette=\"{id}\"]")), "no block for theme {id}");
             }
         }
     }
@@ -72,9 +72,9 @@ mod tests {
             let mut sorted = ids.clone();
             sorted.sort_unstable();
             sorted.dedup();
-            assert_eq!(sorted.len(), ids.len(), "повтор идентификатора в режиме {mode:?}");
-            assert_eq!(ids.first(), Some(&DEFAULT), "первой идёт тема по умолчанию");
-            assert!(ids.len() >= 4, "мало тем в режиме {mode:?}");
+            assert_eq!(sorted.len(), ids.len(), "repeated identifier in mode {mode:?}");
+            assert_eq!(ids.first(), Some(&DEFAULT), "the default theme goes first");
+            assert!(ids.len() >= 4, "too few themes in mode {mode:?}");
         }
     }
 

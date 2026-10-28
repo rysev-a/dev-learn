@@ -1,8 +1,8 @@
-//! Упражнения лаборатории как данные: глава, задача, спецификация проверки.
+//! Lab exercises as data: chapter, task, check specification.
 //!
-//! Файл данных — `backend/data/labs/arch/<книга>-<глава:02>.json` ([`LabChapter`]); поле `spec`
-//! задачи содержит всё, что нужно клиенту и серверу. Эталонное решение (`solution`) бэкенд клиенту
-//! не отдаёт — см. [`Task::for_client`].
+//! Data file — `backend/data/labs/arch/<book>-<chapter:02>.json` ([`LabChapter`]); the task's `spec`
+//! field holds everything the client and the server need. The reference solution (`solution`) is not
+//! sent to the client by the backend — see [`Task::for_client`].
 
 use crate::blocks::{BlockInterface, BlockPort, Dir, Solution};
 use crate::interfaces::Iface;
@@ -10,20 +10,20 @@ use crate::model::{Bit, GateType, InputId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// Номер книги «Архитектура компьютера».
+/// Number of the "Computer Architecture" book.
 pub const ARCH_BOOK: u32 = 14;
 
-/// Один файл данных: глава книги с упражнениями лаборатории.
+/// One data file: a book chapter with lab exercises.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LabChapter {
     pub book: u32,
     pub chapter: u32,
-    /// Всегда `"arch"` для этого крейта.
+    /// Always `"arch"` for this crate.
     pub lab: String,
     pub tasks: Vec<Task>,
 }
 
-/// Упражнение: заголовок, условие, подсказка и спецификация проверки.
+/// Exercise: title, statement, hint and check specification.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
@@ -34,7 +34,7 @@ pub struct Task {
 }
 
 impl Task {
-    /// Копия для клиента: без эталонного решения.
+    /// Copy for the client: without the reference solution.
     pub fn for_client(&self) -> Task {
         let mut t = self.clone();
         match &mut t.spec {
@@ -45,7 +45,7 @@ impl Task {
     }
 }
 
-/// Спецификация упражнения: схема (главы 6–14) или программа ассемблера (глава 15).
+/// Exercise specification: a circuit (chapters 6–14) or an assembler program (chapter 15).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 #[allow(clippy::large_enum_variant)]
@@ -54,75 +54,75 @@ pub enum Spec {
     Asm(AsmSpec),
 }
 
-/// Как проверяется упражнение со схемой.
+/// How a circuit exercise is checked.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Mode {
-    /// Сверка с таблицей истинности.
+    /// Comparison with a truth table.
     Table,
-    /// Пошаговый сценарий (последовательностная схема).
+    /// Step-by-step scenario (sequential circuit).
     Steps,
 }
 
-/// Из чего собирается решение.
+/// What the solution is built from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Build {
-    /// Из вентилей.
+    /// From gates.
     Gates,
-    /// Из готовых блоков, соединённых шинами.
+    /// From ready-made blocks connected by buses.
     Blocks,
 }
 
-/// Один шаг сценария для последовательностных схем.
+/// One scenario step for sequential circuits.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Step {
-    /// Требуемое состояние тумблеров (перечислены все активные входы).
+    /// Required toggle state (all active inputs are listed).
     pub inputs: BTreeMap<InputId, Bit>,
-    /// Ожидаемые значения выходов; выход, которого здесь нет, на этом шаге не проверяется.
+    /// Expected output values; an output missing here is not checked on this step.
     pub expect: BTreeMap<String, Bit>,
-    /// Пояснение шага.
+    /// Step explanation.
     pub text: String,
-    /// Сколько импульсов такта подать до этого шага (по умолчанию один; шаг с CLK = 0 — без такта).
+    /// How many clock pulses to apply before this step (one by default; a step with CLK = 0 — no clock).
     #[serde(default)]
     pub pulses: Option<u32>,
 }
 
-/// Группа узлов упражнения, объединённая в один порт заданного типа.
+/// Group of exercise nodes combined into one port of the given type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PortDecl {
     pub name: String,
     #[serde(rename = "type")]
     pub ty: Iface,
-    /// Узлы упражнения (входы A–F или имена выходов) по порядку бит типа: старший — первый.
+    /// Exercise nodes (inputs A–F or output names) in the type's bit order: most significant first.
     pub nodes: Vec<String>,
 }
 
-/// Решённое упражнение становится блоком с таким id.
+/// A solved exercise becomes a block with this id.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlockMeta {
     pub id: String,
     pub title: String,
 }
 
-/// Упражнение со схемой.
+/// Circuit exercise.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CircuitSpec {
-    /// Раздел (slug из реестра): `simple-circuits`, `mux`, …
+    /// Section (slug from the registry): `simple-circuits`, `mux`, …
     pub section: String,
     pub mode: Mode,
     pub build: Build,
-    /// Входы на доске (физические узлы A–F).
+    /// Inputs on the board (physical nodes A–F).
     pub inputs: Vec<InputId>,
-    /// Подписи входов (по порядку `inputs`); пусто — сами id.
+    /// Input labels (in `inputs` order); empty — the ids themselves.
     #[serde(default)]
     pub labels: Vec<String>,
-    /// Имена выходов на доске.
+    /// Output names on the board.
     pub outputs: Vec<String>,
-    /// Целевая таблица: строк 2^входов, в строке — по значению на каждый выход.
+    /// Target table: 2^inputs rows, each row has a value for every output.
     #[serde(default)]
     pub target: Vec<Vec<Bit>>,
-    /// Какие вентили доступны в палитре.
+    /// Which gates are available in the palette.
     #[serde(default)]
     pub allowed: Vec<GateType>,
     #[serde(default)]
@@ -131,37 +131,37 @@ pub struct CircuitSpec {
     pub ports: Vec<PortDecl>,
     #[serde(default)]
     pub block: Option<BlockMeta>,
-    /// Какие блоки доступны в палитре (для `build = blocks`).
+    /// Which blocks are available in the palette (for `build = blocks`).
     #[serde(default)]
     pub blocks: Vec<String>,
-    /// Какой из входов тактовый.
+    /// Which input is the clock.
     #[serde(default)]
     pub clock: Option<InputId>,
-    /// Шаги достигаются импульсами такта.
+    /// Steps are reached by clock pulses.
     #[serde(default)]
     pub ticks: bool,
-    /// Формула для заголовка после победы.
+    /// Formula for the title after winning.
     pub formula: String,
-    /// Объяснение после победы.
+    /// Explanation after winning.
     pub success: String,
-    /// Эталонное решение — только на сервере.
+    /// Reference solution — server only.
     #[serde(default)]
     pub solution: Option<Solution>,
 }
 
 impl CircuitSpec {
-    /// Подпись входа на доске.
+    /// Input label on the board.
     pub fn label_of(&self, id: InputId) -> String {
         let i = self.inputs.iter().position(|x| *x == id);
         i.and_then(|i| self.labels.get(i).cloned()).unwrap_or_else(|| id.as_str().to_string())
     }
 
-    /// Подписи всех входов по порядку.
+    /// Labels of all inputs in order.
     pub fn labels_or_ids(&self) -> Vec<String> {
         self.inputs.iter().map(|i| self.label_of(*i)).collect()
     }
 
-    /// Интерфейс упражнения: его узлы, сгруппированные в порты (`interfaceOfExercise`).
+    /// Exercise interface: its nodes grouped into ports (`interfaceOfExercise`).
     pub fn interface(&self) -> BlockInterface {
         let inputs: Vec<String> = self.inputs.iter().map(|i| i.as_str().to_string()).collect();
         BlockInterface {
@@ -182,7 +182,7 @@ impl CircuitSpec {
     }
 }
 
-/// Область на диске, которую интерфейс подписывает над сеткой памяти.
+/// Disk area that the interface labels above the memory grid.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DiskRegion {
     pub name: String,
@@ -190,7 +190,7 @@ pub struct DiskRegion {
     pub length: usize,
 }
 
-/// Байты как строка шестнадцатеричных пар (`"00ff"`) — компактно в JSON.
+/// Bytes as a string of hex pairs (`"00ff"`) — compact in JSON.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct HexBytes(pub Vec<u8>);
 
@@ -214,17 +214,17 @@ impl<'de> Deserialize<'de> for HexBytes {
     }
 }
 
-/// Упражнение на ассемблере Мини-8: диск и ожидаемая память после остановки.
+/// Mini-8 assembler exercise: disk and expected memory after halting.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AsmSpec {
-    /// Заготовка программы.
+    /// Program starter.
     pub starter: String,
-    /// Эталонное решение — только на сервере.
+    /// Reference solution — server only.
     #[serde(default)]
     pub solution: String,
-    /// Исходное содержимое диска (256 байт).
+    /// Initial disk contents (256 bytes).
     pub disk: HexBytes,
-    /// Какой должна быть память после остановки (256 байт).
+    /// What the memory must be after halting (256 bytes).
     pub expected: HexBytes,
     pub regions: Vec<DiskRegion>,
 }

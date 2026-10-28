@@ -1,11 +1,11 @@
-//! Процессор RV32IM: регистры, память, периферия. Один «шаг» — одна команда.
+//! RV32IM processor: registers, memory, peripherals. One "step" is one instruction.
 //!
-//! Карта адресов «мягкого» процессора — как в учебной плате на ПЛИС:
-//! * `0x0000_0000 … 0x0000_3FFF` — оперативная память 16 КиБ (команды, данные, стек);
-//! * `0x1000_0000` UART: запись байта — вывод символа; чтение `+4` — «передатчик готов» (1);
-//! * `0x1000_1000` светодиоды: запись — зажечь (младшие 8 бит); чтение — что записано;
-//! * `0x1000_1004` переключатели: чтение — их состояние (8 бит);
-//! * `0x1000_2000` таймер: чтение — число выполненных команд (младшие 32 бита).
+//! Address map of the "soft" processor — as on the educational FPGA board:
+//! * `0x0000_0000 … 0x0000_3FFF` — 16 KiB of RAM (instructions, data, stack);
+//! * `0x1000_0000` UART: writing a byte — output a character; reading `+4` — "transmitter ready" (1);
+//! * `0x1000_1000` LEDs: write — light up (low 8 bits); read — what was written;
+//! * `0x1000_1004` switches: read — their state (8 bits);
+//! * `0x1000_2000` timer: read — number of executed instructions (low 32 bits).
 
 use serde::{Deserialize, Serialize};
 
@@ -13,29 +13,29 @@ use crate::asm::{RAM_SIZE, STACK_TOP};
 use crate::isa::{decode, disassemble, Op};
 use crate::js::hex32;
 
-/// UART: запись байта.
+/// UART: write a byte.
 pub const UART_TX: u32 = 0x1000_0000;
-/// UART: состояние (всегда «готов»).
+/// UART: status (always "ready").
 pub const UART_STATUS: u32 = 0x1000_0004;
-/// Светодиоды.
+/// LEDs.
 pub const LEDS: u32 = 0x1000_1000;
-/// Переключатели.
+/// Switches.
 pub const SWITCHES: u32 = 0x1000_1004;
-/// Таймер: число выполненных команд.
+/// Timer: number of executed instructions.
 pub const TIMER: u32 = 0x1000_2000;
 
-/// Строка справочника по адресам устройств.
+/// Reference row for device addresses.
 #[derive(Clone, Copy, Debug)]
 pub struct MmioRegion {
-    /// название устройства
+    /// device name
     pub name: &'static str,
-    /// адрес устройства
+    /// device address
     pub addr: u32,
-    /// пояснение для справочника
+    /// explanation for the reference
     pub note: &'static str,
 }
 
-/// Устройства, видные программе как обычные адреса.
+/// Devices visible to the program as ordinary addresses.
 pub const MMIO_MAP: &[MmioRegion] = &[
     MmioRegion {
         name: i18n::t!("UART — output"), addr: UART_TX, note: i18n::t!("sb: the written byte appears in the console")
@@ -52,116 +52,116 @@ pub const MMIO_MAP: &[MmioRegion] = &[
     MmioRegion { name: i18n::t!("Timer"), addr: TIMER, note: i18n::t!("lw: how many instructions have been executed so far") },
 ];
 
-/// Лимит шагов по умолчанию для `run` (как в интерфейсе).
+/// Default step limit for `run` (as in the UI).
 pub const DEFAULT_MAX_STEPS: u64 = 1_000_000;
 
-/// Запись в журнале светодиодов: на каком такте и что записали.
+/// LED log entry: on which cycle and what was written.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LedEvent {
-    /// на каком такте (сколько команд уже выполнено)
+    /// on which cycle (how many instructions have been executed)
     pub cycle: u64,
-    /// записанное значение (8 бит)
+    /// written value (8 bits)
     pub value: u8,
 }
 
-/// Снимок состояния машины для проверок и интерфейса.
+/// Snapshot of the machine state for checks and the UI.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct View {
-    /// регистры без знака
+    /// registers, unsigned
     pub regs: Vec<u32>,
-    /// счётчик команд (если он ушёл в отрицательные — как дополнение до 2³²)
+    /// program counter (if it went negative — as two's complement modulo 2³²)
     pub pc: u32,
-    /// память (`RAM_SIZE` байт)
+    /// memory (`RAM_SIZE` bytes)
     pub mem: Vec<u8>,
-    /// сколько команд выполнено
+    /// how many instructions have been executed
     pub steps: u64,
-    /// программа остановилась (ebreak или exit)
+    /// the program has halted (ebreak or exit)
     pub halted: bool,
-    /// код возврата, если программа вызвала exit
+    /// return code, if the program called exit
     pub exit_code: Option<i32>,
-    /// сообщение об ошибке машины, если она сломалась
+    /// machine error message, if it broke
     pub error: Option<String>,
-    /// всё, что программа вывела (UART или write), как текст UTF-8
+    /// everything the program printed (UART or write), as UTF-8 text
     pub uart: String,
-    /// светодиоды: последнее записанное значение
+    /// LEDs: last written value
     pub leds: u8,
-    /// журнал записей в светодиоды
+    /// log of LED writes
     pub led_log: Vec<LedEvent>,
-    /// адрес последнего чтения/записи памяти и какой регистр изменила последняя команда
+    /// address of the last memory read/write and which register the last instruction changed
     pub last_read: Option<u32>,
-    /// адрес последней записи
+    /// address of the last write
     pub last_write: Option<u32>,
-    /// какой регистр изменила последняя команда
+    /// which register the last instruction changed
     pub last_reg: Option<u8>,
-    /// текст последней выполненной команды
+    /// text of the last executed instruction
     pub last_insn: String,
 }
 
-/// Параметры запуска.
+/// Run parameters.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Options {
-    /// положение переключателей
+    /// switch positions
     pub switches: u8,
-    /// с какого адреса начинать
+    /// address to start from
     pub entry: u32,
 }
 
-/// Одна запись трассы: что выполнено и что изменилось.
+/// One trace entry: what was executed and what changed.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TraceStep {
-    /// адрес выполненной команды
+    /// address of the executed instruction
     pub pc: u32,
-    /// её текст
+    /// its text
     pub insn: String,
-    /// адрес последнего чтения памяти или устройства
+    /// address of the last memory or device read
     pub last_read: Option<u32>,
-    /// адрес последней записи
+    /// address of the last write
     pub last_write: Option<u32>,
-    /// какой регистр изменила последняя команда
+    /// which register the last instruction changed
     pub last_reg: Option<u8>,
-    /// регистры после команды
+    /// registers after the instruction
     pub regs: Vec<u32>,
-    /// число выполненных команд после шага
+    /// number of executed instructions after the step
     pub steps: u64,
 }
 
-/// Процессор RV32IM с памятью и периферией.
+/// RV32IM processor with memory and peripherals.
 #[derive(Clone, Debug)]
 pub struct Machine {
-    /// регистры
+    /// registers
     pub regs: [i32; 32],
-    /// память (`RAM_SIZE` байт)
+    /// memory (`RAM_SIZE` bytes)
     pub mem: Vec<u8>,
-    /// счётчик команд
+    /// program counter
     pub pc: i64,
-    /// сколько команд выполнено
+    /// how many instructions have been executed
     pub steps: u64,
-    /// программа остановилась (ebreak или exit)
+    /// the program has halted (ebreak or exit)
     pub halted: bool,
-    /// код возврата, если программа вызвала exit
+    /// return code, if the program called exit
     pub exit_code: Option<i32>,
-    /// сообщение об ошибке машины, если она сломалась
+    /// machine error message, if it broke
     pub error: Option<String>,
-    /// всё, что программа вывела (байты)
+    /// everything the program printed (bytes)
     pub uart: Vec<u8>,
-    /// светодиоды: последнее записанное значение
+    /// LEDs: last written value
     pub leds: u8,
-    /// журнал записей в светодиоды
+    /// log of LED writes
     pub led_log: Vec<LedEvent>,
-    /// положение переключателей (8 бит)
+    /// switch positions (8 bits)
     pub switches: u8,
-    /// адрес последнего чтения памяти или устройства
+    /// address of the last memory or device read
     pub last_read: Option<u32>,
-    /// адрес последней записи
+    /// address of the last write
     pub last_write: Option<u32>,
-    /// какой регистр изменила последняя команда
+    /// which register the last instruction changed
     pub last_reg: Option<u8>,
-    /// текст последней выполненной команды
+    /// text of the last executed instruction
     pub last_insn: String,
 }
 
 impl Machine {
-    /// Машина с образом памяти; `sp` — вершина стека, как задаёт загрузчик.
+    /// Machine with a memory image; `sp` — top of the stack, as set by the loader.
     pub fn new(image: &[u8], opts: Options) -> Machine {
         let mut mem = vec![0u8; RAM_SIZE];
         let n = image.len().min(RAM_SIZE);
@@ -187,14 +187,14 @@ impl Machine {
         }
     }
 
-    /// Положить значение в регистр до запуска (x0 не меняется).
+    /// Put a value into a register before the run (x0 does not change).
     pub fn set_reg(&mut self, reg: u8, value: i32) {
         if reg != 0 && usize::from(reg) < 32 {
             self.regs[usize::from(reg)] = value;
         }
     }
 
-    /// Машина ещё может выполнять команды.
+    /// The machine can still execute instructions.
     pub fn running(&self) -> bool {
         !self.halted && self.error.is_none()
     }
@@ -203,7 +203,7 @@ impl Machine {
         self.error = Some(message);
     }
 
-    /* ---------- память и периферия ---------- */
+    /* ---------- memory and peripherals ---------- */
 
     fn load(&mut self, addr: i64, size: u32) -> Option<u32> {
         let a = addr as u32;
@@ -270,9 +270,9 @@ impl Machine {
         true
     }
 
-    /* ---------- выполнение ---------- */
+    /* ---------- execution ---------- */
 
-    /// Выполнить одну команду (ничего не делает, если машина остановлена или сломана).
+    /// Execute one instruction (does nothing if the machine is halted or broken).
     pub fn step(&mut self) {
         if !self.running() {
             return;
@@ -315,7 +315,7 @@ impl Machine {
             Op::Mulh => result = Some(((i64::from(a) * i64::from(b)) >> 32) as i32),
             Op::Mulhsu => result = Some(((i64::from(a) * i64::from(b as u32)) >> 32) as i32),
             Op::Mulhu => result = Some(((u64::from(a as u32) * u64::from(b as u32)) >> 32) as i32),
-            // деление на ноль даёт −1, переполнение (−2³¹ / −1) — −2³¹ (так задаёт спецификация)
+            // division by zero gives −1, overflow (−2³¹ / −1) gives −2³¹ (as the specification requires)
             Op::Div => result = Some(if b == 0 { -1 } else { a.wrapping_div(b) }),
             Op::Divu => result = Some(if b == 0 { -1 } else { ((a as u32) / (b as u32)) as i32 }),
             Op::Rem => result = Some(if b == 0 { a } else { a.wrapping_rem(b) }),
@@ -432,18 +432,18 @@ impl Machine {
         self.pc = if self.halted { pc } else { next };
     }
 
-    /// Системные вызовы в стиле Linux RISC-V: номер — в a7, аргументы — в a0…a2.
+    /// System calls in the style of Linux RISC-V: number in a7, arguments in a0…a2.
     fn syscall(&mut self) -> bool {
         let n = self.regs[17];
         match n {
             93 => {
-                // exit(код)
+                // exit(code)
                 self.halted = true;
                 self.exit_code = Some(self.regs[10]);
                 true
             }
             64 => {
-                // write(fd, буфер, длина): только fd = 1 (консоль)
+                // write(fd, buffer, length): only fd = 1 (console)
                 if self.regs[10] != 1 {
                     self.fault(i18n::trf!("write: only fd = 1 (console) is supported, but a0 holds {0}", self.regs[10]));
                     return false;
@@ -466,8 +466,8 @@ impl Machine {
         }
     }
 
-    /// Выполнять, пока машина не остановится, но не больше `max_steps` команд.
-    /// Если лимит исчерпан, машина считается сломанной («цикл не заканчивается»).
+    /// Run until the machine halts, but no more than `max_steps` instructions.
+    /// If the limit is exhausted, the machine is considered broken ("the loop does not terminate").
     pub fn run(&mut self, max_steps: u64) {
         let mut left = max_steps;
         while self.running() && left > 0 {
@@ -479,7 +479,7 @@ impl Machine {
         }
     }
 
-    /// То же, что `run`, но с записью трассы: по записи на каждую выполненную команду (не больше `max_trace`).
+    /// Same as `run`, but with a trace: one entry per executed instruction (no more than `max_trace`).
     pub fn run_traced(&mut self, max_steps: u64, max_trace: usize) -> Vec<TraceStep> {
         let mut trace = Vec::new();
         let mut left = max_steps;
@@ -505,14 +505,14 @@ impl Machine {
         trace
     }
 
-    /// Всё, что вывела программа, как текст (неверный UTF-8 заменяется на U+FFFD, начальная метка порядка байтов
-    /// отбрасывается — как у `TextDecoder`).
+    /// Everything the program printed, as text (invalid UTF-8 is replaced with U+FFFD, a leading byte order mark
+    /// is dropped — as with `TextDecoder`).
     pub fn uart_text(&self) -> String {
         let s = String::from_utf8_lossy(&self.uart);
         s.strip_prefix('\u{feff}').map_or_else(|| s.to_string(), str::to_string)
     }
 
-    /// Снимок состояния.
+    /// State snapshot.
     pub fn view(&self) -> View {
         View {
             regs: self.regs.iter().map(|r| *r as u32).collect(),
